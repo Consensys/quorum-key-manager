@@ -1,0 +1,282 @@
+                                                   TERMS OF SERVICE
+
+PLEASE READ THESE TERMS OF SERVICE CAREFULLY. BY ENTERING INTO AN ORDER FORM WITH VENDOR, CUSTOMER EXPRESSLY AGREES TO 
+THESE TERMS AND CONDITIONS.
+
+These Terms of Service constitute an agreement (this “Agreement”) by and between ConsenSys AG, author of Quorum Key
+Manager, a Swiss Corporation whose principal place of business is Gartenstrasse 6, 6300 Zug, CH (“Vendor”) and the
+corporation, LLC, partnership, sole proprietorship, or other business entity executing this Agreement (“Customer”). 
+This Agreement is deemed Accepted effective as of the date Customer specifies in an Order with Vendor (the “Effective 
+Date”). Customer’s use of and Vendor’s provision of Software (as defined below in Section 2) are governed by this 
+Agreement.
+
+TERMS AND CONDITIONS
+
+1. DEFINITIONS. The following capitalized terms shall have the following meanings whenever used in this Agreement.
+  1. “Documentation” means the Software’s standard user manual located at https://docs.quorum-key-manager.pegasys.tech/.
+  2. “Maintenance Term” is defined in Subsection 3.1 below.
+  3. “Order” means an order for access to the System, executed as follows: through an order form executed directly
+   with Vendor.
+  4. “Software” means Vendor’s Quorum Key Manager software, in object code format. Quorum Key Manager, is software
+   that allows users to connect to any type of Ethereum blockchain network (public or private network) in order to 
+   (a) manage Ethereum blockchain transactions, including creating transactions, signing transactions, sending 
+   transactions to the network and post-processing mined transactions; (b) store private keys in secure storage 
+   systems; (c) manage Smart Contracts; and (d) manage Ethereum Accounts.
+  5. “Specifications” means Vendor’s standard specifications for the Software set forth in its then-current 
+   Documentation and at  https://docs.quorum-key-manager.pegasys.tech/.
+  6. “Term” is defined as the Term specified in any Order.
+  7. “Upgrade” means a new versions, updates, or upgrades of the Software, in object code format.
+  
+2. LICENSES & DELIVERY.
+  1. License. Vendor hereby grants Customer a nonexclusive license to reproduce and use the Software during the Term in
+   the volumes specified in any active Order, provided Customer complies with the restrictions set forth in Section 2.2
+   below.
+  2. Restrictions on Software Rights. Copies of the Software created or transferred pursuant to this Agreement are 
+   licensed, not sold, and Customer receives no title to or ownership of any copy or of the Software itself. Furthermore, 
+   Customer receives no rights to the Software other than those specifically granted in Section 2.1 above. Without 
+   limiting the generality of the foregoing, Customer shall not: (a) modify, create derivative works from, distribute, 
+   publicly display, publicly perform, or sublicense the Software; (b) use the Software for service bureau or 
+   time-sharing purposes or in any other way allow third parties to exploit the Software; or (c) reverse engineer, 
+   decompile, disassemble, or otherwise attempt to derive any of the Software’s source code.
+  3.Documentation: Customer may reproduce the Documentation as reasonably necessary to support internal use of the 
+   Software.
+ 
+3. Support and Upgrades.
+  1. Provision of Support. Limited free support is offered through RocketChat. Such support may not cover all issues 
+   encountered. Paid support is available by contacting us at support@pegasys.tech.
+  2. Upgrades. During the Term, Vendor shall provide Customer with copies of all Upgrades, without additional charge,
+   promptly after commercial release. Upon delivery to Customer, each Upgrade will constitute an element of the 
+   Software and will thereafter be subject to this Agreement’s terms regarding Software, including without limitation
+   license, warranty, and indemnity terms.
+  
+4. FEES & REIMBURSEMENT. 
+
+  1. Subscription Fees. Customer shall pay Vendor the fee set forth in each Order (the “Subscription Fee”) for each
+   Term. Vendor’s invoices are due within 30 days of issuance. For late payment, Customer shall pay interest charges 
+   from the time the payment was due at the rate that is the lower of 1.5% per month or the highest rate permissible 
+   under applicable law. 
+  2. Taxes. Amounts due under this Agreement are payable to Vendor without deduction and are net of any tax, tariff, 
+   duty, or assessment imposed by any government authority (national, state, provincial, or local), including without 
+   limitation any sales, use, excise, ad valorem, property, withholding, or value added tax withheld at the source. If 
+   applicable law requires withholding or deduction of such taxes or duties, Customer shall separately pay Vendor the 
+   withheld or deducted amount. However, the prior two sentences do not apply to taxes based on Vendor’s net income.
+  
+5. IP & FEEDBACK.
+  1. IP Rights in the Software. Vendor retains all right, title, and interest in and to the Documentation and Software, 
+   including without limitation Upgrades, except to the extent of the limited licenses specifically set forth in 
+   Sections 2.1 (Licenses) and 2.3 (Documentation). Customer recognizes that the Software and its components are 
+   protected by copyright and other laws.
+  2. Feedback. Customer hereby grants Vendor a perpetual, irrevocable, worldwide license to use any Feedback (as 
+   defined below) Customer communicates to Vendor during the Term, without compensation, without any obligation to 
+   report on such use, and without any other restriction. Vendor’s rights granted in the previous sentence include, 
+   without limitation, the right to exploit Feedback in any and every way, as well as the right to grant sublicenses. 
+   Notwithstanding the provisions of Article 6 (Confidential Information) below, Feedback will not be considered 
+   Customer’s Confidential Information. (“Feedback” refers to any suggestion or idea for modifying any of Vendor’s 
+   products or services, including without limitation all intellectual property rights in any such suggestion or idea.)
+
+6. CONFIDENTIAL INFORMATION. 
+  1. Confidential Information Defined. “Confidential Information” refers to the following one party to this Agreement 
+   (“Discloser”) discloses to the other (“Recipient”): (a) any document Discloser marks “Confidential”; (b) any 
+   information Discloser orally designates as “Confidential” at the time of disclosure, provided Discloser confirms such 
+   designation in writing within 30 business days; (c) the non-public features and functions of the Software, for which 
+   Vendor is Discloser; and (d) any other nonpublic, sensitive information Recipient should reasonably consider a trade 
+   secret or otherwise confidential. Notwithstanding the foregoing, Confidential Information does not include 
+   information that: (i) is in Recipient’s possession at the time of disclosure; (ii) is independently developed by 
+   Recipient without use of or reference to Confidential Information; (iii) becomes known publicly, before or after 
+   disclosure, other than as a result of Recipient’s improper action or inaction; or (iv) is approved for release in 
+   writing by Discloser. Recipient is on notice that the Confidential Information may include Discloser’s valuable trade 
+   secrets.
+  2. Nondisclosure. Recipient shall not use Confidential Information for any purpose other than to facilitate the 
+   transactions contemplated by this Agreement (the “Purpose”). Recipient: (a) shall not disclose Confidential 
+   Information to any employee or contractor of Recipient unless such person needs access in order to facilitate the 
+   Purpose and executes a nondisclosure agreement with Recipient with terms no less restrictive than those of this 
+   Article 6; and (b) shall not disclose Confidential Information to any other third party without Discloser’s prior 
+   written consent. Without limiting the generality of the foregoing, Recipient shall protect Confidential Information 
+   with the same degree of care it uses to protect its own confidential information of similar nature and importance, 
+   but with no less than reasonable care. Recipient shall promptly notify Discloser of any misuse or misappropriation 
+   of Confidential Information that comes to Recipient’s attention. Notwithstanding the foregoing, Recipient may disclose 
+   Confidential Information as required by applicable law or by proper legal or governmental authority. Recipient shall 
+   give Discloser prompt notice of any such legal or governmental demand and reasonably cooperate with Discloser in any 
+   effort to seek a protective order or otherwise to contest such required disclosure, at Discloser’s expense.
+  3. Injunction. Recipient agrees that breach of this Article 6 would cause Discloser irreparable injury, for which 
+   monetary damages would not provide adequate compensation, and that in addition to any other remedy, Discloser will 
+   be entitled to injunctive relief against such breach or threatened breach, without proving actual damage or posting 
+   a bond or other security.
+  4. Termination & Return. With respect to each item of Confidential Information, the obligations of Section 6.2 above 
+   (Nondisclosure) will terminate three years after the date of disclosure; provided that such obligations related to 
+   Confidential Information constituting Discloser’s trade secrets shall continue so long as such information remains 
+   subject to trade secret protection pursuant to applicable law. Upon termination of this Agreement, Recipient shall 
+   return all copies of Confidential Information to Discloser or certify, in writing, the destruction thereof.
+  5. Retention of Rights. This Agreement does not transfer ownership of Confidential Information or grant a license 
+   thereto. Discloser will retain all right, title, and interest in and to all Confidential Information.
+  6. Exception & Immunity. Pursuant to the Defend Trade Secrets Act of 2016, 18 USC Section 1833(b) (the “DTSA”), 
+   Recipient is on notice and acknowledges that, notwithstanding the foregoing or any other provision of this Agreement:
+    a. IMMUNITY. An individual shall not be held criminally or civilly liable under any Federal or State trade secret 
+     law for the disclosure of a trade secret that- (A) is made- (i) in confidence to a Federal, State, or local 
+     government official, either directly or indirectly, or to an attorney; and (ii) solely for the purpose of reporting 
+     or investigating a suspected violation of law; or (B) is made in a complaint or other document filed in a lawsuit or 
+     other proceeding, if such filing is made under seal.
+    b. USE OF TRADE SECRET INFORMATION IN ANTI-RETALIATION LAWSUIT. An individual who files a lawsuit for retaliation 
+     by an employer for reporting a suspected violation of law may disclose the trade secret to the attorney of the 
+     individual and use the trade secret information in the court proceeding, if the individual- (A) files any document 
+     containing the trade secret under seal; and (B) does not disclose the trade secret, except pursuant to court order.
+ 
+7. SOFTWARE AUDIT. During the Term of this Agreement and at any time during the 180 days thereafter, Vendor may audit 
+ Customer’s use of Licensed Software on 30 days’ advance written notice. Customer shall cooperate with the audit, 
+ including by providing access to any books, computers, records, or other information that relate or may relate to use 
+ of Licensed Software. Such audit shall not unreasonably interfere with Customer’s business activities. If Vendor 
+ discovers unauthorized use, reproduction, distribution, or other exploitation of Licensed Software, in excess of 110% 
+ of the copies or fees that would have applied to authorized exploitation, Customer shall reimburse Vendor for the 
+ reasonable cost of the audit, or of the next audit in case of discovery without an audit, in addition to such other 
+ rights and remedies as Vendor may have. Vendor may not conduct an audit more than once per year.
+  
+8.  REPRESENTATIONS & WARRANTIES. 
+ 1. From Vendor. 
+    a. Re Function. Vendor represents and warrants that, during the Term, the Software will perform materially as 
+     described in its Specifications.
+    b. Re IP Rights in the Software. Subject to the next sentence, Vendor represents and warrants that it is the owner 
+     of the Software and of each and every component thereof, or the recipient of a valid license thereto, and that it 
+     has and will maintain the full power and authority to grant the intellectual property rights to the Software set 
+     forth in this Agreement without the further consent of any third party. Vendor’s representations and warranties in 
+     the preceding sentence do not apply to the extent that the infringement arises out of any of the conditions listed 
+     in Subsections 9.1(a) through 9.1(e) below. In the event of a breach of the warranty in this Subsection 8.1(b), 
+     Vendor, at its own expense, will promptly take the following actions: (i) secure for Customer the right to continue 
+     using the Software; or (ii) replace or modify the Software to make it noninfringing, provided such modification or 
+     replacement will not materially degrade any functionality listed in the Specifications. In conjunction with Customer’s 
+     right to terminate for breach where applicable and the provisions of Section 9.1 below (Indemnified Claims), the 
+     preceding sentence states Vendor’s sole obligation and liability, and Customer’s sole remedy, for breach of the 
+     warranty in this Subsection 8.1(b) and for potential or actual intellectual property infringement by the Software.
+  2. From Both Parties. Each party represents and warrants that it has the full right and authority to enter into, 
+    execute, and perform its obligations under this Agreement and that no pending or threatened claim or litigation 
+    known to it would have a material adverse impact on its ability to perform as required by this Agreement.
+  3. Warranty Disclaimers. Except for the express warranties in Sections 8.1 and 8.2 above, VENDOR MAKES NO WARRANTIES, 
+   EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS FOR A 
+   PARTICULAR PURPOSE. Vendor does not warrant that the Software will perform without error or that it will run without 
+   immaterial interruption. Vendor provides no warranty regarding, and will have no responsibility for, any claim arising 
+   out of: (a) a modification of the Software made by anyone other than Vendor, unless Vendor approves such modification 
+   in writing; or (b) use of the Software in combination with any operating system not authorized in the Specifications 
+   or Documentation or with hardware or software specifically forbidden by the Specifications or Documentation.
+  
+9. INDEMNIFICATION. 
+  1. Indemnified Claims. Vendor shall defend and indemnify Customer and Customer’s Associates (as defined below) against 
+   any “Indemnified Claim,” meaning any third party claim, suit, or proceeding arising out of, related to, or alleging 
+   direct infringement of any patent, copyright, trade secret, or other intellectual property right by the Software. 
+   Vendor’s obligations set forth in this Section 9.1 do not apply to the extent that an Indemnified Claim arises out of: 
+   (a) Customer’s breach of this Agreement; (b) revisions to the Software made without Vendor’s written consent; 
+   (c) Customer’s failure to incorporate Upgrades that would have avoided the alleged infringement, provided Vendor offered 
+   such Upgrades without charges not otherwise required pursuant to this Agreement; (d) Vendor’s modification of Software in 
+   compliance with specifications provided by Customer; or (e) use of the Software in combination with hardware or software 
+   not provided by Vendor. In the event of an Indemnified Claim, Vendor may exercise the remedies in Subsections 
+   8.1(b)(i) through 8.1(b)(ii) above. (As used in this Article 9, Customer’s “Associates” are its officers, directors, 
+   shareholders, parents, subsidiaries, agents, successors, and assigns.)
+  2. Litigation & Additional Terms. Vendor’s obligations pursuant to Section 10.1 above will be excused to the extent 
+   that Customer’s or any of Customer’s Associates’ failure to provide prompt notice of the Indemnified Claim or reasonably 
+   to cooperate materially prejudices the defense. Vendor will control the defense of any Indemnified Claim, including 
+   appeals, negotiations, and any settlement or compromise thereof; provided Customer will have the right, not to be 
+   exercised unreasonably, to reject any settlement or compromise that requires that it admit wrongdoing or liability or 
+   subjects it to any ongoing affirmative obligations.
+  
+10. LIMITATION OF LIABILITY. 
+
+  1. Dollar Cap. VENDOR’S CUMULATIVE LIABILITY FOR ALL CLAIMS ARISING OUT OF OR RELATED TO THIS AGREEMENT WILL NOT EXCEED
+   THE GREATER OF $50,000 DOLLARS OR THE AMOUNT CUSTOMER HAS PAID TO VENDOR IN THE TWELFTH MONTHS PRECEDING THE DATE OF ANY
+   CLAIM.
+  2. Excluded Damages. Except with regard to breaches of Article 6 (Confidential Information), IN NO EVENT WILL VENDOR BE 
+   LIABLE FOR LOST PROFITS OR LOSS OF BUSINESS OR FOR ANY CONSEQUENTIAL, INDIRECT, SPECIAL, INCIDENTAL, OR PUNITIVE DAMAGES 
+   ARISING OUT OF OR RELATED TO THIS AGREEMENT.
+  3. Clarifications & Disclaimers. THE LIABILITIES LIMITED BY THIS ARTICLE 10 APPLY: (a) TO LIABILITY FOR NEGLIGENCE; 
+   (b) REGARDLESS OF THE FORM OF ACTION, WHETHER IN CONTRACT, TORT, STRICT PRODUCT LIABILITY, OR OTHERWISE; (c) EVEN IF 
+   VENDOR IS ADVISED IN ADVANCE OF THE POSSIBILITY OF THE DAMAGES IN QUESTION AND EVEN IF SUCH DAMAGES WERE FORESEEABLE; 
+   AND (d) EVEN IF CUSTOMER’S REMEDIES FAIL OF THEIR ESSENTIAL PURPOSE. If applicable law limits the application of the 
+   provisions of this Article 10, Vendor’s liability will be limited to the maximum extent permissible. For the avoidance 
+   of doubt, Vendor’s liability limits and other rights set forth in this Article 11 apply likewise to Vendor’s affiliates, 
+   licensors, suppliers, advertisers, agents, sponsors, directors, officers, employees, consultants, and other 
+   representatives.
+  4. Exceptions to Limitation of Liability. Sections 10.1 (Dollar Cap) and 10.2 (Excluded Damages) above do not apply to: 
+   (a) claims pursuant to Article 9 above (Indemnification); or (b) claims for attorneys’ fees and other litigation costs 
+   recoverable by the prevailing party in any action.
+  
+11. Term & Termination.
+  1. Term. This Agreement will remain in effect for _____ from the Effective Date (the “Term”). Thereafter, the Term will 
+   renew for successive _____ periods, unless either party refuses such renewal by written notice 30 or more days before 
+   the end of the current Term
+  2. Termination for Cause. Either party may terminate this Agreement for the other’s material breach by written notice 
+   specifying in detail the nature of the breach, effective in 30 days unless the other party first cures such breach, 
+   or effective immediately if the breach is not subject to cure.
+  3. Effects of Termination. Upon termination of this Agreement, Customer shall cease all use of the Software and delete, 
+   destroy, or return all copies of the Documentation in its possession or control. The following provisions will survive 
+   termination or expiration of this Agreement: (a) any obligation of Customer to pay fees incurred before termination; 
+   (b) Articles and Sections 2.2 (Restrictions on Software Rights) 5 (IP & Feedback), 6 (Confidential Information), 
+   7 (Software Audit), 8.2 (Warranty Disclaimers), 9 (Indemnification), and 10 (Limitation of Liability); and (c) any 
+   other provision of this Agreement that must survive to fulfill its essential purpose.
+  
+12. MISCELLANEOUS.
+  1. Independent Contractors. The parties are independent contractors and will so represent themselves in all regards. 
+   Neither party is the agent of the other, and neither may make commitments on the other’s behalf.
+  2. Notices. Notices pursuant to this Agreement shall be sent to the addresses below, or to such others as either party 
+   may provide in writing. Such notices will be deemed received at such addresses upon the earlier of (a) actual receipt 
+   or (b) delivery in person, by fax with written confirmation of receipt, or by certified mail return receipt requested. 
+   For Vendor: notices@consensys.net, or C/O PegaSys Legal 49 Bogart St Suite 22, Brooklyn, NY 11206.
+  3. Force Majeure. No delay, failure, or default, other than a failure to pay fees when due, will constitute a breach 
+   of this Agreement to the extent caused by acts of war, terrorism, hurricanes, earthquakes, other acts of God or of 
+   nature, strikes or other labor disputes, riots or other acts of civil disorder, embargoes, or other causes beyond the 
+   performing party’s reasonable control.
+  4. Assignment & Successors. Customer may not assign this Agreement or any of its rights or obligations hereunder without 
+   Vendor’s express written consent. Except to the extent forbidden in this Section 12.4, this Agreement will be binding 
+   upon and inure to the benefit of the parties’ respective successors and assigns.
+  5. Severability. To the extent permitted by applicable law, the parties hereby waive any provision of law that would 
+   render any clause of this Agreement invalid or otherwise unenforceable in any respect. In the event that a provision 
+   of this Agreement is held to be invalid or otherwise unenforceable, such provision will be interpreted to fulfill its 
+   intended purpose to the maximum extent permitted by applicable law, and the remaining provisions of this Agreement will 
+   continue in full force and effect.
+  6. No Waiver. Neither party will be deemed to have waived any of its rights under this Agreement by lapse of time or by 
+   any statement or representation other than by an authorized representative in an explicit written waiver. No waiver of 
+   a breach of this Agreement will constitute a waiver of any other breach of this Agreement.
+  7. U.S. Government Restricted Rights. The Software and Documentation are commercial items, as that term is defined in 
+   48 CFR 2.101, consisting of commercial computer software and commercial computer software documentation, as those terms 
+   are used in 48 CFR 12.212. If the Software or Documentation is acquired by or on behalf of the U.S. government or by a 
+   U.S. government contractor (including without limitation prime contractors and subcontractors at any tier), then in 
+   accordance with 48 CFR 227.7202-4 (for Department of Defense licenses only) and 48 CFR 12.212 (for licenses with all 
+   federal government agencies), the government’s rights to the Software and Documentation are limited to the commercial 
+   rights specifically granted in this Agreement, as restricted by this Agreement. The rights limited by the preceding 
+   sentence include, without limitation, any rights to reproduce, modify, perform, display, disclose, release, or 
+   otherwise use the Software or Documentation. This Section 12.7 does not grant Customer any rights not specifically set 
+   forth in this Agreement.
+  8. Bankruptcy Rights. The rights and licenses granted to Customer in Sections 2.1 (License) and 2.3 (Documentation) 
+   (collectively, the “License Provisions”) are licenses to “intellectual property” rights, as defined in Section 365(n) 
+   of the United States Bankruptcy Code (11 U.S.C. Sections 101, et seq.). If Vendor is subject to any proceeding under 
+   the United States Bankruptcy Code, and Vendor as debtor in possession or its trustee in bankruptcy rejects this 
+   Agreement, Customer may, pursuant to 11 U.S.C. Section 365(n)(1) and (2), retain any and all rights granted to it under 
+   the License Provisions to the maximum extent permitted by law. This Section 12.8 will not be construed to limit or 
+   restrict any right or remedy not set forth in this Section 12.8, including without limitation the right to retain any 
+   license or authority this Agreement grants pursuant to any provision other than the License Provisions.
+  9. Choice of Law & Arbitration: This Agreement will be governed solely by the internal laws of the State of New York 
+   including without limitation applicable federal law, without reference to: (a) any conflicts of law principle that would 
+   apply the substantive laws of another jurisdiction to the parties’ rights or duties; (b) the 1980 United Nations 
+   Convention on Contracts for the International Sale of Goods; or (c) other international laws. Any claim, dispute, or 
+   controversy (“Claim”) arising out of or relating to this Agreement or the relationships among the parties hereto shall 
+   be resolved by one arbitrator through binding arbitration conducted in accordance with the expedited procedures set 
+   forth in the JAMS Comprehensive Arbitration Rules and Procedures (the “Rules”) as those Rules exist on the effective 
+   date of this Agreement, including Rules 16.1 and 16.2 of those Rules. The arbitrator’s decision shall be final, 
+   binding, and non-appealable. Judgment upon the award may be entered and enforced in any court having jurisdiction. 
+   This clause is made pursuant to a transaction involving interstate commerce and shall be governed by the Federal 
+   Arbitration Act. Neither party shall sue the other party other than as provided herein or for enforcement of this 
+   clause or of the arbitrator’s award; any such suit may be brought only in a Federal District Court or a New York state 
+   court located in New York County, New York. The arbitrator, and not any federal, state, or local court, shall have 
+   exclusive authority to resolve any dispute relating to the interpretation, applicability, unconscionability, 
+   arbitrability, enforceability, or formation of this Agreement including any claim that all or any part of the Agreement 
+   is void or voidable.
+  10. Technology Export. Customer shall not: (a) permit any third party to access or use the Software in violation of any 
+   U.S. law or regulation; or (b) export the Software or otherwise remove it from the United States except in compliance 
+   with all applicable U.S. laws and regulations. Without limiting the generality of the foregoing, Customer shall not 
+   permit any third party to access or use the Software in, or export it to, a country subject to a United States embargo 
+   (as of the Effective Date, Cuba, Iran, North Korea, Sudan, and Syria).
+  11. Entire Agreement. This Agreement sets forth the entire agreement of the parties and supersedes all prior or 
+   contemporaneous writings, negotiations, and discussions with respect to its subject matter. Neither party has relied 
+   upon any such prior or contemporaneous communications.
+  12. Execution in Counterparts. This Agreement may be executed in one or more counterparts. Each counterpart will be an 
+   original, but all such counterparts will constitute a single instrument. The Customer may also execute this Agreement 
+   electronically through acceptance of these Terms of Service through “Click-Wrap” consent.
+  13. Amendment. This Agreement may not be amended except through a written agreement by authorized representatives of 
+   each party.
+

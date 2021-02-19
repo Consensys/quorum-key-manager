@@ -1,0 +1,55 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+__pycache__
+bin/
+vendor/
+.env
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Coverage
+coverage.html
+*.cov.tmp
+
+# Jetbrains files
+.DS_Store
+.idea
+*.iml
+.idea_modules/
+
+# Build
+build/
+cmake-build-*/
+
+# File-based project format
+*.iws
+*.ipr
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Go packages and sources:
+.gocache
+
+# Visual Code Studio
+.vscode
+
+# Cucumber report
+tests/report/node_modules
+tests/report/output/report.html
+tests/report/output/report.json
+
+# API Doc
+combined-schema.json
+swagger-combine.yml
+redoc-static.html
+node_modules
+package-lock.json
