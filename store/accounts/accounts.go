@@ -3,9 +3,9 @@ package accounts
 import (
 	"context"
 
-	"github.com/ConsenSys/quorum-signer/ethereum"
-	"github.com/ConsenSys/quorum-signer/store"
-	"github.com/ConsenSys/quorum-signer/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/ethereum"
+	"github.com/ConsenSysQuorum/quorum-key-manager/store"
+	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
 type Store interface {

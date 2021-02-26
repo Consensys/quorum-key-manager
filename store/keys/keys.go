@@ -3,8 +3,8 @@ package keys
 import (
 	"context"
 
-	"github.com/ConsenSys/quorum-signer/store"
-	"github.com/ConsenSys/quorum-signer/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/store"
+	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
 // Store is responsible to store keys and perform crypto operations

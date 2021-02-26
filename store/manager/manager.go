@@ -3,8 +3,8 @@ package manager
 import (
 	"context"
 
-	"github.com/ConsenSys/quorum-signer/manifest"
-	"github.com/ConsenSys/quorum-signer/store"
+	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
+	"github.com/ConsenSysQuorum/quorum-key-manager/store"
 )
 
 // Manager allows to manage multiple stores

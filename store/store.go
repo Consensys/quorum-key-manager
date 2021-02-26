@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	"github.com/ConsenSys/quorum-signer/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
 // Store is responsible to store items
