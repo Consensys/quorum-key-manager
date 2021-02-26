@@ -6,13 +6,12 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/keys"
-	"github.com/ConsenSysQuorum/quorum-key-manager/store/secrets"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
 var NotImplementedError = fmt.Errorf("not implemented")
 
-// Store is an accounts store that relyies on an underlying secp256k1 compatible keys store
+// [DRAFT] Store is an accounts store that relyies on an underlying secp256k1 compatible keys store
 type Store struct {
 	keys     keys.Store
 	addrToID map[string]string
@@ -120,4 +119,3 @@ func (s *Store) handleError(err error, addr string) error {
 	// TODO: to be implemented
 	return err
 }
-
