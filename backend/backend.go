@@ -2,6 +2,7 @@ package backend
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/audit"
+	noopauditor "github.com/ConsenSysQuorum/quorum-key-manager/audit/noop"
 	policymanager "github.com/ConsenSysQuorum/quorum-key-manager/auth/policy/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/store/manager"
@@ -21,4 +22,16 @@ type Backend interface {
 
 	// Auditor returns the PolicyManager
 	Auditor() audit.Auditor
+}
+
+type BaseBackend struct {
+	auditor audit.Auditor
+}
+
+func New() *BaseBackend {
+	bckend := &BaseBackend{
+		auditor: noopauditor.New(),
+	}
+
+	return bckend
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// Auditor allows to audit
+// Auditor allows to audit Key-Manager operations
 type Auditor interface {
 	// StartOperation synchronously persists a starting operation, this is done after authentication succeeded but before the operation is executed
 	StartOperation(context.Context, *Operation) error
@@ -16,7 +16,5 @@ type Auditor interface {
 	Get(ctx context.Context, id string) (*Operation, error)
 
 	// Lookup queries operations
-
-	// There should
 	Lookup(ctx context.Context, sel *Selector, count int, skip int) ([]*Operation, error)
 }
