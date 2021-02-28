@@ -2,8 +2,6 @@ package policy
 
 import (
 	"fmt"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
 // Policy is a set of permissions to perform actions
@@ -41,9 +39,9 @@ func (p PolicyType) String() string {
 
 type Policies map[PolicyType][]*Policy
 
-func (policies *Policies) IsStoreAuthorized(info *types.StoreInfo) error {
+func (policies *Policies) IsStoreAuthorized(storeName string) error {
 	for _, policy := range (*policies)[PolicyTypeStore] {
-		if err := policy.Endorsement.(*StoreEndorsement).IsAuthorized(info); err == nil {
+		if err := policy.Endorsement.(*StoreEndorsement).IsAuthorized(storeName); err == nil {
 			return nil
 		}
 	}
