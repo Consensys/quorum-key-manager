@@ -16,3 +16,4 @@ func (e *StoreEndorsement) IsAuthorized(storeName string) error {
 	// - More advanced implementation can consider some regexp
 	return fmt.Errorf("not implemented error")
 }
+

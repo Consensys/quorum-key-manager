@@ -45,3 +45,5 @@ func (auth *Auth) IsJSONRPCAuthorized(method string) error {
 
 	return fmt.Errorf("not authorized")
 }
+
+
