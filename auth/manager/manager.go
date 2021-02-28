@@ -3,7 +3,7 @@ package policymanager
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/auth/policy"
+	"github.com/ConsenSysQuorum/quorum-key-manager/auth"
 	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
 )
 
@@ -12,6 +12,6 @@ type Manager interface {
 	// Load policies from manifest messages
 	Load(ctx context.Context, mnfsts ...*manifest.Message) error
 
-	// Get policies for given client id and metadata
-	Get(ctx context.Context, id string, metadata map[string]string) ([]*policy.Policy, error)
+	// Get auth for given client id, policies and metadata
+	Get(ctx context.Context, id string, policies []string, metadata map[string]string) (*auth.Auth, error)
 }

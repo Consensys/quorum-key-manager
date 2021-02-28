@@ -1,9 +1,5 @@
 package auth
 
-import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/auth/policy"
-)
-
 // Auth is a piece of authentication information attached to every client request after
 // authentication succeeded (e.g. JWT based auth, Mutual TLS auth, etc.)
 
@@ -15,7 +11,7 @@ type Auth struct {
 	ID string
 
 	// Policies associated with the authenticated client
-	Policies policy.Policies
+	Policies Policies
 
 	// Metadata is arbitrary string-type metadata
 	Metadata map[string]string

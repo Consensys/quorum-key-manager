@@ -1,4 +1,4 @@
-package policy
+package auth
 
 import (
 	"fmt"
@@ -44,4 +44,3 @@ func (e *JSONRPCEndorsement) IsAuthorized(method string) error {
 
 	return fmt.Errorf("not authorized error")
 }
-

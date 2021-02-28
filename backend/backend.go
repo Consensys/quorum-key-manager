@@ -3,7 +3,7 @@ package backend
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/audit"
 	noopauditor "github.com/ConsenSysQuorum/quorum-key-manager/audit/noop"
-	policymanager "github.com/ConsenSysQuorum/quorum-key-manager/auth/policy/manager"
+	authmanager "github.com/ConsenSysQuorum/quorum-key-manager/auth/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/store/manager"
 )
@@ -17,8 +17,8 @@ type Backend interface {
 	// ManifestLoader returns the Manifest Loader
 	ManifestLoader() manifest.Loader
 
-	// PolicyManager returns the PolicyManager
-	PolicyManager() policymanager.Manager
+	// AuthManager returns the PolicyManager
+	AuthManager() authmanager.Manager
 
 	// Auditor returns the PolicyManager
 	Auditor() audit.Auditor

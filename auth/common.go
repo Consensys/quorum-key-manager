@@ -2,8 +2,6 @@ package auth
 
 import (
 	"fmt"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/auth/policy"
 )
 
 var SystemID = "system"
@@ -11,22 +9,22 @@ var SystemID = "system"
 // SystemAuth is a default Auth for system action
 var SystemAuth = &Auth{
 	ID: SystemID,
-	Policies: map[policy.PolicyType][]*policy.Policy{
-		policy.PolicyTypeJSONRPC: []*policy.Policy{
+	Policies: map[PolicyType][]*Policy{
+		PolicyTypeJSONRPC: []*Policy{
 			SystemJSONRPCPolicy,
 		},
-		policy.PolicyTypeStore: []*policy.Policy{
+		PolicyTypeStore: []*Policy{
 			SystemStorePolicy,
 		},
 	},
 }
 
-var SystemJSONRPCPolicy = &policy.Policy{
+var SystemJSONRPCPolicy = &Policy{
 	Name: fmt.Sprintf("%v.jsonrpc", SystemID),
-	Type: policy.PolicyTypeJSONRPC,
-	Endorsement: &policy.JSONRPCEndorsement{
-		Scopes: []*policy.JSONRPCScope{
-			&policy.JSONRPCScope{
+	Type: PolicyTypeJSONRPC,
+	Endorsement: &JSONRPCEndorsement{
+		Scopes: []*JSONRPCScope{
+			&JSONRPCScope{
 				Service: "*",
 				Method:  "*",
 			},
@@ -34,10 +32,10 @@ var SystemJSONRPCPolicy = &policy.Policy{
 	},
 }
 
-var SystemStorePolicy = &policy.Policy{
+var SystemStorePolicy = &Policy{
 	Name: fmt.Sprintf("%v.store", SystemID),
-	Type: policy.PolicyTypeJSONRPC,
-	Endorsement: &policy.StoreEndorsement{
+	Type: PolicyTypeJSONRPC,
+	Endorsement: &StoreEndorsement{
 		Names: []string{"*"},
 	},
 }
