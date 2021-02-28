@@ -7,7 +7,7 @@ import (
 	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/api/jsonrpc"
 	keysapi "github.com/ConsenSysQuorum/quorum-key-manager/api/keys"
 	secretsapi "github.com/ConsenSysQuorum/quorum-key-manager/api/secrets"
-	"github.com/ConsenSysQuorum/quorum-key-manager/app/backend"
+	"github.com/ConsenSysQuorum/quorum-key-manager/backend"
 	"github.com/gorilla/mux"
 )
 

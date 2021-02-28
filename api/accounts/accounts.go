@@ -3,7 +3,7 @@ package accountsapi
 import (
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/app/backend"
+	"github.com/ConsenSysQuorum/quorum-key-manager/backend"
 )
 
 // New creates a http.Handler to be served on /accounts

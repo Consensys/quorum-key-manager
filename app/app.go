@@ -4,7 +4,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/app/backend"
+	"github.com/ConsenSysQuorum/quorum-key-manager/backend"
 )
 
 // App is the main Key Manager application object
