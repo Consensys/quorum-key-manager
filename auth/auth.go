@@ -1,9 +1,11 @@
 package auth
 
-// Auth is the information attached to every client request after authentication succeeded (e.g. JWT based auth, Mutual TLS auth, etc.)
+// Auth is the piece information attached to every client request after
+// authentication succeeded (e.g. JWT based auth, Mutual TLS auth, etc.)
 
-// This is attached to context so it can flow to every core components to base to perform 
-// authentication checks (e.g. JSON-RPC methods checks, store access check, etc.)
+// It shoud be computed by an authentication middleware responsible to validate authentication
+// and then attach Auth to the request context so it can flow to sub-sequent components
+// that can perform authorization/permissions checks (e.g. JSON-RPC methods checks, store access check, etc.)
 type Auth struct {
 	// ID of the authenticated client
 	ID string
