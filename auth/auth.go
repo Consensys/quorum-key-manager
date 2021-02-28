@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/auth/policy"
 )
 
@@ -17,7 +15,7 @@ type Auth struct {
 	ID string
 
 	// Policies associated with the authenticated client
-	Policies map[policy.PolicyType][]*policy.Policy
+	Policies policy.Policies
 
 	// Metadata is arbitrary string-type metadata
 	Metadata map[string]string
@@ -25,25 +23,3 @@ type Auth struct {
 	// Raw is JSON-encodable data that is stored with the auth struct (e.g. JWT Token)
 	Raw map[string]interface{}
 }
-
-func (auth *Auth) IsStoreAuthorized(storeName string) error {
-	for _, plcy := range auth.Policies[policy.PolicyTypeStore] {
-		if err := plcy.Endorsement.(*policy.StoreEndorsement).IsAuthorized(storeName); err == nil {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("not authorized")
-}
-
-func (auth *Auth) IsJSONRPCAuthorized(method string) error {
-	for _, plcy := range auth.Policies[policy.PolicyTypeJSONRPC] {
-		if err := plcy.Endorsement.(*policy.JSONRPCEndorsement).IsAuthorized(method); err == nil {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("not authorized")
-}
-
-

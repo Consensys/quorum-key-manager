@@ -1,5 +1,11 @@
 package policy
 
+import (
+	"fmt"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
+)
+
 // Policy is a set of permissions to perform actions
 
 // Each client request has a particular set of policies
@@ -31,4 +37,26 @@ func (p PolicyType) String() string {
 	default:
 		return "unknown"
 	}
+}
+
+type Policies map[PolicyType][]*Policy
+
+func (policies *Policies) IsStoreAuthorized(info *types.StoreInfo) error {
+	for _, policy := range (*policies)[PolicyTypeStore] {
+		if err := policy.Endorsement.(*StoreEndorsement).IsAuthorized(info); err == nil {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("not authorized")
+}
+
+func (policies *Policies) IsJSONRPCAuthorized(method string) error {
+	for _, plcy := range (*policies)[PolicyTypeJSONRPC] {
+		if err := plcy.Endorsement.(*JSONRPCEndorsement).IsAuthorized(method); err == nil {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("not authorized")
 }
