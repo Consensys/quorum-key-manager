@@ -4,6 +4,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/audit"
 	noopauditor "github.com/ConsenSysQuorum/quorum-key-manager/audit/noop"
 	authmanager "github.com/ConsenSysQuorum/quorum-key-manager/auth/manager"
+	noopauthmanager "github.com/ConsenSysQuorum/quorum-key-manager/auth/manager/noop"
 	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/store/manager"
 )
@@ -25,12 +26,14 @@ type Backend interface {
 }
 
 type BaseBackend struct {
-	auditor audit.Auditor
+	auditor     audit.Auditor
+	authManager authmanager.Manager
 }
 
 func New() *BaseBackend {
 	bckend := &BaseBackend{
-		auditor: noopauditor.New(),
+		auditor:     noopauditor.New(),
+		authManager: noopauthmanager.New(),
 	}
 
 	return bckend
