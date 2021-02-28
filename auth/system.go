@@ -41,3 +41,6 @@ var SystemStorePolicy = &policy.Policy{
 		Names: []string{"*"},
 	},
 }
+
+// NotAuthenticatedAuth is a default Auth which has no policy attached to it
+var NotAuthenticatedAuth = &Auth{ID: "not-authenticated"}

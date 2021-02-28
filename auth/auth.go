@@ -4,7 +4,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/auth/policy"
 )
 
-// Auth is a piece a contextual auth information attached to every client request after
+// Auth is a piece of authentication information attached to every client request after
 // authentication succeeded (e.g. JWT based auth, Mutual TLS auth, etc.)
 
 // It shoud be generates by an authentication middleware responsible to validate authentication
