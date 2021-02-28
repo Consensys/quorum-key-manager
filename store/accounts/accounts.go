@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/store"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
 type Store interface {
-	store.Store
+	// Info returns store information
+	Info(context.Context) *types.StoreInfo
 
 	// Create an account
 	Create(ctx context.Context, attr *types.Attributes) (*types.Account, error)

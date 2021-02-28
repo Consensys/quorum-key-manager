@@ -3,7 +3,6 @@ package keys
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/store"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
@@ -11,7 +10,8 @@ import (
 
 // Keys should be stored under path matching regex pattern: ^[0-9a-zA-Z-]+$
 type Store interface {
-	store.Store
+	// Info returns store information
+	Info(context.Context) *types.StoreInfo
 
 	// Create a new key and stores it
 	Create(ctx context.Context, id string, alg *types.Algo, attr *types.Attributes) (*types.Key, error)

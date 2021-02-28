@@ -3,7 +3,6 @@ package secrets
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/store"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/types"
 )
 
@@ -11,7 +10,8 @@ import (
 
 // Store should be stored under file path matching regex pattern: ^[0-9a-zA-Z-]+$
 type Store interface {
-	store.Store
+	// Info returns store information
+	Info(context.Context) *types.StoreInfo
 
 	// Set secret
 	Set(ctx context.Context, id string, value []byte, attr *types.Attributes) (*types.Metadata, error)
