@@ -26,15 +26,33 @@ type Backend interface {
 }
 
 type BaseBackend struct {
-	auditor     audit.Auditor
-	authManager authmanager.Manager
+	auditor    audit.Auditor
+	authMngr   authmanager.Manager
+	storeMnger storemanager.Manager
+	loader     manifest.Loader
 }
 
 func New() *BaseBackend {
 	bckend := &BaseBackend{
-		auditor:     noopauditor.New(),
-		authManager: noopauthmanager.New(),
+		auditor:  noopauditor.New(),
+		authMngr: noopauthmanager.New(),
 	}
 
 	return bckend
+}
+
+func (bckend *BaseBackend) StoreManager() storemanager.Manager {
+	return bckend.storeMnger
+}
+
+func (bckend *BaseBackend) ManifestLoader() manifest.Loader {
+	return bckend.loader
+}
+
+func (bckend *BaseBackend) AuthManager() authmanager.Manager {
+	return bckend.authMngr
+}
+
+func (bckend *BaseBackend) Auditor() audit.Auditor {
+	return bckend.auditor
 }
