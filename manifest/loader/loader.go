@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/auth"
+	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
 )
 
 // Message wraps a manifest with information related to the Loader that loaded it
@@ -10,7 +11,7 @@ type Message struct {
 	Loader string
 
 	// Manifest loaded
-	Manifest *Manifest
+	Manifest *manifest.Manifest
 
 	// Auth attach to the manifest when loading
 	Auth *auth.Auth
