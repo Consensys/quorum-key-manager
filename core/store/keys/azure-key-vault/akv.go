@@ -1,7 +1,10 @@
 package akvkeys
 
 import (
+	"context"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
 )
 
 // Store is a key store connected to Azure Key Vault
@@ -11,12 +14,25 @@ type Store struct {
 	cfg *Config
 }
 
+// New create a new Key Store connected to Azure Key Vault
+// It delegates all crypto-operations to AKV
+func New(cfg *Config) (*Store, error) {
+	akv := keyvault.New()
 
+	// TODO: prepare client from configuration
+
+	return &Store{
+		cfg: cfg,
+		akv: akv,
+	}, nil
+}
+
+// Create a new key and stores it
 func (s *AKVKeyStore) Create(ctx context.Context, id string, alg *types.Algo, attr *types.Attributes) (*types.Key, error) {
 	params := keyvault.KeyCreateParameters{
 		// TODO: compute keyvault.KeyCreateParameters from alg and attr
 	}
-	
+
 	// Create key on AKV
 	keyBundle, err := s.akv.Create(ctx, s.cfg.VaultBaseURL, id, params)
 	if err != nil {
@@ -30,10 +46,11 @@ func (s *AKVKeyStore) Create(ctx context.Context, id string, alg *types.Algo, at
 	return key, err
 }
 
+// Sign from a digest using the specified key
 func (s *AKVKeyStore) Sign(ctx context.Context, id string, data []byte, version int) ([]byte, error) {
-	v :=  string(data)
+	v := string(data)
 	params := keyvault.KeySignParameters{
-		// TODO: compute keyvault.KeySignParameters 
+		// TODO: compute keyvault.KeySignParameters
 		Value: &v,
 	}
 
