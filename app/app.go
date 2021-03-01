@@ -4,8 +4,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/api"
-	"github.com/ConsenSysQuorum/quorum-key-manager/backend"
+	"github.com/ConsenSysQuorum/quorum-key-manager/app/api"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core"
 )
 
 // App is the main Key Manager application object
@@ -17,11 +17,11 @@ type App struct {
 	httpServer *http.Server
 
 	// backend managing core backend components
-	backend backend.Backend
+	backend core.Backend
 }
 
 func New() *App {
-	bckend := backend.New()
+	bckend := core.New()
 
 	server := &http.Server{
 		Handler: api.New(bckend),
