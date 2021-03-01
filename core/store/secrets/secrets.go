@@ -14,7 +14,7 @@ type Store interface {
 	Info(context.Context) *types.StoreInfo
 
 	// Set secret
-	Set(ctx context.Context, id string, value []byte, attr *types.Attributes) (*types.Metadata, error)
+	Set(ctx context.Context, id string, value []byte, attr *types.Attributes) (*types.Secret, error)
 
 	// Get a secret
 	Get(ctx context.Context, id string, version int) (*types.Secret, error)
@@ -40,3 +40,6 @@ type Store interface {
 	// Destroy secret permanenty
 	Destroy(ctx context.Context, id string, versions ...int) error
 }
+
+// StoreWrapper is a function that wraps a Store into another Store adding some features (such as auditing, authentication, instrumentation, etc.)
+type StoreWrapper func(Store) Store
