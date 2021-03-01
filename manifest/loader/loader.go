@@ -1,4 +1,4 @@
-package manifest
+package manifestloader
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/auth"
