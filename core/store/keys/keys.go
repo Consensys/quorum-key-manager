@@ -44,7 +44,7 @@ type Store interface {
 	Destroy(ctx context.Context, id string, versions ...int) error
 
 	// Sign from a digest using the specified key
-	Sign(ctx context.Context, id string, data []byte) ([]byte, error)
+	Sign(ctx context.Context, id string, data []byte, version int) ([]byte, error)
 
 	// Verify a signature using a specified key
 	Verify(ctx context.Context, id string, data []byte) (*types.Metadata, error)
