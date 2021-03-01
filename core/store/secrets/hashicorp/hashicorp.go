@@ -77,6 +77,6 @@ func (s *Store) Get(ctx context.Context, id string, version int) (*types.Secret,
 
 func FromHashicorpSecret(secret *api.Secret) *types.Secret {
 	return &types.Secret{
-		// TODO: compute secret from hashicorpSecret
+		// TODO: compute secret from hashicorp api.Secret
 	}
 }
