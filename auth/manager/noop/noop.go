@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/auth"
-	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
+	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/manifest/loader"
 )
 
 // Manager is a no operation auth manager
@@ -15,7 +15,7 @@ func New() *Manager {
 }
 
 // Load policies from manifest messages
-func (mngr *Manager) Load(_ context.Context, _ ...*manifest.Message) error {
+func (mngr *Manager) Load(_ context.Context, _ ...*manifestloader.Message) error {
 	return nil
 }
 

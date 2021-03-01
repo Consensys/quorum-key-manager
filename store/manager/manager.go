@@ -3,7 +3,7 @@ package manager
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/manifest"
+	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/manifest/loader"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/store/secrets"
@@ -13,7 +13,7 @@ import (
 type Manager interface {
 	// Load manifests and performs associated actions (such as creating stores)
 	// If any error occurs it is attached to the corresponding Message
-	Load(ctx context.Context, mnfsts ...*manifest.Message)
+	Load(ctx context.Context, mnfsts ...*manifestloader.Message)
 
 	// GetSecretStore by name
 	GetSecretStore(ctx context.Context, name string) (secrets.Store, error)
