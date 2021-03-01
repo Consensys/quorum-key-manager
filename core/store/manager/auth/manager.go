@@ -1,4 +1,4 @@
-package auditedmanager
+package authenticatedmanager
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager"

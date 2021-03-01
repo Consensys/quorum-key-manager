@@ -85,7 +85,7 @@ func (s *Store) Sign(ctx context.Context, addr string, data []byte) (sig []byte,
 		return nil, err
 	}
 
-	sig, err = s.keys.Sign(ctx, id, data)
+	sig, err = s.keys.Sign(ctx, id, data, 0)
 	if err != nil {
 		return nil, s.handleError(err, addr)
 	}
@@ -100,7 +100,7 @@ func (s *Store) SignHomestead(ctx context.Context, addr string, tx *ethereum.Tra
 		return nil, err
 	}
 
-	sig, err = ethereum.HomesteadSign(tx, func(data []byte) ([]byte, error) { return s.keys.Sign(ctx, id, data) })
+	sig, err = ethereum.HomesteadSign(tx, func(data []byte) ([]byte, error) { return s.keys.Sign(ctx, id, data, 0) })
 	if err != nil {
 		return nil, s.handleError(err, addr)
 	}

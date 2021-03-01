@@ -1,6 +1,8 @@
 package manifestloader
 
 import (
+	"fmt"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/auth"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/manifest"
 )
@@ -21,6 +23,13 @@ type Message struct {
 
 	// Err while loading manifest
 	Err error
+}
+
+func (msg *Message) UnmarshalSpecs(specs interface{}) {
+	err := msg.Manifest.UnmarshalSpecs(specs)
+	if err != nil {
+		msg.Err = fmt.Errorf("invalid specs format: %v", err)
+	}
 }
 
 // Loader loads and broadcast manifests

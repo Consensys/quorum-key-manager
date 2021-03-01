@@ -14,8 +14,15 @@ var opPrefix = "accounts."
 
 // [DRAFT] Store wraps an account store and make its auditable
 type Store struct {
-	accountsStore accounts.Store
-	auditor       audit.Auditor
+	accounts accounts.Store
+	auditor  audit.Auditor
+}
+
+func Wrap(store accounts.Store, auditor audit.Auditor) *Store {
+	return &Store{
+		accounts: store,
+		auditor:  auditor,
+	}
 }
 
 // Create an account
@@ -36,7 +43,7 @@ func (s *Store) Create(ctx context.Context, attr *types.Attributes) (*types.Acco
 	_ = s.auditor.StartOperation(ctx, op)
 
 	// execute operation
-	account, err := s.accountsStore.Create(ctx, attr)
+	account, err := s.accounts.Create(ctx, attr)
 
 	// enrich operation data with results
 	op.EndTime = time.Now()

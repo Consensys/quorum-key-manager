@@ -1,6 +1,7 @@
 package types
 
 type Account struct {
+	// Address
 	Address string
 
 	// Attr

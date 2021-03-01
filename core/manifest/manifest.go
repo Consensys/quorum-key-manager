@@ -21,3 +21,7 @@ type Manifest struct {
 	// Specs specifications of a store
 	Specs json.RawMessage `json:"specs"`
 }
+
+func (mnfst *Manifest) UnmarshalSpecs(specs interface{}) error {
+	return json.Unmarshal(mnfst.Specs, specs)
+}
