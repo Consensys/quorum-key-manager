@@ -6,8 +6,8 @@ import (
 	authmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/auth/manager"
 	noopauthmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/auth/manager/noop"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager"
+	authenticatedmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager/auth"
 	basemanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager/base"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/auth"
 )
 
 // Backend holds internal Key Manager components and
@@ -34,15 +34,18 @@ type BaseBackend struct {
 }
 
 func New() *BaseBackend {
+	// Create auditor
 	auditor := noopauditor.New()
 
-	bckend := &BaseBackend{
-		auditor:  auditor,
-		authMngr: noopauthmanager.New(),
-		storeMnger: basemanager.New(auditor),
-	}
+	// Create store manager
+	storeMngr := basemanager.New(auditor)
+	storeMngr = authenticatedmanager.Wrap(storeMngr)
 
-	return bckend
+	return &BaseBackend{
+		auditor:    auditor,
+		authMngr:   noopauthmanager.New(),
+		storeMnger: storeMngr,
+	}
 }
 
 func (bckend *BaseBackend) StoreManager() storemanager.Manager {
