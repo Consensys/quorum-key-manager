@@ -1,9 +1,5 @@
 package auth
 
-import (
-	"fmt"
-)
-
 // Policy is a set of permissions to perform actions
 
 // Each client request has a particular set of policies
@@ -18,6 +14,8 @@ type Policy struct {
 	Endorsement interface{}
 }
 
+type Policies map[PolicyType][]*Policy
+
 type PolicyType uint32
 
 const (
@@ -31,30 +29,8 @@ func (p PolicyType) String() string {
 	case PolicyTypeJSONRPC:
 		return "jsonrpc"
 	case PolicyTypeStore:
-		return "rgp"
+		return "store"
 	default:
 		return "unknown"
 	}
-}
-
-type Policies map[PolicyType][]*Policy
-
-func (policies *Policies) IsStoreAuthorized(storeName string) error {
-	for _, policy := range (*policies)[PolicyTypeStore] {
-		if err := policy.Endorsement.(*StoreEndorsement).IsAuthorized(storeName); err == nil {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("not authorized")
-}
-
-func (policies *Policies) IsJSONRPCAuthorized(method string) error {
-	for _, plcy := range (*policies)[PolicyTypeJSONRPC] {
-		if err := plcy.Endorsement.(*JSONRPCEndorsement).IsAuthorized(method); err == nil {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("not authorized")
 }

@@ -6,7 +6,6 @@ import (
 	authmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/auth/manager"
 	noopauthmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/auth/manager/noop"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager"
-	authenticatedmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager/auth"
 	basemanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager/base"
 )
 
@@ -39,7 +38,6 @@ func New() *BaseBackend {
 
 	// Create store manager
 	storeMngr := basemanager.New(auditor)
-	storeMngr = authenticatedmanager.Wrap(storeMngr)
 
 	return &BaseBackend{
 		auditor:    auditor,

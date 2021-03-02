@@ -44,3 +44,13 @@ func (e *JSONRPCEndorsement) IsAuthorized(method string) error {
 
 	return fmt.Errorf("not authorized error")
 }
+
+func (policies *Policies) IsJSONRPCAuthorized(method string) error {
+	for _, plcy := range (*policies)[PolicyTypeJSONRPC] {
+		if err := plcy.Endorsement.(*JSONRPCEndorsement).IsAuthorized(method); err == nil {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("not authorized")
+}
