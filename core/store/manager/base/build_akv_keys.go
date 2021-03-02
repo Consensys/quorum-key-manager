@@ -6,6 +6,7 @@ import (
 	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
 	auditedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/audit"
+	authenticatedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/auth"
 	baseaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/base"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
 	akvkeys "github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys/azure-key-vault"
@@ -14,8 +15,9 @@ import (
 
 // AKVKeysSpecs is the specs format for an Azure Key Vault key store
 type AKVKeysSpecs struct {
-	AKV     *akvkeys.Config `json:"akv"`
-	Audited bool            `json:"audited"`
+	AKV           *akvkeys.Config `json:"akv"`
+	Audited       bool            `json:"audited"`
+	Authenticated bool            `json:"authenticated"`
 }
 
 func (mngr *Manager) BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
@@ -31,6 +33,11 @@ func (mngr *Manager) BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys
 	// Instrument account store with auditing capabilities
 	if specs.Audited {
 		accountsStore = auditedaccounts.NewInstrument(mngr.auditor).Apply(accountsStore)
+	}
+
+	// Instrument account store with authentication capabilities
+	if specs.Authenticated {
+		accountsStore = authenticatedaccounts.NewInstrument().Apply(accountsStore)
 	}
 
 	// TODO: returning nil there is concerning, probably
