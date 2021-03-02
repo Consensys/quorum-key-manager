@@ -12,21 +12,31 @@ import (
 
 var opPrefix = "accounts."
 
-// [DRAFT] Store wraps an account store and make its auditable
-type Store struct {
+type Instrument struct {
+	auditor audit.Auditor
+}
+
+func NewInstrument(auditor audit.Auditor) *Instrument {
+	return &Instrument{
+		auditor: auditor,
+	}
+}
+
+func (i *Instrument) Apply(s accounts.Store) accounts.Store {
+	return &store{
+		accounts: s,
+		auditor:  i.auditor,
+	}
+}
+
+// [DRAFT] store instruments an account store with audit capabilities
+type store struct {
 	accounts accounts.Store
 	auditor  audit.Auditor
 }
 
-func Wrap(store accounts.Store, auditor audit.Auditor) *Store {
-	return &Store{
-		accounts: store,
-		auditor:  auditor,
-	}
-}
-
 // Create an account
-func (s *Store) Create(ctx context.Context, attr *types.Attributes) (*types.Account, error) {
+func (s *store) Create(ctx context.Context, attr *types.Attributes) (*types.Account, error) {
 	// create operation object
 	// TODO: Can probably be improved by relying extracting already existing operation from context
 	// TODO: Auth should be extracted from context

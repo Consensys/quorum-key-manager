@@ -8,13 +8,25 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
 )
 
-// Store instruments an account store with authorization capabilities
-type Store struct {
+type Instrument struct{}
+
+func NewInstrument() *Instrument {
+	return &Instrument{}
+}
+
+func (i *Instrument) Apply(s accounts.Store) accounts.Store {
+	return &store{
+		accounts: s,
+	}
+}
+
+// store instruments an account store with authorization capabilities
+type store struct {
 	accounts accounts.Store
 }
 
 // Create an account
-func (s *Store) Create(ctx context.Context, attr *types.Attributes) (*types.Account, error) {
+func (s *store) Create(ctx context.Context, attr *types.Attributes) (*types.Account, error) {
 	authInfo := auth.AuthFromContext(ctx)
 	if err := authInfo.Policies.IsStoreAuthorized(s.accounts.Info(ctx)); err != nil {
 		return nil, err
@@ -24,7 +36,7 @@ func (s *Store) Create(ctx context.Context, attr *types.Attributes) (*types.Acco
 }
 
 // Sign from a digest using the specified account
-func (s *Store) Sign(ctx context.Context, addr string, data []byte) (sig []byte, err error) {
+func (s *store) Sign(ctx context.Context, addr string, data []byte) (sig []byte, err error) {
 	authInfo := auth.AuthFromContext(ctx)
 	if err := authInfo.Policies.IsStoreAuthorized(s.accounts.Info(ctx)); err != nil {
 		return nil, err

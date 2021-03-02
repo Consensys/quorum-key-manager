@@ -55,3 +55,9 @@ type Store interface {
 	// Decrypt a single block of encrypted data.
 	Decrypt(ctx context.Context, id string, data []byte) (*types.Metadata, error)
 }
+
+// Instrument allows to instrument a Store with some extra capabilities
+// such as authentication, auditing, etc.
+type Instrument interface {
+	Apply(Store) Store
+}

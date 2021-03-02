@@ -1,4 +1,4 @@
-package defaultaccounts
+package baseaccounts
 
 import (
 	"context"

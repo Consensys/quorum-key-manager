@@ -4,9 +4,12 @@ import (
 	"context"
 
 	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
 	auditedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/audit"
-	defaultaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/default"
+	baseaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/base"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
 	localkeys "github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys/local"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
 	hashicorpsecrets "github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets/hashicorp"
 )
 
@@ -16,7 +19,7 @@ type HashicorpSecretSpecs struct {
 	Audited   bool                     `json:"audited"`
 }
 
-func BuildHashicorpSecretStores(specs *HashicorpSecretSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
+func (mngr *Manager) BuildHashicorpSecretStores(specs *HashicorpSecretSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
 	// Creates Hasicorp secrets store from specs config
 	secretsStore, err := hashicorpsecrets.New(specs.Hashicorp)
 	if err != nil {
@@ -27,13 +30,13 @@ func BuildHashicorpSecretStores(specs *HashicorpSecretSpecs) (secrets.Store, key
 	keysStore := localkeys.New(secretsStore)
 
 	// Mount key store into an account store
-	accountsStore := defaultaccounts.NewStore(keysStore)
+	accountsStore := baseaccounts.NewStore(keysStore)
 
-	// Wraps account store with auditing capabilities
+	// Instrument account store with auditing capabilities
 	if specs.Audited {
-		accountsStore = auditedaccounts.Wrap(accountsStore)
+		accountsStore = auditedaccounts.NewInstrument(mngr.auditor).Apply(accountsStore)
 	}
-	
+
 	return secretsStore, keysStore, accountsStore, nil
 }
 
@@ -46,12 +49,12 @@ func (mngr *Manager) loadHashicorpSecrets(ctx context.Context, msg *manifestload
 		return
 	}
 
-	secretsStore, keysStore, accountsStore, err := BuildHashicorpSecretStores(specs)
+	secretsStore, keysStore, accountsStore, err := mngr.BuildHashicorpSecretStores(specs)
 	if err != nil {
 		msg.Err = nil
 		return
 	}
-	
+
 	// TODO: if the store is common.Runnable, it should be started now
 
 	// setStores on manager for later access

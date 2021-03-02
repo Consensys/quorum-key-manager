@@ -6,7 +6,7 @@ import (
 	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
 	auditedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/audit"
-	defaultaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/default"
+	baseaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/base"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
 	akvkeys "github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys/azure-key-vault"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
@@ -18,7 +18,7 @@ type AKVKeysSpecs struct {
 	Audited bool            `json:"audited"`
 }
 
-func BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
+func (mngr *Manager) BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
 	// Creates AKV keys store from specs config
 	keysStore, err := akvkeys.New(specs.AKV)
 	if err != nil {
@@ -26,11 +26,11 @@ func BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys.Store, accounts
 	}
 
 	// Mount key store into an account store
-	accountsStore := defaultaccounts.NewStore(keysStore)
+	accountsStore := baseaccounts.NewStore(keysStore)
 
-	// Wraps account store with auditing capabilities
+	// Instrument account store with auditing capabilities
 	if specs.Audited {
-		accountsStore = auditedaccounts.Wrap(accountsStore)
+		accountsStore = auditedaccounts.NewInstrument(mngr.auditor).Apply(accountsStore)
 	}
 
 	// TODO: returning nil there is concerning, probably
@@ -48,7 +48,7 @@ func (mngr *Manager) loadAKVKeys(ctx context.Context, msg *manifestloader.Messag
 		return
 	}
 
-	secretsStore, keysStore, accountsStore, err := BuildAKVKeyStores(specs)
+	secretsStore, keysStore, accountsStore, err := mngr.BuildAKVKeyStores(specs)
 	if err != nil {
 		msg.Err = nil
 		return

@@ -41,5 +41,8 @@ type Store interface {
 	Destroy(ctx context.Context, id string, versions ...int) error
 }
 
-// StoreWrapper is a function that wraps a Store into another Store adding some features (such as auditing, authentication, instrumentation, etc.)
-type StoreWrapper func(Store) Store
+// Instrument allows to instrument a Store with some extra capabilities
+// such as authentication, auditing, etc.
+type Instrument interface {
+	Apply(Store) Store
+}
