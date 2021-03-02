@@ -17,11 +17,13 @@ type Store struct {
 
 // New creates an hasicorp secret store
 func New(cfg *Config) (*Store, error) {
+	// Create Hashicorp client
 	hashicorp, err := api.NewClient(nil)
 	if err != nil {
 		return nil, err
 	}
 
+	// Set client config from cfg
 	err = hashicorp.SetAddress(cfg.Addr)
 	if err != nil {
 		return nil, err
@@ -30,12 +32,14 @@ func New(cfg *Config) (*Store, error) {
 	hashicorp.SetNamespace(cfg.Namespace)
 	hashicorp.SetToken(cfg.Token)
 
+	// Return store
 	return &Store{
 		hashicorp: hashicorp,
 		cfg:       cfg,
 	}, nil
 }
 
+// path compute path from hashicorp mount
 func (s *Store) path(id string) string {
 	return path.Join(s.cfg.Mount, id)
 }

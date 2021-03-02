@@ -19,7 +19,7 @@ type Store struct {
 func New(cfg *Config) (*Store, error) {
 	akv := keyvault.New()
 
-	// TODO: prepare client from configuration
+	// TODO: prepare client from cfg
 
 	return &Store{
 		cfg: cfg,
