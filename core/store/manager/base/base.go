@@ -12,12 +12,17 @@ import (
 )
 
 type Manager struct {
-	mux sync.RWLock
-	secrets  map[string]secrets.Store
-	keys     map[string]keys.Store
-	accounts map[string]accounts.Store
+	mux    sync.RWLock
+	stores map[string]*storeBundle
 
 	auditor audit.Auditor
+}
+
+type storeBundle struct {
+	msg      *manifestloader.Message
+	secrets  secrets.Store
+	keys     keys.Store
+	accounts accounts.Store
 }
 
 func New(auditor audit.Auditor) *Manager {
@@ -46,11 +51,14 @@ func (mngr *Manager) loadMessage(ctx context.Context, msg *manifestloader.Messag
 	}
 }
 
-func (mngr *Manager) setStores(name string, secretsStore secrets.Store, keysStore keys.Store, accountsStore accounts.Store) {
+func (mngr *Manager) setStores(msg *manifestloader.Message, secretsStore secrets.Store, keysStore keys.Store, accountsStore accounts.Store) {
 	mngr.mux.Lock()
-	mngr.secrets[name] = secretsStore
-	mngr.keys[name] = keysStore
-	mngr.accounts[name] = accountsStore
+	mngr.stores[name] = &storeBundle{
+		msg:      msg,
+		secrets:  secretsStore,
+		keys:     keysStore,
+		accounts: accountsStore,
+	}
 	mngr.mux.Unlock()
 }
 
@@ -58,34 +66,46 @@ func (mngr *Manager) GetSecretStore(ctx context.Context, name string) (secrets.S
 	mngr.mux.RLock()
 	defer mngr.mux.RUnlock()
 
-	s, ok := mngr.secrets[name]
+	s, ok := mngr.stores[name]
 	if !ok {
 		return nil, fmt.Errorf("store not found")
 	}
-	
-	return s, nil
+
+	if s.msg.Err != nil {
+		return nil, s.msg.Err
+	}
+
+	return s.secrets, nil
 }
 
 func (mngr *Manager) GetKeyStore(ctx context.Context, name string) (keys.Store, error) {
 	mngr.mux.RLock()
 	defer mngr.mux.RUnlock()
-	
-	s, ok := mngr.keys[name]
+
+	s, ok := mngr.stores[name]
 	if !ok {
 		return nil, fmt.Errorf("store not found")
 	}
 
-	return s, nil
+	if s.msg.Err != nil {
+		return nil, s.msg.Err
+	}
+
+	return s.keys, nil
 }
 
 func (mngr *Manager) GetAccountStore(ctx context.Context, name string) (accounts.Store, error) {
 	mngr.mux.RLock()
 	defer mngr.mux.RUnlock()
-	
-	s, ok := mngr.accounts[name]
+
+	s, ok := mngr.stores[name]
 	if !ok {
 		return nil, fmt.Errorf("store not found")
 	}
 
-	return s, nil
+	if s.msg.Err != nil {
+		return nil, s.msg.Err
+	}
+
+	return s.accounts, nil
 }
