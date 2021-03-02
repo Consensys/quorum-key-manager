@@ -30,14 +30,14 @@ func (mngr *Manager) BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys
 	// Mount key store into an account store
 	accountsStore := baseaccounts.NewStore(keysStore)
 
-	// Instrument account store with auditing capabilities
-	if specs.Audited {
-		accountsStore = auditedaccounts.NewInstrument(mngr.auditor).Apply(accountsStore)
-	}
-
 	// Instrument account store with authentication capabilities
 	if specs.Authenticated {
 		accountsStore = authenticatedaccounts.NewInstrument().Apply(accountsStore)
+	}
+
+	// Instrument account store with auditing capabilities
+	if specs.Audited {
+		accountsStore = auditedaccounts.NewInstrument(mngr.auditor).Apply(accountsStore)
 	}
 
 	// TODO: returning nil there is concerning, probably
