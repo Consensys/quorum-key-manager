@@ -3,6 +3,7 @@ package localkeys
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
@@ -24,28 +25,34 @@ func New(secrets secrets.Store) *Store {
 
 // Create a new key and stores it
 func (s *Store) Create(ctx context.Context, id string, alg *types.Algo, attr *types.Attributes) (*types.Key, error) {
-	// Generate key
-	privKey, err := crypto.GenerateKey()
-	if err != nil {
-		return nil, err
+	switch alg.Type {
+	case "ecdsa":
+		// Generate key
+		privKey, err := crypto.GenerateKey()
+		if err != nil {
+			return nil, err
+		}
+
+		// Transform public key into byte
+		pubKey := crypto.FromECDSAPub(privKey.Public().(*ecdsa.PublicKey))
+
+		// Set key on the private store
+		// TODO: pubkey could be stored as a metadata so we do not need to recompute it each time
+		secret, err := s.secrets.Set(ctx, id, crypto.FromECDSA(privKey), attr)
+		if err != nil {
+			return nil, err
+		}
+
+		return &types.Key{
+			PublicKey: pubKey,
+			Alg:       alg,
+			Attr:      secret.Attr,
+			Metadata:  secret.Metadata,
+		}, nil
+	default:
+		return nil, fmt.Errorf("not supported")
 	}
 
-	// Transform public key into byte
-	pubKey := crypto.FromECDSAPub(privKey.Public().(*ecdsa.PublicKey))
-
-	// Set key on the private store
-	// TODO: pubkey could be stored as a metadata so we do not need to recompute it each time
-	secret, err := s.secrets.Set(ctx, id, crypto.FromECDSA(privKey), attr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.Key{
-		PublicKey: pubKey,
-		Alg:       alg,
-		Attr:      secret.Attr,
-		Metadata:  secret.Metadata,
-	}, nil
 }
 
 // Sign from a digest using the specified key
