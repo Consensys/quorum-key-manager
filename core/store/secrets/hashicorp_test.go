@@ -1,4 +1,4 @@
-package hashicorpsecrets
+package secrets
 
 import (
 	"context"
@@ -32,15 +32,6 @@ func New(client vault.HashicorpVaultClient, mountPoint string) (*hashicorpSecret
 		client:     client,
 		mountPoint: mountPoint,
 	}, nil
-}
-
-// path compute path from hashicorp mount
-func (s *hashicorpSecretStore) pathData(id string) string {
-	return path.Join(s.mountPoint, "data", id)
-}
-
-func (s *hashicorpSecretStore) pathMetadata(id string) string {
-	return path.Join(s.mountPoint, "metadata", id)
 }
 
 // Set a secret
@@ -125,6 +116,15 @@ func (s *hashicorpSecretStore) Undelete(ctx context.Context, id string) error {
 // Destroy a secret permanenty
 func (s *hashicorpSecretStore) Destroy(ctx context.Context, id string) error {
 	return errors.NotImplementedError
+}
+
+// path compute path from hashicorp mount
+func (s *hashicorpSecretStore) pathData(id string) string {
+	return path.Join(s.mountPoint, "data", id)
+}
+
+func (s *hashicorpSecretStore) pathMetadata(id string) string {
+	return path.Join(s.mountPoint, "metadata", id)
 }
 
 func formatHashicorpSecret(secret *hashicorp.Secret) *models.Secret {

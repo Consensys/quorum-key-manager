@@ -10,13 +10,13 @@ import (
 // Store should be stored under file path matching regex pattern: ^[0-9a-zA-Z-]+$
 type Store interface {
 	// Info returns store information
-	Info(context.Context) *models.StoreInfo
+	Info(context.Context) (*models.StoreInfo, error)
 
 	// Set secret
 	Set(ctx context.Context, id, value string, attr *models.Attributes) (*models.Secret, error)
 
 	// Get a secret
-	Get(ctx context.Context, id string, version string) (*models.Secret, error)
+	Get(ctx context.Context, id, version string) (*models.Secret, error)
 
 	// List secrets
 	List(ctx context.Context) ([]string, error)
