@@ -1,4 +1,4 @@
-package store
+package core
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/audit"
@@ -16,7 +16,7 @@ type Backend interface {
 	StoreManager() storemanager.Manager
 
 	// ManifestLoader returns the Manifest Loader
-	ManifestLoader() manifest.Loader
+	// ManifestLoader() manifest.Loader
 
 	// AuthManager returns the PolicyManager
 	AuthManager() authmanager.Manager
@@ -29,7 +29,7 @@ type BaseBackend struct {
 	auditor    audit.Auditor
 	authMngr   authmanager.Manager
 	storeMnger storemanager.Manager
-	loader     manifest.Loader
+	// loader     manifest.Loader
 }
 
 func New() *BaseBackend {
@@ -50,9 +50,9 @@ func (bckend *BaseBackend) StoreManager() storemanager.Manager {
 	return bckend.storeMnger
 }
 
-func (bckend *BaseBackend) ManifestLoader() manifest.Loader {
-	return bckend.loader
-}
+// func (bckend *BaseBackend) ManifestLoader() manifest.Loader {
+// 	return bckend.loader
+// }
 
 func (bckend *BaseBackend) AuthManager() authmanager.Manager {
 	return bckend.authMngr

@@ -5,7 +5,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/auth"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 )
 
 type Instrument struct{}

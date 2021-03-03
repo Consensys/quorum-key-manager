@@ -1,12 +1,10 @@
 package accountsapi
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/core"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
 )
 
 // New creates a http.Handler to be served on /accounts
@@ -42,40 +40,40 @@ type CreateAccountResponse struct {
 }
 
 func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Request) {
-	// Unmarshal request body
-	reqBody := new(CreateAccountRequest)
-	if err := json.Unmarshal(req.Body, reqBody); err != nil {
-		// Write error
-		return
-	}
-
-	// Generate internal type object
-	attr := models.Attributes{
-		Enabled:  reqBody.Enabled,
-		ExpireAt: reqBody.ExpireAt,
-		Tags:     reqBody.Tags,
-	}
-
-	// Execute account creation
-	account, err := h.backend.
-		StoreManager().
-		GetAccountsStore(req.Context(), reqBody.StoreName).
-		Create(req.Context(), attr)
-	if err != nil {
-		// Write error
-		return
-	}
-
-	// Create response body from interal type
-	respBody := &CreateSecretResponse{
-		Addr: account.Addr,
-		Metadata: &Metadata{
-			Version:   account.Medadata.Version,
-			CreatedAt: account.Medadata.CreatedAt,
-		},
-	}
-
-	// Write Response
-	rw.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(rw).Encode(respBody)
+	// // Unmarshal request body
+	// reqBody := new(CreateAccountRequest)
+	// if err := json.Unmarshal(req.Body, reqBody); err != nil {
+	// 	// Write error
+	// 	return
+	// }
+	// 
+	// // Generate internal type object
+	// attr := models.Attributes{
+	// 	// Enabled:  reqBody.Enabled,
+	// 	// ExpireAt: reqBody.ExpireAt,
+	// 	Tags:     reqBody.Tags,
+	// }
+	// 
+	// // Execute account creation
+	// account, err := h.backend.
+	// 	StoreManager().
+	// 	GetAccountsStore(req.Context(), reqBody.StoreName).
+	// 	Create(req.Context(), attr)
+	// if err != nil {
+	// 	// Write error
+	// 	return
+	// }
+	// 
+	// // Create response body from interal type
+	// respBody := &CreateSecretResponse{
+	// 	Addr: account.Addr,
+	// 	Metadata: &Metadata{
+	// 		Version:   account.Medadata.Version,
+	// 		CreatedAt: account.Medadata.CreatedAt,
+	// 	},
+	// }
+	// 
+	// // Write Response
+	// rw.WriteHeader(http.StatusOK)
+	// _ = json.NewEncoder(rw).Encode(respBody)
 }

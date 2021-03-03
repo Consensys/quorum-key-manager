@@ -7,7 +7,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/audit"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 )
 
 var opPrefix = "accounts."

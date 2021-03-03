@@ -1,0 +1,87 @@
+version: 2.1
+
+orbs:
+  go: circleci/go@1.5.0
+
+commands:
+  prepare_golang:
+    description: "Checkout, install all packages and handle cache"
+    steps:
+      - checkout
+      - go/mod-download-cached
+
+jobs:
+  lint:
+    executor:
+      name: go/default
+      tag: '1.15.7'
+    steps:
+      - prepare_golang
+      - run:
+          name: Check lints
+          command: |
+            make lint-tools
+            make lint-ci
+
+  gobuild:
+    executor:
+      name: go/default
+      tag: '1.15.7'
+    steps:
+      - prepare_golang
+      - run:
+          name: Build
+          command: make gobuild
+
+  test:
+    docker:
+      - image: cimg/go:1.15.7
+    resource_class: large
+    steps:
+      - prepare_golang
+      - run:
+          name: Run unit tests
+          command: make run-coverage
+
+  integration:
+    machine: true
+    resource_class: large
+    steps:
+      - run:
+          name: Uninstall Go
+          command: sudo rm -rvf /usr/local/go/
+      - go/install:
+          version: 1.15.7
+      - prepare_golang
+      - run:
+          name: Integration tests
+          command: make run-integration
+
+workflows:
+  version: 2
+  default:
+    jobs:
+      - lint:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - gobuild:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - integration:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/

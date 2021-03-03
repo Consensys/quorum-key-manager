@@ -1,4 +1,29 @@
-PACKAGES ?= $(shell go list ./... | grep -Fv -e mocks )
+GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" | egrep -v "^\./\.go" | grep -v _test.go)
+DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
+PACKAGES ?= $(shell go list ./... | egrep -Fv -e "integration-tests|mocks" )
+
+.PHONY: all lint integration-tests
+
+lint: ## Run linter to fix issues
+	@misspell -w $(GOFILES)
+	@golangci-lint run --fix
+
+lint-ci: ## Check linting
+	@misspell -error $(GOFILES)
+	@golangci-lint run
+
+lint-tools: ## Install linting tools
+	@GO111MODULE=on go get github.com/client9/misspell/cmd/misspell@v0.3.4
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
+
+hashicorp:
+	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_VAULT)
+
+hashicorp-down:
+	@docker-compose -f deps/docker-compose.yml down $(DEPS_VAULT)
+
+run-integration:
+	@go test -v -tags integration ./integration-tests
 
 gobuild: ## Build Orchestrate Go binary
 	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager

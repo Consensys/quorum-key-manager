@@ -36,7 +36,7 @@ type Store interface {
 	// Undelete a previously deleted secret
 	Undelete(ctx context.Context, id string) error
 
-	// Destroy secret permanenty
+	// Destroy secret permanently
 	Destroy(ctx context.Context, id string, versions ...int) error
 }
 

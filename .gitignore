@@ -53,3 +53,6 @@ swagger-combine.yml
 redoc-static.html
 node_modules
 package-lock.json
+
+integration-tests/plugins
+!/**/.gitkeep
