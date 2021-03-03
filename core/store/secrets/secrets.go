@@ -2,8 +2,7 @@ package secrets
 
 import (
 	"context"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 )
 
 // Store is responsible to store secrets
@@ -11,28 +10,28 @@ import (
 // Store should be stored under file path matching regex pattern: ^[0-9a-zA-Z-]+$
 type Store interface {
 	// Info returns store information
-	Info(context.Context) *types.StoreInfo
+	Info(context.Context) *models.StoreInfo
 
 	// Set secret
-	Set(ctx context.Context, id string, value []byte, attr *types.Attributes) (*types.Secret, error)
+	Set(ctx context.Context, id, value string, attr *models.Attributes) (*models.Secret, error)
 
 	// Get a secret
-	Get(ctx context.Context, id string, version int) (*types.Secret, error)
+	Get(ctx context.Context, id string, version int) (*models.Secret, error)
 
 	// List secrets
-	List(ctx context.Context, count uint, skip string) (secrets []*types.Secret, next string, err error)
+	List(ctx context.Context) (secrets []*models.Secret, err error)
 
 	// Update secret
-	Update(ctx context.Context, id string, attr *types.Attributes)
+	Update(ctx context.Context, id, newValue string, attr *models.Attributes) (*models.Secret, error)
 
 	// Delete secret not permanently, by using Undelete the secret can be restored
-	Delete(ctx context.Context, id string, versions ...int) (*types.Secret, error)
+	Delete(ctx context.Context, id string, versions ...int) (*models.Secret, error)
 
 	// GetDeleted secrets
-	GetDeleted(ctx context.Context, id string) (*types.Secret, error)
+	GetDeleted(ctx context.Context, id string) (*models.Secret, error)
 
 	// ListDeleted secrets
-	ListDeleted(ctx context.Context, count uint, skip string) (secrets []*types.Secret, next string, err error)
+	ListDeleted(ctx context.Context, count uint, skip string) (secrets []*models.Secret, next string, err error)
 
 	// Undelete a previously deleted secret
 	Undelete(ctx context.Context, id string) error

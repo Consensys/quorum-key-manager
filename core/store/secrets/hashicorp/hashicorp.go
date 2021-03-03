@@ -2,85 +2,128 @@ package hashicorpsecrets
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
+	"io/ioutil"
 	"path"
+	"strings"
+	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
-	"github.com/hashicorp/vault/api"
+	hashicorp "github.com/hashicorp/vault/api"
 )
 
-// Store is an implementation of secret store relying on hashicorp vault
-type Store struct {
-	hashicorp *api.Client
-	cfg       *Config
+const (
+	valueLabel          = "value"
+	expirationDateLabel = "expirationDate"
+	tagsLabel           = "tags"
+	enabledLabel        = "enabled"
+)
+
+// Store is an implementation of secret store relying on HashiCorp Vault kv-v2 secret engine
+type hashicorpSecretStore struct {
+	client *hashicorp.Logical
+	cfg    *Config
 }
 
-// New creates an hasicorp secret store
-func New(cfg *Config) (*Store, error) {
-	// Create Hashicorp client
-	hashicorp, err := api.NewClient(nil)
+// New creates an HashiCorp secret store
+func New(client *hashicorp.Client, cfg *Config) (*hashicorpSecretStore, error) {
+	err := client.SetAddress(cfg.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	// Set client config from cfg
-	err = hashicorp.SetAddress(cfg.Addr)
-	if err != nil {
-		return nil, err
+	client.SetNamespace(cfg.Namespace)
+
+	var decodedToken string
+	if cfg.TokenFilePath != "" {
+		encodedToken, err := ioutil.ReadFile(cfg.TokenFilePath)
+		if err != nil {
+			return nil, err
+		}
+
+		decodedToken = strings.TrimSuffix(string(encodedToken), "\n") // Remove the newline if it exists
+		decodedToken = strings.TrimSuffix(decodedToken, "\r")         // This one is for windows compatibility
+	} else {
+		decodedToken = cfg.Token
 	}
 
-	hashicorp.SetNamespace(cfg.Namespace)
-	hashicorp.SetToken(cfg.Token)
+	client.SetToken(decodedToken)
 
-	// Return store
-	return &Store{
-		hashicorp: hashicorp,
-		cfg:       cfg,
+	return &hashicorpSecretStore{
+		client: client.Logical(),
+		cfg:    cfg,
 	}, nil
 }
 
 // path compute path from hashicorp mount
-func (s *Store) path(id string) string {
-	return path.Join(s.cfg.Mount, id)
+func (s *hashicorpSecretStore) path(id string) string {
+	return path.Join(s.cfg.MountPoint, "data", id)
 }
 
-// Set secret
-func (s *Store) Set(ctx context.Context, id string, value []byte, attr *types.Attributes) (*types.Secret, error) {
+// Set a secret
+func (s *hashicorpSecretStore) Set(ctx context.Context, id string, value string, attr *models.Attributes) (*models.Secret, error) {
 	data := map[string]interface{}{
-		// TODO: compute hashicorp data
-		"value": string(value),
+		valueLabel:          value,
+		expirationDateLabel: attr.ExpireAt.UTC().Format(time.UnixDate),
+		tagsLabel:           attr.Tags,
+		enabledLabel:        attr.Enabled,
 	}
 
-	// Set tags
-	for k, v := range attr.Tags {
-		data[k] = v
-	}
-
-	secret, err := s.hashicorp.Logical().Write(s.path(id), data)
+	secret, err := s.client.Write(s.path(id), data)
 	if err != nil {
 		return nil, err
 	}
 
-	return FromHashicorpSecret(secret), err
+	return formatHashicorpSecret(secret), err
 }
 
 // Get a secret
-func (s *Store) Get(ctx context.Context, id string, version int) (*types.Secret, error) {
-	data := map[string][]string{
-		// TODO: compute hashicorp data
-		"version": []string{fmt.Sprintf("%v", version)},
-	}
+func (s *hashicorpSecretStore) Get(ctx context.Context, id string, version int) (*models.Secret, error) {
+	data := map[string][]string{}
 
-	secret, err := s.hashicorp.Logical().ReadWithData(s.path(id), data)
+	secret, err := s.client.ReadWithData(s.path(id), data)
 	if err != nil {
 		return nil, err
 	}
 
-	return FromHashicorpSecret(secret), err
+	return formatHashicorpSecret(secret), err
 }
 
-func FromHashicorpSecret(secret *api.Secret) *types.Secret {
-	return &types.Secret{
-		// TODO: compute secret from hashicorp api.Secret
+// Get all secret ids
+func (s *hashicorpSecretStore) List(ctx context.Context) ([]string, error) {
+	res, err := s.client.List(path.Join(s.cfg.MountPoint, "metadata"))
+	if err != nil {
+		return nil, err
+	}
+
+	if res == nil {
+		return []string{}, nil
+	}
+
+	secrets := res.Data["keys"].([]interface{})
+	ids := make([]string, len(secrets))
+	for i, elem := range secrets {
+		ids[i] = fmt.Sprintf("%v", elem)
+	}
+
+	return ids, nil
+}
+
+// Update a secret
+func (s *hashicorpSecretStore) Update(ctx context.Context, id string, newValue string, attr *models.Attributes) (*models.Secret, error) {
+	// Update simply overrides a secret
+	return s.Set(ctx, id, newValue, attr)
+}
+
+func formatHashicorpSecret(secret *hashicorp.Secret) *models.Secret {
+	for k, _ := range secret.Data {
+		fmt.Println(json.MarshalIndent(secret.Data[k], "", "  "))
+	}
+
+	return &models.Secret{
+		Value:    secret.Data[valueLabel].(string),
+		Attr:     nil,
+		Metadata: nil,
 	}
 }

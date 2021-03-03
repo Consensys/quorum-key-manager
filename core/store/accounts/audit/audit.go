@@ -36,7 +36,7 @@ type store struct {
 }
 
 // Create an account
-func (s *store) Create(ctx context.Context, attr *types.Attributes) (*types.Account, error) {
+func (s *store) Create(ctx context.Context, attr *models.Attributes) (*models.Account, error) {
 	// create operation object
 	// TODO: Can probably be improved by relying extracting already existing operation from context
 	// TODO: Auth should be extracted from context

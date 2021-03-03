@@ -1,9 +1,9 @@
-package types
+package models
 
 // Secret
 type Secret struct {
 	// Secret Value
-	Value []byte
+	Value string
 
 	// Attributes
 	Attr *Attributes

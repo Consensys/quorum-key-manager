@@ -26,7 +26,7 @@ type store struct {
 }
 
 // Create an account
-func (s *store) Create(ctx context.Context, attr *types.Attributes) (*types.Account, error) {
+func (s *store) Create(ctx context.Context, attr *models.Attributes) (*models.Account, error) {
 	authInfo := auth.AuthFromContext(ctx)
 	if err := authInfo.Policies.IsStoreAuthorized(s.accounts.Info(ctx)); err != nil {
 		return nil, err

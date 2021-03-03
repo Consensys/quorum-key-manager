@@ -50,7 +50,7 @@ func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Reque
 	}
 
 	// Generate internal type object
-	attr := types.Attributes{
+	attr := models.Attributes{
 		Enabled:  reqBody.Enabled,
 		ExpireAt: reqBody.ExpireAt,
 		Tags:     reqBody.Tags,

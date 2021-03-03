@@ -1,4 +1,4 @@
-package types
+package models
 
 // Key public part of a key
 type Key struct {
