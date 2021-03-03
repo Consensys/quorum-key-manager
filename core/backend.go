@@ -1,4 +1,4 @@
-package backend
+package store
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/audit"

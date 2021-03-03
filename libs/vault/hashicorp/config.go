@@ -1,4 +1,4 @@
-package hashicorpsecrets
+package hashicorp
 
 import (
 	"crypto/tls"

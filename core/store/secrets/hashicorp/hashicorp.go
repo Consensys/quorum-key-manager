@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
-	"io/ioutil"
+	"github.com/ConsenSysQuorum/quorum-key-manager/libs/vault"
 	"path"
-	"strings"
 	"time"
 
 	hashicorp "github.com/hashicorp/vault/api"
@@ -22,43 +22,25 @@ const (
 
 // Store is an implementation of secret store relying on HashiCorp Vault kv-v2 secret engine
 type hashicorpSecretStore struct {
-	client *hashicorp.Logical
-	cfg    *Config
+	client     vault.HashicorpVaultClient
+	mountPoint string
 }
 
 // New creates an HashiCorp secret store
-func New(client *hashicorp.Client, cfg *Config) (*hashicorpSecretStore, error) {
-	err := client.SetAddress(cfg.Address)
-	if err != nil {
-		return nil, err
-	}
-
-	client.SetNamespace(cfg.Namespace)
-
-	var decodedToken string
-	if cfg.TokenFilePath != "" {
-		encodedToken, err := ioutil.ReadFile(cfg.TokenFilePath)
-		if err != nil {
-			return nil, err
-		}
-
-		decodedToken = strings.TrimSuffix(string(encodedToken), "\n") // Remove the newline if it exists
-		decodedToken = strings.TrimSuffix(decodedToken, "\r")         // This one is for windows compatibility
-	} else {
-		decodedToken = cfg.Token
-	}
-
-	client.SetToken(decodedToken)
-
+func New(client vault.HashicorpVaultClient, mountPoint string) (*hashicorpSecretStore, error) {
 	return &hashicorpSecretStore{
-		client: client.Logical(),
-		cfg:    cfg,
+		client:     client,
+		mountPoint: mountPoint,
 	}, nil
 }
 
 // path compute path from hashicorp mount
-func (s *hashicorpSecretStore) path(id string) string {
-	return path.Join(s.cfg.MountPoint, "data", id)
+func (s *hashicorpSecretStore) pathData(id string) string {
+	return path.Join(s.mountPoint, "data", id)
+}
+
+func (s *hashicorpSecretStore) pathMetadata(id string) string {
+	return path.Join(s.mountPoint, "metadata", id)
 }
 
 // Set a secret
@@ -70,7 +52,7 @@ func (s *hashicorpSecretStore) Set(ctx context.Context, id string, value string,
 		enabledLabel:        attr.Enabled,
 	}
 
-	secret, err := s.client.Write(s.path(id), data)
+	secret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +61,14 @@ func (s *hashicorpSecretStore) Set(ctx context.Context, id string, value string,
 }
 
 // Get a secret
-func (s *hashicorpSecretStore) Get(ctx context.Context, id string, version int) (*models.Secret, error) {
-	data := map[string][]string{}
+func (s *hashicorpSecretStore) Get(ctx context.Context, id string, version string) (*models.Secret, error) {
+	// Get latest version by default if no version is specified, otherwise get specific version
+	pathData := s.pathData(id)
+	if version != "" {
+		pathData = fmt.Sprintf("%v?version=%v", pathData, version)
+	}
 
-	secret, err := s.client.ReadWithData(s.path(id), data)
+	secret, err := s.client.Read(pathData)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +78,7 @@ func (s *hashicorpSecretStore) Get(ctx context.Context, id string, version int) 
 
 // Get all secret ids
 func (s *hashicorpSecretStore) List(ctx context.Context) ([]string, error) {
-	res, err := s.client.List(path.Join(s.cfg.MountPoint, "metadata"))
+	res, err := s.client.List(path.Join(s.mountPoint, "metadata"))
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +100,31 @@ func (s *hashicorpSecretStore) List(ctx context.Context) ([]string, error) {
 func (s *hashicorpSecretStore) Update(ctx context.Context, id string, newValue string, attr *models.Attributes) (*models.Secret, error) {
 	// Update simply overrides a secret
 	return s.Set(ctx, id, newValue, attr)
+}
+
+// Delete a secret
+func (s *hashicorpSecretStore) Delete(ctx context.Context, id string, versions ...int) (*models.Secret, error) {
+	return nil, errors.NotImplementedError
+}
+
+// Gets a deleted secret
+func (s *hashicorpSecretStore) GetDeleted(ctx context.Context, id string) (*models.Secret, error) {
+	return nil, errors.NotImplementedError
+}
+
+// Lists all deleted secrets
+func (s *hashicorpSecretStore) ListDeleted(ctx context.Context) ([]string, error) {
+	return nil, errors.NotImplementedError
+}
+
+// Undelete a previously deleted secret
+func (s *hashicorpSecretStore) Undelete(ctx context.Context, id string) error {
+	return errors.NotImplementedError
+}
+
+// Destroy a secret permanenty
+func (s *hashicorpSecretStore) Destroy(ctx context.Context, id string) error {
+	return errors.NotImplementedError
 }
 
 func formatHashicorpSecret(secret *hashicorp.Secret) *models.Secret {

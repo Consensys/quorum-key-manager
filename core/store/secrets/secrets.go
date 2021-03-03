@@ -16,10 +16,10 @@ type Store interface {
 	Set(ctx context.Context, id, value string, attr *models.Attributes) (*models.Secret, error)
 
 	// Get a secret
-	Get(ctx context.Context, id string, version int) (*models.Secret, error)
+	Get(ctx context.Context, id string, version string) (*models.Secret, error)
 
 	// List secrets
-	List(ctx context.Context) (secrets []*models.Secret, err error)
+	List(ctx context.Context) ([]string, error)
 
 	// Update secret
 	Update(ctx context.Context, id, newValue string, attr *models.Attributes) (*models.Secret, error)
@@ -31,7 +31,7 @@ type Store interface {
 	GetDeleted(ctx context.Context, id string) (*models.Secret, error)
 
 	// ListDeleted secrets
-	ListDeleted(ctx context.Context, count uint, skip string) (secrets []*models.Secret, next string, err error)
+	ListDeleted(ctx context.Context) ([]string, error)
 
 	// Undelete a previously deleted secret
 	Undelete(ctx context.Context, id string) error

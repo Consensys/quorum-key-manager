@@ -2,14 +2,12 @@ package baseaccounts
 
 import (
 	"context"
-	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/common/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
 )
-
-var NotImplementedError = fmt.Errorf("not implemented")
 
 // [DRAFT] Store is an accounts store that relyies on an underlying secp256k1 compatible keys store
 type Store struct {
@@ -29,13 +27,13 @@ func (s *Store) Create(ctx context.Context, attr *models.Attributes) (*models.Ac
 	// TODO: to be implemented
 	// TODO: problem account address can be computed only after key has been created in key store thus
 	// it is not possible to index a key by account address making it impossible to query an account by address on keystore.
-	return nil, NotImplementedError
+	return nil, errors.NotImplementedError
 }
 
 // Import an externally created key and store account
 func (s *Store) Import(ctx context.Context, privKey []byte, attr *models.Attributes) (*models.Account, error) {
 	// TODO: to be implemented
-	return nil, NotImplementedError
+	return nil, errors.NotImplementedError
 }
 
 // Get account
