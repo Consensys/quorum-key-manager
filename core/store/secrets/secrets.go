@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//go:generate mockgen -source=vault.go -destination=mocks/vault.go -package=mocks
+//go:generate mockgen -source=secrets.go -destination=mocks/secrets.go -package=mocks
 
 type Store interface {
 	// Info returns store information
