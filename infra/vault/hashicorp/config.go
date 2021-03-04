@@ -12,7 +12,6 @@ import (
 )
 
 type Config struct {
-	Token         string
 	TokenFilePath string
 	MountPoint    string
 	SecretPath    string

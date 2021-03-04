@@ -2,139 +2,101 @@ package secrets
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
-	"github.com/ConsenSysQuorum/quorum-key-manager/libs/vault"
-	"path"
-	"time"
-
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/infra/vault/mocks"
+	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"testing"
+	"time"
 )
 
-const (
-	valueLabel          = "value"
-	expirationDateLabel = "expirationDate"
-	tagsLabel           = "tags"
-	enabledLabel        = "enabled"
-)
-
-// Store is an implementation of secret store relying on HashiCorp Vault kv-v2 secret engine
-type hashicorpSecretStore struct {
-	client     vault.HashicorpVaultClient
-	mountPoint string
+type hashicorpSecretStoreTestSuite struct {
+	suite.Suite
+	mockVault   *mocks.MockHashicorpVaultClient
+	mountPoint  string
+	secretStore *hashicorpSecretStore
 }
 
-// New creates an HashiCorp secret store
-func New(client vault.HashicorpVaultClient, mountPoint string) (*hashicorpSecretStore, error) {
-	return &hashicorpSecretStore{
-		client:     client,
-		mountPoint: mountPoint,
-	}, nil
+func TestHashicorpSecretStore(t *testing.T) {
+	s := new(hashicorpSecretStoreTestSuite)
+	suite.Run(t, s)
 }
 
-// Set a secret
-func (s *hashicorpSecretStore) Set(ctx context.Context, id string, value string, attr *models.Attributes) (*models.Secret, error) {
-	data := map[string]interface{}{
-		valueLabel:          value,
-		expirationDateLabel: attr.ExpireAt.UTC().Format(time.UnixDate),
-		tagsLabel:           attr.Tags,
-		enabledLabel:        attr.Enabled,
+func (s *hashicorpSecretStoreTestSuite) SetupTest() {
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+
+	s.mountPoint = "secret"
+	s.mockVault = mocks.NewMockHashicorpVaultClient(ctrl)
+
+	s.secretStore = New(s.mockVault, s.mountPoint)
+}
+
+func (s *hashicorpSecretStoreTestSuite) TestSet() {
+	ctx := context.Background()
+	id := "my-secret"
+	value := "my-value"
+	attributes := testutils.FakeAttributes()
+	expectedData := map[string]interface{}{
+		valueLabel: value,
+		tagsLabel:  attributes.Tags,
+	}
+	hashicorpSecret := &hashicorp.Secret{
+		Data: map[string]interface{}{
+			"created_time":  "2018-03-22T02:24:06.945319214Z",
+			"deletion_time": "",
+			"destroyed":     false,
+			"version":       2,
+		},
 	}
 
-	secret, err := s.client.Write(s.pathData(id), data)
-	if err != nil {
-		return nil, err
-	}
+	s.T().Run("should set a new secret successfully", func(t *testing.T) {
+		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
 
-	return formatHashicorpSecret(secret), err
-}
+		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(hashicorpSecret, nil)
 
-// Get a secret
-func (s *hashicorpSecretStore) Get(ctx context.Context, id string, version string) (*models.Secret, error) {
-	// Get latest version by default if no version is specified, otherwise get specific version
-	pathData := s.pathData(id)
-	if version != "" {
-		pathData = fmt.Sprintf("%v?version=%v", pathData, version)
-	}
+		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-	secret, err := s.client.Read(pathData)
-	if err != nil {
-		return nil, err
-	}
+		assert.NoError(t, err)
+		assert.Equal(t, value, secret.Value)
+		assert.False(t, secret.Disabled)
+		assert.Equal(t, expectedCreatedAt, secret.CreatedAt)
+		assert.Equal(t, attributes.Tags, secret.Tags)
+		assert.Equal(t, 2, secret.Version)
+		assert.True(t, secret.ExpireAt.IsZero())
+		assert.True(t, secret.DeletedAt.IsZero())
+		assert.Nil(t, secret.Recovery)
+	})
 
-	return formatHashicorpSecret(secret), err
-}
+	// TODO: Implement specific error types and check that the function return the right error type
+	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("error")
 
-// Get all secret ids
-func (s *hashicorpSecretStore) List(ctx context.Context) ([]string, error) {
-	res, err := s.client.List(path.Join(s.mountPoint, "metadata"))
-	if err != nil {
-		return nil, err
-	}
+		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, expectedErr)
 
-	if res == nil {
-		return []string{}, nil
-	}
+		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-	secrets := res.Data["keys"].([]interface{})
-	ids := make([]string, len(secrets))
-	for i, elem := range secrets {
-		ids[i] = fmt.Sprintf("%v", elem)
-	}
+		assert.Nil(t, secret)
+		assert.Equal(t, expectedErr, err)
+	})
 
-	return ids, nil
-}
+	// TODO: Implement specific error types and check that the function return the right error type
+	s.T().Run("should fail with error if it fails to extract metadata", func(t *testing.T) {
+		hashSecret := &hashicorp.Secret{
+			Data: map[string]interface{}{
+				"created_time": "invalidTime",
+				"version":      2,
+			},
+		}
 
-// Update a secret
-func (s *hashicorpSecretStore) Update(ctx context.Context, id string, newValue string, attr *models.Attributes) (*models.Secret, error) {
-	// Update simply overrides a secret
-	return s.Set(ctx, id, newValue, attr)
-}
+		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(hashSecret, nil)
 
-// Delete a secret
-func (s *hashicorpSecretStore) Delete(ctx context.Context, id string, versions ...int) (*models.Secret, error) {
-	return nil, errors.NotImplementedError
-}
+		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-// Gets a deleted secret
-func (s *hashicorpSecretStore) GetDeleted(ctx context.Context, id string) (*models.Secret, error) {
-	return nil, errors.NotImplementedError
-}
-
-// Lists all deleted secrets
-func (s *hashicorpSecretStore) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.NotImplementedError
-}
-
-// Undelete a previously deleted secret
-func (s *hashicorpSecretStore) Undelete(ctx context.Context, id string) error {
-	return errors.NotImplementedError
-}
-
-// Destroy a secret permanenty
-func (s *hashicorpSecretStore) Destroy(ctx context.Context, id string) error {
-	return errors.NotImplementedError
-}
-
-// path compute path from hashicorp mount
-func (s *hashicorpSecretStore) pathData(id string) string {
-	return path.Join(s.mountPoint, "data", id)
-}
-
-func (s *hashicorpSecretStore) pathMetadata(id string) string {
-	return path.Join(s.mountPoint, "metadata", id)
-}
-
-func formatHashicorpSecret(secret *hashicorp.Secret) *models.Secret {
-	for k, _ := range secret.Data {
-		fmt.Println(json.MarshalIndent(secret.Data[k], "", "  "))
-	}
-
-	return &models.Secret{
-		Value:    secret.Data[valueLabel].(string),
-		Attr:     nil,
-		Metadata: nil,
-	}
+		assert.Nil(t, secret)
+		assert.Error(t, err)
+	})
 }

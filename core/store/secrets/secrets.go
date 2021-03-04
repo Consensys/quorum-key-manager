@@ -3,11 +3,11 @@ package secrets
 import (
 	"context"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
+	"time"
 )
 
-// Store is responsible to store secrets
+//go:generate mockgen -source=vault.go -destination=mocks/vault.go -package=mocks
 
-// Store should be stored under file path matching regex pattern: ^[0-9a-zA-Z-]+$
 type Store interface {
 	// Info returns store information
 	Info(context.Context) (*models.StoreInfo, error)
@@ -16,13 +16,13 @@ type Store interface {
 	Set(ctx context.Context, id, value string, attr *models.Attributes) (*models.Secret, error)
 
 	// Get a secret
-	Get(ctx context.Context, id, version string) (*models.Secret, error)
+	Get(ctx context.Context, id string, version int) (*models.Secret, error)
 
 	// List secrets
 	List(ctx context.Context) ([]string, error)
 
 	// Update secret
-	Update(ctx context.Context, id, newValue string, attr *models.Attributes) (*models.Secret, error)
+	Refresh(ctx context.Context, id string, expirationDate time.Time) error
 
 	// Delete secret not permanently, by using Undelete the secret can be restored
 	Delete(ctx context.Context, id string, versions ...int) (*models.Secret, error)

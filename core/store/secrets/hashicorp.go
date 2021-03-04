@@ -2,22 +2,20 @@ package secrets
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
-	"github.com/ConsenSysQuorum/quorum-key-manager/libs/vault"
+	"github.com/ConsenSysQuorum/quorum-key-manager/infra/vault"
 	"path"
 	"time"
-
-	hashicorp "github.com/hashicorp/vault/api"
 )
 
 const (
-	valueLabel          = "value"
-	expirationDateLabel = "expirationDate"
-	tagsLabel           = "tags"
-	enabledLabel        = "enabled"
+	dataLabel        = "data"
+	metadataLabel    = "metadata"
+	valueLabel       = "value"
+	deleteAfterLabel = "delete_version_after"
+	tagsLabel        = "tags"
 )
 
 // Store is an implementation of secret store relying on HashiCorp Vault kv-v2 secret engine
@@ -27,11 +25,11 @@ type hashicorpSecretStore struct {
 }
 
 // New creates an HashiCorp secret store
-func New(client vault.HashicorpVaultClient, mountPoint string) (*hashicorpSecretStore, error) {
+func New(client vault.HashicorpVaultClient, mountPoint string) *hashicorpSecretStore {
 	return &hashicorpSecretStore{
 		client:     client,
 		mountPoint: mountPoint,
-	}, nil
+	}
 }
 
 func (s *hashicorpSecretStore) Info(context.Context) (*models.StoreInfo, error) {
@@ -41,34 +39,45 @@ func (s *hashicorpSecretStore) Info(context.Context) (*models.StoreInfo, error) 
 // Set a secret
 func (s *hashicorpSecretStore) Set(ctx context.Context, id, value string, attr *models.Attributes) (*models.Secret, error) {
 	data := map[string]interface{}{
-		valueLabel:          value,
-		expirationDateLabel: attr.ExpireAt.UTC().Format(time.UnixDate),
-		tagsLabel:           attr.Tags,
-		enabledLabel:        attr.Enabled,
+		valueLabel: value,
+		tagsLabel:  attr.Tags,
 	}
 
-	secret, err := s.client.Write(s.pathData(id), data)
+	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
 		return nil, err
 	}
 
-	return formatHashicorpSecret(secret), err
+	// Hashicorp only returns metadata as the "data" field when creating a new secret
+	metadata, err := extractMetadata(hashicorpSecret.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return formatHashicorpSecret(value, attr.Tags, metadata), nil
 }
 
 // Get a secret
-func (s *hashicorpSecretStore) Get(ctx context.Context, id, version string) (*models.Secret, error) {
+func (s *hashicorpSecretStore) Get(ctx context.Context, id string, version int) (*models.Secret, error) {
 	// Get latest version by default if no version is specified, otherwise get specific version
 	pathData := s.pathData(id)
-	if version != "" {
+	if version != 0 {
 		pathData = fmt.Sprintf("%v?version=%v", pathData, version)
 	}
 
-	secret, err := s.client.Read(pathData)
+	hashicorpSecret, err := s.client.Read(pathData)
 	if err != nil {
 		return nil, err
 	}
 
-	return formatHashicorpSecret(secret), err
+	// Hashicorp returns metadata in "data.metadata" and data in "data.data" fields
+	data := hashicorpSecret.Data[dataLabel].(map[string]interface{})
+	metadata, err := extractMetadata(hashicorpSecret.Data[metadataLabel].(map[string]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
+	return formatHashicorpSecret(data[valueLabel].(string), data[tagsLabel].(map[string]string), metadata), nil
 }
 
 // Get all secret ids
@@ -82,19 +91,22 @@ func (s *hashicorpSecretStore) List(ctx context.Context) ([]string, error) {
 		return []string{}, nil
 	}
 
-	secrets := res.Data["keys"].([]interface{})
-	ids := make([]string, len(secrets))
-	for i, elem := range secrets {
-		ids[i] = fmt.Sprintf("%v", elem)
-	}
-
-	return ids, nil
+	return res.Data["keys"].([]string), nil
 }
 
-// Update a secret
-func (s *hashicorpSecretStore) Update(ctx context.Context, id string, newValue string, attr *models.Attributes) (*models.Secret, error) {
-	// Update simply overrides a secret
-	return s.Set(ctx, id, newValue, attr)
+// Refresh an existing secret by extending its TTL
+func (s *hashicorpSecretStore) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
+	data := make(map[string]interface{})
+	if !expirationDate.IsZero() {
+		data[deleteAfterLabel] = time.Since(expirationDate).String()
+	}
+
+	_, err := s.client.Write(s.pathMetadata(id), data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete a secret
@@ -124,21 +136,57 @@ func (s *hashicorpSecretStore) Destroy(ctx context.Context, id string, versions 
 
 // path compute path from hashicorp mount
 func (s *hashicorpSecretStore) pathData(id string) string {
-	return path.Join(s.mountPoint, "data", id)
+	return path.Join(s.mountPoint, dataLabel, id)
 }
 
 func (s *hashicorpSecretStore) pathMetadata(id string) string {
-	return path.Join(s.mountPoint, "metadata", id)
+	return path.Join(s.mountPoint, metadataLabel, id)
 }
 
-func formatHashicorpSecret(secret *hashicorp.Secret) *models.Secret {
-	for k, _ := range secret.Data {
-		fmt.Println(json.MarshalIndent(secret.Data[k], "", "  "))
+func formatHashicorpSecret(value string, tags map[string]string, metadata *models.Metadata) *models.Secret {
+	return &models.Secret{
+		Value:       value,
+		Tags:        tags,
+		Disabled:    metadata.Disabled,
+		Version:     metadata.Version,
+		ExpireAt:    metadata.ExpireAt,
+		CreatedAt:   metadata.CreatedAt,
+		DeletedAt:   metadata.DeletedAt,
+		DestroyedAt: metadata.DestroyedAt,
+	}
+}
+
+func extractMetadata(data map[string]interface{}) (*models.Metadata, error) {
+	metadata := &models.Metadata{
+		Version: data["version"].(int),
 	}
 
-	return &models.Secret{
-		Value:    secret.Data[valueLabel].(string),
-		Attr:     nil,
-		Metadata: nil,
+	var err error
+
+	metadata.CreatedAt, err = time.Parse(time.RFC3339, data["created_time"].(string))
+	if err != nil {
+		return nil, err
 	}
+
+	if data["deletion_time"].(string) != "" {
+		deletionTime, err := time.Parse(time.RFC3339, data["deletion_time"].(string))
+		if err != nil {
+			return nil, err
+		}
+
+		// If deletion time is in the future, we populate the expireAt property, otherwise it has been deleted
+		if deletionTime.After(time.Now()) {
+			metadata.ExpireAt = deletionTime
+		} else {
+			metadata.DeletedAt = deletionTime
+			metadata.Disabled = true
+		}
+
+		// If secret has been destroyed, deletion time is the destroyed time
+		if data["destroyed"].(bool) {
+			metadata.DestroyedAt = deletionTime
+		}
+	}
+
+	return metadata, nil
 }
