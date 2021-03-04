@@ -3,6 +3,7 @@ module github.com/ConsenSysQuorum/quorum-key-manager
 go 1.15
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/Azure/azure-sdk-for-go v52.1.0+incompatible
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect

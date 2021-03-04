@@ -98,7 +98,7 @@ func (s *hashicorpSecretStore) List(ctx context.Context) ([]string, error) {
 func (s *hashicorpSecretStore) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
 	data := make(map[string]interface{})
 	if !expirationDate.IsZero() {
-		data[deleteAfterLabel] = time.Since(expirationDate).String()
+		data[deleteAfterLabel] = expirationDate.Sub(time.Now()).String()
 	}
 
 	_, err := s.client.Write(s.pathMetadata(id), data)
