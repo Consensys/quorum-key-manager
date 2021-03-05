@@ -77,18 +77,3 @@ func (mr *MockHashicorpVaultClientMockRecorder) List(path interface{}) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockHashicorpVaultClient)(nil).List), path)
 }
-
-// Update mocks base method
-func (m *MockHashicorpVaultClient) Update(path string, data map[string]interface{}) (*api.Secret, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", path, data)
-	ret0, _ := ret[0].(*api.Secret)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Update indicates an expected call of Update
-func (mr *MockHashicorpVaultClientMockRecorder) Update(path, data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockHashicorpVaultClient)(nil).Update), path, data)
-}

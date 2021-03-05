@@ -25,8 +25,3 @@ func (c *hashicorpVaultClient) Write(path string, data map[string]interface{}) (
 func (c *hashicorpVaultClient) List(path string) (*hashicorp.Secret, error) {
 	return c.client.List(path)
 }
-
-func (c *hashicorpVaultClient) Update(path string, data map[string]interface{}) (*hashicorp.Secret, error) {
-	// Update is the same call as write and it automatically create a new version
-	return c.client.Write(path, data)
-}
