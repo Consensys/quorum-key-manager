@@ -1,0 +1,64 @@
+version: '3.7'
+
+x-container-common: &container-common
+  restart: ${CONTAINER_RESTART-on-failure}
+  networks:
+    - orchestrate
+
+
+services:
+  hashicorp:
+    <<: *container-common
+    image: library/vault:1.6.1
+    tty: true
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - hashicorp-plugin:/vault/plugins
+      - ./hashicorp/config/config.hcl:/vault/config.hcl:ro
+    entrypoint: vault server -config=/vault/config.hcl
+    ports:
+      - 8200:8200
+
+  hashicorp-init:
+    <<: *container-common
+    build: ./hashicorp
+    environment:
+      VAULT_ADDR: ${VAULT_ADDR-http://hashicorp:8200}
+      PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
+      TOKEN_PATH: ${TOKEN_PATH-/vault/token}
+      PLUGIN_VERSION: ${PLUGIN_VERSION-v0.0.9}
+    restart: "no"
+    depends_on:
+      - hashicorp
+    volumes:
+      - hashicorp-token:/vault/token
+      - hashicorp-plugin:/vault/plugins
+      - ./hashicorp/scripts/init.sh:/init.sh
+      - ./hashicorp/scripts/plugin.sh:/plugin.sh
+    command: >
+      sh -c "./plugin.sh && ./init.sh"
+      
+  hashicorp-agent:
+    <<: *container-common
+    image: library/vault:1.6.1
+    tty: true
+    depends_on:
+      - hashicorp
+      - hashicorp-init
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - hashicorp-token:/vault/token
+      - ./hashicorp/config/agent-config.hcl:/vault/config.hcl:ro
+    entrypoint: vault agent -config=/vault/config.hcl
+
+volumes:
+  hashicorp-token:
+    driver: local
+  hashicorp-plugin:
+    driver: local
+
+networks:
+  orchestrate:
+    driver: bridge

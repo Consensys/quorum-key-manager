@@ -3,7 +3,7 @@ package auth
 import (
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 )
 
 func NewStorePolicy(name string, storeNames []string) *Policy {

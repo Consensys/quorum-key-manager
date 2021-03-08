@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/common/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 )
 
 type Store interface {
@@ -38,7 +38,7 @@ type Store interface {
 	// Undelete a previously deleted account
 	Undelete(ctx context.Context, addr string) error
 
-	// Destroy account permanenty
+	// Destroy account permanently
 	Destroy(ctx context.Context, addrs ...string) error
 
 	// Sign from a digest using the specified account

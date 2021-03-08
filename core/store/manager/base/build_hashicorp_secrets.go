@@ -2,15 +2,13 @@ package basemanager
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/libs/vault/hashicorp"
+	"fmt"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/infra/vault/hashicorp"
 
 	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
-	auditedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/audit"
-	authenticatedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/auth"
-	baseaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/base"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
-	localkeys "github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys/local"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
 )
 
@@ -22,29 +20,30 @@ type HashicorpSecretSpecs struct {
 }
 
 func (mngr *Manager) BuildHashicorpSecretStores(specs *HashicorpSecretSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
-	// Creates Hasicorp secrets store from specs config
-	secretsStore, err := secrets.New(specs.Hashicorp)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	// Mount secret store into Key Store
-	keysStore := localkeys.New(secretsStore)
-
-	// Mount key store into an account store
-	accountsStore := baseaccounts.NewStore(keysStore)
-
-	// Instrument account store with authentication capabilities
-	if specs.Authenticated {
-		accountsStore = authenticatedaccounts.NewInstrument().Apply(accountsStore)
-	}
-
-	// Instrument account store with auditing capabilities
-	if specs.Audited {
-		accountsStore = auditedaccounts.NewInstrument(mngr.auditor).Apply(accountsStore)
-	}
-
-	return secretsStore, keysStore, accountsStore, nil
+	return nil, nil, nil, fmt.Errorf("Not Implemented")
+	// // Creates Hasicorp secrets store from specs config
+	// secretsStore, err := secrets.New(specs.Hashicorp)
+	// if err != nil {
+	// 	return nil, nil, nil, err
+	// }
+	// 
+	// // Mount secret store into Key Store
+	// keysStore := localkeys.New(secretsStore)
+	// 
+	// // Mount key store into an account store
+	// accountsStore := baseaccounts.NewStore(keysStore)
+	// 
+	// // Instrument account store with authentication capabilities
+	// if specs.Authenticated {
+	// 	accountsStore = authenticatedaccounts.NewInstrument().Apply(accountsStore)
+	// }
+	// 
+	// // Instrument account store with auditing capabilities
+	// if specs.Audited {
+	// 	accountsStore = auditedaccounts.NewInstrument(mngr.auditor).Apply(accountsStore)
+	// }
+	// 
+	// return secretsStore, keysStore, accountsStore, nil
 }
 
 // loadHashicorpSecrets creates and indexes an Hashicorp secrets store

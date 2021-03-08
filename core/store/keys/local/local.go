@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
