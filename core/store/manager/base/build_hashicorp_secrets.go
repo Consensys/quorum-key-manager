@@ -2,6 +2,7 @@ package basemanager
 
 import (
 	"context"
+	"github.com/ConsenSysQuorum/quorum-key-manager/libs/vault/hashicorp"
 
 	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
@@ -11,19 +12,18 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
 	localkeys "github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys/local"
 	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
-	hashicorpsecrets "github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets/hashicorp"
 )
 
 // HashicorpSecretSpecs is the specs format for an Hashicorp Vault secret store
 type HashicorpSecretSpecs struct {
-	Hashicorp     *hashicorpsecrets.Config `json:"hasicorp"`
-	Audited       bool                     `json:"audited"`
-	Authenticated bool                     `json:"authenticated"`
+	Hashicorp     *hashicorp.Config `json:"hasicorp"`
+	Audited       bool              `json:"audited"`
+	Authenticated bool              `json:"authenticated"`
 }
 
 func (mngr *Manager) BuildHashicorpSecretStores(specs *HashicorpSecretSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
 	// Creates Hasicorp secrets store from specs config
-	secretsStore, err := hashicorpsecrets.New(specs.Hashicorp)
+	secretsStore, err := secrets.New(specs.Hashicorp)
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -28,7 +28,7 @@ func New(cfg *Config) (*Store, error) {
 }
 
 // Create a new key and stores it
-func (s *AKVKeyStore) Create(ctx context.Context, id string, alg *types.Algo, attr *types.Attributes) (*types.Key, error) {
+func (s *AKVKeyStore) Create(ctx context.Context, id string, alg *models.Algo, attr *models.Attributes) (*models.Key, error) {
 	params := keyvault.KeyCreateParameters{
 		// TODO: compute keyvault.KeyCreateParameters from alg and attr
 	}
@@ -39,7 +39,7 @@ func (s *AKVKeyStore) Create(ctx context.Context, id string, alg *types.Algo, at
 		return nil, err
 	}
 
-	key := &types.Key{
+	key := &models.Key{
 		// TODO: compute key from keyvault.KeyBundle
 	}
 

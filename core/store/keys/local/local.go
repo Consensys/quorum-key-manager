@@ -24,7 +24,7 @@ func New(secrets secrets.Store) *Store {
 }
 
 // Create a new key and stores it
-func (s *Store) Create(ctx context.Context, id string, alg *types.Algo, attr *types.Attributes) (*types.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *models.Algo, attr *models.Attributes) (*models.Key, error) {
 	switch alg.Type {
 	case "ecdsa":
 		// Generate key
@@ -43,7 +43,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *types.Algo, attr *ty
 			return nil, err
 		}
 
-		return &types.Key{
+		return &models.Key{
 			PublicKey: pubKey,
 			Alg:       alg,
 			Attr:      secret.Attr,
