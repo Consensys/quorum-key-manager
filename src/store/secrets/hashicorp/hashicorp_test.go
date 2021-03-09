@@ -214,7 +214,6 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		assert.NoError(t, err)
 		assert.Empty(t, secret.Metadata.ExpireAt)
 		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
-		// assert.True(t, secret.Disabled)
 	})
 
 	s.T().Run("should get a secret successfully with past deletion time and destroyed", func(t *testing.T) {
@@ -240,7 +239,6 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		assert.NoError(t, err)
 		assert.Empty(t, secret.Metadata.ExpireAt)
 		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
-		// assert.True(t, secret.Disabled)
 		assert.Equal(t, expectedDeletedAt, secret.Metadata.DestroyedAt)
 	})
 

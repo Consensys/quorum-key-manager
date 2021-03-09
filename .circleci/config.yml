@@ -36,7 +36,6 @@ jobs:
   test:
     docker:
       - image: cimg/go:1.15.7
-    resource_class: large
     steps:
       - prepare_golang
       - run:
@@ -45,7 +44,6 @@ jobs:
 
   integration:
     machine: true
-    resource_class: large
     steps:
       - run:
           name: Uninstall Go
