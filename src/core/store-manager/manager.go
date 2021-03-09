@@ -1,4 +1,4 @@
-package store_manager
+package storemanager
 
 import (
 	"context"

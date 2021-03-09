@@ -9,6 +9,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 )
 
 const (
@@ -21,12 +22,12 @@ const (
 
 // Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
 type hashicorpSecretStore struct {
-	client     hashicorp.HashicorpVaultClient
+	client     hashicorp.VaultClient
 	mountPoint string
 }
 
 // New creates an HashiCorp secret store
-func New(client hashicorp.HashicorpVaultClient, mountPoint string) *hashicorpSecretStore {
+func New(client hashicorp.VaultClient, mountPoint string) secrets.Store {
 	return &hashicorpSecretStore{
 		client:     client,
 		mountPoint: mountPoint,
@@ -99,7 +100,7 @@ func (s *hashicorpSecretStore) List(_ context.Context) ([]string, error) {
 func (s *hashicorpSecretStore) Refresh(_ context.Context, id string, expirationDate time.Time) error {
 	data := make(map[string]interface{})
 	if !expirationDate.IsZero() {
-		data[deleteAfterLabel] = expirationDate.Sub(time.Now()).String()
+		data[deleteAfterLabel] = time.Until(expirationDate).String()
 	}
 
 	_, err := s.client.Write(s.pathMetadata(id), data)

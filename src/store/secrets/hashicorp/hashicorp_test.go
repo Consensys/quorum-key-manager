@@ -9,6 +9,7 @@ import (
 	"bou.ke/monkey"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ type hashicorpSecretStoreTestSuite struct {
 	suite.Suite
 	mockVault   *mocks.MockHashicorpVaultClient
 	mountPoint  string
-	secretStore *hashicorpSecretStore
+	secretStore secrets.Store
 }
 
 func TestHashicorpSecretStore(t *testing.T) {
@@ -39,8 +40,8 @@ func (s *hashicorpSecretStoreTestSuite) SetupTest() {
 
 func (s *hashicorpSecretStoreTestSuite) TestSet() {
 	ctx := context.Background()
-	id := "my-secret"
-	value := "my-value"
+	id := "my-secret2"
+	value := "my-value2"
 	expectedPath := s.mountPoint + "/data/" + id
 	attributes := testutils.FakeAttributes()
 	expectedData := map[string]interface{}{
@@ -320,7 +321,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 
 func (s *hashicorpSecretStoreTestSuite) TestRefresh() {
 	ctx := context.Background()
-	id := "my-secret"
+	id := "my-secret-3"
 	expectedPath := s.mountPoint + "/metadata/" + id
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{},

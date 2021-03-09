@@ -17,9 +17,9 @@ type Store struct {
 }
 
 // NewStore creates an account store
-func NewStore(keys keys.Store) *Store {
+func NewStore(keyStore keys.Store) *Store {
 	return &Store{
-		keys: keys,
+		keys: keyStore,
 	}
 }
 
@@ -39,7 +39,7 @@ func (s *Store) Import(ctx context.Context, privKey []byte, attr *entities.Attri
 
 // Get account
 func (s *Store) Get(ctx context.Context, addr string) (*entities.Account, error) {
-	id, err := s.getId(addr)
+	id, err := s.getID(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -54,17 +54,17 @@ func (s *Store) Get(ctx context.Context, addr string) (*entities.Account, error)
 
 // List accounts
 func (s *Store) List(ctx context.Context, count uint, skip string) (accounts []*entities.Account, next string, err error) {
-	keys, next, err := s.keys.List(ctx, count, skip)
+	keyList, next, err := s.keys.List(ctx, count, skip)
 	if err != nil {
 		return nil, "", s.handleError(err, "")
 	}
 
-	return entities.KeysToAccounts(keys), next, nil
+	return entities.KeysToAccounts(keyList), next, nil
 }
 
 // Update account attributes
 func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.Account, error) {
-	id, err := s.getId(addr)
+	id, err := s.getID(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 
 // Sign from a digest using the specified account
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) (sig []byte, err error) {
-	id, err := s.getId(addr)
+	id, err := s.getID(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (s *Store) Sign(ctx context.Context, addr string, data []byte) (sig []byte,
 
 // SignHomestead transaction
 func (s *Store) SignHomestead(ctx context.Context, addr string, tx *ethereum.Transaction) (sig []byte, err error) {
-	id, err := s.getId(addr)
+	id, err := s.getID(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -109,9 +109,9 @@ func (s *Store) SignHomestead(ctx context.Context, addr string, tx *ethereum.Tra
 
 // TODO: implement all Store methods
 
-func (s *Store) getId(addr string) (string, error) {
+func (s *Store) getID(addr string) (string, error) {
 	// TODO: to be implemented
-	return s.addrToID[addr], nil
+	return s.addrToID[addr], errors.NotImplementedError
 }
 
 func (s *Store) handleError(err error, addr string) error {

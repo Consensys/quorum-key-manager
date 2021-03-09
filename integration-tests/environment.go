@@ -21,7 +21,7 @@ const networkName = "key-manager"
 type IntegrationEnvironment struct {
 	ctx             context.Context
 	logger          *log.Logger
-	hashicorpClient hashicorp.HashicorpVaultClient
+	hashicorpClient hashicorp.VaultClient
 	dockerClient    *docker.Client
 }
 

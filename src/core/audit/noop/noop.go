@@ -29,6 +29,6 @@ func (a *Auditor) Get(_ context.Context, _ string) (*audit.Operation, error) {
 }
 
 // Lookup queries operations
-func (a *Auditor) Lookup(_ context.Context, _ *audit.Selector, _ int, _ int) ([]*audit.Operation, error) {
+func (a *Auditor) Lookup(_ context.Context, _ *audit.Selector, _, _ int) ([]*audit.Operation, error) {
 	return nil, nil
 }

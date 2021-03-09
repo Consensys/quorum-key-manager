@@ -4,11 +4,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
 // New creates a http.Handler to be served on /accounts
-func New(bcknd core.Backend) http.Handler {
+func New(_ core.Backend) http.Handler {
 	// TODO: to be implemented
 	return nil
 }
@@ -40,40 +42,34 @@ type CreateAccountResponse struct {
 }
 
 func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Request) {
-	// // Unmarshal request body
-	// reqBody := new(CreateAccountRequest)
-	// if err := json.Unmarshal(req.Body, reqBody); err != nil {
-	// 	// Write error
-	// 	return
-	// }
-	//
-	// // Generate internal type object
-	// attr := models.Attributes{
-	// 	// Enabled:  reqBody.Enabled,
-	// 	// ExpireAt: reqBody.ExpireAt,
-	// 	Tags:     reqBody.Tags,
-	// }
-	//
-	// // Execute account creation
-	// account, err := h.backend.
-	// 	StoreManager().
-	// 	GetAccountsStore(req.Context(), reqBody.StoreName).
-	// 	Create(req.Context(), attr)
-	// if err != nil {
-	// 	// Write error
-	// 	return
-	// }
-	//
-	// // Create response body from interal type
-	// respBody := &CreateSecretResponse{
-	// 	Addr: account.Addr,
-	// 	Metadata: &Metadata{
-	// 		Version:   account.Medadata.Version,
-	// 		CreatedAt: account.Medadata.CreatedAt,
-	// 	},
-	// }
-	//
-	// // Write Response
-	// rw.WriteHeader(http.StatusOK)
-	// _ = json.NewEncoder(rw).Encode(respBody)
+	// Unmarshal request body
+	reqBody := new(CreateAccountRequest)
+	if err := json.UnmarshalBody(req.Body, reqBody); err != nil {
+		// Write error
+		return
+	}
+
+	// Generate internal type object
+	attr := &entities.Attributes{
+		// Enabled:  reqBody.Enabled,
+		// ExpireAt: reqBody.ExpireAt,
+		Tags: reqBody.Tags,
+	}
+
+	// Execute account creation
+	store, err := h.backend.
+		StoreManager().
+		GetAccountStore(req.Context(), reqBody.StoreName)
+	if err != nil {
+		// Write error
+		return
+	}
+
+	_, err = store.Create(req.Context(), attr)
+	if err != nil {
+		// Write error
+		return
+	}
+
+	// Write response
 }

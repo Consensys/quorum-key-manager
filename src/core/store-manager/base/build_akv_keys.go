@@ -1,3 +1,4 @@
+//nolint
 package basemanager
 
 import (

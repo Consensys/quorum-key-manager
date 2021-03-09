@@ -17,9 +17,9 @@ type Store struct {
 }
 
 // New creates a new localkeys.Store
-func New(secrets secrets.Store) *Store {
+func New(secretStore secrets.Store) *Store {
 	return &Store{
-		secrets: secrets,
+		secrets: secretStore,
 	}
 }
 

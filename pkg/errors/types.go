@@ -28,6 +28,7 @@ const (
 	Internal uint64 = 15<<16 + 15<<12
 )
 
+//nolint
 var NotImplementedError = fmt.Errorf("not implemented")
 
 func isErrorClass(code, base uint64) bool {

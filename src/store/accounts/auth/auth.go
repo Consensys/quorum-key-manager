@@ -1,3 +1,4 @@
+//nolint
 package authorizedaccounts
 
 import (
@@ -28,7 +29,7 @@ type store struct {
 
 // Create an account
 func (s *store) Create(ctx context.Context, attr *entities.Attributes) (*entities.Account, error) {
-	authInfo := auth.AuthFromContext(ctx)
+	authInfo := auth.FromContext(ctx)
 	if err := authInfo.Policies.IsStoreAuthorized(s.accounts.Info(ctx)); err != nil {
 		return nil, err
 	}
@@ -38,7 +39,7 @@ func (s *store) Create(ctx context.Context, attr *entities.Attributes) (*entitie
 
 // Sign from a digest using the specified account
 func (s *store) Sign(ctx context.Context, addr string, data []byte) (sig []byte, err error) {
-	authInfo := auth.AuthFromContext(ctx)
+	authInfo := auth.FromContext(ctx)
 	if err := authInfo.Policies.IsStoreAuthorized(s.accounts.Info(ctx)); err != nil {
 		return nil, err
 	}
@@ -90,11 +91,11 @@ func (s *store) SignHomestead(ctx context.Context, addr string, tx *ethereum.Tra
 	panic("implement me")
 }
 
-func (s *store) SignEIP155(ctx context.Context, addr string, chainID string, tx *ethereum.Transaction) (sig []byte, err error) {
+func (s *store) SignEIP155(ctx context.Context, addr, chainID string, tx *ethereum.Transaction) (sig []byte, err error) {
 	panic("implement me")
 }
 
-func (s *store) SignEEA(ctx context.Context, addr string, chainID string, tx *ethereum.Transaction, args *ethereum.EEAPrivateArgs) (sig []byte, err error) {
+func (s *store) SignEEA(ctx context.Context, addr, chainID string, tx *ethereum.Transaction, args *ethereum.EEAPrivateArgs) (sig []byte, err error) {
 	panic("implement me")
 }
 
@@ -102,6 +103,6 @@ func (s *store) SignPrivate(ctx context.Context, addr string, tx *ethereum.Trans
 	panic("implement me")
 }
 
-func (s *store) ECRevocer(ctx context.Context, addr string, data []byte, sig []byte) (*entities.Account, error) {
+func (s *store) ECRevocer(ctx context.Context, addr string, data, sig []byte) (*entities.Account, error) {
 	panic("implement me")
 }

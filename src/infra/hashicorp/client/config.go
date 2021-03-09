@@ -18,21 +18,21 @@ type Config struct {
 	TokenFilePath string
 	MountPoint    string
 	SecretPath    string
-	RateLimit     float64
-	BurstLimit    int
 	Address       string
 	CACert        string
 	CAPath        string
 	ClientCert    string
 	ClientKey     string
+	TLSServerName string
 	ClientTimeout time.Duration
+	RateLimit     float64
+	BurstLimit    int
 	MaxRetries    int
 	SkipVerify    bool
-	TLSServerName string
 	Renewable     bool
 }
 
-func NewBaseConfig(addr string, mountPoint string) *Config {
+func NewBaseConfig(addr, mountPoint string) *Config {
 	return &Config{
 		Address:    addr,
 		MountPoint: mountPoint,

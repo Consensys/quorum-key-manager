@@ -25,8 +25,6 @@ linters-settings:
     line-length: 140
   depguard:
     list-type: blacklist
-    packages:
-      - github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault
   gocritic:
     enabled-tags:
       - performance
