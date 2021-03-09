@@ -10,31 +10,31 @@ import (
 	reflect "reflect"
 )
 
-// MockHashicorpVaultClient is a mock of HashicorpVaultClient interface
-type MockHashicorpVaultClient struct {
+// MockVaultClient is a mock of VaultClient interface
+type MockVaultClient struct {
 	ctrl     *gomock.Controller
-	recorder *MockHashicorpVaultClientMockRecorder
+	recorder *MockVaultClientMockRecorder
 }
 
-// MockHashicorpVaultClientMockRecorder is the mock recorder for MockHashicorpVaultClient
-type MockHashicorpVaultClientMockRecorder struct {
-	mock *MockHashicorpVaultClient
+// MockVaultClientMockRecorder is the mock recorder for MockVaultClient
+type MockVaultClientMockRecorder struct {
+	mock *MockVaultClient
 }
 
-// NewMockHashicorpVaultClient creates a new mock instance
-func NewMockHashicorpVaultClient(ctrl *gomock.Controller) *MockHashicorpVaultClient {
-	mock := &MockHashicorpVaultClient{ctrl: ctrl}
-	mock.recorder = &MockHashicorpVaultClientMockRecorder{mock}
+// NewMockVaultClient creates a new mock instance
+func NewMockVaultClient(ctrl *gomock.Controller) *MockVaultClient {
+	mock := &MockVaultClient{ctrl: ctrl}
+	mock.recorder = &MockVaultClientMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockHashicorpVaultClient) EXPECT() *MockHashicorpVaultClientMockRecorder {
+func (m *MockVaultClient) EXPECT() *MockVaultClientMockRecorder {
 	return m.recorder
 }
 
 // Read mocks base method
-func (m *MockHashicorpVaultClient) Read(path string) (*api.Secret, error) {
+func (m *MockVaultClient) Read(path string) (*api.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Read", path)
 	ret0, _ := ret[0].(*api.Secret)
@@ -43,13 +43,13 @@ func (m *MockHashicorpVaultClient) Read(path string) (*api.Secret, error) {
 }
 
 // Read indicates an expected call of Read
-func (mr *MockHashicorpVaultClientMockRecorder) Read(path interface{}) *gomock.Call {
+func (mr *MockVaultClientMockRecorder) Read(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockHashicorpVaultClient)(nil).Read), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockVaultClient)(nil).Read), path)
 }
 
 // Write mocks base method
-func (m *MockHashicorpVaultClient) Write(path string, data map[string]interface{}) (*api.Secret, error) {
+func (m *MockVaultClient) Write(path string, data map[string]interface{}) (*api.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Write", path, data)
 	ret0, _ := ret[0].(*api.Secret)
@@ -58,13 +58,13 @@ func (m *MockHashicorpVaultClient) Write(path string, data map[string]interface{
 }
 
 // Write indicates an expected call of Write
-func (mr *MockHashicorpVaultClientMockRecorder) Write(path, data interface{}) *gomock.Call {
+func (mr *MockVaultClientMockRecorder) Write(path, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockHashicorpVaultClient)(nil).Write), path, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockVaultClient)(nil).Write), path, data)
 }
 
 // List mocks base method
-func (m *MockHashicorpVaultClient) List(path string) (*api.Secret, error) {
+func (m *MockVaultClient) List(path string) (*api.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", path)
 	ret0, _ := ret[0].(*api.Secret)
@@ -73,13 +73,13 @@ func (m *MockHashicorpVaultClient) List(path string) (*api.Secret, error) {
 }
 
 // List indicates an expected call of List
-func (mr *MockHashicorpVaultClientMockRecorder) List(path interface{}) *gomock.Call {
+func (mr *MockVaultClientMockRecorder) List(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockHashicorpVaultClient)(nil).List), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockVaultClient)(nil).List), path)
 }
 
 // Client mocks base method
-func (m *MockHashicorpVaultClient) Client() *api.Client {
+func (m *MockVaultClient) Client() *api.Client {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Client")
 	ret0, _ := ret[0].(*api.Client)
@@ -87,13 +87,13 @@ func (m *MockHashicorpVaultClient) Client() *api.Client {
 }
 
 // Client indicates an expected call of Client
-func (mr *MockHashicorpVaultClientMockRecorder) Client() *gomock.Call {
+func (mr *MockVaultClientMockRecorder) Client() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockHashicorpVaultClient)(nil).Client))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockVaultClient)(nil).Client))
 }
 
 // HealthCheck mocks base method
-func (m *MockHashicorpVaultClient) HealthCheck() error {
+func (m *MockVaultClient) HealthCheck() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HealthCheck")
 	ret0, _ := ret[0].(error)
@@ -101,7 +101,7 @@ func (m *MockHashicorpVaultClient) HealthCheck() error {
 }
 
 // HealthCheck indicates an expected call of HealthCheck
-func (mr *MockHashicorpVaultClientMockRecorder) HealthCheck() *gomock.Call {
+func (mr *MockVaultClientMockRecorder) HealthCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockHashicorpVaultClient)(nil).HealthCheck))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockVaultClient)(nil).HealthCheck))
 }

@@ -1,6 +1,14 @@
 GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" | egrep -v "^\./\.go" | grep -v _test.go)
 DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
-PACKAGES ?= $(shell go list ./... | egrep -Fv -e "integration-tests|mocks" )
+PACKAGES ?= $(shell go list ./... | egrep -v "integration-tests|mocks" )
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	OPEN = xdg-open
+endif
+ifeq ($(UNAME_S),Darwin)
+	OPEN = open
+endif
 
 .PHONY: all lint integration-tests
 
