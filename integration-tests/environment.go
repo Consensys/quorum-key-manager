@@ -6,12 +6,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/common/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/infra/vault/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/utils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker"
 	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/config"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/hashicorp/vault/api"
-	"github.com/spf13/pflag"
 )
 
 const hashicorpContainerID = "hashicorp-vault"
@@ -21,7 +22,7 @@ const vaultTokenFilePrefix = "orchestrate_vault_token_"
 type IntegrationEnvironment struct {
 	ctx             context.Context
 	logger          *log.Logger
-	hashicorpClient *hashicorp.HashicorpVaultClient
+	hashicorpClient hashicorp.HashicorpVaultClient
 	dockerClient    *docker.Client
 }
 
@@ -32,7 +33,7 @@ type TestSuiteEnv interface {
 func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 	ctx, cancel := context.WithCancel(ctx)
 
-	sig := NewSignalListener(func(signal os.Signal) {
+	sig := utils.NewSignalListener(func(signal os.Signal) {
 		gerr = fmt.Errorf("interrupt signal has been sent")
 		cancel()
 	})
@@ -56,30 +57,6 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	hashicorpTokenFileName, err := generateHashicorpTokenFile(hashicorpContainer.RootToken)
-	if err != nil {
-		logger.WithError(err).Error("cannot generate vault token file")
-		return nil, err
-	}
-
-	// Initialize environment flags
-	flgs := pflag.NewFlagSet("integration-tests", pflag.ContinueOnError)
-
-	hashicorp.Flags(flgs)
-	log.Flags(flgs)
-	args := []string{
-		fmt.Sprintf("--%s=%s", hashicorp.HashicorpAddrFlag,
-			fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)),
-		fmt.Sprintf("--%s=%s", hashicorp.HashicorpTokenFilePathFlag, hashicorpTokenFileName),
-		"--log-level=panic",
-	}
-
-	err = flgs.Parse(args)
-	if err != nil {
-		logger.WithError(err).Error("cannot parse environment flags")
-		return nil, err
-	}
-
 	// Initialize environment container setup
 	composition := &config.Composition{
 		Containers: map[string]*config.Container{
@@ -96,14 +73,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	hashicorpCfg := hashicorp.ConfigFromViper()
-	hashicorpCfg.Renewal = false
-	hashicorpClient, err := hashicorp.NewVaultClient(ctx, hashicorpCfg)
+	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
+	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, "integration-test"),
+		hashicorpContainer.RootToken)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
-	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 
 	// TODO Add key-manager init
 

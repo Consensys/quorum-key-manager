@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	dockerhashicorp "github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/container/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/common/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
 const hashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
@@ -45,26 +45,6 @@ func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 	return vaultContainer, nil
 }
 
-func generateHashicorpTokenFile(rootToken string) (string, error) {
-	file, err := ioutil.TempFile("", vaultTokenFilePrefix)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	w := bufio.NewWriter(file)
-	_, err = w.WriteString(rootToken)
-	if err != nil {
-		return "", err
-	}
-
-	err = w.Flush()
-	if err != nil {
-		return "", err
-	}
-
-	return file.Name(), nil
-}
 
 func getPluginPath(logger *log.Logger) (string, error) {
 	currDir, err := os.Getwd()

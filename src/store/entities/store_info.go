@@ -1,4 +1,4 @@
-package models
+package entities
 
 // StoreInfo for a store
 type StoreInfo struct {
