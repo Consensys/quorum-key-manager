@@ -1,12 +1,13 @@
 package testutils
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 	"time"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-func FakeSecret() *models.Secret {
-	return &models.Secret{
+func FakeSecret() *entities.Secret {
+	return &entities.Secret{
 		Value:    "my-secret",
 		Disabled: false,
 		Recovery: nil,
@@ -14,15 +15,21 @@ func FakeSecret() *models.Secret {
 			"tag1": "tagValue1",
 			"tag2": "tagValue2",
 		},
+		Metadata: FakeMetadata(),
+	}
+}
+
+func FakeMetadata() *entities.Metadata {
+	return &entities.Metadata{
 		Version:   1,
 		CreatedAt: time.Now(),
 	}
 }
 
-func FakeAttributes() *models.Attributes {
-	return &models.Attributes{
-		Operations: []models.CryptoOperation{
-			models.Signing, models.Encryption,
+func FakeAttributes() *entities.Attributes {
+	return &entities.Attributes{
+		Operations: []entities.CryptoOperation{
+			entities.Signing, entities.Encryption,
 		},
 		Disabled: false,
 		TTL:      24 * time.Hour,

@@ -46,14 +46,14 @@ func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Reque
 	// 	// Write error
 	// 	return
 	// }
-	// 
+	//
 	// // Generate internal type object
 	// attr := models.Attributes{
 	// 	// Enabled:  reqBody.Enabled,
 	// 	// ExpireAt: reqBody.ExpireAt,
 	// 	Tags:     reqBody.Tags,
 	// }
-	// 
+	//
 	// // Execute account creation
 	// account, err := h.backend.
 	// 	StoreManager().
@@ -63,7 +63,7 @@ func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Reque
 	// 	// Write error
 	// 	return
 	// }
-	// 
+	//
 	// // Create response body from interal type
 	// respBody := &CreateSecretResponse{
 	// 	Addr: account.Addr,
@@ -72,7 +72,7 @@ func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Reque
 	// 		CreatedAt: account.Medadata.CreatedAt,
 	// 	},
 	// }
-	// 
+	//
 	// // Write Response
 	// rw.WriteHeader(http.StatusOK)
 	// _ = json.NewEncoder(rw).Encode(respBody)

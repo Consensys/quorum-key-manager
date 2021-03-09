@@ -11,4 +11,3 @@ type Algo struct {
 	// Size of the key
 	Size int
 }
-

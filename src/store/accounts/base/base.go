@@ -2,6 +2,7 @@ package baseaccounts
 
 import (
 	"context"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 

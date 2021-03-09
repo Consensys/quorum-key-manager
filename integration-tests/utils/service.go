@@ -8,7 +8,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-
 func WaitForServiceLive(ctx context.Context, url, name string, timeout time.Duration) {
 	rctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()

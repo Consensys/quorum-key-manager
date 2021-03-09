@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/common/utils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/container/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/utils"
 )
 
 type Composition struct {

@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"strings"
 )
 
 func PreRunBindFlags(vipr *viper.Viper, flgs *pflag.FlagSet, ignore string) {

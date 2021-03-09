@@ -130,7 +130,7 @@ func (s *hashicorpSecretStore) Undelete(ctx context.Context, id string) error {
 	return errors.NotImplementedError
 }
 
-// Destroy a secret permanenty
+// Destroy a secret permanently
 func (s *hashicorpSecretStore) Destroy(ctx context.Context, id string, versions ...int) error {
 	return errors.NotImplementedError
 }
@@ -143,4 +143,3 @@ func (s *hashicorpSecretStore) pathData(id string) string {
 func (s *hashicorpSecretStore) pathMetadata(id string) string {
 	return path.Join(s.mountPoint, metadataLabel, id)
 }
-

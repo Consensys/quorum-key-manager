@@ -5,6 +5,7 @@ import (
 	noopauditor "github.com/ConsenSysQuorum/quorum-key-manager/src/core/audit/noop"
 	authmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth/manager"
 	noopauthmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth/manager/noop"
+	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest/loader"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
 	basemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/base"
 )
@@ -29,7 +30,7 @@ type BaseBackend struct {
 	auditor    audit.Auditor
 	authMngr   authmanager.Manager
 	storeMnger storemanager.Manager
-	// loader     manifest.Loader
+	loader     manifestloader.Loader
 }
 
 func New() *BaseBackend {

@@ -105,4 +105,3 @@ func (s *store) SignPrivate(ctx context.Context, addr string, tx *ethereum.Trans
 func (s *store) ECRevocer(ctx context.Context, addr string, data []byte, sig []byte) (*entities.Account, error) {
 	panic("implement me")
 }
-

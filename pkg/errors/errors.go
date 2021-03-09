@@ -38,4 +38,3 @@ func FromError(err interface{}) *Error {
 
 	return ierr
 }
-

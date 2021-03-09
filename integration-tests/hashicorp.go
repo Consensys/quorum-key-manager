@@ -1,10 +1,8 @@
 package integrationtests
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"strconv"
@@ -18,7 +16,7 @@ const hashicorpPluginVersion = "v0.0.9"
 
 func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 	logger := log.FromContext(ctx)
-	
+
 	hashicorpHost := "localhost"
 	hashicorpPort := strconv.Itoa(10000 + rand.Intn(10000))
 	hashicorpToken := fmt.Sprintf("root_token_%v", strconv.Itoa(rand.Intn(10000)))
@@ -44,7 +42,6 @@ func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 
 	return vaultContainer, nil
 }
-
 
 func getPluginPath(logger *log.Logger) (string, error) {
 	currDir, err := os.Getwd()

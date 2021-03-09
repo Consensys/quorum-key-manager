@@ -46,8 +46,10 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algo, attr 
 		return &entities.Key{
 			PublicKey: pubKey,
 			Alg:       alg,
-			Attr:      secret.Attr,
-			Metadata:  secret.Metadata,
+			Attr: &entities.Attributes{
+				Tags: secret.Tags,
+			},
+			Metadata: secret.Metadata,
 		}, nil
 	default:
 		return nil, fmt.Errorf("not supported")

@@ -23,7 +23,7 @@ const (
 
 	// Configuration errors (class F0XXX)
 	Config uint64 = 15 << 16
-	
+
 	// Internal errors (class FFXXX)
 	Internal uint64 = 15<<16 + 15<<12
 )
@@ -111,4 +111,3 @@ func IsAlreadyExistsError(err error) bool {
 func ConfigError(format string, a ...interface{}) *Error {
 	return Errorf(Config, format, a...)
 }
-

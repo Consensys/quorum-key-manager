@@ -6,8 +6,8 @@ package mocks
 
 import (
 	context "context"
-	models "github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
-	secrets "github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	secrets "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
@@ -37,10 +37,10 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // Info mocks base method
-func (m *MockStore) Info(arg0 context.Context) (*models.StoreInfo, error) {
+func (m *MockStore) Info(arg0 context.Context) (*entities.StoreInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Info", arg0)
-	ret0, _ := ret[0].(*models.StoreInfo)
+	ret0, _ := ret[0].(*entities.StoreInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -52,10 +52,10 @@ func (mr *MockStoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
 }
 
 // Set mocks base method
-func (m *MockStore) Set(ctx context.Context, id, value string, attr *models.Attributes) (*models.Secret, error) {
+func (m *MockStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Set", ctx, id, value, attr)
-	ret0, _ := ret[0].(*models.Secret)
+	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -67,10 +67,10 @@ func (mr *MockStoreMockRecorder) Set(ctx, id, value, attr interface{}) *gomock.C
 }
 
 // Get mocks base method
-func (m *MockStore) Get(ctx context.Context, id string, version int) (*models.Secret, error) {
+func (m *MockStore) Get(ctx context.Context, id string, version int) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id, version)
-	ret0, _ := ret[0].(*models.Secret)
+	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -111,14 +111,14 @@ func (mr *MockStoreMockRecorder) Refresh(ctx, id, expirationDate interface{}) *g
 }
 
 // Delete mocks base method
-func (m *MockStore) Delete(ctx context.Context, id string, versions ...int) (*models.Secret, error) {
+func (m *MockStore) Delete(ctx context.Context, id string, versions ...int) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, id}
 	for _, a := range versions {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "Delete", varargs...)
-	ret0, _ := ret[0].(*models.Secret)
+	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -131,10 +131,10 @@ func (mr *MockStoreMockRecorder) Delete(ctx, id interface{}, versions ...interfa
 }
 
 // GetDeleted mocks base method
-func (m *MockStore) GetDeleted(ctx context.Context, id string) (*models.Secret, error) {
+func (m *MockStore) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeleted", ctx, id)
-	ret0, _ := ret[0].(*models.Secret)
+	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -20,7 +20,7 @@ type Runnable interface {
 
 	// Stop SHOULD make sure underlying long living task has gracefully interupted execution before returning
 
-	// In case context timeouts or is cancelled Stop MUST
+	// In case context timeouts or is canceled Stop MUST
 	// 1. [optional] Try to kill long living task (MUST not block on doing this)
 	// 2. Return immediately with an error
 

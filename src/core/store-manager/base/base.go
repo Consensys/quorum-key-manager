@@ -3,16 +3,18 @@ package basemanager
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/audit"
 	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest/loader"
+	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 )
 
-type Manager struct {
-	mux    sync.RWLock
+type manager struct {
+	mux    sync.RWMutex
 	stores map[string]*storeBundle
 
 	auditor audit.Auditor
@@ -25,22 +27,19 @@ type storeBundle struct {
 	accounts accounts.Store
 }
 
-func New(auditor audit.Auditor) *Manager {
-	return &Manager{
-		secrets:  make(map[string]secrets.Store),
-		keys:     make(map[string]keys.Store),
-		accounts: make(map[string]accounts.Store),
-		auditor:  auditor,
+func New(auditor audit.Auditor) storemanager.Manager {
+	return &manager{
+		auditor: auditor,
 	}
 }
 
-func (mngr *Manager) Load(ctx context.Context, msgs ...*manifestloader.Message) {
+func (mngr *manager) Load(ctx context.Context, msgs ...*manifestloader.Message) {
 	for _, msg := range msgs {
 		mngr.loadMessage(ctx, msg)
 	}
 }
 
-func (mngr *Manager) loadMessage(ctx context.Context, msg *manifestloader.Message) {
+func (mngr *manager) loadMessage(ctx context.Context, msg *manifestloader.Message) {
 	switch msg.Manifest.Kind {
 	case "HashicorpSecrets":
 		mngr.loadHashicorpSecrets(ctx, msg)
@@ -51,9 +50,10 @@ func (mngr *Manager) loadMessage(ctx context.Context, msg *manifestloader.Messag
 	}
 }
 
-func (mngr *Manager) setStores(msg *manifestloader.Message, secretsStore secrets.Store, keysStore keys.Store, accountsStore accounts.Store) {
+func (mngr *manager) setStores(msg *manifestloader.Message, secretsStore secrets.Store, keysStore keys.Store, accountsStore accounts.Store) {
 	mngr.mux.Lock()
-	mngr.stores[name] = &storeBundle{
+	// @TODO Set name for new store bundle
+	mngr.stores["name"] = &storeBundle{
 		msg:      msg,
 		secrets:  secretsStore,
 		keys:     keysStore,
@@ -62,7 +62,7 @@ func (mngr *Manager) setStores(msg *manifestloader.Message, secretsStore secrets
 	mngr.mux.Unlock()
 }
 
-func (mngr *Manager) GetSecretStore(ctx context.Context, name string) (secrets.Store, error) {
+func (mngr *manager) GetSecretStore(ctx context.Context, name string) (secrets.Store, error) {
 	mngr.mux.RLock()
 	defer mngr.mux.RUnlock()
 
@@ -78,7 +78,7 @@ func (mngr *Manager) GetSecretStore(ctx context.Context, name string) (secrets.S
 	return s.secrets, nil
 }
 
-func (mngr *Manager) GetKeyStore(ctx context.Context, name string) (keys.Store, error) {
+func (mngr *manager) GetKeyStore(ctx context.Context, name string) (keys.Store, error) {
 	mngr.mux.RLock()
 	defer mngr.mux.RUnlock()
 
@@ -94,7 +94,7 @@ func (mngr *Manager) GetKeyStore(ctx context.Context, name string) (keys.Store, 
 	return s.keys, nil
 }
 
-func (mngr *Manager) GetAccountStore(ctx context.Context, name string) (accounts.Store, error) {
+func (mngr *manager) GetAccountStore(ctx context.Context, name string) (accounts.Store, error) {
 	mngr.mux.RLock()
 	defer mngr.mux.RUnlock()
 
@@ -108,4 +108,8 @@ func (mngr *Manager) GetAccountStore(ctx context.Context, name string) (accounts
 	}
 
 	return s.accounts, nil
+}
+
+func (mngr *manager) List(ctx context.Context, kind string) ([]string, error) {
+	panic("implement me")
 }

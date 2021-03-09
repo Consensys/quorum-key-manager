@@ -77,3 +77,31 @@ func (mr *MockHashicorpVaultClientMockRecorder) List(path interface{}) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockHashicorpVaultClient)(nil).List), path)
 }
+
+// Client mocks base method
+func (m *MockHashicorpVaultClient) Client() *api.Client {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Client")
+	ret0, _ := ret[0].(*api.Client)
+	return ret0
+}
+
+// Client indicates an expected call of Client
+func (mr *MockHashicorpVaultClientMockRecorder) Client() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockHashicorpVaultClient)(nil).Client))
+}
+
+// HealthCheck mocks base method
+func (m *MockHashicorpVaultClient) HealthCheck() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HealthCheck")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// HealthCheck indicates an expected call of HealthCheck
+func (mr *MockHashicorpVaultClientMockRecorder) HealthCheck() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockHashicorpVaultClient)(nil).HealthCheck))
+}

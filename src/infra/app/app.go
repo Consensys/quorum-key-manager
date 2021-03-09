@@ -4,8 +4,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/app/api"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 )
 
 // App is the main Key Manager application object
@@ -20,6 +20,7 @@ type App struct {
 	backend core.Backend
 }
 
+// @TODO Inject http server
 func New() *App {
 	bckend := core.New()
 

@@ -1,17 +1,18 @@
 package hashicorp
 
 import (
-	"bou.ke/monkey"
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
+	"testing"
+	"time"
+
+	"bou.ke/monkey"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
 
 type hashicorpSecretStoreTestSuite struct {
@@ -65,11 +66,11 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 		assert.NoError(t, err)
 		assert.Equal(t, value, secret.Value)
 		assert.False(t, secret.Disabled)
-		assert.Equal(t, expectedCreatedAt, secret.CreatedAt)
+		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, 2, secret.Version)
-		assert.True(t, secret.ExpireAt.IsZero())
-		assert.True(t, secret.DeletedAt.IsZero())
+		assert.Equal(t, 2, secret.Metadata.Version)
+		assert.True(t, secret.Metadata.ExpireAt.IsZero())
+		assert.True(t, secret.Metadata.DeletedAt.IsZero())
 		assert.Nil(t, secret.Recovery)
 	})
 
@@ -135,11 +136,11 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		assert.NoError(t, err)
 		assert.Equal(t, value, secret.Value)
 		assert.False(t, secret.Disabled)
-		assert.Equal(t, expectedCreatedAt, secret.CreatedAt)
+		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, 2, secret.Version)
-		assert.True(t, secret.ExpireAt.IsZero())
-		assert.True(t, secret.DeletedAt.IsZero())
+		assert.Equal(t, 2, secret.Metadata.Version)
+		assert.True(t, secret.Metadata.ExpireAt.IsZero())
+		assert.True(t, secret.Metadata.DeletedAt.IsZero())
 		assert.Nil(t, secret.Recovery)
 	})
 
@@ -186,7 +187,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedExpireAt, secret.ExpireAt)
+		assert.Equal(t, expectedExpireAt, secret.Metadata.ExpireAt)
 	})
 
 	s.T().Run("should get a secret successfully with past deletion time", func(t *testing.T) {
@@ -210,8 +211,8 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.NoError(t, err)
-		assert.Empty(t, secret.ExpireAt)
-		assert.Equal(t, expectedDeletedAt, secret.DeletedAt)
+		assert.Empty(t, secret.Metadata.ExpireAt)
+		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
 		assert.True(t, secret.Disabled)
 	})
 
@@ -236,10 +237,10 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.NoError(t, err)
-		assert.Empty(t, secret.ExpireAt)
-		assert.Equal(t, expectedDeletedAt, secret.DeletedAt)
+		assert.Empty(t, secret.Metadata.ExpireAt)
+		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
 		assert.True(t, secret.Disabled)
-		assert.Equal(t, expectedDeletedAt, secret.DestroyedAt)
+		assert.Equal(t, expectedDeletedAt, secret.Metadata.DestroyedAt)
 	})
 
 	// TODO: Implement specific error types and check that the function return the right error type

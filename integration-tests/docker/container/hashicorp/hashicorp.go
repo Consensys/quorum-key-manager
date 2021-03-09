@@ -66,7 +66,7 @@ func (cfg *Config) SetPluginSourceDirectory(dir string) *Config {
 
 func (cfg *Config) DownloadPlugin(filename, version string) (string, error) {
 	url := fmt.Sprintf("https://github.com/ConsenSys/orchestrate-hashicorp-vault-plugin/releases/download/%s/orchestrate-hashicorp-vault-plugin", version)
-	
+
 	pluginPath := fmt.Sprintf("%s/%s", cfg.PluginSourceDirectory, filename)
 	err := downloadPlugin(pluginPath, url)
 	if err != nil {

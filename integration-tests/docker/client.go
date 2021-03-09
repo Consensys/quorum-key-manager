@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/common/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/common/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/docker/docker/api/types/network"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/config"

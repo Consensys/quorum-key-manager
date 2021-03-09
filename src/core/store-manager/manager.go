@@ -3,10 +3,10 @@ package store_manager
 import (
 	"context"
 
-	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
+	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest/loader"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 )
 
 // Manager allows to manage multiple stores
