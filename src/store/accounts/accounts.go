@@ -3,37 +3,37 @@ package accounts
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/common/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
 type Store interface {
 	// Info returns store information
-	Info(context.Context) *models.StoreInfo
+	Info(context.Context) *entities.StoreInfo
 
 	// Create an account
-	Create(ctx context.Context, attr *models.Attributes) (*models.Account, error)
+	Create(ctx context.Context, attr *entities.Attributes) (*entities.Account, error)
 
 	// Import an externally created key and store account
-	Import(ctx context.Context, privKey []byte, attr *models.Attributes) (*models.Account, error)
+	Import(ctx context.Context, privKey []byte, attr *entities.Attributes) (*entities.Account, error)
 
 	// Get account
-	Get(ctx context.Context, addr string) (*models.Account, error)
+	Get(ctx context.Context, addr string) (*entities.Account, error)
 
 	// List accounts
-	List(ctx context.Context, count uint, skip string) (accounts []*models.Account, next string, err error)
+	List(ctx context.Context, count uint, skip string) (accounts []*entities.Account, next string, err error)
 
 	// Update account attributes
-	Update(ctx context.Context, addr string, attr *models.Attributes) (*models.Account, error)
+	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.Account, error)
 
 	// Delete account not parmently, by using Undelete the account can be retrieve
-	Delete(ctx context.Context, addrs ...string) (*models.Account, error)
+	Delete(ctx context.Context, addrs ...string) (*entities.Account, error)
 
 	// GetDeleted accounts
 	GetDeleted(ctx context.Context, addr string)
 
 	// ListDeleted accounts
-	ListDeleted(ctx context.Context, count uint, skip string) (keys []*models.Account, next string, err error)
+	ListDeleted(ctx context.Context, count uint, skip string) (keys []*entities.Account, next string, err error)
 
 	// Undelete a previously deleted account
 	Undelete(ctx context.Context, addr string) error
@@ -57,7 +57,7 @@ type Store interface {
 	SignPrivate(ctx context.Context, addr string, tx *ethereum.Transaction) (sig []byte, err error)
 
 	// Verify a signature using a specified key
-	ECRevocer(ctx context.Context, addr string, data []byte, sig []byte) (*models.Account, error)
+	ECRevocer(ctx context.Context, addr string, data []byte, sig []byte) (*entities.Account, error)
 }
 
 // Instrument allows to instrument a Store with some extra capabilities

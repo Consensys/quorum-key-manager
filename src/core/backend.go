@@ -1,12 +1,12 @@
 package core
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/audit"
-	noopauditor "github.com/ConsenSysQuorum/quorum-key-manager/core/audit/noop"
-	authmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/auth/manager"
-	noopauthmanager "github.com/ConsenSysQuorum/quorum-key-manager/core/auth/manager/noop"
-	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager"
-	basemanager "github.com/ConsenSysQuorum/quorum-key-manager/core/store/manager/base"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/audit"
+	noopauditor "github.com/ConsenSysQuorum/quorum-key-manager/src/core/audit/noop"
+	authmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth/manager"
+	noopauthmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth/manager/noop"
+	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
+	basemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/base"
 )
 
 // Backend holds internal Key Manager components and

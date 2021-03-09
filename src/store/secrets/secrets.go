@@ -2,21 +2,22 @@ package secrets
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
 	"time"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
 //go:generate mockgen -source=secrets.go -destination=mocks/secrets.go -package=mocks
 
 type Store interface {
 	// Info returns store information
-	Info(context.Context) (*models.StoreInfo, error)
+	Info(context.Context) (*entities.StoreInfo, error)
 
 	// Set secret
-	Set(ctx context.Context, id, value string, attr *models.Attributes) (*models.Secret, error)
+	Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error)
 
 	// Get a secret
-	Get(ctx context.Context, id string, version int) (*models.Secret, error)
+	Get(ctx context.Context, id string, version int) (*entities.Secret, error)
 
 	// List secrets
 	List(ctx context.Context) ([]string, error)
@@ -25,10 +26,10 @@ type Store interface {
 	Refresh(ctx context.Context, id string, expirationDate time.Time) error
 
 	// Delete secret not permanently, by using Undelete the secret can be restored
-	Delete(ctx context.Context, id string, versions ...int) (*models.Secret, error)
+	Delete(ctx context.Context, id string, versions ...int) (*entities.Secret, error)
 
 	// GetDeleted secrets
-	GetDeleted(ctx context.Context, id string) (*models.Secret, error)
+	GetDeleted(ctx context.Context, id string) (*entities.Secret, error)
 
 	// ListDeleted secrets
 	ListDeleted(ctx context.Context) ([]string, error)

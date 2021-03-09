@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 )
 
 // New creates a http.Handler to be served on /accounts

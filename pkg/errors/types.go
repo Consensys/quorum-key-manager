@@ -1,5 +1,9 @@
 package errors
 
+import (
+	"fmt"
+)
+
 const (
 	// Connection Errors (class 08XXX)
 	Connection               uint64 = 8 << 12
@@ -23,6 +27,8 @@ const (
 	// Internal errors (class FFXXX)
 	Internal uint64 = 15<<16 + 15<<12
 )
+
+var NotImplementedError = fmt.Errorf("not implemented")
 
 func isErrorClass(code, base uint64) bool {
 	// Error codes have a 5 hex representation (<=> 20 bits representation)

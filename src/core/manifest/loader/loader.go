@@ -3,8 +3,8 @@ package manifestloader
 import (
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/auth"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/manifest"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 )
 
 // Message wraps a manifest with information related to the Loader that loaded it

@@ -3,8 +3,8 @@ package policymanager
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/auth"
-	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth"
+	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest/loader"
 )
 
 // Manager allows to manage policies

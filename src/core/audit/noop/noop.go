@@ -3,7 +3,7 @@ package noop
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/audit"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/audit"
 )
 
 // Auditor is a no operation auditor

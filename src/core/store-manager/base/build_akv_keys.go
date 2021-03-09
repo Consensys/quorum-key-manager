@@ -3,24 +3,24 @@ package basemanager
 import (
 	"context"
 
-	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/core/manifest/loader"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts"
-	auditedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/audit"
-	authenticatedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/auth"
-	baseaccounts "github.com/ConsenSysQuorum/quorum-key-manager/core/store/accounts/base"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys"
-	akvkeys "github.com/ConsenSysQuorum/quorum-key-manager/core/store/keys/azure-key-vault"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
+	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest/loader"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
+	auditedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts/audit"
+	authenticatedaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts/auth"
+	baseaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts/base"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
+	akvkeys "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/azure-key-vault"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 )
 
 // AKVKeysSpecs is the specs format for an Azure Key Vault key store
-type AKVKeysSpecs struct {
+type akvKeysSpecs struct {
 	AKV           *akvkeys.Config `json:"akv"`
 	Audited       bool            `json:"audited"`
 	Authenticated bool            `json:"authenticated"`
 }
 
-func (mngr *Manager) BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
+func (mngr *Manager) BuildAKVKeyStores(specs *akvKeysSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
 	// Creates AKV keys store from specs config
 	keysStore, err := akvkeys.New(specs.AKV)
 	if err != nil {
@@ -49,7 +49,7 @@ func (mngr *Manager) BuildAKVKeyStores(specs *AKVKeysSpecs) (secrets.Store, keys
 // loadAKVKeys creates and indexes an AKV Key Store
 func (mngr *Manager) loadAKVKeys(ctx context.Context, msg *manifestloader.Message) {
 	// Unmarshal manifest specs
-	specs := new(AKVKeysSpecs)
+	specs := new(akvKeysSpecs)
 	msg.UnmarshalSpecs(specs)
 	if msg.Err != nil {
 		return

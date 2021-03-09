@@ -1,11 +1,11 @@
-package secrets
+package hashicorp
 
 import (
 	"bou.ke/monkey"
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/infra/vault/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"

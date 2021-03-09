@@ -18,7 +18,7 @@ type Attributes struct {
 	// Operations supported by a stored item (e.g sign, encrypt...)
 	Operations []CryptoOperation
 
-	// Disabled wether item is disabled
+	// Disabled whether item is disabled
 	Disabled bool
 
 	// TTL

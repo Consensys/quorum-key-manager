@@ -5,8 +5,8 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/secrets"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -24,7 +24,7 @@ func New(secrets secrets.Store) *Store {
 }
 
 // Create a new key and stores it
-func (s *Store) Create(ctx context.Context, id string, alg *models.Algo, attr *models.Attributes) (*models.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error) {
 	switch alg.Type {
 	case "ecdsa":
 		// Generate key
@@ -38,12 +38,12 @@ func (s *Store) Create(ctx context.Context, id string, alg *models.Algo, attr *m
 
 		// Set key on the private store
 		// TODO: pubkey could be stored as a metadata so we do not need to recompute it each time
-		secret, err := s.secrets.Set(ctx, id, crypto.FromECDSA(privKey), attr)
+		secret, err := s.secrets.Set(ctx, id, string(crypto.FromECDSA(privKey)), attr)
 		if err != nil {
 			return nil, err
 		}
 
-		return &models.Key{
+		return &entities.Key{
 			PublicKey: pubKey,
 			Alg:       alg,
 			Attr:      secret.Attr,
@@ -64,7 +64,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, version int) (
 	}
 
 	// Mount secret into a private key
-	privKey, err := crypto.ToECDSA(secret.Value)
+	privKey, err := crypto.ToECDSA([]byte(secret.Value))
 	if err != nil {
 		return nil, err
 	}

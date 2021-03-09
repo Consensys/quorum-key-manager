@@ -3,11 +3,11 @@ package api
 import (
 	"net/http"
 
-	accountsapi "github.com/ConsenSysQuorum/quorum-key-manager/app/api/accounts"
-	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/app/api/jsonrpc"
-	keysapi "github.com/ConsenSysQuorum/quorum-key-manager/app/api/keys"
-	secretsapi "github.com/ConsenSysQuorum/quorum-key-manager/app/api/secrets"
-	"github.com/ConsenSysQuorum/quorum-key-manager/core"
+	accountsapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/accounts"
+	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/jsonrpc"
+	keysapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/keys"
+	secretsapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/secrets"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"
 )
 

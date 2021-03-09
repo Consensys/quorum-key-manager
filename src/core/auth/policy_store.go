@@ -3,7 +3,7 @@ package auth
 import (
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/store/models"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
 func NewStorePolicy(name string, storeNames []string) *Policy {
@@ -22,7 +22,7 @@ type StoreEndorsement struct {
 }
 
 // IsAuthorized indicates wether
-func (e *StoreEndorsement) IsAuthorized(storeInfo *models.StoreInfo) error {
+func (e *StoreEndorsement) IsAuthorized(storeInfo *entities.StoreInfo) error {
 	// TODO: check if storeName is authorized
 	// - Basic implementation can simply check if storeName is in the slice
 	// - More advanced implementation can consider some regexp
@@ -30,7 +30,7 @@ func (e *StoreEndorsement) IsAuthorized(storeInfo *models.StoreInfo) error {
 }
 
 // IsStoreAuthorized
-func (policies *Policies) IsStoreAuthorized(storeInfo *models.StoreInfo) error {
+func (policies *Policies) IsStoreAuthorized(storeInfo *entities.StoreInfo) error {
 	for _, policy := range (*policies)[PolicyTypeStore] {
 		if err := policy.Endorsement.(*StoreEndorsement).IsAuthorized(storeInfo); err == nil {
 			return nil

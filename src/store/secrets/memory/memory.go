@@ -1,3 +1,3 @@
-package secrets
+package memory
 
 type memorySecretStore struct{}

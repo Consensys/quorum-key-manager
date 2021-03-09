@@ -3,7 +3,7 @@ package audit
 import (
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/core/auth"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth"
 )
 
 // Operation
