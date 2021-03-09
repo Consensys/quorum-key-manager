@@ -1,9 +1,10 @@
-package client
+package flags
 
 import (
 	"fmt"
 	"time"
 
+	hashicorp "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -109,7 +110,7 @@ const (
 )
 
 // Flags register flags for HashiCorp Hashicorp
-func Flags(f *pflag.FlagSet) {
+func HashicorpFlags(f *pflag.FlagSet) {
 	hashicorpAddr(f)
 	hashicorpBurstLimit(f)
 	hashicorpCACert(f)
@@ -215,4 +216,24 @@ func hashicorpTLSServerName(f *pflag.FlagSet) {
 Environment variable: %q`, hashicorpTLSServerNameEnv)
 	f.String(hashicorpTLSServerNameFlag, hashicorpTLSServerNameDefault, desc)
 	_ = viper.BindPFlag(hashicorpTLSServerNameViperKey, f.Lookup(hashicorpTLSServerNameFlag))
+}
+
+// ConfigFromViper returns a local config object that be converted into an api.Config
+func NewHashicorpConfig() *hashicorp.Config {
+	return &hashicorp.Config{
+		Address:       viper.GetString(hashicorpAddrViperKey),
+		BurstLimit:    viper.GetInt(hashicorpBurstLimitViperKey),
+		CACert:        viper.GetString(hashicorpCACertViperKey),
+		CAPath:        viper.GetString(hashicorpCAPathViperKey),
+		ClientCert:    viper.GetString(hashicorpClientCertViperKey),
+		ClientKey:     viper.GetString(hashicorpClientKeyViperKey),
+		ClientTimeout: viper.GetDuration(hashicorpClientTimeoutViperKey),
+		MaxRetries:    viper.GetInt(hashicorpMaxRetriesViperKey),
+		MountPoint:    viper.GetString(hashicorpMountPointViperKey),
+		RateLimit:     viper.GetFloat64(hashicorpRateLimitViperKey),
+		SkipVerify:    viper.GetBool(hashicorpSkipVerifyViperKey),
+		TLSServerName: viper.GetString(hashicorpTLSServerNameViperKey),
+		TokenFilePath: viper.GetString(hashicorpTokenFilePathViperKey),
+		Renewable:     true,
+	}
 }

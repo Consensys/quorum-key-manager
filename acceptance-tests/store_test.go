@@ -1,4 +1,4 @@
-// +build integration
+// +build acceptance
 
 package integrationtests
 
@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/utils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

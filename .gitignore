@@ -54,5 +54,5 @@ redoc-static.html
 node_modules
 package-lock.json
 
-integration-tests/plugins
+acceptance-tests/plugins
 !/**/.gitkeep

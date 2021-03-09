@@ -6,10 +6,10 @@ import (
 	goreflect "reflect"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/container/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/container/hashicorp"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/config"
-	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/container/reflect"
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 )

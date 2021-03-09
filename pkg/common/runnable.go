@@ -1,4 +1,4 @@
-package infra
+package common
 
 import (
 	"context"
@@ -6,11 +6,6 @@ import (
 
 // Runnable manages running long living task
 type Runnable interface {
-	// Init initialize some state prior to starting the long living task
-
-	// It MUST be called before Start
-	Init(context.Context) error
-
 	// Start long living task in a parallel goroutine
 
 	// It MUST return an error if and only if it failed at starting the long living task

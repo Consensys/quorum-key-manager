@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker"
-	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/docker/config"
-	"github.com/ConsenSysQuorum/quorum-key-manager/integration-tests/utils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"

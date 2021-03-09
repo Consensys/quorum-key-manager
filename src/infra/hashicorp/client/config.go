@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/vault/api"
-	"github.com/spf13/viper"
 	"golang.org/x/net/http2"
 	"golang.org/x/time/rate"
 )
@@ -37,26 +36,6 @@ func NewBaseConfig(addr, mountPoint string) *Config {
 		Address:    addr,
 		MountPoint: mountPoint,
 		Renewable:  true,
-	}
-}
-
-// ConfigFromViper returns a local config object that be converted into an api.Config
-func NewViperConfig() *Config {
-	return &Config{
-		Address:       viper.GetString(hashicorpAddrViperKey),
-		BurstLimit:    viper.GetInt(hashicorpBurstLimitViperKey),
-		CACert:        viper.GetString(hashicorpCACertViperKey),
-		CAPath:        viper.GetString(hashicorpCAPathViperKey),
-		ClientCert:    viper.GetString(hashicorpClientCertViperKey),
-		ClientKey:     viper.GetString(hashicorpClientKeyViperKey),
-		ClientTimeout: viper.GetDuration(hashicorpClientTimeoutViperKey),
-		MaxRetries:    viper.GetInt(hashicorpMaxRetriesViperKey),
-		MountPoint:    viper.GetString(hashicorpMountPointViperKey),
-		RateLimit:     viper.GetFloat64(hashicorpRateLimitViperKey),
-		SkipVerify:    viper.GetBool(hashicorpSkipVerifyViperKey),
-		TLSServerName: viper.GetString(hashicorpTLSServerNameViperKey),
-		TokenFilePath: viper.GetString(hashicorpTokenFilePathViperKey),
-		Renewable:     true,
 	}
 }
 

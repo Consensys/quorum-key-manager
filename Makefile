@@ -30,8 +30,8 @@ hashicorp:
 hashicorp-down:
 	@docker-compose -f deps/docker-compose.yml down $(DEPS_VAULT)
 
-run-integration:
-	@go test -v -tags integration ./integration-tests
+run-acceptance:
+	@go test -v -tags acceptance ./acceptance-tests
 
 gobuild: ## Build Orchestrate Go binary
 	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager

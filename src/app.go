@@ -1,10 +1,12 @@
 //nolint
-package app
+package src
 
 import (
+	"context"
 	"net"
 	"net/http"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 )
@@ -22,7 +24,7 @@ type App struct {
 }
 
 // @TODO Inject http server
-func New() *App {
+func New(_ *Config) common.Runnable {
 	bckend := core.New()
 
 	server := &http.Server{
@@ -33,4 +35,19 @@ func New() *App {
 		httpServer: server,
 		backend:    bckend,
 	}
+}
+func (a App) Start(context.Context) error {
+	return a.httpServer.ListenAndServe()
+}
+
+func (a App) Stop(context.Context) error {
+	panic("implement me")
+}
+
+func (a App) Close() error {
+	panic("implement me")
+}
+
+func (a App) Error() error {
+	panic("implement me")
 }
