@@ -23,6 +23,8 @@ linters-settings:
     locale: US
   lll:
     line-length: 140
+  depguard:
+    list-type: blacklist
   gocritic:
     enabled-tags:
       - performance

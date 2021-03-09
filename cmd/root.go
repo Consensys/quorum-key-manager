@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"os"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 // NewCommand create root command
@@ -32,9 +35,14 @@ func newRunCommand() *cobra.Command {
 		},
 	}
 
+	flags.HashicorpFlags(runCmd.Flags())
+	flags.LoggerFlags(runCmd.Flags())
+
 	return runCmd
 }
 
 func run(cmd *cobra.Command, _ []string) error {
-	return nil
+	cfg := flags.NewAppConfig(viper.GetViper())
+	app := src.New(cfg)
+	return app.Start(cmd.Context())
 }

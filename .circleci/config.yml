@@ -36,16 +36,14 @@ jobs:
   test:
     docker:
       - image: cimg/go:1.15.7
-    resource_class: large
     steps:
       - prepare_golang
       - run:
           name: Run unit tests
           command: make run-coverage
 
-  integration:
+  acceptance:
     machine: true
-    resource_class: large
     steps:
       - run:
           name: Uninstall Go
@@ -54,8 +52,8 @@ jobs:
           version: 1.15.7
       - prepare_golang
       - run:
-          name: Integration tests
-          command: make run-integration
+          name: Acceptance tests
+          command: make run-acceptance
 
 workflows:
   version: 2
@@ -79,7 +77,7 @@ workflows:
               only: /^v.*/
             branches:
               only: /.*/
-      - integration:
+      - acceptance:
           filters:
             tags:
               only: /^v.*/
