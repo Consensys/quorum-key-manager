@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/audit"
 	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest/loader"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
@@ -16,8 +15,6 @@ import (
 type manager struct {
 	mux    sync.RWMutex
 	stores map[string]*storeBundle
-
-	auditor audit.Auditor
 }
 
 type storeBundle struct {
@@ -27,10 +24,8 @@ type storeBundle struct {
 	accounts accounts.Store
 }
 
-func New(auditor audit.Auditor) storemanager.Manager {
-	return &manager{
-		auditor: auditor,
-	}
+func New() storemanager.Manager {
+	return &manager{}
 }
 
 func (mngr *manager) Load(ctx context.Context, msgs ...*manifestloader.Message) {
