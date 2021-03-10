@@ -26,9 +26,9 @@ func New(cfg *Config, bcknd core.Backend) common.Runnable {
 
 	// Create router
 	r := mux.NewRouter()
-	r.PathPrefix("/secrets").Handler(secretsapi.New(bcknd))
-	r.PathPrefix("/keys").Handler(keysapi.New(bcknd))
-	r.PathPrefix("/accounts").Handler(accountsapi.New(bcknd))
+	r.PathPrefix(secretsapi.RoutePrefix).Handler(secretsapi.New(bcknd))
+	r.PathPrefix(keysapi.RoutePrefix).Handler(keysapi.New(bcknd))
+	r.PathPrefix(accountsapi.RoutePrefix).Handler(accountsapi.New(bcknd))
 	r.Path("/jsonrpc").Handler(jsonrpcapi.New(bcknd))
 
 	server := &http.Server{

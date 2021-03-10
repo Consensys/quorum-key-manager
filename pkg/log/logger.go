@@ -7,6 +7,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type LoggerLevel uint32
+
+const (
+	InfoLevel  LoggerLevel = LoggerLevel(logrus.InfoLevel)
+	DebugLevel LoggerLevel = LoggerLevel(logrus.DebugLevel)
+	WarnLevel  LoggerLevel = LoggerLevel(logrus.WarnLevel)
+	TraceLevel LoggerLevel = LoggerLevel(logrus.TraceLevel)
+)
+
 type Logger struct {
 	entry     *logrus.Entry
 	component string
@@ -15,6 +24,11 @@ type Logger struct {
 
 func NewLogger() *Logger {
 	return &Logger{logrus.NewEntry(logrus.StandardLogger()), "", nil}
+}
+
+func (l *Logger) SetLevel(lvl LoggerLevel) *Logger {
+	l.entry.Level = logrus.Level(lvl)
+	return l
 }
 
 func (l Logger) WithContext(ctx context.Context) *Logger {
@@ -92,6 +106,21 @@ func (l *Logger) Trace(args ...interface{}) {
 
 func (l *Logger) Tracef(format string, args ...interface{}) {
 	l.entry.WithFields(contextLogFields(l.ctx)).Trace(l.format(format), args)
+}
+
+func (l *Logger) Write(p []byte) (n int, err error) {
+	switch l.entry.Level {
+	case logrus.WarnLevel:
+		l.Warn(string(p))
+	case logrus.InfoLevel:
+		l.Info(string(p))
+	case logrus.DebugLevel:
+		l.Debug(string(p))
+	case logrus.TraceLevel:
+		l.Trace(string(p))
+	}
+
+	return 0, nil
 }
 
 func (l *Logger) args(args []interface{}) []interface{} {

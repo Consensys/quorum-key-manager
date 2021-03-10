@@ -3,12 +3,15 @@ package api
 import (
 	"net/http"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	"github.com/gorilla/handlers"
 )
 
-func newHTTPMiddleware(bcknd core.Backend) func(http.Handler) http.Handler {
+func newHTTPMiddleware(_ core.Backend) func(handlers http.Handler) http.Handler {
 	// TODO: implement the sequence of middlewares to apply before routing
 	return func(h http.Handler) http.Handler {
-		return h
+		logger := log.NewLogger().SetLevel(log.InfoLevel).SetComponent("accesslog")
+		return handlers.LoggingHandler(logger, h)
 	}
 }

@@ -52,3 +52,6 @@ dev: deps gobuild
 	
 down-dev: down-deps
 	@docker-compose -f ./docker-compose.yml down $(KEY_MANAGER_SERVICES)
+
+run: gobuild
+	@build/bin/key-manager run

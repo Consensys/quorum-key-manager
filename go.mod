@@ -16,6 +16,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/ethereum/go-ethereum v1.9.25
 	github.com/golang/mock v1.5.0
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-cleanhttp v0.5.1
 	github.com/hashicorp/go-retryablehttp v0.5.4
