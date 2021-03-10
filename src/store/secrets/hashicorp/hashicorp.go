@@ -39,10 +39,10 @@ func (s *hashicorpSecretStore) Info(context.Context) (*entities.StoreInfo, error
 }
 
 // Set a secret
-func (s *hashicorpSecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+func (s *hashicorpSecretStore) Set(ctx context.Context, id, value string, tags map[string]string) (*entities.Secret, error) {
 	data := map[string]interface{}{
 		valueLabel: value,
-		tagsLabel:  attr.Tags,
+		tagsLabel:  tags,
 	}
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
@@ -56,7 +56,7 @@ func (s *hashicorpSecretStore) Set(ctx context.Context, id, value string, attr *
 		return nil, err
 	}
 
-	return formatHashicorpSecret(value, attr.Tags, metadata), nil
+	return formatHashicorpSecret(value, tags, metadata), nil
 }
 
 // Get a secret

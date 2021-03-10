@@ -7,7 +7,6 @@ package mocks
 import (
 	context "context"
 	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	secrets "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
@@ -52,18 +51,18 @@ func (mr *MockStoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
 }
 
 // Set mocks base method
-func (m *MockStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+func (m *MockStore) Set(ctx context.Context, id, value string, tags map[string]string) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", ctx, id, value, attr)
+	ret := m.ctrl.Call(m, "Set", ctx, id, value, tags)
 	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Set indicates an expected call of Set
-func (mr *MockStoreMockRecorder) Set(ctx, id, value, attr interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Set(ctx, id, value, tags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStore)(nil).Set), ctx, id, value, attr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStore)(nil).Set), ctx, id, value, tags)
 }
 
 // Get mocks base method
@@ -191,41 +190,4 @@ func (mr *MockStoreMockRecorder) Destroy(ctx, id interface{}, versions ...interf
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, id}, versions...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockStore)(nil).Destroy), varargs...)
-}
-
-// MockInstrument is a mock of Instrument interface
-type MockInstrument struct {
-	ctrl     *gomock.Controller
-	recorder *MockInstrumentMockRecorder
-}
-
-// MockInstrumentMockRecorder is the mock recorder for MockInstrument
-type MockInstrumentMockRecorder struct {
-	mock *MockInstrument
-}
-
-// NewMockInstrument creates a new mock instance
-func NewMockInstrument(ctrl *gomock.Controller) *MockInstrument {
-	mock := &MockInstrument{ctrl: ctrl}
-	mock.recorder = &MockInstrumentMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockInstrument) EXPECT() *MockInstrumentMockRecorder {
-	return m.recorder
-}
-
-// Apply mocks base method
-func (m *MockInstrument) Apply(arg0 secrets.Store) secrets.Store {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Apply", arg0)
-	ret0, _ := ret[0].(secrets.Store)
-	return ret0
-}
-
-// Apply indicates an expected call of Apply
-func (mr *MockInstrumentMockRecorder) Apply(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockInstrument)(nil).Apply), arg0)
 }

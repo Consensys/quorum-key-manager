@@ -14,7 +14,7 @@ type Store interface {
 	Info(context.Context) (*entities.StoreInfo, error)
 
 	// Set secret
-	Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error)
+	Set(ctx context.Context, id, value string, tags map[string]string) (*entities.Secret, error)
 
 	// Get a secret
 	Get(ctx context.Context, id string, version int) (*entities.Secret, error)

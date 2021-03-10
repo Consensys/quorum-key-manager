@@ -27,6 +27,7 @@ func New(_ *Config) *App {
 	bckend := core.New()
 
 	server := &http.Server{
+		Addr: "localhost:8080",
 		Handler: api.New(bckend),
 	}
 

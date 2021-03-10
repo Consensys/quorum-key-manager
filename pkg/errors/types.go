@@ -9,6 +9,9 @@ const (
 	Connection               uint64 = 8 << 12
 	HashicorpVaultConnection        = Connection + 8<<8 // Service Connection error (subclass 088XX)
 
+	// Invalid State (class 24XXX)
+	InvalidState uint64 = 2<<16 + 4<<12
+
 	// Data Errors (class 42XXX)
 	Data             uint64 = 4<<16 + 2<<12
 	Encoding                = Data + 1<<8 // Invalid Encoding (subclass 421XX)
@@ -26,6 +29,10 @@ const (
 
 	// Internal errors (class FFXXX)
 	Internal uint64 = 15<<16 + 15<<12
+
+	// Authentication Errors (class 09XXX)
+	InvalidAuthentication uint64 = 9 << 12
+	Unauthorized                 = InvalidAuthentication + 1 // Invalid request credentials (code 09001)
 )
 
 //nolint
@@ -111,4 +118,31 @@ func IsAlreadyExistsError(err error) bool {
 // ConfigError is raised when an error is encountered while loading configuration
 func ConfigError(format string, a ...interface{}) *Error {
 	return Errorf(Config, format, a...)
+}
+
+// InvalidStateError is raised when system state blocks operation execution
+func InvalidStateError(format string, a ...interface{}) *Error {
+	return Errorf(InvalidState, format, a...)
+}
+func IsInvalidStateError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), InvalidState)
+}
+
+// InvalidAuthenticationError is raised when access to an operation has been denied
+func InvalidAuthenticationError(format string, a ...interface{}) *Error {
+	return Errorf(InvalidAuthentication, format, a...)
+}
+
+// AuthenticationError indicate whether an error is an authentication error
+func IsInvalidAuthenticationError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), InvalidAuthentication)
+}
+
+// UnauthorizedError is raised when authentication credentials are invalid
+func UnauthorizedError(format string, a ...interface{}) *Error {
+	return Errorf(Unauthorized, format, a...)
+}
+
+func IsUnauthorizedError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), Unauthorized)
 }
