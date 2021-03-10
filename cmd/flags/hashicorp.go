@@ -10,6 +10,9 @@ import (
 )
 
 func init() {
+	viper.SetDefault(hashicorpTokenViperKey, hashicorpTokenDefault)
+	_ = viper.BindEnv(hashicorpTokenViperKey, hashicorpTokenEnv)
+
 	viper.SetDefault(hashicorpTokenFilePathViperKey, hashicorpTokenFilePathDefault)
 	_ = viper.BindEnv(hashicorpTokenFilePathViperKey, hashicorpTokenFilePathEnv)
 
@@ -51,6 +54,7 @@ func init() {
 }
 
 const (
+	hashicorpTokenEnv         = "HASHICORP_TOKEN"
 	hashicorpTokenFilePathEnv = "HASHICORP_TOKEN_FILE"
 	hashicorpMountPointEnv    = "HASHICORP_MOUNT_POINT"
 	hashicorpRateLimitEnv     = "HASHICORP_RATE_LIMIT"
@@ -65,6 +69,7 @@ const (
 	hashicorpSkipVerifyEnv    = "HASHICORP_SKIP_VERIFY"
 	hashicorpTLSServerNameEnv = "HASHICORP_TLS_SERVER_NAME"
 
+	HashicorpTokenFlag         = "hashicorp-token"
 	HashicorpTokenFilePathFlag = "hashicorp-token-file"
 	hashicorpMountPointFlag    = "hashicorp-mount-point"
 	hashicorpRateLimitFlag     = "hashicorp-rate-limit"
@@ -79,6 +84,7 @@ const (
 	hashicorpSkipVerifyFlag    = "hashicorp-skip-verify"
 	hashicorpTLSServerNameFlag = "hashicorp-tls-server-name"
 
+	hashicorpTokenViperKey         = "hashicorp.token"
 	hashicorpTokenFilePathViperKey = "hashicorp.token.file"
 	hashicorpMountPointViperKey    = "hashicorp.mount.point"
 	hashicorpRateLimitViperKey     = "hashicorp.rate.limit"
@@ -94,6 +100,7 @@ const (
 	hashicorpTLSServerNameViperKey = "hashicorp.tls.server.name"
 
 	// No need to redefine the default here
+	hashicorpTokenDefault         = ""
 	hashicorpTokenFilePathDefault = "/hashicorp/token/.hashicorp-token"
 	hashicorpMountPointDefault    = "orchestrate"
 	hashicorpRateLimitDefault     = float64(0)
@@ -124,6 +131,14 @@ func HashicorpFlags(f *pflag.FlagSet) {
 	hashicorpSkipVerify(f)
 	hashicorpTLSServerName(f)
 	hashicorpTokenFilePath(f)
+	hashicorpToken(f)
+}
+
+func hashicorpToken(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Specifies the static token. Parameter ignored if the token has been passed by HASHICORP_TOKEN.
+Environment variable: %q `, hashicorpTokenEnv)
+	f.String(HashicorpTokenFlag, hashicorpTokenDefault, desc)
+	_ = viper.BindPFlag(hashicorpTokenViperKey, f.Lookup(HashicorpTokenFlag))
 }
 
 func hashicorpTokenFilePath(f *pflag.FlagSet) {
@@ -234,6 +249,7 @@ func NewHashicorpConfig() *hashicorp.Config {
 		SkipVerify:    viper.GetBool(hashicorpSkipVerifyViperKey),
 		TLSServerName: viper.GetString(hashicorpTLSServerNameViperKey),
 		TokenFilePath: viper.GetString(hashicorpTokenFilePathViperKey),
+		Token:         viper.GetString(hashicorpTokenViperKey),
 		Renewable:     true,
 	}
 }

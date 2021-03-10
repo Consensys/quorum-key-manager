@@ -8,17 +8,16 @@ import (
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-type storeTestSuite struct {
+type keyManagerTestSuite struct {
 	suite.Suite
-	env             *IntegrationEnvironment
-	err             error
+	env *IntegrationEnvironment
+	err error
 }
 
-func (s *storeTestSuite) SetupSuite() {
+func (s *keyManagerTestSuite) SetupSuite() {
 	err := StartEnvironment(s.env.ctx, s.env)
 	if err != nil {
 		s.T().Error(err)
@@ -28,15 +27,15 @@ func (s *storeTestSuite) SetupSuite() {
 	s.env.logger.Info("setup test suite has completed")
 }
 
-func (s *storeTestSuite) TearDownSuite() {
+func (s *keyManagerTestSuite) TearDownSuite() {
 	s.env.Teardown(context.Background())
 	if s.err != nil {
 		s.T().Error(s.err)
 	}
 }
 
-func TestKeyManagerStore(t *testing.T) {
-	s := new(storeTestSuite)
+func TestKeyManager(t *testing.T) {
+	s := new(keyManagerTestSuite)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var err error
@@ -54,8 +53,15 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_Template() {
-	s.T().Run("should success", func(t *testing.T) {
-		assert.True(t, true)
-	})
+func (s *keyManagerTestSuite) TestKeyManager_Secrets() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+
+	testSuite := new(secretsTestSuite)
+	testSuite.env = s.env
+	testSuite.baseURL = s.env.baseURL
+
+	suite.Run(s.T(), testSuite)
 }

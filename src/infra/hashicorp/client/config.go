@@ -14,6 +14,7 @@ import (
 
 // Config object that be converted into an api.Config later
 type Config struct {
+	Token         string
 	TokenFilePath string
 	MountPoint    string
 	SecretPath    string
@@ -31,8 +32,9 @@ type Config struct {
 	Renewable     bool
 }
 
-func NewBaseConfig(addr, mountPoint string) *Config {
+func NewBaseConfig(addr, mountPoint, token string) *Config {
 	return &Config{
+		Token:      token,
 		Address:    addr,
 		MountPoint: mountPoint,
 		Renewable:  true,

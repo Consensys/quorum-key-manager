@@ -3,6 +3,10 @@ package integrationtests
 import (
 	"context"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
+	app "github.com/ConsenSysQuorum/quorum-key-manager/src"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"os"
 	"time"
 
@@ -17,12 +21,15 @@ import (
 
 const hashicorpContainerID = "hashicorp-vault"
 const networkName = "key-manager"
+const localhostPath = "http://localhost:"
 
 type IntegrationEnvironment struct {
 	ctx             context.Context
 	logger          *log.Logger
 	hashicorpClient hashicorp.VaultClient
 	dockerClient    *docker.Client
+	baseURL         string
+	keyManager      *app.App
 }
 
 type TestSuiteEnv interface {
@@ -73,20 +80,34 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, "integration-test"),
-		hashicorpContainer.RootToken)
+	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, "acceptance-test", hashicorpContainer.RootToken))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
 
-	// TODO Add key-manager init
+	flgs := pflag.NewFlagSet("key-manager-acceptance-test", pflag.ContinueOnError)
+	flags.HashicorpFlags(flgs)
+	flags.LoggerFlags(flgs)
+	args := []string{
+		"--hashicorp-addr=http://" + hashicorpContainer.Host + ":" + hashicorpContainer.Port,
+		"--hashicorp-token=" + hashicorpContainer.RootToken,
+		"--log-level=debug",
+	}
+
+	err = flgs.Parse(args)
+	if err != nil {
+		logger.WithError(err).Error("cannot parse environment flags")
+		return nil, err
+	}
 
 	return &IntegrationEnvironment{
 		ctx:             ctx,
 		logger:          logger,
 		hashicorpClient: hashicorpClient,
 		dockerClient:    dockerClient,
+		baseURL:         localhostPath + "8080",
+		keyManager:      app.New(flags.NewAppConfig(viper.GetViper())),
 	}, nil
 }
 
@@ -130,7 +151,14 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	// TODO Add key-manager START and WAIT_FOR_READY
+	err = env.keyManager.Start(ctx)
+	if err != nil {
+		env.logger.WithError(err).Error("failed to start key manager")
+		return err
+	}
+
+	// TODO: Wait for service to be ready instead of sleeping
+	time.Sleep(5 * time.Second)
 
 	return nil
 }
@@ -138,9 +166,12 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	env.logger.Info("tearing test suite down")
 
-	// TODO Add key-manager STOP
+	err := env.keyManager.Stop(ctx)
+	if err != nil {
+		env.logger.WithError(err).Error("failed to stop key manager")
+	}
 
-	err := env.dockerClient.Down(ctx, hashicorpContainerID)
+	err = env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
 	}

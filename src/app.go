@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 )
@@ -24,7 +23,7 @@ type App struct {
 }
 
 // @TODO Inject http server
-func New(_ *Config) common.Runnable {
+func New(_ *Config) *App {
 	bckend := core.New()
 
 	server := &http.Server{
@@ -40,12 +39,12 @@ func (a App) Start(context.Context) error {
 	return a.httpServer.ListenAndServe()
 }
 
-func (a App) Stop(context.Context) error {
-	panic("implement me")
+func (a App) Stop(ctx context.Context) error {
+	return a.httpServer.Shutdown(ctx)
 }
 
 func (a App) Close() error {
-	panic("implement me")
+	return a.httpServer.Close()
 }
 
 func (a App) Error() error {
