@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/logger"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -35,7 +35,7 @@ const (
 const (
 	timestampFlag     = "log-timestamp"
 	TimestampViperKey = "log.timestamp"
-	timestampDefault  = false
+	timestampDefault  = true
 	timestampEnv      = "LOG_TIMESTAMP"
 )
 
@@ -76,10 +76,9 @@ Environment variable: %q`, timestampEnv)
 	_ = viper.BindPFlag(TimestampViperKey, f.Lookup(timestampFlag))
 }
 
-func newLoggerConfig(vipr *viper.Viper) *logger.Config {
-	return &logger.Config{
-		Level:     vipr.GetString(LevelViperKey),
-		Format:    vipr.GetString(FormatViperKey),
+func newLoggerConfig(vipr *viper.Viper) *log.Config {
+	return &log.Config{
+		Level:     log.LoggerLevel(vipr.GetString(LevelViperKey)),
 		Timestamp: vipr.GetBool(TimestampViperKey),
 	}
 }

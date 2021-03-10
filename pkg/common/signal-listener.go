@@ -1,4 +1,4 @@
-package utils
+package common
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"sync"
 	"syscall"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
 // SignalListener listen to signals and trigger callbacks
@@ -56,12 +56,13 @@ signalLoop:
 }
 
 func (l *SignalListener) processSignal(sig os.Signal) {
+	logger := log.NewDefaultLogger()
 	switch sig {
 	case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-		log.Warnf("signal: %q intercepted", sig.String())
+		logger.WithField("sig", sig.String()).Warn("signal intercepted")
 		l.cb(sig)
 	case syscall.SIGPIPE:
 		// Ignore random broken pipe
-		log.Debugf("signal: %q intercepted", sig.String())
+		logger.WithField("sig", sig.String()).Debug("signal intercepted")
 	}
 }

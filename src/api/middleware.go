@@ -11,7 +11,10 @@ import (
 func newHTTPMiddleware(_ core.Backend) func(handlers http.Handler) http.Handler {
 	// TODO: implement the sequence of middlewares to apply before routing
 	return func(h http.Handler) http.Handler {
-		logger := log.NewLogger().SetLevel(log.InfoLevel).SetComponent("accesslog")
+		logger := log.NewLogger(&log.Config{
+			Level:     log.InfoLevel,
+			Timestamp: false,
+		}).SetComponent("accesslog")
 		return handlers.LoggingHandler(logger, h)
 	}
 }

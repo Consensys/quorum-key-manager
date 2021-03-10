@@ -4,10 +4,9 @@ package src
 import (
 	"context"
 	"net"
-	"sync"
+	"os"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
@@ -31,7 +30,7 @@ type App struct {
 func New(cfg *Config) common.Runnable {
 	bckend := core.New()
 	httpServer := api.New(cfg.HTTP, bckend)
-	logger := log.NewLogger()
+	logger := log.NewLogger(cfg.Logger)
 
 	return &App{
 		cfg:        cfg,
@@ -45,28 +44,29 @@ func (a App) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	ctx = log.With(ctx, a.logger)
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	var gerr error
-	go func() {
-		err := a.httpServer.Start(ctx)
-		if err != nil {
-			a.logger.WithError(err).Error("http server failed")
-			gerr = errors.CombineErrors(gerr, err)
-		}
+	sig := common.NewSignalListener(func(signal os.Signal) {
 		cancel()
-		wg.Done()
-	}()
+	})
 
-	// Wait for all Envelope to have complete execution
-	wg.Wait()
-	if gerr != nil {
-		a.logger.WithError(gerr).Error("application exited with errors")
-	} else {
-		a.logger.Info("application exited")
+	defer sig.Close()
+
+	var cerr = make(chan error, 1)
+	defer close(cerr)
+
+	go func() {
+		cerr <- a.httpServer.Start(ctx)
+		cancel()
+	}()
+	
+	select {
+		case err := <-cerr:
+			a.logger.WithError(err).Error("application exited with errors")
+			return err
+		case <-ctx.Done():
+			a.logger.WithError(ctx.Err()).Info("application exited successfully")
 	}
 
-	return gerr
+	return nil
 }
 
 func (a App) Stop(ctx context.Context) error {

@@ -7,28 +7,41 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type LoggerLevel uint32
-
-const (
-	InfoLevel  LoggerLevel = LoggerLevel(logrus.InfoLevel)
-	DebugLevel LoggerLevel = LoggerLevel(logrus.DebugLevel)
-	WarnLevel  LoggerLevel = LoggerLevel(logrus.WarnLevel)
-	TraceLevel LoggerLevel = LoggerLevel(logrus.TraceLevel)
-)
+var logger *logrus.Logger
 
 type Logger struct {
 	entry     *logrus.Entry
 	component string
 	ctx       context.Context
+	cfg       *Config
 }
 
-func NewLogger() *Logger {
-	return &Logger{logrus.NewEntry(logrus.StandardLogger()), "", nil}
+func NewDefaultLogger() *Logger {
+	logger := logrus.New()
+	return &Logger{
+		entry: logrus.NewEntry(logger),
+	}
 }
 
-func (l *Logger) SetLevel(lvl LoggerLevel) *Logger {
-	l.entry.Level = logrus.Level(lvl)
-	return l
+func NewLogger(cfg *Config) *Logger {
+	if cfg == nil {
+		return NewDefaultLogger()
+	}
+
+	logger = logrus.New()
+	logger.Level = cfg.Level.logrusLvl()
+	if cfg.Timestamp {
+		logger.SetFormatter(&logrus.TextFormatter{
+			PadLevelText:     true,
+			FullTimestamp:    true,
+			DisableTimestamp: false,
+		})
+	}
+
+	return &Logger{
+		entry: logrus.NewEntry(logger),
+		cfg:   cfg,
+	}
 }
 
 func (l Logger) WithContext(ctx context.Context) *Logger {
@@ -118,6 +131,8 @@ func (l *Logger) Write(p []byte) (n int, err error) {
 		l.Debug(string(p))
 	case logrus.TraceLevel:
 		l.Trace(string(p))
+	default:
+		l.Info(string(p))
 	}
 
 	return 0, nil
