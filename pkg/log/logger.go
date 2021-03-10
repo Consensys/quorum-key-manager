@@ -7,8 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var logger *logrus.Logger
-
 type Logger struct {
 	entry     *logrus.Entry
 	component string
@@ -28,7 +26,7 @@ func NewLogger(cfg *Config) *Logger {
 		return NewDefaultLogger()
 	}
 
-	logger = logrus.New()
+	logger := logrus.New()
 	logger.Level = cfg.Level.logrusLvl()
 	if cfg.Timestamp {
 		logger.SetFormatter(&logrus.TextFormatter{
@@ -123,6 +121,8 @@ func (l *Logger) Tracef(format string, args ...interface{}) {
 
 func (l *Logger) Write(p []byte) (n int, err error) {
 	switch l.entry.Level {
+	case logrus.ErrorLevel:
+		l.Error(string(p))
 	case logrus.WarnLevel:
 		l.Warn(string(p))
 	case logrus.InfoLevel:

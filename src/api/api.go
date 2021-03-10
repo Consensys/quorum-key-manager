@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	accountsapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/accounts"
 	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/jsonrpc"
@@ -20,7 +19,7 @@ type apiServer struct {
 	server *http.Server
 }
 
-func New(cfg *Config, bcknd core.Backend) common.Runnable {
+func New(cfg *Config, bcknd core.Backend) *apiServer {
 	// Create HTTP Middleware
 	mid := newHTTPMiddleware(bcknd)
 

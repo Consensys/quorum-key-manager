@@ -1,4 +1,3 @@
-// nolint
 package src
 
 import (
@@ -44,7 +43,8 @@ func (a App) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	ctx = log.With(ctx, a.logger)
 
-	sig := common.NewSignalListener(func(signal os.Signal) {
+	sig := common.NewSignalListener(func(sig os.Signal) {
+		a.logger.WithField("sig", sig.String()).Warn("signal intercepted")
 		cancel()
 	})
 
@@ -70,12 +70,7 @@ func (a App) Start(ctx context.Context) error {
 }
 
 func (a App) Stop(ctx context.Context) error {
-	err := a.httpServer.Stop(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return a.httpServer.Stop(ctx)
 }
 
 func (a App) Close() error {
