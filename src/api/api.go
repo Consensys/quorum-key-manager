@@ -1,8 +1,12 @@
 package api
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	accountsapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/accounts"
 	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/jsonrpc"
 	keysapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/keys"
@@ -11,10 +15,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// New creates the http.Handler processing all http requests
-func New(bcknd core.Backend) http.Handler {
+type apiServer struct {
+	cfg    *Config
+	server *http.Server
+}
+
+func New(cfg *Config, bcknd core.Backend) common.Runnable {
 	// Create HTTP Middleware
-	mid := NewHTTPMiddleware(bcknd)
+	mid := newHTTPMiddleware(bcknd)
 
 	// Create router
 	r := mux.NewRouter()
@@ -23,13 +31,33 @@ func New(bcknd core.Backend) http.Handler {
 	r.PathPrefix("/accounts").Handler(accountsapi.New(bcknd))
 	r.Path("/jsonrpc").Handler(jsonrpcapi.New(bcknd))
 
-	// Return wrapped router
-	return mid(r)
+	server := &http.Server{
+		Addr:        fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Handler:     mid(r),
+		IdleTimeout: cfg.IdleConnTimeout,
+		ReadTimeout: cfg.Timeout,
+	}
+
+	return &apiServer{
+		cfg:    cfg,
+		server: server,
+	}
 }
 
-func NewHTTPMiddleware(bcknd core.Backend) func(http.Handler) http.Handler {
-	// TODO: implement the sequence of middlewares to apply before routing
-	return func(h http.Handler) http.Handler {
-		return h
-	}
+func (h *apiServer) Start(ctx context.Context) error {
+	logger := log.FromContext(ctx)
+	logger.WithField("addr", h.server.Addr).Info("starting server")
+	return h.server.ListenAndServe()
+}
+
+func (h *apiServer) Stop(ctx context.Context) error {
+	return h.server.Close()
+}
+
+func (h *apiServer) Close() error {
+	return h.server.Close()
+}
+
+func (h *apiServer) Error() error {
+	panic("implement me")
 }

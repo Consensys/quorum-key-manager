@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	bou.ke/monkey v1.0.2
-	github.com/Azure/azure-sdk-for-go v52.1.0+incompatible
+	github.com/Azure/azure-sdk-for-go v52.1.0+incompatible // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect

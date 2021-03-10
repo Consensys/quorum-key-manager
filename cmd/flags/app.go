@@ -8,5 +8,6 @@ import (
 func NewAppConfig(vipr *viper.Viper) *app.Config {
 	return &app.Config{
 		Logger: newLoggerConfig(vipr),
+		HTTP:   newAPIConfig(vipr),
 	}
 }
