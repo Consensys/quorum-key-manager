@@ -40,9 +40,3 @@ type Store interface {
 	// Destroy secret permanently
 	Destroy(ctx context.Context, id string, versions ...int) error
 }
-
-// Instrument allows to instrument a Store with some extra capabilities
-// such as authentication, auditing, etc.
-type Instrument interface {
-	Apply(Store) Store
-}

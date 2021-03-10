@@ -3,7 +3,6 @@ package manifestloader
 import (
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/auth"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 )
 
@@ -14,9 +13,6 @@ type Message struct {
 
 	// Manifest loaded
 	Manifest *manifest.Manifest
-
-	// Auth attach to the manifest when loading
-	Auth *auth.Auth
 
 	// Action to perform (e.g. create, update, delete...)
 	Action string

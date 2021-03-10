@@ -59,9 +59,3 @@ type Store interface {
 	// Verify a signature using a specified key
 	ECRevocer(ctx context.Context, addr string, data []byte, sig []byte) (*entities.Account, error)
 }
-
-// Instrument allows to instrument a Store with some extra capabilities
-// such as authentication, auditing, etc.
-type Instrument interface {
-	Apply(Store) Store
-}
