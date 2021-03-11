@@ -7,7 +7,6 @@ import (
 )
 
 var null = json.RawMessage("null")
-var version = "2.0"
 
 // RequestMsg allows to manipulate a JSON-RPC v2 request
 type RequestMsg struct {
