@@ -7,6 +7,7 @@ import (
 
 func NewAppConfig(vipr *viper.Viper) *app.Config {
 	return &app.Config{
-		HTTP: newHTTPConfig(vipr),
+		Logger: newLoggerConfig(vipr),
+		HTTP:   newHTTPConfig(vipr),
 	}
 }

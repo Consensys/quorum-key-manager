@@ -46,11 +46,10 @@ func newRunCommand() *cobra.Command {
 
 func run(cmd *cobra.Command, _ []string) error {
 	cfg := flags.NewAppConfig(viper.GetViper())
-	cfgLogger := flags.NewLoggerConfig(viper.GetViper())
-	logger := log.NewLogger(cfgLogger)
+	logger := log.NewLogger(cfg.Logger)
 
 	ctx := log.With(cmd.Context(), logger)
-	app := src.New(ctx, cfg)
+	app := src.New(cfg)
 
 	sig := common.NewSignalListener(func(sig os.Signal) {
 		logger.WithField("sig", sig.String()).Warn("signal intercepted")

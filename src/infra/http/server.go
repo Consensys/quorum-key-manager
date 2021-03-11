@@ -16,7 +16,7 @@ type Server struct {
 
 const Component = "http"
 
-func NewServer(ctx context.Context, cfg *Config, handler http.Handler) *Server {
+func NewServer(cfg *Config, handler http.Handler, logger *log.Logger) *Server {
 	server := &http.Server{
 		Addr:        fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Handler:     handler,
@@ -27,7 +27,7 @@ func NewServer(ctx context.Context, cfg *Config, handler http.Handler) *Server {
 	return &Server{
 		cfg:    cfg,
 		server: server,
-		logger: log.FromContext(ctx).SetComponent(Component),
+		logger: logger.SetComponent(Component),
 	}
 }
 

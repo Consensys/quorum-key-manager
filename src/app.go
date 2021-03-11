@@ -27,15 +27,16 @@ type App struct {
 	logger *log.Logger
 }
 
-func New(ctx context.Context, cfg *Config) *App {
+func New(cfg *Config) *App {
+	logger := log.NewLogger(cfg.Logger)
 	bckend := core.New()
-	httpServer := http.NewServer(ctx, cfg.HTTP, api.New(bckend))
+	httpServer := http.NewServer(cfg.HTTP, api.New(bckend), logger)
 
 	return &App{
 		cfg:        cfg,
 		httpServer: httpServer,
 		backend:    bckend,
-		logger:     log.FromContext(ctx).SetComponent(Component),
+		logger:     logger.SetComponent(Component),
 	}
 }
 
