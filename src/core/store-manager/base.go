@@ -79,7 +79,7 @@ func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Stor
 		}
 	}
 
-	return nil, fmt.Errorf("keys store not found")
+	return nil, fmt.Errorf("account store not found")
 }
 
 func (m *manager) List(_ context.Context, kind types.Kind) ([]string, error) {
