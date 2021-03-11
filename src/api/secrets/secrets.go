@@ -1,4 +1,4 @@
-package keysapi
+package secretsapi
 
 import (
 	"net/http"
@@ -19,14 +19,11 @@ func New(bckend core.Backend) http.Handler {
 
 	router := mux.NewRouter()
 	router.Methods(http.MethodGet).Path("/").HandlerFunc(h.testRoute)
+	router.Methods(http.MethodGet).Path("/test").HandlerFunc(h.testRoute)
 
 	return router
 }
 
-// @Summary Test keys route
-// @Description Test keys route
-// @Success 200 string
-// @Router /keys [get]
 func (c *handler) testRoute(rw http.ResponseWriter, _ *http.Request) {
 	_, _ = rw.Write([]byte("OK"))
 }

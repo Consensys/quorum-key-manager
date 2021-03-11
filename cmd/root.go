@@ -4,6 +4,8 @@ import (
 	"os"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -44,6 +46,26 @@ func newRunCommand() *cobra.Command {
 
 func run(cmd *cobra.Command, _ []string) error {
 	cfg := flags.NewAppConfig(viper.GetViper())
-	app := src.New(cfg)
-	return app.Start(cmd.Context())
+	cfgLogger := flags.NewLoggerConfig(viper.GetViper())
+	logger := log.NewLogger(cfgLogger)
+
+	ctx := log.With(cmd.Context(), logger)
+	app := src.New(ctx, cfg)
+
+	sig := common.NewSignalListener(func(sig os.Signal) {
+		logger.WithField("sig", sig.String()).Warn("signal intercepted")
+		if err := app.Stop(ctx); err != nil {
+			logger.WithError(err).Error("application stopped with errors")
+		}
+	})
+
+	defer sig.Close()
+
+	err := app.Start(ctx)
+	if err != nil {
+		logger.WithError(err).Error("application exited with errors")
+		return err
+	}
+
+	return nil
 }

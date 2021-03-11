@@ -76,7 +76,7 @@ Environment variable: %q`, timestampEnv)
 	_ = viper.BindPFlag(TimestampViperKey, f.Lookup(timestampFlag))
 }
 
-func newLoggerConfig(vipr *viper.Viper) *log.Config {
+func NewLoggerConfig(vipr *viper.Viper) *log.Config {
 	return &log.Config{
 		Level:     log.LoggerLevel(vipr.GetString(LevelViperKey)),
 		Timestamp: vipr.GetBool(TimestampViperKey),

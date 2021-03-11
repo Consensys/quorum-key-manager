@@ -25,12 +25,6 @@ func New(bckend core.Backend) http.Handler {
 	return router
 }
 
-// @Summary Create new account
-// @Description Create new account
-// @Produce json
-// @Param request body CreateAccountRequest true "Account creation request"
-// @Success 200 {object} CreateAccountResponse "Account found"
-// @Router /accounts [post]
 func (h *handler) handleCreateAccount(rw http.ResponseWriter, req *http.Request) {
 	// Unmarshal request body
 	reqBody := new(CreateAccountRequest)
