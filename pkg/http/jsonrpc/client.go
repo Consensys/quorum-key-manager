@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 )
 
-var version = "2.0"
+var defaultVersion = "2.0"
 
 // Client is a connector to a jsonrpc server
 type Client struct {
@@ -30,6 +30,10 @@ func NewClient(addr, version string) (*Client, error) {
 }
 
 func NewClientFromRequest(req *http.Request, version string) *Client {
+	if version == "" {
+		version = defaultVersion
+	}
+
 	return &Client{
 		version:   version,
 		transport: http.DefaultTransport,
@@ -65,11 +69,7 @@ func (c *Client) WithRequest(req *http.Request) *Client {
 
 // Version returns jsonrpc version
 func (c *Client) Version() string {
-	if c.version != "" {
-		return c.version
-	}
-
-	return version
+	return c.version
 }
 
 // Call sends a JSON-RPC request over underlying http.Transport
