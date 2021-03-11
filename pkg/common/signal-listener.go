@@ -1,12 +1,10 @@
-package utils
+package common
 
 import (
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // SignalListener listen to signals and trigger callbacks
@@ -58,10 +56,8 @@ signalLoop:
 func (l *SignalListener) processSignal(sig os.Signal) {
 	switch sig {
 	case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-		log.Warnf("signal: %q intercepted", sig.String())
 		l.cb(sig)
 	case syscall.SIGPIPE:
-		// Ignore random broken pipe
-		log.Debugf("signal: %q intercepted", sig.String())
+		// Ignore
 	}
 }

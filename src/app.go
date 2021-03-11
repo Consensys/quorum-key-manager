@@ -1,53 +1,60 @@
-//nolint
 package src
 
 import (
 	"context"
-	"net"
-	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 )
+
+const Component = "app"
 
 // App is the main Key Manager application object
 type App struct {
+	cfg *Config
 	// listener accepting HTTP connection
-	listener net.Listener
+	// listener net.Listener
 
 	// httpServer processing entrying HTTP request
-	httpServer *http.Server
+	httpServer common.Runnable
 
 	// backend managing core backend components
 	backend core.Backend
+
+	logger *log.Logger
 }
 
-// @TODO Inject http server
-func New(_ *Config) common.Runnable {
+func New(cfg *Config) *App {
+	logger := log.NewLogger(cfg.Logger)
 	bckend := core.New()
-
-	server := &http.Server{
-		Handler: api.New(bckend),
-	}
+	httpServer := http.NewServer(cfg.HTTP, api.New(bckend), logger)
 
 	return &App{
-		httpServer: server,
+		cfg:        cfg,
+		httpServer: httpServer,
 		backend:    bckend,
+		logger:     logger.SetComponent(Component),
 	}
 }
-func (a App) Start(context.Context) error {
-	return a.httpServer.ListenAndServe()
+
+func (a App) Start(ctx context.Context) error {
+	a.logger.Info("starting application")
+	return a.httpServer.Start(ctx)
 }
 
-func (a App) Stop(context.Context) error {
-	panic("implement me")
+func (a App) Stop(ctx context.Context) error {
+	a.logger.Info("stopping application")
+	err := a.httpServer.Stop(ctx)
+	return err
 }
 
 func (a App) Close() error {
-	panic("implement me")
+	return a.httpServer.Close()
 }
 
 func (a App) Error() error {
-	panic("implement me")
+	return a.httpServer.Error()
 }

@@ -11,10 +11,35 @@ type Logger struct {
 	entry     *logrus.Entry
 	component string
 	ctx       context.Context
+	cfg       *Config
 }
 
-func NewLogger() *Logger {
-	return &Logger{logrus.NewEntry(logrus.StandardLogger()), "", nil}
+func NewDefaultLogger() *Logger {
+	logger := logrus.New()
+	return &Logger{
+		entry: logrus.NewEntry(logger),
+	}
+}
+
+func NewLogger(cfg *Config) *Logger {
+	if cfg == nil {
+		return NewDefaultLogger()
+	}
+
+	logger := logrus.New()
+	logger.Level = cfg.Level.logrusLvl()
+	if cfg.Timestamp {
+		logger.SetFormatter(&logrus.TextFormatter{
+			PadLevelText:     true,
+			FullTimestamp:    true,
+			DisableTimestamp: false,
+		})
+	}
+
+	return &Logger{
+		entry: logrus.NewEntry(logger),
+		cfg:   cfg,
+	}
 }
 
 func (l Logger) WithContext(ctx context.Context) *Logger {
@@ -92,6 +117,25 @@ func (l *Logger) Trace(args ...interface{}) {
 
 func (l *Logger) Tracef(format string, args ...interface{}) {
 	l.entry.WithFields(contextLogFields(l.ctx)).Trace(l.format(format), args)
+}
+
+func (l *Logger) Write(p []byte) (n int, err error) {
+	switch l.entry.Level {
+	case logrus.ErrorLevel:
+		l.Error(string(p))
+	case logrus.WarnLevel:
+		l.Warn(string(p))
+	case logrus.InfoLevel:
+		l.Info(string(p))
+	case logrus.DebugLevel:
+		l.Debug(string(p))
+	case logrus.TraceLevel:
+		l.Trace(string(p))
+	default:
+		l.Info(string(p))
+	}
+
+	return 0, nil
 }
 
 func (l *Logger) args(args []interface{}) []interface{} {

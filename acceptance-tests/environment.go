@@ -8,7 +8,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
@@ -32,7 +32,7 @@ type TestSuiteEnv interface {
 func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 	ctx, cancel := context.WithCancel(ctx)
 
-	sig := utils.NewSignalListener(func(signal os.Signal) {
+	sig := common.NewSignalListener(func(signal os.Signal) {
 		gerr = fmt.Errorf("interrupt signal has been sent")
 		cancel()
 	})
@@ -49,7 +49,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger := log.NewLogger().WithContext(ctx)
+	logger := log.NewDefaultLogger().WithContext(ctx)
 
 	hashicorpContainer, err := HashicorpContainer(ctx)
 	if err != nil {

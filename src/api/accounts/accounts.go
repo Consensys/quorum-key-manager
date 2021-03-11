@@ -2,46 +2,30 @@ package accountsapi
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/gorilla/mux"
 )
 
+type handler struct {
+	h core.Backend
+}
+
 // New creates a http.Handler to be served on /accounts
-func New(_ core.Backend) http.Handler {
-	// TODO: to be implemented
-	return nil
+func New(bckend core.Backend) http.Handler {
+	h := &handler{
+		h: bckend,
+	}
+
+	router := mux.NewRouter()
+	router.Methods(http.MethodPost).Path("/").HandlerFunc(h.handleCreateAccount)
+
+	return router
 }
 
-type Handler struct {
-	backend core.Backend
-}
-
-type Metadata struct {
-	Version int `json:"version"`
-
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	DeletedAt time.Time `json:"deletedAt"`
-	PurgeAt   time.Time `json:"purgeAt"`
-}
-
-type CreateAccountRequest struct {
-	StoreName string            `json:"name"`
-	Enabled   bool              `json:"enabled"`
-	ExpireAt  time.Time         `json:"expireAt"`
-	Tags      map[string]string `json:"tags"`
-}
-
-type CreateAccountResponse struct {
-	Addr string `json:"address"`
-
-	Metadata *Metadata
-}
-
-func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Request) {
+func (h *handler) handleCreateAccount(rw http.ResponseWriter, req *http.Request) {
 	// Unmarshal request body
 	reqBody := new(CreateAccountRequest)
 	if err := json.UnmarshalBody(req.Body, reqBody); err != nil {
@@ -57,7 +41,7 @@ func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Reque
 	}
 
 	// Execute account creation
-	store, err := h.backend.
+	store, err := h.h.
 		StoreManager().
 		GetAccountStore(req.Context(), reqBody.StoreName)
 	if err != nil {
@@ -72,4 +56,5 @@ func (h *Handler) ServeHTTPCreateAccount(rw http.ResponseWriter, req *http.Reque
 	}
 
 	// Write response
+	_, _ = rw.Write([]byte("OK"))
 }

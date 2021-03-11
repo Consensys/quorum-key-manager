@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -46,7 +46,7 @@ func TestKeyManagerStore(t *testing.T) {
 		return
 	}
 
-	sig := utils.NewSignalListener(func(signal os.Signal) {
+	sig := common.NewSignalListener(func(signal os.Signal) {
 		cancel()
 	})
 	defer sig.Close()
