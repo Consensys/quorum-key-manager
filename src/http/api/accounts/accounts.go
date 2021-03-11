@@ -9,8 +9,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const RoutePrefix = "/accounts"
-
 type handler struct {
 	h core.Backend
 }
@@ -20,10 +18,10 @@ func New(bckend core.Backend) http.Handler {
 	h := &handler{
 		h: bckend,
 	}
-	
+
 	router := mux.NewRouter()
-	router.Methods(http.MethodPost).Path(RoutePrefix).HandlerFunc(h.handleCreateAccount)
-	
+	router.Methods(http.MethodPost).Path("/").HandlerFunc(h.handleCreateAccount)
+
 	return router
 }
 
@@ -64,5 +62,5 @@ func (h *handler) handleCreateAccount(rw http.ResponseWriter, req *http.Request)
 	}
 
 	// Write response
-	rw.Write([]byte("OK"))
+	_, _ = rw.Write([]byte("OK"))
 }

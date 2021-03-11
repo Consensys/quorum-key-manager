@@ -1,4 +1,4 @@
-package keysapi
+package secretsapi
 
 import (
 	"net/http"
@@ -6,8 +6,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"
 )
-
-const RoutePrefix = "/keys"
 
 type handler struct {
 	bckend core.Backend
@@ -18,17 +16,18 @@ func New(bckend core.Backend) http.Handler {
 	h := &handler{
 		bckend: bckend,
 	}
-	
+
 	router := mux.NewRouter()
-	router.Methods(http.MethodGet).Path(RoutePrefix).HandlerFunc(h.testRoute)
-	
+	router.Methods(http.MethodGet).Path("/").HandlerFunc(h.testRoute)
+	router.Methods(http.MethodGet).Path("/test").HandlerFunc(h.testRoute)
+
 	return router
 }
 
-// @Summary Test keys route
-// @Description Test keys route
+// @Summary Test secrets route
+// @Description Test secrets route
 // @Success 200 string
-// @Router /keys [get]
+// @Router /secrets [get]
 func (c *handler) testRoute(rw http.ResponseWriter, _ *http.Request) {
-	rw.Write([]byte("OK"))
+	_, _ = rw.Write([]byte("OK"))
 }

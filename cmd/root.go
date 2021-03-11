@@ -35,7 +35,7 @@ func newRunCommand() *cobra.Command {
 		},
 	}
 
-	flags.APIFlags(runCmd.Flags())
+	flags.HTTPFlags(runCmd.Flags())
 	flags.HashicorpFlags(runCmd.Flags())
 	flags.LoggerFlags(runCmd.Flags())
 

@@ -1,4 +1,4 @@
-package api
+package middleware
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/handlers"
 )
 
-func newHTTPMiddleware(_ core.Backend) func(handlers http.Handler) http.Handler {
+func New(_ core.Backend) func(handlers http.Handler) http.Handler {
 	// TODO: implement the sequence of middlewares to apply before routing
 	return func(h http.Handler) http.Handler {
 		logger := log.NewLogger(&log.Config{
