@@ -258,6 +258,12 @@ func (msg *ResponseMsg) Validate() error {
 	return nil
 }
 
+// WithVersion attaches version
+func (msg *ResponseMsg) WithVersion(v string) *ResponseMsg {
+	msg.Version = v
+	return msg
+}
+
 // WithID attaches ID
 func (msg *ResponseMsg) WithID(id interface{}) *ResponseMsg {
 	msg.ID = id
