@@ -2,6 +2,7 @@ package jsonrpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 )
@@ -33,6 +34,13 @@ func (resp *Response) ReadBody() error {
 		if resp.msg == nil {
 			resp.msg = new(ResponseMsg)
 		}
+
+		if resp.resp.StatusCode < 200 || resp.resp.StatusCode >= 300 {
+			resp.err = fmt.Errorf("invalid http response: %v (code=%v)", http.StatusText(resp.resp.StatusCode), resp.resp.StatusCode)
+			return
+		}
+
+		defer resp.resp.Body.Close()
 
 		// Read response body into response message and validates it
 		err := json.NewDecoder(resp.resp.Body).Decode(resp.msg)
