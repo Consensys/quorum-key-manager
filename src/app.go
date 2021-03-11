@@ -7,6 +7,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 )
 
@@ -40,7 +41,11 @@ func New(cfg *Config) *App {
 	}
 }
 
-func (a App) Start(ctx context.Context) error {
+func (a App) Start(ctx context.Context, mnf *manifest.Manifest) error {
+	if err := a.backend.StoreManager().Load(ctx, mnf); err != nil {
+		return err
+	}
+
 	a.logger.Info("starting application")
 	return a.httpServer.Start(ctx)
 }
