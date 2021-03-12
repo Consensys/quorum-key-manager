@@ -29,4 +29,3 @@ func New() *BaseBackend {
 func (bckend *BaseBackend) StoreManager() storemanager.Manager {
 	return bckend.storeMnger
 }
-

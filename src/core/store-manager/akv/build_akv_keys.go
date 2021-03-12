@@ -49,15 +49,15 @@ func BuildAKVKeyStores(specs *akvKeysSpecs) (secrets.Store, keys.Store, accounts
 // 	if msg.Err != nil {
 // 		return
 // 	}
-// 
+//
 // 	secretsStore, keysStore, accountsStore, err := mngr.BuildAKVKeyStores(specs)
 // 	if err != nil {
 // 		msg.Err = nil
 // 		return
 // 	}
-// 
+//
 // 	// TODO: if the store is common.Runnable, it should be started now
-// 
+//
 // 	// setStores on manager for later access
 // 	mngr.setStores(msg, secretsStore, keysStore, accountsStore)
 // }

@@ -74,7 +74,7 @@ Environment variable: %q`, hashicorpAddrEnv)
 }
 
 // ConfigFromViper returns a local config object that be converted into an api.Config
-func NewHashicorpManifest(vipr *viper.Viper) *manifest.Manifest {
+func newHashicorpManifest(vipr *viper.Viper) *manifest.Manifest {
 	specs := hashicorp.SecretSpecs{
 		MountPoint: vipr.GetString(hashicorpMountPointViperKey),
 		Address:    vipr.GetString(hashicorpAddrViperKey),
@@ -90,7 +90,7 @@ func NewHashicorpManifest(vipr *viper.Viper) *manifest.Manifest {
 
 	return &manifest.Manifest{
 		Kind:    types.HashicorpSecrets,
-		Name:    "Hashicorp",
+		Name:    "HashicorpSecrets",
 		Version: "0.0.0",
 		Specs:   specRaw,
 	}

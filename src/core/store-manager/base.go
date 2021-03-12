@@ -28,9 +28,9 @@ type storeBundle struct {
 func New() Manager {
 	return &manager{
 		mux:     sync.RWMutex{},
-		secrets: make(map[string]*storeBundle, 0),
-		keys:    make(map[string]*storeBundle, 0),
-		account: make(map[string]*storeBundle, 0),
+		secrets: make(map[string]*storeBundle),
+		keys:    make(map[string]*storeBundle),
+		account: make(map[string]*storeBundle),
 	}
 }
 
@@ -86,21 +86,15 @@ func (m *manager) List(_ context.Context, kind types.Kind) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	var storeList map[string]*storeBundle
+	storeNames := []string{}
 	switch kind {
+	case "":
+		storeNames = append(
+			append(m.storeNames(m.secrets, kind), m.storeNames(m.keys, kind)...), m.storeNames(m.account, kind)...)
 	case types.HashicorpSecrets, types.AKVSecrets, types.KMSSecrets:
-		storeList = m.secrets
+		storeNames = m.storeNames(m.secrets, kind)
 	case types.AKVKeys, types.HashicorpKeys, types.KMSKeys:
-		storeList = m.keys
-	default:
-		storeList = m.account
-	}
-
-	var storeNames []string
-	for k, store := range storeList {
-		if store.manifest.Kind == kind {
-			storeNames = append(storeNames, k)
-		}
+		storeNames = m.storeNames(m.keys, kind)
 	}
 
 	return storeNames, nil
@@ -123,4 +117,15 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 	}
 
 	return nil
+}
+
+func (m *manager) storeNames(list map[string]*storeBundle, kind types.Kind) []string {
+	var storeNames []string
+	for k, store := range list {
+		if kind == "" || store.manifest.Kind == kind {
+			storeNames = append(storeNames, k)
+		}
+	}
+
+	return storeNames
 }

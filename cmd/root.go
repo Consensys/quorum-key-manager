@@ -61,8 +61,7 @@ func run(cmd *cobra.Command, _ []string) error {
 
 	defer sig.Close()
 
-	mnf := flags.NewHashicorpManifest(vipr)
-	err := appli.Start(ctx, mnf)
+	err := appli.Start(ctx)
 	if err != nil {
 		logger.WithError(err).Error("application exited with errors")
 		return err
