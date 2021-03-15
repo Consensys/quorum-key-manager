@@ -1,6 +1,7 @@
 package jsonrpc
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -46,3 +47,26 @@ func FromHTTPHandler(h http.Handler) Handler {
 		h.ServeHTTP(rw, req.Request())
 	})
 }
+
+// NotSupported replies to the request with a not supported request error
+func NotSupported(rw ResponseWriter, req *Request) {
+	_ = rw.WriteError(&ErrorMsg{
+		Message: "not supported",
+	})
+}
+
+// NotSupportedHandler returns a simple handler
+// that replies to each request with a not supported request error
+func NotSupportedHandler() Handler { return HandlerFunc(NotSupported) }
+
+// InvalidMethod replies to the request with an invalid method error
+func InvalidMethod(rw ResponseWriter, req *Request) {
+	_ = rw.WriteError(&ErrorMsg{
+		Code:    -32601,
+		Message: fmt.Sprintf("invalid method %q", req.Method()),
+	})
+}
+
+// InvalidMethod returns a simple handler
+// that replies to each request with an invalid method error
+func MethodNotFoundHandler() Handler { return HandlerFunc(InvalidMethod) }
