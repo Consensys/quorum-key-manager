@@ -83,17 +83,17 @@ func InvalidMethod(rw ResponseWriter, req *Request) {
 // that replies to each request with an invalid method error
 func InvalidMethodHandler() Handler { return HandlerFunc(InvalidMethod) }
 
-// NotImplemented replies to the request with an not implemented error
-func NotImplemented(rw ResponseWriter, req *Request) {
+// NotImplementedMethod replies to the request with an not implemented error
+func NotImplementedMethod(rw ResponseWriter, req *Request) {
 	_ = rw.WriteError(&ErrorMsg{
 		Code:    -32601,
 		Message: fmt.Sprintf("not implemented method %q", req.Method()),
 	})
 }
 
-// InvalidMethod returns a simple handler
+// NotImplementedMethodHandler returns a simple handler
 // that replies to each request with an invalid method error
-func NotImplementedHandler() Handler { return HandlerFunc(NotImplemented) }
+func NotImplementedMethodHandler() Handler { return HandlerFunc(NotImplementedMethod) }
 
 // LoggedHandler
 func LoggedHandler(h Handler) Handler {
