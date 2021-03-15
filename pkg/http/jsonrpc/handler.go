@@ -3,6 +3,8 @@ package jsonrpc
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
 type Handler interface {
@@ -56,8 +58,18 @@ func NotSupported(rw ResponseWriter, req *Request) {
 }
 
 // NotSupportedHandler returns a simple handler
-// that replies to each request with a not supported request error
+// that replies to each request with a not supported version request error
 func NotSupportedHandler() Handler { return HandlerFunc(NotSupported) }
+
+func NotSupportedVersion(rw ResponseWriter, req *Request) {
+	_ = rw.WriteError(&ErrorMsg{
+		Message: fmt.Sprintf("not supported version %v", req.Version()),
+	})
+}
+
+// NotSupportedVersionHandler returns a simple handler
+// that replies to each request with a not supported version request error
+func NotSupportedVersionHandler() Handler { return HandlerFunc(NotSupportedVersion) }
 
 // InvalidMethod replies to the request with an invalid method error
 func InvalidMethod(rw ResponseWriter, req *Request) {
@@ -69,4 +81,29 @@ func InvalidMethod(rw ResponseWriter, req *Request) {
 
 // InvalidMethod returns a simple handler
 // that replies to each request with an invalid method error
-func MethodNotFoundHandler() Handler { return HandlerFunc(InvalidMethod) }
+func InvalidMethodHandler() Handler { return HandlerFunc(InvalidMethod) }
+
+// NotImplemented replies to the request with an not implemented error
+func NotImplemented(rw ResponseWriter, req *Request) {
+	_ = rw.WriteError(&ErrorMsg{
+		Code:    -32601,
+		Message: fmt.Sprintf("not implemented method %q", req.Method()),
+	})
+}
+
+// InvalidMethod returns a simple handler
+// that replies to each request with an invalid method error
+func NotImplementedHandler() Handler { return HandlerFunc(NotImplemented) }
+
+// LoggedHandler
+func LoggedHandler(h Handler) Handler {
+	return HandlerFunc(func(rw ResponseWriter, req *Request) {
+		logger := log.FromContext(req.Request().Context())
+		logger.
+			WithField("version", req.Version()).
+			WithField("id", req.ID()).
+			WithField("method", req.Method()).
+			Info("serve JSON-RPC request")
+		h.ServeRPC(rw, req)
+	})
+}
