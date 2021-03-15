@@ -182,12 +182,12 @@ func TestRequestMsgValidate(t *testing.T) {
 		{
 			desc:           "invalid request with array id",
 			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: []int{25}},
-			expectedErrMsg: "id should be int or string but got []int",
+			expectedErrMsg: "invalid id (should be int or string but got []int)",
 		},
 		{
 			desc:           "valid request with object id",
 			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: &TestID{Field: "test-value"}},
-			expectedErrMsg: "id should be int or string but got jsonrpc.TestID",
+			expectedErrMsg: "invalid id (should be int or string but got jsonrpc.TestID)",
 		},
 	}
 
