@@ -3,7 +3,6 @@ package jsonrpc
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -29,8 +28,6 @@ func (m requestMatcher) Matches(x interface{}) bool {
 	b := make([]byte, req.ContentLength-1)
 	_, _ = io.ReadFull(req.Body, b)
 
-	fmt.Printf("%v\n", string(b))
-	fmt.Printf("%v\n", string(req.URL.Path))
 	return req.URL.Path == m.URLPath && bytes.Equal(b, m.Body)
 
 }

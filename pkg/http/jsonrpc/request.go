@@ -64,6 +64,7 @@ func (req *Request) ReadBody() error {
 
 		// Read request body into request message and validates it
 		err := json.NewDecoder(req.req.Body).Decode(req.msg)
+		req.req.Body.Close()
 		if err != nil {
 			req.err = err
 			return
