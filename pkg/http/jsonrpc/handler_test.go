@@ -26,7 +26,7 @@ func TestToHTTPHandler(t *testing.T) {
 	rec := httptest.NewRecorder()
 	httpHandler.ServeHTTP(rec, req)
 
-	expectedBody := []byte(`{"jsonrpc":"1.0","id":"abcd","result":{"test-field":"test-value"},"error":null}`)
+	expectedBody := []byte(`{"jsonrpc":"1.0","result":{"test-field":"test-value"},"error":null,"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
 
@@ -46,7 +46,7 @@ func TestToHTTPHandler(t *testing.T) {
 
 	httpHandler.ServeHTTP(rec, req)
 
-	expectedBody = []byte(`{"jsonrpc":"3.0","id":"abcd","result":{"test-field":"test-value"},"error":null}`)
+	expectedBody = []byte(`{"jsonrpc":"3.0","result":{"test-field":"test-value"},"error":null,"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
 
@@ -67,7 +67,7 @@ func TestToHTTPHandler(t *testing.T) {
 
 	httpHandler.ServeHTTP(rw, req)
 
-	expectedBody = []byte(`{"jsonrpc":"2.1","id":1234,"result":{"test-field":"test-value"},"error":null}`)
+	expectedBody = []byte(`{"jsonrpc":"2.1","result":{"test-field":"test-value"},"error":null,"id":1234}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
 }

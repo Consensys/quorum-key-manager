@@ -341,12 +341,12 @@ func TestMarshalResponseMsg(t *testing.T) {
 					Message: "test message",
 					Data:    json.RawMessage(`{"test-field": "test-value"}`),
 				}},
-			expectedBody: []byte(`{"jsonrpc":"2.0","id":0,"result":{"test-field":"test-value"},"error":{"code":-32600,"message":"test message","data":{"test-field":"test-value"}}}`),
+			expectedBody: []byte(`{"jsonrpc":"2.0","result":{"test-field":"test-value"},"error":{"code":-32600,"message":"test message","data":{"test-field":"test-value"}},"id":0}`),
 		},
 		{
 			desc:         "response with no fields",
 			msg:          &ResponseMsg{},
-			expectedBody: []byte(`{"jsonrpc":"","id":null,"result":null,"error":null}`),
+			expectedBody: []byte(`{"jsonrpc":"","result":null,"error":null,"id":null}`),
 		},
 	}
 
@@ -587,12 +587,12 @@ func TestResponseMsgMarshalUnmarshal(t *testing.T) {
 		{
 			desc:         "empty response",
 			body:         []byte(`{}`),
-			expectedBody: []byte(`{"jsonrpc":"","id":null,"result":null,"error":null}`),
+			expectedBody: []byte(`{"jsonrpc":"","result":null,"error":null,"id":null}`),
 		},
 		{
 			desc:         "all fields response",
 			body:         []byte(`{"jsonrpc":"2.0","result":true,"error":{"code":-32600,"message":"test message","data":{"test-field":"test-value"}},"id":"abcd"}`),
-			expectedBody: []byte(`{"jsonrpc":"2.0","id":"abcd","result":true,"error":{"code":-32600,"message":"test message","data":{"test-field":"test-value"}}}`),
+			expectedBody: []byte(`{"jsonrpc":"2.0","result":true,"error":{"code":-32600,"message":"test message","data":{"test-field":"test-value"}},"id":"abcd"}`),
 		},
 	}
 

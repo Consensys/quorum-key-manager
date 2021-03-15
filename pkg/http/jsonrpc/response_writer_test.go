@@ -43,7 +43,7 @@ func TestResponseWriterWriteMsg(t *testing.T) {
 	err := rw.WriteMsg(msg)
 	require.NoError(t, err, "WriteMsg should not error")
 
-	expectedBody := []byte(`{"jsonrpc":"3.0","id":"39","result":true,"error":null}`)
+	expectedBody := []byte(`{"jsonrpc":"3.0","result":true,"error":null,"id":"39"}`)
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "WriteMsg should write correct body")
 
 	// WriteMsg with deafult values set
@@ -56,7 +56,7 @@ func TestResponseWriterWriteMsg(t *testing.T) {
 	err = rw.WriteMsg(msg)
 	require.NoError(t, err, "WriteMsg should not error")
 
-	expectedBody = []byte(`{"jsonrpc":"2.0","id":null,"result":true,"error":null}`)
+	expectedBody = []byte(`{"jsonrpc":"2.0","result":true,"error":null,"id":null}`)
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "WriteMsg should write correct body")
 }
 
@@ -69,7 +69,7 @@ func TestResponseWriterWriteResult(t *testing.T) {
 
 	err := rw.WriteResult(false)
 	require.NoError(t, err, "WriteResult should not error")
-	expectedBody := []byte(`{"jsonrpc":"1.0","id":1234,"result":false,"error":null}`)
+	expectedBody := []byte(`{"jsonrpc":"1.0","result":false,"error":null,"id":1234}`)
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "WriteResult should write correct body")
 }
 
@@ -81,6 +81,6 @@ func TestResponseWriterWriteError(t *testing.T) {
 
 	err := rw.WriteError(fmt.Errorf("test error"))
 	require.NoError(t, err, "WriteError should not error")
-	expectedBody := []byte(`{"jsonrpc":"2.0","id":"abcd","result":null,"error":{"code":0,"message":"test error","data":null}}`)
+	expectedBody := []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":0,"message":"test error","data":null},"id":"abcd"}`)
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "WriteError should write correct body")
 }

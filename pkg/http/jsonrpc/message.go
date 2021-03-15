@@ -171,9 +171,9 @@ type ResponseMsg struct {
 // jsonRespMsg is a struct allowing to encode/decode a JSON-RPC response body
 type jsonRespMsg struct {
 	Version string           `json:"jsonrpc"`
-	ID      *json.RawMessage `json:"id,omitempty"`
 	Result  *json.RawMessage `json:"result,omitempty"`
 	Error   *json.RawMessage `json:"error,omitempty"`
+	ID      *json.RawMessage `json:"id,omitempty"`
 }
 
 func (msg *ResponseMsg) UnmarshalJSON(b []byte) error {

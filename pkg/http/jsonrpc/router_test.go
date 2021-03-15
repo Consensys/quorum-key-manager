@@ -97,7 +97,7 @@ func TestRouterServeRPC(t *testing.T) {
 
 	router.ServeRPC(rw, req)
 
-	expectedBody := []byte(`{"jsonrpc":"3.0","id":"abcd","result":1,"error":null}`)
+	expectedBody := []byte(`{"jsonrpc":"3.0","result":1,"error":null,"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
 
@@ -112,7 +112,7 @@ func TestRouterServeRPC(t *testing.T) {
 
 	router.ServeRPC(rw, req)
 
-	expectedBody = []byte(`{"jsonrpc":"2.0","id":null,"result":null,"error":{"code":0,"message":"not supported","data":null}}`)
+	expectedBody = []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":0,"message":"not supported","data":null},"id":null}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
 }
