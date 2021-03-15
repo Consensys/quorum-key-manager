@@ -38,6 +38,14 @@ func (msg *RequestMsg) UnmarshalJSON(b []byte) error {
 	msg.Version = raw.Version
 	msg.Method = raw.Method
 
+	if raw.ID != nil {
+		msg.ID = *raw.ID
+	}
+
+	if raw.Params != nil {
+		msg.Params = *raw.Params
+	}
+
 	return nil
 }
 
@@ -177,6 +185,14 @@ func (msg *ResponseMsg) UnmarshalJSON(b []byte) error {
 
 	msg.raw = raw
 	msg.Version = raw.Version
+
+	if raw.ID != nil {
+		msg.ID = *raw.ID
+	}
+
+	if raw.Result != nil {
+		msg.Result = *raw.Result
+	}
 
 	if raw.Error != nil {
 		msg.Error = new(ErrorMsg)
@@ -353,6 +369,10 @@ func (msg *ErrorMsg) UnmarshalJSON(b []byte) error {
 	msg.Code = raw.Code
 	msg.Message = raw.Message
 
+	if raw.Data != nil {
+		msg.Data = *raw.Data
+	}
+
 	return nil
 }
 
@@ -404,10 +424,16 @@ func (msg *ErrorMsg) Error() string {
 	return msg.Message
 }
 
+var jsonMessageType = reflect.TypeOf(json.RawMessage(nil))
+
 func validateID(id interface{}) error {
 	idV := reflect.ValueOf(id)
 	if idV.IsZero() {
 		return nil
+	}
+
+	if idV.Type() == jsonMessageType {
+		return validateRawID(idV.Interface().(json.RawMessage))
 	}
 
 	switch idV.Kind() {
@@ -418,4 +444,12 @@ func validateID(id interface{}) error {
 	default:
 		return fmt.Errorf("invalid id (should be int or string but got %T)", id)
 	}
+}
+
+func validateRawID(id json.RawMessage) error {
+	if len(id) > 0 && id[0] != '{' && id[0] != '[' {
+		return nil
+	}
+
+	return fmt.Errorf("invalid id %v", string(id))
 }

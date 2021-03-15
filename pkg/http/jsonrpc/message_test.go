@@ -180,6 +180,10 @@ func TestRequestMsgValidate(t *testing.T) {
 			msg:  &RequestMsg{Version: "2.0", Method: "testMethod"},
 		},
 		{
+			desc: "valid request with valid json.RawMessage id",
+			msg:  &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`"abcd"`)},
+		},
+		{
 			desc:           "invalid request with array id",
 			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: []int{25}},
 			expectedErrMsg: "invalid id (should be int or string but got []int)",
@@ -188,6 +192,16 @@ func TestRequestMsgValidate(t *testing.T) {
 			desc:           "valid request with object id",
 			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: &TestID{Field: "test-value"}},
 			expectedErrMsg: "invalid id (should be int or string but got jsonrpc.TestID)",
+		},
+		{
+			desc:           "invalid request with invalid json.RawMessage array id",
+			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`[1,2,3]`)},
+			expectedErrMsg: "invalid id [1,2,3]",
+		},
+		{
+			desc:           "invalid request with invalid json.RawMessage object id",
+			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`{"test-field":"test-value"}`)},
+			expectedErrMsg: "invalid id {\"test-field\":\"test-value\"}",
 		},
 	}
 
@@ -368,10 +382,15 @@ func TestResponseMsgValidate(t *testing.T) {
 			msg:  &ResponseMsg{Version: "2.0", ID: 0, Error: &ErrorMsg{Code: -32600}},
 		},
 		{
-			desc:           "valid success response without result",
+			desc: "valid request with valid json.RawMessage id",
+			msg:  &ResponseMsg{Version: "2.0", ID: json.RawMessage(`"abcd"`), Result: true},
+		},
+		{
+			desc:           "invalid success response without result",
 			msg:            &ResponseMsg{Version: "2.0", ID: 0},
 			expectedErrMsg: "missing result on success",
 		},
+
 		{
 			desc:           "invalid failure response with result",
 			msg:            &ResponseMsg{Version: "2.0", ID: 0, Error: &ErrorMsg{Code: -32600}, Result: json.RawMessage(`true`)},
@@ -390,6 +409,16 @@ func TestResponseMsgValidate(t *testing.T) {
 			desc:           "invalid response with array id",
 			msg:            &ResponseMsg{Version: "2.0", ID: []int{25}, Result: true},
 			expectedErrMsg: "invalid id (should be int or string but got []int)",
+		},
+		{
+			desc:           "invalid request with invalid json.RawMessage array id",
+			msg:            &ResponseMsg{Version: "2.0", ID: json.RawMessage(`[1,2,3]`), Result: true},
+			expectedErrMsg: "invalid id [1,2,3]",
+		},
+		{
+			desc:           "invalid request with invalid json.RawMessage object id",
+			msg:            &ResponseMsg{Version: "2.0", ID: json.RawMessage(`{"test-field":"test-value"}`), Result: true},
+			expectedErrMsg: "invalid id {\"test-field\":\"test-value\"}",
 		},
 	}
 
@@ -510,6 +539,105 @@ func TestMarshalErrorMsg(t *testing.T) {
 				require.Error(t, err, "Marshal should fail")
 				assert.Equal(t, tt.expectedErrMsg, err.Error(), "Error message should match")
 			}
+		})
+	}
+}
+
+func TestRequestMsgMarshalUnmarshal(t *testing.T) {
+	tests := []struct {
+		desc string
+
+		// JSON body of the request
+		body         []byte
+		expectedBody []byte
+	}{
+		{
+			desc:         "empty request",
+			body:         []byte(`{}`),
+			expectedBody: []byte(`{"jsonrpc":"","method":"","params":null,"id":null}`),
+		},
+		{
+			desc:         "all fiels request",
+			body:         []byte(`{"jsonrpc":"2.0","method":"testMethod","params":[1,2,3],"id":"abcd"}`),
+			expectedBody: []byte(`{"jsonrpc":"2.0","method":"testMethod","params":[1,2,3],"id":"abcd"}`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			msg := new(RequestMsg)
+			err := json.Unmarshal(tt.body, msg)
+			require.NoError(t, err, "Unmarshalling should not fail")
+
+			b, err := json.Marshal(msg)
+			require.NoError(t, err, "Marshal should not fail")
+			assert.Equal(t, tt.expectedBody, b, "Body should match")
+		})
+	}
+}
+
+func TestResponseMsgMarshalUnmarshal(t *testing.T) {
+	tests := []struct {
+		desc string
+
+		// JSON body of the request
+		body         []byte
+		expectedBody []byte
+	}{
+		{
+			desc:         "empty response",
+			body:         []byte(`{}`),
+			expectedBody: []byte(`{"jsonrpc":"","id":null,"result":null,"error":null}`),
+		},
+		{
+			desc:         "all fields response",
+			body:         []byte(`{"jsonrpc":"2.0","result":true,"error":{"code":-32600,"message":"test message","data":{"test-field":"test-value"}},"id":"abcd"}`),
+			expectedBody: []byte(`{"jsonrpc":"2.0","id":"abcd","result":true,"error":{"code":-32600,"message":"test message","data":{"test-field":"test-value"}}}`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			msg := new(ResponseMsg)
+			err := json.Unmarshal(tt.body, msg)
+			require.NoError(t, err, "Unmarshalling should not fail")
+
+			b, err := json.Marshal(msg)
+			require.NoError(t, err, "Marshal should not fail")
+			assert.Equal(t, tt.expectedBody, b, "Body should match")
+		})
+	}
+}
+
+func TestErrorMsgMarshalUnmarshal(t *testing.T) {
+	tests := []struct {
+		desc string
+
+		// JSON body of the request
+		body         []byte
+		expectedBody []byte
+	}{
+		{
+			desc:         "empty error",
+			body:         []byte(`{}`),
+			expectedBody: []byte(`{"code":0,"message":"","data":null}`),
+		},
+		{
+			desc:         "all fields error",
+			body:         []byte(`{"code":-32600,"message":"test message","data":true}`),
+			expectedBody: []byte(`{"code":-32600,"message":"test message","data":true}`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			msg := new(ErrorMsg)
+			err := json.Unmarshal(tt.body, msg)
+			require.NoError(t, err, "Unmarshalling should not fail")
+
+			b, err := json.Marshal(msg)
+			require.NoError(t, err, "Marshal should not fail")
+			assert.Equal(t, tt.expectedBody, b, "Body should match")
 		})
 	}
 }
