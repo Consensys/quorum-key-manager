@@ -14,7 +14,6 @@ import (
 
 // Config object that be converted into an api.Config later
 type Config struct {
-	TokenFilePath string
 	MountPoint    string
 	SecretPath    string
 	Address       string
@@ -28,14 +27,13 @@ type Config struct {
 	BurstLimit    int
 	MaxRetries    int
 	SkipVerify    bool
-	Renewable     bool
+	Token         string
 }
 
 func NewBaseConfig(addr, mountPoint string) *Config {
 	return &Config{
 		Address:    addr,
 		MountPoint: mountPoint,
-		Renewable:  true,
 	}
 }
 

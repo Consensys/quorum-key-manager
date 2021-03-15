@@ -44,6 +44,7 @@ func (h *handler) handleCreateAccount(rw http.ResponseWriter, req *http.Request)
 	store, err := h.h.
 		StoreManager().
 		GetAccountStore(req.Context(), reqBody.StoreName)
+
 	if err != nil {
 		// Write error
 		return

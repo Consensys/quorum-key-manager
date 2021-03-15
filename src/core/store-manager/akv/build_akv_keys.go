@@ -1,11 +1,8 @@
 //nolint
-package basemanager
+package akv
 
 import (
-	"context"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	manifestloader "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest/loader"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	akvkeys "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/azure-key-vault"
@@ -15,11 +12,9 @@ import (
 // AKVKeysSpecs is the specs format for an Azure Key Vault key store
 type akvKeysSpecs struct {
 	AKV           *akvkeys.Config `json:"akv"`
-	Audited       bool            `json:"audited"`
-	Authenticated bool            `json:"authenticated"`
 }
 
-func (mngr *manager) BuildAKVKeyStores(specs *akvKeysSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
+func BuildAKVKeyStores(specs *akvKeysSpecs) (secrets.Store, keys.Store, accounts.Store, error) {
 	return nil, nil, nil, errors.NotImplementedError
 	// // Creates AKV keys store from specs config
 	// keysStore, err := akvkeys.New(specs.AKV)
@@ -47,22 +42,22 @@ func (mngr *manager) BuildAKVKeyStores(specs *akvKeysSpecs) (secrets.Store, keys
 }
 
 // loadAKVKeys creates and indexes an AKV Key Store
-func (mngr *manager) loadAKVKeys(ctx context.Context, msg *manifestloader.Message) {
-	// Unmarshal manifest specs
-	specs := new(akvKeysSpecs)
-	msg.UnmarshalSpecs(specs)
-	if msg.Err != nil {
-		return
-	}
-
-	secretsStore, keysStore, accountsStore, err := mngr.BuildAKVKeyStores(specs)
-	if err != nil {
-		msg.Err = nil
-		return
-	}
-
-	// TODO: if the store is common.Runnable, it should be started now
-
-	// setStores on manager for later access
-	mngr.setStores(msg, secretsStore, keysStore, accountsStore)
-}
+// func (mngr *manager) loadAKVKeys(ctx context.Context, msg *manifestloader.Message) {
+// 	// Unmarshal manifest specs
+// 	specs := new(akvKeysSpecs)
+// 	msg.UnmarshalSpecs(specs)
+// 	if msg.Err != nil {
+// 		return
+// 	}
+//
+// 	secretsStore, keysStore, accountsStore, err := mngr.BuildAKVKeyStores(specs)
+// 	if err != nil {
+// 		msg.Err = nil
+// 		return
+// 	}
+//
+// 	// TODO: if the store is common.Runnable, it should be started now
+//
+// 	// setStores on manager for later access
+// 	mngr.setStores(msg, secretsStore, keysStore, accountsStore)
+// }

@@ -41,6 +41,10 @@ func New(cfg *Config) *App {
 }
 
 func (a App) Start(ctx context.Context) error {
+	if err := a.backend.StoreManager().Load(ctx, a.cfg.Manifests...); err != nil {
+		return err
+	}
+
 	a.logger.Info("starting application")
 	return a.httpServer.Start(ctx)
 }

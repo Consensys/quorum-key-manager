@@ -1,9 +1,7 @@
-package manifestloader
+package manifest
 
 import (
 	"fmt"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 )
 
 // Message wraps a manifest with information related to the Loader that loaded it
@@ -12,7 +10,7 @@ type Message struct {
 	Loader string
 
 	// Manifest loaded
-	Manifest *manifest.Manifest
+	Manifest *Manifest
 
 	// Action to perform (e.g. create, update, delete...)
 	Action string

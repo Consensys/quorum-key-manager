@@ -2,12 +2,14 @@ package manifest
 
 import (
 	"encoding/json"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 )
 
 // Manifest for a store
 type Manifest struct {
 	// Kind  of store
-	Kind string `json:"kind"`
+	Kind types.Kind `json:"kind"`
 
 	// Version
 	Version string `json:"version"`
