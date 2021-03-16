@@ -1,7 +1,11 @@
 package types
 
+import (
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+)
+
 const (
-	HashicorpKeys Kind = "HashicorpKeys"
-	AKVKeys       Kind = "AKVKeys"
-	KMSKeys       Kind = "KMSKeys"
+	HashicorpKeys manifest.Kind = "HashicorpKeys"
+	AKVKeys       manifest.Kind = "AKVKeys"
+	KMSKeys       manifest.Kind = "KMSKeys"
 )
