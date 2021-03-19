@@ -6,9 +6,8 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-// Store is responsible to store keys and perform crypto operations
+//go:generate mockgen -source=keys.go -destination=mocks/keys.go -package=mocks
 
-// Keys should be stored under path matching regex pattern: ^[0-9a-zA-Z-]+$
 type Store interface {
 	// Info returns store information
 	Info(context.Context) *entities.StoreInfo
