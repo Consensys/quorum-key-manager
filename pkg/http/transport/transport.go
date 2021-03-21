@@ -10,10 +10,9 @@ import (
 )
 
 // New creates an http.RoundTripper configured with the Transport configuration settings.
-// For the settings that can't be configured it uses the default http.Transport settings
 func New(cfg *Config) (http.RoundTripper, error) {
 	if cfg == nil {
-		return http.DefaultTransport, nil
+		cfg = new(Config)
 	}
 
 	cfg.SetDefault()
