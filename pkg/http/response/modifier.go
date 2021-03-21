@@ -1,4 +1,4 @@
-package http
+package response
 
 import "net/http"
 
@@ -16,12 +16,10 @@ func (rf ModifierFunc) Modify(r *http.Response) error {
 }
 
 // BackendServer set "X-Backend-Server" header to the the URL of the request
-func BackendServer(rest *http.Response) error {
+func BackendServer(resp *http.Response) error {
 	resp.Header.Set("X-Backend-Server", resp.Request.URL.String())
 	return nil
 }
-
-
 
 // RespondDecorator takes and possibly decorates, by wrapping, a Modifier. Decorators may react to
 // the http.http.Response and pass it along or, first, pass the http.http.Response along then react.

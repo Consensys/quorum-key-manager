@@ -1,4 +1,4 @@
-package http
+package request
 
 import (
 	"bytes"
@@ -29,6 +29,21 @@ func (f PrepareFunc) Prepare(r *http.Request) (*http.Request, error) {
 	return f(r)
 }
 
+// CombinePreparer combines multiple preparers into a single one
+func CombinePreparer(preparers ...Preparer) Preparer {
+	return PrepareFunc(func(req *http.Request) (*http.Request, error) {
+		var err error
+		for _, preparer := range preparers {
+			req, err = preparer.Prepare(req)
+			if err != nil {
+				return req, err
+			}
+		}
+
+		return req, nil
+	})
+}
+
 // WebSocketHeaders enforce headers to be case-insensitive
 
 // Even if the websocket RFC says that headers should be case-insensitive,
@@ -47,21 +62,6 @@ func WebSocketHeaders() Preparer {
 		delete(req.Header, "Sec-Websocket-Accept")
 		delete(req.Header, "Sec-Websocket-Protocol")
 		delete(req.Header, "Sec-Websocket-Version")
-		return req, nil
-	})
-}
-
-// CombinePreparer combines multiple preparers into a single one
-func CombinePreparer(preparers ...Preparer) Preparer {
-	return PrepareFunc(func(req *http.Request) (*http.Request, error) {
-		var err error
-		for _, preparer := range preparers {
-			req, err = preparer.Prepare(req)
-			if err != nil {
-				return req, err
-			}
-		}
-
 		return req, nil
 	})
 }
