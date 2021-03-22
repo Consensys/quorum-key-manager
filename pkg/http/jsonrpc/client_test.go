@@ -41,10 +41,16 @@ func TestClient(t *testing.T) {
 	defer ctrl.Finish()
 
 	transport := testutils.NewMockRoundTripper(ctrl)
-	req, _ := http.NewRequest(http.MethodPost, "www.example.com", nil)
-	client := NewClientFromRequest(nil, "3.0").WithTransport(transport).WithRequest(req)
 
-	assert.Equal(t, "3.0", client.Version(), "Versin should be correct")
+	client, _ := NewClient(
+		&ClientConfig{Version: "3.0"},
+		&http.Client{Transport: transport},
+	)
+
+	assert.Equal(t, "3.0", client.Version(), "Version should be correct")
+
+	req, _ := http.NewRequest(http.MethodPost, "www.example.com", nil)
+	caller := client.Caller(req)
 
 	m := requestMatcher{
 		URLPath: "www.example.com",
@@ -57,7 +63,7 @@ func TestClient(t *testing.T) {
 		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 	}, nil)
 
-	resp, err := client.Call(context.Background(), "testMethod", []int{1, 2, 3})
+	resp, err := caller.Call(context.Background(), "testMethod", []int{1, 2, 3})
 	require.Error(t, err, "Call should error")
 	assert.Equal(t, "test error message", err.Error(), "Call should error")
 	require.IsType(t, new(ErrorMsg), err, "Error should have correct type")
