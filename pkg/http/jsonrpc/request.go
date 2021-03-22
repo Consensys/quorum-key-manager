@@ -2,6 +2,7 @@ package jsonrpc
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -20,9 +21,12 @@ type Request struct {
 
 // NewRequest creates a new Request
 func NewRequest(req *http.Request) *Request {
-	return &Request{
-		req: req,
+	jsonRPCReq := new(Request)
+	if req != nil {
+		jsonRPCReq = jsonRPCReq.WithRequest(req)
 	}
+
+	return jsonRPCReq
 }
 
 // Request returns attached http.Request
@@ -30,9 +34,28 @@ func (req *Request) Request() *http.Request {
 	return req.req
 }
 
+// WithRequest attaches http.Request
+func (req *Request) WithRequest(r *http.Request) *Request {
+	req.req = r.WithContext(WithRequest(r.Context(), req))
+	return req
+}
+
+// Clone request
+func (req *Request) Clone(ctx context.Context) *Request {
+	newReq := new(Request)
+	if req.msg != nil {
+		newReq.msg = req.msg.Copy()
+	}
+
+	newReq.err = req.err
+	newReq.req = req.req.Clone(WithRequest(ctx, newReq))
+
+	return newReq
+}
+
 // WriteBody prepares underlying http.Request body with JSON-RPC message
 func (req *Request) WriteBody() error {
-	err := req.msg.Validate()
+	err := req.getMsg().Validate()
 	if err != nil {
 		return err
 	}

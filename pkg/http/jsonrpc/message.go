@@ -82,6 +82,33 @@ func (msg *RequestMsg) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
+func (msg *RequestMsg) Copy() *RequestMsg {
+	newMsg := new(RequestMsg)
+
+	newMsg.Version = msg.Version
+	newMsg.Method = msg.Method
+	newMsg.Params = msg.Params
+	newMsg.ID = msg.ID
+
+	if msg.raw != nil {
+		newMsg.raw = new(jsonReqMsg)
+		newMsg.raw.Version = msg.raw.Version
+		newMsg.raw.Method = msg.raw.Method
+
+		if msg.raw.ID != nil {
+			newMsg.raw.ID = new(json.RawMessage)
+			copy(*newMsg.raw.ID, *msg.raw.ID)
+		}
+
+		if msg.raw.Params != nil {
+			newMsg.raw.Params = new(json.RawMessage)
+			copy(*newMsg.raw.Params, *msg.raw.Params)
+		}
+	}
+
+	return newMsg
+}
+
 // Validate JSON-Requests body
 func (msg *RequestMsg) Validate() error {
 	if msg.Version == "" {
