@@ -34,7 +34,10 @@ func New(
 	}
 
 	if preparer == nil {
-		preparer = request.Proxy(cfg.Request)
+		preparer, err = request.Proxy(cfg.Request)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if modifier == nil {

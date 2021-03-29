@@ -1,6 +1,7 @@
 package request
 
 type ProxyConfig struct {
+	Addr           string            `json:"addr,omitempty"`
 	PassHostHeader *bool             `json:"passHostHeader,omitempty"`
 	BasicAuth      *BasicAuthConfig  `json:"basicAuth,omitempty"`
 	Headers        map[string]string `json:"headers,omitempty"`
