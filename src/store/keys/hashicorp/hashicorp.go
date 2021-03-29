@@ -2,7 +2,6 @@ package hashicorp
 
 import (
 	"context"
-	"fmt"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"path"
 	"time"
@@ -13,10 +12,14 @@ import (
 )
 
 const (
-	endpoint = "keys"
-
-	dataLabel     = "data"
-	metadataLabel = "metadata"
+	endpoint        = "keys"
+	idLabel         = "id"
+	curveLabel      = "curve"
+	algorithmLabel  = "algorithm"
+	tagsLabel       = "tags"
+	privateKeyLabel = "privateKey"
+	dataLabel       = "data"
+	signatureLabel  = "signatureLabel"
 )
 
 // Store is an implementation of key store relying on Hashicorp Vault ConsenSys secret engine
@@ -25,7 +28,7 @@ type hashicorpKeyStore struct {
 	mountPoint string
 }
 
-// New creates an HashiCorp secret store
+// New creates an HashiCorp key store
 func New(client hashicorp.VaultClient, mountPoint string) keys.Store {
 	return &hashicorpKeyStore{
 		client:     client,
@@ -37,18 +40,17 @@ func (s *hashicorpKeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.NotImplementedError
 }
 
-// Set a secret
-func (s *hashicorpKeyStore) Create(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Key, error) {
+// Create a key
+func (s *hashicorpKeyStore) Create(_ context.Context, id string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error) {
 	key := &entities.Key{}
-	res, err := s.client.Write(path.Join(s.mountPoint, endpoint), map[string]interface{}{
-
+	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
+		idLabel:        id,
+		curveLabel:     alg.EllipticCurve,
+		algorithmLabel: alg.Type,
+		tagsLabel:      attr.Tags,
 	})
 	if err != nil {
 		return nil, parseErrorResponse(err)
-	}
-
-	if res == nil || res.Data == nil {
-		return nil, nil
 	}
 
 	err = parseResponse(res.Data, key)
@@ -59,65 +61,82 @@ func (s *hashicorpKeyStore) Create(ctx context.Context, id, value string, attr *
 	return key, nil
 }
 
-// Get a secret
-func (s *hashicorpKeyStore) Get(_ context.Context, id string, version int) (*entities.Secret, error) {
-	// Get latest version by default if no version is specified, otherwise get specific version
-	pathData := s.pathData(id)
+// Import a key
+func (s *hashicorpKeyStore) Import(_ context.Context, id string, privKey string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error) {
+	key := &entities.Key{}
+	res, err := s.client.Write(path.Join(s.mountPoint, endpoint, "import"), map[string]interface{}{
+		idLabel:         id,
+		curveLabel:      alg.EllipticCurve,
+		algorithmLabel:  alg.Type,
+		tagsLabel:       attr.Tags,
+		privateKeyLabel: privKey,
+	})
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	err = parseResponse(res.Data, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
+}
+
+// Get a key
+func (s *hashicorpKeyStore) Get(_ context.Context, id string, version int) (*entities.Key, error) {
+	key := &entities.Key{}
+
+	// TODO: Versioning is not yet implemented on the plugin
 	if version != 0 {
-		pathData = fmt.Sprintf("%v?version=%v", pathData, version)
+		return nil, errors.NotImplementedError
 	}
 
-	hashicorpSecret, err := s.client.Read(pathData)
+	res, err := s.client.Read(s.pathKeys(id))
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	err = parseResponse(res.Data, key)
 	if err != nil {
 		return nil, err
 	}
 
-	// Hashicorp returns metadata in "data.metadata" and data in "data.data" fields
-	data := hashicorpSecret.Data[dataLabel].(map[string]interface{})
-	metadata, err := extractMetadata(hashicorpSecret.Data[metadataLabel].(map[string]interface{}))
-	if err != nil {
-		return nil, err
-	}
-
-	return formatHashicorpSecret(data[valueLabel].(string), data[tagsLabel].(map[string]string), metadata), nil
+	return key, nil
 }
 
 // Get all secret ids
 func (s *hashicorpKeyStore) List(_ context.Context) ([]string, error) {
-	res, err := s.client.List(path.Join(s.mountPoint, "metadata"))
+	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
-		return nil, err
+		return []string{}, parseErrorResponse(err)
 	}
 
-	if res == nil {
+	ids, ok := res.Data["keys"].([]string)
+	if !ok {
 		return []string{}, nil
 	}
 
-	return res.Data["keys"].([]string), nil
+	return ids, nil
 }
 
-// Refresh an existing secret by extending its TTL
-func (s *hashicorpKeyStore) Refresh(_ context.Context, id string, expirationDate time.Time) error {
-	data := make(map[string]interface{})
-	if !expirationDate.IsZero() {
-		data[deleteAfterLabel] = time.Until(expirationDate).String()
-	}
+// Update key tags
+func (s *hashicorpKeyStore) Update(ctx context.Context, id string, tags map[string]string) (*entities.Key, error) {
+	return nil, errors.NotImplementedError
+}
 
-	_, err := s.client.Write(s.pathMetadata(id), data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+// Refresh key (create new identical version with different TTL)
+func (s *hashicorpKeyStore) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
+	return errors.NotImplementedError
 }
 
 // Delete a secret
-func (s *hashicorpKeyStore) Delete(_ context.Context, id string, versions ...int) (*entities.Secret, error) {
+func (s *hashicorpKeyStore) Delete(_ context.Context, id string, versions ...int) (*entities.Key, error) {
 	return nil, errors.NotImplementedError
 }
 
 // Gets a deleted secret
-func (s *hashicorpKeyStore) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
+func (s *hashicorpKeyStore) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
 	return nil, errors.NotImplementedError
 }
 
@@ -136,7 +155,33 @@ func (s *hashicorpKeyStore) Destroy(ctx context.Context, id string, versions ...
 	return errors.NotImplementedError
 }
 
-// path compute path from hashicorp mount
-func (s *hashicorpKeyStore) pathData(id string) string {
-	return path.Join(s.mountPoint, dataLabel, id)
+func (s *hashicorpKeyStore) Sign(ctx context.Context, id string, data string, version int) (string, error) {
+	// TODO: Versioning is not yet implemented on the plugin
+	if version != 0 {
+		return "", errors.NotImplementedError
+	}
+
+	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
+		dataLabel: data,
+	})
+	if err != nil {
+		return "", parseErrorResponse(err)
+	}
+
+	return res.Data[signatureLabel].(string), nil
+}
+
+// Encrypt any arbitrary data using a specified key
+func (s *hashicorpKeyStore) Encrypt(ctx context.Context, id string, data string) (string, error) {
+	return "", errors.NotImplementedError
+
+}
+
+// Decrypt a single block of encrypted data.
+func (s *hashicorpKeyStore) Decrypt(ctx context.Context, id string, data string) (string, error) {
+	return "", errors.NotImplementedError
+}
+
+func (s *hashicorpKeyStore) pathKeys(id string) string {
+	return path.Join(s.mountPoint, endpoint, id)
 }

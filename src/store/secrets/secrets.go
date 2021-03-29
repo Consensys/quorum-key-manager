@@ -22,7 +22,7 @@ type Store interface {
 	// List secrets
 	List(ctx context.Context) ([]string, error)
 
-	// Update secret
+	// Refresh secret
 	Refresh(ctx context.Context, id string, expirationDate time.Time) error
 
 	// Delete secret not permanently, by using Undelete the secret can be restored

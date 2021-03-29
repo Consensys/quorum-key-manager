@@ -9,18 +9,12 @@ const (
 )
 
 const (
-	Bn256 EllipticCurve = "bn256"
+	Bn256     EllipticCurve = "bn256"
 	Secp256k1 EllipticCurve = "secp256k1"
 )
 
-// Algo
 type Algo struct {
-	// Type of key (e.g. ecdsa, rsa)
-	Type SigningAlgorithm
-
-	// EllipticCurve (e.g secp256k1)
+	Type          SigningAlgorithm
 	EllipticCurve string
-
-	// Size of the key
-	Size int
+	Size          int
 }
