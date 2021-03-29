@@ -105,7 +105,7 @@ func (s *hashicorpKeyStore) Get(_ context.Context, id string, version int) (*ent
 	return key, nil
 }
 
-// Get all secret ids
+// Get all key ids
 func (s *hashicorpKeyStore) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
