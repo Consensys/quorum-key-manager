@@ -3,42 +3,42 @@ package hashicorp
 import (
 	"context"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"testing"
 	"time"
 
 	"bou.ke/monkey"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-type hashicorpSecretStoreTestSuite struct {
+type hashicorpKeyStoreTestSuite struct {
 	suite.Suite
-	mockVault   *mocks.MockVaultClient
-	mountPoint  string
-	secretStore secrets.Store
+	mockVault  *mocks.MockVaultClient
+	mountPoint string
+	keyStore   keys.Store
 }
 
 func TestHashicorpSecretStore(t *testing.T) {
-	s := new(hashicorpSecretStoreTestSuite)
+	s := new(hashicorpKeyStoreTestSuite)
 	suite.Run(t, s)
 }
 
-func (s *hashicorpSecretStoreTestSuite) SetupTest() {
+func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mountPoint = "secret"
+	s.mountPoint = "hashicorp-plugin"
 	s.mockVault = mocks.NewMockVaultClient(ctrl)
 
-	s.secretStore = New(s.mockVault, s.mountPoint)
+	s.keyStore = New(s.mockVault, s.mountPoint)
 }
 
-func (s *hashicorpSecretStoreTestSuite) TestSet() {
+func (s *hashicorpKeyStoreTestSuite) TestSet() {
 	ctx := context.Background()
 	id := "my-secret2"
 	value := "my-value2"
@@ -105,7 +105,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 	})
 }
 
-func (s *hashicorpSecretStoreTestSuite) TestGet() {
+func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	ctx := context.Background()
 	id := "my-secret"
 	value := "my-value"
@@ -275,7 +275,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	})
 }
 
-func (s *hashicorpSecretStoreTestSuite) TestList() {
+func (s *hashicorpKeyStoreTestSuite) TestList() {
 	ctx := context.Background()
 	expectedPath := s.mountPoint + "/metadata"
 	keys := []string{"my-secret1", "my-secret2"}
@@ -317,7 +317,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 	})
 }
 
-func (s *hashicorpSecretStoreTestSuite) TestRefresh() {
+func (s *hashicorpKeyStoreTestSuite) TestRefresh() {
 	ctx := context.Background()
 	id := "my-secret-3"
 	expectedPath := s.mountPoint + "/metadata/" + id
