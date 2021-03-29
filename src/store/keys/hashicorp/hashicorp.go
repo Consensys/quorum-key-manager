@@ -130,31 +130,32 @@ func (s *hashicorpKeyStore) Refresh(ctx context.Context, id string, expirationDa
 	return errors.NotImplementedError
 }
 
-// Delete a secret
+// Delete a key
 func (s *hashicorpKeyStore) Delete(_ context.Context, id string, versions ...int) (*entities.Key, error) {
 	return nil, errors.NotImplementedError
 }
 
-// Gets a deleted secret
+// Gets a deleted key
 func (s *hashicorpKeyStore) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
 	return nil, errors.NotImplementedError
 }
 
-// Lists all deleted secrets
+// Lists all deleted keys
 func (s *hashicorpKeyStore) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.NotImplementedError
 }
 
-// Undelete a previously deleted secret
+// Undelete a previously deleted key
 func (s *hashicorpKeyStore) Undelete(ctx context.Context, id string) error {
 	return errors.NotImplementedError
 }
 
-// Destroy a secret permanently
+// Destroy a key permanently
 func (s *hashicorpKeyStore) Destroy(ctx context.Context, id string, versions ...int) error {
 	return errors.NotImplementedError
 }
 
+// Sign any arbitrary data
 func (s *hashicorpKeyStore) Sign(ctx context.Context, id string, data string, version int) (string, error) {
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != 0 {
