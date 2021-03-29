@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// RemoveConnectionHeaders removes hop-by-hop headers listed in the "Connection" header
+// RemoveConnectionHeaders removes "Connection" header
 // See RFC 7230, section 6.1
 func RemoveConnectionHeaders() Preparer {
 	return PrepareFunc(func(req *http.Request) (*http.Request, error) {

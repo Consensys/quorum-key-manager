@@ -36,3 +36,5 @@ func CombinePreparer(preparers ...Preparer) Preparer {
 		return req, nil
 	})
 }
+
+var NoopPreparer = PrepareFunc(func(req *http.Request) (*http.Request, error) { return req, nil })
