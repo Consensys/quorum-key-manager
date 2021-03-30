@@ -57,7 +57,7 @@ func (r *Router) NewRoute() *Route {
 	// initialize a route with a copy of the parent router's configuration
 	route := &Route{methodRoutes: r.methodRoutes, matchers: make([]matcher, len(r.matchers))}
 	r.routes = append(r.routes, route)
-	copy(route.matchers[:], r.matchers)
+	copy(route.matchers, r.matchers)
 	return route
 }
 

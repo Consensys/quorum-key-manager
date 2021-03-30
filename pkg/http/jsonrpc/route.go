@@ -44,13 +44,11 @@ func (r *Route) Method(method string) *Route {
 }
 
 func (r *Route) MethodPrefix(prefix string) *Route {
-	r.addMatcher(&methodPrefixMatcher{prefix: prefix})
-	return r
+	return r.addMatcher(&methodPrefixMatcher{prefix: prefix})
 }
 
 func (r *Route) Version(version string) *Route {
-	r.addMatcher(&versionMatcher{version: version})
-	return r
+	return r.addMatcher(&versionMatcher{version: version})
 }
 
 func (r *Route) Handle(h Handler) *Route {
@@ -65,7 +63,7 @@ func (r *Route) HandleFunc(f func(ResponseWriter, *Request)) *Route {
 func (r *Route) Subrouter() *Router {
 	// initialize a subrouter with a copy of the parent route's configuration
 	router := &Router{methodRoutes: r.methodRoutes, matchers: make([]matcher, len(r.matchers))}
-	copy(router.matchers[:], r.matchers)
+	copy(router.matchers, r.matchers)
 
 	r.addMatcher(router)
 

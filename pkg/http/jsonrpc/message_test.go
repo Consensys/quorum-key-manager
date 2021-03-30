@@ -557,7 +557,7 @@ func TestRequestMsgMarshalUnmarshal(t *testing.T) {
 			expectedBody: []byte(`{"jsonrpc":"","method":"","params":null,"id":null}`),
 		},
 		{
-			desc:         "all fiels request",
+			desc:         "all fields request",
 			body:         []byte(`{"jsonrpc":"2.0","method":"testMethod","params":[1,2,3],"id":"abcd"}`),
 			expectedBody: []byte(`{"jsonrpc":"2.0","method":"testMethod","params":[1,2,3],"id":"abcd"}`),
 		},

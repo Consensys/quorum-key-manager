@@ -28,7 +28,7 @@ func TestToHTTPHandler(t *testing.T) {
 
 	expectedBody := []byte(`{"jsonrpc":"1.0","result":{"test-field":"test-value"},"error":null,"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
+	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 
 	// Request with attached context
 	rpcReq := NewRequest(nil).
@@ -48,7 +48,7 @@ func TestToHTTPHandler(t *testing.T) {
 
 	expectedBody = []byte(`{"jsonrpc":"3.0","result":{"test-field":"test-value"},"error":null,"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
+	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 
 	// Already wrapped responsewriter
 	rpcReq = NewRequest(nil).
@@ -69,7 +69,7 @@ func TestToHTTPHandler(t *testing.T) {
 
 	expectedBody = []byte(`{"jsonrpc":"2.1","result":{"test-field":"test-value"},"error":null,"id":1234}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
+	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 }
 
 func testHTTPHandler(rw http.ResponseWriter, req *http.Request) {
@@ -94,6 +94,6 @@ func TestFromHTTPHandler(t *testing.T) {
 
 	expectedBody := []byte(`{"jsonrpc":"3.0","method":"testMethod","params":[1,2,3],"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
+	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 
 }

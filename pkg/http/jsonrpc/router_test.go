@@ -99,7 +99,7 @@ func TestRouterServeRPC(t *testing.T) {
 
 	expectedBody := []byte(`{"jsonrpc":"3.0","result":1,"error":null,"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
+	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 
 	// Request not matching router
 	req = NewRequest(nil).
@@ -114,5 +114,5 @@ func TestRouterServeRPC(t *testing.T) {
 
 	expectedBody = []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":0,"message":"not supported","data":null},"id":null}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been writen")
+	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 }

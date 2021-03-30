@@ -46,7 +46,7 @@ func TestResponseWriterWriteMsg(t *testing.T) {
 	expectedBody := []byte(`{"jsonrpc":"3.0","result":true,"error":null,"id":"39"}`)
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "WriteMsg should write correct body")
 
-	// WriteMsg with deafult values set
+	// WriteMsg with default values set
 	rec = httptest.NewRecorder()
 	rw = NewResponseWriter(rec)
 
