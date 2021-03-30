@@ -1,20 +1,6 @@
 package client
 
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/fsnotify/fsnotify"
-	"github.com/hashicorp/vault/api"
-)
-
+/*
 // renewTokenLoop handle the token tokenWatcher of the application
 type renewTokenWatcher struct {
 	tokenPath string
@@ -119,3 +105,4 @@ func (rtl *renewTokenWatcher) Run(ctx context.Context) error {
 		}
 	}
 }
+*/

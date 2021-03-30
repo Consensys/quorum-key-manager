@@ -2,22 +2,49 @@ package hashicorp
 
 import (
 	"encoding/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/hashicorp/vault/api"
 	"net/http"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/hashicorp/vault/api"
 )
 
-func parseResponse(data map[string]interface{}, resp interface{}) error {
+type hashicorpKey struct {
+	ID        string            `json:"id"`
+	Curve     string            `json:"curve"`
+	Algorithm string            `json:"algorithm"`
+	PublicKey string            `json:"publicKey"`
+	Namespace string            `json:"namespace,omitempty"`
+	Tags      map[string]string `json:"tags,omitempty"`
+}
+
+func parseResponse(data map[string]interface{}) (*entities.Key, error) {
+	key := &hashicorpKey{}
+
 	jsonbody, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := json.Unmarshal(jsonbody, &resp); err != nil {
-		return err
+	err = json.Unmarshal(jsonbody, &key)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return &entities.Key{
+		ID:        key.ID,
+		PublicKey: key.PublicKey,
+		Algo: &entities.Algorithm{
+			Type:          key.Algorithm,
+			EllipticCurve: key.Curve,
+		},
+		// TODO: Add metadata when this is added to the plugin
+		Metadata: &entities.Metadata{
+			Version:  1,
+			Disabled: false,
+		},
+		Tags: key.Tags,
+	}, nil
 }
 
 func parseErrorResponse(err error) error {

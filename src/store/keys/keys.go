@@ -14,10 +14,10 @@ type Store interface {
 	Info(context.Context) (*entities.StoreInfo, error)
 
 	// Create a new key and stores it
-	Create(ctx context.Context, id string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error)
+	Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Import an externally created key and stores it
-	Import(ctx context.Context, id string, privKey string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error)
+	Import(ctx context.Context, id string, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Get the public part of a stored key.
 	Get(ctx context.Context, id string, version int) (*entities.Key, error)

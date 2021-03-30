@@ -51,7 +51,7 @@ func (mr *MockStoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
 }
 
 // Create mocks base method
-func (m *MockStore) Create(ctx context.Context, id string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error) {
+func (m *MockStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, id, alg, attr)
 	ret0, _ := ret[0].(*entities.Key)
@@ -66,7 +66,7 @@ func (mr *MockStoreMockRecorder) Create(ctx, id, alg, attr interface{}) *gomock.
 }
 
 // Import mocks base method
-func (m *MockStore) Import(ctx context.Context, id, privKey string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error) {
+func (m *MockStore) Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Import", ctx, id, privKey, alg, attr)
 	ret0, _ := ret[0].(*entities.Key)

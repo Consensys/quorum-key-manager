@@ -2,9 +2,10 @@ package hashicorp
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"path"
 	"time"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
@@ -41,8 +42,7 @@ func (s *hashicorpKeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 // Create a key
-func (s *hashicorpKeyStore) Create(_ context.Context, id string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error) {
-	key := &entities.Key{}
+func (s *hashicorpKeyStore) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -53,17 +53,11 @@ func (s *hashicorpKeyStore) Create(_ context.Context, id string, alg *entities.A
 		return nil, parseErrorResponse(err)
 	}
 
-	err = parseResponse(res.Data, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return key, nil
+	return parseResponse(res.Data)
 }
 
 // Import a key
-func (s *hashicorpKeyStore) Import(_ context.Context, id string, privKey string, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error) {
-	key := &entities.Key{}
+func (s *hashicorpKeyStore) Import(_ context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(path.Join(s.mountPoint, endpoint, "import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -75,18 +69,11 @@ func (s *hashicorpKeyStore) Import(_ context.Context, id string, privKey string,
 		return nil, parseErrorResponse(err)
 	}
 
-	err = parseResponse(res.Data, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return key, nil
+	return parseResponse(res.Data)
 }
 
 // Get a key
 func (s *hashicorpKeyStore) Get(_ context.Context, id string, version int) (*entities.Key, error) {
-	key := &entities.Key{}
-
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != 0 {
 		return nil, errors.NotImplementedError
@@ -97,19 +84,14 @@ func (s *hashicorpKeyStore) Get(_ context.Context, id string, version int) (*ent
 		return nil, parseErrorResponse(err)
 	}
 
-	err = parseResponse(res.Data, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return key, nil
+	return parseResponse(res.Data)
 }
 
 // Get all key ids
 func (s *hashicorpKeyStore) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
-		return []string{}, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
 
 	ids, ok := res.Data["keys"].([]string)
@@ -156,7 +138,7 @@ func (s *hashicorpKeyStore) Destroy(ctx context.Context, id string, versions ...
 }
 
 // Sign any arbitrary data
-func (s *hashicorpKeyStore) Sign(ctx context.Context, id string, data string, version int) (string, error) {
+func (s *hashicorpKeyStore) Sign(ctx context.Context, id, data string, version int) (string, error) {
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != 0 {
 		return "", errors.NotImplementedError
@@ -173,13 +155,13 @@ func (s *hashicorpKeyStore) Sign(ctx context.Context, id string, data string, ve
 }
 
 // Encrypt any arbitrary data using a specified key
-func (s *hashicorpKeyStore) Encrypt(ctx context.Context, id string, data string) (string, error) {
+func (s *hashicorpKeyStore) Encrypt(ctx context.Context, id, data string) (string, error) {
 	return "", errors.NotImplementedError
 
 }
 
 // Decrypt a single block of encrypted data.
-func (s *hashicorpKeyStore) Decrypt(ctx context.Context, id string, data string) (string, error) {
+func (s *hashicorpKeyStore) Decrypt(ctx context.Context, id, data string) (string, error) {
 	return "", errors.NotImplementedError
 }
 

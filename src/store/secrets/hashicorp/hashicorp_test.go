@@ -66,13 +66,12 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 
 		assert.NoError(t, err)
 		assert.Equal(t, value, secret.Value)
-		assert.False(t, secret.Disabled)
+		assert.False(t, secret.Metadata.Disabled)
 		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(t, attributes.Tags, secret.Tags)
 		assert.Equal(t, 2, secret.Metadata.Version)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
 	})
 
 	// TODO: Implement specific error types and check that the function return the right error type
@@ -136,13 +135,12 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 
 		assert.NoError(t, err)
 		assert.Equal(t, value, secret.Value)
-		assert.False(t, secret.Disabled)
+		assert.False(t, secret.Metadata.Disabled)
 		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(t, attributes.Tags, secret.Tags)
 		assert.Equal(t, 2, secret.Metadata.Version)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
 	})
 
 	s.T().Run("should get a secret successfully with version", func(t *testing.T) {

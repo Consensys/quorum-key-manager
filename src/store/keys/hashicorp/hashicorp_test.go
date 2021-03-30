@@ -2,18 +2,23 @@ package hashicorp
 
 import (
 	"context"
-	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
+	"net/http"
 	"testing"
-	"time"
 
-	"bou.ke/monkey"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+)
+
+const (
+	id        = "my-key"
+	publicKey = "0x0433d7f005495fb6c0a34e22336dc3adcf4064553d5e194f77126bcac6da19491e0bab2772115cd284605d3bba94b69dc8c7a215021b58bcc87a70c9a440a3ff83"
 )
 
 type hashicorpKeyStoreTestSuite struct {
@@ -38,324 +43,366 @@ func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 	s.keyStore = New(s.mockVault, s.mountPoint)
 }
 
-func (s *hashicorpKeyStoreTestSuite) TestSet() {
+func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
-	id := "my-secret2"
-	value := "my-value2"
-	expectedPath := s.mountPoint + "/data/" + id
+	expectedPath := s.mountPoint + "/keys"
 	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
 	expectedData := map[string]interface{}{
-		valueLabel: value,
-		tagsLabel:  attributes.Tags,
+		idLabel:        id,
+		curveLabel:     algorithm.EllipticCurve,
+		algorithmLabel: algorithm.Type,
+		tagsLabel:      attributes.Tags,
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"created_time":  "2018-03-22T02:24:06.945319214Z",
-			"deletion_time": "",
-			"destroyed":     false,
-			"version":       2,
+			"id":        id,
+			"publicKey": publicKey,
+			"curve":     entities.Secp256k1,
+			"algorithm": entities.Ecdsa,
+			"tags":      testutils.FakeTags(),
 		},
 	}
 
-	s.T().Run("should set a new secret successfully", func(t *testing.T) {
-		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
-
+	s.T().Run("should create a new key successfully", func(t *testing.T) {
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
 
-		secret, err := s.secretStore.Set(ctx, id, value, attributes)
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
 		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
-		assert.False(t, secret.Disabled)
-		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
-		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, 2, secret.Metadata.Version)
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
+		assert.Equal(t, publicKey, key.PublicKey)
+		assert.Equal(t, id, key.ID)
+		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
+		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(t, key.Metadata.Disabled)
+		assert.Equal(t, 1, key.Metadata.Version)
+		assert.Equal(t, attributes.Tags, key.Tags)
+		assert.True(t, key.Metadata.ExpireAt.IsZero())
+		assert.True(t, key.Metadata.DeletedAt.IsZero())
 	})
 
-	// TODO: Implement specific error types and check that the function return the right error type
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
-		expectedErr := fmt.Errorf("error")
+	s.T().Run("should fail with NotFound error if write fails with 404", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusNotFound,
+		})
 
-		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, expectedErr)
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
-		secret, err := s.secretStore.Set(ctx, id, value, attributes)
-
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(t, key)
+		assert.True(t, errors.IsNotFoundError(err))
 	})
 
-	// TODO: Implement specific error types and check that the function return the right error type
-	s.T().Run("should fail with error if it fails to extract metadata", func(t *testing.T) {
-		hashSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				"created_time": "invalidTime",
-				"version":      2,
-			},
-		}
+	s.T().Run("should fail with InvalidFormat error if write fails with 400", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusBadRequest,
+		})
 
-		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(hashSecret, nil)
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
-		secret, err := s.secretStore.Set(ctx, id, value, attributes)
+		assert.Nil(t, key)
+		assert.True(t, errors.IsInvalidFormatError(err))
+	})
 
-		assert.Nil(t, secret)
-		assert.Error(t, err)
+	s.T().Run("should fail with InvalidParameter error if write fails with 422", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusUnprocessableEntity,
+		})
+
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	s.T().Run("should fail with AlreadyExists error if write fails with 409", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusConflict,
+		})
+
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsAlreadyExistsError(err))
+	})
+
+	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusInternalServerError,
+		})
+
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+	})
+}
+
+func (s *hashicorpKeyStoreTestSuite) TestImport() {
+	ctx := context.Background()
+	privKey := "0b0232595b77568d99364bede133839ccbcb40775967a7eacd15d355c96288b5"
+	expectedPath := s.mountPoint + "/keys/import"
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
+	expectedData := map[string]interface{}{
+		idLabel:         id,
+		curveLabel:      algorithm.EllipticCurve,
+		algorithmLabel:  algorithm.Type,
+		tagsLabel:       attributes.Tags,
+		privateKeyLabel: privKey,
+	}
+	hashicorpSecret := &hashicorp.Secret{
+		Data: map[string]interface{}{
+			"id":        id,
+			"publicKey": publicKey,
+			"curve":     entities.Secp256k1,
+			"algorithm": entities.Ecdsa,
+			"tags":      testutils.FakeTags(),
+		},
+	}
+
+	s.T().Run("should import a new key successfully", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
+
+		key, err := s.keyStore.Import(ctx, id, privKey, algorithm, attributes)
+
+		assert.NoError(t, err)
+		assert.Equal(t, publicKey, key.PublicKey)
+		assert.Equal(t, id, key.ID)
+		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
+		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(t, key.Metadata.Disabled)
+		assert.Equal(t, 1, key.Metadata.Version)
+		assert.Equal(t, attributes.Tags, key.Tags)
+		assert.True(t, key.Metadata.ExpireAt.IsZero())
+		assert.True(t, key.Metadata.DeletedAt.IsZero())
+	})
+
+	s.T().Run("should fail with NotFound error if write fails with 404", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusNotFound,
+		})
+
+		key, err := s.keyStore.Import(ctx, id, privKey, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsNotFoundError(err))
+	})
+
+	s.T().Run("should fail with InvalidFormat error if write fails with 400", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusBadRequest,
+		})
+
+		key, err := s.keyStore.Import(ctx, id, privKey, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsInvalidFormatError(err))
+	})
+
+	s.T().Run("should fail with InvalidParameter error if write fails with 422", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusUnprocessableEntity,
+		})
+
+		key, err := s.keyStore.Import(ctx, id, privKey, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	s.T().Run("should fail with AlreadyExists error if write fails with 409", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusConflict,
+		})
+
+		key, err := s.keyStore.Import(ctx, id, privKey, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsAlreadyExistsError(err))
+	})
+
+	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusInternalServerError,
+		})
+
+		key, err := s.keyStore.Import(ctx, id, privKey, algorithm, attributes)
+
+		assert.Nil(t, key)
+		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
 	})
 }
 
 func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	ctx := context.Background()
-	id := "my-secret"
-	value := "my-value"
-	expectedPath := s.mountPoint + "/data/" + id
+	expectedPath := s.mountPoint + "/keys/" + id
 	attributes := testutils.FakeAttributes()
-	expectedData := map[string]interface{}{
-		valueLabel: value,
-		tagsLabel:  attributes.Tags,
+	hashicorpSecret := &hashicorp.Secret{
+		Data: map[string]interface{}{
+			"id":        id,
+			"publicKey": publicKey,
+			"curve":     entities.Secp256k1,
+			"algorithm": entities.Ecdsa,
+			"tags":      testutils.FakeTags(),
+		},
 	}
 
-	s.T().Run("should get a secret successfully with empty version", func(t *testing.T) {
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": "",
-					"destroyed":     false,
-					"version":       2,
-				},
-			},
-		}
-		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
-
+	s.T().Run("should get a key successfully without version", func(t *testing.T) {
 		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
 
-		secret, err := s.secretStore.Get(ctx, id, 0)
+		key, err := s.keyStore.Get(ctx, id, 0)
 
 		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
-		assert.False(t, secret.Disabled)
-		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
-		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, 2, secret.Metadata.Version)
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
+		assert.Equal(t, publicKey, key.PublicKey)
+		assert.Equal(t, id, key.ID)
+		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
+		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(t, key.Metadata.Disabled)
+		assert.Equal(t, 1, key.Metadata.Version)
+		assert.Equal(t, attributes.Tags, key.Tags)
+		assert.True(t, key.Metadata.ExpireAt.IsZero())
+		assert.True(t, key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should get a secret successfully with version", func(t *testing.T) {
-		version := 2
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": "",
-					"destroyed":     false,
-					"version":       version,
-				},
-			},
-		}
+	s.T().Run("should fail with NotFound error if read fails with 404", func(t *testing.T) {
+		s.mockVault.EXPECT().Read(expectedPath).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusNotFound,
+		})
 
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
+		key, err := s.keyStore.Get(ctx, id, 0)
 
-		secret, err := s.secretStore.Get(ctx, id, version)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, secret)
+		assert.Nil(t, key)
+		assert.True(t, errors.IsNotFoundError(err))
 	})
 
-	s.T().Run("should get a secret successfully with future deletion time", func(t *testing.T) {
-		version := 2
-		deletionTime := time.Now().Add(24 * time.Hour).Format(time.RFC3339)
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": deletionTime,
-					"destroyed":     false,
-					"version":       version,
-				},
-			},
-		}
-		expectedExpireAt, _ := time.Parse(time.RFC3339, deletionTime)
+	s.T().Run("should fail with HashicorpVaultConnection error if read fails with 500", func(t *testing.T) {
+		s.mockVault.EXPECT().Read(expectedPath).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusInternalServerError,
+		})
 
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
+		key, err := s.keyStore.Get(ctx, id, 0)
 
-		secret, err := s.secretStore.Get(ctx, id, version)
-
-		assert.NoError(t, err)
-		assert.Equal(t, expectedExpireAt, secret.Metadata.ExpireAt)
-	})
-
-	s.T().Run("should get a secret successfully with past deletion time", func(t *testing.T) {
-		version := 2
-		deletionTime := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": deletionTime,
-					"destroyed":     false,
-					"version":       version,
-				},
-			},
-		}
-		expectedDeletedAt, _ := time.Parse(time.RFC3339, deletionTime)
-
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
-
-		secret, err := s.secretStore.Get(ctx, id, version)
-
-		assert.NoError(t, err)
-		assert.Empty(t, secret.Metadata.ExpireAt)
-		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
-	})
-
-	s.T().Run("should get a secret successfully with past deletion time and destroyed", func(t *testing.T) {
-		version := 2
-		deletionTime := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": deletionTime,
-					"destroyed":     true,
-					"version":       version,
-				},
-			},
-		}
-		expectedDeletedAt, _ := time.Parse(time.RFC3339, deletionTime)
-
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
-
-		secret, err := s.secretStore.Get(ctx, id, version)
-
-		assert.NoError(t, err)
-		assert.Empty(t, secret.Metadata.ExpireAt)
-		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
-		assert.Equal(t, expectedDeletedAt, secret.Metadata.DestroyedAt)
-	})
-
-	// TODO: Implement specific error types and check that the function return the right error type
-	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
-		expectedErr := fmt.Errorf("error")
-
-		s.mockVault.EXPECT().Read(expectedPath).Return(nil, expectedErr)
-
-		secret, err := s.secretStore.Get(ctx, id, 0)
-
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
-	})
-
-	// TODO: Implement specific error types and check that the function return the right error type
-	s.T().Run("should fail with error if it fails to extract metadata", func(t *testing.T) {
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time": "invalidCreatedTime",
-					"version":      1,
-				},
-			},
-		}
-
-		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
-
-		secret, err := s.secretStore.Get(ctx, id, 0)
-
-		assert.Nil(t, secret)
-		assert.Error(t, err)
+		assert.Nil(t, key)
+		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
 	})
 }
 
 func (s *hashicorpKeyStoreTestSuite) TestList() {
 	ctx := context.Background()
-	expectedPath := s.mountPoint + "/metadata"
-	keys := []string{"my-secret1", "my-secret2"}
+	expectedPath := s.mountPoint + "/keys"
+	expectedIds := []string{"my-key1", "my-key2"}
 
 	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
 		hashicorpSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
-				"keys": keys,
+				"keys": expectedIds,
 			},
 		}
 
 		s.mockVault.EXPECT().List(expectedPath).Return(hashicorpSecret, nil)
 
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.keyStore.List(ctx)
 
 		assert.NoError(t, err)
-		assert.Equal(t, keys, ids)
+		assert.Equal(t, expectedIds, ids)
 	})
 
-	s.T().Run("should return empty list if result is nil", func(t *testing.T) {
-		s.mockVault.EXPECT().List(expectedPath).Return(nil, nil)
+	s.T().Run("should fail with HashicorpVaultConnection error if list fails", func(t *testing.T) {
+		s.mockVault.EXPECT().List(expectedPath).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusInternalServerError,
+		})
 
-		ids, err := s.secretStore.List(ctx)
+		key, err := s.keyStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Empty(t, ids)
-	})
-
-	// TODO: Implement specific error types and check that the function return the right error type
-	s.T().Run("should fail with same error if list fails", func(t *testing.T) {
-		expectedErr := fmt.Errorf("error")
-
-		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
-
-		secret, err := s.secretStore.List(ctx)
-
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(t, key)
+		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
 	})
 }
 
-func (s *hashicorpKeyStoreTestSuite) TestRefresh() {
+func (s *hashicorpKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
-	id := "my-secret-3"
-	expectedPath := s.mountPoint + "/metadata/" + id
+	expectedPath := s.mountPoint + "/keys/" + id + "/sign"
+	expectedData := "my data"
+	expectedSignature := "0x8b9679a75861e72fa6968dd5add3bf96e2747f0f124a2e728980f91e1958367e19c2486a40fdc65861824f247603bc18255fa497ca0b8b0a394aa7a6740fdc4601"
 	hashicorpSecret := &hashicorp.Secret{
-		Data: map[string]interface{}{},
+		Data: map[string]interface{}{
+			signatureLabel: expectedSignature,
+		},
 	}
 
 	s.T().Run("should refresh a secret without expiration date", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(hashicorpSecret, nil)
-
-		err := s.secretStore.Refresh(ctx, id, time.Time{})
-
-		assert.NoError(t, err)
-	})
-
-	s.T().Run("should refresh a secret with expiration date", func(t *testing.T) {
-		monkey.Patch(time.Now, func() time.Time {
-			return time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC)
-		})
-		expirationDate := time.Date(2021, 1, 1, 2, 0, 0, 0, time.UTC)
-
 		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			deleteAfterLabel: "1h0m0s",
+			dataLabel: expectedData,
 		}).Return(hashicorpSecret, nil)
 
-		err := s.secretStore.Refresh(ctx, id, expirationDate)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
 
 		assert.NoError(t, err)
+		assert.Equal(t, expectedSignature, signature)
 	})
 
-	// TODO: Implement specific error types and check that the function return the right error type
-	s.T().Run("should fail with same error if Write fails", func(t *testing.T) {
-		expectedErr := fmt.Errorf("error")
+	s.T().Run("should fail with NotFound error if write fails with 404", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
+			dataLabel: expectedData,
+		}).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusNotFound,
+		})
 
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(nil, expectedErr)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
 
-		err := s.secretStore.Refresh(ctx, id, time.Time{})
+		assert.Empty(t, signature)
+		assert.True(t, errors.IsNotFoundError(err))
+	})
 
-		assert.Equal(t, expectedErr, err)
+	s.T().Run("should fail with InvalidFormat error if write fails with 400", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
+			dataLabel: expectedData,
+		}).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusBadRequest,
+		})
+
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+
+		assert.Empty(t, signature)
+		assert.True(t, errors.IsInvalidFormatError(err))
+	})
+
+	s.T().Run("should fail with InvalidParameter error if write fails with 422", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
+			dataLabel: expectedData,
+		}).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusUnprocessableEntity,
+		})
+
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+
+		assert.Empty(t, signature)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	s.T().Run("should fail with AlreadyExists error if write fails with 409", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
+			dataLabel: expectedData,
+		}).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusConflict,
+		})
+
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+
+		assert.Empty(t, signature)
+		assert.True(t, errors.IsAlreadyExistsError(err))
+	})
+
+	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
+		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
+			dataLabel: expectedData,
+		}).Return(nil, &hashicorp.ResponseError{
+			StatusCode: http.StatusInternalServerError,
+		})
+
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+
+		assert.Empty(t, signature)
+		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
 	})
 }

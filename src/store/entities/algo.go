@@ -1,20 +1,16 @@
 package entities
 
-type SigningAlgorithm string
-type EllipticCurve string
-
 const (
-	Ecdsa SigningAlgorithm = "ecdsa"
-	Eddsa SigningAlgorithm = "eddsa"
+	Ecdsa string = "ecdsa"
+	Eddsa string = "eddsa"
 )
 
 const (
-	Bn256     EllipticCurve = "bn256"
-	Secp256k1 EllipticCurve = "secp256k1"
+	Bn256     string = "bn256"
+	Secp256k1 string = "secp256k1"
 )
 
-type Algo struct {
-	Type          SigningAlgorithm
+type Algorithm struct {
+	Type          string
 	EllipticCurve string
-	Size          int
 }
