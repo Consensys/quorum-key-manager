@@ -2,7 +2,7 @@ package jsonrpc
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"sync/atomic"
 
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
@@ -27,40 +27,33 @@ func (cfg *ClientConfig) SetDefault() {
 	}
 }
 
-// Client is a connector to a jsonrpc server
-type Client struct {
-	cfg *ClientConfig
+// Client is an jsonrpc client interface
+type Client interface {
+	// Do sends an jsonrpc request and returns an jsonrpc response, following
+	// policy (such as redirects, cookies, auth)
+	Do(*Request) (*Response, error)
 
+	// CloseIdleConnections closes any connections on its Transport which
+	// were previously connected from previous requests but are now
+	// sitting idle in a "keep-alive" state. It does not interrupt any
+	// connections currently in use.
+	CloseIdleConnections()
+}
+
+// client is a connector to a jsonrpc server
+type client struct {
 	client httpclient.Client
 }
 
-func NewClient(cfg *ClientConfig, client httpclient.Client) (*Client, error) {
-	if cfg == nil {
-		cfg = new(ClientConfig)
+// NewClient creates a new jsonrpc client from an HTTP client
+func NewClient(c httpclient.Client) Client {
+	return &client{
+		client: c,
 	}
-
-	cfg.SetDefault()
-
-	if client == nil {
-		var err error
-		client, err = httpclient.New(cfg.HTTP, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &Client{
-		cfg:    cfg,
-		client: client,
-	}, nil
 }
 
-// Version returns jsonrpc version
-func (c *Client) Version() string {
-	return c.cfg.Version
-}
-
-func (c *Client) Do(req *Request) (*Response, error) {
+// Do sends an jsonrpc request and returns an jsonrpc response
+func (c *client) Do(req *Request) (*Response, error) {
 	// write request body
 	err := req.WriteBody()
 	if err != nil {
@@ -87,25 +80,86 @@ func (c *Client) Do(req *Request) (*Response, error) {
 	return resp, nil
 }
 
-func (c *Client) Caller(req *http.Request) Caller {
-	return &caller{
-		client:  c,
-		req:     req,
-		version: c.cfg.Version,
+func (c *client) CloseIdleConnections() {
+	c.client.CloseIdleConnections()
+}
+
+type idClient struct {
+	client Client
+
+	baseID    string
+	idCounter uint32
+}
+
+// WithID wraps a client with an ID counter an increases it each time a new request comes out
+func WithID(baseID string) func(Client) Client {
+	return func(c Client) Client {
+		idC := &idClient{
+			client: c,
+		}
+
+		if baseID != "" {
+			idC.baseID = fmt.Sprintf("%v.", baseID)
+		}
+
+		return idC
 	}
 }
 
+func (c *idClient) nextID() string {
+	return fmt.Sprintf("%v%v", c.baseID, atomic.AddUint32(&c.idCounter, 1))
+}
+
+func (c *idClient) Do(req *Request) (*Response, error) {
+	req.WithID(c.nextID())
+	return c.client.Do(req)
+}
+
+func (c *idClient) CloseIdleConnections() {
+	c.client.CloseIdleConnections()
+}
+
+type versionClient struct {
+	client Client
+
+	version string
+}
+
+// WithVersion wraps a client to set version each time a new request comes out
+func WithVersion(version string) func(Client) Client {
+	return func(c Client) Client {
+		if version == "" {
+			version = defaultVersion
+		}
+		return &versionClient{
+			client:  c,
+			version: version,
+		}
+	}
+}
+
+func (c *versionClient) Do(req *Request) (*Response, error) {
+	req.WithVersion(c.version)
+	return c.client.Do(req)
+}
+
+func (c *versionClient) CloseIdleConnections() {
+	c.client.CloseIdleConnections()
+}
+
+// Caller is an interface for a JSON-RPC caller
 type Caller interface {
 	Call(ctx context.Context, method string, params interface{}) (*Response, error)
 }
 
 type caller struct {
-	client *Client
+	client Client
+}
 
-	req *http.Request
-
-	version   string
-	idCounter uint32
+func NewCaller(c Client) Caller {
+	return &caller{
+		client: c,
+	}
 }
 
 // Call sends a JSON-RPC request over underlying http.Transport
@@ -118,15 +172,13 @@ type caller struct {
 // - response body is an invalid JSON-RPC response
 // - JSON-RPC response is failed (in which case it returns the jsonrpc.ErrorMsg)
 func (c *caller) Call(ctx context.Context, method string, params interface{}) (*Response, error) {
-	req := c.newRequest(ctx).WithMethod(method).WithParams(params)
+	req := RequestFromContext(ctx)
+	if req == nil {
+		// developer should make sure a request has been attached to context
+		panic("missing request on context")
+	}
+
+	req = req.Clone(ctx).WithMethod(method).WithParams(params)
 
 	return c.client.Do(req)
-}
-
-func (c *caller) newRequest(ctx context.Context) *Request {
-	return NewRequest(c.req.Clone(ctx)).WithID(c.nextID()).WithVersion(c.version)
-}
-
-func (c *caller) nextID() int {
-	return int(atomic.AddUint32(&c.idCounter, 1))
 }
