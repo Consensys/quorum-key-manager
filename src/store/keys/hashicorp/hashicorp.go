@@ -5,15 +5,14 @@ import (
 	"path"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 )
 
 const (
-	endpoint        = "keys"
+	urlPath         = "keys"
 	idLabel         = "id"
 	curveLabel      = "curve"
 	algorithmLabel  = "algorithm"
@@ -58,7 +57,7 @@ func (s *hashicorpKeyStore) Create(_ context.Context, id string, alg *entities.A
 
 // Import a key
 func (s *hashicorpKeyStore) Import(_ context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	res, err := s.client.Write(path.Join(s.mountPoint, endpoint, "import"), map[string]interface{}{
+	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
 		algorithmLabel:  alg.Type,
@@ -103,7 +102,7 @@ func (s *hashicorpKeyStore) List(_ context.Context) ([]string, error) {
 }
 
 // Update key tags
-func (s *hashicorpKeyStore) Update(ctx context.Context, id string, tags map[string]string) (*entities.Key, error) {
+func (s *hashicorpKeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	return nil, errors.NotImplementedError
 }
 
@@ -165,6 +164,6 @@ func (s *hashicorpKeyStore) Decrypt(ctx context.Context, id, data string) (strin
 	return "", errors.NotImplementedError
 }
 
-func (s *hashicorpKeyStore) pathKeys(id string) string {
-	return path.Join(s.mountPoint, endpoint, id)
+func (s *hashicorpKeyStore) pathKeys(suffix string) string {
+	return path.Join(s.mountPoint, urlPath, suffix)
 }

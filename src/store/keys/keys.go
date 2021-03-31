@@ -26,7 +26,7 @@ type Store interface {
 	List(ctx context.Context) ([]string, error)
 
 	// Update key tags
-	Update(ctx context.Context, id string, tags map[string]string) (*entities.Key, error)
+	Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error)
 
 	// Refresh key (create new identical version with different TTL)
 	Refresh(ctx context.Context, id string, expirationDate time.Time) error

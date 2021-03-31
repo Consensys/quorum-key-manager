@@ -1,5 +1,6 @@
 package entities
 
+// Key public part of a key
 type Key struct {
 	ID        string
 	PublicKey string
