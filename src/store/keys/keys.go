@@ -20,7 +20,7 @@ type Store interface {
 	Import(ctx context.Context, id string, privKey []byte, alg *entities.Algo, attr *entities.Attributes) (*entities.Key, error)
 
 	// Get the public part of a stored key.
-	Get(ctx context.Context, id string, version int) (*entities.Key, error)
+	Get(ctx context.Context, id string, version string) (*entities.Key, error)
 
 	// List keys
 	List(ctx context.Context, count uint, skip string) (keys []*entities.Key, next string, err error)
@@ -29,7 +29,7 @@ type Store interface {
 	Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error)
 
 	// Delete secret not parmently, by using Undelete the secret can be retrieve
-	Delete(ctx context.Context, id string, versions ...int) (*entities.Key, error)
+	Delete(ctx context.Context, id string, versions ...string) (*entities.Key, error)
 
 	// GetDeleted keys
 	GetDeleted(ctx context.Context, id string)
@@ -41,10 +41,10 @@ type Store interface {
 	Undelete(ctx context.Context, id string) error
 
 	// Destroy secret permanently
-	Destroy(ctx context.Context, id string, versions ...int) error
+	Destroy(ctx context.Context, id string, versions ...string) error
 
 	// Sign from a digest using the specified key
-	Sign(ctx context.Context, id string, data []byte, version int) ([]byte, error)
+	Sign(ctx context.Context, id string, data []byte, version string) ([]byte, error)
 
 	// Verify a signature using a specified key
 	Verify(ctx context.Context, id string, data []byte) (*entities.Metadata, error)

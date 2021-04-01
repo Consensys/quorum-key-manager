@@ -3,7 +3,6 @@ package hashicorp
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 )
 
@@ -14,7 +13,7 @@ type SecretSpecs struct {
 	Token      string `json:"token"`
 }
 
-func NewSecretStore(specs *SecretSpecs) (secrets.Store, error) {
+func NewSecretStore(specs *SecretSpecs) (*hashicorp.SecretStore, error) {
 	cfg := client.NewBaseConfig(specs.Address, specs.MountPoint)
 	cli, err := client.NewClient(cfg, specs.Token)
 	if err != nil {
