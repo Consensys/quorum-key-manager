@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-func parseResponse(hashicorpSecret *api.Secret) (*entities.Key, error) {
+func parseResponse(hashicorpSecret *api.Secret) *entities.Key {
 	return &entities.Key{
 		ID:        hashicorpSecret.Data[idLabel].(string),
 		PublicKey: hashicorpSecret.Data[publicKeyLabel].(string),
@@ -22,12 +22,10 @@ func parseResponse(hashicorpSecret *api.Secret) (*entities.Key, error) {
 			Disabled: false,
 		},
 		Tags: hashicorpSecret.Data[tagsLabel].(map[string]string),
-	}, nil
+	}
 }
 
-func parseErrorResponse(err error) error {
-	httpError, _ := err.(*api.ResponseError)
-
+func parseErrorResponse(httpError *api.ResponseError) error {
 	switch httpError.StatusCode {
 	case http.StatusNotFound:
 		return errors.NotFoundError(httpError.Error())

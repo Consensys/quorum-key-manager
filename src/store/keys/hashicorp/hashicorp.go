@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/hashicorp/vault/api"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -50,10 +52,10 @@ func (s *hashicorpKeyStore) Create(_ context.Context, id string, alg *entities.A
 		tagsLabel:      attr.Tags,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseErrorResponse(err.(*api.ResponseError))
 	}
 
-	return parseResponse(res)
+	return parseResponse(res), nil
 }
 
 // Import a key
@@ -66,10 +68,10 @@ func (s *hashicorpKeyStore) Import(_ context.Context, id, privKey string, alg *e
 		privateKeyLabel: privKey,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseErrorResponse(err.(*api.ResponseError))
 	}
 
-	return parseResponse(res)
+	return parseResponse(res), nil
 }
 
 // Get a key
@@ -81,17 +83,17 @@ func (s *hashicorpKeyStore) Get(_ context.Context, id string, version int) (*ent
 
 	res, err := s.client.Read(s.pathKeys(id))
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseErrorResponse(err.(*api.ResponseError))
 	}
 
-	return parseResponse(res)
+	return parseResponse(res), nil
 }
 
 // Get all key ids
 func (s *hashicorpKeyStore) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseErrorResponse(err.(*api.ResponseError))
 	}
 
 	ids, ok := res.Data["keys"].([]string)
@@ -148,7 +150,7 @@ func (s *hashicorpKeyStore) Sign(ctx context.Context, id, data string, version i
 		dataLabel: data,
 	})
 	if err != nil {
-		return "", parseErrorResponse(err)
+		return "", parseErrorResponse(err.(*api.ResponseError))
 	}
 
 	return res.Data[signatureLabel].(string), nil
