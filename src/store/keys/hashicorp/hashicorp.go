@@ -17,6 +17,7 @@ const (
 	curveLabel      = "curve"
 	algorithmLabel  = "algorithm"
 	tagsLabel       = "tags"
+	publicKeyLabel  = "publicKey"
 	privateKeyLabel = "privateKey"
 	dataLabel       = "data"
 	signatureLabel  = "signatureLabel"
@@ -52,7 +53,7 @@ func (s *hashicorpKeyStore) Create(_ context.Context, id string, alg *entities.A
 		return nil, parseErrorResponse(err)
 	}
 
-	return parseResponse(res.Data)
+	return parseResponse(res)
 }
 
 // Import a key
@@ -68,7 +69,7 @@ func (s *hashicorpKeyStore) Import(_ context.Context, id, privKey string, alg *e
 		return nil, parseErrorResponse(err)
 	}
 
-	return parseResponse(res.Data)
+	return parseResponse(res)
 }
 
 // Get a key
@@ -83,7 +84,7 @@ func (s *hashicorpKeyStore) Get(_ context.Context, id string, version int) (*ent
 		return nil, parseErrorResponse(err)
 	}
 
-	return parseResponse(res.Data)
+	return parseResponse(res)
 }
 
 // Get all key ids
