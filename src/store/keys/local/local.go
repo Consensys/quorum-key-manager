@@ -58,7 +58,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algo, attr 
 }
 
 // Sign from a digest using the specified key
-func (s *Store) Sign(ctx context.Context, id string, data []byte, version int) ([]byte, error) {
+func (s *Store) Sign(ctx context.Context, id string, data []byte, version string) ([]byte, error) {
 	// Get secret value from secret store
 	secret, err := s.secrets.Get(ctx, id, version)
 	if err != nil {

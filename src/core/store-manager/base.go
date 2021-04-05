@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
@@ -108,6 +109,16 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 		store, err := hashicorp.NewSecretStore(spec)
+		if err != nil {
+			return err
+		}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.AKVSecrets:
+		spec := &akv.Specs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			return err
+		}
+		store, err := akv.NewSecretStore(spec)
 		if err != nil {
 			return err
 		}

@@ -9,7 +9,6 @@ import (
 func FakeSecret() *entities.Secret {
 	return &entities.Secret{
 		Value:    "my-secret",
-		Disabled: false,
 		Recovery: nil,
 		Tags: map[string]string{
 			"tag1": "tagValue1",
@@ -21,7 +20,7 @@ func FakeSecret() *entities.Secret {
 
 func FakeMetadata() *entities.Metadata {
 	return &entities.Metadata{
-		Version:   1,
+		Version:   "1",
 		CreatedAt: time.Now(),
 	}
 }

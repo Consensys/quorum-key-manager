@@ -16,7 +16,7 @@ func formatHashicorpSecret(value string, tags map[string]string, metadata *entit
 
 func extractMetadata(data map[string]interface{}) (*entities.Metadata, error) {
 	metadata := &entities.Metadata{
-		Version: data["version"].(int),
+		Version: data["version"].(string),
 	}
 
 	var err error
@@ -25,6 +25,8 @@ func extractMetadata(data map[string]interface{}) (*entities.Metadata, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	metadata.UpdatedAt = metadata.CreatedAt
 
 	if data["deletion_time"].(string) != "" {
 		deletionTime, err := time.Parse(time.RFC3339, data["deletion_time"].(string))

@@ -50,7 +50,7 @@ func (s *store) Create(ctx context.Context, id string, alg *entities.Algo, attr 
 }
 
 // Sign from a digest using the specified key
-func (s *store) Sign(ctx context.Context, id string, data []byte, version int) ([]byte, error) {
+func (s *store) Sign(ctx context.Context, id string, data []byte, version string) ([]byte, error) {
 	panic("implement me")
 	// v := string(data)
 	// params := keyvault.KeySignParameters{
@@ -74,7 +74,7 @@ func (s *store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 	panic("implement me")
 }
 
-func (s *store) Get(ctx context.Context, id string, version int) (*entities.Key, error) {
+func (s *store) Get(ctx context.Context, id string, version string) (*entities.Key, error) {
 	panic("implement me")
 }
 
@@ -86,7 +86,7 @@ func (s *store) Update(ctx context.Context, id string, attr *entities.Attributes
 	panic("implement me")
 }
 
-func (s *store) Delete(ctx context.Context, id string, versions ...int) (*entities.Key, error) {
+func (s *store) Delete(ctx context.Context, id string, versions ...string) (*entities.Key, error) {
 	panic("implement me")
 }
 
@@ -102,7 +102,7 @@ func (s *store) Undelete(ctx context.Context, id string) error {
 	panic("implement me")
 }
 
-func (s *store) Destroy(ctx context.Context, id string, versions ...int) error {
+func (s *store) Destroy(ctx context.Context, id string, versions ...string) error {
 	panic("implement me")
 }
 
