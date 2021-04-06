@@ -75,6 +75,7 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
+	fmt.Println(hashicorpSecret.Data)
 	// Hashicorp returns metadata in "data.metadata" and data in "data.data" fields
 	data := hashicorpSecret.Data[dataLabel].(map[string]interface{})
 	metadata, err := extractMetadata(hashicorpSecret.Data[metadataLabel].(map[string]interface{}))
@@ -82,7 +83,12 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 		return nil, err
 	}
 
-	return formatHashicorpSecret(id, data[valueLabel].(string), data[tagsLabel].(map[string]string), metadata), nil
+	tags := make(map[string]string)
+	if data[tagsLabel] != nil {
+		tags = data[tagsLabel].(map[string]string)
+	}
+
+	return formatHashicorpSecret(id, data[valueLabel].(string), tags, metadata), nil
 }
 
 // Get all secret ids
