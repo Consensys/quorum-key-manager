@@ -61,10 +61,10 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 }
 
 // Get a secret
-func (s *SecretStore) Get(_ context.Context, id string, version int) (*entities.Secret, error) {
+func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secret, error) {
 	// Get latest version by default if no version is specified, otherwise get specific version
 	pathData := s.pathData(id)
-	if version != 0 {
+	if version != "" {
 		pathData = fmt.Sprintf("%v?version=%v", pathData, version)
 	}
 
@@ -98,7 +98,7 @@ func (s *SecretStore) List(_ context.Context) ([]string, error) {
 }
 
 // Refresh an existing secret by extending its TTL
-func (s *SecretStore) Refresh(_ context.Context, id string, expirationDate time.Time) error {
+func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate time.Time) error {
 	data := make(map[string]interface{})
 	if !expirationDate.IsZero() {
 		data[deleteAfterLabel] = time.Until(expirationDate).String()
@@ -113,7 +113,7 @@ func (s *SecretStore) Refresh(_ context.Context, id string, expirationDate time.
 }
 
 // Delete a secret
-func (s *SecretStore) Delete(_ context.Context, id string, versions ...int) (*entities.Secret, error) {
+func (s *SecretStore) Delete(_ context.Context, id string, versions ...string) (*entities.Secret, error) {
 	return nil, errors.NotImplementedError
 }
 
@@ -133,7 +133,7 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 }
 
 // Destroy a secret permanently
-func (s *SecretStore) Destroy(ctx context.Context, id string, versions ...int) error {
+func (s *SecretStore) Destroy(ctx context.Context, id string, versions ...string) error {
 	return errors.NotImplementedError
 }
 

@@ -3,7 +3,7 @@ package entities
 import "time"
 
 type Metadata struct {
-	Version     int
+	Version     string
 	Disabled    bool
 	ExpireAt    time.Time
 	CreatedAt   time.Time

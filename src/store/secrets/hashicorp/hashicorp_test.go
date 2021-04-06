@@ -53,7 +53,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 			"created_time":  "2018-03-22T02:24:06.945319214Z",
 			"deletion_time": "",
 			"destroyed":     false,
-			"version":       2,
+			"version":       "2",
 		},
 	}
 
@@ -66,10 +66,10 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 
 		assert.NoError(t, err)
 		assert.Equal(t, value, secret.Value)
-		assert.False(t, secret.Metadata.Disabled)
 		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, 2, secret.Metadata.Version)
+		assert.Equal(t, "2", secret.Metadata.Version)
+		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
 	})
@@ -91,7 +91,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 		hashSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
 				"created_time": "invalidTime",
-				"version":      2,
+				"version":      "2",
 			},
 		}
 
@@ -123,7 +123,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 					"created_time":  "2018-03-22T02:24:06.945319214Z",
 					"deletion_time": "",
 					"destroyed":     false,
-					"version":       2,
+					"version":       "2",
 				},
 			},
 		}
@@ -131,20 +131,20 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 
 		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
 
-		secret, err := s.secretStore.Get(ctx, id, 0)
+		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, value, secret.Value)
-		assert.False(t, secret.Metadata.Disabled)
 		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, 2, secret.Metadata.Version)
+		assert.Equal(t, "2", secret.Metadata.Version)
+		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
 	})
 
 	s.T().Run("should get a secret successfully with version", func(t *testing.T) {
-		version := 2
+		version := "2"
 		hashicorpSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
 				dataLabel: expectedData,
@@ -166,7 +166,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should get a secret successfully with future deletion time", func(t *testing.T) {
-		version := 2
+		version := "2"
 		deletionTime := time.Now().Add(24 * time.Hour).Format(time.RFC3339)
 		hashicorpSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
@@ -190,7 +190,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should get a secret successfully with past deletion time", func(t *testing.T) {
-		version := 2
+		version := "2"
 		deletionTime := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
 		hashicorpSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
@@ -215,7 +215,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should get a secret successfully with past deletion time and destroyed", func(t *testing.T) {
-		version := 2
+		version := "2"
 		deletionTime := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
 		hashicorpSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
@@ -246,7 +246,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 
 		s.mockVault.EXPECT().Read(expectedPath).Return(nil, expectedErr)
 
-		secret, err := s.secretStore.Get(ctx, id, 0)
+		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.Nil(t, secret)
 		assert.Equal(t, expectedErr, err)
@@ -259,14 +259,14 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 				dataLabel: expectedData,
 				metadataLabel: map[string]interface{}{
 					"created_time": "invalidCreatedTime",
-					"version":      1,
+					"version":      "1",
 				},
 			},
 		}
 
 		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
 
-		secret, err := s.secretStore.Get(ctx, id, 0)
+		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.Nil(t, secret)
 		assert.Error(t, err)
@@ -326,7 +326,7 @@ func (s *hashicorpSecretStoreTestSuite) TestRefresh() {
 	s.T().Run("should refresh a secret without expiration date", func(t *testing.T) {
 		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(hashicorpSecret, nil)
 
-		err := s.secretStore.Refresh(ctx, id, time.Time{})
+		err := s.secretStore.Refresh(ctx, id, "", time.Time{})
 
 		assert.NoError(t, err)
 	})
@@ -341,7 +341,7 @@ func (s *hashicorpSecretStoreTestSuite) TestRefresh() {
 			deleteAfterLabel: "1h0m0s",
 		}).Return(hashicorpSecret, nil)
 
-		err := s.secretStore.Refresh(ctx, id, expirationDate)
+		err := s.secretStore.Refresh(ctx, id, "", expirationDate)
 
 		assert.NoError(t, err)
 	})
@@ -352,7 +352,7 @@ func (s *hashicorpSecretStoreTestSuite) TestRefresh() {
 
 		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(nil, expectedErr)
 
-		err := s.secretStore.Refresh(ctx, id, time.Time{})
+		err := s.secretStore.Refresh(ctx, id, "", time.Time{})
 
 		assert.Equal(t, expectedErr, err)
 	})

@@ -7,7 +7,6 @@ package mocks
 import (
 	context "context"
 	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	secrets "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
@@ -67,7 +66,7 @@ func (mr *MockStoreMockRecorder) Set(ctx, id, value, attr interface{}) *gomock.C
 }
 
 // Get mocks base method
-func (m *MockStore) Get(ctx context.Context, id string, version int) (*entities.Secret, error) {
+func (m *MockStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id, version)
 	ret0, _ := ret[0].(*entities.Secret)
@@ -97,21 +96,21 @@ func (mr *MockStoreMockRecorder) List(ctx interface{}) *gomock.Call {
 }
 
 // Refresh mocks base method
-func (m *MockStore) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
+func (m *MockStore) Refresh(ctx context.Context, id, version string, expirationDate time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Refresh", ctx, id, expirationDate)
+	ret := m.ctrl.Call(m, "Refresh", ctx, id, version, expirationDate)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Refresh indicates an expected call of Refresh
-func (mr *MockStoreMockRecorder) Refresh(ctx, id, expirationDate interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Refresh(ctx, id, version, expirationDate interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Refresh", reflect.TypeOf((*MockStore)(nil).Refresh), ctx, id, expirationDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Refresh", reflect.TypeOf((*MockStore)(nil).Refresh), ctx, id, version, expirationDate)
 }
 
 // Delete mocks base method
-func (m *MockStore) Delete(ctx context.Context, id string, versions ...int) (*entities.Secret, error) {
+func (m *MockStore) Delete(ctx context.Context, id string, versions ...string) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, id}
 	for _, a := range versions {
@@ -175,7 +174,7 @@ func (mr *MockStoreMockRecorder) Undelete(ctx, id interface{}) *gomock.Call {
 }
 
 // Destroy mocks base method
-func (m *MockStore) Destroy(ctx context.Context, id string, versions ...int) error {
+func (m *MockStore) Destroy(ctx context.Context, id string, versions ...string) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, id}
 	for _, a := range versions {
@@ -191,41 +190,4 @@ func (mr *MockStoreMockRecorder) Destroy(ctx, id interface{}, versions ...interf
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, id}, versions...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockStore)(nil).Destroy), varargs...)
-}
-
-// MockInstrument is a mock of Instrument interface
-type MockInstrument struct {
-	ctrl     *gomock.Controller
-	recorder *MockInstrumentMockRecorder
-}
-
-// MockInstrumentMockRecorder is the mock recorder for MockInstrument
-type MockInstrumentMockRecorder struct {
-	mock *MockInstrument
-}
-
-// NewMockInstrument creates a new mock instance
-func NewMockInstrument(ctrl *gomock.Controller) *MockInstrument {
-	mock := &MockInstrument{ctrl: ctrl}
-	mock.recorder = &MockInstrumentMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockInstrument) EXPECT() *MockInstrumentMockRecorder {
-	return m.recorder
-}
-
-// Apply mocks base method
-func (m *MockInstrument) Apply(arg0 secrets.Store) secrets.Store {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Apply", arg0)
-	ret0, _ := ret[0].(secrets.Store)
-	return ret0
-}
-
-// Apply indicates an expected call of Apply
-func (mr *MockInstrumentMockRecorder) Apply(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockInstrument)(nil).Apply), arg0)
 }

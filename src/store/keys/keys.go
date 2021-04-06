@@ -20,7 +20,7 @@ type Store interface {
 	Import(ctx context.Context, id string, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Get the public part of a stored key.
-	Get(ctx context.Context, id string, version int) (*entities.Key, error)
+	Get(ctx context.Context, id string, version string) (*entities.Key, error)
 
 	// List keys
 	List(ctx context.Context) ([]string, error)
@@ -32,7 +32,7 @@ type Store interface {
 	Refresh(ctx context.Context, id string, expirationDate time.Time) error
 
 	// Delete secret not parmently, by using Undelete the secret can be retrieve
-	Delete(ctx context.Context, id string, versions ...int) (*entities.Key, error)
+	Delete(ctx context.Context, id string, versions ...string) (*entities.Key, error)
 
 	// GetDeleted keys
 	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
@@ -44,7 +44,7 @@ type Store interface {
 	Undelete(ctx context.Context, id string) error
 
 	// Destroy secret permanently
-	Destroy(ctx context.Context, id string, versions ...int) error
+	Destroy(ctx context.Context, id string, versions ...string) error
 
 	// Sign from any arbitrary data using the specified key
 	Sign(ctx context.Context, id string, data string, version int) (string, error)

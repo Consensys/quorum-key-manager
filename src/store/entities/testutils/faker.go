@@ -27,8 +27,7 @@ func FakeKey() *entities.Key {
 
 func FakeMetadata() *entities.Metadata {
 	return &entities.Metadata{
-		Version:   1,
-		Disabled:  false,
+		Version:   "1",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
