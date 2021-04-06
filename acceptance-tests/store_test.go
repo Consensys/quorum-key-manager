@@ -1,10 +1,9 @@
 // +build acceptance
 
-package store
+package integrationtests
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"os"
 	"testing"
@@ -15,12 +14,12 @@ import (
 
 type storeTestSuite struct {
 	suite.Suite
-	env *integrationtests.IntegrationEnvironment
+	env *IntegrationEnvironment
 	err error
 }
 
 func (s *storeTestSuite) SetupSuite() {
-	err := integrationtests.StartEnvironment(s.env.ctx, s.env)
+	err := StartEnvironment(s.env.Ctx, s.env)
 	if err != nil {
 		s.T().Error(err)
 		return
@@ -41,7 +40,7 @@ func TestKeyManagerStore(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var err error
-	s.env, err = integrationtests.NewIntegrationEnvironment(ctx)
+	s.env, err = NewIntegrationEnvironment(ctx)
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -61,7 +60,7 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 		return
 	}
 
-	store := hashicorp.New(s.env.HashicorpClient, "orchestrate-hashicorp-vault-plugin")
+	store := hashicorp.New(s.env.HashicorpClient, "secret")
 
 	testSuite := new(hashicorpSecretTestSuite)
 	testSuite.env = s.env
