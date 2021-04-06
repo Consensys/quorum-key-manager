@@ -28,7 +28,7 @@ type hashicorpKeyStoreTestSuite struct {
 	keyStore   keys.Store
 }
 
-func TestHashicorpSecretStore(t *testing.T) {
+func TestHashicorpKeyStore(t *testing.T) {
 	s := new(hashicorpKeyStoreTestSuite)
 	suite.Run(t, s)
 }
@@ -75,7 +75,7 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
 		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, 1, key.Metadata.Version)
+		assert.Equal(t, "1", key.Metadata.Version)
 		assert.Equal(t, attributes.Tags, key.Tags)
 		assert.True(t, key.Metadata.ExpireAt.IsZero())
 		assert.True(t, key.Metadata.DeletedAt.IsZero())
@@ -171,7 +171,7 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
 		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, 1, key.Metadata.Version)
+		assert.Equal(t, "1", key.Metadata.Version)
 		assert.Equal(t, attributes.Tags, key.Tags)
 		assert.True(t, key.Metadata.ExpireAt.IsZero())
 		assert.True(t, key.Metadata.DeletedAt.IsZero())
@@ -258,7 +258,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
 		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, 1, key.Metadata.Version)
+		assert.Equal(t, "1", key.Metadata.Version)
 		assert.Equal(t, attributes.Tags, key.Tags)
 		assert.True(t, key.Metadata.ExpireAt.IsZero())
 		assert.True(t, key.Metadata.DeletedAt.IsZero())
