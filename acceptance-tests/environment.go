@@ -19,9 +19,9 @@ const hashicorpContainerID = "hashicorp-vault"
 const networkName = "key-manager"
 
 type IntegrationEnvironment struct {
-	ctx             context.Context
-	logger          *log.Logger
-	hashicorpClient hashicorp.VaultClient
+	Ctx             context.Context
+	Logger          *log.Logger
+	HashicorpClient hashicorp.VaultClient
 	dockerClient    *docker.Client
 }
 
@@ -73,8 +73,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, "integration-test"),
-		hashicorpContainer.RootToken)
+	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, "orchestrate-hashicorp-vault-plugin", hashicorpContainer.RootToken))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
@@ -83,9 +82,9 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	// TODO Add key-manager init
 
 	return &IntegrationEnvironment{
-		ctx:             ctx,
-		logger:          logger,
-		hashicorpClient: hashicorpClient,
+		Ctx:             ctx,
+		Logger:          logger,
+		HashicorpClient: hashicorpClient,
 		dockerClient:    dockerClient,
 	}, nil
 }
@@ -93,30 +92,30 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	err := env.dockerClient.CreateNetwork(ctx, networkName)
 	if err != nil {
-		env.logger.WithError(err).Error("could not create network")
+		env.Logger.WithError(err).Error("could not create network")
 		return err
 	}
 
 	// Start Hashicorp Vault
 	err = env.dockerClient.Up(ctx, hashicorpContainerID, networkName)
 	if err != nil {
-		env.logger.WithError(err).Error("could not up vault container")
+		env.Logger.WithError(err).Error("could not up vault container")
 		return err
 	}
 
 	err = env.dockerClient.WaitTillIsReady(ctx, hashicorpContainerID, 10*time.Second)
 	if err != nil {
-		env.logger.WithError(err).Error("could not start vault")
+		env.Logger.WithError(err).Error("could not start vault")
 		return err
 	}
 
-	err = env.hashicorpClient.HealthCheck()
+	err = env.HashicorpClient.HealthCheck()
 	if err != nil {
-		env.logger.WithError(err).Error("failed to connect to hashicorp plugin")
+		env.Logger.WithError(err).Error("failed to connect to hashicorp plugin")
 		return err
 	}
 
-	err = env.hashicorpClient.Client().Sys().Mount("orchestrate", &api.MountInput{
+	err = env.HashicorpClient.Client().Sys().Mount("orchestrate", &api.MountInput{
 		Type:        "plugin",
 		Description: "Orchestrate Wallets",
 		Config: api.MountConfigInput{
@@ -126,7 +125,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		PluginName: hashicorpPluginFilename,
 	})
 	if err != nil {
-		env.logger.WithError(err).Error("failed to mount (enable) orchestrate vault plugin")
+		env.Logger.WithError(err).Error("failed to mount (enable) orchestrate vault plugin")
 		return err
 	}
 
@@ -136,17 +135,17 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 }
 
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
-	env.logger.Info("tearing test suite down")
+	env.Logger.Info("tearing test suite down")
 
 	// TODO Add key-manager STOP
 
 	err := env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
-		env.logger.WithError(err).Error("could not down vault")
+		env.Logger.WithError(err).Error("could not down vault")
 	}
 
 	err = env.dockerClient.RemoveNetwork(ctx, networkName)
 	if err != nil {
-		env.logger.WithError(err).Error("could not remove network")
+		env.Logger.WithError(err).Error("could not remove network")
 	}
 }

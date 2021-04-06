@@ -30,10 +30,11 @@ type Config struct {
 	Token         string
 }
 
-func NewBaseConfig(addr, mountPoint string) *Config {
+func NewBaseConfig(addr, mountPoint, token string) *Config {
 	return &Config{
 		Address:    addr,
 		MountPoint: mountPoint,
+		Token:      token,
 	}
 }
 

@@ -10,13 +10,13 @@ type hashicorpVaultClient struct {
 	client *hashicorp.Client
 }
 
-func NewClient(cfg *Config, token string) (hashicorp2.VaultClient, error) {
+func NewClient(cfg *Config) (hashicorp2.VaultClient, error) {
 	client, err := hashicorp.NewClient(cfg.ToHashicorpConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	client.SetToken(token)
+	client.SetToken(cfg.Token)
 	return &hashicorpVaultClient{client}, nil
 }
 
