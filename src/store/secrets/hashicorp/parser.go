@@ -17,7 +17,7 @@ func formatHashicorpSecret(id, value string, tags map[string]string, metadata *e
 }
 
 func extractMetadata(data map[string]interface{}) (*entities.Metadata, error) {
-	version := data["version"].(json.Number)
+	version := data[versionLabel].(json.Number)
 	metadata := &entities.Metadata{
 		Version: version.String(),
 	}

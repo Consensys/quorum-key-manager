@@ -2,9 +2,10 @@ package hashicorp
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"time"
+
+	"github.com/hashicorp/vault/api"
 
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 
@@ -19,6 +20,7 @@ const (
 	valueLabel       = "value"
 	deleteAfterLabel = "delete_version_after"
 	tagsLabel        = "tags"
+	versionLabel     = "version"
 )
 
 // Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
@@ -64,18 +66,23 @@ func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.At
 
 // Get a secret
 func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secret, error) {
-	// Get latest version by default if no version is specified, otherwise get specific version
-	pathData := s.pathData(id)
+	var hashicorpSecret *api.Secret
+	var err error
 	if version != "" {
-		pathData = fmt.Sprintf("%v?version=%v", pathData, version)
+		hashicorpSecret, err = s.client.ReadWithData(s.pathData(id), map[string][]string{
+			versionLabel: {version},
+		})
+	} else {
+		hashicorpSecret, err = s.client.Read(s.pathData(id))
 	}
-
-	hashicorpSecret, err := s.client.Read(pathData)
 	if err != nil {
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
-	fmt.Println(hashicorpSecret.Data)
+	if hashicorpSecret == nil {
+		return nil, errors.NotFoundError("secret not found")
+	}
+
 	// Hashicorp returns metadata in "data.metadata" and data in "data.data" fields
 	data := hashicorpSecret.Data[dataLabel].(map[string]interface{})
 	metadata, err := extractMetadata(hashicorpSecret.Data[metadataLabel].(map[string]interface{}))
@@ -93,7 +100,7 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 
 // Get all secret ids
 func (s *SecretStore) List(_ context.Context) ([]string, error) {
-	res, err := s.client.List(path.Join(s.mountPoint, "metadata"))
+	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
