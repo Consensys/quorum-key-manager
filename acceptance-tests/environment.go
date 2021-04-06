@@ -73,7 +73,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, "orchestrate-hashicorp-vault-plugin", hashicorpContainer.RootToken))
+	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err

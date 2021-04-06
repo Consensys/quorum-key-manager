@@ -14,7 +14,6 @@ import (
 
 // Config object that be converted into an api.Config later
 type Config struct {
-	MountPoint    string
 	SecretPath    string
 	Address       string
 	CACert        string
@@ -30,11 +29,10 @@ type Config struct {
 	Token         string
 }
 
-func NewBaseConfig(addr, mountPoint, token string) *Config {
+func NewBaseConfig(addr, token string) *Config {
 	return &Config{
-		Address:    addr,
-		MountPoint: mountPoint,
-		Token:      token,
+		Address: addr,
+		Token:   token,
 	}
 }
 

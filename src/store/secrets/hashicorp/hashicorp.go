@@ -40,10 +40,12 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 // Set a secret
-func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	data := map[string]interface{}{
-		valueLabel: value,
-		tagsLabel:  attr.Tags,
+		dataLabel: map[string]interface{}{
+			valueLabel: value,
+			tagsLabel:  attr.Tags,
+		},
 	}
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
@@ -57,7 +59,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		return nil, err
 	}
 
-	return formatHashicorpSecret(value, attr.Tags, metadata), nil
+	return formatHashicorpSecret(id, value, attr.Tags, metadata), nil
 }
 
 // Get a secret
@@ -80,7 +82,7 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 		return nil, err
 	}
 
-	return formatHashicorpSecret(data[valueLabel].(string), data[tagsLabel].(map[string]string), metadata), nil
+	return formatHashicorpSecret(id, data[valueLabel].(string), data[tagsLabel].(map[string]string), metadata), nil
 }
 
 // Get all secret ids
@@ -94,7 +96,13 @@ func (s *SecretStore) List(_ context.Context) ([]string, error) {
 		return []string{}, nil
 	}
 
-	return res.Data["keys"].([]string), nil
+	keysInterface := res.Data["keys"].([]interface{})
+	keysStr := make([]string, len(keysInterface))
+	for i, key := range keysInterface {
+		keysStr[i] = key.(string)
+	}
+
+	return keysStr, nil
 }
 
 // Refresh an existing secret by extending its TTL

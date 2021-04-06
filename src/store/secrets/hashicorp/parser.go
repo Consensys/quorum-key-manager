@@ -1,13 +1,15 @@
 package hashicorp
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-func formatHashicorpSecret(value string, tags map[string]string, metadata *entities.Metadata) *entities.Secret {
+func formatHashicorpSecret(id, value string, tags map[string]string, metadata *entities.Metadata) *entities.Secret {
 	return &entities.Secret{
+		ID:       id,
 		Value:    value,
 		Tags:     tags,
 		Metadata: metadata,
@@ -15,8 +17,9 @@ func formatHashicorpSecret(value string, tags map[string]string, metadata *entit
 }
 
 func extractMetadata(data map[string]interface{}) (*entities.Metadata, error) {
+	version := data["version"].(json.Number)
 	metadata := &entities.Metadata{
-		Version: data["version"].(string),
+		Version: version.String(),
 	}
 
 	var err error
