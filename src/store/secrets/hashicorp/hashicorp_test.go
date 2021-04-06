@@ -3,10 +3,11 @@ package hashicorp
 import (
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 
 	"bou.ke/monkey"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
