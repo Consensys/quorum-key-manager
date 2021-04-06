@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 
@@ -31,7 +33,7 @@ type KeyStore struct {
 }
 
 // New creates an HashiCorp key store
-func New(client hashicorp.VaultClient, mountPoint string) *KeyStore {
+func New(client hashicorp.VaultClient, mountPoint string) keys.Store {
 	return &KeyStore{
 		client:     client,
 		mountPoint: mountPoint,
@@ -74,9 +76,9 @@ func (s *KeyStore) Import(_ context.Context, id, privKey string, alg *entities.A
 }
 
 // Get a key
-func (s *KeyStore) Get(_ context.Context, id string, version int) (*entities.Key, error) {
+func (s *KeyStore) Get(_ context.Context, id, version string) (*entities.Key, error) {
 	// TODO: Versioning is not yet implemented on the plugin
-	if version != 0 {
+	if version != "" {
 		return nil, errors.NotImplementedError
 	}
 
@@ -114,7 +116,7 @@ func (s *KeyStore) Refresh(ctx context.Context, id string, expirationDate time.T
 }
 
 // Delete a key
-func (s *KeyStore) Delete(_ context.Context, id string, versions ...int) (*entities.Key, error) {
+func (s *KeyStore) Delete(_ context.Context, id string, versions ...string) (*entities.Key, error) {
 	return nil, errors.NotImplementedError
 }
 
@@ -134,14 +136,14 @@ func (s *KeyStore) Undelete(ctx context.Context, id string) error {
 }
 
 // Destroy a key permanently
-func (s *KeyStore) Destroy(ctx context.Context, id string, versions ...int) error {
+func (s *KeyStore) Destroy(ctx context.Context, id string, versions ...string) error {
 	return errors.NotImplementedError
 }
 
 // Sign any arbitrary data
-func (s *KeyStore) Sign(ctx context.Context, id, data string, version int) (string, error) {
+func (s *KeyStore) Sign(_ context.Context, id, data, version string) (string, error) {
 	// TODO: Versioning is not yet implemented on the plugin
-	if version != 0 {
+	if version != "" {
 		return "", errors.NotImplementedError
 	}
 

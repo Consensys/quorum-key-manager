@@ -81,7 +81,7 @@ func (mr *MockStoreMockRecorder) Import(ctx, id, privKey, alg, attr interface{})
 }
 
 // Get mocks base method
-func (m *MockStore) Get(ctx context.Context, id string, version int) (*entities.Key, error) {
+func (m *MockStore) Get(ctx context.Context, id, version string) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id, version)
 	ret0, _ := ret[0].(*entities.Key)
@@ -111,18 +111,18 @@ func (mr *MockStoreMockRecorder) List(ctx interface{}) *gomock.Call {
 }
 
 // Update mocks base method
-func (m *MockStore) Update(ctx context.Context, id string, tags map[string]string) (*entities.Key, error) {
+func (m *MockStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, id, tags)
+	ret := m.ctrl.Call(m, "Update", ctx, id, attr)
 	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
-func (mr *MockStoreMockRecorder) Update(ctx, id, tags interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Update(ctx, id, attr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStore)(nil).Update), ctx, id, tags)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStore)(nil).Update), ctx, id, attr)
 }
 
 // Refresh mocks base method
@@ -140,7 +140,7 @@ func (mr *MockStoreMockRecorder) Refresh(ctx, id, expirationDate interface{}) *g
 }
 
 // Delete mocks base method
-func (m *MockStore) Delete(ctx context.Context, id string, versions ...int) (*entities.Key, error) {
+func (m *MockStore) Delete(ctx context.Context, id string, versions ...string) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, id}
 	for _, a := range versions {
@@ -204,7 +204,7 @@ func (mr *MockStoreMockRecorder) Undelete(ctx, id interface{}) *gomock.Call {
 }
 
 // Destroy mocks base method
-func (m *MockStore) Destroy(ctx context.Context, id string, versions ...int) error {
+func (m *MockStore) Destroy(ctx context.Context, id string, versions ...string) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, id}
 	for _, a := range versions {
@@ -223,7 +223,7 @@ func (mr *MockStoreMockRecorder) Destroy(ctx, id interface{}, versions ...interf
 }
 
 // Sign mocks base method
-func (m *MockStore) Sign(ctx context.Context, id, data string, version int) (string, error) {
+func (m *MockStore) Sign(ctx context.Context, id, data, version string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", ctx, id, data, version)
 	ret0, _ := ret[0].(string)

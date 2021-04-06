@@ -15,7 +15,7 @@ func parseResponse(hashicorpSecret *api.Secret) *entities.Key {
 		},
 		// TODO: Add metadata when this is added to the plugin
 		Metadata: &entities.Metadata{
-			Version:  1,
+			Version:  "1",
 			Disabled: false,
 		},
 		Tags: hashicorpSecret.Data[tagsLabel].(map[string]string),

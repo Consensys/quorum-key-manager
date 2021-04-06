@@ -250,7 +250,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	s.T().Run("should get a key successfully without version", func(t *testing.T) {
 		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
 
-		key, err := s.keyStore.Get(ctx, id, 0)
+		key, err := s.keyStore.Get(ctx, id, "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, publicKey, key.PublicKey)
@@ -269,7 +269,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 			StatusCode: http.StatusNotFound,
 		})
 
-		key, err := s.keyStore.Get(ctx, id, 0)
+		key, err := s.keyStore.Get(ctx, id, "")
 
 		assert.Nil(t, key)
 		assert.True(t, errors.IsNotFoundError(err))
@@ -280,7 +280,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 			StatusCode: http.StatusInternalServerError,
 		})
 
-		key, err := s.keyStore.Get(ctx, id, 0)
+		key, err := s.keyStore.Get(ctx, id, "")
 
 		assert.Nil(t, key)
 		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
@@ -335,7 +335,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			dataLabel: expectedData,
 		}).Return(hashicorpSecret, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedSignature, signature)
@@ -348,7 +348,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			StatusCode: http.StatusNotFound,
 		})
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, "")
 
 		assert.Empty(t, signature)
 		assert.True(t, errors.IsNotFoundError(err))
@@ -361,7 +361,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			StatusCode: http.StatusBadRequest,
 		})
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, "")
 
 		assert.Empty(t, signature)
 		assert.True(t, errors.IsInvalidFormatError(err))
@@ -374,7 +374,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			StatusCode: http.StatusUnprocessableEntity,
 		})
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, "")
 
 		assert.Empty(t, signature)
 		assert.True(t, errors.IsInvalidParameterError(err))
@@ -387,7 +387,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			StatusCode: http.StatusConflict,
 		})
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, "")
 
 		assert.Empty(t, signature)
 		assert.True(t, errors.IsAlreadyExistsError(err))
@@ -400,7 +400,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			StatusCode: http.StatusInternalServerError,
 		})
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData, 0)
+		signature, err := s.keyStore.Sign(ctx, id, expectedData, "")
 
 		assert.Empty(t, signature)
 		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
