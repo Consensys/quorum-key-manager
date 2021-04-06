@@ -6,6 +6,8 @@ import (
 	"path"
 	"time"
 
+	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -46,7 +48,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
-		return nil, err
+		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
 	// Hashicorp only returns metadata as the "data" field when creating a new secret
@@ -68,7 +70,7 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 
 	hashicorpSecret, err := s.client.Read(pathData)
 	if err != nil {
-		return nil, err
+		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
 	// Hashicorp returns metadata in "data.metadata" and data in "data.data" fields
@@ -85,7 +87,7 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 func (s *SecretStore) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(path.Join(s.mountPoint, "metadata"))
 	if err != nil {
-		return nil, err
+		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
 	if res == nil {
@@ -104,7 +106,7 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 
 	_, err := s.client.Write(s.pathMetadata(id), data)
 	if err != nil {
-		return err
+		return hashicorpclient.ParseErrorResponse(err)
 	}
 
 	return nil

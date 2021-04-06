@@ -1,13 +1,14 @@
 package entities
 
-// Algo
-type Algo struct {
-	// Type of key (e.g. ecdsa, rsa)
-	Type string
+const (
+	Ecdsa string = "ecdsa"
+	Eddsa string = "eddsa"
 
-	// EllipticCurve (e.g secp256k1)
+	Bn256     string = "bn256"
+	Secp256k1 string = "secp256k1"
+)
+
+type Algorithm struct {
+	Type          string
 	EllipticCurve string
-
-	// Size of the key
-	Size int
 }

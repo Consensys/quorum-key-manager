@@ -2,8 +2,8 @@ package entities
 
 // Secret
 type Secret struct {
+	ID       string
 	Value    string
-	Recovery *Recovery
 	Metadata *Metadata
 	Tags     map[string]string
 }

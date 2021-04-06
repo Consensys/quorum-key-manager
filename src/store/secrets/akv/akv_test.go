@@ -80,7 +80,6 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
 	})
 
 	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
@@ -134,7 +133,6 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
 	})
 
 	s.T().Run("should fail with error if bad request in response", func(t *testing.T) {
