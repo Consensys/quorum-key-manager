@@ -19,12 +19,12 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 	return &HashicorpVaultClient{client}, nil
 }
 
-func (c *HashicorpVaultClient) ReadWithData(path string, data map[string][]string) (*hashicorp.Secret, error) {
-	return c.client.Logical().ReadWithData(path, data)
-}
-
-func (c *HashicorpVaultClient) Read(path string) (*hashicorp.Secret, error) {
-	return c.client.Logical().Read(path)
+func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*hashicorp.Secret, error) {
+	if data == nil {
+		return c.client.Logical().Read(path)
+	} else {
+		return c.client.Logical().ReadWithData(path, data)
+	}
 }
 
 func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (*hashicorp.Secret, error) {

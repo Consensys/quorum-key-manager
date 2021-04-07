@@ -6,10 +6,10 @@ type renewTokenWatcher struct {
 	tokenPath string
 	client    *api.Client
 	watcher   *fsnotify.Watcher
-	logger    *log.Logger
+	logger    *log.logger
 }
 
-func newRenewTokenWatcher(client *api.Client, tokenPath string, logger *log.Logger) (*renewTokenWatcher, error) {
+func newRenewTokenWatcher(client *api.Client, tokenPath string, logger *log.logger) (*renewTokenWatcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err

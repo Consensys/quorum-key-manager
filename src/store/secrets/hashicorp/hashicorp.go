@@ -69,11 +69,11 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 	var hashicorpSecret *api.Secret
 	var err error
 	if version != "" {
-		hashicorpSecret, err = s.client.ReadWithData(s.pathData(id), map[string][]string{
+		hashicorpSecret, err = s.client.Read(s.pathData(id), map[string][]string{
 			versionLabel: {version},
 		})
 	} else {
-		hashicorpSecret, err = s.client.Read(s.pathData(id))
+		hashicorpSecret, err = s.client.Read(s.pathData(id), nil)
 	}
 	if err != nil {
 		return nil, hashicorpclient.ParseErrorResponse(err)

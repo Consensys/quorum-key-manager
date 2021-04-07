@@ -19,13 +19,13 @@ type storeTestSuite struct {
 }
 
 func (s *storeTestSuite) SetupSuite() {
-	err := StartEnvironment(s.env.Ctx, s.env)
+	err := StartEnvironment(s.env.ctx, s.env)
 	if err != nil {
 		s.T().Error(err)
 		return
 	}
 
-	s.env.Logger.Info("setup test suite has completed")
+	s.env.logger.Info("setup test suite has completed")
 }
 
 func (s *storeTestSuite) TearDownSuite() {
@@ -56,11 +56,11 @@ func TestKeyManagerStore(t *testing.T) {
 
 func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 	if s.err != nil {
-		s.env.Logger.Warn("skipping test...")
+		s.env.logger.Warn("skipping test...")
 		return
 	}
 
-	store := hashicorp.New(s.env.HashicorpClient, "secret")
+	store := hashicorp.New(s.env.hashicorpClient, "secret")
 
 	testSuite := new(hashicorpSecretTestSuite)
 	testSuite.env = s.env

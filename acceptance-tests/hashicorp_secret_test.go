@@ -23,7 +23,7 @@ type hashicorpSecretTestSuite struct {
 }
 
 func (s *hashicorpSecretTestSuite) TestSet() {
-	ctx := s.env.Ctx
+	ctx := s.env.ctx
 
 	s.T().Run("should create a new secret successfully", func(t *testing.T) {
 		id := "my-secret"
@@ -50,26 +50,35 @@ func (s *hashicorpSecretTestSuite) TestSet() {
 
 	s.T().Run("should increase version at each set", func(t *testing.T) {
 		id := "my-secret-versioned"
-		value := "my-secret-value"
-		tags := testutils.FakeTags()
+		value1 := "my-secret-value1"
+		value2 := "my-secret-value2"
+		tags1 := testutils.FakeTags()
+		tags2 := map[string]string{
+			"tag1": "tagValue1",
+			"tag2": "tagValue2",
+		}
 
-		secret1, err := s.store.Set(ctx, id, value, &entities.Attributes{
-			Tags: tags,
+		secret1, err := s.store.Set(ctx, id, value1, &entities.Attributes{
+			Tags: tags1,
 		})
 
-		secret2, err := s.store.Set(ctx, id, value, &entities.Attributes{
-			Tags: tags,
+		secret2, err := s.store.Set(ctx, id, value2, &entities.Attributes{
+			Tags: tags2,
 		})
 
 		require.NoError(t, err)
 
 		assert.Equal(t, "1", secret1.Metadata.Version)
+		assert.Equal(t, tags1, secret1.Tags)
+		assert.Equal(t, value1, secret1.Value)
 		assert.Equal(t, "2", secret2.Metadata.Version)
+		assert.Equal(t, tags2, secret2.Tags)
+		assert.Equal(t, value2, secret2.Value)
 	})
 }
 
 func (s *hashicorpSecretTestSuite) TestList() {
-	ctx := s.env.Ctx
+	ctx := s.env.ctx
 	id := "my-secret-list1"
 	id2 := "my-secret-list2"
 	value := "my-secret-value"
@@ -93,7 +102,7 @@ func (s *hashicorpSecretTestSuite) TestList() {
 }
 
 func (s *hashicorpSecretTestSuite) TestGet() {
-	ctx := s.env.Ctx
+	ctx := s.env.ctx
 	id := "my-secret-get"
 	value := "my-secret-value"
 
@@ -139,7 +148,7 @@ func (s *hashicorpSecretTestSuite) TestGet() {
 }
 
 func (s *hashicorpSecretTestSuite) TestRefresh() {
-	ctx := s.env.Ctx
+	ctx := s.env.ctx
 	id := "my-secret-refresh"
 	value := "my-secret-value"
 
