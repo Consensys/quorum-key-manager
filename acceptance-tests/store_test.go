@@ -4,18 +4,18 @@ package integrationtests
 
 import (
 	"context"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"os"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 type storeTestSuite struct {
 	suite.Suite
-	env             *IntegrationEnvironment
-	err             error
+	env *IntegrationEnvironment
+	err error
 }
 
 func (s *storeTestSuite) SetupSuite() {
@@ -54,8 +54,16 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_Template() {
-	s.T().Run("should success", func(t *testing.T) {
-		assert.True(t, true)
-	})
+func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+
+	store := hashicorp.New(s.env.hashicorpClient, "secret")
+
+	testSuite := new(hashicorpSecretTestSuite)
+	testSuite.env = s.env
+	testSuite.store = store
+	suite.Run(s.T(), testSuite)
 }

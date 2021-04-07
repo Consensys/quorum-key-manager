@@ -14,8 +14,8 @@ type SecretSpecs struct {
 }
 
 func NewSecretStore(specs *SecretSpecs) (*hashicorp.SecretStore, error) {
-	cfg := client.NewBaseConfig(specs.Address, specs.MountPoint)
-	cli, err := client.NewClient(cfg, specs.Token)
+	cfg := client.NewBaseConfig(specs.Address, specs.Token)
+	cli, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}

@@ -82,7 +82,7 @@ func (s *KeyStore) Get(_ context.Context, id, version string) (*entities.Key, er
 		return nil, errors.NotImplementedError
 	}
 
-	res, err := s.client.Read(s.pathKeys(id))
+	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}

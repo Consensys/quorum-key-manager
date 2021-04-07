@@ -248,7 +248,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	}
 
 	s.T().Run("should get a key successfully without version", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPath, nil).Return(hashicorpSecret, nil)
 
 		key, err := s.keyStore.Get(ctx, id, "")
 
@@ -265,7 +265,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should fail with NotFound error if read fails with 404", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath).Return(nil, &hashicorp.ResponseError{
+		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
 			StatusCode: http.StatusNotFound,
 		})
 
@@ -276,7 +276,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should fail with HashicorpVaultConnection error if read fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath).Return(nil, &hashicorp.ResponseError{
+		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
 			StatusCode: http.StatusInternalServerError,
 		})
 
