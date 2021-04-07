@@ -87,7 +87,7 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 	// We need to do a second call to get the metadata
 	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
 	if err != nil {
-		return nil, err
+		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
 	metadata, err := formatHashicorpSecretMetadata(hashicorpSecretMetadata, version)

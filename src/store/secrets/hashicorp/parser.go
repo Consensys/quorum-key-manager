@@ -47,30 +47,9 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 		Version: version,
 	}
 
-	var err error
-	metadata.CreatedAt, err = time.Parse(time.RFC3339, jsonMetadata["created_time"].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	metadata.UpdatedAt, err = time.Parse(time.RFC3339, jsonMetadata["updated_time"].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	expirationDurationStr := jsonMetadata["delete_version_after"].(string)
-	if expirationDurationStr != "0s" {
-		expirationDuration, err := time.ParseDuration(expirationDurationStr)
-		if err != nil {
-			return nil, err
-		}
-
-		metadata.ExpireAt = metadata.CreatedAt.Add(expirationDuration)
-	}
-
 	secretVersion := jsonMetadata["versions"].(map[string]interface{})[version].(map[string]interface{})
 	if secretVersion["deletion_time"].(string) != "" {
-		deletionTime, err := time.Parse(time.RFC3339, jsonMetadata["deletion_time"].(string))
+		deletionTime, err := time.Parse(time.RFC3339, secretVersion["deletion_time"].(string))
 		if err != nil {
 			return nil, err
 		}
@@ -79,9 +58,26 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 		metadata.Disabled = true
 
 		// If secret has been destroyed, deletion time is the destroyed time
-		if jsonMetadata["destroyed"].(bool) {
+		if secretVersion["destroyed"].(bool) {
 			metadata.DestroyedAt = deletionTime
 		}
+	}
+
+	var err error
+	metadata.CreatedAt, err = time.Parse(time.RFC3339, secretVersion["created_time"].(string))
+	if err != nil {
+		return nil, err
+	}
+	metadata.UpdatedAt = metadata.CreatedAt
+
+	expirationDurationStr := jsonMetadata["delete_version_after"].(string)
+	if expirationDurationStr != "0s" {
+		expirationDuration, der := time.ParseDuration(expirationDurationStr)
+		if der != nil {
+			return nil, der
+		}
+
+		metadata.ExpireAt = metadata.CreatedAt.Add(expirationDuration)
 	}
 
 	return metadata, nil

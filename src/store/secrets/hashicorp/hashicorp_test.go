@@ -134,28 +134,54 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	ctx := context.Background()
 	id := "my-secret"
 	value := "my-value"
-	expectedPath := s.mountPoint + "/data/" + id
 	attributes := testutils.FakeAttributes()
+	expectedPathData := s.mountPoint + "/data/" + id
+	expectedPathMetadata := s.mountPoint + "/metadata/" + id
+
 	expectedData := map[string]interface{}{
 		valueLabel: value,
 		tagsLabel:  attributes.Tags,
 	}
+	hashicorpSecretData := &hashicorp.Secret{
+		Data: map[string]interface{}{
+			dataLabel: expectedData,
+		},
+	}
+
+	expectedMetadata := map[string]interface{}{
+		"created_time":         "2018-03-22T02:24:06.945319214Z",
+		"current_version":      json.Number("3"),
+		"max_versions":         0,
+		"oldest_version":       0,
+		"updated_time":         "2018-03-22T02:36:43.986212308Z",
+		"delete_version_after": "30s",
+		"versions": map[string]interface{}{
+			"1": map[string]interface{}{
+				"created_time":  "2018-01-22T02:36:43.986212308Z",
+				"deletion_time": "2018-02-22T02:36:43.986212308Z",
+				"destroyed":     true,
+			},
+			"2": map[string]interface{}{
+				"created_time":  "2018-03-22T02:36:33.954880664Z",
+				"deletion_time": "",
+				"destroyed":     false,
+			},
+			"3": map[string]interface{}{
+				"created_time":  "2018-03-22T02:36:43.986212308Z",
+				"deletion_time": "",
+				"destroyed":     false,
+			},
+		},
+	}
+	hashicorpSecretMetadata := &hashicorp.Secret{
+		Data: expectedMetadata,
+	}
 
 	s.T().Run("should get a secret successfully with empty version", func(t *testing.T) {
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": "",
-					"destroyed":     false,
-					"version":       json.Number("2"),
-				},
-			},
-		}
-		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
+		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:36:43.986212308Z")
 
-		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(hashicorpSecretData, nil)
+		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
@@ -163,121 +189,47 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		assert.Equal(t, value, secret.Value)
 		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, "2", secret.Metadata.Version)
+		assert.Equal(t, "3", secret.Metadata.Version)
 		assert.False(t, secret.Metadata.Disabled)
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
+		assert.Equal(t, secret.Metadata.CreatedAt.Add(time.Second*30), secret.Metadata.ExpireAt)
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
 	})
 
 	s.T().Run("should get a secret successfully with version", func(t *testing.T) {
 		version := "2"
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": "",
-					"destroyed":     false,
-					"version":       json.Number(version),
-				},
-			},
-		}
 
-		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
+		s.mockVault.EXPECT().Read(expectedPathData, map[string][]string{
 			versionLabel: {version},
-		}).Return(hashicorpSecret, nil)
+		}).Return(hashicorpSecretData, nil)
+		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, secret)
+		assert.Equal(t, secret.Metadata.Version, version)
 	})
 
-	s.T().Run("should get a secret successfully with future deletion time", func(t *testing.T) {
-		version := "2"
-		deletionTime := time.Now().Add(24 * time.Hour).Format(time.RFC3339)
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": deletionTime,
-					"destroyed":     false,
-					"version":       json.Number(version),
-				},
-			},
-		}
-		expectedExpireAt, _ := time.Parse(time.RFC3339, deletionTime)
+	s.T().Run("should get a secret successfully with deletion time and destroyed", func(t *testing.T) {
+		version := "1"
 
-		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
+		s.mockVault.EXPECT().Read(expectedPathData, map[string][]string{
 			versionLabel: {version},
-		}).Return(hashicorpSecret, nil)
+		}).Return(hashicorpSecretData, nil)
+		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedExpireAt, secret.Metadata.ExpireAt)
+		assert.Equal(t, secret.Metadata.Version, version)
+		assert.NotEmpty(t, secret.Metadata.DeletedAt)
+		assert.Equal(t, secret.Metadata.DestroyedAt, secret.Metadata.DeletedAt)
 	})
 
-	s.T().Run("should get a secret successfully with past deletion time", func(t *testing.T) {
-		version := "2"
-		deletionTime := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": deletionTime,
-					"destroyed":     false,
-					"version":       json.Number(version),
-				},
-			},
-		}
-		expectedDeletedAt, _ := time.Parse(time.RFC3339, deletionTime)
-
-		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
-			versionLabel: {version},
-		}).Return(hashicorpSecret, nil)
-
-		secret, err := s.secretStore.Get(ctx, id, version)
-
-		assert.NoError(t, err)
-		assert.Empty(t, secret.Metadata.ExpireAt)
-		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
-	})
-
-	s.T().Run("should get a secret successfully with past deletion time and destroyed", func(t *testing.T) {
-		version := "2"
-		deletionTime := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time":  "2018-03-22T02:24:06.945319214Z",
-					"deletion_time": deletionTime,
-					"destroyed":     true,
-					"version":       json.Number(version),
-				},
-			},
-		}
-		expectedDeletedAt, _ := time.Parse(time.RFC3339, deletionTime)
-
-		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
-			versionLabel: {version},
-		}).Return(hashicorpSecret, nil)
-
-		secret, err := s.secretStore.Get(ctx, id, version)
-
-		assert.NoError(t, err)
-		assert.Empty(t, secret.Metadata.ExpireAt)
-		assert.Equal(t, expectedDeletedAt, secret.Metadata.DeletedAt)
-		assert.Equal(t, expectedDeletedAt, secret.Metadata.DestroyedAt)
-	})
-
-	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
+	s.T().Run("should fail with NotFoundError if read fails with 404", func(t *testing.T) {
+		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(nil, &hashicorp.ResponseError{
 			StatusCode: http.StatusNotFound,
 		})
+		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
@@ -285,35 +237,16 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		assert.True(t, errors.IsNotFoundError(err))
 	})
 
-	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
+	s.T().Run("should fail with HashicorpVaultError error if read fails with 500", func(t *testing.T) {
+		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(nil, &hashicorp.ResponseError{
 			StatusCode: http.StatusInternalServerError,
 		})
+		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.Nil(t, secret)
 		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
-	})
-
-	// TODO: Implement specific error types and check that the function return the right error type
-	s.T().Run("should fail with error if it fails to extract metadata", func(t *testing.T) {
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				dataLabel: expectedData,
-				metadataLabel: map[string]interface{}{
-					"created_time": "invalidCreatedTime",
-					"version":      json.Number("1"),
-				},
-			},
-		}
-
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(hashicorpSecret, nil)
-
-		secret, err := s.secretStore.Get(ctx, id, "")
-
-		assert.Nil(t, secret)
-		assert.Error(t, err)
 	})
 }
 
