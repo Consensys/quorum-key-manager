@@ -4,6 +4,7 @@ package integrationtests
 
 import (
 	"context"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"os"
 	"testing"
@@ -54,7 +55,7 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
+func (s *storeTestSuite) TestKeyManagerStore_Hashicorp() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
 		return
@@ -63,6 +64,20 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 	store := hashicorp.New(s.env.hashicorpClient, "secret")
 
 	testSuite := new(hashicorpSecretTestSuite)
+	testSuite.env = s.env
+	testSuite.store = store
+	suite.Run(s.T(), testSuite)
+}
+
+func (s *storeTestSuite) TestKeyManagerStore_AKV() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+
+	store := akv.New(s.env.akvClient)
+
+	testSuite := new(akvSecretTestSuite)
 	testSuite.env = s.env
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)

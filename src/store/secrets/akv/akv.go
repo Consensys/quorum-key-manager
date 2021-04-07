@@ -12,21 +12,21 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-type AzureSecretStore struct {
+type SecretStore struct {
 	client akv.Client
 }
 
-func NewSecretStore(client akv.Client) *AzureSecretStore {
-	return &AzureSecretStore{
+func New(client akv.Client) *SecretStore {
+	return &SecretStore{
 		client: client,
 	}
 }
 
-func (s *AzureSecretStore) Info(context.Context) (*entities.StoreInfo, error) {
+func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.NotImplementedError
 }
 
-func (s *AzureSecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	params := keyvault.SecretSetParameters{
 		Value: &value,
 		Tags:  tomapstrptr(attr.Tags),
@@ -40,7 +40,7 @@ func (s *AzureSecretStore) Set(ctx context.Context, id, value string, attr *enti
 	return parseSecretBundle(res), nil
 }
 
-func (s *AzureSecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
+func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	res, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
 		return nil, parseErrorResponse(err)
@@ -49,7 +49,7 @@ func (s *AzureSecretStore) Get(ctx context.Context, id, version string) (*entiti
 	return parseSecretBundle(res), nil
 }
 
-func (s *AzureSecretStore) List(ctx context.Context) ([]string, error) {
+func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	res, err := s.client.GetSecrets(ctx, nil)
 	if err != nil {
 		return nil, parseErrorResponse(err)
@@ -67,7 +67,7 @@ func (s *AzureSecretStore) List(ctx context.Context) ([]string, error) {
 	return list, nil
 }
 
-func (s *AzureSecretStore) Refresh(ctx context.Context, id, version string, expirationDate time.Time) error {
+func (s *SecretStore) Refresh(ctx context.Context, id, version string, expirationDate time.Time) error {
 	expires := date.NewUnixTimeFromNanoseconds(expirationDate.UnixNano())
 	params := keyvault.SecretUpdateParameters{
 		SecretAttributes: &keyvault.SecretAttributes{
@@ -83,23 +83,23 @@ func (s *AzureSecretStore) Refresh(ctx context.Context, id, version string, expi
 	return nil
 }
 
-func (s *AzureSecretStore) Delete(ctx context.Context, id string, versions ...string) (*entities.Secret, error) {
+func (s *SecretStore) Delete(ctx context.Context, id string, versions ...string) (*entities.Secret, error) {
 
 	return nil, errors.NotImplementedError
 }
 
-func (s *AzureSecretStore) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
+func (s *SecretStore) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.NotImplementedError
 }
 
-func (s *AzureSecretStore) ListDeleted(ctx context.Context) ([]string, error) {
+func (s *SecretStore) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.NotImplementedError
 }
 
-func (s *AzureSecretStore) Undelete(ctx context.Context, id string) error {
+func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	return errors.NotImplementedError
 }
 
-func (s *AzureSecretStore) Destroy(ctx context.Context, id string, versions ...string) error {
+func (s *SecretStore) Destroy(ctx context.Context, id string, versions ...string) error {
 	return errors.NotImplementedError
 }

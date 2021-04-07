@@ -3,6 +3,7 @@ package integrationtests
 import (
 	"context"
 	"fmt"
+	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	"os"
 	"time"
 
@@ -10,8 +11,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/hashicorp/vault/api"
 )
 
@@ -21,7 +21,8 @@ const networkName = "key-manager"
 type IntegrationEnvironment struct {
 	ctx             context.Context
 	logger          *log.Logger
-	hashicorpClient hashicorp.VaultClient
+	hashicorpClient *hashicorpclient.HashicorpVaultClient
+	akvClient       *akvclient.AzureClient
 	dockerClient    *docker.Client
 }
 
@@ -73,9 +74,15 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken))
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
+		return nil, err
+	}
+
+	akvClient, err := akvclient.NewClient(akvclient.NewConfig("", "17255fb0-373b-4a1a-bd47-d211ab86df81", "", "0DgK4V_YA84RPk7.f_1op0-em_a46wSe.Z"))
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize akv client")
 		return nil, err
 	}
 
@@ -85,6 +92,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		ctx:             ctx,
 		logger:          logger,
 		hashicorpClient: hashicorpClient,
+		akvClient:       akvClient,
 		dockerClient:    dockerClient,
 	}, nil
 }
