@@ -145,6 +145,13 @@ func (s *hashicorpSecretTestSuite) TestGet() {
 		assert.Nil(t, secret)
 		require.True(t, errors.IsNotFoundError(err))
 	})
+
+	s.T().Run("should fail with NotFound if version does not exist", func(t *testing.T) {
+		secret, err := s.store.Get(ctx, id, "3")
+
+		assert.Nil(t, secret)
+		require.True(t, errors.IsNotFoundError(err))
+	})
 }
 
 func (s *hashicorpSecretTestSuite) TestRefresh() {

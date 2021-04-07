@@ -2,7 +2,7 @@ package hashicorp
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -48,15 +48,17 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 	expectedPath := s.mountPoint + "/data/" + id
 	attributes := testutils.FakeAttributes()
 	expectedData := map[string]interface{}{
-		valueLabel: value,
-		tagsLabel:  attributes.Tags,
+		dataLabel: map[string]interface{}{
+			valueLabel: value,
+			tagsLabel:  attributes.Tags,
+		},
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
 			"created_time":  "2018-03-22T02:24:06.945319214Z",
 			"deletion_time": "",
 			"destroyed":     false,
-			"version":       "2",
+			"version":       json.Number("2"),
 		},
 	}
 
@@ -115,7 +117,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 		hashSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
 				"created_time": "invalidTime",
-				"version":      "2",
+				"version":      json.Number("2"),
 			},
 		}
 
@@ -147,13 +149,13 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 					"created_time":  "2018-03-22T02:24:06.945319214Z",
 					"deletion_time": "",
 					"destroyed":     false,
-					"version":       "2",
+					"version":       json.Number("2"),
 				},
 			},
 		}
 		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
 
-		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(hashicorpSecret, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
@@ -176,12 +178,14 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 					"created_time":  "2018-03-22T02:24:06.945319214Z",
 					"deletion_time": "",
 					"destroyed":     false,
-					"version":       version,
+					"version":       json.Number(version),
 				},
 			},
 		}
 
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
+			versionLabel: {version},
+		}).Return(hashicorpSecret, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
@@ -199,13 +203,15 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 					"created_time":  "2018-03-22T02:24:06.945319214Z",
 					"deletion_time": deletionTime,
 					"destroyed":     false,
-					"version":       version,
+					"version":       json.Number(version),
 				},
 			},
 		}
 		expectedExpireAt, _ := time.Parse(time.RFC3339, deletionTime)
 
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
+			versionLabel: {version},
+		}).Return(hashicorpSecret, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
@@ -223,13 +229,15 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 					"created_time":  "2018-03-22T02:24:06.945319214Z",
 					"deletion_time": deletionTime,
 					"destroyed":     false,
-					"version":       version,
+					"version":       json.Number(version),
 				},
 			},
 		}
 		expectedDeletedAt, _ := time.Parse(time.RFC3339, deletionTime)
 
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
+			versionLabel: {version},
+		}).Return(hashicorpSecret, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
@@ -248,13 +256,15 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 					"created_time":  "2018-03-22T02:24:06.945319214Z",
 					"deletion_time": deletionTime,
 					"destroyed":     true,
-					"version":       version,
+					"version":       json.Number(version),
 				},
 			},
 		}
 		expectedDeletedAt, _ := time.Parse(time.RFC3339, deletionTime)
 
-		s.mockVault.EXPECT().Read(fmt.Sprintf("%v?version=%v", expectedPath, version)).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPath, map[string][]string{
+			versionLabel: {version},
+		}).Return(hashicorpSecret, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
@@ -265,7 +275,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath).Return(nil, &hashicorp.ResponseError{
+		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
 			StatusCode: http.StatusNotFound,
 		})
 
@@ -276,7 +286,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath).Return(nil, &hashicorp.ResponseError{
+		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
 			StatusCode: http.StatusInternalServerError,
 		})
 
@@ -293,12 +303,12 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 				dataLabel: expectedData,
 				metadataLabel: map[string]interface{}{
 					"created_time": "invalidCreatedTime",
-					"version":      "1",
+					"version":      json.Number("1"),
 				},
 			},
 		}
 
-		s.mockVault.EXPECT().Read(expectedPath).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPath, nil).Return(hashicorpSecret, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
@@ -310,7 +320,8 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 func (s *hashicorpSecretStoreTestSuite) TestList() {
 	ctx := context.Background()
 	expectedPath := s.mountPoint + "/metadata"
-	keys := []string{"my-secret1", "my-secret2"}
+	keys := []interface{}{"my-secret1", "my-secret2"}
+	keysStr := []string{"my-secret1", "my-secret2"}
 
 	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
 		hashicorpSecret := &hashicorp.Secret{
@@ -324,7 +335,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 		ids, err := s.secretStore.List(ctx)
 
 		assert.NoError(t, err)
-		assert.Equal(t, keys, ids)
+		assert.Equal(t, keysStr, ids)
 	})
 
 	s.T().Run("should return empty list if result is nil", func(t *testing.T) {

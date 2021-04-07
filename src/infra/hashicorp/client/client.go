@@ -22,9 +22,9 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*hashicorp.Secret, error) {
 	if data == nil {
 		return c.client.Logical().Read(path)
-	} else {
-		return c.client.Logical().ReadWithData(path, data)
 	}
+
+	return c.client.Logical().ReadWithData(path, data)
 }
 
 func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (*hashicorp.Secret, error) {
