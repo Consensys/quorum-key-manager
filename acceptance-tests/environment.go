@@ -80,7 +80,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	akvClient, err := akvclient.NewClient(akvclient.NewConfig("", "17255fb0-373b-4a1a-bd47-d211ab86df81", "", "0DgK4V_YA84RPk7.f_1op0-em_a46wSe.Z"))
+	akvClient, err := akvclient.NewClient(akvclient.NewConfig(os.Getenv("AKV_VAULT_NAME"), os.Getenv("AKV_TENANT_ID"), os.Getenv("AKV_CLIENT_ID"), os.Getenv("AKV_CLIENT_SECRET")))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize akv client")
 		return nil, err
