@@ -5,8 +5,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/hashicorp/vault/api"
-
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -55,8 +53,7 @@ func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.At
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
-	// Hashicorp only returns metadata as the "data" field when creating a new secret
-	metadata, err := extractMetadata(hashicorpSecret.Data)
+	metadata, err := formatHashicorpSecretData(hashicorpSecret.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -66,36 +63,39 @@ func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.At
 
 // Get a secret
 func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secret, error) {
-	var hashicorpSecret *api.Secret
-	var err error
+	var callData map[string][]string
 	if version != "" {
-		hashicorpSecret, err = s.client.Read(s.pathData(id), map[string][]string{
+		callData = map[string][]string{
 			versionLabel: {version},
-		})
-	} else {
-		hashicorpSecret, err = s.client.Read(s.pathData(id), nil)
-	}
-	if err != nil {
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		}
 	}
 
-	if hashicorpSecret == nil {
+	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
+	if err != nil {
+		return nil, hashicorpclient.ParseErrorResponse(err)
+	} else if hashicorpSecretData == nil {
 		return nil, errors.NotFoundError("secret not found")
 	}
 
-	// Hashicorp returns metadata in "data.metadata" and data in "data.data" fields
-	data := hashicorpSecret.Data[dataLabel].(map[string]interface{})
-	metadata, err := extractMetadata(hashicorpSecret.Data[metadataLabel].(map[string]interface{}))
-	if err != nil {
-		return nil, err
-	}
-
+	data := hashicorpSecretData.Data[dataLabel].(map[string]interface{})
+	value := data[valueLabel].(string)
 	tags := make(map[string]string)
 	if data[tagsLabel] != nil {
 		tags = data[tagsLabel].(map[string]string)
 	}
 
-	return formatHashicorpSecret(id, data[valueLabel].(string), tags, metadata), nil
+	// We need to do a second call to get the metadata
+	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata, err := formatHashicorpSecretMetadata(hashicorpSecretMetadata, version)
+	if err != nil {
+		return nil, err
+	}
+
+	return formatHashicorpSecret(id, value, tags, metadata), nil
 }
 
 // Get all secret ids

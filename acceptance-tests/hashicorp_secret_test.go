@@ -157,9 +157,12 @@ func (s *hashicorpSecretTestSuite) TestGet() {
 func (s *hashicorpSecretTestSuite) TestRefresh() {
 	ctx := s.env.ctx
 	id := "my-secret-refresh"
-	value := "my-secret-value"
+	value1 := "my-secret-value1"
+	value2 := "my-secret-value2"
 
-	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
+	_, err := s.store.Set(ctx, id, value1, &entities.Attributes{})
+	require.NoError(s.T(), err)
+	_, err = s.store.Set(ctx, id, value2, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
 	s.T().Run("should refresh secret with new expiration date", func(t *testing.T) {
@@ -169,9 +172,8 @@ func (s *hashicorpSecretTestSuite) TestRefresh() {
 		secret, err := s.store.Get(ctx, id, "")
 
 		require.NoError(t, err)
-		assert.Equal(t, "1", secret.Metadata.Version)
+		assert.Equal(t, "2", secret.Metadata.Version)
 
-		// TODO: Handle dates
-		// assert.True(t, secret.Metadata.ExpireAt.After(time.Now()))
+		assert.True(t, secret.Metadata.ExpireAt.After(time.Now()))
 	})
 }
