@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"fmt"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
@@ -39,7 +40,7 @@ func (s *akvSecretTestSuite) TestSet() {
 		assert.Equal(t, id, secret.ID)
 		assert.Equal(t, value, secret.Value)
 		assert.Equal(t, tags, secret.Tags)
-		assert.Equal(t, "1", secret.Metadata.Version)
+		assert.NotEmpty(t, secret.Metadata.Version)
 		assert.NotNil(t, secret.Metadata.CreatedAt)
 		assert.NotNil(t, secret.Metadata.UpdatedAt)
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
@@ -68,12 +69,11 @@ func (s *akvSecretTestSuite) TestSet() {
 
 		require.NoError(t, err)
 
-		assert.Equal(t, "1", secret1.Metadata.Version)
 		assert.Equal(t, tags1, secret1.Tags)
 		assert.Equal(t, value1, secret1.Value)
-		assert.Equal(t, "2", secret2.Metadata.Version)
 		assert.Equal(t, tags2, secret2.Tags)
 		assert.Equal(t, value2, secret2.Value)
+		assert.NotEqual(t, secret1.Metadata.Version, secret2.Metadata.Version)
 	})
 }
 
@@ -107,10 +107,12 @@ func (s *akvSecretTestSuite) TestGet() {
 	value := "my-secret-value"
 
 	// 2 with same ID
-	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
+	secret1, err := s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id, value, &entities.Attributes{})
+	version1 := secret1.Metadata.Version
+	secret2, err := s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
+	version2 := secret2.Metadata.Version
 
 	s.T().Run("should get latest secret successfully if no version is specified", func(t *testing.T) {
 		secret, err := s.store.Get(ctx, id, "")
@@ -119,7 +121,7 @@ func (s *akvSecretTestSuite) TestGet() {
 
 		assert.Equal(t, id, secret.ID)
 		assert.Equal(t, value, secret.Value)
-		assert.Equal(t, "2", secret.Metadata.Version)
+		assert.NotEmpty(t, secret.Metadata.Version)
 		assert.NotNil(t, secret.Metadata.CreatedAt)
 		assert.NotNil(t, secret.Metadata.UpdatedAt)
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
@@ -129,14 +131,13 @@ func (s *akvSecretTestSuite) TestGet() {
 	})
 
 	s.T().Run("should get specific secret version", func(t *testing.T) {
-		secret1, err := s.store.Get(ctx, id, "1")
+		secret, err := s.store.Get(ctx, id, version1)
 		require.NoError(t, err)
-		assert.Equal(t, "1", secret1.Metadata.Version)
+		assert.Equal(t, version1, secret.Metadata.Version)
 
-		secret2, err := s.store.Get(ctx, id, "2")
+		secret, err = s.store.Get(ctx, id, version2)
 		require.NoError(t, err)
-		assert.Equal(t, "2", secret2.Metadata.Version)
-
+		assert.Equal(t, version2, secret.Metadata.Version)
 	})
 
 	s.T().Run("should fail with NotFound if secret is not found", func(t *testing.T) {
@@ -146,8 +147,16 @@ func (s *akvSecretTestSuite) TestGet() {
 		require.True(t, errors.IsNotFoundError(err))
 	})
 
+	s.T().Run("should fail with InvalidFormat if version is not formatted correctly", func(t *testing.T) {
+		secret, err := s.store.Get(ctx, id, "invalidVersion")
+
+		assert.Nil(t, secret)
+		fmt.Println(err)
+		require.True(t, errors.IsInvalidFormatError(err))
+	})
+
 	s.T().Run("should fail with NotFound if version does not exist", func(t *testing.T) {
-		secret, err := s.store.Get(ctx, id, "3")
+		secret, err := s.store.Get(ctx, id, "41579384e3014e849a2b140463509ea2")
 
 		assert.Nil(t, secret)
 		require.True(t, errors.IsNotFoundError(err))
@@ -172,8 +181,10 @@ func (s *akvSecretTestSuite) TestRefresh() {
 		secret, err := s.store.Get(ctx, id, "")
 
 		require.NoError(t, err)
-		assert.Equal(t, "2", secret.Metadata.Version)
+		assert.NotEmpty(t, secret.Metadata.Version)
 
+		fmt.Println(secret.Metadata)
+		fmt.Println(secret.Metadata.ExpireAt)
 		assert.True(t, secret.Metadata.ExpireAt.After(time.Now()))
 	})
 }

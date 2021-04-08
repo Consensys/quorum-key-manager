@@ -3,9 +3,11 @@ package integrationtests
 import (
 	"context"
 	"fmt"
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	"os"
 	"time"
+
+	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
+	"github.com/joho/godotenv"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
@@ -80,7 +82,17 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	akvClient, err := akvclient.NewClient(akvclient.NewConfig(os.Getenv("AKV_VAULT_NAME"), os.Getenv("AKV_TENANT_ID"), os.Getenv("AKV_CLIENT_ID"), os.Getenv("AKV_CLIENT_SECRET")))
+	err = godotenv.Load()
+	if err != nil {
+		logger.WithError(err).Error("failed to load ENV vars from .env")
+		return nil, err
+	}
+	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
+		os.Getenv("AKV_VAULT_NAME"),
+		os.Getenv("AKV_TENANT_ID"),
+		os.Getenv("AKV_CLIENT_ID"),
+		os.Getenv("AKV_CLIENT_SECRET"),
+	))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize akv client")
 		return nil, err

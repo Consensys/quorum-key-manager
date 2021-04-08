@@ -38,7 +38,7 @@ func (s *akvSecretStoreTestSuite) SetupTest() {
 	s.mountPoint = "secret"
 	s.mockVault = mocks.NewMockClient(ctrl)
 
-	s.secretStore = NewSecretStore(s.mockVault)
+	s.secretStore = New(s.mockVault)
 }
 
 func (s *akvSecretStoreTestSuite) TestSet() {
