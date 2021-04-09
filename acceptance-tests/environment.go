@@ -6,8 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
@@ -82,14 +80,6 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	// If the ENV var does not exist, try to load the .env (local development)
-	if os.Getenv("AKV_VAULT_NAME") == "" {
-		err = godotenv.Load()
-	}
-	if err != nil {
-		logger.WithError(err).Error("failed to load ENV vars from .env")
-		return nil, err
-	}
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
 		os.Getenv("AKV_VAULT_NAME"),
 		os.Getenv("AKV_TENANT_ID"),

@@ -100,6 +100,11 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	return errors.NotImplementedError
 }
 
-func (s *SecretStore) Destroy(ctx context.Context, id string, versions ...string) error {
-	return errors.NotImplementedError
+func (s *SecretStore) Destroy(ctx context.Context, id string, _ ...string) error {
+	_, err := s.client.DeleteSecret(ctx, id)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
 }

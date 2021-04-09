@@ -47,6 +47,9 @@ func (s *akvSecretTestSuite) TestSet() {
 		assert.True(t, secret.Metadata.DestroyedAt.IsZero())
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.False(t, secret.Metadata.Disabled)
+
+		err = s.store.Destroy(ctx, id)
+		require.NoError(s.T(), err)
 	})
 
 	s.T().Run("should increase version at each set", func(t *testing.T) {
@@ -74,6 +77,9 @@ func (s *akvSecretTestSuite) TestSet() {
 		assert.Equal(t, tags2, secret2.Tags)
 		assert.Equal(t, value2, secret2.Value)
 		assert.NotEqual(t, secret1.Metadata.Version, secret2.Metadata.Version)
+
+		err = s.store.Destroy(ctx, id)
+		require.NoError(s.T(), err)
 	})
 }
 
@@ -95,10 +101,13 @@ func (s *akvSecretTestSuite) TestList() {
 		ids, err := s.store.List(ctx)
 
 		require.NoError(t, err)
-		// TODO: Do exact check when Destroy is implemented
-		// assert.Equal(t, []string{id, id2}, ids)
-		assert.True(t, len(ids) >= 2)
+		assert.NotEmpty(t, ids)
 	})
+
+	err = s.store.Destroy(ctx, id)
+	require.NoError(s.T(), err)
+	err = s.store.Destroy(ctx, id2)
+	require.NoError(s.T(), err)
 }
 
 func (s *akvSecretTestSuite) TestGet() {
@@ -161,6 +170,9 @@ func (s *akvSecretTestSuite) TestGet() {
 		assert.Nil(t, secret)
 		require.True(t, errors.IsNotFoundError(err))
 	})
+
+	err = s.store.Destroy(ctx, id)
+	require.NoError(s.T(), err)
 }
 
 func (s *akvSecretTestSuite) TestRefresh() {
@@ -183,8 +195,9 @@ func (s *akvSecretTestSuite) TestRefresh() {
 		require.NoError(t, err)
 		assert.NotEmpty(t, secret.Metadata.Version)
 
-		fmt.Println(secret.Metadata)
-		fmt.Println(secret.Metadata.ExpireAt)
 		assert.True(t, secret.Metadata.ExpireAt.After(time.Now()))
 	})
+
+	err = s.store.Destroy(ctx, id)
+	require.NoError(s.T(), err)
 }
