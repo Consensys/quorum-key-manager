@@ -8,6 +8,7 @@ __pycache__
 bin/
 vendor/
 .env
+env.sh
 
 # Test binary, build with `go test -c`
 *.test
