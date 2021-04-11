@@ -57,6 +57,9 @@ func (rw *responseWriter) WriteMsg(msg *ResponseMsg) error {
 		msg.ID = rw.id
 	}
 
+	// Set ContentType Header
+	rw.Header().Set("Content-Type", "application/json")
+
 	return rw.enc.Encode(msg)
 }
 

@@ -58,6 +58,7 @@ func TestResponseWriterWriteMsg(t *testing.T) {
 
 	expectedBody = []byte(`{"jsonrpc":"2.0","result":true,"error":null,"id":null}`)
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "WriteMsg should write correct body")
+	assert.Equal(t, "application/json", rec.Header().Get("Content-Type"), "Header Content-Type should have been set")
 }
 
 func TestResponseWriterWriteResult(t *testing.T) {
