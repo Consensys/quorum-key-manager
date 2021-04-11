@@ -1,0 +1,112 @@
+---
+version: '3.4'
+
+x-orion-common: &orion-common
+  image: pegasyseng/orion:1.6.0
+  entrypoint: ["bash", "orion.sh"]
+  networks:
+    - key-manager
+  volumes:
+    - ./orion.sh:/opt/orion/orion.sh
+    - ./config:/config
+
+x-orion-env-common: &orion-env-common
+  LOG4J_CONFIGURATION_FILE: /config/log-config.xml
+
+x-besu-common: &besu-common
+  image: hyperledger/besu:1.5.5
+  entrypoint: ["bash", "besu.sh"]
+  networks:
+    - key-manager
+
+x-besu-env-common: &besu-env-common
+  RPC_HTTP_API: WEB3,ETH,NET,EEA,PRIV,ADMIN,PERM,TXPOOL,ibft
+  RPC_WS_API: WEB3,ETH,NET,EEA,PRIV,ADMIN,PERM,TXPOOL,ibft
+  METRICS: 1
+  LOG4J_CONFIGURATION_FILE: /config/log-config.xml
+
+services:
+  validator1-bootnode:
+    <<: *besu-common
+    environment:
+      <<: *besu-env-common
+      NODE_NAME: validator1-bootnode
+      ORION_URL: http://orion1:8888
+      ORION_NAME: orion1
+      BOOTNODE: 1
+    ports:
+      - 8540:8545
+    depends_on:
+      - orion1
+    volumes:
+      - public-keys:/tmp/
+      - ./besu.sh:/opt/besu/besu.sh
+      - ./config:/config
+
+  orion1:
+    <<: *orion-common
+    environment:
+      <<: *orion-env-common
+      ORION_NAME: orion1
+
+  validator2:
+    <<: *besu-common
+    environment:
+      <<: *besu-env-common
+      NODE_NAME: validator2
+      ORION_URL: http://orion2:8888
+      ORION_NAME: orion2
+    ports:
+      - 8544:8545
+    depends_on:
+      - orion2
+      - validator1-bootnode
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./besu.sh:/opt/besu/besu.sh
+      - ./config:/config
+
+  orion2:
+    <<: *orion-common
+    environment:
+      <<: *orion-env-common
+      ORION_NAME: orion2
+    depends_on:
+      - orion1
+
+  validator3:
+    <<: *besu-common
+    environment:
+      <<: *besu-env-common
+      NODE_NAME: validator3
+      ORION_URL: http://orion3:8888
+      ORION_NAME: orion3
+    ports:
+      - 8545:8545
+    depends_on:
+      - validator1-bootnode
+      - orion3
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./besu.sh:/opt/besu/besu.sh
+      - ./config:/config
+  
+  orion3:
+    <<: *orion-common
+    environment:
+      <<: *orion-env-common
+      ORION_NAME: orion3
+    depends_on:
+      - orion1
+
+networks:
+  key-manager:
+    external:
+      name: key-manager
+
+volumes:
+  public-keys:
+  prometheus:
+  grafana:
+  vault-token:
+    driver: local
