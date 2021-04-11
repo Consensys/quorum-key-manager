@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

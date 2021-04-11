@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 )
 
 //go:generate mockgen -source=node.go -destination=mock/node.go -package=mock

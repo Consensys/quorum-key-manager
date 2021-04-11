@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
-	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
+	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	node "github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 	gomock "github.com/golang/mock/gomock"
 )

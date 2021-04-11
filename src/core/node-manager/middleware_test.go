@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager/mock"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 	mocknode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/mock"

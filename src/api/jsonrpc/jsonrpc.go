@@ -3,7 +3,7 @@ package jsonrpcapi
 import (
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"

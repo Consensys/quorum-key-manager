@@ -1,7 +1,7 @@
 package nodemanager
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 )
 
