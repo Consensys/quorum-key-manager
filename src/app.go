@@ -7,6 +7,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 )
 
@@ -41,7 +42,23 @@ func New(cfg *Config) *App {
 }
 
 func (a App) Start(ctx context.Context) error {
-	if err := a.backend.StoreManager().Load(ctx, a.cfg.Manifests...); err != nil {
+	var storeMnfsts []*manifest.Manifest
+	var nodeMnfsts []*manifest.Manifest
+
+	for _, mnfst := range a.cfg.Manifests {
+		switch mnfst.Kind {
+		case "Node":
+			nodeMnfsts = append(nodeMnfsts, mnfst)
+		default:
+			storeMnfsts = append(storeMnfsts, mnfst)
+		}
+	}
+
+	if err := a.backend.StoreManager().Load(ctx, storeMnfsts...); err != nil {
+		return err
+	}
+
+	if err := a.backend.NodeManager().Load(ctx, nodeMnfsts...); err != nil {
 		return err
 	}
 

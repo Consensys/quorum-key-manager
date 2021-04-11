@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/node"
 )
@@ -83,7 +84,12 @@ func (m *manager) List(_ context.Context) ([]string, error) {
 	return nodeNames, nil
 }
 
-func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
+func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
+	logger := log.FromContext(ctx).
+		WithField("kind", mnf.Kind).
+		WithField("name", mnf.Name)
+	logger.Infof("load manifest with specs: %v", string(mnf.Specs))
+
 	if _, ok := m.nodes[mnf.Name]; ok {
 		return fmt.Errorf("node %q already exist", mnf.Name)
 	}
