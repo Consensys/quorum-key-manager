@@ -1,4 +1,4 @@
-package node
+package nodemanager
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
@@ -15,21 +15,21 @@ func NewMiddleware(mngr Manager) *Middleware {
 }
 
 func (m *Middleware) ServeRPC(rw jsonrpc.ResponseWriter, req *jsonrpc.Request, next jsonrpc.Handler) {
-	node, err := m.mngr.GetNode(req.Request().Context(), "") // so far we support only one node
+	node, err := m.mngr.Node(req.Request().Context(), "") // so far we support only one node
 	if err != nil {
 		_ = rw.WriteError(err)
 		return
 	}
 
-	// Extract ID
-	var baseID string
-	if err := req.UnmarshalID(&baseID); err != nil {
+	// Get session for the request
+	session, err := node.Session(req)
+	if err != nil {
 		_ = rw.WriteError(err)
 		return
 	}
 
-	// Execute next handler with Session attached to request context
-	next.ServeRPC(rw, req.WithContext(WithSession(req.Request().Context(), node.Session(baseID))))
+	// Execute next handler with session attached to request context
+	next.ServeRPC(rw, req.WithContext(WithSession(req.Request().Context(), session)))
 }
 
 func (m *Middleware) Next(h jsonrpc.Handler) jsonrpc.Handler {

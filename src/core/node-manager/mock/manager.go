@@ -36,21 +36,6 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// GetNode mocks base method.
-func (m *MockManager) GetNode(ctx context.Context, name string) (node.Node, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNode", ctx, name)
-	ret0, _ := ret[0].(node.Node)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetNode indicates an expected call of GetNode.
-func (mr *MockManagerMockRecorder) GetNode(ctx, name interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNode", reflect.TypeOf((*MockManager)(nil).GetNode), ctx, name)
-}
-
 // List mocks base method.
 func (m *MockManager) List(ctx context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
@@ -83,4 +68,19 @@ func (mr *MockManagerMockRecorder) Load(ctx interface{}, mnfsts ...interface{}) 
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, mnfsts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockManager)(nil).Load), varargs...)
+}
+
+// Node mocks base method.
+func (m *MockManager) Node(ctx context.Context, name string) (node.Node, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Node", ctx, name)
+	ret0, _ := ret[0].(node.Node)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Node indicates an expected call of Node.
+func (mr *MockManagerMockRecorder) Node(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Node", reflect.TypeOf((*MockManager)(nil).Node), ctx, name)
 }

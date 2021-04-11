@@ -1,4 +1,4 @@
-package node
+package nodemanager
 
 import (
 	"context"
@@ -19,8 +19,8 @@ type Manager interface {
 	// If any error occurs it is attached to the corresponding Message
 	Load(ctx context.Context, mnfsts ...*manifest.Manifest) error
 
-	// GetSecretStore by name
-	GetNode(ctx context.Context, name string) (node.Node, error)
+	// Node return by name
+	Node(ctx context.Context, name string) (node.Node, error)
 
 	// List stores
 	List(ctx context.Context) ([]string, error)
@@ -56,7 +56,7 @@ func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error 
 	return nil
 }
 
-func (m *manager) GetNode(_ context.Context, name string) (node.Node, error) {
+func (m *manager) Node(_ context.Context, name string) (node.Node, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if nodeBundle, ok := m.nodes[name]; ok {
@@ -95,7 +95,7 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		n.node, n.err = node.NewNode(cfg)
+		n.node, n.err = node.New(cfg)
 	default:
 		return fmt.Errorf("invalid manifest kind %s", mnf.Kind)
 	}

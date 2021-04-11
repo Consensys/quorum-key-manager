@@ -1,4 +1,4 @@
-package node
+package nodemanager
 
 import (
 	"bytes"
@@ -57,10 +57,10 @@ func TestMiddleware(t *testing.T) {
 	err := req.ReadBody()
 	require.NoError(t, err, "ReadBody should not error")
 
-	mngr.EXPECT().GetNode(gomock.Any(), "").Return(n, nil)
+	mngr.EXPECT().Node(gomock.Any(), "").Return(n, nil)
 
 	session := mocknode.NewMockSession(ctrl)
-	n.EXPECT().Session("25").Return(session)
+	n.EXPECT().Session(req).Return(session, nil)
 
 	next.EXPECT().ServeRPC(rw, &requestMatcher{session})
 	handler.ServeRPC(rw, req)
