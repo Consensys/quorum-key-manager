@@ -19,7 +19,7 @@ func New(bcknd core.Backend) http.Handler {
 	v2Router := router.Version("2.0").Subrouter().DefaultHandler(jsonrpc.HandlerFunc(Proxy))
 
 	// Silence personal
-	v2Router.MethodPrefix("personal_").Handle(jsonrpc.InvalidMethodHandler())
+	v2Router.MethodPrefix("personal_").Handle(jsonrpc.MethodNotFoundHandler())
 
 	// Wrap handler into middlewares
 	handler := nodemanager.NewMiddleware(bcknd.NodeManager()).Next(router)

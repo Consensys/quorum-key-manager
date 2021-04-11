@@ -29,7 +29,13 @@ func ToHTTPHandler(h Handler) http.Handler {
 		if rpcReq == nil {
 			// if no JSON-RPC request is found then creates one and attached to http.Request context
 			rpcReq = NewRequest(req)
-			_ = rpcReq.ReadBody()
+			err := rpcReq.ReadBody()
+			if err != nil {
+				_ = NewResponseWriter(rw).WriteError(&ErrorMsg{
+					Message: fmt.Sprintf("invalid json-rpc request (%v)", err),
+				})
+				return
+			}
 			rpcReq.req = req.WithContext(WithRequest(req.Context(), rpcReq))
 		} else {
 			// if found update http.Request
@@ -70,7 +76,7 @@ func NotSupportedHandler() Handler { return HandlerFunc(NotSupported) }
 
 func NotSupportedVersion(rw ResponseWriter, req *Request) {
 	_ = rw.WriteError(&ErrorMsg{
-		Message: fmt.Sprintf("not supported version %v", req.Version()),
+		Message: fmt.Sprintf("JSON-RPC version %q not supported", req.Version()),
 	})
 }
 
@@ -90,6 +96,18 @@ func InvalidMethod(rw ResponseWriter, req *Request) {
 // that replies to each request with an invalid method error
 func InvalidMethodHandler() Handler { return HandlerFunc(InvalidMethod) }
 
+// MethodNotFound replies to the request with a method not found error
+func MethodNotFound(rw ResponseWriter, req *Request) {
+	_ = rw.WriteError(&ErrorMsg{
+		Code:    -32601,
+		Message: "Method not found",
+	})
+}
+
+// InvalidMethod returns a simple handler
+// that replies to each request with an invalid method error
+func MethodNotFoundHandler() Handler { return HandlerFunc(MethodNotFound) }
+
 // NotImplementedMethod replies to the request with an not implemented error
 func NotImplementedMethod(rw ResponseWriter, req *Request) {
 	_ = rw.WriteError(&ErrorMsg{
@@ -107,7 +125,7 @@ func LoggedHandler(h Handler) Handler {
 	return HandlerFunc(func(rw ResponseWriter, req *Request) {
 		log.FromContext(req.Request().Context()).
 			WithField("version", req.Version()).
-			WithField("id", req.ID()).
+			WithField("id", fmt.Sprintf("%s", req.ID())).
 			WithField("method", req.Method()).
 			Info("serve JSON-RPC request")
 		h.ServeRPC(rw, req)
