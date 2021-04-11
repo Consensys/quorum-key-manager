@@ -21,13 +21,13 @@ type Specs struct {
 	Resource            string `json:"resource"`
 }
 
-func NewSecretStore(spec *Specs) (*akv.AzureSecretStore, error) {
+func NewSecretStore(spec *Specs) (*akv.SecretStore, error) {
 	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	store := akv.NewSecretStore(cli)
+	store := akv.New(cli)
 	return store, nil
 }

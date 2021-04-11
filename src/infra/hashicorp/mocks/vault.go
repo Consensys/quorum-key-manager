@@ -34,18 +34,18 @@ func (m *MockVaultClient) EXPECT() *MockVaultClientMockRecorder {
 }
 
 // Read mocks base method
-func (m *MockVaultClient) Read(path string) (*api.Secret, error) {
+func (m *MockVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Read", path)
+	ret := m.ctrl.Call(m, "Read", path, data)
 	ret0, _ := ret[0].(*api.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Read indicates an expected call of Read
-func (mr *MockVaultClientMockRecorder) Read(path interface{}) *gomock.Call {
+func (mr *MockVaultClientMockRecorder) Read(path, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockVaultClient)(nil).Read), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockVaultClient)(nil).Read), path, data)
 }
 
 // Write mocks base method

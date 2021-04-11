@@ -2,9 +2,10 @@ package hashicorp
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"time"
+
+	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
@@ -17,6 +18,7 @@ const (
 	valueLabel       = "value"
 	deleteAfterLabel = "delete_version_after"
 	tagsLabel        = "tags"
+	versionLabel     = "version"
 )
 
 // Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
@@ -38,61 +40,82 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 // Set a secret
-func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	data := map[string]interface{}{
-		valueLabel: value,
-		tagsLabel:  attr.Tags,
+		dataLabel: map[string]interface{}{
+			valueLabel: value,
+			tagsLabel:  attr.Tags,
+		},
 	}
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
-		return nil, err
+		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
-	// Hashicorp only returns metadata as the "data" field when creating a new secret
-	metadata, err := extractMetadata(hashicorpSecret.Data)
+	metadata, err := formatHashicorpSecretData(hashicorpSecret.Data)
 	if err != nil {
 		return nil, err
 	}
 
-	return formatHashicorpSecret(value, attr.Tags, metadata), nil
+	return formatHashicorpSecret(id, value, attr.Tags, metadata), nil
 }
 
 // Get a secret
 func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secret, error) {
-	// Get latest version by default if no version is specified, otherwise get specific version
-	pathData := s.pathData(id)
+	var callData map[string][]string
 	if version != "" {
-		pathData = fmt.Sprintf("%v?version=%v", pathData, version)
+		callData = map[string][]string{
+			versionLabel: {version},
+		}
 	}
 
-	hashicorpSecret, err := s.client.Read(pathData)
+	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
+	if err != nil {
+		return nil, hashicorpclient.ParseErrorResponse(err)
+	} else if hashicorpSecretData == nil {
+		return nil, errors.NotFoundError("secret not found")
+	}
+
+	data := hashicorpSecretData.Data[dataLabel].(map[string]interface{})
+	value := data[valueLabel].(string)
+	tags := make(map[string]string)
+	if data[tagsLabel] != nil {
+		tags = data[tagsLabel].(map[string]string)
+	}
+
+	// We need to do a second call to get the metadata
+	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
+	if err != nil {
+		return nil, hashicorpclient.ParseErrorResponse(err)
+	}
+
+	metadata, err := formatHashicorpSecretMetadata(hashicorpSecretMetadata, version)
 	if err != nil {
 		return nil, err
 	}
 
-	// Hashicorp returns metadata in "data.metadata" and data in "data.data" fields
-	data := hashicorpSecret.Data[dataLabel].(map[string]interface{})
-	metadata, err := extractMetadata(hashicorpSecret.Data[metadataLabel].(map[string]interface{}))
-	if err != nil {
-		return nil, err
-	}
-
-	return formatHashicorpSecret(data[valueLabel].(string), data[tagsLabel].(map[string]string), metadata), nil
+	return formatHashicorpSecret(id, value, tags, metadata), nil
 }
 
 // Get all secret ids
 func (s *SecretStore) List(_ context.Context) ([]string, error) {
-	res, err := s.client.List(path.Join(s.mountPoint, "metadata"))
+	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
-		return nil, err
+		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
 	if res == nil {
 		return []string{}, nil
 	}
 
-	return res.Data["keys"].([]string), nil
+	keysInterface := res.Data["keys"].([]interface{})
+	keysStr := make([]string, len(keysInterface))
+	for i, key := range keysInterface {
+		keysStr[i] = key.(string)
+	}
+
+	return keysStr, nil
 }
 
 // Refresh an existing secret by extending its TTL
@@ -104,7 +127,7 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 
 	_, err := s.client.Write(s.pathMetadata(id), data)
 	if err != nil {
-		return err
+		return hashicorpclient.ParseErrorResponse(err)
 	}
 
 	return nil

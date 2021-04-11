@@ -38,7 +38,7 @@ func (s *akvSecretStoreTestSuite) SetupTest() {
 	s.mountPoint = "secret"
 	s.mockVault = mocks.NewMockClient(ctrl)
 
-	s.secretStore = NewSecretStore(s.mockVault)
+	s.secretStore = New(s.mockVault)
 }
 
 func (s *akvSecretStoreTestSuite) TestSet() {
@@ -80,7 +80,6 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
 	})
 
 	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
@@ -134,7 +133,6 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.Nil(t, secret.Recovery)
 	})
 
 	s.T().Run("should fail with error if bad request in response", func(t *testing.T) {
@@ -233,6 +231,31 @@ func (s *akvSecretStoreTestSuite) TestRefresh() {
 
 		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, params).Return(keyvault.SecretBundle{}, akvErr)
 		err := s.secretStore.Refresh(ctx, id, version, expectedExpirationDate)
+
+		assert.True(t, errors.IsNotFoundError(err))
+		assert.Equal(t, errors.NotFoundError("%v", expectedErr), err)
+	})
+}
+
+func (s *akvSecretStoreTestSuite) TestDestroy() {
+	ctx := context.Background()
+	id := "my-secret6"
+
+	s.T().Run("should delete a secret successfully", func(t *testing.T) {
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id).Return(keyvault.DeletedSecretBundle{}, nil)
+		err := s.secretStore.Destroy(ctx, id)
+		assert.NoError(t, err)
+	})
+
+	s.T().Run("should fail with NotFoundError if DeleteSecret fails with 404", func(t *testing.T) {
+		expectedErr := fmt.Errorf("error")
+		akvErr := autorest.DetailedError{
+			Original:   expectedErr,
+			StatusCode: http.StatusNotFound,
+		}
+
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id).Return(keyvault.DeletedSecretBundle{}, akvErr)
+		err := s.secretStore.Destroy(ctx, id)
 
 		assert.True(t, errors.IsNotFoundError(err))
 		assert.Equal(t, errors.NotFoundError("%v", expectedErr), err)

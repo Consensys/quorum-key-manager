@@ -10,8 +10,8 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
+	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/hashicorp/vault/api"
 )
 
@@ -21,7 +21,8 @@ const networkName = "key-manager"
 type IntegrationEnvironment struct {
 	ctx             context.Context
 	logger          *log.Logger
-	hashicorpClient hashicorp.VaultClient
+	hashicorpClient *hashicorpclient.HashicorpVaultClient
+	akvClient       *akvclient.AzureClient
 	dockerClient    *docker.Client
 }
 
@@ -73,10 +74,20 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpClient, err := client.NewClient(client.NewBaseConfig(hashicorpAddr, "integration-test"),
-		hashicorpContainer.RootToken)
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
+		return nil, err
+	}
+
+	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
+		os.Getenv("AKV_VAULT_NAME"),
+		os.Getenv("AKV_TENANT_ID"),
+		os.Getenv("AKV_CLIENT_ID"),
+		os.Getenv("AKV_CLIENT_SECRET"),
+	))
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize akv client")
 		return nil, err
 	}
 
@@ -86,6 +97,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		ctx:             ctx,
 		logger:          logger,
 		hashicorpClient: hashicorpClient,
+		akvClient:       akvClient,
 		dockerClient:    dockerClient,
 	}, nil
 }
