@@ -53,7 +53,10 @@ func New(
 	}
 
 	return &httputil.ReverseProxy{
-		Director:       func(outReq *http.Request) { _, _ = preparer.Prepare(outReq) },
+		Director: func(outReq *http.Request) {
+			newReq, _ := preparer.Prepare(outReq)
+			*outReq = *newReq
+		},
 		Transport:      trnsprt,
 		FlushInterval:  cfg.FlushInterval.Duration,
 		ModifyResponse: modifier.Modify,

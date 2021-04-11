@@ -132,7 +132,7 @@ func (msg *RequestMsg) Validate() error {
 // UnmarshalID into v
 func (msg *RequestMsg) UnmarshalID(v interface{}) error {
 	var err error
-	if msg.raw.ID != nil {
+	if msg.raw != nil && msg.raw.ID != nil {
 		err = json.Unmarshal(*msg.raw.ID, v)
 	} else {
 		err = json.Unmarshal(null, v)
@@ -232,6 +232,14 @@ func (msg *ResponseMsg) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (msg *ResponseMsg) Err() error {
+	if msg.Error == nil {
+		return nil
+	}
+
+	return msg.Error
+}
+
 // MarshalJSON
 func (msg *ResponseMsg) MarshalJSON() ([]byte, error) {
 	raw := new(jsonRespMsg)
@@ -309,6 +317,10 @@ func (msg *ResponseMsg) WithVersion(v string) *ResponseMsg {
 
 // WithID attaches ID
 func (msg *ResponseMsg) WithID(id interface{}) *ResponseMsg {
+	err := validateID(id)
+	if err != nil {
+		panic(err)
+	}
 	msg.ID = id
 	return msg
 }
@@ -356,7 +368,7 @@ func (msg *ResponseMsg) UnmarshalResult(v interface{}) error {
 // UnmarshalID into v
 func (msg *ResponseMsg) UnmarshalID(v interface{}) error {
 	var err error
-	if msg.raw.ID != nil {
+	if msg.raw != nil && msg.raw.ID != nil {
 		err = json.Unmarshal(*msg.raw.ID, v)
 	} else {
 		err = json.Unmarshal(null, v)

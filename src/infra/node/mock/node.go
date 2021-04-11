@@ -94,17 +94,18 @@ func (mr *MockNodeMockRecorder) ProxyRPC() *gomock.Call {
 }
 
 // Session mocks base method.
-func (m *MockNode) Session(id string) node.Session {
+func (m *MockNode) Session(arg0 *jsonrpc.Request) (node.Session, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Session", id)
+	ret := m.ctrl.Call(m, "Session", arg0)
 	ret0, _ := ret[0].(node.Session)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Session indicates an expected call of Session.
-func (mr *MockNodeMockRecorder) Session(id interface{}) *gomock.Call {
+func (mr *MockNodeMockRecorder) Session(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Session", reflect.TypeOf((*MockNode)(nil).Session), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Session", reflect.TypeOf((*MockNode)(nil).Session), arg0)
 }
 
 // MockSession is a mock of Session interface.
@@ -213,15 +214,16 @@ func (mr *MockSessionMockRecorder) ProxyRPC() *gomock.Call {
 }
 
 // Session mocks base method.
-func (m *MockSession) Session(id string) node.Session {
+func (m *MockSession) Session(arg0 *jsonrpc.Request) (node.Session, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Session", id)
+	ret := m.ctrl.Call(m, "Session", arg0)
 	ret0, _ := ret[0].(node.Session)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Session indicates an expected call of Session.
-func (mr *MockSessionMockRecorder) Session(id interface{}) *gomock.Call {
+func (mr *MockSessionMockRecorder) Session(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Session", reflect.TypeOf((*MockSession)(nil).Session), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Session", reflect.TypeOf((*MockSession)(nil).Session), arg0)
 }

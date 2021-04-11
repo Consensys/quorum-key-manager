@@ -51,7 +51,7 @@ func TestClient(t *testing.T) {
 	ctx := WithRequest(context.Background(), NewRequest(req))
 
 	// Empty ID and version client
-	cllr := NewCaller(WithVersion("")(WithID("")(client)))
+	cllr := NewCaller(WithVersion("")(WithID(nil)(client)), nil)
 
 	m := requestMatcher{
 		URLPath: "www.example.com",
@@ -72,7 +72,7 @@ func TestClient(t *testing.T) {
 	assert.Equal(t, "1.0", resp.Version(), "Version should be correct")
 
 	// Non Empty ID client caller
-	cllr = NewCaller(WithVersion("3.0")(WithID("abcd")(client)))
+	cllr = NewCaller(WithVersion("3.0")(WithID("abcd")(client)), nil)
 
 	m = requestMatcher{
 		URLPath: "www.example.com",

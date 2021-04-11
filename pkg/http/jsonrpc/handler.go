@@ -7,6 +7,10 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
+//go:generate mockgen -source=handler.go -destination=handler_mock.go -package=jsonrpc
+
+// Handler is and JSON-RPC handler to be used in a JSON-RPC server
+// It provides the JSON-RPC abstraction over http.Handler interface
 type Handler interface {
 	ServeRPC(ResponseWriter, *Request)
 }
@@ -23,7 +27,7 @@ func ToHTTPHandler(h Handler) http.Handler {
 		// extract JSON-RPC request from context
 		rpcReq := RequestFromContext(req.Context())
 		if rpcReq == nil {
-			// if no JSON-RPC request is found then creates on and attached to http.Request context
+			// if no JSON-RPC request is found then creates one and attached to http.Request context
 			rpcReq = NewRequest(req)
 			_ = rpcReq.ReadBody()
 			rpcReq.req = req.WithContext(WithRequest(req.Context(), rpcReq))
@@ -45,7 +49,10 @@ func ToHTTPHandler(h Handler) http.Handler {
 // FromHTTPHandler wraps a http.Handler into a jsonrpc.Handler
 func FromHTTPHandler(h http.Handler) Handler {
 	return HandlerFunc(func(rw ResponseWriter, req *Request) {
+		// Write JSON-RPC request message into request body
 		_ = req.WriteBody()
+
+		// Serve HTTP request
 		h.ServeHTTP(rw, req.Request())
 	})
 }

@@ -125,5 +125,9 @@ func (resp *Response) Error() error {
 		return resp.err
 	}
 
-	return msg.Error
+	if msg.Error != nil {
+		return msg.Error
+	}
+
+	return nil
 }

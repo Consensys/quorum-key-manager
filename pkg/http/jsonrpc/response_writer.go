@@ -3,6 +3,7 @@ package jsonrpc
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 )
@@ -78,17 +79,22 @@ func (rw *responseWriter) WriteError(err error) error {
 }
 
 func (rw *responseWriter) Flush() {
-	rw.rw.(http.Flusher).Flush()
+	if flusher, ok := rw.rw.(http.Flusher); ok {
+		flusher.Flush()
+	}
 }
 
 func (rw *responseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return rw.rw.(http.Hijacker).Hijack()
+	if hijacker, ok := rw.rw.(http.Hijacker); ok {
+		return hijacker.Hijack()
+	}
+
+	return nil, nil, fmt.Errorf("interface Hijacker not supported")
 }
 
 func (rw *responseWriter) Push(target string, opts *http.PushOptions) error {
-	return rw.rw.(http.Pusher).Push(target, opts)
-}
-
-func (rw *responseWriter) CloseNotify() <-chan bool {
-	return rw.rw.(http.CloseNotifier).CloseNotify() //nolint
+	if pusher, ok := rw.rw.(http.Pusher); ok {
+		return pusher.Push(target, opts)
+	}
+	return fmt.Errorf("interface Pusher not supported")
 }

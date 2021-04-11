@@ -27,8 +27,8 @@ type Node interface {
 	// Proxy returns an HTTP proxy to the downstream Priv Tx Manager node
 	ProxyPrivTxManager() http.Handler
 
-	// Returns a session
-	Session(id string) Session
+	// Returns a session contextualized to a request
+	Session(*jsonrpc.Request) (Session, error)
 }
 
 // Session holds client interface to a downstream node
@@ -43,8 +43,8 @@ type Session interface {
 	Close()
 }
 
-// NewNode creates a new
-func NewNode(cfg *Config) (Node, error) {
+// New creates a new
+func New(cfg *Config) (Node, error) {
 	cfg.SetDefault()
 	n := new(node)
 	var err error
@@ -84,11 +84,15 @@ func (n *node) ProxyPrivTxManager() http.Handler {
 	return n.privTMngr.http.proxy
 }
 
-func (n *node) Session(id string) Session {
+// Session returns a new session
+func (n *node) Session(req *jsonrpc.Request) (Session, error) {
+	client := jsonrpc.WithID(req.ID())(n.rpc.client)
+	client = jsonrpc.WithVersion(req.Version())(client)
+
 	return &session{
 		node:      n,
-		rpcCaller: jsonrpc.NewCaller(jsonrpc.WithID(id)(n.rpc.client)),
-	}
+		rpcCaller: jsonrpc.NewCaller(client, req),
+	}, nil
 }
 
 type session struct {

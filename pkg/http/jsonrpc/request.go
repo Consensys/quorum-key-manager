@@ -40,6 +40,10 @@ func (req *Request) WithRequest(r *http.Request) *Request {
 	return req
 }
 
+func (req *Request) WithContext(ctx context.Context) *Request {
+	return req.WithRequest(req.Request().WithContext(ctx))
+}
+
 // Clone request
 func (req *Request) Clone(ctx context.Context) *Request {
 	newReq := new(Request)

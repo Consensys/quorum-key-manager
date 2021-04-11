@@ -38,11 +38,8 @@ func TestWebSocketTCPClose(t *testing.T) {
 	errChan := make(chan error, 1)
 	upgrader := gorillawebsocket.Upgrader{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Serving Piou")
-
 		c, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			fmt.Printf("Error Upgrading Piou: %v\n", err)
 			return
 		}
 		defer c.Close()

@@ -92,14 +92,14 @@ type idClient struct {
 }
 
 // WithID wraps a client with an ID counter an increases it each time a new request comes out
-func WithID(baseID string) func(Client) Client {
+func WithID(id interface{}) func(Client) Client {
 	return func(c Client) Client {
 		idC := &idClient{
 			client: c,
 		}
 
-		if baseID != "" {
-			idC.baseID = fmt.Sprintf("%v.", baseID)
+		if id != nil {
+			idC.baseID = fmt.Sprintf("%v.", id)
 		}
 
 		return idC
@@ -154,11 +154,13 @@ type Caller interface {
 
 type caller struct {
 	client Client
+	req    *Request
 }
 
-func NewCaller(c Client) Caller {
+func NewCaller(c Client, req *Request) Caller {
 	return &caller{
 		client: c,
+		req:    req,
 	}
 }
 
@@ -174,11 +176,8 @@ func NewCaller(c Client) Caller {
 func (c *caller) Call(ctx context.Context, method string, params interface{}) (*Response, error) {
 	req := RequestFromContext(ctx)
 	if req == nil {
-		// developer should make sure a request has been attached to context
-		panic("missing request on context")
+		req = c.req
 	}
 
-	req = req.Clone(ctx).WithMethod(method).WithParams(params)
-
-	return c.client.Do(req)
+	return c.client.Do(req.Clone(ctx).WithMethod(method).WithParams(params))
 }

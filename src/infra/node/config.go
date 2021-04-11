@@ -8,6 +8,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 )
 
+// ProxyConfig
 type ProxyConfig struct {
 	Request  *request.ProxyConfig  `json:"request,omitempty"`
 	Response *response.ProxyConfig `json:"response,omitempty"`
@@ -28,7 +29,7 @@ type DownstreamConfig struct {
 	Addr          string            `json:"addr,omitempty"`
 	Transport     *transport.Config `json:"transport,omitempty"`
 	Proxy         *ProxyConfig      `json:"proxy,omitempty"`
-	ClientTimeout *json.Duration    `json:"timeout,omitempty"`
+	ClientTimeout *json.Duration    `json:"clientTimeout,omitempty"`
 }
 
 func (cfg *DownstreamConfig) SetDefault() {
@@ -68,6 +69,7 @@ type Config struct {
 
 func (cfg *Config) SetDefault() {
 	if cfg.RPC == nil {
-		cfg.RPC.SetDefault()
+		cfg.RPC = new(DownstreamConfig)
 	}
+	cfg.RPC.SetDefault()
 }
