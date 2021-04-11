@@ -27,6 +27,6 @@ func New(bcknd core.Backend) http.Handler {
 	r.PathPrefix(keysPrefix).Handler(middleware.StripPrefix(keysPrefix, keysapi.New(bcknd)))
 	r.PathPrefix(accountsPrefix).Handler(middleware.StripPrefix(accountsPrefix, accountsapi.New(bcknd)))
 	r.PathPrefix(storesPrefix).Handler(middleware.StripPrefix(storesPrefix, storesapi.New(bcknd)))
-	r.PathPrefix(jsonRPCPrefix).Handler(middleware.StripPrefix(jsonRPCPrefix, jsonrpcapi.New(bcknd)))
+	r.PathPrefix(jsonRPCPrefix).Methods(http.MethodPost).Handler(middleware.StripPrefix(jsonRPCPrefix, jsonrpcapi.New(bcknd)))
 	return middleware.New(bcknd)(r)
 }
