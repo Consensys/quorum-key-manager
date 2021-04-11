@@ -33,7 +33,7 @@ Environment variable: %q`, httpPortEnv)
 const (
 	httpHostFlag     = "http-host"
 	httpHostViperKey = "http.host"
-	httpHostDefault  = "localhost"
+	httpHostDefault  = ""
 	httpHostEnv      = "HTTP_HOST"
 )
 
