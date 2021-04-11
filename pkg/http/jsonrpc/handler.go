@@ -105,8 +105,7 @@ func NotImplementedMethodHandler() Handler { return HandlerFunc(NotImplementedMe
 // LoggedHandler
 func LoggedHandler(h Handler) Handler {
 	return HandlerFunc(func(rw ResponseWriter, req *Request) {
-		logger := log.FromContext(req.Request().Context())
-		logger.
+		log.FromContext(req.Request().Context()).
 			WithField("version", req.Version()).
 			WithField("id", req.ID()).
 			WithField("method", req.Method()).

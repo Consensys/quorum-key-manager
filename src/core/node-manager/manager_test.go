@@ -88,4 +88,7 @@ func TestManager(t *testing.T) {
 	require.NoError(t, err, "List must not error")
 	require.Equal(t, []string{"node-test1", "node-test2"}, l, "List must return correct value")
 
+	n, err = mngr.Node(context.Background(), "")
+	require.NoError(t, err, "Default node must not error")
+	require.NotNil(t, n, "Default node must not be nil")
 }

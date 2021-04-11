@@ -63,6 +63,11 @@ func (m *manager) Node(_ context.Context, name string) (node.Node, error) {
 		return nodeBundle.node, nodeBundle.err
 	}
 
+	// This piece of code is here to make sure it is possible to retrieve a default node
+	for _, nodeBundle := range m.nodes {
+		return nodeBundle.node, nodeBundle.err
+	}
+
 	return nil, fmt.Errorf("node not found")
 }
 

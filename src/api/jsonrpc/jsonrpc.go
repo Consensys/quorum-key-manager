@@ -5,19 +5,25 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
 )
+
+func Proxy(rw jsonrpc.ResponseWriter, req *jsonrpc.Request) {
+	nodemanager.SessionFromContext(req.Request().Context()).ProxyRPC().ServeRPC(rw, req)
+}
 
 // New creates a http.Handler to be served on JSON-RPC
 func New(bcknd core.Backend) http.Handler {
 	// Only JSON-RPC v2 is supported
 	router := jsonrpc.NewRouter().DefaultHandler(jsonrpc.NotSupportedVersionHandler())
-	v2Router := router.Version("2.0").Subrouter().DefaultHandler(jsonrpc.NotImplementedMethodHandler())
+	v2Router := router.Version("2.0").Subrouter().DefaultHandler(jsonrpc.HandlerFunc(Proxy))
 
 	// Silence personal
 	v2Router.MethodPrefix("personal_").Handle(jsonrpc.InvalidMethodHandler())
 
 	// Wrap handler into middlewares
-	handler := jsonrpc.LoggedHandler(router)
+	handler := nodemanager.NewMiddleware(bcknd.NodeManager()).Next(router)
+	handler = jsonrpc.LoggedHandler(handler)
 
 	return jsonrpc.ToHTTPHandler(handler)
 }

@@ -15,7 +15,8 @@ func NewMiddleware(mngr Manager) *Middleware {
 }
 
 func (m *Middleware) ServeRPC(rw jsonrpc.ResponseWriter, req *jsonrpc.Request, next jsonrpc.Handler) {
-	node, err := m.mngr.Node(req.Request().Context(), "") // so far we support only one node
+	// so far we support we use default node
+	node, err := m.mngr.Node(req.Request().Context(), "")
 	if err != nil {
 		_ = rw.WriteError(err)
 		return
