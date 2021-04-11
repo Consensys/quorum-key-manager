@@ -4,6 +4,7 @@ x-default-variables: &default-variables
   LOG_LEVEL: ${LOG_LEVEL-INFO}
   HTTP_HOST: ${HTTP_HOST-localhost}
   HTTP_PORT: ${HTTP_PORT-8080}
+  NODE_ADDR: ${NODE_ADDR-8080}
 
 x-container-common: &container-common
   image: golang:1.15-buster
@@ -21,7 +22,7 @@ services:
     environment:
       <<: *default-variables
     ports:
-      - 8080:8080
+      - "8080:8080"
     restart: "no"
     command: run
 

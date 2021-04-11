@@ -55,3 +55,21 @@ down-dev: down-deps
 
 run: gobuild
 	@build/bin/key-manager run
+
+go-quorum:
+	@docker-compose -f deps/go-quorum/docker-compose.yml up -d
+
+stop-go-quorum:
+	@docker-compose -f deps/go-quorum/docker-compose.yml stop
+
+down-go-quorum:
+	@docker-compose -f deps/go-quorum/docker-compose.yml down --volumes --timeout 0
+
+besu:
+	@docker-compose -f deps/besu/docker-compose.yml up -d
+
+stop-besu:
+	@docker-compose -f deps/besu/docker-compose.yml stop
+
+down-besu:
+	@docker-compose -f deps/besu/docker-compose.yml down --volumes --timeout 0
