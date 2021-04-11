@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Duration is a duration that can be Marshal and Unmarshal
 type Duration struct {
 	time.Duration
 }
