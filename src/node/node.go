@@ -32,6 +32,8 @@ type Node interface {
 }
 
 // Session holds client interface to a downstream node
+// A session holds contextual data and is meant to be re-used across calls to the downstream JSON-RPC
+// Typically when proxying a request which may end up in multiple calls to the downstream node
 type Session interface {
 	// Node returns the node that generated this session
 	Node
@@ -43,7 +45,7 @@ type Session interface {
 	Close()
 }
 
-// New creates a new
+// New creates a Node
 func New(cfg *Config) (Node, error) {
 	cfg.SetDefault()
 	n := new(node)
