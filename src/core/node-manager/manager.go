@@ -7,7 +7,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/node"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 )
 
 var NodeKind manifest.Kind = "Node"

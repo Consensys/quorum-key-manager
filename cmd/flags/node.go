@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/node"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

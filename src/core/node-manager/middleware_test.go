@@ -6,13 +6,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager/mock"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/node"
-	mocknode "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/node/mock"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
+	mocknode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/mock"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 type requestMatcher struct {
@@ -25,7 +24,7 @@ func (m requestMatcher) Matches(x interface{}) bool {
 		return false
 	}
 
-	sess := SessionFromContext(req.Request().Context())
+	sess := node.SessionFromContext(req.Request().Context())
 
 	return sess == m.session
 

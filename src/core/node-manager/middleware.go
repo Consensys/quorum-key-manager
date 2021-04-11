@@ -2,6 +2,7 @@ package nodemanager
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 )
 
 type Middleware struct {
@@ -16,21 +17,21 @@ func NewMiddleware(mngr Manager) *Middleware {
 
 func (m *Middleware) ServeRPC(rw jsonrpc.ResponseWriter, req *jsonrpc.Request, next jsonrpc.Handler) {
 	// so far we support we use default node
-	node, err := m.mngr.Node(req.Request().Context(), "")
+	n, err := m.mngr.Node(req.Request().Context(), "")
 	if err != nil {
 		_ = rw.WriteError(err)
 		return
 	}
 
 	// Get session for the request
-	session, err := node.Session(req)
+	session, err := n.Session(req)
 	if err != nil {
 		_ = rw.WriteError(err)
 		return
 	}
 
 	// Execute next handler with session attached to request context
-	next.ServeRPC(rw, req.WithContext(WithSession(req.Request().Context(), session)))
+	next.ServeRPC(rw, req.WithContext(node.WithSession(req.Request().Context(), session)))
 }
 
 func (m *Middleware) Next(h jsonrpc.Handler) jsonrpc.Handler {

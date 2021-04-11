@@ -6,10 +6,12 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 )
 
+// Proxy proxies the request to session downstream JSON-RPC
 func Proxy(rw jsonrpc.ResponseWriter, req *jsonrpc.Request) {
-	nodemanager.SessionFromContext(req.Request().Context()).ProxyRPC().ServeRPC(rw, req)
+	node.SessionFromContext(req.Request().Context()).ProxyRPC().ServeRPC(rw, req)
 }
 
 // New creates a http.Handler to be served on JSON-RPC

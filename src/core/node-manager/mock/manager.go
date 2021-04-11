@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	node "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/node"
+	node "github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 	gomock "github.com/golang/mock/gomock"
 )
 
