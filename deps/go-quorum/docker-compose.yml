@@ -196,7 +196,7 @@ services:
       - PRIVATE_CONFIG=/qdata/tm/tm.ipc
       - NODE_ID=1
     networks:
-      key-manager:
+      quorum:
       quorum-tessera:
         ipv4_address: 172.16.239.11
   tessera1:
@@ -226,7 +226,7 @@ services:
       - PRIVATE_CONFIG=/qdata/tm/tm.ipc
       - NODE_ID=2
     networks:
-      key-manager:
+      quorum:
       quorum-tessera:
         ipv4_address: 172.16.239.12
   tessera2:
@@ -254,7 +254,7 @@ services:
       - PRIVATE_CONFIG=/qdata/tm/tm.ipc
       - NODE_ID=3
     networks:
-      key-manager:
+      quorum:
       quorum-tessera:
         ipv4_address: 172.16.239.13
   tessera3:
@@ -275,9 +275,9 @@ networks:
   quorum-tessera:
     external:
       name: deps_quorum-tessera
-  key-manager:
+  quorum:
     external:
-      name: key-manager
+      name: quorum
 
 volumes:
   vol1:

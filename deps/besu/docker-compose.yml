@@ -5,7 +5,7 @@ x-orion-common: &orion-common
   image: pegasyseng/orion:1.6.0
   entrypoint: ["bash", "orion.sh"]
   networks:
-    - key-manager
+    - quorum
   volumes:
     - ./orion.sh:/opt/orion/orion.sh
     - ./config:/config
@@ -17,7 +17,7 @@ x-besu-common: &besu-common
   image: hyperledger/besu:1.5.5
   entrypoint: ["bash", "besu.sh"]
   networks:
-    - key-manager
+    - quorum
 
 x-besu-env-common: &besu-env-common
   RPC_HTTP_API: WEB3,ETH,NET,EEA,PRIV,ADMIN,PERM,TXPOOL,ibft
@@ -34,8 +34,6 @@ services:
       ORION_URL: http://orion1:8888
       ORION_NAME: orion1
       BOOTNODE: 1
-    ports:
-      - 8540:8545
     depends_on:
       - orion1
     volumes:
@@ -56,8 +54,6 @@ services:
       NODE_NAME: validator2
       ORION_URL: http://orion2:8888
       ORION_NAME: orion2
-    ports:
-      - 8544:8545
     depends_on:
       - orion2
       - validator1-bootnode
@@ -81,8 +77,6 @@ services:
       NODE_NAME: validator3
       ORION_URL: http://orion3:8888
       ORION_NAME: orion3
-    ports:
-      - 8545:8545
     depends_on:
       - validator1-bootnode
       - orion3
@@ -100,9 +94,9 @@ services:
       - orion1
 
 networks:
-  key-manager:
+  quorum:
     external:
-      name: key-manager
+      name: quorum
 
 volumes:
   public-keys:

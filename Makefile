@@ -26,10 +26,10 @@ lint-tools: ## Install linting tools
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 
 hashicorp:
-	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_VAULT)
+	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_VAULT)
 
 hashicorp-down:
-	@docker-compose -f deps/docker-compose.yml down $(DEPS_VAULT)
+	@docker-compose -f deps/hashicorp/docker-compose.yml down $(DEPS_VAULT)
 
 deps: hashicorp
 
