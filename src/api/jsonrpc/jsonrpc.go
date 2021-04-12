@@ -5,7 +5,6 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
-	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
 )
 
 // New creates a http.Handler to be served on JSON-RPC
@@ -20,7 +19,7 @@ func New(bcknd core.Backend) http.Handler {
 	// Wrap router into middlewares
 
 	// Node Manager Middleware is responsible to attach Node session to context
-	handler := nodemanager.NewMiddleware(bcknd.NodeManager()).Next(router)
+	handler := NewNodeMiddleware(bcknd.NodeManager()).Next(router)
 
 	handler = jsonrpc.LoggedHandler(handler)
 

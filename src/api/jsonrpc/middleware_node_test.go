@@ -1,4 +1,4 @@
-package nodemanager
+package jsonrpcapi
 
 import (
 	"bytes"
@@ -39,7 +39,7 @@ func TestMiddleware(t *testing.T) {
 	defer ctrl.Finish()
 
 	mngr := mock.NewMockManager(ctrl)
-	mid := NewMiddleware(mngr)
+	mid := NewNodeMiddleware(mngr)
 	n := mocknode.NewMockNode(ctrl)
 	next := jsonrpc.NewMockHandler(ctrl)
 
@@ -56,7 +56,7 @@ func TestMiddleware(t *testing.T) {
 	err := req.ReadBody()
 	require.NoError(t, err, "ReadBody should not error")
 
-	mngr.EXPECT().Node(gomock.Any(), "").Return(n, nil)
+	mngr.EXPECT().Node(gomock.Any(), "default").Return(n, nil)
 
 	session := mocknode.NewMockSession(ctrl)
 	n.EXPECT().Session(req).Return(session, nil)
