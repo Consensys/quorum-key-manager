@@ -3,6 +3,7 @@ package nodemanager
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
@@ -80,6 +81,8 @@ func (m *manager) List(_ context.Context) ([]string, error) {
 	for name := range m.nodes {
 		nodeNames = append(nodeNames, name)
 	}
+
+	sort.Strings(nodeNames)
 
 	return nodeNames, nil
 }
