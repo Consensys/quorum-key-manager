@@ -172,7 +172,8 @@ func (req *Request) UnmarshalParams(v interface{}) error {
 
 // Error returns a possible error encountered while reading JSON-RPC request
 func (req *Request) Error() error {
-	// Force request loading
+	// call getMsg so if ReadBody has been called in parallel
+	// then it will block until ReadBody completes and return the error
 	_ = req.getMsg()
 	return req.err
 }
