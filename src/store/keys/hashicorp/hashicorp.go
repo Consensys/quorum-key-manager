@@ -5,8 +5,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 
@@ -24,6 +22,9 @@ const (
 	privateKeyLabel = "privateKey"
 	dataLabel       = "data"
 	signatureLabel  = "signatureLabel"
+	versionLabel    = "version"
+	createdAtLabel  = "createdAt"
+	updatedAtLabel  = "updatedAt"
 )
 
 // Store is an implementation of key store relying on Hashicorp Vault ConsenSys secret engine
@@ -33,7 +34,7 @@ type KeyStore struct {
 }
 
 // New creates an HashiCorp key store
-func New(client hashicorp.VaultClient, mountPoint string) keys.Store {
+func New(client hashicorp.VaultClient, mountPoint string) *KeyStore {
 	return &KeyStore{
 		client:     client,
 		mountPoint: mountPoint,
