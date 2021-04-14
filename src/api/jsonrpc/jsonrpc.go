@@ -16,6 +16,9 @@ func New(bcknd core.Backend) http.Handler {
 	// Silence JSON-RPC personal
 	v2Router.MethodPrefix("personal_").Handle(jsonrpc.MethodNotFoundHandler())
 
+	// TODO: when implementing interceptors below is an example of declaring a JSON-RPC route
+	// v2Router.MethodPrefix("eth_sendTransaction").Handle(jsonrpc.SendTransationHander())
+
 	// Wrap router into middlewares
 
 	// Node Manager Middleware is responsible to attach Node session to context
