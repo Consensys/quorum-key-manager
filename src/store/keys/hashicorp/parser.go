@@ -2,9 +2,10 @@ package hashicorp
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/hashicorp/vault/api"
-	"time"
 )
 
 func parseResponse(hashicorpSecret *api.Secret) *entities.Key {
