@@ -2,6 +2,7 @@ package hashicorp
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"time"
 
@@ -21,7 +22,7 @@ const (
 	publicKeyLabel  = "publicKey"
 	privateKeyLabel = "privateKey"
 	dataLabel       = "data"
-	signatureLabel  = "signatureLabel"
+	signatureLabel  = "signature"
 	versionLabel    = "version"
 	createdAtLabel  = "createdAt"
 	updatedAtLabel  = "updatedAt"
@@ -88,6 +89,10 @@ func (s *KeyStore) Get(_ context.Context, id, version string) (*entities.Key, er
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
+	if res.Data["error"] != nil {
+		return nil, errors.NotFoundError("could not find key pair")
+	}
+
 	return parseResponse(res), nil
 }
 
@@ -98,9 +103,14 @@ func (s *KeyStore) List(_ context.Context) ([]string, error) {
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
-	ids, ok := res.Data["keys"].([]string)
+	keys, ok := res.Data["keys"].([]interface{})
 	if !ok {
 		return []string{}, nil
+	}
+
+	var ids []string
+	for _, id := range keys {
+		ids = append(ids, id.(string))
 	}
 
 	return ids, nil
@@ -155,6 +165,7 @@ func (s *KeyStore) Sign(_ context.Context, id, data, version string) (string, er
 		return "", hashicorpclient.ParseErrorResponse(err)
 	}
 
+	fmt.Println(res.Data)
 	return res.Data[signatureLabel].(string), nil
 }
 
