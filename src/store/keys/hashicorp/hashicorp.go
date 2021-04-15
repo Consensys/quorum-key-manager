@@ -2,7 +2,6 @@ package hashicorp
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"time"
 
@@ -19,13 +18,13 @@ const (
 	curveLabel      = "curve"
 	algorithmLabel  = "algorithm"
 	tagsLabel       = "tags"
-	publicKeyLabel  = "publicKey"
+	publicKeyLabel  = "public_key"
 	privateKeyLabel = "privateKey"
 	dataLabel       = "data"
 	signatureLabel  = "signature"
 	versionLabel    = "version"
-	createdAtLabel  = "createdAt"
-	updatedAtLabel  = "updatedAt"
+	createdAtLabel  = "created_at"
+	updatedAtLabel  = "updated_at"
 )
 
 // Store is an implementation of key store relying on Hashicorp Vault ConsenSys secret engine
@@ -165,7 +164,6 @@ func (s *KeyStore) Sign(_ context.Context, id, data, version string) (string, er
 		return "", hashicorpclient.ParseErrorResponse(err)
 	}
 
-	fmt.Println(res.Data)
 	return res.Data[signatureLabel].(string), nil
 }
 

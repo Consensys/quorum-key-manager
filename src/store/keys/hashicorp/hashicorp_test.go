@@ -58,17 +58,17 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":        id,
-			"publicKey": publicKey,
-			"curve":     entities.Secp256k1,
-			"algorithm": entities.Ecdsa,
+			"id":         id,
+			"public_key": publicKey,
+			"curve":      entities.Secp256k1,
+			"algorithm":  entities.Ecdsa,
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
 			},
-			"version":   json.Number("1"),
-			"createdAt": time.Now().Format(time.RFC3339),
-			"updatedAt": time.Now().Format(time.RFC3339),
+			"version":    json.Number("1"),
+			"created_at": time.Now().Format(time.RFC3339),
+			"updated_at": time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -160,17 +160,17 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":        id,
-			"publicKey": publicKey,
-			"curve":     entities.Secp256k1,
-			"algorithm": entities.Ecdsa,
+			"id":         id,
+			"public_key": publicKey,
+			"curve":      entities.Secp256k1,
+			"algorithm":  entities.Ecdsa,
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
 			},
-			"version":   json.Number("1"),
-			"createdAt": time.Now().Format(time.RFC3339),
-			"updatedAt": time.Now().Format(time.RFC3339),
+			"version":    json.Number("1"),
+			"created_at": time.Now().Format(time.RFC3339),
+			"updated_at": time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -253,17 +253,17 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	attributes := testutils.FakeAttributes()
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":        id,
-			"publicKey": publicKey,
-			"curve":     entities.Secp256k1,
-			"algorithm": entities.Ecdsa,
+			"id":         id,
+			"public_key": publicKey,
+			"curve":      entities.Secp256k1,
+			"algorithm":  entities.Ecdsa,
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
 			},
-			"version":   json.Number("1"),
-			"createdAt": time.Now().Format(time.RFC3339),
-			"updatedAt": time.Now().Format(time.RFC3339),
+			"version":    json.Number("1"),
+			"created_at": time.Now().Format(time.RFC3339),
+			"updated_at": time.Now().Format(time.RFC3339),
 		},
 	}
 
