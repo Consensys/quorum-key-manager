@@ -15,7 +15,7 @@ type ClientConfig struct {
 	HTTP    *httpclient.Config `json:"http,omitempty"`
 }
 
-func (cfg *ClientConfig) SetDefault() {
+func (cfg *ClientConfig) SetDefault() *ClientConfig {
 	if cfg.HTTP == nil {
 		cfg.HTTP = new(httpclient.Config)
 	}
@@ -25,6 +25,8 @@ func (cfg *ClientConfig) SetDefault() {
 	if cfg.Version == "" {
 		cfg.Version = defaultVersion
 	}
+
+	return cfg
 }
 
 // Client is an jsonrpc client interface

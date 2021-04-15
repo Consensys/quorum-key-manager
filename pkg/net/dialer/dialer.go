@@ -3,11 +3,7 @@ package dialer
 import "net"
 
 func New(cfg *Config) *net.Dialer {
-	if cfg == nil {
-		cfg = new(Config)
-	}
-
-	cfg.SetDefault()
+	cfg = cfg.Copy().SetDefault()
 
 	return &net.Dialer{
 		Timeout:   cfg.Timeout.Duration,

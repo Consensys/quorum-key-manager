@@ -11,7 +11,22 @@ type Config struct {
 	KeepAlive *json.Duration `json:"keepAlive,omitempty" description:"Interval between keep-alive probes for an active network connection (if zero, if default to 15 seconds)"`
 }
 
-func (cfg *Config) SetDefault() {
+func (cfg *Config) Copy() *Config {
+	if cfg == nil {
+		return nil
+	}
+
+	return &Config{
+		Timeout:   cfg.Timeout.Copy(),
+		KeepAlive: cfg.KeepAlive.Copy(),
+	}
+}
+
+func (cfg *Config) SetDefault() *Config {
+	if cfg == nil {
+		cfg = new(Config)
+	}
+
 	if cfg.Timeout == nil {
 		cfg.Timeout = &json.Duration{Duration: 30 * time.Second}
 	}
@@ -19,4 +34,6 @@ func (cfg *Config) SetDefault() {
 	if cfg.KeepAlive == nil {
 		cfg.KeepAlive = &json.Duration{Duration: 30 * time.Second}
 	}
+
+	return cfg
 }

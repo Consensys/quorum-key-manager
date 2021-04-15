@@ -28,11 +28,7 @@ func New(
 	preparer request.Preparer,
 	modifier response.Modifier,
 ) (Client, error) {
-	if cfg == nil {
-		cfg = new(Config)
-	}
-
-	cfg.SetDefault()
+	cfg = cfg.Copy().SetDefault()
 
 	var err error
 	if trnsprt == nil {

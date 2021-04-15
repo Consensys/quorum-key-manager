@@ -47,7 +47,8 @@ type Session interface {
 
 // New creates a Node
 func New(cfg *Config) (Node, error) {
-	cfg.SetDefault()
+	cfg = cfg.Copy().SetDefault()
+
 	n := new(node)
 	var err error
 	n.rpc, err = newRPCDownstream(cfg.RPC)
@@ -119,8 +120,6 @@ type httpDownstream struct {
 }
 
 func newhttpDownstream(cfg *DownstreamConfig) (*httpDownstream, error) {
-	cfg.SetDefault()
-
 	n := new(httpDownstream)
 	var err error
 	n.transport, err = transport.New(cfg.Transport)
@@ -155,8 +154,6 @@ type rpcDownstream struct {
 }
 
 func newRPCDownstream(cfg *DownstreamConfig) (*rpcDownstream, error) {
-	cfg.SetDefault()
-
 	n := new(rpcDownstream)
 	var err error
 	n.http, err = newhttpDownstream(cfg)
@@ -182,8 +179,6 @@ type privTxMngrDownstream struct {
 }
 
 func newPrivTxMngrDownstream(cfg *DownstreamConfig) (*privTxMngrDownstream, error) {
-	cfg.SetDefault()
-
 	n := new(privTxMngrDownstream)
 	var err error
 	n.http, err = newhttpDownstream(cfg)

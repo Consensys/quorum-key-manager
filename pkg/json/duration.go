@@ -28,3 +28,12 @@ func (d *Duration) UnmarshalJSON(b []byte) (err error) {
 func (d Duration) MarshalJSON() (b []byte, err error) {
 	return []byte(fmt.Sprintf(`"%s"`, d.String())), nil
 }
+
+func (d *Duration) Copy() *Duration {
+	if d == nil {
+		return nil
+	}
+	return &Duration{
+		Duration: d.Duration,
+	}
+}

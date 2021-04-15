@@ -19,11 +19,7 @@ func New(
 	errorHandler HandleRoundTripErrorFunc,
 	pool httputil.BufferPool,
 ) (*httputil.ReverseProxy, error) {
-	if cfg == nil {
-		cfg = new(Config)
-	}
-
-	cfg.SetDefault()
+	cfg = cfg.Copy().SetDefault()
 
 	var err error
 	if trnsprt == nil {

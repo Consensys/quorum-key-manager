@@ -14,7 +14,17 @@ type ProxyConfig struct {
 	Response *response.ProxyConfig `json:"response,omitempty"`
 }
 
-func (cfg *ProxyConfig) SetDefault() {
+func (cfg *ProxyConfig) Copy() *ProxyConfig {
+	if cfg == nil {
+		return nil
+	}
+	return &ProxyConfig{
+		Request:  cfg.Request.Copy(),
+		Response: cfg.Response.Copy(),
+	}
+}
+
+func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
 	if cfg.Request == nil {
 		cfg.Request = new(request.ProxyConfig)
 	}
@@ -22,6 +32,8 @@ func (cfg *ProxyConfig) SetDefault() {
 	if cfg.Response == nil {
 		cfg.Response = new(response.ProxyConfig)
 	}
+
+	return cfg
 }
 
 // DownstreamConfig
@@ -32,9 +44,21 @@ type DownstreamConfig struct {
 	ClientTimeout *json.Duration    `json:"clientTimeout,omitempty"`
 }
 
-func (cfg *DownstreamConfig) SetDefault() {
-	defaultCfg := new(httpclient.Config)
-	defaultCfg.SetDefault()
+func (cfg *DownstreamConfig) Copy() *DownstreamConfig {
+	if cfg == nil {
+		return nil
+	}
+
+	return &DownstreamConfig{
+		Addr:          cfg.Addr,
+		Transport:     cfg.Transport.Copy(),
+		Proxy:         cfg.Proxy.Copy(),
+		ClientTimeout: cfg.ClientTimeout.Copy(),
+	}
+}
+
+func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
+	defaultCfg := new(httpclient.Config).SetDefault()
 
 	if cfg.Transport == nil {
 		cfg.Transport = defaultCfg.Transport
@@ -59,6 +83,8 @@ func (cfg *DownstreamConfig) SetDefault() {
 	if cfg.ClientTimeout == nil {
 		cfg.ClientTimeout = defaultCfg.Timeout
 	}
+
+	return cfg
 }
 
 // Config is the cfg format for an Hashicorp Vault secret store
@@ -67,9 +93,27 @@ type Config struct {
 	PrivTxManager *DownstreamConfig `json:"tessera,omitempty"`
 }
 
-func (cfg *Config) SetDefault() {
+func (cfg *Config) Copy() *Config {
+	return &Config{
+		RPC:           cfg.RPC.Copy(),
+		PrivTxManager: cfg.PrivTxManager.Copy(),
+	}
+}
+
+func (cfg *Config) SetDefault() *Config {
+	if cfg == nil {
+		return nil
+	}
+
 	if cfg.RPC == nil {
 		cfg.RPC = new(DownstreamConfig)
 	}
+
 	cfg.RPC.SetDefault()
+
+	if cfg.PrivTxManager != nil {
+		cfg.PrivTxManager.SetDefault()
+	}
+
+	return cfg
 }

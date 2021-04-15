@@ -11,11 +11,7 @@ import (
 
 // New creates an http.RoundTripper configured with the Transport configuration settings.
 func New(cfg *Config) (http.RoundTripper, error) {
-	if cfg == nil {
-		cfg = new(Config)
-	}
-
-	cfg.SetDefault()
+	cfg = cfg.Copy().SetDefault()
 
 	// Create dialer
 	dlr := dialer.New(cfg.Dialer)

@@ -21,9 +21,29 @@ type Config struct {
 	EnableH2C             bool           `json:"enableH2C,omitempty" description:"Enables H2C connection"`
 }
 
-func (cfg *Config) SetDefault() {
+func (cfg *Config) Copy() *Config {
+	if cfg == nil {
+		return nil
+	}
+
+	cpy := new(Config)
+	*cpy = *cfg
+
+	cpy.Dialer = cfg.Dialer.Copy()
+	cpy.IdleConnTimeout = cfg.IdleConnTimeout.Copy()
+	cpy.ResponseHeaderTimeout = cfg.ResponseHeaderTimeout.Copy()
+	cpy.ExpectContinueTimeout = cfg.ExpectContinueTimeout.Copy()
+
+	return cpy
+}
+
+func (cfg *Config) SetDefault() *Config {
+	if cfg == nil {
+		cfg = new(Config)
+	}
+
 	if cfg.Dialer == nil {
-		cfg.Dialer = &dialer.Config{}
+		cfg.Dialer = new(dialer.Config)
 	}
 
 	cfg.Dialer.SetDefault()
@@ -40,4 +60,5 @@ func (cfg *Config) SetDefault() {
 		cfg.ExpectContinueTimeout = &json.Duration{Duration: time.Second}
 	}
 
+	return cfg
 }
