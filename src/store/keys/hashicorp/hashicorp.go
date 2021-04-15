@@ -5,8 +5,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 
@@ -20,10 +18,13 @@ const (
 	curveLabel      = "curve"
 	algorithmLabel  = "algorithm"
 	tagsLabel       = "tags"
-	publicKeyLabel  = "publicKey"
+	publicKeyLabel  = "public_key"
 	privateKeyLabel = "privateKey"
 	dataLabel       = "data"
-	signatureLabel  = "signatureLabel"
+	signatureLabel  = "signature"
+	versionLabel    = "version"
+	createdAtLabel  = "created_at"
+	updatedAtLabel  = "updated_at"
 )
 
 // Store is an implementation of key store relying on Hashicorp Vault ConsenSys secret engine
@@ -33,7 +34,7 @@ type KeyStore struct {
 }
 
 // New creates an HashiCorp key store
-func New(client hashicorp.VaultClient, mountPoint string) keys.Store {
+func New(client hashicorp.VaultClient, mountPoint string) *KeyStore {
 	return &KeyStore{
 		client:     client,
 		mountPoint: mountPoint,
@@ -87,6 +88,10 @@ func (s *KeyStore) Get(_ context.Context, id, version string) (*entities.Key, er
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
+	if res.Data["error"] != nil {
+		return nil, errors.NotFoundError("could not find key pair")
+	}
+
 	return parseResponse(res), nil
 }
 
@@ -97,9 +102,14 @@ func (s *KeyStore) List(_ context.Context) ([]string, error) {
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
-	ids, ok := res.Data["keys"].([]string)
+	keys, ok := res.Data["keys"].([]interface{})
 	if !ok {
 		return []string{}, nil
+	}
+
+	var ids []string
+	for _, id := range keys {
+		ids = append(ids, id.(string))
 	}
 
 	return ids, nil

@@ -2,8 +2,10 @@ package hashicorp
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
@@ -56,11 +58,17 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":        id,
-			"publicKey": publicKey,
-			"curve":     entities.Secp256k1,
-			"algorithm": entities.Ecdsa,
-			"tags":      testutils.FakeTags(),
+			"id":         id,
+			"public_key": publicKey,
+			"curve":      entities.Secp256k1,
+			"algorithm":  entities.Ecdsa,
+			"tags": map[string]interface{}{
+				"tag1": "tagValue1",
+				"tag2": "tagValue2",
+			},
+			"version":    json.Number("1"),
+			"created_at": time.Now().Format(time.RFC3339),
+			"updated_at": time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -152,11 +160,17 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":        id,
-			"publicKey": publicKey,
-			"curve":     entities.Secp256k1,
-			"algorithm": entities.Ecdsa,
-			"tags":      testutils.FakeTags(),
+			"id":         id,
+			"public_key": publicKey,
+			"curve":      entities.Secp256k1,
+			"algorithm":  entities.Ecdsa,
+			"tags": map[string]interface{}{
+				"tag1": "tagValue1",
+				"tag2": "tagValue2",
+			},
+			"version":    json.Number("1"),
+			"created_at": time.Now().Format(time.RFC3339),
+			"updated_at": time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -239,11 +253,17 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	attributes := testutils.FakeAttributes()
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":        id,
-			"publicKey": publicKey,
-			"curve":     entities.Secp256k1,
-			"algorithm": entities.Ecdsa,
-			"tags":      testutils.FakeTags(),
+			"id":         id,
+			"public_key": publicKey,
+			"curve":      entities.Secp256k1,
+			"algorithm":  entities.Ecdsa,
+			"tags": map[string]interface{}{
+				"tag1": "tagValue1",
+				"tag2": "tagValue2",
+			},
+			"version":    json.Number("1"),
+			"created_at": time.Now().Format(time.RFC3339),
+			"updated_at": time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -290,7 +310,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 func (s *hashicorpKeyStoreTestSuite) TestList() {
 	ctx := context.Background()
 	expectedPath := s.mountPoint + "/keys"
-	expectedIds := []string{"my-key1", "my-key2"}
+	expectedIds := []interface{}{"my-key1", "my-key2"}
 
 	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
 		hashicorpSecret := &hashicorp.Secret{
@@ -304,7 +324,7 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 		ids, err := s.keyStore.List(ctx)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedIds, ids)
+		assert.Equal(t, []string{"my-key1", "my-key2"}, ids)
 	})
 
 	s.T().Run("should fail with HashicorpVaultConnection error if list fails", func(t *testing.T) {

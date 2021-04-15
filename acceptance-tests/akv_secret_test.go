@@ -3,7 +3,6 @@
 package integrationtests
 
 import (
-	"fmt"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
@@ -160,7 +159,6 @@ func (s *akvSecretTestSuite) TestGet() {
 		secret, err := s.store.Get(ctx, id, "invalidVersion")
 
 		assert.Nil(t, secret)
-		fmt.Println(err)
 		require.True(t, errors.IsInvalidFormatError(err))
 	})
 
