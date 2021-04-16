@@ -52,10 +52,11 @@ func TestProvide(t *testing.T) {
 	cllr := NewCaller(WithVersion("2.0")(client), NewRequest(req))
 
 	// CtxInput_NoOutput
-	m := requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"CtxInput_NoOutput","params":null,"id":null}`),
-	}
+	m := testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"CtxInput_NoOutput","params":null,"id":null}`),
+	)
 	respBody := []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -65,10 +66,11 @@ func TestProvide(t *testing.T) {
 	srv.CtxInput_NoOutput(cllr)(context.Background())
 
 	// NoInput_NoOutput
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"NoInput_NoOutput","params":null,"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_NoOutput","params":null,"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -78,10 +80,11 @@ func TestProvide(t *testing.T) {
 	srv.NoInput_NoOutput(cllr)()
 
 	// NonCtxInput_NoOutput
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"NonCtxInput_NoOutput","params":[278],"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"NonCtxInput_NoOutput","params":[278],"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -91,10 +94,11 @@ func TestProvide(t *testing.T) {
 	srv.NonCtxInput_NoOutput(cllr)(278)
 
 	// MultiInput_NoOutput
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"MultiInput_NoOutput","params":[278,"hello world"],"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"MultiInput_NoOutput","params":[278,"hello world"],"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -104,10 +108,11 @@ func TestProvide(t *testing.T) {
 	srv.MultiInput_NoOutput(cllr)(context.Background(), 278, "hello world")
 
 	// NoInput_ErrorOutput
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"NoInput_ErrorOutput","params":null,"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_ErrorOutput","params":null,"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -120,10 +125,11 @@ func TestProvide(t *testing.T) {
 	require.Equal(t, -32600, err.(*ErrorMsg).Code)
 
 	// NoInput_IntOutput
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"NoInput_IntOutput","params":null,"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_IntOutput","params":null,"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "result": 45}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -134,10 +140,11 @@ func TestProvide(t *testing.T) {
 	assert.Equal(t, 45, res, "NoInput_IntOutput result should match")
 
 	// NoInput_IntErrorOutput
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"NoInput_IntErrorOutput","params":null,"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_IntErrorOutput","params":null,"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "result": 38}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -149,10 +156,11 @@ func TestProvide(t *testing.T) {
 	assert.Equal(t, 38, res, "NoInput_IntErrorOutput result should match")
 
 	// StructInput_StructOutput
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"StructInput_StructOutput","params":[{"value":"test-req-value"}],"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"StructInput_StructOutput","params":[{"value":"test-req-value"}],"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "result": {"value":"test-resp-value"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -165,10 +173,11 @@ func TestProvide(t *testing.T) {
 	assert.Equal(t, "test-resp-value", res2.Value, "StructInput_StructOutput result should match")
 
 	// AllTags
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"eth_testMethod","params":null,"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"eth_testMethod","params":null,"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -178,10 +187,11 @@ func TestProvide(t *testing.T) {
 	srv.AllTags(cllr)()
 
 	// MethodTag
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"testMethod","params":null,"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"testMethod","params":null,"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -191,10 +201,11 @@ func TestProvide(t *testing.T) {
 	srv.MethodTag(cllr)()
 
 	// NamespaceTag
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"eth_namespaceTag","params":null,"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"eth_namespaceTag","params":null,"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
@@ -204,10 +215,11 @@ func TestProvide(t *testing.T) {
 	srv.NamespaceTag(cllr)()
 
 	// ObjectTag
-	m = requestMatcher{
-		URLPath: "www.example.com",
-		Body:    []byte(`{"jsonrpc":"2.0","method":"ObjectTag","params":{"value":"test-req-value"},"id":null}`),
-	}
+	m = testutils.RequestMatcher(
+		t,
+		"www.example.com",
+		[]byte(`{"jsonrpc":"2.0","method":"ObjectTag","params":{"value":"test-req-value"},"id":null}`),
+	)
 	respBody = []byte(`{"jsonrpc": "1.0", "result": {"value":"test-resp-value"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
