@@ -3,6 +3,7 @@ package jsonrpc
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sync/atomic"
 
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
@@ -72,6 +73,16 @@ func (c *client) Do(req *Request) (*Response, error) {
 	err = resp.ReadBody()
 	if err != nil {
 		return resp, err
+	}
+
+	var respIDVal = reflect.New(reflect.TypeOf(req.ID()))
+	err = resp.UnmarshalID(respIDVal.Interface())
+	if err != nil {
+		return resp, err
+	}
+
+	if respIDVal.Elem().Interface() != req.ID() {
+		return resp, fmt.Errorf("request and response id didn't match")
 	}
 
 	err = resp.Error()

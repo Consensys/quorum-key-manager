@@ -58,7 +58,7 @@ func TestClient(t *testing.T) {
 		Body:    []byte(`{"jsonrpc":"2.0","method":"testMethod","params":[1,2,3],"id":"1"}`),
 	}
 
-	respBody := []byte(`{"jsonrpc": "1.0","id": "25", "error": {"code": -32600, "message":"test error message"}}`)
+	respBody := []byte(`{"jsonrpc": "1.0","id": "1", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
 		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
@@ -79,7 +79,7 @@ func TestClient(t *testing.T) {
 		Body:    []byte(`{"jsonrpc":"3.0","method":"testMethod","params":[1,2,3],"id":"abcd.1"}`),
 	}
 
-	respBody = []byte(`{"jsonrpc": "1.0","id": "25", "error": {"code": -32600, "message":"test error message"}}`)
+	respBody = []byte(`{"jsonrpc": "1.0","id": "abcd.1", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
 		StatusCode: http.StatusOK,
 		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
