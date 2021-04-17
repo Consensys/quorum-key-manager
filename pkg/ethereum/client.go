@@ -22,12 +22,15 @@ func init() {
 	}
 }
 
+// Client implement methods to interface with the JSON-RPC API of an ethereum client
+// It is some kind of Web3 interface
 type Client struct {
 	eth  *ethClient
 	eea  *eeaClient
 	priv *privClient
 }
 
+// NewClient creates a client from a jsonrpc.Caller
 func NewClient(cllr jsonrpc.Caller) *Client {
 	return &Client{
 		eth:  &ethClient{cllr},
