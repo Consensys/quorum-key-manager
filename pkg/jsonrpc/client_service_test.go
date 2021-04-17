@@ -55,7 +55,7 @@ func TestProvide(t *testing.T) {
 	m := testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"CtxInput_NoOutput","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"CtxInput_NoOutput","params":[],"id":null}`),
 	)
 	respBody := []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -69,7 +69,7 @@ func TestProvide(t *testing.T) {
 	m = testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"NoInput_NoOutput","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_NoOutput","params":[],"id":null}`),
 	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -111,7 +111,7 @@ func TestProvide(t *testing.T) {
 	m = testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"NoInput_ErrorOutput","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_ErrorOutput","params":[],"id":null}`),
 	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -128,7 +128,7 @@ func TestProvide(t *testing.T) {
 	m = testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"NoInput_IntOutput","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_IntOutput","params":[],"id":null}`),
 	)
 	respBody = []byte(`{"jsonrpc": "1.0", "result": 45}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -143,7 +143,7 @@ func TestProvide(t *testing.T) {
 	m = testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"NoInput_IntErrorOutput","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_IntErrorOutput","params":[],"id":null}`),
 	)
 	respBody = []byte(`{"jsonrpc": "1.0", "result": 38}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -176,7 +176,7 @@ func TestProvide(t *testing.T) {
 	m = testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"eth_testMethod","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"eth_testMethod","params":[],"id":null}`),
 	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -190,7 +190,7 @@ func TestProvide(t *testing.T) {
 	m = testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"testMethod","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"testMethod","params":[],"id":null}`),
 	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -204,7 +204,7 @@ func TestProvide(t *testing.T) {
 	m = testutils.RequestMatcher(
 		t,
 		"www.example.com",
-		[]byte(`{"jsonrpc":"2.0","method":"eth_namespaceTag","params":null,"id":null}`),
+		[]byte(`{"jsonrpc":"2.0","method":"eth_namespaceTag","params":[],"id":null}`),
 	)
 	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code": -32600, "message":"test error message"}}`)
 	transport.EXPECT().RoundTrip(m).Return(&http.Response{
