@@ -131,9 +131,7 @@ type rpcFunc struct {
 }
 
 func (fn *rpcFunc) prepareParams(args ...reflect.Value) (params interface{}) {
-	fmt.Printf("Piou prepareParams %v\n", args)
 	switch {
-	case len(args) == 0:
 	case len(args) == 1 && fn.object:
 		params = args[0].Interface()
 	default:
@@ -149,7 +147,6 @@ func (fn *rpcFunc) prepareParams(args ...reflect.Value) (params interface{}) {
 func (fn *rpcFunc) handleCall(cllr Caller, args ...reflect.Value) []reflect.Value {
 	params := fn.prepareParams(args[fn.hasCtx:]...)
 
-	fmt.Printf("Piou params %v\n", params)
 	var ctx context.Context
 	if fn.hasCtx == 1 {
 		ctx = args[0].Interface().(context.Context)
@@ -176,8 +173,6 @@ func (fn *rpcFunc) processError(err error) []reflect.Value {
 		out[fn.errOut] = reflect.ValueOf(err)
 	}
 
-	fmt.Printf("Piou processeError %v %v\n", err, out)
-
 	return out
 }
 
@@ -196,8 +191,6 @@ func (fn *rpcFunc) processResponse(resp *Response) []reflect.Value {
 	if fn.errOut != -1 {
 		out[fn.errOut] = reflect.New(errorType).Elem()
 	}
-
-	fmt.Printf("Piou out %v\n", out)
 
 	return out
 }
