@@ -16,11 +16,11 @@ type requestMatcher struct {
 	body    []byte
 }
 
-func RequestMatcher(t *testing.T, urlPath string, Body []byte) gomock.Matcher {
+func RequestMatcher(t *testing.T, urlPath string, body []byte) gomock.Matcher {
 	return &requestMatcher{
 		t:       t,
 		urlPath: urlPath,
-		body:    Body,
+		body:    body,
 	}
 }
 
@@ -34,7 +34,7 @@ func (m requestMatcher) Matches(x interface{}) bool {
 	_, _ = io.ReadFull(req.Body, b)
 
 	urlMatch := assert.Equal(m.t, m.urlPath, req.URL.Path, "URL path should match")
-	bodyMatch := assert.Equal(m.t, b, m.body, "Body should match")
+	bodyMatch := assert.Equal(m.t, m.body, b, "Body should match")
 
 	return urlMatch && bodyMatch
 }
