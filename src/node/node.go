@@ -3,6 +3,7 @@ package node
 import (
 	"net/http"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
@@ -40,6 +41,9 @@ type Session interface {
 
 	// CallerRPC returns a caller to downstream JSON-RPC
 	CallerRPC() jsonrpc.Caller
+
+	// EthClient returns a client to downstream JSON-RPC
+	EthClient() *ethereum.Client
 
 	// Close the session
 	Close()
@@ -101,10 +105,15 @@ func (n *node) Session(req *jsonrpc.Request) (Session, error) {
 type session struct {
 	*node
 	rpcCaller jsonrpc.Caller
+	ethClient *ethereum.Client
 }
 
 func (s *session) CallerRPC() jsonrpc.Caller {
 	return s.rpcCaller
+}
+
+func (s *session) EthClient() *ethereum.Client {
+	return s.ethClient
 }
 
 func (s *session) Close() {

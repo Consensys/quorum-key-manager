@@ -8,6 +8,7 @@ import (
 	http "net/http"
 	reflect "reflect"
 
+	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
 	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	node "github.com/ConsenSysQuorum/quorum-key-manager/src/node"
@@ -183,6 +184,20 @@ func (m *MockSession) Close() {
 func (mr *MockSessionMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockSession)(nil).Close))
+}
+
+// EthClient mocks base method.
+func (m *MockSession) EthClient() *ethereum.Client {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EthClient")
+	ret0, _ := ret[0].(*ethereum.Client)
+	return ret0
+}
+
+// EthClient indicates an expected call of EthClient.
+func (mr *MockSessionMockRecorder) EthClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EthClient", reflect.TypeOf((*MockSession)(nil).EthClient))
 }
 
 // ProxyPrivTxManager mocks base method.
