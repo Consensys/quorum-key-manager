@@ -13,6 +13,30 @@ var (
 	callerType  = reflect.TypeOf(new(Caller)).Elem()
 )
 
+// Provide takes services as argument and populates fields with RPC functions
+// It aims at facilitate the implemention of Web3 client connecting to downstream node
+
+// - Services MUST be pointers to struct
+// - All service's fields MUST be functions mathc
+// - Service field func MUST accept a single input of type jsonrpc.Caller and MUST return a single output which is a function
+// - Service field output func MUST return at most 2 outputs (if 2 the second MUST be an error)
+
+// Example of valid service struct:
+
+// type ExampleService struct {
+// 	   CtxInput_NoOutput        func(Caller) func(context.Context)
+// 	   NoInput_NoOutput         func(Caller) func()
+// 	   NonCtxInput_NoOutput     func(Caller) func(int)
+// 	   MultiInput_NoOutput      func(Caller) func(context.Context, int, string)
+// 	   NoInput_ErrorOutput      func(Caller) func() error
+// 	   NoInput_IntOutput        func(Caller) func() int
+// 	   NoInput_IntErrorOutput   func(Caller) func() (int, error)
+// 	   StructInput_StructOutput func(Caller) func(context.Context, *TestParam) (*TestResult, error)
+// 	   AllTags                  func(Caller) func()                                                 `method:"exampleMethod" namespace:"eth"`
+// 	   MethodTag                func(Caller) func()                                                 `method:"exampleMethod"`
+// 	   NamespaceTag             func(Caller) func()                                                 `namespace:"eth"`
+// 	   ObjectTag                func(Caller) func(*TestParam)                                       `object:"-"`
+// }
 func Provide(services ...interface{}) error {
 	for _, service := range services {
 		srvTyp := reflect.TypeOf(service)
@@ -39,15 +63,15 @@ func Provide(services ...interface{}) error {
 func makeRPCFunc(f *reflect.StructField) (reflect.Value, error) {
 	ftyp := f.Type
 	if ftyp.Kind() != reflect.Func {
-		return reflect.Value{}, fmt.Errorf("service field is not a function")
+		return reflect.Value{}, fmt.Errorf("service's field must be a function")
 	}
 
 	if ftyp.NumIn() != 1 && ftyp.In(0) != contextType {
-		return reflect.Value{}, fmt.Errorf("service field func must take a single input of type %v", callerType)
+		return reflect.Value{}, fmt.Errorf("service field func must accept a single input of type %v", callerType)
 	}
 
 	if ftyp.NumOut() != 1 || ftyp.Out(0).Kind() != reflect.Func {
-		return reflect.Value{}, fmt.Errorf("service field func must return a single output function")
+		return reflect.Value{}, fmt.Errorf("service field func must return a single output which is a function")
 	}
 
 	fun := &rpcFunc{
@@ -108,10 +132,10 @@ func processFuncOut(funcType reflect.Type) (valOut, errOut, n int, err error) {
 		valOut = 0
 		errOut = 1
 		if funcType.Out(1) != errorType {
-			err = fmt.Errorf("second output must be an error")
+			err = fmt.Errorf("service field output function second output must be an error")
 		}
 	default:
-		err = fmt.Errorf("at most 2 outputs allowed")
+		err = fmt.Errorf("service field output function must return at most 2 outputs")
 	}
 
 	return
