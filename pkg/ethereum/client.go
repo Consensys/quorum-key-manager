@@ -36,14 +36,17 @@ func NewClient(cllr jsonrpc.Caller) *Client {
 	}
 }
 
+// Eth return eth namespace client
 func (c *Client) Eth() *ethClient { // nolint
 	return c.eth
 }
 
+// EEA return eea namespace client
 func (c *Client) EEA() *eeaClient { // nolint
 	return c.eea
 }
 
+// Priv return priv namespace client
 func (c *Client) Priv() *privClient { // nolint
 	return c.priv
 }
@@ -60,12 +63,16 @@ func (c *ethClient) GetTransactionCount(ctx context.Context, addr ethcommon.Addr
 	return ethSrv.GetTransactionCount(c.cllr)(ctx, addr, blockNumber)
 }
 
+func (c *ethClient) EstimateGas(ctx context.Context, msg *CallMsg) (*hexutil.Uint64, error) {
+	return ethSrv.EstimateGas(c.cllr)(ctx, msg)
+}
+
 func (c *ethClient) SendRawTransaction(ctx context.Context, raw hexutil.Bytes) (ethcommon.Hash, error) {
 	return ethSrv.SendRawTransaction(c.cllr)(ctx, raw)
 }
 
-func (c *ethClient) EstimateGas(ctx context.Context, msg *CallMsg) (*hexutil.Uint64, error) {
-	return ethSrv.EstimateGas(c.cllr)(ctx, msg)
+func (c *ethClient) SendRawPrivateTransaction(ctx context.Context, raw hexutil.Bytes, privArgs *PrivateArgs) (ethcommon.Hash, error) {
+	return ethSrv.SendRawPrivateTransaction(c.cllr)(ctx, raw, privArgs)
 }
 
 type eeaClient struct {
@@ -99,10 +106,11 @@ var (
 )
 
 type ethService struct {
-	GasPrice            func(jsonrpc.Caller) func(context.Context) (*hexutil.Big, error)                                    `namespace:"eth"`
-	GetTransactionCount func(jsonrpc.Caller) func(context.Context, ethcommon.Address, BlockNumber) (*hexutil.Uint64, error) `namespace:"eth"`
-	SendRawTransaction  func(jsonrpc.Caller) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error)                   `namespace:"eth"`
-	EstimateGas         func(jsonrpc.Caller) func(context.Context, *CallMsg) (*hexutil.Uint64, error)                       `namespace:"eth"`
+	GasPrice                  func(jsonrpc.Caller) func(context.Context) (*hexutil.Big, error)                                    `namespace:"eth"`
+	GetTransactionCount       func(jsonrpc.Caller) func(context.Context, ethcommon.Address, BlockNumber) (*hexutil.Uint64, error) `namespace:"eth"`
+	EstimateGas               func(jsonrpc.Caller) func(context.Context, *CallMsg) (*hexutil.Uint64, error)                       `namespace:"eth"`
+	SendRawTransaction        func(jsonrpc.Caller) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error)                   `namespace:"eth"`
+	SendRawPrivateTransaction func(jsonrpc.Caller) func(context.Context, hexutil.Bytes, *PrivateArgs) (ethcommon.Hash, error)     `namespace:"eth"`
 }
 
 type eeaService struct {
@@ -201,4 +209,40 @@ func (msg *CallMsg) MarshalJSON() ([]byte, error) {
 		Value:    (*hexutil.Big)(msg.Value),
 		Data:     msg.Data,
 	})
+}
+
+type PrivacyFlag uint64
+
+const (
+	StandardPrivatePrivacyFlag PrivacyFlag = iota                              // 0
+	PartyProtectionPrivacyFlag PrivacyFlag = 1 << PrivacyFlag(iota-1)          // 1
+	StateValidationPrivacyFlag             = iota | PartyProtectionPrivacyFlag // 3 which includes PrivacyFlagPartyProtection
+)
+
+// PrivateArgs arguments for private transactions
+type PrivateArgs struct {
+	PrivateFrom *string      `json:"privateFrom,omitempty"`
+	PrivateFor  *[]string    `json:"privateFor,omitempty"`
+	PrivateType *string      `json:"restriction,omitempty"`
+	PrivacyFlag *PrivacyFlag `json:"privacyFlag,omitempty"`
+}
+
+func (args *PrivateArgs) WithPrivateFrom(pubKey string) *PrivateArgs {
+	args.PrivateFrom = &pubKey
+	return args
+}
+
+func (args *PrivateArgs) WithPrivateFor(pubKeys []string) *PrivateArgs {
+	args.PrivateFor = &pubKeys
+	return args
+}
+
+func (args *PrivateArgs) WithPrivateType(pubKey string) *PrivateArgs {
+	args.PrivateFrom = &pubKey
+	return args
+}
+
+func (args *PrivateArgs) WithPrivacyFlag(flag PrivacyFlag) *PrivateArgs {
+	args.PrivacyFlag = &flag
+	return args
 }

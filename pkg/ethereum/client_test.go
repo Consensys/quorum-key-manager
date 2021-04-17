@@ -81,23 +81,6 @@ func TestClient(t *testing.T) {
 		assert.Equal(t, uint64(15), uint64(*count), "Result should be valid")
 	})
 
-	t.Run("eth_sendRawTransaction", func(t *testing.T) {
-		m := testutils.RequestMatcher(
-			t,
-			"www.example.com",
-			[]byte(`{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"],"id":null}`),
-		)
-		respBody := []byte(`{"jsonrpc": "2.0","result":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a"}`)
-		transport.EXPECT().RoundTrip(m).Return(&http.Response{
-			StatusCode: http.StatusOK,
-			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
-		}, nil)
-
-		hash, err := client.Eth().SendRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
-		require.NoError(t, err, "Must not error")
-		assert.Equal(t, "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a", hash.String(), "Result should be valid")
-	})
-
 	t.Run("eth_estimateGas", func(t *testing.T) {
 		m := testutils.RequestMatcher(
 			t,
@@ -117,6 +100,45 @@ func TestClient(t *testing.T) {
 		gas, err := client.Eth().EstimateGas(context.Background(), msg)
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, uint64(21000), uint64(*gas), "Result should be valid")
+	})
+
+	t.Run("eth_sendRawTransaction", func(t *testing.T) {
+		m := testutils.RequestMatcher(
+			t,
+			"www.example.com",
+			[]byte(`{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"],"id":null}`),
+		)
+		respBody := []byte(`{"jsonrpc": "2.0","result":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a"}`)
+		transport.EXPECT().RoundTrip(m).Return(&http.Response{
+			StatusCode: http.StatusOK,
+			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		}, nil)
+
+		hash, err := client.Eth().SendRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
+		require.NoError(t, err, "Must not error")
+		assert.Equal(t, "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a", hash.String(), "Result should be valid")
+	})
+
+	t.Run("eth_sendRawPrivateTransaction", func(t *testing.T) {
+		m := testutils.RequestMatcher(
+			t,
+			"www.example.com",
+			[]byte(`{"jsonrpc":"2.0","method":"eth_sendRawPrivateTransaction","params":["0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833",{"privateFor":["KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=","eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="]}],"id":null}`),
+		)
+		respBody := []byte(`{"jsonrpc": "2.0","result":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a"}`)
+		transport.EXPECT().RoundTrip(m).Return(&http.Response{
+			StatusCode: http.StatusOK,
+			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		}, nil)
+
+		hash, err := client.Eth().SendRawPrivateTransaction(
+			context.Background(),
+			ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"),
+			(&PrivateArgs{}).WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}),
+		)
+
+		require.NoError(t, err, "Must not error")
+		assert.Equal(t, "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a", hash.String(), "Result should be valid")
 	})
 
 	t.Run("eea_sendRawTransaction", func(t *testing.T) {
