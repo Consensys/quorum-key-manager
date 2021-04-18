@@ -3,8 +3,7 @@ version: '3.7'
 x-container-common: &container-common
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
-    - key-manager
-
+    - hashicorp
 
 services:
   hashicorp:
@@ -15,14 +14,14 @@ services:
       - IPC_LOCK
     volumes:
       - hashicorp-plugin:/vault/plugins
-      - ./hashicorp/config/config.hcl:/vault/config.hcl:ro
+      - .config/config.hcl:/vault/config.hcl:ro
     entrypoint: vault server -config=/vault/config.hcl
     ports:
       - 8200:8200
 
   hashicorp-init:
     <<: *container-common
-    build: ./hashicorp
+    build: .
     environment:
       VAULT_ADDR: ${VAULT_ADDR-http://hashicorp:8200}
       PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
@@ -34,8 +33,8 @@ services:
     volumes:
       - hashicorp-token:/vault/token
       - hashicorp-plugin:/vault/plugins
-      - ./hashicorp/scripts/init.sh:/init.sh
-      - ./hashicorp/scripts/plugin.sh:/plugin.sh
+      - ./scripts/init.sh:/init.sh
+      - ./scripts/plugin.sh:/plugin.sh
     command: >
       sh -c "./plugin.sh && ./init.sh"
       
@@ -50,7 +49,7 @@ services:
       - IPC_LOCK
     volumes:
       - hashicorp-token:/vault/token
-      - ./hashicorp/config/agent-config.hcl:/vault/config.hcl:ro
+      - ./config/agent-config.hcl:/vault/config.hcl:ro
     entrypoint: vault agent -config=/vault/config.hcl
 
 volumes:
@@ -60,6 +59,6 @@ volumes:
     driver: local
 
 networks:
-  key-manager:
-    name: key-manager
-    driver: bridge
+  hashicorp:
+    external:
+      name: hashicorp

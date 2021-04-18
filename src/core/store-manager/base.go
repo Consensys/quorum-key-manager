@@ -83,7 +83,7 @@ func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Stor
 	return nil, fmt.Errorf("account store not found")
 }
 
-func (m *manager) List(_ context.Context, kind types.Kind) ([]string, error) {
+func (m *manager) List(_ context.Context, kind manifest.Kind) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -130,7 +130,7 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 	return nil
 }
 
-func (m *manager) storeNames(list map[string]*storeBundle, kind types.Kind) []string {
+func (m *manager) storeNames(list map[string]*storeBundle, kind manifest.Kind) []string {
 	var storeNames []string
 	for k, store := range list {
 		if kind == "" || store.manifest.Kind == kind {

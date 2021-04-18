@@ -5,7 +5,7 @@ import (
 
 	pkghttp "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/gorilla/mux"
 )
 
@@ -28,7 +28,7 @@ func New(bckend core.Backend) http.Handler {
 func (c *handler) listRoute(rw http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	storeKind := req.URL.Query().Get("kind")
-	storeList, err := c.bckend.StoreManager().List(ctx, types.Kind(storeKind))
+	storeList, err := c.bckend.StoreManager().List(ctx, manifest.Kind(storeKind))
 	if err != nil {
 		pkghttp.WriteErrorResponse(rw, err)
 		return

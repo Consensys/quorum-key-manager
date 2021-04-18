@@ -2,6 +2,7 @@
 package core
 
 import (
+	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
 )
 
@@ -10,22 +11,27 @@ import (
 type Backend interface {
 	// StoreManager returns the Store Manager
 	StoreManager() storemanager.Manager
+
+	// NodeManager returns the Node Manager
+	NodeManager() nodemanager.Manager
 }
 
 type BaseBackend struct {
-	storeMnger storemanager.Manager
+	storeMngr storemanager.Manager
+	nodeMngr  nodemanager.Manager
 }
 
 func New() *BaseBackend {
-
-	// Create store manager
-	storeMngr := storemanager.New()
-
 	return &BaseBackend{
-		storeMnger: storeMngr,
+		storeMngr: storemanager.New(),
+		nodeMngr:  nodemanager.New(),
 	}
 }
 
 func (bckend *BaseBackend) StoreManager() storemanager.Manager {
-	return bckend.storeMnger
+	return bckend.storeMngr
+}
+
+func (bckend *BaseBackend) NodeManager() nodemanager.Manager {
+	return bckend.nodeMngr
 }

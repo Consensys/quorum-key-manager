@@ -8,8 +8,11 @@ import (
 
 func NewAppConfig(vipr *viper.Viper) *app.Config {
 	return &app.Config{
-		Logger:    newLoggerConfig(vipr),
-		HTTP:      newHTTPConfig(vipr),
-		Manifests: []*manifest.Manifest{newHashicorpManifest(vipr)},
+		Logger: newLoggerConfig(vipr),
+		HTTP:   newHTTPConfig(vipr),
+		Manifests: []*manifest.Manifest{
+			newHashicorpManifest(vipr),
+			newNodeManifest(vipr),
+		},
 	}
 }

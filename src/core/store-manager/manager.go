@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
@@ -26,5 +25,5 @@ type Manager interface {
 	GetAccountStore(ctx context.Context, name string) (accounts.Store, error)
 
 	// List stores
-	List(ctx context.Context, kind types.Kind) ([]string, error)
+	List(ctx context.Context, kind manifest.Kind) ([]string, error)
 }
