@@ -75,9 +75,7 @@ func NotSupported(rw ResponseWriter, req *Request) {
 func NotSupportedHandler() Handler { return HandlerFunc(NotSupported) }
 
 func NotSupportedVersion(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Message: fmt.Sprintf("JSON-RPC version %q not supported", req.Version()),
-	})
+	_ = rw.WriteError(NotSupporteVersionError(req.Version()))
 }
 
 // NotSupportedVersionHandler returns a simple handler
@@ -86,10 +84,7 @@ func NotSupportedVersionHandler() Handler { return HandlerFunc(NotSupportedVersi
 
 // InvalidMethod replies to the request with an invalid method error
 func InvalidMethod(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Code:    -32601,
-		Message: fmt.Sprintf("invalid method %q", req.Method()),
-	})
+	_ = rw.WriteError(InvalidMethodError(req.Method()))
 }
 
 // InvalidMethod returns a simple handler
@@ -98,10 +93,7 @@ func InvalidMethodHandler() Handler { return HandlerFunc(InvalidMethod) }
 
 // MethodNotFound replies to the request with a method not found error
 func MethodNotFound(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Code:    -32601,
-		Message: "Method not found",
-	})
+	_ = rw.WriteError(MethodNotFoundError())
 }
 
 // InvalidMethod returns a simple handler
@@ -119,6 +111,14 @@ func NotImplementedMethod(rw ResponseWriter, req *Request) {
 // NotImplementedMethodHandler returns a simple handler
 // that replies to each request with an invalid method error
 func NotImplementedMethodHandler() Handler { return HandlerFunc(NotImplementedMethod) }
+
+// InvalidParamsHandler returns a simple handler
+// that replies to each request with an invalid parameters error
+func InvalidParamsHandler(err error) Handler {
+	return HandlerFunc(func(rw ResponseWriter, req *Request) {
+		_ = rw.WriteError(InvalidParamsError(err))
+	})
+}
 
 // LoggedHandler
 func LoggedHandler(h Handler) Handler {
