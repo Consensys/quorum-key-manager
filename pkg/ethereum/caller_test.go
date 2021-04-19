@@ -29,6 +29,23 @@ func TestClient(t *testing.T) {
 	client := NewClient(cllr)
 
 	// Test Eth
+	t.Run("eth_chainId", func(t *testing.T) {
+		m := testutils.RequestMatcher(
+			t,
+			"www.example.com",
+			[]byte(`{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":null}`),
+		)
+		respBody := []byte(`{"jsonrpc": "2.0","result":"0x7e2"}`)
+		transport.EXPECT().RoundTrip(m).Return(&http.Response{
+			StatusCode: http.StatusOK,
+			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		}, nil)
+
+		chainID, err := client.Eth().ChainID(context.Background())
+		require.NoError(t, err, "Must not error")
+		assert.Equal(t, "0x7e2", chainID.String(), "Result should be valid")
+	})
+
 	t.Run("eth_gasPrice", func(t *testing.T) {
 		m := testutils.RequestMatcher(
 			t,
