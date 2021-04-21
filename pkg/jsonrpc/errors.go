@@ -23,6 +23,13 @@ func InvalidMethodError(method string) *ErrorMsg {
 	}
 }
 
+func NotImplementedMethodError(method string) *ErrorMsg {
+	return &ErrorMsg{
+		Code:    -32601,
+		Message: fmt.Sprintf("Method %q not implemented", method),
+	}
+}
+
 func MethodNotFoundError() *ErrorMsg {
 	return &ErrorMsg{
 		Code:    -32601,
