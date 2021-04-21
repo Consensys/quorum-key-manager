@@ -98,17 +98,17 @@ func (c *client) CloseIdleConnections() {
 	c.client.CloseIdleConnections()
 }
 
-type idClient struct {
+type incrementalIDlient struct {
 	client Client
 
 	baseID    string
 	idCounter uint32
 }
 
-// WithID wraps a client with an ID counter an increases it each time a new request comes out
-func WithID(id interface{}) func(Client) Client {
+// WithIncrementalID wraps a client with an ID counter an increases it each time a new request comes out
+func WithIncrementalID(id interface{}) func(Client) Client {
 	return func(c Client) Client {
-		idC := &idClient{
+		idC := &incrementalIDlient{
 			client: c,
 		}
 
@@ -120,16 +120,16 @@ func WithID(id interface{}) func(Client) Client {
 	}
 }
 
-func (c *idClient) nextID() string {
+func (c *incrementalIDlient) nextID() string {
 	return fmt.Sprintf("%v%v", c.baseID, atomic.AddUint32(&c.idCounter, 1))
 }
 
-func (c *idClient) Do(req *Request) (*Response, error) {
+func (c *incrementalIDlient) Do(req *Request) (*Response, error) {
 	req.WithID(c.nextID())
 	return c.client.Do(req)
 }
 
-func (c *idClient) CloseIdleConnections() {
+func (c *incrementalIDlient) CloseIdleConnections() {
 	c.client.CloseIdleConnections()
 }
 

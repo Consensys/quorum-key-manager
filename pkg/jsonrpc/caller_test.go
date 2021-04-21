@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestClient(t *testing.T) {
+func TestCallers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -25,7 +25,7 @@ func TestClient(t *testing.T) {
 	ctx := WithRequest(context.Background(), NewRequest(req))
 
 	// Empty ID and version client
-	cllr := NewCaller(WithVersion("")(WithID(nil)(client)), nil)
+	cllr := NewCaller(WithVersion("")(WithIncrementalID(nil)(client)), nil)
 
 	m := testutils.RequestMatcher(
 		t,
@@ -46,7 +46,7 @@ func TestClient(t *testing.T) {
 	assert.Equal(t, "1.0", resp.Version(), "Version should be correct")
 
 	// Non Empty ID client caller
-	cllr = NewCaller(WithVersion("3.0")(WithID("abcd")(client)), nil)
+	cllr = NewCaller(WithVersion("3.0")(WithIncrementalID("abcd")(client)), nil)
 
 	m = testutils.RequestMatcher(
 		t,

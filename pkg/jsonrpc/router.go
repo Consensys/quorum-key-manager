@@ -101,7 +101,7 @@ func (r *Router) ServeRPC(rw ResponseWriter, req *Request) {
 	}
 
 	if handler == nil {
-		handler = NotSupportedHandler()
+		handler = MethodNotFoundHandler()
 	}
 
 	handler.ServeRPC(rw, req)

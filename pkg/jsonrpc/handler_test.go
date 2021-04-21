@@ -13,7 +13,7 @@ import (
 )
 
 func testHandler(rw ResponseWriter, req *Request) {
-	_ = rw.WriteResult(req.msg.raw.Params)
+	_ = WriteResult(rw, req.msg.raw.Params)
 }
 
 func TestToHTTPHandler(t *testing.T) {
@@ -47,27 +47,6 @@ func TestToHTTPHandler(t *testing.T) {
 	httpHandler.ServeHTTP(rec, req)
 
 	expectedBody = []byte(`{"jsonrpc":"3.0","result":{"test-field":"test-value"},"error":null,"id":"abcd"}`)
-	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
-
-	// Already wrapped responsewriter
-	rpcReq = NewRequest(nil).
-		WithVersion("3.0").
-		WithMethod("testMethod").
-		WithID("abcd")
-	rpcReq.msg.raw = &jsonReqMsg{}
-	rpcReq.msg.raw.Params = new(json.RawMessage)
-	*rpcReq.msg.raw.Params = json.RawMessage(`{"test-field":"test-value"}`)
-
-	ctx = WithRequest(context.Background(), rpcReq)
-	req, _ = http.NewRequestWithContext(ctx, http.MethodPost, "www.test.com", body)
-
-	rec = httptest.NewRecorder()
-	rw := NewResponseWriter(rec).WithVersion("2.1").WithID(1234)
-
-	httpHandler.ServeHTTP(rw, req)
-
-	expectedBody = []byte(`{"jsonrpc":"2.1","result":{"test-field":"test-value"},"error":null,"id":1234}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 }

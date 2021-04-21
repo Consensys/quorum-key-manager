@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
@@ -21,9 +22,20 @@ func (f HandlerFunc) ServeRPC(rw ResponseWriter, req *Request) {
 	f(rw, req)
 }
 
+// DefaultRWHandler is an utility middleware that attaches request ID and Version to ResponseWriter
+// so when developper has not to bother with response ID and Version when writing response
+func DefaultRWHandler(h Handler) Handler {
+	return HandlerFunc(func(rw ResponseWriter, req *Request) {
+		h.ServeRPC(RWWithVersion(req.Version())(RWWithID(req.ID())(rw)), req)
+	})
+}
+
 // ToHTTPHandler wraps a jsonrpc.Handler into a http.Handler
 func ToHTTPHandler(h Handler) http.Handler {
+	h = DefaultRWHandler(h)
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rpwRW := NewResponseWriter(rw)
+
 		// extract JSON-RPC request from context
 		rpcReq := RequestFromContext(req.Context())
 		if rpcReq == nil {
@@ -31,9 +43,7 @@ func ToHTTPHandler(h Handler) http.Handler {
 			rpcReq = NewRequest(req)
 			err := rpcReq.ReadBody()
 			if err != nil {
-				_ = NewResponseWriter(rw).WriteError(&ErrorMsg{
-					Message: fmt.Sprintf("invalid json-rpc request (%v)", err),
-				})
+				_ = WriteError(rpwRW, ParseError(err))
 				return
 			}
 			rpcReq.req = req.WithContext(WithRequest(req.Context(), rpcReq))
@@ -42,13 +52,8 @@ func ToHTTPHandler(h Handler) http.Handler {
 			rpcReq.req = req
 		}
 
-		rpcRw, ok := rw.(ResponseWriter)
-		if !ok {
-			rpcRw = NewResponseWriter(rw).WithVersion(rpcReq.Version()).WithID(rpcReq.ID())
-		}
-
 		// Serve
-		h.ServeRPC(rpcRw, rpcReq)
+		h.ServeRPC(rpwRW, rpcReq)
 	})
 }
 
@@ -59,23 +64,12 @@ func FromHTTPHandler(h http.Handler) Handler {
 		_ = req.WriteBody()
 
 		// Serve HTTP request
-		h.ServeHTTP(rw, req.Request())
+		h.ServeHTTP(rw.(common.WriterWrapper).Writer().(http.ResponseWriter), req.Request())
 	})
 }
-
-// NotSupported replies to the request with a not supported request error
-func NotSupported(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Message: "not supported",
-	})
-}
-
-// NotSupportedHandler returns a simple handler
-// that replies to each request with a not supported version request error
-func NotSupportedHandler() Handler { return HandlerFunc(NotSupported) }
 
 func NotSupportedVersion(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(NotSupporteVersionError(req.Version()))
+	_ = WriteError(rw, NotSupporteVersionError(req.Version()))
 }
 
 // NotSupportedVersionHandler returns a simple handler
@@ -84,7 +78,7 @@ func NotSupportedVersionHandler() Handler { return HandlerFunc(NotSupportedVersi
 
 // InvalidMethod replies to the request with an invalid method error
 func InvalidMethod(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(InvalidMethodError(req.Method()))
+	_ = WriteError(rw, InvalidMethodError(req.Method()))
 }
 
 // InvalidMethod returns a simple handler
@@ -93,7 +87,7 @@ func InvalidMethodHandler() Handler { return HandlerFunc(InvalidMethod) }
 
 // MethodNotFound replies to the request with a method not found error
 func MethodNotFound(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(MethodNotFoundError())
+	_ = WriteError(rw, MethodNotFoundError())
 }
 
 // InvalidMethod returns a simple handler
@@ -102,10 +96,7 @@ func MethodNotFoundHandler() Handler { return HandlerFunc(MethodNotFound) }
 
 // NotImplementedMethod replies to the request with an not implemented error
 func NotImplementedMethod(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Code:    -32601,
-		Message: fmt.Sprintf("not implemented method %q", req.Method()),
-	})
+	_ = WriteError(rw, NotImplementedMethodError(req.Method()))
 }
 
 // NotImplementedMethodHandler returns a simple handler
@@ -116,7 +107,7 @@ func NotImplementedMethodHandler() Handler { return HandlerFunc(NotImplementedMe
 // that replies to each request with an invalid parameters error
 func InvalidParamsHandler(err error) Handler {
 	return HandlerFunc(func(rw ResponseWriter, req *Request) {
-		_ = rw.WriteError(InvalidParamsError(err))
+		_ = WriteError(rw, InvalidParamsError(err))
 	})
 }
 
