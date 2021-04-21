@@ -31,7 +31,7 @@ func assertResponse(t *testing.T, resp *jsonrpc.Response, expectedVersion string
 func TestNodeRPC(t *testing.T) {
 	rpcServer := httptest.NewServer(jsonrpc.ToHTTPHandler(
 		jsonrpc.HandlerFunc(func(rw jsonrpc.ResponseWriter, req *jsonrpc.Request) {
-			_ = rw.WriteResult(req.Params())
+			_ = jsonrpc.WriteResult(rw, req.Params())
 		}),
 	))
 	defer rpcServer.Close()

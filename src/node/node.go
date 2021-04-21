@@ -93,7 +93,7 @@ func (n *node) ProxyPrivTxManager() http.Handler {
 
 // Session returns a new session
 func (n *node) Session(req *jsonrpc.Request) (Session, error) {
-	client := jsonrpc.WithID(req.ID())(n.rpc.client)
+	client := jsonrpc.WithIncrementalID(req.ID())(n.rpc.client)
 	client = jsonrpc.WithVersion(req.Version())(client)
 
 	return &session{
