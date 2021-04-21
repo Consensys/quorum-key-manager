@@ -83,6 +83,9 @@ func (req *Request) WriteBody() error {
 		return ioutil.NopCloser(&r), nil
 	}
 
+	// Reset body once so we can read again
+	req.setMsgOnce = sync.Once{}
+
 	return nil
 }
 
