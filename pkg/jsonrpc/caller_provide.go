@@ -48,7 +48,7 @@ func ProvideCaller(services ...interface{}) error {
 
 		for i := 0; i < srvTyp.Elem().NumField(); i++ {
 			field := srvTyp.Elem().Field(i)
-			fn, err := makeRPCFunc(&field)
+			fn, err := makeRPCCallerFunc(&field)
 			if err != nil {
 				return err
 			}
@@ -60,7 +60,7 @@ func ProvideCaller(services ...interface{}) error {
 	return nil
 }
 
-func makeRPCFunc(f *reflect.StructField) (reflect.Value, error) {
+func makeRPCCallerFunc(f *reflect.StructField) (reflect.Value, error) {
 	ftyp := f.Type
 	if ftyp.Kind() != reflect.Func {
 		return reflect.Value{}, fmt.Errorf("service's field must be a function")
@@ -74,7 +74,7 @@ func makeRPCFunc(f *reflect.StructField) (reflect.Value, error) {
 		return reflect.Value{}, fmt.Errorf("service field func must return a single output which is a function")
 	}
 
-	fun := &rpcFunc{
+	fun := &rpcCallerFunc{
 		ftyp:  ftyp.Out(0),
 		retry: f.Tag.Get("retry") == "true",
 	}
@@ -141,7 +141,7 @@ func processFuncOut(funcType reflect.Type) (valOut, errOut, n int, err error) {
 	return
 }
 
-type rpcFunc struct {
+type rpcCallerFunc struct {
 	ftyp   reflect.Type
 	method string
 
@@ -154,7 +154,7 @@ type rpcFunc struct {
 	retry  bool
 }
 
-func (fn *rpcFunc) prepareParams(args ...reflect.Value) (params interface{}) {
+func (fn *rpcCallerFunc) prepareParams(args ...reflect.Value) (params interface{}) {
 	switch {
 	case len(args) == 1 && fn.object:
 		params = args[0].Interface()
@@ -168,7 +168,7 @@ func (fn *rpcFunc) prepareParams(args ...reflect.Value) (params interface{}) {
 	return
 }
 
-func (fn *rpcFunc) handleCall(cllr Caller, args ...reflect.Value) []reflect.Value {
+func (fn *rpcCallerFunc) handleCall(cllr Caller, args ...reflect.Value) []reflect.Value {
 	params := fn.prepareParams(args[fn.hasCtx:]...)
 
 	var ctx context.Context
@@ -186,7 +186,7 @@ func (fn *rpcFunc) handleCall(cllr Caller, args ...reflect.Value) []reflect.Valu
 	return fn.processResponse(resp)
 }
 
-func (fn *rpcFunc) processError(err error) []reflect.Value {
+func (fn *rpcCallerFunc) processError(err error) []reflect.Value {
 	out := make([]reflect.Value, fn.nout)
 
 	if fn.valOut != -1 {
@@ -200,7 +200,7 @@ func (fn *rpcFunc) processError(err error) []reflect.Value {
 	return out
 }
 
-func (fn *rpcFunc) processResponse(resp *Response) []reflect.Value {
+func (fn *rpcCallerFunc) processResponse(resp *Response) []reflect.Value {
 	out := make([]reflect.Value, fn.nout)
 
 	if fn.valOut != -1 {
