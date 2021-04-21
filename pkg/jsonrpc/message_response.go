@@ -161,9 +161,7 @@ func (msg *ResponseMsg) WithError(err error) *ResponseMsg {
 	if errMsg, ok := err.(*ErrorMsg); ok {
 		msg.Error = errMsg
 	} else {
-		msg.Error = &ErrorMsg{
-			Message: err.Error(),
-		}
+		msg.Error = Error(err)
 	}
 
 	return msg

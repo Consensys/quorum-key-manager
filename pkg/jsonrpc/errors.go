@@ -2,6 +2,13 @@ package jsonrpc
 
 import "fmt"
 
+func Error(err error) *ErrorMsg {
+	return &ErrorMsg{
+		Code:    -32000,
+		Message: err.Error(),
+	}
+}
+
 func NotSupporteVersionError(version string) *ErrorMsg {
 	return &ErrorMsg{
 		Code:    -32600,
