@@ -22,7 +22,7 @@ func init() {
 const (
 	akvEnvironmentEnv      = "AZURE_ENVIRONMENT"
 	akvEnvironmentViperKey = "azure.environment"
-	akvEnvironmentFlag     = "hashicorp-token-file"
+	akvEnvironmentFlag     = "azure-environment"
 	akvEnvironmentDefault  = ""
 )
 
