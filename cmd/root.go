@@ -41,6 +41,7 @@ func newRunCommand() *cobra.Command {
 	flags.HashicorpFlags(runCmd.Flags())
 	flags.NodeFlags(runCmd.Flags())
 	flags.LoggerFlags(runCmd.Flags())
+	flags.AKVFlags(runCmd.Flags())
 
 	return runCmd
 }

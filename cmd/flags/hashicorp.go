@@ -73,7 +73,6 @@ Environment variable: %q`, hashicorpAddrEnv)
 	_ = viper.BindPFlag(hashicorpAddrViperKey, f.Lookup(HashicorpAddrFlag))
 }
 
-// ConfigFromViper returns a local config object that be converted into an api.Config
 func newHashicorpManifest(vipr *viper.Viper) *manifest.Manifest {
 	specs := hashicorp.SecretSpecs{
 		MountPoint: vipr.GetString(hashicorpMountPointViperKey),

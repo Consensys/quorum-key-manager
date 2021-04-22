@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -35,7 +34,11 @@ func NewConfig(vaultName, tenantID, clientID, clientSecret string) *Config {
 
 // Inspired by NewAuthorizerFromEnvironmentWithResource from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
 func (c *Config) ToAzureAuthConfig() (autorest.Authorizer, error) {
-	resource, _ := getResource()
+	resource, err := c.getResource()
+	if err != nil {
+		return nil, err
+	}
+
 	settings, err := c.GetSettings()
 	if err != nil {
 		return nil, err
@@ -46,10 +49,10 @@ func (c *Config) ToAzureAuthConfig() (autorest.Authorizer, error) {
 }
 
 // Inspired by getResource from services/keyvault/auth/auth.go (https://github.com/Azure/azure-sdk-for-go/blob/master/services/keyvault/auth/auth.go)
-func getResource() (string, error) {
+func (c *Config) getResource() (string, error) {
 	var env azure.Environment
 
-	if envName := os.Getenv("AZURE_ENVIRONMENT"); envName == "" {
+	if envName := c.EnvironmentName; envName == "" {
 		env = azure.PublicCloud
 	} else {
 		var err error
@@ -59,7 +62,7 @@ func getResource() (string, error) {
 		}
 	}
 
-	resource := os.Getenv("AZURE_KEYVAULT_RESOURCE")
+	resource := c.Resource
 	if resource == "" {
 		resource = env.ResourceIdentifiers.KeyVault
 	}
