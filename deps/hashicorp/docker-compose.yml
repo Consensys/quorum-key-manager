@@ -3,7 +3,7 @@ version: '3.7'
 x-container-common: &container-common
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
-    - hashicorp
+    - key-manager
 
 services:
   hashicorp:
@@ -37,7 +37,7 @@ services:
       - ./scripts/plugin.sh:/plugin.sh
     command: >
       sh -c "./plugin.sh && ./init.sh"
-      
+
   hashicorp-agent:
     <<: *container-common
     image: library/vault:1.6.1
@@ -59,6 +59,5 @@ volumes:
     driver: local
 
 networks:
-  hashicorp:
-    external:
-      name: hashicorp
+  key-manager:
+    driver: bridge

@@ -2,9 +2,9 @@ version: "3.7"
 
 x-default-variables: &default-variables
   LOG_LEVEL: ${LOG_LEVEL-INFO}
-  HTTP_HOST: ${HTTP_HOST}
+  HTTP_HOST: ${HTTP_HOST-localhost}
   HTTP_PORT: ${HTTP_PORT-8080}
-  NODE_ADDR: ${NODE_ADDR-8080}
+  NODE_ADDR: ${NODE_ADDR-http://validator2:8545}
 
 x-container-common: &container-common
   image: golang:1.15-buster
@@ -12,8 +12,7 @@ x-container-common: &container-common
   entrypoint: /bin/main
   tty: true
   networks:
-    - quorum
-    - hashicorp
+    - key-manager
   volumes:
     - ./build/bin/key-manager:/bin/main:ro
 
@@ -28,10 +27,7 @@ services:
     command: run
 
 networks:
-  quorum:
+  key-manager:
     external:
-      name: quorum
-  hashicorp:
-    external:
-      name: hashicorp
+      name: hashicorp_key-manager
 

@@ -54,6 +54,10 @@ Environment variable: %q `, akvResourceEnv)
 }
 
 func newAKVManifest(vipr *viper.Viper) *manifest.Manifest {
+	if vipr.GetString(akvEnvironmentViperKey) == "" {
+		return nil
+	}
+
 	specs := akv.Specs{
 		EnvironmentName: vipr.GetString(akvEnvironmentViperKey),
 		Resource:        vipr.GetString(akvResourceViperKey),
