@@ -4,7 +4,7 @@ const (
 	Ecdsa string = "ecdsa"
 	Eddsa string = "eddsa"
 
-	Bn256     string = "bn256"
+	Bn254     string = "bn254"
 	Secp256k1 string = "secp256k1"
 )
 
