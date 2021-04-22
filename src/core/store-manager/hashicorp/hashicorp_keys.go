@@ -5,15 +5,15 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 )
 
-// HashicorpSecretSpecs is the specs format for an Hashicorp Vault secret store
-type SecretSpecs struct {
+// KeySpecs is the specs format for an Hashicorp Vault key store
+type KeySpecs struct {
 	MountPoint string `json:"mountPoint"`
 	Address    string `json:"address"`
 	Token      string `json:"token"`
 	Namespace  string `json:"namespace"`
 }
 
-func NewKeyStore(specs *SecretSpecs) (*hashicorp.KeyStore, error) {
+func NewKeyStore(specs *KeySpecs) (*hashicorp.KeyStore, error) {
 	cfg := client.NewBaseConfig(specs.Address, specs.Token, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {

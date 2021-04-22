@@ -87,7 +87,7 @@ func (m *manager) List(_ context.Context, kind manifest.Kind) ([]string, error) 
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	storeNames := []string{}
+	var storeNames []string
 	switch kind {
 	case "":
 		storeNames = append(
@@ -113,6 +113,16 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.HashicorpKeys:
+		spec := &hashicorp.KeySpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			return err
+		}
+		store, err := hashicorp.NewKeyStore(spec)
+		if err != nil {
+			return err
+		}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVSecrets:
 		spec := &akv.Specs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
