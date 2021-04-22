@@ -15,6 +15,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 		return nil, err
 	}
 
+	client.SetNamespace(cfg.Namespace)
 	client.SetToken(cfg.Token)
 	return &HashicorpVaultClient{client}, nil
 }

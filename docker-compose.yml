@@ -29,5 +29,5 @@ services:
 networks:
   key-manager:
     external:
-      name: hashicorp_key-manager
+      name: hashicorp_hashicorp
 

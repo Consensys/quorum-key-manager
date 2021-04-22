@@ -2,7 +2,13 @@ package integrationtests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 	"os"
 	"time"
 
@@ -24,6 +30,7 @@ type IntegrationEnvironment struct {
 	hashicorpClient *hashicorpclient.HashicorpVaultClient
 	akvClient       *akvclient.AzureClient
 	dockerClient    *docker.Client
+	keyManager      *keymanager.App
 }
 
 type TestSuiteEnv interface {
@@ -74,12 +81,28 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken))
+	hashicorpSecretSpecs := &hashicorp.SecretSpecs{
+		Token:      hashicorpContainer.RootToken,
+		MountPoint: "secret",
+		Address:    hashicorpAddr,
+		Namespace:  "",
+	}
+	hashicorpKeySpecs := &hashicorp.KeySpecs{
+		MountPoint: "orchestrate",
+		Address:    hashicorpAddr,
+		Token:      hashicorpContainer.RootToken,
+		Namespace:  "",
+	}
+	keyManager := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs)
+
+	// Hashicorp client for direct integration tests
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpSecretSpecs.Address, hashicorpSecretSpecs.Token, ""))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
 
+	// AKV client for direct integration tests
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
 		os.Getenv("AKV_VAULT_NAME"),
 		os.Getenv("AKV_TENANT_ID"),
@@ -91,14 +114,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	// TODO Add key-manager init
-
 	return &IntegrationEnvironment{
 		ctx:             ctx,
 		logger:          logger,
 		hashicorpClient: hashicorpClient,
 		akvClient:       akvClient,
 		dockerClient:    dockerClient,
+		keyManager:      keyManager,
 	}, nil
 }
 
@@ -142,7 +164,11 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	// TODO Add key-manager START and WAIT_FOR_READY
+	err = env.keyManager.Start(ctx)
+	if err != nil {
+		env.logger.WithError(err).Error("failed to start key manager")
+		return err
+	}
 
 	return nil
 }
@@ -150,9 +176,12 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	env.logger.Info("tearing test suite down")
 
-	// TODO Add key-manager STOP
+	err := env.keyManager.Stop(ctx)
+	if err != nil {
+		env.logger.WithError(err).Error("failed to stop key manager")
+	}
 
-	err := env.dockerClient.Down(ctx, hashicorpContainerID)
+	err = env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
 	}
@@ -161,4 +190,36 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	if err != nil {
 		env.logger.WithError(err).Error("could not remove network")
 	}
+}
+
+func newKeyManager(
+	logger *log.Logger,
+	hashicorpSecretStoreSpecs *hashicorp.SecretSpecs,
+	hashicorpKeyStoreSpecs *hashicorp.KeySpecs,
+) *keymanager.App {
+	hashicorpSecretSpecsRaw, _ := json.Marshal(hashicorpSecretStoreSpecs)
+	hashicorpSecretManifest := &manifest.Manifest{
+		Kind:    types.HashicorpSecrets,
+		Name:    "HashicorpSecrets",
+		Version: "0.0.0",
+		Specs:   hashicorpSecretSpecsRaw,
+	}
+
+	hashicorpKeySpecsRaw, _ := json.Marshal(hashicorpKeyStoreSpecs)
+	hashicorpKeyManifest := &manifest.Manifest{
+		Kind:    types.HashicorpKeys,
+		Name:    "HashicorpKeys",
+		Version: "0.0.0",
+		Specs:   hashicorpKeySpecsRaw,
+	}
+
+	cfg := &keymanager.Config{
+		HTTP: http.NewDefaultConfig(),
+		Manifests: []*manifest.Manifest{
+			hashicorpSecretManifest,
+			hashicorpKeyManifest,
+		},
+	}
+
+	return keymanager.New(cfg, logger)
 }

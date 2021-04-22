@@ -52,7 +52,7 @@ func run(cmd *cobra.Command, _ []string) error {
 	logger := log.NewLogger(cfg.Logger)
 
 	ctx := log.With(cmd.Context(), logger)
-	appli := app.New(cfg)
+	appli := app.New(cfg, logger)
 
 	sig := common.NewSignalListener(func(sig os.Signal) {
 		logger.WithField("sig", sig.String()).Warn("signal intercepted")

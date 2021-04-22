@@ -1,4 +1,4 @@
-package secretsapi
+package handlers
 
 import (
 	"net/http"
@@ -7,14 +7,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type handler struct {
-	bckend core.Backend
+type SecretsHandler struct {
+	backend core.Backend
 }
 
 // New creates a http.Handler to be served on /secrets
-func New(bckend core.Backend) http.Handler {
-	h := &handler{
-		bckend: bckend,
+func NewSecretsHandler(backend core.Backend) *mux.Router {
+	h := &SecretsHandler{
+		backend: backend,
 	}
 
 	router := mux.NewRouter()
@@ -23,6 +23,6 @@ func New(bckend core.Backend) http.Handler {
 	return router
 }
 
-func (c *handler) testRoute(rw http.ResponseWriter, _ *http.Request) {
+func (c *SecretsHandler) testRoute(rw http.ResponseWriter, _ *http.Request) {
 	_, _ = rw.Write([]byte("OK"))
 }

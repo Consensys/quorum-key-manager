@@ -27,12 +27,14 @@ type Config struct {
 	MaxRetries    int
 	SkipVerify    bool
 	Token         string
+	Namespace     string
 }
 
-func NewBaseConfig(addr, token string) *Config {
+func NewBaseConfig(addr, token, namespace string) *Config {
 	return &Config{
-		Address: addr,
-		Token:   token,
+		Address:   addr,
+		Token:     token,
+		Namespace: namespace,
 	}
 }
 
