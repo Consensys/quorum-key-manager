@@ -2,9 +2,10 @@ package akv
 
 import (
 	"context"
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	"path"
 	"time"
+
+	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"

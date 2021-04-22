@@ -1,9 +1,10 @@
 package client
 
 import (
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"net/http"
 )
 
 func ParseErrorResponse(err error) error {
