@@ -9,7 +9,9 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
@@ -21,8 +23,11 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-const hashicorpContainerID = "hashicorp-vault"
-const networkName = "key-manager"
+const (
+	hashicorpContainerID = "hashicorp-vault"
+	networkName          = "key-manager"
+	localhostPath        = "http://localhost:"
+)
 
 type IntegrationEnvironment struct {
 	ctx             context.Context
@@ -31,6 +36,7 @@ type IntegrationEnvironment struct {
 	akvClient       *akvclient.AzureClient
 	dockerClient    *docker.Client
 	keyManager      *keymanager.App
+	baseURL         string
 }
 
 type TestSuiteEnv interface {
@@ -80,6 +86,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	envHTTPPort := strconv.Itoa(rand.IntnRange(20000, 28080))
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
 	hashicorpSecretSpecs := &hashicorp.SecretSpecs{
 		Token:      hashicorpContainer.RootToken,
@@ -93,7 +100,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Token:      hashicorpContainer.RootToken,
 		Namespace:  "",
 	}
-	keyManager := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs)
+	keyManager := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs, envHTTPPort)
 
 	// Hashicorp client for direct integration tests
 	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpSecretSpecs.Address, hashicorpSecretSpecs.Token, ""))
@@ -121,6 +128,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		akvClient:       akvClient,
 		dockerClient:    dockerClient,
 		keyManager:      keyManager,
+		baseURL:         localhostPath + envHTTPPort,
 	}, nil
 }
 
@@ -164,11 +172,15 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.keyManager.Start(ctx)
-	if err != nil {
-		env.logger.WithError(err).Error("failed to start key manager")
-		return err
-	}
+	go func() {
+		err = env.keyManager.Start(ctx)
+		if err != nil {
+			env.logger.WithError(err).Error("failed to start key manager")
+		}
+	}()
+
+	// TODO: Implement WaitFor functions based on ready endpoint
+	time.Sleep(2 * time.Second)
 
 	return nil
 }
@@ -176,12 +188,12 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	env.logger.Info("tearing test suite down")
 
-	err := env.keyManager.Stop(ctx)
+	/*err := env.keyManager.Stop(ctx)
 	if err != nil {
 		env.logger.WithError(err).Error("failed to stop key manager")
-	}
+	}*/
 
-	err = env.dockerClient.Down(ctx, hashicorpContainerID)
+	err := env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
 	}
@@ -196,6 +208,7 @@ func newKeyManager(
 	logger *log.Logger,
 	hashicorpSecretStoreSpecs *hashicorp.SecretSpecs,
 	hashicorpKeyStoreSpecs *hashicorp.KeySpecs,
+	port string,
 ) *keymanager.App {
 	hashicorpSecretSpecsRaw, _ := json.Marshal(hashicorpSecretStoreSpecs)
 	hashicorpSecretManifest := &manifest.Manifest{
@@ -213,8 +226,10 @@ func newKeyManager(
 		Specs:   hashicorpKeySpecsRaw,
 	}
 
+	httpConfig := http.NewDefaultConfig()
+	httpConfig.Port = port
 	cfg := &keymanager.Config{
-		HTTP: http.NewDefaultConfig(),
+		HTTP: httpConfig,
 		Manifests: []*manifest.Manifest{
 			hashicorpSecretManifest,
 			hashicorpKeyManifest,

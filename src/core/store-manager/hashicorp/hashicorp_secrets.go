@@ -1,6 +1,7 @@
 package hashicorp
 
 import (
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 )
@@ -17,7 +18,7 @@ func NewSecretStore(specs *SecretSpecs) (*hashicorp.SecretStore, error) {
 	cfg := client.NewBaseConfig(specs.Address, specs.Token, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, err
+		return nil, errors.HashicorpVaultConnectionError(err.Error())
 	}
 
 	store := hashicorp.New(cli, specs.MountPoint)

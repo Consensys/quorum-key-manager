@@ -13,7 +13,6 @@ func NewAppConfig(vipr *viper.Viper) *app.Config {
 		Manifests: []*manifest.Manifest{
 			newHashicorpManifest(vipr),
 			newNodeManifest(vipr),
-			newAKVManifest(vipr),
 		},
 	}
 }

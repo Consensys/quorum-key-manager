@@ -3,6 +3,7 @@ package storemanager
 import (
 	"context"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
@@ -56,7 +57,7 @@ func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store,
 		}
 	}
 
-	return nil, fmt.Errorf("secret store not found")
+	return nil, errors.NotFoundError("secret store %s was not found", name)
 }
 
 func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
@@ -68,7 +69,7 @@ func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error
 		}
 	}
 
-	return nil, fmt.Errorf("keys store not found")
+	return nil, errors.NotFoundError("key store %s was not found", name)
 }
 
 func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Store, error) {
@@ -80,7 +81,7 @@ func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Stor
 		}
 	}
 
-	return nil, fmt.Errorf("account store not found")
+	return nil, errors.NotFoundError("account store %s was not found", name)
 }
 
 func (m *manager) List(_ context.Context, kind manifest.Kind) ([]string, error) {

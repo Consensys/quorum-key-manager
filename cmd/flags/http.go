@@ -19,14 +19,14 @@ func init() {
 const (
 	httpPortFlag     = "http-port"
 	httpPortViperKey = "http.port"
-	httpPortDefault  = 8080
+	httpPortDefault  = "8080"
 	httpPortEnv      = "HTTP_PORT"
 )
 
 func httpPort(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Port to expose HTTP service
 Environment variable: %q`, httpPortEnv)
-	f.Uint32(httpPortFlag, httpPortDefault, desc)
+	f.String(httpPortFlag, httpPortDefault, desc)
 	_ = viper.BindPFlag(httpPortViperKey, f.Lookup(httpPortFlag))
 }
 
@@ -53,7 +53,7 @@ func HTTPFlags(f *pflag.FlagSet) {
 
 func newHTTPConfig(vipr *viper.Viper) *http.Config {
 	cfg := http.NewDefaultConfig()
-	cfg.Port = vipr.GetUint32(httpPortViperKey)
+	cfg.Port = vipr.GetString(httpPortViperKey)
 	cfg.Host = vipr.GetString(httpHostViperKey)
 	return cfg
 }
