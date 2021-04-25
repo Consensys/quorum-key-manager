@@ -32,15 +32,15 @@ func TestStoreRaw(t *testing.T) {
 		expectedBody []byte
 
 		respBody    []byte
-		expectedKey string
+		expectedKey []byte
 	}{
 		{
 			desc:         "Base case",
 			payload:      []byte{0xab, 0xcd},
 			privateFrom:  "KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=",
 			expectedBody: []byte(`{"payload":"q80=","privateFrom":"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s="}`),
-			respBody:     []byte(`{"key":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a"}`),
-			expectedKey:  "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a",
+			respBody:     []byte(`{"key":"SGVsbG8sIOS4lueVjA=="}`),
+			expectedKey:  []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c},
 		},
 	}
 

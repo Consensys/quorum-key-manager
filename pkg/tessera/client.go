@@ -37,7 +37,7 @@ type StoreRawResponse struct {
 	Key string `json:"key"`
 }
 
-func (c *HTTPClient) StoreRaw(ctx context.Context, payload []byte, privateFrom string) (string, error) {
+func (c *HTTPClient) StoreRaw(ctx context.Context, payload []byte, privateFrom string) ([]byte, error) {
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, "/storeraw", nil)
 
 	err := request.WriteJSON(req, &StoreRawRequest{
@@ -45,21 +45,26 @@ func (c *HTTPClient) StoreRaw(ctx context.Context, payload []byte, privateFrom s
 		PrivateFrom: privateFrom,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	msg := new(StoreRawResponse)
 	err = response.ReadJSON(resp, msg)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return msg.Key, nil
+	b, err := base64.StdEncoding.DecodeString(msg.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 var ErrNotConfigured = fmt.Errorf("tessera not configured")
@@ -67,6 +72,6 @@ var ErrNotConfigured = fmt.Errorf("tessera not configured")
 // NotConfiguredClient is a Tessera Client that always return a tessera not configured error
 type NotConfiguredClient struct{}
 
-func (c *NotConfiguredClient) StoreRaw(context.Context, []byte, string) (string, error) {
-	return "", ErrNotConfigured
+func (c *NotConfiguredClient) StoreRaw(context.Context, []byte, string) ([]byte, error) {
+	return nil, ErrNotConfigured
 }
