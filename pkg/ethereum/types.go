@@ -218,6 +218,11 @@ func (args *PrivateArgs) WithPrivacyFlag(flag PrivacyFlag) *PrivateArgs {
 	return args
 }
 
+func (args *PrivateArgs) WithPrivacyGroupID(id string) *PrivateArgs {
+	args.PrivacyGroupID = &id
+	return args
+}
+
 type SendTxMsg struct {
 	From     ethcommon.Address
 	To       *ethcommon.Address
