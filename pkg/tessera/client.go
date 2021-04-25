@@ -11,9 +11,11 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 )
 
+//go:generate mockgen -source=client.go -destination=mock/client.go -package=mock
+
 // Client is a client to Tessera Private Transaction Manager
 type Client interface {
-	StoreRaw(ctx context.Context, payload []byte, privateFrom string) (string, error)
+	StoreRaw(ctx context.Context, payload []byte, privateFrom string) ([]byte, error)
 }
 
 // HTTPClient is a tessera.Client that uses http
