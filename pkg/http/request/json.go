@@ -12,7 +12,7 @@ func WriteJSON(req *http.Request, msg interface{}) error {
 	if req.Header == nil {
 		req.Header = make(http.Header)
 	}
-	req.Header.Set("Content/Type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
 	// Write message into buffer
 	buf := new(bytes.Buffer)

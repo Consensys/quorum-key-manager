@@ -12,6 +12,6 @@ func ReadJSON(resp *http.Response, msg interface{}) error {
 	case "application/json":
 		return json.NewDecoder(resp.Body).Decode(msg)
 	default:
-		return fmt.Errorf("invalid response Content/Type: %v", contentType)
+		return fmt.Errorf("invalid response Content-Type: %v", contentType)
 	}
 }
