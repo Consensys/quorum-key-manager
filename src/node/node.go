@@ -10,6 +10,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera"
 )
 
 //go:generate mockgen -source=node.go -destination=mock/node.go -package=mock
@@ -23,7 +24,7 @@ type Node interface {
 	ProxyRPC() jsonrpc.Handler
 
 	// ClientPrivTxManager returns client to downstrem private transaction manager
-	ClientPrivTxManager() httpclient.Client
+	ClientPrivTxManager() tessera.Client
 
 	// Proxy returns an HTTP proxy to the downstream Priv Tx Manager node
 	ProxyPrivTxManager() http.Handler
@@ -61,18 +62,20 @@ func New(cfg *Config) (Node, error) {
 	}
 
 	if cfg.PrivTxManager != nil {
-		n.privTMngr, err = newPrivTxMngrDownstream(cfg.PrivTxManager)
+		n.privTxMngr, err = newPrivTxMngrDownstream(cfg.PrivTxManager)
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		n.privTxMngr = &privTxMngrDownstream{client: new(tessera.NotConfiguredClient)}
 	}
 
 	return n, nil
 }
 
 type node struct {
-	rpc       *rpcDownstream
-	privTMngr *privTxMngrDownstream
+	rpc        *rpcDownstream
+	privTxMngr *privTxMngrDownstream
 }
 
 func (n *node) ClientRPC() jsonrpc.Client {
@@ -83,12 +86,12 @@ func (n *node) ProxyRPC() jsonrpc.Handler {
 	return n.rpc.proxy
 }
 
-func (n *node) ClientPrivTxManager() httpclient.Client {
-	return n.privTMngr.http.client
+func (n *node) ClientPrivTxManager() tessera.Client {
+	return n.privTxMngr.client
 }
 
 func (n *node) ProxyPrivTxManager() http.Handler {
-	return n.privTMngr.http.proxy
+	return n.privTxMngr.http.proxy
 }
 
 // Session returns a new session
@@ -184,7 +187,8 @@ func newRPCDownstream(cfg *DownstreamConfig) (*rpcDownstream, error) {
 }
 
 type privTxMngrDownstream struct {
-	http *httpDownstream
+	http   *httpDownstream
+	client tessera.Client
 }
 
 func newPrivTxMngrDownstream(cfg *DownstreamConfig) (*privTxMngrDownstream, error) {
@@ -194,6 +198,8 @@ func newPrivTxMngrDownstream(cfg *DownstreamConfig) (*privTxMngrDownstream, erro
 	if err != nil {
 		return nil, err
 	}
+
+	n.client = tessera.NewHTTPClient(n.http.client)
 
 	return n, nil
 }
