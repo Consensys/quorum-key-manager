@@ -1,15 +1,11 @@
 package interceptor
 
 import (
-	"bytes"
-	"io/ioutil"
 	"math/big"
-	"net/http"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	mockethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum/mock"
 	mocknode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/mock"
 	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -22,16 +18,19 @@ func TestEthSignTransaction(t *testing.T) {
 
 	i, stores, nodes := newInterceptor(ctrl)
 	accountsStore := mockaccounts.NewMockStore(ctrl)
+
 	n := mocknode.NewMockNode(ctrl)
 	session := mocknode.NewMockSession(ctrl)
 	nodes.EXPECT().Node(gomock.Any(), "default").Return(n, nil).AnyTimes()
 	n.EXPECT().Session(gomock.Any()).Return(session, nil).AnyTimes()
 
-	transport := testutils.NewMockRoundTripper(ctrl)
-	jsonrpcClient := jsonrpc.NewClient(&http.Client{Transport: transport})
-	req, _ := http.NewRequest(http.MethodPost, "www.example.com", nil)
-	cllr := jsonrpc.NewCaller(jsonrpc.WithVersion("2.0")(jsonrpcClient), jsonrpc.NewRequest(req))
-	client := ethereum.NewClient(cllr)
+	cller := mockethereum.NewMockCaller(ctrl)
+	eeaCaller := mockethereum.NewMockEEACaller(ctrl)
+	ethCaller := mockethereum.NewMockEthCaller(ctrl)
+	cller.EXPECT().EEA().Return(eeaCaller).AnyTimes()
+	cller.EXPECT().Eth().Return(ethCaller).AnyTimes()
+
+	session.EXPECT().EthCaller().Return(cller).AnyTimes()
 
 	handler := NewNodeSessionMiddleware(nodes).Next(i.EthSignTransaction())
 	tests := []*testHandlerCase{
@@ -44,17 +43,7 @@ func TestEthSignTransaction(t *testing.T) {
 				stores.EXPECT().GetAccountStoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
 
 				// Get ChainID
-				session.EXPECT().EthClient().Return(client)
-				m := testutils.RequestMatcher(
-					t,
-					"www.example.com",
-					[]byte(`{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":null}`),
-				)
-				respBody := []byte(`{"jsonrpc": "2.0","result":"0x7ce"}`)
-				transport.EXPECT().RoundTrip(m).Return(&http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
-				}, nil)
+				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
 				// Sign
 				expectedTxData := &ethereum.TxData{
@@ -78,17 +67,7 @@ func TestEthSignTransaction(t *testing.T) {
 				stores.EXPECT().GetAccountStoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
 
 				// Get ChainID
-				session.EXPECT().EthClient().Return(client)
-				m := testutils.RequestMatcher(
-					t,
-					"www.example.com",
-					[]byte(`{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":null}`),
-				)
-				respBody := []byte(`{"jsonrpc": "2.0","result":"0x7ce"}`)
-				transport.EXPECT().RoundTrip(m).Return(&http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
-				}, nil)
+				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
 				// Sign
 				expectedTxData := &ethereum.TxData{

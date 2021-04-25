@@ -2,7 +2,6 @@ package interceptor
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
@@ -24,24 +23,24 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 
 	// Get ChainID from Node
 	sess := node.SessionFromContext(ctx)
-	chainID, err := sess.EthClient().Eth().ChainID(ctx)
+	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// Sign
-	var sig hexutil.Bytes
+	sig := new([]byte)
 	if msg.IsPrivate() {
-		sig, err = store.SignPrivate(ctx, msg.From, txData)
+		*sig, err = store.SignPrivate(ctx, msg.From, txData)
 	} else {
-		sig, err = store.SignEIP155(ctx, (*big.Int)(chainID), msg.From, txData)
+		*sig, err = store.SignEIP155(ctx, chainID, msg.From, txData)
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &sig, nil
+	return (*hexutil.Bytes)(sig), nil
 }
 
 func (i *Interceptor) EthSignTransaction() jsonrpc.Handler {

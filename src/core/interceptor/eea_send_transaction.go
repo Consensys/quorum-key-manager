@@ -2,20 +2,39 @@ package interceptor
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*ethcommon.Hash, error) {
+func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
 	// Get store for from
 	store, err := i.stores.GetAccountStoreByAddr(ctx, msg.From)
 	if err != nil {
 		return nil, err
+	}
+
+	sess := node.SessionFromContext(ctx)
+
+	if msg.Nonce == nil {
+		var n uint64
+		if msg.PrivacyGroupID != nil {
+			n, err = sess.EthCaller().Priv().GetTransactionCount(ctx, msg.From, *msg.PrivacyGroupID)
+		} else {
+			var privateFrom string
+			if msg.PrivateFrom != nil {
+				privateFrom = *msg.PrivateFrom
+			}
+			n, err = sess.EthCaller().Priv().GetEEATransactionCount(ctx, msg.From, privateFrom, *msg.PrivateFor)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		msg.Nonce = &n
 	}
 
 	txData, err := msg.TxData()
@@ -24,21 +43,19 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Get ChainID from Node
-	sess := node.SessionFromContext(ctx)
-	chainID, err := sess.EthClient().Eth().ChainID(ctx)
+	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// Sign
-	var sig hexutil.Bytes
-	sig, err = store.SignEEA(ctx, (*big.Int)(chainID), msg.From, txData, &msg.PrivateArgs)
+	sig, err := store.SignEEA(ctx, chainID, msg.From, txData, &msg.PrivateArgs)
 	if err != nil {
 		return nil, err
 	}
 
 	// Submit transaction to downstream node
-	hash, err := sess.EthClient().EEA().SendRawTransaction(ctx, sig)
+	hash, err := sess.EthCaller().EEA().SendRawTransaction(ctx, sig)
 	if err != nil {
 		return nil, err
 	}
