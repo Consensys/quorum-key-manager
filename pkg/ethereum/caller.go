@@ -20,43 +20,70 @@ func init() {
 	}
 }
 
-// Client implement methods to interface with the JSON-RPC API of an ethereum client
-// It is some kind of Web3 interface
-type Client struct {
-	eth  *ethClient
-	eea  *eeaClient
-	priv *privClient
+//go:generate mockgen -source=caller.go -destination=mock/caller.go -package=mock
+
+type Caller interface {
+	Eth() EthCaller
+	EEA() EEACaller
+	Priv() PrivCaller
 }
 
-// NewClient creates a client from a jsonrpc.Caller
-func NewClient(cllr jsonrpc.Caller) *Client {
-	return &Client{
-		eth:  &ethClient{cllr},
-		eea:  &eeaClient{cllr},
-		priv: &privClient{cllr},
+type EthCaller interface {
+	ChainID(context.Context) (*big.Int, error)
+	GasPrice(context.Context) (*big.Int, error)
+	GetTransactionCount(context.Context, ethcommon.Address, BlockNumber) (uint64, error)
+	EstimateGas(context.Context, *CallMsg) (uint64, error)
+	SendRawTransaction(context.Context, []byte) (ethcommon.Hash, error)
+	SendRawPrivateTransaction(context.Context, []byte, *PrivateArgs) (ethcommon.Hash, error)
+}
+
+type EEACaller interface {
+	SendRawTransaction(context.Context, []byte) (ethcommon.Hash, error)
+}
+
+type PrivCaller interface {
+	DistributeRawTransaction(context.Context, []byte) ([]byte, error)
+	GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (uint64, error)
+	GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error)
+}
+
+// Caller implement methods to interface with the JSON-RPC API of an ethereum caller
+// It is some kind of Web3 interface
+type caller struct {
+	eth  *ethCaller
+	eea  *eeaCaller
+	priv *privCaller
+}
+
+// NewCaller creates a caller from a jsonrpc.Caller
+func NewCaller(cllr jsonrpc.Caller) Caller {
+	return &caller{
+		eth:  &ethCaller{cllr},
+		eea:  &eeaCaller{cllr},
+		priv: &privCaller{cllr},
 	}
 }
 
-// Eth return eth namespace client
-func (c *Client) Eth() *ethClient { // nolint
+// Eth return eth namespace caller
+func (c *caller) Eth() EthCaller { // nolint
 	return c.eth
 }
 
-// EEA return eea namespace client
-func (c *Client) EEA() *eeaClient { // nolint
+// EEA return eea namespace caller
+func (c *caller) EEA() EEACaller { // nolint
 	return c.eea
 }
 
-// Priv return priv namespace client
-func (c *Client) Priv() *privClient { // nolint
+// Priv return priv namespace caller
+func (c *caller) Priv() PrivCaller { // nolint
 	return c.priv
 }
 
-type ethClient struct {
+type ethCaller struct {
 	cllr jsonrpc.Caller
 }
 
-func (c *ethClient) ChainID(ctx context.Context) (*big.Int, error) {
+func (c *ethCaller) ChainID(ctx context.Context) (*big.Int, error) {
 	chainID, err := ethSrv.ChainID(c.cllr)(ctx)
 	if err != nil {
 		return nil, err
@@ -65,7 +92,7 @@ func (c *ethClient) ChainID(ctx context.Context) (*big.Int, error) {
 	return (*big.Int)(chainID), nil
 }
 
-func (c *ethClient) GasPrice(ctx context.Context) (*big.Int, error) {
+func (c *ethCaller) GasPrice(ctx context.Context) (*big.Int, error) {
 	p, err := ethSrv.GasPrice(c.cllr)(ctx)
 	if err != nil {
 		return nil, err
@@ -74,7 +101,7 @@ func (c *ethClient) GasPrice(ctx context.Context) (*big.Int, error) {
 	return (*big.Int)(p), nil
 }
 
-func (c *ethClient) GetTransactionCount(ctx context.Context, addr ethcommon.Address, blockNumber BlockNumber) (uint64, error) {
+func (c *ethCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Address, blockNumber BlockNumber) (uint64, error) {
 	n, err := ethSrv.GetTransactionCount(c.cllr)(ctx, addr, blockNumber)
 	if err != nil {
 		return 0, err
@@ -83,7 +110,7 @@ func (c *ethClient) GetTransactionCount(ctx context.Context, addr ethcommon.Addr
 	return uint64(*n), nil
 }
 
-func (c *ethClient) EstimateGas(ctx context.Context, msg *CallMsg) (uint64, error) {
+func (c *ethCaller) EstimateGas(ctx context.Context, msg *CallMsg) (uint64, error) {
 	gas, err := ethSrv.EstimateGas(c.cllr)(ctx, msg)
 	if err != nil {
 		return 0, err
@@ -92,27 +119,27 @@ func (c *ethClient) EstimateGas(ctx context.Context, msg *CallMsg) (uint64, erro
 	return uint64(*gas), nil
 }
 
-func (c *ethClient) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
+func (c *ethCaller) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
 	return ethSrv.SendRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
 }
 
-func (c *ethClient) SendRawPrivateTransaction(ctx context.Context, raw []byte, privArgs *PrivateArgs) (ethcommon.Hash, error) {
+func (c *ethCaller) SendRawPrivateTransaction(ctx context.Context, raw []byte, privArgs *PrivateArgs) (ethcommon.Hash, error) {
 	return ethSrv.SendRawPrivateTransaction(c.cllr)(ctx, hexutil.Bytes(raw), privArgs)
 }
 
-type eeaClient struct {
+type eeaCaller struct {
 	cllr jsonrpc.Caller
 }
 
-func (c *eeaClient) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
+func (c *eeaCaller) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
 	return eeaSrv.SendRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
 }
 
-type privClient struct {
+type privCaller struct {
 	cllr jsonrpc.Caller
 }
 
-func (c *privClient) DistributeRawTransaction(ctx context.Context, raw []byte) ([]byte, error) {
+func (c *privCaller) DistributeRawTransaction(ctx context.Context, raw []byte) ([]byte, error) {
 	enclaveKey, err := privSrv.DistributeRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
 	if err != nil {
 		return nil, err
@@ -121,7 +148,7 @@ func (c *privClient) DistributeRawTransaction(ctx context.Context, raw []byte) (
 	return []byte(*enclaveKey), nil
 }
 
-func (c *privClient) GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (uint64, error) {
+func (c *privCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (uint64, error) {
 	n, err := privSrv.GetTransactionCount(c.cllr)(ctx, addr, privacyGroupID)
 	if err != nil {
 		return 0, err
@@ -130,7 +157,7 @@ func (c *privClient) GetTransactionCount(ctx context.Context, addr ethcommon.Add
 	return uint64(*n), nil
 }
 
-func (c *privClient) GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error) {
+func (c *privCaller) GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error) {
 	n, err := privSrv.GetEEATransactionCount(c.cllr)(ctx, addr, privateFrom, privateFor)
 	if err != nil {
 		return 0, err

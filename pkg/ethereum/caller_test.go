@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestClient(t *testing.T) {
+func TestCaller(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -24,9 +24,8 @@ func TestClient(t *testing.T) {
 	jsonrpcClient := jsonrpc.NewClient(&http.Client{Transport: transport})
 	req, _ := http.NewRequest(http.MethodPost, "www.example.com", nil)
 
-	// Empty ID and version client
-	cllr := jsonrpc.NewCaller(jsonrpc.WithVersion("2.0")(jsonrpcClient), jsonrpc.NewRequest(req))
-	client := NewClient(cllr)
+	// Empty ID and version cllr
+	cllr := NewCaller(jsonrpc.NewCaller(jsonrpc.WithVersion("2.0")(jsonrpcClient), jsonrpc.NewRequest(req)))
 
 	// Test Eth
 	t.Run("eth_chainId", func(t *testing.T) {
@@ -41,7 +40,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		chainID, err := client.Eth().ChainID(context.Background())
+		chainID, err := cllr.Eth().ChainID(context.Background())
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, "2018", chainID.String(), "Result should be valid")
 	})
@@ -58,7 +57,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		gasPrice, err := client.Eth().GasPrice(context.Background())
+		gasPrice, err := cllr.Eth().GasPrice(context.Background())
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, "1000", gasPrice.String(), "Result should be valid")
 	})
@@ -76,7 +75,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		count, err := client.Eth().GetTransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), LatestBlockNumber)
+		count, err := cllr.Eth().GetTransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), LatestBlockNumber)
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, uint64(15), count, "Result should be valid")
 	})
@@ -93,7 +92,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		count, err := client.Eth().GetTransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), BlockNumber(10))
+		count, err := cllr.Eth().GetTransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), BlockNumber(10))
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, uint64(15), count, "Result should be valid")
 	})
@@ -114,7 +113,7 @@ func TestClient(t *testing.T) {
 			WithTo(ethcommon.HexToAddress("0x44Aa93095D6749A706051658B970b941c72c1D53")).
 			WithFrom(ethcommon.HexToAddress("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73")).
 			WithValue(big.NewInt(1))
-		gas, err := client.Eth().EstimateGas(context.Background(), msg)
+		gas, err := cllr.Eth().EstimateGas(context.Background(), msg)
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, uint64(21000), gas, "Result should be valid")
 	})
@@ -131,7 +130,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		hash, err := client.Eth().SendRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
+		hash, err := cllr.Eth().SendRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a", hash.String(), "Result should be valid")
 	})
@@ -148,7 +147,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		hash, err := client.Eth().SendRawPrivateTransaction(
+		hash, err := cllr.Eth().SendRawPrivateTransaction(
 			context.Background(),
 			ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"),
 			(&PrivateArgs{}).WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}),
@@ -170,7 +169,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		hash, err := client.EEA().SendRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
+		hash, err := cllr.EEA().SendRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a", hash.String(), "Result should be valid")
 	})
@@ -187,7 +186,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		enclaveKey, err := client.Priv().DistributeRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
+		enclaveKey, err := cllr.Priv().DistributeRawTransaction(context.Background(), ethcommon.FromHex("0xf869018203e882520894f17f52151ebef6c7334fad080c5704d77216b732881bc16d674ec80000801ba02da1c48b670996dcb1f447ef9ef00b33033c48a4fe938f420bec3e56bfd24071a062e0aa78a81bf0290afbc3a9d8e9a068e6d74caa66c5e0fa8a46deaae96b0833"))
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, ethcommon.FromHex("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a"), enclaveKey, "Result should be valid")
 	})
@@ -204,7 +203,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		count, err := client.Priv().GetEEATransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
+		count, err := cllr.Priv().GetEEATransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, uint64(15), count, "Result should be valid")
 	})
@@ -221,7 +220,7 @@ func TestClient(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
 		}, nil)
 
-		count, err := client.Priv().GetTransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), "kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M=")
+		count, err := cllr.Priv().GetTransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), "kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M=")
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, uint64(15), count, "Resut should be valid")
 	})
