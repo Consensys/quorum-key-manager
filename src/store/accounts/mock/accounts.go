@@ -211,7 +211,7 @@ func (mr *MockStoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.Call 
 }
 
 // SignEEA mocks base method.
-func (m *MockStore) SignEEA(ctx context.Context, chainID *big.Int, addr common.Address, tx *ethereum.TxData, args *ethereum.PrivateArgs) ([]byte, error) {
+func (m *MockStore) SignEEA(ctx context.Context, chainID *big.Int, addr common.Address, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignEEA", ctx, chainID, addr, tx, args)
 	ret0, _ := ret[0].([]byte)

@@ -269,7 +269,7 @@ func (msg *SendTxMsg) TxData() (*TxData, error) {
 	return tx, nil
 }
 
-type jsonCallSendTxMsg struct {
+type jsonSendTxMsg struct {
 	From     ethcommon.Address  `json:"from,omitempty"`
 	To       *ethcommon.Address `json:"to,omitempty"`
 	Gas      *hexutil.Uint64    `json:"gas,omitempty"`
@@ -283,7 +283,7 @@ type jsonCallSendTxMsg struct {
 }
 
 func (msg *SendTxMsg) UnmarshalJSON(b []byte) error {
-	raw := new(jsonCallSendTxMsg)
+	raw := new(jsonSendTxMsg)
 	err := json.Unmarshal(b, raw)
 	if err != nil {
 		return err
@@ -308,12 +308,81 @@ func (msg *SendTxMsg) UnmarshalJSON(b []byte) error {
 }
 
 func (msg *SendTxMsg) MarshalJSON() ([]byte, error) {
-	return json.Marshal(&jsonCallSendTxMsg{
+	return json.Marshal(&jsonSendTxMsg{
 		From:        msg.From,
 		To:          msg.To,
 		Gas:         (*hexutil.Uint64)(msg.Gas),
 		GasPrice:    (*hexutil.Big)(msg.GasPrice),
 		Value:       (*hexutil.Big)(msg.Value),
+		Nonce:       (*hexutil.Uint64)(msg.Nonce),
+		Data:        (*hexutil.Bytes)(msg.Data),
+		PrivateArgs: msg.PrivateArgs,
+	})
+}
+
+type EEATxData struct {
+	Nonce uint64
+	To    *ethcommon.Address
+	Data  []byte
+}
+
+type SendEEATxMsg struct {
+	From  ethcommon.Address
+	To    *ethcommon.Address
+	Nonce *uint64
+	Data  *[]byte
+
+	PrivateArgs
+}
+
+func (msg *SendEEATxMsg) TxData() (*EEATxData, error) {
+	if msg.Nonce == nil {
+		return nil, fmt.Errorf("nonce not specified")
+	}
+
+	tx := &EEATxData{
+		To:    msg.To,
+		Nonce: *msg.Nonce,
+	}
+
+	if msg.Data != nil {
+		tx.Data = *msg.Data
+	}
+
+	return tx, nil
+}
+
+type jsonSendEEATxMsg struct {
+	From  ethcommon.Address  `json:"from,omitempty"`
+	To    *ethcommon.Address `json:"to,omitempty"`
+	Nonce *hexutil.Uint64    `json:"nonce,omitempty"`
+	Data  *hexutil.Bytes     `json:"data,omitempty"`
+
+	PrivateArgs
+}
+
+func (msg *SendEEATxMsg) UnmarshalJSON(b []byte) error {
+	raw := new(jsonSendEEATxMsg)
+	err := json.Unmarshal(b, raw)
+	if err != nil {
+		return err
+	}
+
+	*msg = SendEEATxMsg{
+		From:        raw.From,
+		To:          raw.To,
+		Nonce:       (*uint64)(raw.Nonce),
+		PrivateArgs: raw.PrivateArgs,
+		Data:        (*[]byte)(raw.Data),
+	}
+
+	return nil
+}
+
+func (msg *SendEEATxMsg) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&jsonSendEEATxMsg{
+		From:        msg.From,
+		To:          msg.To,
 		Nonce:       (*hexutil.Uint64)(msg.Nonce),
 		Data:        (*hexutil.Bytes)(msg.Data),
 		PrivateArgs: msg.PrivateArgs,
