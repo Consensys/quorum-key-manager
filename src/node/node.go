@@ -44,7 +44,7 @@ type Session interface {
 	CallerRPC() jsonrpc.Caller
 
 	// EthClient returns a client to downstream JSON-RPC
-	EthClient() *ethereum.Client
+	EthCaller() ethereum.Caller
 
 	// Close the session
 	Close()
@@ -108,15 +108,15 @@ func (n *node) Session(req *jsonrpc.Request) (Session, error) {
 type session struct {
 	*node
 	rpcCaller jsonrpc.Caller
-	ethClient *ethereum.Client
+	ethCaller ethereum.Caller
 }
 
 func (s *session) CallerRPC() jsonrpc.Caller {
 	return s.rpcCaller
 }
 
-func (s *session) EthClient() *ethereum.Client {
-	return s.ethClient
+func (s *session) EthCaller() ethereum.Caller {
+	return s.ethCaller
 }
 
 func (s *session) Close() {

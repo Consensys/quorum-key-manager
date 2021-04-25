@@ -37,7 +37,7 @@ func TestNodeRPC(t *testing.T) {
 	privTxMngrServer := httptest.NewServer(
 		http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			rw.Header().Set("Content-Type", "application/json")
-			_, _ = rw.Write([]byte(`{"key":"0xabcd"}`))
+			_, _ = rw.Write([]byte(`{"key":"q80="}`))
 		}),
 	)
 	defer privTxMngrServer.Close()
@@ -91,11 +91,11 @@ func TestNodeRPC(t *testing.T) {
 	// Test ClientPrivTxManager
 	key, err := n.ClientPrivTxManager().StoreRaw(context.Background(), []byte{}, "")
 	require.NoError(t, err, "StoreRaw must not error")
-	assert.Equal(t, "0xabcd", key, "Key must be correct")
+	assert.Equal(t, []byte{0xab, 0xcd}, key, "Key must be correct")
 
 	// Test ProxyPrivTxManager
 	rec = httptest.NewRecorder()
 	n.ProxyPrivTxManager().ServeHTTP(rec, &http.Request{Header: make(http.Header)})
-	assert.Equal(t, []byte(`{"key":"0xabcd"}`), rec.Body.Bytes(), "ServeHTTP should write correct body")
+	assert.Equal(t, []byte(`{"key":"q80="}`), rec.Body.Bytes(), "ServeHTTP should write correct body")
 
 }

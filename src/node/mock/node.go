@@ -9,8 +9,8 @@ import (
 	reflect "reflect"
 
 	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
 	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	tessera "github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera"
 	node "github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -39,10 +39,10 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 }
 
 // ClientPrivTxManager mocks base method.
-func (m *MockNode) ClientPrivTxManager() httpclient.Client {
+func (m *MockNode) ClientPrivTxManager() tessera.Client {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClientPrivTxManager")
-	ret0, _ := ret[0].(httpclient.Client)
+	ret0, _ := ret[0].(tessera.Client)
 	return ret0
 }
 
@@ -147,10 +147,10 @@ func (mr *MockSessionMockRecorder) CallerRPC() *gomock.Call {
 }
 
 // ClientPrivTxManager mocks base method.
-func (m *MockSession) ClientPrivTxManager() httpclient.Client {
+func (m *MockSession) ClientPrivTxManager() tessera.Client {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClientPrivTxManager")
-	ret0, _ := ret[0].(httpclient.Client)
+	ret0, _ := ret[0].(tessera.Client)
 	return ret0
 }
 
@@ -186,18 +186,18 @@ func (mr *MockSessionMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockSession)(nil).Close))
 }
 
-// EthClient mocks base method.
-func (m *MockSession) EthClient() *ethereum.Client {
+// EthCaller mocks base method.
+func (m *MockSession) EthCaller() ethereum.Caller {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EthClient")
-	ret0, _ := ret[0].(*ethereum.Client)
+	ret := m.ctrl.Call(m, "EthCaller")
+	ret0, _ := ret[0].(ethereum.Caller)
 	return ret0
 }
 
-// EthClient indicates an expected call of EthClient.
-func (mr *MockSessionMockRecorder) EthClient() *gomock.Call {
+// EthCaller indicates an expected call of EthCaller.
+func (mr *MockSessionMockRecorder) EthCaller() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EthClient", reflect.TypeOf((*MockSession)(nil).EthClient))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EthCaller", reflect.TypeOf((*MockSession)(nil).EthCaller))
 }
 
 // ProxyPrivTxManager mocks base method.
