@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -55,52 +56,87 @@ type ethClient struct {
 	cllr jsonrpc.Caller
 }
 
-func (c *ethClient) ChainID(ctx context.Context) (*hexutil.Big, error) {
-	return ethSrv.ChainID(c.cllr)(ctx)
+func (c *ethClient) ChainID(ctx context.Context) (*big.Int, error) {
+	chainID, err := ethSrv.ChainID(c.cllr)(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return (*big.Int)(chainID), nil
 }
 
-func (c *ethClient) GasPrice(ctx context.Context) (*hexutil.Big, error) {
-	return ethSrv.GasPrice(c.cllr)(ctx)
+func (c *ethClient) GasPrice(ctx context.Context) (*big.Int, error) {
+	p, err := ethSrv.GasPrice(c.cllr)(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return (*big.Int)(p), nil
 }
 
-func (c *ethClient) GetTransactionCount(ctx context.Context, addr ethcommon.Address, blockNumber BlockNumber) (*hexutil.Uint64, error) {
-	return ethSrv.GetTransactionCount(c.cllr)(ctx, addr, blockNumber)
+func (c *ethClient) GetTransactionCount(ctx context.Context, addr ethcommon.Address, blockNumber BlockNumber) (uint64, error) {
+	n, err := ethSrv.GetTransactionCount(c.cllr)(ctx, addr, blockNumber)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(*n), nil
 }
 
-func (c *ethClient) EstimateGas(ctx context.Context, msg *CallMsg) (*hexutil.Uint64, error) {
-	return ethSrv.EstimateGas(c.cllr)(ctx, msg)
+func (c *ethClient) EstimateGas(ctx context.Context, msg *CallMsg) (uint64, error) {
+	gas, err := ethSrv.EstimateGas(c.cllr)(ctx, msg)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(*gas), nil
 }
 
-func (c *ethClient) SendRawTransaction(ctx context.Context, raw hexutil.Bytes) (ethcommon.Hash, error) {
-	return ethSrv.SendRawTransaction(c.cllr)(ctx, raw)
+func (c *ethClient) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
+	return ethSrv.SendRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
 }
 
-func (c *ethClient) SendRawPrivateTransaction(ctx context.Context, raw hexutil.Bytes, privArgs *PrivateArgs) (ethcommon.Hash, error) {
-	return ethSrv.SendRawPrivateTransaction(c.cllr)(ctx, raw, privArgs)
+func (c *ethClient) SendRawPrivateTransaction(ctx context.Context, raw []byte, privArgs *PrivateArgs) (ethcommon.Hash, error) {
+	return ethSrv.SendRawPrivateTransaction(c.cllr)(ctx, hexutil.Bytes(raw), privArgs)
 }
 
 type eeaClient struct {
 	cllr jsonrpc.Caller
 }
 
-func (c *eeaClient) SendRawTransaction(ctx context.Context, raw hexutil.Bytes) (ethcommon.Hash, error) {
-	return eeaSrv.SendRawTransaction(c.cllr)(ctx, raw)
+func (c *eeaClient) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
+	return eeaSrv.SendRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
 }
 
 type privClient struct {
 	cllr jsonrpc.Caller
 }
 
-func (c *privClient) DistributeRawTransaction(ctx context.Context, raw hexutil.Bytes) (*hexutil.Bytes, error) {
-	return privSrv.DistributeRawTransaction(c.cllr)(ctx, raw)
+func (c *privClient) DistributeRawTransaction(ctx context.Context, raw []byte) ([]byte, error) {
+	enclaveKey, err := privSrv.DistributeRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(*enclaveKey), nil
 }
 
-func (c *privClient) GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (*hexutil.Uint64, error) {
-	return privSrv.GetTransactionCount(c.cllr)(ctx, addr, privacyGroupID)
+func (c *privClient) GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (uint64, error) {
+	n, err := privSrv.GetTransactionCount(c.cllr)(ctx, addr, privacyGroupID)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(*n), nil
 }
 
-func (c *privClient) GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (*hexutil.Uint64, error) {
-	return privSrv.GetEEATransactionCount(c.cllr)(ctx, addr, privateFrom, privateFor)
+func (c *privClient) GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error) {
+	n, err := privSrv.GetEEATransactionCount(c.cllr)(ctx, addr, privateFrom, privateFor)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(*n), nil
 }
 
 var (
