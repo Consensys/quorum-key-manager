@@ -31,9 +31,18 @@ hashicorp:
 hashicorp-down:
 	@docker-compose -f deps/hashicorp/docker-compose.yml down $(DEPS_VAULT)
 
-deps: hashicorp
+networks:
+	@docker network create --driver=bridge hashicorp || true
+	@docker network create --driver=bridge --subnet=172.16.237.0/24 besu || true
+	@docker network create --driver=bridge --subnet=172.16.238.0/24 quorum || true
 
-down-deps: hashicorp-down
+down-networks:
+	@docker network rm quorum || true
+	@docker network rm hashicorp || true
+
+deps: networks hashicorp
+
+down-deps: hashicorp-down down-networks
 
 run-acceptance:
 	@go test -v -tags acceptance ./acceptance-tests

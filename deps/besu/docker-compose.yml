@@ -1,106 +1,215 @@
 ---
-version: '3.4'
+version: '3.6'
 
-x-orion-common: &orion-common
-  image: pegasyseng/orion:1.6.0
-  entrypoint: ["bash", "orion.sh"]
-  networks:
-    - quorum
-  volumes:
-    - ./orion.sh:/opt/orion/orion.sh
-    - ./config:/config
-
-x-orion-env-common: &orion-env-common
+x-default-variables: &default-variables
   LOG4J_CONFIGURATION_FILE: /config/log-config.xml
+  JAVA_OPTS: -Xms512m -Xmx512m -XX:MaxMetaspaceSize=256m
+  
+x-besu-bootnode-def:
+  &besu-bootnode-def
+  restart: "on-failure"
+  image: hyperledger/besu:20.10.4
+  entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      /opt/besu/bin/besu public-key export --to=/tmp/bootnode_pubkey;
+      /opt/besu/bin/besu \
+      --config-file=/config/config.toml \
+      --p2p-host=$$(hostname -i) \
+      --genesis-file=/config/genesis.json \
+      --node-private-key-file=/opt/besu/keys/key \
+      --min-gas-price=0 \
+      --privacy-enabled \
+      --privacy-url=$${ORION_CLIENTURL} \
+      --privacy-public-key-file=/config/orion/orion.pub \
+      --privacy-onchain-groups-enabled=false \
+      --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,IBFT \
+      --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,IBFT ;
 
-x-besu-common: &besu-common
-  image: hyperledger/besu:1.5.5
-  entrypoint: ["bash", "besu.sh"]
-  networks:
-    - quorum
+x-besu-def:
+  &besu-def
+  restart: "on-failure"
+  image: hyperledger/besu:20.10.4
+  entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      while [ ! -f "/opt/besu/public-keys/bootnode_pubkey" ]; do sleep 5; done ;
+      /opt/besu/bin/besu \
+      --config-file=/config/config.toml \
+      --p2p-host=$$(hostname -i) \
+      --genesis-file=/config/genesis.json \
+      --node-private-key-file=/opt/besu/keys/key \
+      --min-gas-price=0 \
+      --privacy-enabled \
+      --privacy-url=$${ORION_CLIENTURL} \
+      --privacy-public-key-file=/config/orion/orion.pub \
+      --privacy-onchain-groups-enabled=false \
+      --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,IBFT \
+      --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,IBFT ;
 
-x-besu-env-common: &besu-env-common
-  RPC_HTTP_API: WEB3,ETH,NET,EEA,PRIV,ADMIN,PERM,TXPOOL,ibft
-  RPC_WS_API: WEB3,ETH,NET,EEA,PRIV,ADMIN,PERM,TXPOOL,ibft
-  METRICS: 1
-  LOG4J_CONFIGURATION_FILE: /config/log-config.xml
+x-orion-def:
+  &orion-def
+  image: consensys/quorum-orion:20.10.1
+  command: ["/config/orion.conf"]
 
 services:
-  validator1-bootnode:
-    <<: *besu-common
+  validator1:
+    <<: *besu-bootnode-def
     environment:
-      <<: *besu-env-common
-      NODE_NAME: validator1-bootnode
-      ORION_URL: http://orion1:8888
-      ORION_NAME: orion1
-      BOOTNODE: 1
-    depends_on:
-      - orion1
+      <<: *default-variables
+      ORION_CLIENTURL: http://orion1:8888
     volumes:
       - public-keys:/tmp/
-      - ./besu.sh:/opt/besu/besu.sh
-      - ./config:/config
-
-  orion1:
-    <<: *orion-common
-    environment:
-      <<: *orion-env-common
-      ORION_NAME: orion1
-
-  validator2:
-    <<: *besu-common
-    environment:
-      <<: *besu-env-common
-      NODE_NAME: validator2
-      ORION_URL: http://orion2:8888
-      ORION_NAME: orion2
-    depends_on:
-      - orion2
-      - validator1-bootnode
-    volumes:
-      - public-keys:/opt/besu/public-keys/
-      - ./besu.sh:/opt/besu/besu.sh
-      - ./config:/config
-
-  orion2:
-    <<: *orion-common
-    environment:
-      <<: *orion-env-common
-      ORION_NAME: orion2
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config.toml:/config/permissions_config.toml
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./config/besu/ibft2Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/validator1/keys:/opt/besu/keys
+      - ./config/orion/networkFiles/orion1/nodeKey.pub:/config/orion/orion.pub
     depends_on:
       - orion1
-
-  validator3:
-    <<: *besu-common
-    environment:
-      <<: *besu-env-common
-      NODE_NAME: validator3
-      ORION_URL: http://orion3:8888
-      ORION_NAME: orion3
-    depends_on:
-      - validator1-bootnode
-      - orion3
-    volumes:
-      - public-keys:/opt/besu/public-keys/
-      - ./besu.sh:/opt/besu/besu.sh
-      - ./config:/config
+    ports:
+      - 20000:8545/tcp
+      - 20001:8546/tcp
+    networks:
+      besu:
+        ipv4_address: 172.16.237.11
   
-  orion3:
-    <<: *orion-common
+  orion1:
+    <<: *orion-def
     environment:
-      <<: *orion-env-common
-      ORION_NAME: orion3
+      <<: *default-variables
+      ORION_OTHERNODES: http://orion2:8080/,http://orion3:8080/,http://orion4:8080/
+      ORION_NODEURL: http://orion1:8080
+      ORION_CLIENTURL: http://orion1:8888
+    volumes:
+      - ./config/orion/orion.conf:/config/orion.conf
+      - ./config/orion/networkFiles/orion1:/keys/
+      - ./config/orion/log-config.xml:/config/log-config.xml
+    networks:
+      besu:
+        ipv4_address: 172.16.237.21
+  
+  validator2:
+    <<: *besu-def
+    environment:
+      <<: *default-variables
+      ORION_CLIENTURL: http://orion2:8888
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config.toml:/config/permissions_config.toml
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./config/besu/ibft2Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/validator2/keys:/opt/besu/keys
+      - ./config/orion/networkFiles/orion2/nodeKey.pub:/config/orion/orion.pub
     depends_on:
-      - orion1
+      - validator1
+      - orion2
+    ports:
+      - 20002:8545/tcp
+      - 20003:8546/tcp
+    networks:
+      besu:
+        ipv4_address: 172.16.237.12
+  
+  orion2:
+    <<: *orion-def
+    environment:
+      <<: *default-variables
+      ORION_OTHERNODES: http://orion1:8080/,http://orion3:8080/,http://orion4:8080/
+      ORION_NODEURL: http://orion2:8080
+      ORION_CLIENTURL: http://orion2:8888
+    volumes:
+      - ./config/orion/orion.conf:/config/orion.conf
+      - ./config/orion/networkFiles/orion2:/keys/
+      - ./config/orion/log-config.xml:/config/log-config.xml
+    networks:
+      besu:
+        ipv4_address: 172.16.237.22
+        
+  validator3:
+    <<: *besu-def
+    environment:
+      <<: *default-variables
+      ORION_CLIENTURL: http://orion3:8888
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config.toml:/config/permissions_config.toml
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./config/besu/ibft2Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/validator3/keys:/opt/besu/keys
+      - ./config/orion/networkFiles/orion3/nodeKey.pub:/config/orion/orion.pub
+    depends_on:
+      - validator1
+      - orion3
+    ports:
+      - 20004:8545/tcp
+      - 20005:8546/tcp
+    networks:
+      besu:
+        ipv4_address: 172.16.237.13
 
-networks:
-  quorum:
-    external:
-      name: quorum
+  orion3:
+    <<: *orion-def
+    environment:
+      <<: *default-variables
+      ORION_OTHERNODES: http://orion1:8080/,http://orion2:8080/,http://orion4:8080/
+      ORION_NODEURL: http://orion3:8080
+      ORION_CLIENTURL: http://orion3:8888
+    volumes:
+      - ./config/orion/orion.conf:/config/orion.conf
+      - ./config/orion/networkFiles/orion3:/keys/
+      - ./config/orion/log-config.xml:/config/log-config.xml
+    networks:
+      besu:
+        ipv4_address: 172.16.237.23
+        
+  validator4:
+    <<: *besu-def
+    environment:
+      <<: *default-variables
+      ORION_CLIENTURL: http://orion4:8888
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config.toml:/config/permissions_config.toml
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./config/besu/ibft2Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/validator4/keys:/opt/besu/keys
+      - ./config/orion/networkFiles/orion4/nodeKey.pub:/config/orion/orion.pub
+    depends_on:
+      - validator1
+      - orion3
+    ports:
+      - 20006:8545/tcp
+      - 20007:8546/tcp
+    networks:
+      besu:
+        ipv4_address: 172.16.237.14
+
+  orion4:
+    <<: *orion-def
+    environment:
+      <<: *default-variables
+      ORION_OTHERNODES: http://orion1:8080/,http://orion2:8080/,http://orion3:8080/
+      ORION_NODEURL: http://orion4:8080
+      ORION_CLIENTURL: http://orion4:8888
+    volumes:
+      - ./config/orion/orion.conf:/config/orion.conf
+      - ./config/orion/networkFiles/orion4:/keys/
+      - ./config/orion/log-config.xml:/config/log-config.xml
+    networks:
+      besu:
+        ipv4_address: 172.16.237.24
 
 volumes:
   public-keys:
-  prometheus:
-  grafana:
-  vault-token:
-    driver: local
+
+networks:
+  besu:
+    external:
+      name: besu
