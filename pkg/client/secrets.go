@@ -45,6 +45,23 @@ func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version strin
 	return secret, nil
 }
 
+func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string) ([]string, error) {
+	var ids []string
+	reqURL := fmt.Sprintf("%s/%s", c.config.URL, secretsPath)
+	response, err := getRequest(withSecretStore(ctx, storeName), c.client, reqURL)
+	if err != nil {
+		return nil, err
+	}
+
+	defer closeResponse(response)
+	err = parseResponse(response, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
+
 func withSecretStore(ctx context.Context, storeName string) context.Context {
 	return context.WithValue(ctx, RequestHeaderKey, map[string]string{
 		secretStoreHeaderKey: storeName,

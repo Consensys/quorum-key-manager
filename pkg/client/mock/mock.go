@@ -64,6 +64,21 @@ func (mr *MockSecretsClientMockRecorder) GetSecret(ctx, storeName, id, version i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsClient)(nil).GetSecret), ctx, storeName, id, version)
 }
 
+// ListSecrets mocks base method
+func (m *MockSecretsClient) ListSecrets(ctx context.Context, storeName string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSecrets", ctx, storeName)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSecrets indicates an expected call of ListSecrets
+func (mr *MockSecretsClientMockRecorder) ListSecrets(ctx, storeName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockSecretsClient)(nil).ListSecrets), ctx, storeName)
+}
+
 // MockKeyManagerClient is a mock of KeyManagerClient interface
 type MockKeyManagerClient struct {
 	ctrl     *gomock.Controller
@@ -115,4 +130,19 @@ func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, ver
 func (mr *MockKeyManagerClientMockRecorder) GetSecret(ctx, storeName, id, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetSecret), ctx, storeName, id, version)
+}
+
+// ListSecrets mocks base method
+func (m *MockKeyManagerClient) ListSecrets(ctx context.Context, storeName string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSecrets", ctx, storeName)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSecrets indicates an expected call of ListSecrets
+func (mr *MockKeyManagerClientMockRecorder) ListSecrets(ctx, storeName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockKeyManagerClient)(nil).ListSecrets), ctx, storeName)
 }

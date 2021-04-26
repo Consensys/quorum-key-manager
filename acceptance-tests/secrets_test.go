@@ -145,3 +145,22 @@ func (s *secretsTestSuite) TestGet() {
 		assert.Equal(t, " version must be a number", httpError.Message)
 	})
 }
+
+func (s *secretsTestSuite) TestList() {
+	ctx := s.env.ctx
+	request := &types.SetSecretRequest{
+		ID:    "my-secret-list",
+		Value: "my-secret-value",
+	}
+
+	_, err := s.keyManagerClient.SetSecret(ctx, SecretStoreName, request)
+	require.NoError(s.T(), err)
+
+	s.T().Run("should set a new secret successfully", func(t *testing.T) {
+		ids, err := s.keyManagerClient.ListSecrets(ctx, SecretStoreName)
+		require.NoError(t, err)
+
+		assert.GreaterOrEqual(t, 1, len(ids))
+		assert.Contains(t, request.ID, ids)
+	})
+}
