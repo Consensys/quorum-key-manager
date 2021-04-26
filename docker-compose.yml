@@ -2,9 +2,9 @@ version: "3.7"
 
 x-default-variables: &default-variables
   LOG_LEVEL: ${LOG_LEVEL-INFO}
-  HTTP_HOST: ${HTTP_HOST-localhost}
+  HTTP_HOST: ${HTTP_HOST}
   HTTP_PORT: ${HTTP_PORT-8080}
-  NODE_ADDR: ${NODE_ADDR-http://validator2:8545}
+  NODE_ADDR: ${NODE_ADDR-8080}
   AKV_VAULT_NAME: ${AKV_VAULT_NAME-}
   AKV_TENANT_ID: ${AKV_TENANT_ID-}
   AKV_CLIENT_ID: ${AKV_CLIENT_ID-}
@@ -16,7 +16,9 @@ x-container-common: &container-common
   entrypoint: /bin/main
   tty: true
   networks:
-    - key-manager
+    - quorum
+    - besu
+    - hashicorp
   volumes:
     - ./build/bin/key-manager:/bin/main:ro
 
@@ -31,7 +33,13 @@ services:
     command: run
 
 networks:
-  key-manager:
+  quorum:
     external:
-      name: hashicorp_hashicorp
+      name: quorum
+  besu:
+    external:
+      name: besu
+  hashicorp:
+    external:
+      name: hashicorp
 

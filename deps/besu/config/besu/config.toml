@@ -1,0 +1,33 @@
+
+logging="INFO"
+data-path="/opt/besu/data"
+host-whitelist=["*"]
+
+# rpc
+rpc-http-enabled=true
+rpc-http-host="0.0.0.0"
+rpc-http-port=8545
+rpc-http-cors-origins=["*"]
+
+# ws
+rpc-ws-enabled=true
+rpc-ws-host="0.0.0.0"
+rpc-ws-port=8546
+
+# graphql
+graphql-http-enabled=false
+graphql-http-host="0.0.0.0"
+graphql-http-port=8547
+graphql-http-cors-origins=["*"]
+
+# metrics
+metrics-enabled=false
+metrics-host="0.0.0.0"
+metrics-port=9545
+
+# permissions
+permissions-nodes-config-file-enabled=true
+permissions-nodes-config-file="/config/permissions_config.toml"
+
+# bootnodes
+bootnodes=["enode://c1979a8a48693db804316b5acebe35e11731e1fb1c9c21ff7268ab25db6f6e03390a429b83cf0ec0865a7205f2669ec1ace652a3def11e2e01571c74939cbe22@172.16.237.11:30303"]
