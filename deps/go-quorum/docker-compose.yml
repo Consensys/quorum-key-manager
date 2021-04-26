@@ -11,7 +11,7 @@ version: "3.7"
 x-quorum-def:
   &quorum-def
   restart: "on-failure"
-  image: quorumengineering/quorum:20.10.0
+  image: quorumengineering/quorum:21.4.0
   expose:
     - 30303
     - 8545
@@ -64,7 +64,7 @@ x-quorum-def:
 
 x-tessera-def:
   &tessera-def
-  image: quorumengineering/tessera:21.1.0
+  image: quorumengineering/tessera:21.1.1
   expose:
     - 9000
     - 9080

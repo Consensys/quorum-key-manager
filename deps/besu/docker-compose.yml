@@ -8,7 +8,7 @@ x-default-variables: &default-variables
 x-besu-bootnode-def:
   &besu-bootnode-def
   restart: "on-failure"
-  image: hyperledger/besu:20.10.4
+  image: hyperledger/besu:21.1.5
   entrypoint:
     - /bin/bash
     - -c
@@ -30,7 +30,7 @@ x-besu-bootnode-def:
 x-besu-def:
   &besu-def
   restart: "on-failure"
-  image: hyperledger/besu:20.10.4
+  image: hyperledger/besu:21.1.5
   entrypoint:
     - /bin/bash
     - -c
@@ -51,7 +51,7 @@ x-besu-def:
 
 x-orion-def:
   &orion-def
-  image: consensys/quorum-orion:20.10.1
+  image: consensys/quorum-orion:21.1.0
   command: ["/config/orion.conf"]
 
 services:
