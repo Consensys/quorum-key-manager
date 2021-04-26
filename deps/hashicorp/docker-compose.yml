@@ -4,6 +4,8 @@ x-container-common: &container-common
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
     - hashicorp
+    - quorum
+    - besu
 
 services:
   hashicorp:
@@ -14,7 +16,7 @@ services:
       - IPC_LOCK
     volumes:
       - hashicorp-plugin:/vault/plugins
-      - .config/config.hcl:/vault/config.hcl:ro
+      - ./config/config.hcl:/vault/config.hcl:ro
     entrypoint: vault server -config=/vault/config.hcl
     ports:
       - 8200:8200
@@ -62,3 +64,9 @@ networks:
   hashicorp:
     external:
       name: hashicorp
+  quorum:
+    external:
+      name: quorum
+  besu:
+    external:
+      name: besu

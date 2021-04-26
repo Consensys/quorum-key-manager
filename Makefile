@@ -31,7 +31,16 @@ hashicorp:
 hashicorp-down:
 	@docker-compose -f deps/hashicorp/docker-compose.yml down $(DEPS_VAULT)
 
-deps: hashicorp
+networks:
+	@docker network create --driver=bridge hashicorp || true
+	@docker network create --driver=bridge --subnet=172.16.237.0/24 besu || true
+	@docker network create --driver=bridge --subnet=172.16.238.0/24 quorum || true
+
+down-networks:
+	@docker network rm quorum || true
+	@docker network rm hashicorp || true
+
+deps: networks hashicorp
 
 down-deps: hashicorp-down
 
@@ -51,12 +60,12 @@ dev: deps gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
 down-dev: down-deps
-	@docker-compose -f ./docker-compose.yml down $(KEY_MANAGER_SERVICES)
+	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
 
 run: gobuild
 	@build/bin/key-manager run
 
-go-quorum:
+go-quorum: networks
 	@docker-compose -f deps/go-quorum/docker-compose.yml up -d
 
 stop-go-quorum:
@@ -65,7 +74,7 @@ stop-go-quorum:
 down-go-quorum:
 	@docker-compose -f deps/go-quorum/docker-compose.yml down --volumes --timeout 0
 
-besu:
+besu: networks
 	@docker-compose -f deps/besu/docker-compose.yml up -d
 
 stop-besu:

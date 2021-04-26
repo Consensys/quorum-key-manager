@@ -5,6 +5,10 @@ x-default-variables: &default-variables
   HTTP_HOST: ${HTTP_HOST}
   HTTP_PORT: ${HTTP_PORT-8080}
   NODE_ADDR: ${NODE_ADDR-8080}
+  AKV_VAULT_NAME: ${AKV_VAULT_NAME-}
+  AKV_TENANT_ID: ${AKV_TENANT_ID-}
+  AKV_CLIENT_ID: ${AKV_CLIENT_ID-}
+  AKV_CLIENT_SECRET: ${AKV_CLIENT_SECRET-}
 
 x-container-common: &container-common
   image: golang:1.15-buster
@@ -13,6 +17,7 @@ x-container-common: &container-common
   tty: true
   networks:
     - quorum
+    - besu
     - hashicorp
   volumes:
     - ./build/bin/key-manager:/bin/main:ro
@@ -31,6 +36,9 @@ networks:
   quorum:
     external:
       name: quorum
+  besu:
+    external:
+      name: besu
   hashicorp:
     external:
       name: hashicorp
