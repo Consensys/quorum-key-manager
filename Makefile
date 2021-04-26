@@ -42,7 +42,7 @@ down-networks:
 
 deps: networks hashicorp
 
-down-deps: hashicorp-down down-networks
+down-deps: hashicorp-down
 
 run-acceptance:
 	@go test -v -tags acceptance ./acceptance-tests
@@ -60,7 +60,7 @@ dev: deps gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
 down-dev: down-deps
-	@docker-compose -f ./docker-compose.yml down $(KEY_MANAGER_SERVICES)
+	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
 
 run: gobuild
 	@build/bin/key-manager run
