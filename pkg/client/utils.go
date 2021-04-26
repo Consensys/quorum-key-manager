@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -67,15 +67,10 @@ func request(ctx context.Context, client *http.Client, reqURL, method string, bo
 	return r, nil
 }
 
-func parseResponse(ctx context.Context, response *http.Response, resp interface{}) error {
+func parseResponse(response *http.Response, resp interface{}) error {
 	if response.StatusCode == http.StatusAccepted || response.StatusCode == http.StatusOK {
-		if resp == nil {
-			return nil
-		}
-
 		if err := json.NewDecoder(response.Body).Decode(resp); err != nil {
-			log.FromContext(ctx).WithError(err).Error(invalidResponseBody)
-			return errors.ServiceConnectionError(invalidResponseBody)
+			return err
 		}
 
 		return nil
@@ -84,16 +79,17 @@ func parseResponse(ctx context.Context, response *http.Response, resp interface{
 	// Read body
 	respMsg, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.FromContext(ctx).WithError(err).Error(cannotReadResponseBody)
-		return errors.ServiceConnectionError(cannotReadResponseBody)
+		return err
 	}
 
-	if string(respMsg) != "" {
-		errResp := ErrorResponse{}
-		if err = json.Unmarshal(respMsg, &errResp); err == nil {
-			return errors.Errorf(errResp.Code, errResp.Message)
+	errResp := &ErrorResponse{}
+	if err = json.Unmarshal(respMsg, &errResp); err == nil {
+		return &ResponseError{
+			StatusCode:   response.StatusCode,
+			ErrorMessage: errResp.Message,
+			ErrorCode:    errResp.Code,
 		}
 	}
 
-	return parseResponseError(response.StatusCode, string(respMsg))
+	return fmt.Errorf("failed to decode error response")
 }

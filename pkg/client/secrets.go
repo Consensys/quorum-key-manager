@@ -19,7 +19,7 @@ func (c *HTTPClient) Set(ctx context.Context, req *types.SetSecretRequest) (*typ
 	}
 
 	defer closeResponse(response)
-	err = parseResponse(ctx, response, secret)
+	err = parseResponse(response, secret)
 	if err != nil {
 		return nil, err
 	}
