@@ -1,12 +1,18 @@
 package jsonrpc
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
+)
 
 func Error(err error) *ErrorMsg {
-	return &ErrorMsg{
-		Code:    -32000,
-		Message: err.Error(),
+	if errMsg, ok := err.(*ErrorMsg); ok {
+		return errMsg
 	}
+
+	return InternalError(err)
 }
 
 func NotSupporteVersionError(version string) *ErrorMsg {
@@ -16,10 +22,23 @@ func NotSupporteVersionError(version string) *ErrorMsg {
 	}
 }
 
+func InvalidRequest(err error) *ErrorMsg {
+	return &ErrorMsg{
+		Code:    -32600,
+		Message: "Invalid Request",
+		Data: map[string]interface{}{
+			"message": err.Error(),
+		},
+	}
+}
+
 func ParseError(err error) *ErrorMsg {
 	return &ErrorMsg{
 		Code:    -32700,
-		Message: fmt.Sprintf("Could not parse JSON-RPC request: %v", err),
+		Message: "Parse error",
+		Data: map[string]interface{}{
+			"message": err.Error(),
+		},
 	}
 }
 
@@ -47,6 +66,59 @@ func MethodNotFoundError() *ErrorMsg {
 func InvalidParamsError(err error) *ErrorMsg {
 	return &ErrorMsg{
 		Code:    -32602,
-		Message: fmt.Sprintf("Invalid params: %v", err),
+		Message: "Invalid params",
+		Data: map[string]interface{}{
+			"message": err.Error(),
+		},
+	}
+}
+
+func InternalError(err error) *ErrorMsg {
+	return &ErrorMsg{
+		Code:    -32603,
+		Message: "Internal error",
+		Data: map[string]interface{}{
+			"message": err.Error(),
+		},
+	}
+}
+
+func DownstreamError(err error) *ErrorMsg {
+	if errMsg, ok := err.(*ErrorMsg); ok {
+		return errMsg
+	}
+
+	code := proxy.StatusCodeFromRoundTripError(err)
+	text := proxy.StatusText(code)
+
+	return &ErrorMsg{
+		Code:    -32000,
+		Message: "Downstream error",
+		Data: map[string]interface{}{
+			"message": text,
+			"status":  code,
+		},
+	}
+}
+
+func InvalidDownstreamHTTPStatuError(code int) *ErrorMsg {
+	text := http.StatusText(code)
+	return &ErrorMsg{
+		Code:    -32001,
+		Message: "Invalid downstream HTTP status",
+		Data: map[string]interface{}{
+			"message": text,
+			"status":  code,
+		},
+	}
+}
+
+func InvalidDownstreamResponse(err error) *ErrorMsg {
+	return &ErrorMsg{
+		Code:    -32003,
+		Message: "Invalid downstream JSON-RPC response",
+		Data: map[string]interface{}{
+			"message": err.Error(),
+		},
 	}
 }

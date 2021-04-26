@@ -69,6 +69,10 @@ func (msg *ErrorMsg) WithData(data interface{}) *ErrorMsg {
 
 // UnmarshalData into v
 func (msg *ErrorMsg) UnmarshalData(v interface{}) error {
+	if msg.raw == nil {
+		return fmt.Errorf("cannot unmarshal data from a non unmarshaled error message")
+	}
+
 	var err error
 	if msg.raw.Data != nil {
 		err = json.Unmarshal(*msg.raw.Data, v)
@@ -77,7 +81,7 @@ func (msg *ErrorMsg) UnmarshalData(v interface{}) error {
 	}
 
 	if err == nil {
-		_ = msg.WithData(v)
+		_ = msg.WithData(reflect.ValueOf(v).Elem().Interface())
 	}
 
 	return nil

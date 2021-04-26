@@ -81,14 +81,14 @@ func TestResponse(t *testing.T) {
 				err = resp.UnmarshalID(id)
 				require.NoError(t, err, "UnmarshalID should not error")
 				assert.Equal(t, tt.expectedID, *id, "ID should be correct")
-				assert.Equal(t, id, resp.ID(), "ID should have been set correctly")
+				assert.Equal(t, *id, resp.ID(), "ID should have been set correctly")
 
 				// Unmarshal Params
 				result := new(TestResult)
 				err = resp.UnmarshalResult(result)
 				require.NoError(t, err, "UnmarshalResult should not error")
 				assert.Equal(t, tt.expectedResult, *result, "Result should be correct")
-				assert.Equal(t, result, resp.Result(), "Result should have been set correctly")
+				assert.Equal(t, *result, resp.Result(), "Result should have been set correctly")
 			}
 
 			if tt.expectedErrorMsg != nil {

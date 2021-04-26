@@ -20,10 +20,7 @@ func HandleProxyRoundTripError(rw http.ResponseWriter, req *http.Request, err er
 	logger := log.FromContext(req.Context())
 	logger.Debugf("'%d %s' caused by: %v", statusCode, statusText, err)
 
-	werr := WriteError(rpcRw, &ErrorMsg{
-		Code:    -32000,
-		Message: statusText,
-	})
+	werr := WriteError(rpcRw, DownstreamError(err))
 	if werr != nil {
 		logger.Debugf("Error while writing error message", werr)
 	}

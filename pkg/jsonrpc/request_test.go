@@ -28,7 +28,7 @@ func TestRequest(t *testing.T) {
 	err = req.UnmarshalID(id)
 	require.NoError(t, err, "UnmarshalID should not error")
 	assert.Equal(t, "25", *id, "ID should be correct")
-	assert.Equal(t, id, req.ID(), "ID should have been set correctly")
+	assert.Equal(t, *id, req.ID(), "ID should have been set correctly")
 
 	type TestParams struct {
 		Field string `json:"test-field"`
@@ -39,7 +39,7 @@ func TestRequest(t *testing.T) {
 	err = req.UnmarshalParams(params)
 	require.NoError(t, err, "UnmarshalParams should not error")
 	assert.Equal(t, TestParams{Field: "test-value"}, *params, "Params should be correct")
-	assert.Equal(t, params, req.Params(), "Params should have been set correctly")
+	assert.Equal(t, *params, req.Params(), "Params should have been set correctly")
 
 	// Set fields
 	req.WithVersion("2.0")

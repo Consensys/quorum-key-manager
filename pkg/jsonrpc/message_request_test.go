@@ -2,6 +2,7 @@ package jsonrpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -74,7 +75,7 @@ func TestUnmarshalRequestMsg(t *testing.T) {
 				err = msg.UnmarshalParams(paramsV.Interface())
 				require.NoError(t, err, "UnmarshalParams should not error")
 				assert.Equal(t, tt.expectedParams, paramsV.Elem().Interface(), "Params should be correct")
-				assert.Equal(t, paramsV.Interface(), msg.Params, "Params should have been set correctly")
+				assert.Equal(t, paramsV.Elem().Interface(), msg.Params, "Params should have been set correctly")
 			} else {
 				assert.Nil(t, msg.Params, "Params should be nil")
 				assert.Nil(t, msg.raw.Params, "Raw Params should be zero")
@@ -85,7 +86,7 @@ func TestUnmarshalRequestMsg(t *testing.T) {
 				err = msg.UnmarshalID(paramsID.Interface())
 				require.NoError(t, err, "UnmarshalID should not error")
 				assert.Equal(t, tt.expectedID, paramsID.Elem().Interface(), "ID should be correct")
-				assert.Equal(t, paramsID.Interface(), msg.ID, "ID should have been set correctly")
+				assert.Equal(t, paramsID.Elem().Interface(), msg.ID, "ID should have been set correctly")
 			} else {
 				assert.Nil(t, msg.ID, "ID should be nil")
 				assert.Nil(t, msg.raw.ID, "Raw Params should be zero")
@@ -155,7 +156,7 @@ func TestRequestMsgValidate(t *testing.T) {
 		// JSON body of the request
 		msg *RequestMsg
 
-		expectedErrMsg string
+		expectedErr error
 	}{
 		{
 			desc: "valid request with no params",
@@ -166,14 +167,14 @@ func TestRequestMsgValidate(t *testing.T) {
 			msg:  &RequestMsg{Version: "2.0", Method: "testMethod", ID: 0, Params: json.RawMessage(`{"test-field": "test-value"}`)},
 		},
 		{
-			desc:           "invalid request with no method",
-			msg:            &RequestMsg{Version: "2.0", ID: 0},
-			expectedErrMsg: "missing method",
+			desc:        "invalid request with no method",
+			msg:         &RequestMsg{Version: "2.0", ID: 0},
+			expectedErr: InvalidRequest(fmt.Errorf("missing method")),
 		},
 		{
-			desc:           "invalid request with no version",
-			msg:            &RequestMsg{Method: "testMethod", ID: 0},
-			expectedErrMsg: "missing version",
+			desc:        "invalid request with no version",
+			msg:         &RequestMsg{Method: "testMethod", ID: 0},
+			expectedErr: InvalidRequest(fmt.Errorf("missing version")),
 		},
 		{
 			desc: "valid request with no id",
@@ -184,35 +185,35 @@ func TestRequestMsgValidate(t *testing.T) {
 			msg:  &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`"abcd"`)},
 		},
 		{
-			desc:           "invalid request with array id",
-			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: []int{25}},
-			expectedErrMsg: "invalid id (should be int or string but got []int)",
+			desc:        "invalid request with array id",
+			msg:         &RequestMsg{Version: "2.0", Method: "testMethod", ID: []int{25}},
+			expectedErr: InvalidRequest(fmt.Errorf("invalid id (should be int or string but got []int)")),
 		},
 		{
-			desc:           "valid request with object id",
-			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: &TestID{Field: "test-value"}},
-			expectedErrMsg: "invalid id (should be int or string but got jsonrpc.TestID)",
+			desc:        "valid request with object id",
+			msg:         &RequestMsg{Version: "2.0", Method: "testMethod", ID: &TestID{Field: "test-value"}},
+			expectedErr: InvalidRequest(fmt.Errorf("invalid id (should be int or string but got jsonrpc.TestID)")),
 		},
 		{
-			desc:           "invalid request with invalid json.RawMessage array id",
-			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`[1,2,3]`)},
-			expectedErrMsg: "invalid id [1,2,3]",
+			desc:        "invalid request with invalid json.RawMessage array id",
+			msg:         &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`[1,2,3]`)},
+			expectedErr: InvalidRequest(fmt.Errorf("invalid id [1,2,3]")),
 		},
 		{
-			desc:           "invalid request with invalid json.RawMessage object id",
-			msg:            &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`{"test-field":"test-value"}`)},
-			expectedErrMsg: "invalid id {\"test-field\":\"test-value\"}",
+			desc:        "invalid request with invalid json.RawMessage object id",
+			msg:         &RequestMsg{Version: "2.0", Method: "testMethod", ID: json.RawMessage(`{"test-field":"test-value"}`)},
+			expectedErr: InvalidRequest(fmt.Errorf("invalid id {\"test-field\":\"test-value\"}")),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			err := tt.msg.Validate()
-			if tt.expectedErrMsg == "" {
+			if tt.expectedErr == nil {
 				require.NoError(t, err, "Validate should not fail")
 			} else {
 				require.Error(t, err, "Validate should fail")
-				assert.Equal(t, tt.expectedErrMsg, err.Error(), "Error message should match")
+				assert.Equal(t, tt.expectedErr, err, "Error message should match")
 			}
 		})
 	}

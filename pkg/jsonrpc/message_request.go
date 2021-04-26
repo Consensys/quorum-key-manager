@@ -1,8 +1,10 @@
 package jsonrpc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 var null = json.RawMessage("null")
@@ -13,6 +15,8 @@ type RequestMsg struct {
 	Method  string
 	ID      interface{}
 	Params  interface{}
+
+	ctx context.Context
 
 	raw *jsonReqMsg
 }
@@ -81,6 +85,19 @@ func (msg *RequestMsg) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
+func (msg *RequestMsg) Context() context.Context {
+	if msg.ctx == nil {
+		return context.Background()
+	}
+	return msg.ctx
+}
+
+func (msg *RequestMsg) WithContext(ctx context.Context) *RequestMsg {
+	cpy := msg.Copy()
+	cpy.ctx = ctx
+	return cpy
+}
+
 func (msg *RequestMsg) Copy() *RequestMsg {
 	newMsg := new(RequestMsg)
 
@@ -111,17 +128,17 @@ func (msg *RequestMsg) Copy() *RequestMsg {
 // Validate JSON-Requests body
 func (msg *RequestMsg) Validate() error {
 	if msg.Version == "" {
-		return fmt.Errorf("missing version")
+		return InvalidRequest(fmt.Errorf("missing version"))
 	}
 
 	if msg.Method == "" {
-		return fmt.Errorf("missing method")
+		return InvalidRequest(fmt.Errorf("missing method"))
 	}
 
 	if msg.ID != nil {
 		err := validateID(msg.ID)
 		if err != nil {
-			return err
+			return InvalidRequest(err)
 		}
 	}
 
@@ -138,7 +155,7 @@ func (msg *RequestMsg) UnmarshalID(v interface{}) error {
 	}
 
 	if err == nil {
-		msg.WithID(v)
+		msg.WithID(reflect.ValueOf(v).Elem().Interface())
 	}
 
 	return err
@@ -146,6 +163,10 @@ func (msg *RequestMsg) UnmarshalID(v interface{}) error {
 
 // UnmarshalParams into v
 func (msg *RequestMsg) UnmarshalParams(v interface{}) error {
+	if msg.raw == nil {
+		return fmt.Errorf("cannot unmarshal params from a non unmarshaled request message")
+	}
+
 	var err error
 	if msg.raw.Params != nil {
 		err = json.Unmarshal(*msg.raw.Params, v)
@@ -154,7 +175,7 @@ func (msg *RequestMsg) UnmarshalParams(v interface{}) error {
 	}
 
 	if err == nil {
-		msg.WithParams(v)
+		msg.WithParams(reflect.ValueOf(v).Elem().Interface())
 	}
 
 	return err

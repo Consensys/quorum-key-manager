@@ -79,7 +79,7 @@ func TestUnmarshalResponseMsg(t *testing.T) {
 				err = msg.UnmarshalResult(resultV.Interface())
 				require.NoError(t, err, "expectedResult should not error")
 				assert.Equal(t, tt.expectedResult, resultV.Elem().Interface(), "Result should be correct")
-				assert.Equal(t, resultV.Interface(), msg.Result, "Result should have been set correctly")
+				assert.Equal(t, resultV.Elem().Interface(), msg.Result, "Result should have been set correctly")
 			} else {
 				assert.Equal(t, nil, msg.Result, "Params should be nil")
 				assert.Nil(t, msg.raw.Result, "Raw Params should be zero")
@@ -90,7 +90,7 @@ func TestUnmarshalResponseMsg(t *testing.T) {
 				err = msg.UnmarshalID(paramsID.Interface())
 				require.NoError(t, err, "UnmarshalID should not error")
 				assert.Equal(t, tt.expectedID, paramsID.Elem().Interface(), "ID should be correct")
-				assert.Equal(t, paramsID.Interface(), msg.ID, "ID should have been set correctly")
+				assert.Equal(t, paramsID.Elem().Interface(), msg.ID, "ID should have been set correctly")
 			} else {
 				assert.Nil(t, msg.ID, "ID should be nil")
 				assert.Nil(t, msg.raw.ID, "Raw Params should be zero")

@@ -56,17 +56,12 @@ type rpcHandler struct {
 	hasError   bool
 }
 
-func (fn *rpcHandler) ServeRPC(rw ResponseWriter, req *Request) {
-	err := req.ReadBody()
-	if err != nil {
-		_ = WriteError(rw, ParseError(err))
-		return
-	}
-
+func (fn *rpcHandler) ServeRPC(rw ResponseWriter, msg *RequestMsg) {
+	// Prepare params
 	inParams := fn.newParams()
 
 	params := prepareParams(inParams...)
-	err = req.UnmarshalParams(&params)
+	err := msg.UnmarshalParams(&params)
 	if err != nil {
 		_ = WriteError(rw, InvalidParamsError(err))
 		return
@@ -74,7 +69,7 @@ func (fn *rpcHandler) ServeRPC(rw ResponseWriter, req *Request) {
 
 	var in []reflect.Value
 	if fn.hasCtx > 0 {
-		in = append(in, reflect.ValueOf(req.Context()))
+		in = append(in, reflect.ValueOf(msg.Context()))
 	}
 
 	for _, inParam := range inParams {

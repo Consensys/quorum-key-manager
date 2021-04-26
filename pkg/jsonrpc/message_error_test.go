@@ -63,7 +63,7 @@ func TestUnmarshalErrorMsg(t *testing.T) {
 				err = msg.UnmarshalData(dataV.Interface())
 				require.NoError(t, err, "UnmarshalData should not error")
 				assert.Equal(t, tt.expectedData, dataV.Elem().Interface(), "Data should be correct")
-				assert.Equal(t, dataV.Interface(), msg.Data, "Data should have been set correctly")
+				assert.Equal(t, dataV.Elem().Interface(), msg.Data, "Data should have been set correctly")
 			} else {
 				assert.Nil(t, msg.Data, "Data should be nil")
 				assert.Nil(t, msg.raw.Data, "Raw Data should be zero")

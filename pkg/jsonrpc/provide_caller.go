@@ -10,50 +10,52 @@ import (
 var (
 	errorType   = reflect.TypeOf(new(error)).Elem()
 	contextType = reflect.TypeOf(new(context.Context)).Elem()
-	callerType  = reflect.TypeOf(new(Caller)).Elem()
+	clientType  = reflect.TypeOf(new(Client)).Elem()
 )
 
-// ProvideCaller takes services as argument and populates fields with RPC functions
+// ProvideCaller takes a list of user defines callers as argument and
+// automatically populates all caller's fields with RPC functions
+
 // It aims at facilitate the implemention of Web3 client connecting to downstream node
 
-// - Services MUST be pointers to struct
-// - All service's fields MUST be functions mathc
-// - Service field func MUST accept a single input of type jsonrpc.Caller and MUST return a single output which is a function
-// - Service field output func MUST return at most 2 outputs (if 2 the second MUST be an error)
+// - Caller MUST be pointers to struct
+// - All caller's fields MUST be functions mathc
+// - Caller field func MUST accept a single input of type jsonrpc.Client and MUST return a single output which is a function
+// - Caller field output func MUST return at most 2 outputs (if 2 the second MUST be an error)
 
-// Example of valid service struct:
+// Example of valid caller struct:
 
-// type ExampleService struct {
-// 	   CtxInput_NoOutput        func(Caller) func(context.Context)
-// 	   NoInput_NoOutput         func(Caller) func()
-// 	   NonCtxInput_NoOutput     func(Caller) func(int)
-// 	   MultiInput_NoOutput      func(Caller) func(context.Context, int, string)
-// 	   NoInput_ErrorOutput      func(Caller) func() error
-// 	   NoInput_IntOutput        func(Caller) func() int
-// 	   NoInput_IntErrorOutput   func(Caller) func() (int, error)
-// 	   StructInput_StructOutput func(Caller) func(context.Context, *TestParam) (*TestResult, error)
-// 	   AllTags                  func(Caller) func()                                                 `method:"exampleMethod" namespace:"eth"`
-// 	   MethodTag                func(Caller) func()                                                 `method:"exampleMethod"`
-// 	   NamespaceTag             func(Caller) func()                                                 `namespace:"eth"`
-// 	   ObjectTag                func(Caller) func(*TestParam)                                       `object:"-"`
+// type ExampleCaller struct {
+// 	   CtxInput_NoOutput        func(Client) func(context.Context)
+// 	   NoInput_NoOutput         func(Client) func()
+// 	   NonCtxInput_NoOutput     func(Client) func(int)
+// 	   MultiInput_NoOutput      func(Client) func(context.Context, int, string)
+// 	   NoInput_ErrorOutput      func(Client) func() error
+// 	   NoInput_IntOutput        func(Client) func() int
+// 	   NoInput_IntErrorOutput   func(Client) func() (int, error)
+// 	   StructInput_StructOutput func(Client) func(context.Context, *TestParam) (*TestResult, error)
+// 	   AllTags                  func(Client) func()                                                 `method:"exampleMethod" namespace:"eth"`
+// 	   MethodTag                func(Client) func()                                                 `method:"exampleMethod"`
+// 	   NamespaceTag             func(Client) func()                                                 `namespace:"eth"`
+// 	   ObjectTag                func(Client) func(*TestParam)                                       `object:"-"`
 // }
-func ProvideCaller(services ...interface{}) error {
-	for _, service := range services {
-		srvTyp := reflect.TypeOf(service)
-		if srvTyp.Kind() != reflect.Ptr || srvTyp.Elem().Kind() != reflect.Struct {
-			return fmt.Errorf("service must be a pointer to a struct")
+func ProvideCaller(callers ...interface{}) error {
+	for _, caller := range callers {
+		cllrTyp := reflect.TypeOf(caller)
+		if cllrTyp.Kind() != reflect.Ptr || cllrTyp.Elem().Kind() != reflect.Struct {
+			return fmt.Errorf("caller must be a pointer to a struct")
 		}
 
-		srvVal := reflect.ValueOf(service)
+		cllrVal := reflect.ValueOf(caller)
 
-		for i := 0; i < srvTyp.Elem().NumField(); i++ {
-			field := srvTyp.Elem().Field(i)
+		for i := 0; i < cllrTyp.Elem().NumField(); i++ {
+			field := cllrTyp.Elem().Field(i)
 			fn, err := makeRPCCallerFunc(&field)
 			if err != nil {
 				return err
 			}
 
-			srvVal.Elem().Field(i).Set(fn)
+			cllrVal.Elem().Field(i).Set(fn)
 		}
 	}
 
@@ -63,15 +65,15 @@ func ProvideCaller(services ...interface{}) error {
 func makeRPCCallerFunc(f *reflect.StructField) (reflect.Value, error) {
 	ftyp := f.Type
 	if ftyp.Kind() != reflect.Func {
-		return reflect.Value{}, fmt.Errorf("service's field must be a function")
+		return reflect.Value{}, fmt.Errorf("caller's fields must be functions")
 	}
 
-	if ftyp.NumIn() != 1 && ftyp.In(0) != contextType {
-		return reflect.Value{}, fmt.Errorf("service field func must accept a single input of type %v", callerType)
+	if ftyp.NumIn() != 1 && ftyp.In(0) != clientType {
+		return reflect.Value{}, fmt.Errorf("caller's field func must accept a single input of type %v", clientType)
 	}
 
 	if ftyp.NumOut() != 1 || ftyp.Out(0).Kind() != reflect.Func {
-		return reflect.Value{}, fmt.Errorf("service field func must return a single output which is a function")
+		return reflect.Value{}, fmt.Errorf("caller's field func must return a single output which is a function")
 	}
 
 	fun := &rpcCallerFunc{
@@ -108,7 +110,7 @@ func makeRPCCallerFunc(f *reflect.StructField) (reflect.Value, error) {
 	return reflect.MakeFunc(ftyp, func(callArg []reflect.Value) []reflect.Value {
 		return []reflect.Value{
 			reflect.MakeFunc(ftyp.Out(0), func(args []reflect.Value) []reflect.Value {
-				return fun.handleCall(callArg[0].Interface().(Caller), args...)
+				return fun.handleCall(callArg[0].Interface().(Client), args...)
 			}),
 		}
 	}), nil
@@ -132,10 +134,10 @@ func processFuncOut(funcType reflect.Type) (valOut, errOut, n int, err error) {
 		valOut = 0
 		errOut = 1
 		if funcType.Out(1) != errorType {
-			err = fmt.Errorf("service field output function second output must be an error")
+			err = fmt.Errorf("caller's field output function second output must be an error")
 		}
 	default:
-		err = fmt.Errorf("service field output function must return at most 2 outputs")
+		err = fmt.Errorf("caller's field output function must return at most 2 outputs")
 	}
 
 	return
@@ -168,7 +170,7 @@ func (fn *rpcCallerFunc) prepareParams(args ...reflect.Value) (params interface{
 	return
 }
 
-func (fn *rpcCallerFunc) handleCall(cllr Caller, args ...reflect.Value) []reflect.Value {
+func (fn *rpcCallerFunc) handleCall(client Client, args ...reflect.Value) []reflect.Value {
 	params := fn.prepareParams(args[fn.hasCtx:]...)
 
 	var ctx context.Context
@@ -178,7 +180,7 @@ func (fn *rpcCallerFunc) handleCall(cllr Caller, args ...reflect.Value) []reflec
 		ctx = context.Background()
 	}
 
-	resp, err := cllr.Call(ctx, fn.method, params)
+	resp, err := client.Do((&RequestMsg{}).WithContext(ctx).WithMethod(fn.method).WithParams(params))
 	if err != nil {
 		return fn.processError(err)
 	}
@@ -200,7 +202,7 @@ func (fn *rpcCallerFunc) processError(err error) []reflect.Value {
 	return out
 }
 
-func (fn *rpcCallerFunc) processResponse(resp *Response) []reflect.Value {
+func (fn *rpcCallerFunc) processResponse(resp *ResponseMsg) []reflect.Value {
 	out := make([]reflect.Value, fn.nout)
 
 	if fn.valOut != -1 {
@@ -213,7 +215,12 @@ func (fn *rpcCallerFunc) processResponse(resp *Response) []reflect.Value {
 	}
 
 	if fn.errOut != -1 {
-		out[fn.errOut] = reflect.New(errorType).Elem()
+		if resp.Err() != nil {
+			out[fn.errOut] = reflect.ValueOf(resp.Err())
+		} else {
+			out[fn.errOut] = reflect.New(errorType).Elem()
+		}
+
 	}
 
 	return out

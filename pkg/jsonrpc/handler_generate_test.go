@@ -2,6 +2,7 @@ package jsonrpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -20,7 +21,7 @@ func TestMakeHandler(t *testing.T) {
 
 		expectedErrMsg string
 
-		req          *Request
+		body         []byte
 		expectedBody []byte
 	}{
 		{
@@ -28,7 +29,7 @@ func TestMakeHandler(t *testing.T) {
 			f: func(ctx context.Context, i int) (int, error) {
 				return i, nil
 			},
-			req:          NewRequest(&http.Request{}).WithVersion("2.0").WithMethod("testMethod").WithParams([]int{5}),
+			body:         []byte(`{"jsonrpc":"2.0","method":"test","params":[5],"id":null}`),
 			expectedBody: []byte(`{"jsonrpc":"","result":5,"error":null,"id":null}`),
 		},
 		{
@@ -36,15 +37,15 @@ func TestMakeHandler(t *testing.T) {
 			f: func(ctx context.Context, i int) (int, error) {
 				return 0, fmt.Errorf("test-error")
 			},
-			req:          NewRequest(&http.Request{}).WithVersion("2.0").WithMethod("testMethod").WithParams([]int{5}),
-			expectedBody: []byte(`{"jsonrpc":"","result":null,"error":{"code":-32000,"message":"test-error","data":null},"id":null}`),
+			body:         []byte(`{"jsonrpc":"2.0","method":"test","params":[5],"id":null}`),
+			expectedBody: []byte(`{"jsonrpc":"","result":null,"error":{"code":-32603,"message":"Internal error","data":{"message":"test-error"}},"id":null}`),
 		},
 		{
 			desc: "Valid - in: (string) // out: string // return result",
 			f: func(s string) string {
 				return s
 			},
-			req:          NewRequest(&http.Request{}).WithVersion("2.0").WithMethod("testMethod").WithParams([]string{"hello message"}),
+			body:         []byte(`{"jsonrpc":"2.0","method":"test","params":["hello message"],"id":null}`),
 			expectedBody: []byte(`{"jsonrpc":"","result":"hello message","error":null,"id":null}`),
 		},
 		{
@@ -52,7 +53,7 @@ func TestMakeHandler(t *testing.T) {
 			f: func() string {
 				return "hello message"
 			},
-			req:          NewRequest(&http.Request{}).WithVersion("2.0").WithMethod("testMethod").WithParams([]string{"hello message"}),
+			body:         []byte(`{"jsonrpc":"2.0","method":"test","params":["hello message"],"id":null}`),
 			expectedBody: []byte(`{"jsonrpc":"","result":"hello message","error":null,"id":null}`),
 		},
 		{
@@ -83,9 +84,11 @@ func TestMakeHandler(t *testing.T) {
 				rec := httptest.NewRecorder()
 				rw := NewResponseWriter(rec)
 
-				_ = tt.req.WriteBody()
+				msg := new(RequestMsg)
+				err = json.Unmarshal(tt.body, msg)
+				require.NoError(t, err, "Unmarshal must not error")
 
-				handler.ServeRPC(rw, tt.req)
+				handler.ServeRPC(rw, msg)
 				assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 				assert.Equal(t, tt.expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 			}
