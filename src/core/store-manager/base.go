@@ -51,6 +51,7 @@ func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error 
 func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
+
 	if storeBundle, ok := m.secrets[name]; ok {
 		if store, ok := storeBundle.store.(secrets.Store); ok {
 			return store, nil

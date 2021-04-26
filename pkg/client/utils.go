@@ -85,9 +85,9 @@ func parseResponse(response *http.Response, resp interface{}) error {
 	errResp := &ErrorResponse{}
 	if err = json.Unmarshal(respMsg, &errResp); err == nil {
 		return &ResponseError{
-			StatusCode:   response.StatusCode,
-			ErrorMessage: errResp.Message,
-			ErrorCode:    errResp.Code,
+			StatusCode: response.StatusCode,
+			Message:    errResp.Message,
+			ErrorCode:  errResp.Code,
 		}
 	}
 

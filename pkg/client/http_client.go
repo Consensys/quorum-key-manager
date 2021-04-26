@@ -9,7 +9,7 @@ type HTTPClient struct {
 	config *Config
 }
 
-func NewHTTPClient(h *http.Client, c *Config) KeyManagerClient {
+func NewHTTPClient(h *http.Client, c *Config) *HTTPClient {
 	return &HTTPClient{
 		client: h,
 		config: c,

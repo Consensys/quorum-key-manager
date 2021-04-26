@@ -15,7 +15,7 @@ type ResponseError struct {
 	ErrorCode uint64 `json:"code,omitempty" example:"24000"`
 
 	// Errors are the underlying errors returned by Vault.
-	ErrorMessage string `json:"message" example:"error message"`
+	Message string `json:"message" example:"error message"`
 }
 
 // ErrorResponse is the raw error type returned from the key manager
@@ -26,5 +26,5 @@ type ErrorResponse struct {
 
 // Error returns a human-readable error string for the response error.
 func (r *ResponseError) Error() string {
-	return fmt.Sprintf("Error making API request.\n\nCode: %d. %s:\n\nStatus: %d.", r.ErrorCode, r.ErrorMessage, r.StatusCode)
+	return fmt.Sprintf("Error making API request.\nCode: %d. %s:\nStatus: %d.", r.ErrorCode, r.Message, r.StatusCode)
 }

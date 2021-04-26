@@ -8,7 +8,8 @@ import (
 //go:generate mockgen -source=client.go -destination=mock/mock.go -package=mock
 
 type SecretsClient interface {
-	Set(ctx context.Context, request *types.SetSecretRequest) (*types.SecretResponse, error)
+	SetSecret(ctx context.Context, storeName string, request *types.SetSecretRequest) (*types.SecretResponse, error)
+	GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error)
 }
 
 type KeyManagerClient interface {

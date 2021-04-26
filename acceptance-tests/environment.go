@@ -27,6 +27,7 @@ const (
 	hashicorpContainerID = "hashicorp-vault"
 	networkName          = "key-manager"
 	localhostPath        = "http://localhost:"
+	SecretStoreName      = "HashicorpSecrets"
 )
 
 type IntegrationEnvironment struct {
@@ -188,12 +189,12 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	env.logger.Info("tearing test suite down")
 
-	/*err := env.keyManager.Stop(ctx)
+	err := env.keyManager.Stop(ctx)
 	if err != nil {
 		env.logger.WithError(err).Error("failed to stop key manager")
-	}*/
+	}
 
-	err := env.dockerClient.Down(ctx, hashicorpContainerID)
+	err = env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
 	}
@@ -213,7 +214,7 @@ func newKeyManager(
 	hashicorpSecretSpecsRaw, _ := json.Marshal(hashicorpSecretStoreSpecs)
 	hashicorpSecretManifest := &manifest.Manifest{
 		Kind:    types.HashicorpSecrets,
-		Name:    "HashicorpSecrets",
+		Name:    SecretStoreName,
 		Version: "0.0.0",
 		Specs:   hashicorpSecretSpecsRaw,
 	}
