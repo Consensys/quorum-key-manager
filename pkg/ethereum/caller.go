@@ -55,12 +55,12 @@ type caller struct {
 	priv *privCaller
 }
 
-// NewCaller creates a caller from a jsonrpc.Caller
-func NewCaller(cllr jsonrpc.Caller) Caller {
+// NewCaller creates a caller from a jsonrpc.Client
+func NewCaller(client jsonrpc.Client) Caller {
 	return &caller{
-		eth:  &ethCaller{cllr},
-		eea:  &eeaCaller{cllr},
-		priv: &privCaller{cllr},
+		eth:  &ethCaller{client},
+		eea:  &eeaCaller{client},
+		priv: &privCaller{client},
 	}
 }
 
@@ -80,11 +80,11 @@ func (c *caller) Priv() PrivCaller { // nolint
 }
 
 type ethCaller struct {
-	cllr jsonrpc.Caller
+	client jsonrpc.Client
 }
 
 func (c *ethCaller) ChainID(ctx context.Context) (*big.Int, error) {
-	chainID, err := ethSrv.ChainID(c.cllr)(ctx)
+	chainID, err := ethSrv.ChainID(c.client)(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (c *ethCaller) ChainID(ctx context.Context) (*big.Int, error) {
 }
 
 func (c *ethCaller) GasPrice(ctx context.Context) (*big.Int, error) {
-	p, err := ethSrv.GasPrice(c.cllr)(ctx)
+	p, err := ethSrv.GasPrice(c.client)(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (c *ethCaller) GasPrice(ctx context.Context) (*big.Int, error) {
 }
 
 func (c *ethCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Address, blockNumber BlockNumber) (uint64, error) {
-	n, err := ethSrv.GetTransactionCount(c.cllr)(ctx, addr, blockNumber)
+	n, err := ethSrv.GetTransactionCount(c.client)(ctx, addr, blockNumber)
 	if err != nil {
 		return 0, err
 	}
@@ -111,7 +111,7 @@ func (c *ethCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Addr
 }
 
 func (c *ethCaller) EstimateGas(ctx context.Context, msg *CallMsg) (uint64, error) {
-	gas, err := ethSrv.EstimateGas(c.cllr)(ctx, msg)
+	gas, err := ethSrv.EstimateGas(c.client)(ctx, msg)
 	if err != nil {
 		return 0, err
 	}
@@ -120,27 +120,27 @@ func (c *ethCaller) EstimateGas(ctx context.Context, msg *CallMsg) (uint64, erro
 }
 
 func (c *ethCaller) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
-	return ethSrv.SendRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
+	return ethSrv.SendRawTransaction(c.client)(ctx, hexutil.Bytes(raw))
 }
 
 func (c *ethCaller) SendRawPrivateTransaction(ctx context.Context, raw []byte, privArgs *PrivateArgs) (ethcommon.Hash, error) {
-	return ethSrv.SendRawPrivateTransaction(c.cllr)(ctx, hexutil.Bytes(raw), privArgs)
+	return ethSrv.SendRawPrivateTransaction(c.client)(ctx, hexutil.Bytes(raw), privArgs)
 }
 
 type eeaCaller struct {
-	cllr jsonrpc.Caller
+	client jsonrpc.Client
 }
 
 func (c *eeaCaller) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
-	return eeaSrv.SendRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
+	return eeaSrv.SendRawTransaction(c.client)(ctx, hexutil.Bytes(raw))
 }
 
 type privCaller struct {
-	cllr jsonrpc.Caller
+	client jsonrpc.Client
 }
 
 func (c *privCaller) DistributeRawTransaction(ctx context.Context, raw []byte) ([]byte, error) {
-	enclaveKey, err := privSrv.DistributeRawTransaction(c.cllr)(ctx, hexutil.Bytes(raw))
+	enclaveKey, err := privSrv.DistributeRawTransaction(c.client)(ctx, hexutil.Bytes(raw))
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (c *privCaller) DistributeRawTransaction(ctx context.Context, raw []byte) (
 }
 
 func (c *privCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (uint64, error) {
-	n, err := privSrv.GetTransactionCount(c.cllr)(ctx, addr, privacyGroupID)
+	n, err := privSrv.GetTransactionCount(c.client)(ctx, addr, privacyGroupID)
 	if err != nil {
 		return 0, err
 	}
@@ -158,7 +158,7 @@ func (c *privCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Add
 }
 
 func (c *privCaller) GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error) {
-	n, err := privSrv.GetEEATransactionCount(c.cllr)(ctx, addr, privateFrom, privateFor)
+	n, err := privSrv.GetEEATransactionCount(c.client)(ctx, addr, privateFrom, privateFor)
 	if err != nil {
 		return 0, err
 	}
@@ -173,20 +173,20 @@ var (
 )
 
 type ethService struct {
-	ChainID                   func(jsonrpc.Caller) func(context.Context) (*hexutil.Big, error)                                    `method:"eth_chainId"`
-	GasPrice                  func(jsonrpc.Caller) func(context.Context) (*hexutil.Big, error)                                    `namespace:"eth"`
-	GetTransactionCount       func(jsonrpc.Caller) func(context.Context, ethcommon.Address, BlockNumber) (*hexutil.Uint64, error) `namespace:"eth"`
-	EstimateGas               func(jsonrpc.Caller) func(context.Context, *CallMsg) (*hexutil.Uint64, error)                       `namespace:"eth"`
-	SendRawTransaction        func(jsonrpc.Caller) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error)                   `namespace:"eth"`
-	SendRawPrivateTransaction func(jsonrpc.Caller) func(context.Context, hexutil.Bytes, *PrivateArgs) (ethcommon.Hash, error)     `namespace:"eth"`
+	ChainID                   func(jsonrpc.Client) func(context.Context) (*hexutil.Big, error)                                    `method:"eth_chainId"`
+	GasPrice                  func(jsonrpc.Client) func(context.Context) (*hexutil.Big, error)                                    `namespace:"eth"`
+	GetTransactionCount       func(jsonrpc.Client) func(context.Context, ethcommon.Address, BlockNumber) (*hexutil.Uint64, error) `namespace:"eth"`
+	EstimateGas               func(jsonrpc.Client) func(context.Context, *CallMsg) (*hexutil.Uint64, error)                       `namespace:"eth"`
+	SendRawTransaction        func(jsonrpc.Client) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error)                   `namespace:"eth"`
+	SendRawPrivateTransaction func(jsonrpc.Client) func(context.Context, hexutil.Bytes, *PrivateArgs) (ethcommon.Hash, error)     `namespace:"eth"`
 }
 
 type eeaService struct {
-	SendRawTransaction func(jsonrpc.Caller) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error) `namespace:"eea"`
+	SendRawTransaction func(jsonrpc.Client) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error) `namespace:"eea"`
 }
 
 type privService struct {
-	DistributeRawTransaction func(jsonrpc.Caller) func(context.Context, hexutil.Bytes) (*hexutil.Bytes, error)                        `namespace:"priv"`
-	GetEEATransactionCount   func(jsonrpc.Caller) func(context.Context, ethcommon.Address, string, []string) (*hexutil.Uint64, error) `namespace:"priv"`
-	GetTransactionCount      func(jsonrpc.Caller) func(context.Context, ethcommon.Address, string) (*hexutil.Uint64, error)           `namespace:"priv"`
+	DistributeRawTransaction func(jsonrpc.Client) func(context.Context, hexutil.Bytes) (*hexutil.Bytes, error)                        `namespace:"priv"`
+	GetEEATransactionCount   func(jsonrpc.Client) func(context.Context, ethcommon.Address, string, []string) (*hexutil.Uint64, error) `namespace:"priv"`
+	GetTransactionCount      func(jsonrpc.Client) func(context.Context, ethcommon.Address, string) (*hexutil.Uint64, error)           `namespace:"priv"`
 }
