@@ -56,10 +56,13 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: deps gobuild
+dev: gobuild
+	@docker-compose -f ./docker-compose.yml up --build $(KEY_MANAGER_SERVICES)	
+
+up: deps gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
-down-dev: down-deps
+down: down-deps
 	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
 
 run: gobuild
