@@ -160,8 +160,8 @@ func (s *secretsTestSuite) TestList() {
 		ids, err := s.keyManagerClient.ListSecrets(ctx, SecretStoreName)
 		require.NoError(t, err)
 
-		assert.GreaterOrEqual(t, 1, len(ids))
-		assert.Contains(t, request.ID, ids)
+		assert.GreaterOrEqual(t, len(ids), 1)
+		assert.Contains(t, ids, request.ID)
 	})
 
 	s.T().Run("should parse errors successfully", func(t *testing.T) {

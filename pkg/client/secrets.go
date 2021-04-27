@@ -55,7 +55,7 @@ func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string) ([]strin
 	}
 
 	defer closeResponse(response)
-	err = parseResponse(response, ids)
+	err = parseResponse(response, &ids)
 	if err != nil {
 		return nil, err
 	}
