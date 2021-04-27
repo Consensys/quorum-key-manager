@@ -53,7 +53,7 @@ func (a App) Start(ctx context.Context) error {
 			storeMnfsts = append(storeMnfsts, mnfst)
 		}
 	}
-	
+
 	if err := a.backend.StoreManager().Load(log.With(ctx, a.logger), storeMnfsts...); err != nil {
 		return err
 	}

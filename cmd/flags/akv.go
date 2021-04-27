@@ -13,11 +13,11 @@ import (
 
 func init() {
 	viper.SetDefault(akvEnvironmentViperKey, akvEnvironmentDefault)
-	_ = viper.BindEnv(akvEnvironmentViperKey, akvEnvironmentEnv)
+	_ = viper.BindEnv(akvEnvironmentViperKey, AKVEnvironmentEnv)
 }
 
 const (
-	akvEnvironmentEnv      = "AKV_ENVIRONMENT"
+	AKVEnvironmentEnv      = "AKV_ENVIRONMENT"
 	akvEnvironmentViperKey = "akv.environment"
 	akvEnvironmentFlag     = "akv-environment"
 	akvEnvironmentDefault  = "{}"
@@ -30,7 +30,7 @@ func AKVFlags(f *pflag.FlagSet) {
 
 func akvEnvironment(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Specifies the AKV environment.
-Environment variable: %q `, akvEnvironmentEnv)
+Environment variable: %q `, AKVEnvironmentEnv)
 	f.String(akvEnvironmentFlag, akvEnvironmentDefault, desc)
 	_ = viper.BindPFlag(akvEnvironmentViperKey, f.Lookup(akvEnvironmentFlag))
 }

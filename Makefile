@@ -11,6 +11,11 @@ ifeq ($(UNAME_S),Darwin)
 	OPEN = open
 endif
 
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 .PHONY: all lint integration-tests
 
 lint: ## Run linter to fix issues
@@ -45,7 +50,7 @@ deps: networks hashicorp
 down-deps: hashicorp-down
 
 run-acceptance:
-	@go test -v -tags acceptance ./acceptance-tests
+	@go test -v -tags acceptance -count=1 ./acceptance-tests
 
 gobuild:
 	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager
