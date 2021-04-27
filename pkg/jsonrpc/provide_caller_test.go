@@ -3,7 +3,6 @@ package jsonrpc
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -126,7 +125,7 @@ func TestProvideCaller(t *testing.T) {
 
 	err = srv.NoInput_ErrorOutput(client)()
 	require.Error(t, err)
-	fmt.Printf("Piou %s\n", err)
+
 	require.IsType(t, new(ErrorMsg), err)
 	require.Equal(t, -32600, err.(*ErrorMsg).Code)
 
