@@ -62,9 +62,6 @@ volumes:
 
 networks:
   hashicorp:
-<<<<<<< HEAD
-    driver: bridge
-=======
     external:
       name: hashicorp
   quorum:
@@ -73,4 +70,3 @@ networks:
   besu:
     external:
       name: besu
->>>>>>> master
