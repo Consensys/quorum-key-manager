@@ -91,7 +91,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	logger := log.FromContext(ctx).
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
-	logger.Infof("load manifest with specs: %v", string(mnf.Specs))
+	logger.WithField("data", string(mnf.Specs)).Info("load manifest with specs")
 
 	if _, ok := m.nodes[mnf.Name]; ok {
 		return fmt.Errorf("node %q already exist", mnf.Name)

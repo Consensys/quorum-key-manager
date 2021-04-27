@@ -2,14 +2,17 @@ package integrationtests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
+	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/hashicorp/vault/api"
@@ -80,11 +83,14 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	akvSpecStr := os.Getenv(flags.AKVEnvironmentEnv)
+	specs := akv.Specs{}
+	_ = json.Unmarshal([]byte(akvSpecStr), &specs)
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
-		os.Getenv("AKV_VAULT_NAME"),
-		os.Getenv("AKV_TENANT_ID"),
-		os.Getenv("AKV_CLIENT_ID"),
-		os.Getenv("AKV_CLIENT_SECRET"),
+		specs.VaultName,
+		specs.TenantID,
+		specs.ClientID,
+		specs.ClientSecret,
 	))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize akv client")
