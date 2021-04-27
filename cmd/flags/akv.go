@@ -13,62 +13,39 @@ import (
 
 func init() {
 	viper.SetDefault(akvEnvironmentViperKey, akvEnvironmentDefault)
-	_ = viper.BindEnv(akvEnvironmentViperKey, akvEnvironmentEnv)
-
-	viper.SetDefault(akvResourceViperKey, akvResourceDefault)
-	_ = viper.BindEnv(akvResourceViperKey, akvResourceEnv)
+	_ = viper.BindEnv(akvEnvironmentViperKey, AKVEnvironmentEnv)
 }
 
 const (
-	akvEnvironmentEnv      = "AZURE_ENVIRONMENT"
-	akvEnvironmentViperKey = "azure.environment"
-	akvEnvironmentFlag     = "azure-environment"
-	akvEnvironmentDefault  = ""
-)
-
-const (
-	akvResourceEnv      = "AZURE_KEYVAULT_RESOURCE"
-	akvResourceFlag     = "azure-keyvault-resource"
-	akvResourceViperKey = "azure.keyvault.resource"
-	akvResourceDefault  = ""
+	AKVEnvironmentEnv      = "AKV_ENVIRONMENT"
+	akvEnvironmentViperKey = "akv.environment"
+	akvEnvironmentFlag     = "akv-environment"
+	akvEnvironmentDefault  = "{}"
 )
 
 // Flags register flags for AKV
 func AKVFlags(f *pflag.FlagSet) {
 	akvEnvironment(f)
-	akvResource(f)
 }
 
 func akvEnvironment(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Specifies the AKV environment.
-Environment variable: %q `, akvEnvironmentEnv)
+Environment variable: %q `, AKVEnvironmentEnv)
 	f.String(akvEnvironmentFlag, akvEnvironmentDefault, desc)
 	_ = viper.BindPFlag(akvEnvironmentViperKey, f.Lookup(akvEnvironmentFlag))
 }
 
-func akvResource(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Specifies AKV resource.
-Environment variable: %q `, akvResourceEnv)
-	f.String(akvResourceFlag, akvResourceDefault, desc)
-	_ = viper.BindPFlag(akvResourceViperKey, f.Lookup(akvResourceFlag))
-}
-
 func newAKVManifest(vipr *viper.Viper) *manifest.Manifest {
-	if vipr.GetString(akvEnvironmentViperKey) == "" {
-		return nil
-	}
-
-	specs := akv.Specs{
-		EnvironmentName: vipr.GetString(akvEnvironmentViperKey),
-		Resource:        vipr.GetString(akvResourceViperKey),
-	}
-
+	envStr := vipr.GetString(akvEnvironmentViperKey)
+	specs := akv.Specs{}
+	//TODO: Handle invalid not empty specs
+	_ = json.Unmarshal([]byte(envStr), &specs)
 	specRaw, _ := json.Marshal(specs)
 
 	return &manifest.Manifest{
 		Kind:    types.AKVSecrets,
 		Name:    "AKVSecrets",
-		Version: "0.0.0",
+		Version: "0.0.1",
 		Specs:   specRaw,
 	}
 }

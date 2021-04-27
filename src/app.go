@@ -51,11 +51,11 @@ func (app App) Start(ctx context.Context) error {
 		}
 	}
 
-	if err := app.backend.StoreManager().Load(ctx, storeMnfsts...); err != nil {
+	if err := app.backend.StoreManager().Load(log.With(ctx, app.logger), storeMnfsts...); err != nil {
 		return err
 	}
 
-	if err := app.backend.NodeManager().Load(ctx, nodeMnfsts...); err != nil {
+	if err := app.backend.NodeManager().Load(log.With(ctx, app.logger), nodeMnfsts...); err != nil {
 		return err
 	}
 

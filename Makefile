@@ -11,6 +11,11 @@ ifeq ($(UNAME_S),Darwin)
 	OPEN = open
 endif
 
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 .PHONY: all lint integration-tests
 
 lint: ## Run linter to fix issues
@@ -45,7 +50,7 @@ deps: networks hashicorp
 down-deps: hashicorp-down
 
 run-acceptance:
-	@go test -v -tags acceptance ./acceptance-tests
+	@go test -v -tags acceptance -count=1 ./acceptance-tests
 
 gobuild:
 	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager
@@ -56,10 +61,13 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: deps gobuild
+dev: gobuild
+	@docker-compose -f ./docker-compose.yml up --build $(KEY_MANAGER_SERVICES)	
+
+up: deps gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
-down-dev: down-deps
+down: down-deps
 	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
 
 run: gobuild
