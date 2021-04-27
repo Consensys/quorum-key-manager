@@ -31,7 +31,7 @@ func NewSecretsHandler(backend core.Backend) *mux.Router {
 	router := mux.NewRouter()
 	router.Methods(http.MethodPost).Path("/").HandlerFunc(h.set)
 	router.Methods(http.MethodGet).Path("/").HandlerFunc(h.list)
-	router.Methods(http.MethodGet).Path("/{id}/{version}").HandlerFunc(h.getOne)
+	router.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 
 	return router
 }
@@ -47,7 +47,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, request.Header.Get(SecretStoreHeader))
+	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getSecretStore(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -69,9 +69,9 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	version := mux.Vars(request)["version"]
+	version := request.URL.Query().Get("version")
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, request.Header.Get(SecretStoreHeader))
+	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getSecretStore(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -90,7 +90,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, request.Header.Get(SecretStoreHeader))
+	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getSecretStore(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -103,4 +103,8 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	_ = json.NewEncoder(rw).Encode(ids)
+}
+
+func getSecretStore(request *http.Request) string {
+	return request.Header.Get(SecretStoreHeader)
 }

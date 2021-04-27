@@ -18,7 +18,7 @@ const Component = "http"
 
 func NewServer(cfg *Config, handler http.Handler, logger *log.Logger) *Server {
 	server := &http.Server{
-		Addr:        fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		Addr:        fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Handler:     handler,
 		IdleTimeout: cfg.IdleConnTimeout,
 		ReadTimeout: cfg.Timeout,

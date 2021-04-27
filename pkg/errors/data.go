@@ -6,10 +6,6 @@ const (
 	Encoding                = Data + 1<<8 // Invalid Encoding (subclass 421XX)
 	InvalidFormat           = Data + 3<<8 // Invalid format (subclass 423XX)
 	InvalidParameter        = Data + 4<<8 // Invalid parameter provided (subclass 424XX)
-
-	// Authentication Errors (class 09XXX)
-	InvalidAuthentication uint64 = 9 << 12
-	Unauthorized                 = InvalidAuthentication + 1 // Invalid request credentials (code 09001)
 )
 
 // EncodingError are raised when failing to decode a message
@@ -40,13 +36,4 @@ func InvalidParameterError(format string, a ...interface{}) *Error {
 // IsInvalidParameterError indicate whether an error is an invalid parameter error
 func IsInvalidParameterError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), InvalidParameter)
-}
-
-// UnauthorizedError is raised when authentication credentials are invalid
-func UnauthorizedError(format string, a ...interface{}) *Error {
-	return Errorf(Unauthorized, format, a...)
-}
-
-func IsUnauthorizedError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), Unauthorized)
 }

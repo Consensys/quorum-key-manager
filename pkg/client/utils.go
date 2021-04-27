@@ -92,5 +92,5 @@ func parseResponse(response *http.Response, resp interface{}) error {
 		}
 	}
 
-	return fmt.Errorf("failed to decode error response")
+	return fmt.Errorf(string(respMsg))
 }

@@ -42,17 +42,16 @@ func (s *secretsTestSuite) TearDownSuite() {
 
 func TestKeyManagerSecrets(t *testing.T) {
 	s := new(secretsTestSuite)
-	ctx, cancel := context.WithCancel(context.Background())
 
 	var err error
-	s.env, err = NewIntegrationEnvironment(ctx)
+	s.env, err = NewIntegrationEnvironment(context.Background())
 	if err != nil {
 		t.Error(err.Error())
 		return
 	}
 
 	sig := common.NewSignalListener(func(signal os.Signal) {
-		cancel()
+		s.env.Cancel()
 	})
 	defer sig.Close()
 
@@ -120,7 +119,10 @@ func (s *secretsTestSuite) TestGet() {
 	secret, err := s.keyManagerClient.SetSecret(ctx, SecretStoreName, request)
 	require.NoError(s.T(), err)
 
-	s.T().Run("should get a secret successfully", func(t *testing.T) {
+	secret2, err := s.keyManagerClient.SetSecret(ctx, SecretStoreName, request)
+	require.NoError(s.T(), err)
+
+	s.T().Run("should get a secret specific version successfully", func(t *testing.T) {
 		secretRetrieved, err := s.keyManagerClient.GetSecret(ctx, SecretStoreName, secret.ID, secret.Version)
 		require.NoError(t, err)
 
@@ -134,6 +136,13 @@ func (s *secretsTestSuite) TestGet() {
 		assert.True(t, secretRetrieved.ExpireAt.IsZero())
 		assert.True(t, secretRetrieved.DeletedAt.IsZero())
 		assert.True(t, secretRetrieved.DestroyedAt.IsZero())
+	})
+
+	s.T().Run("should get the latest version of a secret successfully", func(t *testing.T) {
+		secretRetrieved, err := s.keyManagerClient.GetSecret(ctx, SecretStoreName, secret.ID, "")
+		require.NoError(t, err)
+
+		assert.Equal(t, secret2.Version, secretRetrieved.Version)
 	})
 
 	s.T().Run("should parse errors successfully", func(t *testing.T) {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
@@ -29,7 +28,7 @@ import (
 const (
 	hashicorpContainerID = "hashicorp-vault"
 	networkName          = "key-manager"
-	localhostPath        = "http://localhost:"
+	localhostPath        = "http://localhost"
 	SecretStoreName      = "HashicorpSecrets"
 )
 
@@ -41,6 +40,7 @@ type IntegrationEnvironment struct {
 	dockerClient    *docker.Client
 	keyManager      *keymanager.App
 	baseURL         string
+	Cancel          context.CancelFunc
 }
 
 type TestSuiteEnv interface {
@@ -90,7 +90,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	envHTTPPort := strconv.Itoa(rand.IntnRange(20000, 28080))
+	envHTTPPort := rand.IntnRange(20000, 28080)
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
 	hashicorpSecretSpecs := &hashicorp.SecretSpecs{
 		Token:      hashicorpContainer.RootToken,
@@ -104,7 +104,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Token:      hashicorpContainer.RootToken,
 		Namespace:  "",
 	}
-	keyManager := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs, envHTTPPort)
+	keyManager := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs, uint32(envHTTPPort))
 
 	// Hashicorp client for direct integration tests
 	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpSecretSpecs.Address, hashicorpSecretSpecs.Token, ""))
@@ -127,6 +127,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
 		ctx:             ctx,
 		logger:          logger,
@@ -134,7 +135,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		akvClient:       akvClient,
 		dockerClient:    dockerClient,
 		keyManager:      keyManager,
-		baseURL:         localhostPath + envHTTPPort,
+		baseURL:         fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
+		Cancel:          cancel,
 	}, nil
 }
 
@@ -182,6 +184,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		err = env.keyManager.Start(ctx)
 		if err != nil {
 			env.logger.WithError(err).Error("failed to start key manager")
+			env.Cancel()
 		}
 	}()
 
@@ -214,7 +217,7 @@ func newKeyManager(
 	logger *log.Logger,
 	hashicorpSecretStoreSpecs *hashicorp.SecretSpecs,
 	hashicorpKeyStoreSpecs *hashicorp.KeySpecs,
-	port string,
+	port uint32,
 ) *keymanager.App {
 	hashicorpSecretSpecsRaw, _ := json.Marshal(hashicorpSecretStoreSpecs)
 	hashicorpSecretManifest := &manifest.Manifest{
