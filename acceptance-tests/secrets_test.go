@@ -120,7 +120,7 @@ func (s *secretsTestSuite) TestGet() {
 	secret, err := s.keyManagerClient.SetSecret(ctx, SecretStoreName, request)
 	require.NoError(s.T(), err)
 
-	s.T().Run("should set a new secret successfully", func(t *testing.T) {
+	s.T().Run("should get a secret successfully", func(t *testing.T) {
 		secretRetrieved, err := s.keyManagerClient.GetSecret(ctx, SecretStoreName, secret.ID, secret.Version)
 		require.NoError(t, err)
 
@@ -156,11 +156,20 @@ func (s *secretsTestSuite) TestList() {
 	_, err := s.keyManagerClient.SetSecret(ctx, SecretStoreName, request)
 	require.NoError(s.T(), err)
 
-	s.T().Run("should set a new secret successfully", func(t *testing.T) {
+	s.T().Run("should get all secret ids successfully", func(t *testing.T) {
 		ids, err := s.keyManagerClient.ListSecrets(ctx, SecretStoreName)
 		require.NoError(t, err)
 
 		assert.GreaterOrEqual(t, 1, len(ids))
 		assert.Contains(t, request.ID, ids)
+	})
+
+	s.T().Run("should parse errors successfully", func(t *testing.T) {
+		ids, err := s.keyManagerClient.ListSecrets(ctx, "inexistentStoreName")
+		require.Empty(t, ids)
+
+		httpError := err.(*client.ResponseError)
+		assert.Equal(t, 404, httpError.StatusCode)
+		assert.Equal(t, " secret store inexistentStoreName was not found", httpError.Message)
 	})
 }

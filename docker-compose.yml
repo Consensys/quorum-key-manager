@@ -4,7 +4,7 @@ x-default-variables: &default-variables
   LOG_LEVEL: ${LOG_LEVEL-INFO}
   HTTP_HOST: ${HTTP_HOST}
   HTTP_PORT: ${HTTP_PORT-8080}
-  NODE_ADDR: ${NODE_ADDR-8080}
+  NODE_ADDR: ${NODE_ADDR-http://validator2:8545}
   AKV_ENVIRONMENT: ${AKV_ENVIRONMENT-}
 
 x-container-common: &container-common
