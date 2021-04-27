@@ -2,13 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
 	"net/http"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"

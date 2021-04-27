@@ -1,10 +1,11 @@
 package api
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/handlers"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/jsonrpc"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/handlers"
+
+	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/middleware"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"

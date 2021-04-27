@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"net/http"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 )
 
 const (

@@ -1,12 +1,13 @@
 package json
 
 import (
+	"reflect"
+	"time"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/go-playground/validator/v10"
-	"reflect"
-	"time"
 )
 
 var (

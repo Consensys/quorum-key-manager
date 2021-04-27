@@ -3,8 +3,9 @@ package storemanager
 import (
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"sync"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"

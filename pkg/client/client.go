@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
 )
 

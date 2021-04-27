@@ -3,8 +3,9 @@ package json
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-playground/validator/v10"
 	"io"
+
+	"github.com/go-playground/validator/v10"
 )
 
 func UnmarshalBody(body io.Reader, req interface{}) error {
