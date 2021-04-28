@@ -7,6 +7,13 @@ import (
 	"os"
 	"time"
 
+	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
+	"k8s.io/apimachinery/pkg/util/rand"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
 	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
@@ -18,8 +25,12 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-const hashicorpContainerID = "hashicorp-vault"
-const networkName = "key-manager"
+const (
+	hashicorpContainerID = "hashicorp-vault"
+	networkName          = "key-manager"
+	localhostPath        = "http://localhost"
+	SecretStoreName      = "HashicorpSecrets"
+)
 
 type IntegrationEnvironment struct {
 	ctx             context.Context
@@ -27,6 +38,9 @@ type IntegrationEnvironment struct {
 	hashicorpClient *hashicorpclient.HashicorpVaultClient
 	akvClient       *akvclient.AzureClient
 	dockerClient    *docker.Client
+	keyManager      *keymanager.App
+	baseURL         string
+	Cancel          context.CancelFunc
 }
 
 type TestSuiteEnv interface {
@@ -76,8 +90,24 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	envHTTPPort := rand.IntnRange(20000, 28080)
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken))
+	hashicorpSecretSpecs := &hashicorp.SecretSpecs{
+		Token:      hashicorpContainer.RootToken,
+		MountPoint: "secret",
+		Address:    hashicorpAddr,
+		Namespace:  "",
+	}
+	hashicorpKeySpecs := &hashicorp.KeySpecs{
+		MountPoint: "orchestrate",
+		Address:    hashicorpAddr,
+		Token:      hashicorpContainer.RootToken,
+		Namespace:  "",
+	}
+	keyManager := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs, uint32(envHTTPPort))
+
+	// Hashicorp client for direct integration tests
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpSecretSpecs.Address, hashicorpSecretSpecs.Token, ""))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
@@ -97,14 +127,16 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	// TODO Add key-manager init
-
+	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
 		ctx:             ctx,
 		logger:          logger,
 		hashicorpClient: hashicorpClient,
 		akvClient:       akvClient,
 		dockerClient:    dockerClient,
+		keyManager:      keyManager,
+		baseURL:         fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
+		Cancel:          cancel,
 	}, nil
 }
 
@@ -148,7 +180,16 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	// TODO Add key-manager START and WAIT_FOR_READY
+	go func() {
+		err = env.keyManager.Start(ctx)
+		if err != nil {
+			env.logger.WithError(err).Error("failed to start key manager")
+			env.Cancel()
+		}
+	}()
+
+	// TODO: Implement WaitFor functions based on ready endpoint
+	time.Sleep(2 * time.Second)
 
 	return nil
 }
@@ -156,9 +197,12 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	env.logger.Info("tearing test suite down")
 
-	// TODO Add key-manager STOP
+	err := env.keyManager.Stop(ctx)
+	if err != nil {
+		env.logger.WithError(err).Error("failed to stop key manager")
+	}
 
-	err := env.dockerClient.Down(ctx, hashicorpContainerID)
+	err = env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
 	}
@@ -167,4 +211,39 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	if err != nil {
 		env.logger.WithError(err).Error("could not remove network")
 	}
+}
+
+func newKeyManager(
+	logger *log.Logger,
+	hashicorpSecretStoreSpecs *hashicorp.SecretSpecs,
+	hashicorpKeyStoreSpecs *hashicorp.KeySpecs,
+	port uint32,
+) *keymanager.App {
+	hashicorpSecretSpecsRaw, _ := json.Marshal(hashicorpSecretStoreSpecs)
+	hashicorpSecretManifest := &manifest.Manifest{
+		Kind:    types.HashicorpSecrets,
+		Name:    SecretStoreName,
+		Version: "0.0.0",
+		Specs:   hashicorpSecretSpecsRaw,
+	}
+
+	hashicorpKeySpecsRaw, _ := json.Marshal(hashicorpKeyStoreSpecs)
+	hashicorpKeyManifest := &manifest.Manifest{
+		Kind:    types.HashicorpKeys,
+		Name:    "HashicorpKeys",
+		Version: "0.0.0",
+		Specs:   hashicorpKeySpecsRaw,
+	}
+
+	httpConfig := http.NewDefaultConfig()
+	httpConfig.Port = port
+	cfg := &keymanager.Config{
+		HTTP: httpConfig,
+		Manifests: []*manifest.Manifest{
+			hashicorpSecretManifest,
+			hashicorpKeyManifest,
+		},
+	}
+
+	return keymanager.New(cfg, logger)
 }

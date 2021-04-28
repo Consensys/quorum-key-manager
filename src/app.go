@@ -16,36 +16,34 @@ const Component = "app"
 // App is the main Key Manager application object
 type App struct {
 	cfg *Config
-	// listener accepting HTTP connection
-	// listener net.Listener
 
 	// httpServer processing entrying HTTP request
 	httpServer common.Runnable
 
-	// backend managing core backend components
+	// backend managing core business components
 	backend core.Backend
 
+	// logger logger object
 	logger *log.Logger
 }
 
-func New(cfg *Config) *App {
-	logger := log.NewLogger(cfg.Logger)
-	bckend := core.New()
-	httpServer := http.NewServer(cfg.HTTP, api.New(bckend), logger)
+func New(cfg *Config, logger *log.Logger) *App {
+	backend := core.New()
+	httpServer := http.NewServer(cfg.HTTP, api.New(backend), logger)
 
 	return &App{
 		cfg:        cfg,
 		httpServer: httpServer,
-		backend:    bckend,
+		backend:    backend,
 		logger:     logger.SetComponent(Component),
 	}
 }
 
-func (a App) Start(ctx context.Context) error {
+func (app App) Start(ctx context.Context) error {
 	var storeMnfsts []*manifest.Manifest
 	var nodeMnfsts []*manifest.Manifest
 
-	for _, mnfst := range a.cfg.Manifests {
+	for _, mnfst := range app.cfg.Manifests {
 		switch mnfst.Kind {
 		case "Node":
 			nodeMnfsts = append(nodeMnfsts, mnfst)
@@ -54,28 +52,28 @@ func (a App) Start(ctx context.Context) error {
 		}
 	}
 
-	if err := a.backend.StoreManager().Load(log.With(ctx, a.logger), storeMnfsts...); err != nil {
+	if err := app.backend.StoreManager().Load(log.With(ctx, app.logger), storeMnfsts...); err != nil {
 		return err
 	}
 
-	if err := a.backend.NodeManager().Load(log.With(ctx, a.logger), nodeMnfsts...); err != nil {
+	if err := app.backend.NodeManager().Load(log.With(ctx, app.logger), nodeMnfsts...); err != nil {
 		return err
 	}
 
-	a.logger.Info("starting application")
-	return a.httpServer.Start(ctx)
+	app.logger.Info("starting application")
+	return app.httpServer.Start(ctx)
 }
 
-func (a App) Stop(ctx context.Context) error {
-	a.logger.Info("stopping application")
-	err := a.httpServer.Stop(ctx)
+func (app App) Stop(ctx context.Context) error {
+	app.logger.Info("stopping application")
+	err := app.httpServer.Stop(ctx)
 	return err
 }
 
-func (a App) Close() error {
-	return a.httpServer.Close()
+func (app App) Close() error {
+	return app.httpServer.Close()
 }
 
-func (a App) Error() error {
-	return a.httpServer.Error()
+func (app App) Error() error {
+	return app.httpServer.Error()
 }

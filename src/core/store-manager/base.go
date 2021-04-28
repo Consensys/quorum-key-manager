@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
@@ -50,13 +52,14 @@ func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error 
 func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
+
 	if storeBundle, ok := m.secrets[name]; ok {
 		if store, ok := storeBundle.store.(secrets.Store); ok {
 			return store, nil
 		}
 	}
 
-	return nil, fmt.Errorf("secret store not found")
+	return nil, errors.NotFoundError("secret store %s was not found", name)
 }
 
 func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
@@ -68,7 +71,7 @@ func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error
 		}
 	}
 
-	return nil, fmt.Errorf("keys store not found")
+	return nil, errors.NotFoundError("key store %s was not found", name)
 }
 
 func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Store, error) {
@@ -80,14 +83,14 @@ func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Stor
 		}
 	}
 
-	return nil, fmt.Errorf("account store not found")
+	return nil, errors.NotFoundError("account store %s was not found", name)
 }
 
 func (m *manager) List(_ context.Context, kind manifest.Kind) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	storeNames := []string{}
+	var storeNames []string
 	switch kind {
 	case "":
 		storeNames = append(
@@ -113,6 +116,16 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.HashicorpKeys:
+		spec := &hashicorp.KeySpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			return err
+		}
+		store, err := hashicorp.NewKeyStore(spec)
+		if err != nil {
+			return err
+		}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVSecrets:
 		spec := &akv.Specs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {

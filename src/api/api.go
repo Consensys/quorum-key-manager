@@ -3,12 +3,10 @@ package api
 import (
 	"net/http"
 
-	accountsapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/accounts"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/handlers"
+
 	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/jsonrpc"
-	keysapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/middleware"
-	secretsapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/secrets"
-	storesapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/stores"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"
 )
@@ -21,12 +19,14 @@ const (
 	jsonRPCPrefix  = "/"
 )
 
-func New(bcknd core.Backend) http.Handler {
+func New(backend core.Backend) http.Handler {
 	r := mux.NewRouter()
-	r.PathPrefix(secretsPrefix).Handler(middleware.StripPrefix(secretsPrefix, secretsapi.New(bcknd)))
-	r.PathPrefix(keysPrefix).Handler(middleware.StripPrefix(keysPrefix, keysapi.New(bcknd)))
-	r.PathPrefix(accountsPrefix).Handler(middleware.StripPrefix(accountsPrefix, accountsapi.New(bcknd)))
-	r.PathPrefix(storesPrefix).Handler(middleware.StripPrefix(storesPrefix, storesapi.New(bcknd)))
-	r.PathPrefix(jsonRPCPrefix).Methods(http.MethodPost).Handler(middleware.StripPrefix(jsonRPCPrefix, jsonrpcapi.New(bcknd)))
-	return middleware.New(bcknd)(r)
+
+	r.PathPrefix(secretsPrefix).Handler(middleware.StripPrefix(secretsPrefix, handlers.NewSecretsHandler(backend)))
+	r.PathPrefix(keysPrefix).Handler(middleware.StripPrefix(keysPrefix, handlers.NewKeysHandler(backend)))
+	r.PathPrefix(accountsPrefix).Handler(middleware.StripPrefix(accountsPrefix, handlers.NewAccountsHandler(backend)))
+	r.PathPrefix(storesPrefix).Handler(middleware.StripPrefix(storesPrefix, handlers.NewStoresHandler(backend)))
+	r.PathPrefix(jsonRPCPrefix).Methods(http.MethodPost).Handler(middleware.StripPrefix(jsonRPCPrefix, jsonrpcapi.New(backend)))
+
+	return middleware.New(backend)(r)
 }

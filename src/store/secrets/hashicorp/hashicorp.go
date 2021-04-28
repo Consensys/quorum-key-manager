@@ -3,6 +3,7 @@ package hashicorp
 import (
 	"context"
 	"path"
+	"strconv"
 	"time"
 
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
@@ -65,6 +66,11 @@ func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.At
 func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secret, error) {
 	var callData map[string][]string
 	if version != "" {
+		_, err := strconv.Atoi(version)
+		if err != nil {
+			return nil, errors.InvalidParameterError("version must be a number")
+		}
+
 		callData = map[string][]string{
 			versionLabel: {version},
 		}

@@ -31,10 +31,10 @@ lint-tools: ## Install linting tools
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 
 hashicorp:
-	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_VAULT)
+	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_HASHICORP)
 
 hashicorp-down:
-	@docker-compose -f deps/hashicorp/docker-compose.yml down $(DEPS_VAULT)
+	@docker-compose -f deps/hashicorp/docker-compose.yml down --volumes --timeout 0
 
 networks:
 	@docker network create --driver=bridge hashicorp || true
@@ -61,7 +61,7 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: gobuild
+dev: gobuild networks
 	@docker-compose -f ./docker-compose.yml up --build $(KEY_MANAGER_SERVICES)	
 
 up: deps gobuild

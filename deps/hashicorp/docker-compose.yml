@@ -39,7 +39,7 @@ services:
       - ./scripts/plugin.sh:/plugin.sh
     command: >
       sh -c "./plugin.sh && ./init.sh"
-      
+
   hashicorp-agent:
     <<: *container-common
     image: library/vault:1.6.1

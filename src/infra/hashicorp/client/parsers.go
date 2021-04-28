@@ -8,7 +8,10 @@ import (
 )
 
 func ParseErrorResponse(err error) error {
-	httpError, _ := err.(*api.ResponseError)
+	httpError, ok := err.(*api.ResponseError)
+	if !ok {
+		return errors.HashicorpVaultConnectionError("failed to connect to Hashicorp store")
+	}
 
 	switch httpError.StatusCode {
 	case http.StatusNotFound:
