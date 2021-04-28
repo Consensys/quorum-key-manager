@@ -31,8 +31,8 @@ type Store interface {
 	// Refresh key (create new identical version with different TTL)
 	Refresh(ctx context.Context, id string, expirationDate time.Time) error
 
-	// Delete secret not parmently, by using Undelete the secret can be retrieve
-	Delete(ctx context.Context, id string, versions ...string) (*entities.Key, error)
+	// Delete secret not permanently, by using Undelete() the secret can be retrieve
+	Delete(ctx context.Context, id string) (*entities.Key, error)
 
 	// GetDeleted keys
 	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
@@ -44,14 +44,14 @@ type Store interface {
 	Undelete(ctx context.Context, id string) error
 
 	// Destroy secret permanently
-	Destroy(ctx context.Context, id string, versions ...string) error
+	Destroy(ctx context.Context, id string) error
 
 	// Sign from any arbitrary data using the specified key
 	Sign(ctx context.Context, id, data, version string) (string, error)
 
 	// Encrypt any arbitrary data using a specified key
-	Encrypt(ctx context.Context, id, data string) (string, error)
+	Encrypt(ctx context.Context, id, version string, data string) (string, error)
 
 	// Decrypt a single block of encrypted data.
-	Decrypt(ctx context.Context, id, data string) (string, error)
+	Decrypt(ctx context.Context, id, version string, data string) (string, error)
 }

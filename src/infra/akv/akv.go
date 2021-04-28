@@ -27,9 +27,10 @@ type KeysClient interface {
 	ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error)
 	GetKey(ctx context.Context, name string, version string) (keyvault.KeyBundle, error)
 	GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error)
-	UpdateKey(ctx context.Context, keyName string, version string, attr *keyvault.KeyAttributes, 
-	ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error)
+	UpdateKey(ctx context.Context, keyName string, version string, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error)
 	DeleteKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
+	GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
+	GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error)
 	PurgeDeletedKey(ctx context.Context, keyName string) (bool, error)
 	RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error)
 	Sign(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error)

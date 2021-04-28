@@ -140,7 +140,7 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 }
 
 // Delete a secret
-func (s *SecretStore) Delete(_ context.Context, id string, versions ...string) (*entities.Secret, error) {
+func (s *SecretStore) Delete(_ context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.NotImplementedError
 }
 
@@ -160,7 +160,7 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 }
 
 // Destroy a secret permanently
-func (s *SecretStore) Destroy(ctx context.Context, id string, versions ...string) error {
+func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	return errors.NotImplementedError
 }
 

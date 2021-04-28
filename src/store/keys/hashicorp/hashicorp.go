@@ -168,13 +168,13 @@ func (s *KeyStore) Sign(_ context.Context, id, data, version string) (string, er
 }
 
 // Encrypt any arbitrary data using a specified key
-func (s *KeyStore) Encrypt(ctx context.Context, id, data string) (string, error) {
+func (s *KeyStore) Encrypt(ctx context.Context, id, version, data string) (string, error) {
 	return "", errors.NotImplementedError
 
 }
 
 // Decrypt a single block of encrypted data.
-func (s *KeyStore) Decrypt(ctx context.Context, id, data string) (string, error) {
+func (s *KeyStore) Decrypt(ctx context.Context, id, version, data string) (string, error) {
 	return "", errors.NotImplementedError
 }
 
