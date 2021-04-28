@@ -108,3 +108,274 @@ func (mr *MockClientMockRecorder) DeleteSecret(ctx, secretName interface{}) *gom
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockClient)(nil).DeleteSecret), ctx, secretName)
 }
+
+// SetSecret mocks base method
+func (m *MockClient) SetSecret(ctx context.Context, secretName string, parameters keyvault.SecretSetParameters) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetSecret", ctx, secretName, parameters)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetSecret indicates an expected call of SetSecret
+func (mr *MockClientMockRecorder) SetSecret(ctx, secretName, parameters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockClient)(nil).SetSecret), ctx, secretName, parameters)
+}
+
+// GetSecret mocks base method
+func (m *MockClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecret", ctx, secretName, secretVersion)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecret indicates an expected call of GetSecret
+func (mr *MockClientMockRecorder) GetSecret(ctx, secretName, secretVersion interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockClient)(nil).GetSecret), ctx, secretName, secretVersion)
+}
+
+// GetSecrets mocks base method
+func (m *MockClient) GetSecrets(ctx context.Context, maxResults *int32) (keyvault.SecretListResultPage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecrets", ctx, maxResults)
+	ret0, _ := ret[0].(keyvault.SecretListResultPage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecrets indicates an expected call of GetSecrets
+func (mr *MockClientMockRecorder) GetSecrets(ctx, maxResults interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecrets", reflect.TypeOf((*MockClient)(nil).GetSecrets), ctx, maxResults)
+}
+
+// UpdateSecret mocks base method
+func (m *MockClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, parameters keyvault.SecretUpdateParameters) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSecret", ctx, secretName, secretVersion, parameters)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateSecret indicates an expected call of UpdateSecret
+func (mr *MockClientMockRecorder) UpdateSecret(ctx, secretName, secretVersion, parameters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSecret", reflect.TypeOf((*MockClient)(nil).UpdateSecret), ctx, secretName, secretVersion, parameters)
+}
+
+// DeleteSecret mocks base method
+func (m *MockClient) DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSecret", ctx, secretName)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteSecret indicates an expected call of DeleteSecret
+func (mr *MockClientMockRecorder) DeleteSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockClient)(nil).DeleteSecret), ctx, secretName)
+}
+
+// MockSecretClient is a mock of SecretClient interface
+type MockSecretClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockSecretClientMockRecorder
+}
+
+// MockSecretClientMockRecorder is the mock recorder for MockSecretClient
+type MockSecretClientMockRecorder struct {
+	mock *MockSecretClient
+}
+
+// NewMockSecretClient creates a new mock instance
+func NewMockSecretClient(ctrl *gomock.Controller) *MockSecretClient {
+	mock := &MockSecretClient{ctrl: ctrl}
+	mock.recorder = &MockSecretClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockSecretClient) EXPECT() *MockSecretClientMockRecorder {
+	return m.recorder
+}
+
+// SetSecret mocks base method
+func (m *MockSecretClient) SetSecret(ctx context.Context, secretName string, parameters keyvault.SecretSetParameters) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetSecret", ctx, secretName, parameters)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetSecret indicates an expected call of SetSecret
+func (mr *MockSecretClientMockRecorder) SetSecret(ctx, secretName, parameters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockSecretClient)(nil).SetSecret), ctx, secretName, parameters)
+}
+
+// GetSecret mocks base method
+func (m *MockSecretClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecret", ctx, secretName, secretVersion)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecret indicates an expected call of GetSecret
+func (mr *MockSecretClientMockRecorder) GetSecret(ctx, secretName, secretVersion interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretClient)(nil).GetSecret), ctx, secretName, secretVersion)
+}
+
+// GetSecrets mocks base method
+func (m *MockSecretClient) GetSecrets(ctx context.Context, maxResults *int32) (keyvault.SecretListResultPage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecrets", ctx, maxResults)
+	ret0, _ := ret[0].(keyvault.SecretListResultPage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecrets indicates an expected call of GetSecrets
+func (mr *MockSecretClientMockRecorder) GetSecrets(ctx, maxResults interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecrets", reflect.TypeOf((*MockSecretClient)(nil).GetSecrets), ctx, maxResults)
+}
+
+// UpdateSecret mocks base method
+func (m *MockSecretClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, parameters keyvault.SecretUpdateParameters) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSecret", ctx, secretName, secretVersion, parameters)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateSecret indicates an expected call of UpdateSecret
+func (mr *MockSecretClientMockRecorder) UpdateSecret(ctx, secretName, secretVersion, parameters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSecret", reflect.TypeOf((*MockSecretClient)(nil).UpdateSecret), ctx, secretName, secretVersion, parameters)
+}
+
+// DeleteSecret mocks base method
+func (m *MockSecretClient) DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSecret", ctx, secretName)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteSecret indicates an expected call of DeleteSecret
+func (mr *MockSecretClientMockRecorder) DeleteSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockSecretClient)(nil).DeleteSecret), ctx, secretName)
+}
+
+// MockKeysClient is a mock of KeysClient interface
+type MockKeysClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockKeysClientMockRecorder
+}
+
+// MockKeysClientMockRecorder is the mock recorder for MockKeysClient
+type MockKeysClientMockRecorder struct {
+	mock *MockKeysClient
+}
+
+// NewMockKeysClient creates a new mock instance
+func NewMockKeysClient(ctrl *gomock.Controller) *MockKeysClient {
+	mock := &MockKeysClient{ctrl: ctrl}
+	mock.recorder = &MockKeysClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockKeysClient) EXPECT() *MockKeysClientMockRecorder {
+	return m.recorder
+}
+
+// SetSecret mocks base method
+func (m *MockKeysClient) SetSecret(ctx context.Context, secretName string, parameters keyvault.SecretSetParameters) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetSecret", ctx, secretName, parameters)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetSecret indicates an expected call of SetSecret
+func (mr *MockKeysClientMockRecorder) SetSecret(ctx, secretName, parameters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockKeysClient)(nil).SetSecret), ctx, secretName, parameters)
+}
+
+// GetSecret mocks base method
+func (m *MockKeysClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecret", ctx, secretName, secretVersion)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecret indicates an expected call of GetSecret
+func (mr *MockKeysClientMockRecorder) GetSecret(ctx, secretName, secretVersion interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockKeysClient)(nil).GetSecret), ctx, secretName, secretVersion)
+}
+
+// GetSecrets mocks base method
+func (m *MockKeysClient) GetSecrets(ctx context.Context, maxResults *int32) (keyvault.SecretListResultPage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecrets", ctx, maxResults)
+	ret0, _ := ret[0].(keyvault.SecretListResultPage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecrets indicates an expected call of GetSecrets
+func (mr *MockKeysClientMockRecorder) GetSecrets(ctx, maxResults interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecrets", reflect.TypeOf((*MockKeysClient)(nil).GetSecrets), ctx, maxResults)
+}
+
+// UpdateSecret mocks base method
+func (m *MockKeysClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, parameters keyvault.SecretUpdateParameters) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSecret", ctx, secretName, secretVersion, parameters)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateSecret indicates an expected call of UpdateSecret
+func (mr *MockKeysClientMockRecorder) UpdateSecret(ctx, secretName, secretVersion, parameters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSecret", reflect.TypeOf((*MockKeysClient)(nil).UpdateSecret), ctx, secretName, secretVersion, parameters)
+}
+
+// DeleteSecret mocks base method
+func (m *MockKeysClient) DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSecret", ctx, secretName)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteSecret indicates an expected call of DeleteSecret
+func (mr *MockKeysClientMockRecorder) DeleteSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockKeysClient)(nil).DeleteSecret), ctx, secretName)
+}

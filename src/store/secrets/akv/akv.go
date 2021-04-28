@@ -7,18 +7,16 @@ import (
 
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
 type SecretStore struct {
-	client akv.Client
+	client akv.SecretClient
 }
 
-func New(client akv.Client) *SecretStore {
+func New(client akv.SecretClient) *SecretStore {
 	return &SecretStore{
 		client: client,
 	}
@@ -29,12 +27,7 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
-	params := keyvault.SecretSetParameters{
-		Value: &value,
-		Tags:  tomapstrptr(attr.Tags),
-	}
-
-	res, err := s.client.SetSecret(ctx, id, params)
+	res, err := s.client.SetSecret(ctx, id, value, attr.Tags)
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
 	}
@@ -52,16 +45,13 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 }
 
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
-	res, err := s.client.GetSecrets(ctx, nil)
+	items, err := s.client.GetSecrets(ctx, 0)
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
 	}
 
-	if len(res.Values()) == 0 {
-		return nil, nil
-	}
 	var list []string
-	for _, secret := range res.Values() {
+	for _, secret := range items {
 		// path.Base to only retrieve the secretName instead of https://<vaultName>.vault.azure.net/secrets/<secretName>
 		// See listSecrets function in https://github.com/Azure-Samples/azure-sdk-for-go-samples/blob/master/keyvault/examples/go-keyvault-msi-example.go
 		list = append(list, path.Base(*secret.ID))
@@ -70,14 +60,7 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 }
 
 func (s *SecretStore) Refresh(ctx context.Context, id, version string, expirationDate time.Time) error {
-	expires := date.NewUnixTimeFromNanoseconds(expirationDate.UnixNano())
-	params := keyvault.SecretUpdateParameters{
-		SecretAttributes: &keyvault.SecretAttributes{
-			Expires: &expires,
-		},
-	}
-
-	_, err := s.client.UpdateSecret(ctx, id, version, params)
+	_, err := s.client.UpdateSecret(ctx, id, version, expirationDate)
 	if err != nil {
 		return akvclient.ParseErrorResponse(err)
 	}

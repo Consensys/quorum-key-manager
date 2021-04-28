@@ -37,7 +37,7 @@ type IntegrationEnvironment struct {
 	ctx             context.Context
 	logger          *log.Logger
 	hashicorpClient *hashicorpclient.HashicorpVaultClient
-	akvClient       *akvclient.AzureClient
+	akvClient       *akvclient.AzureSecretClient
 	dockerClient    *docker.Client
 	keyManager      *keymanager.App
 	baseURL         string
@@ -117,7 +117,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	akvSpecStr := os.Getenv(flags.AKVEnvironmentEnv)
 	specs := akv.Specs{}
 	_ = json.Unmarshal([]byte(akvSpecStr), &specs)
-	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
+	akvClient, err := akvclient.NewSecretClient(akvclient.NewConfig(
 		specs.VaultName,
 		specs.TenantID,
 		specs.ClientID,
