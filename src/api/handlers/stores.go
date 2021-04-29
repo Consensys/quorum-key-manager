@@ -26,3 +26,7 @@ func NewStoresHandler(backend core.Backend) *mux.Router {
 func (c *StoresHandler) testRoute(rw http.ResponseWriter, _ *http.Request) {
 	_, _ = rw.Write([]byte("OK"))
 }
+
+func getStoreName(request *http.Request) string {
+	return request.Header.Get("X-Store-Id")
+}

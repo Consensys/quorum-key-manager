@@ -16,8 +16,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const SecretStoreHeader = "X-Secret-Store"
-
 type SecretsHandler struct {
 	backend core.Backend
 }
@@ -47,7 +45,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getSecretStore(request))
+	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -71,7 +69,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	id := mux.Vars(request)["id"]
 	version := request.URL.Query().Get("version")
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getSecretStore(request))
+	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -90,7 +88,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getSecretStore(request))
+	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -103,8 +101,4 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	_ = json.NewEncoder(rw).Encode(ids)
-}
-
-func getSecretStore(request *http.Request) string {
-	return request.Header.Get(SecretStoreHeader)
 }

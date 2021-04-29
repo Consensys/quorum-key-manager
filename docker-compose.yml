@@ -2,7 +2,7 @@ version: "3.7"
 
 x-default-variables: &default-variables
   LOG_LEVEL: ${LOG_LEVEL-INFO}
-  HTTP_HOST: ${HTTP_HOST}
+  HTTP_HOST: ${HTTP_HOST-0.0.0.0}
   HTTP_PORT: ${HTTP_PORT-8080}
   NODE_ADDR: ${NODE_ADDR-http://validator2:8545}
   AKV_ENVIRONMENT: ${AKV_ENVIRONMENT-}
@@ -25,7 +25,7 @@ services:
     environment:
       <<: *default-variables
     ports:
-      - 8545:8080
+      - 8080:8080
     restart: "no"
     command: run
 
