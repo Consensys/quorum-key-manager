@@ -1,6 +1,7 @@
 package akv
 
 import (
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -42,6 +43,21 @@ func convertToAKVKeyType(alg *entities.Algorithm) keyvault.JSONWebKeyType {
 	}
 }
 
+func buildAlgoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities.Algorithm  {
+	algo := &entities.Algorithm{}
+	switch kty {
+	case keyvault.EC:
+		algo.Type = entities.Ecdsa
+	}
+	
+	switch crv {
+	case keyvault.P256K:
+		algo.EllipticCurve = entities.Secp256k1
+	}
+	
+	return algo
+}
+
 func convertToSignatureAlgo(alg *entities.Algorithm) keyvault.JSONWebKeySignatureAlgorithm {
 	switch alg.Type {
 	case entities.Ecdsa:
@@ -58,14 +74,9 @@ func convertToSignatureAlgo(alg *entities.Algorithm) keyvault.JSONWebKeySignatur
 
 func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 	key := &entities.Key{
-		ID:        *res.Key.Kid,
 		PublicKey: *res.Key.X,
-		Algo: &entities.Algorithm{
-			Type:          string(res.Key.Kty), // @TODO Parse into KM curve type
-			EllipticCurve: string(res.Key.Crv), // @TODO Parse into KM curve type
-		},
+		Algo: buildAlgoFromAKVKeyTypeCrv(res.Key.Kty, res.Key.Crv),
 		Metadata: &entities.Metadata{
-			Version:   "", // TODO
 			Disabled:  !*res.Attributes.Enabled,
 			CreatedAt: time.Time(*res.Attributes.Created),
 			UpdatedAt: time.Time(*res.Attributes.Updated),
@@ -73,6 +84,13 @@ func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 		Tags: common.Tomapstr(res.Tags),
 	}
 
+	if res.Key.Kid != nil {
+		// path.Base to only retrieve the secretVersion instead of https://<vaultName>.vault.azure.net/keys/<keyName>/<secretVersion>
+		chunks := strings.Split(*res.Key.Kid, "/")
+		key.Metadata.Version = chunks[len(chunks)-1]
+		key.ID = chunks[len(chunks)-2]
+	}
+	
 	return key
 }
 

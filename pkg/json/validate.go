@@ -59,7 +59,7 @@ func convDuration(fl validator.FieldLevel) (time.Duration, error) {
 func isCurve(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case entities.Secp256k1, entities.Bn254:
+		case string(entities.Secp256k1), string(entities.Bn254):
 			return true
 		default:
 			return false
@@ -72,7 +72,7 @@ func isCurve(fl validator.FieldLevel) bool {
 func isSigningAlgorithm(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case entities.Ecdsa, entities.Eddsa:
+		case string(entities.Ecdsa), string(entities.Eddsa):
 			return true
 		default:
 			return false

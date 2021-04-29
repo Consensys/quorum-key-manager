@@ -8,7 +8,10 @@ import (
 )
 
 func ParseErrorResponse(err error) error {
-	aerr, _ := err.(autorest.DetailedError)
+	aerr, ok := err.(autorest.DetailedError)
+	if !ok {
+		return err
+	}
 
 	switch aerr.StatusCode.(int) {
 	case http.StatusNotFound:

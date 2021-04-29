@@ -43,7 +43,7 @@ func (s *akvKeyTestSuite) TestCreate() {
 		assert.Equal(t, tags, key.Tags)
 		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.Equal(t, "1", key.Metadata.Version)
+		assert.NotEmpty(t, key.Metadata.Version)
 		assert.NotNil(t, key.Metadata.CreatedAt)
 		assert.NotNil(t, key.Metadata.UpdatedAt)
 		assert.True(t, key.Metadata.DeletedAt.IsZero())
