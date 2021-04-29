@@ -42,7 +42,7 @@ func (s *secretsTestSuite) TearDownSuite() {
 
 func TestKeyManagerSecrets(t *testing.T) {
 	s := new(secretsTestSuite)
-
+	
 	var err error
 	s.env, err = NewIntegrationEnvironment(context.Background())
 	if err != nil {

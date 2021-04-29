@@ -6,32 +6,11 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault/keyvaultapi"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
 )
 
-type AzureKeysClient struct {
-	client keyvaultapi.BaseClientAPI
-	cfg    *Config
-}
-
-var _ akv.KeysClient = AzureKeysClient{}
-
-func NewKeysClient(cfg *Config) (*AzureKeysClient, error) {
-	client := keyvault.New()
-
-	authorizer, err := cfg.ToAzureAuthConfig()
-	if err != nil {
-		return nil, err
-	}
-	client.Authorizer = authorizer
-
-	return &AzureKeysClient{client: client, cfg: cfg}, nil
-}
-
-func (c AzureKeysClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType,
+func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType,
 	crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation,
 	tags map[string]string) (keyvault.KeyBundle, error) {
 	if crv == "" {
@@ -50,7 +29,7 @@ func (c AzureKeysClient) CreateKey(ctx context.Context, keyName string, kty keyv
 	})
 }
 
-func (c AzureKeysClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error) {
 	if k.Crv == "" {
 		return keyvault.KeyBundle{}, errors.InvalidParameterError("key curve name cannot be empty")
 	}
@@ -64,11 +43,11 @@ func (c AzureKeysClient) ImportKey(ctx context.Context, keyName string, k *keyva
 	})
 }
 
-func (c AzureKeysClient) GetKey(ctx context.Context, keyName string, version string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) GetKey(ctx context.Context, keyName string, version string) (keyvault.KeyBundle, error) {
 	return c.client.GetKey(ctx, c.cfg.Endpoint, keyName, version)
 }
 
-func (c AzureKeysClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {
+func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {
 	maxResultPtr := &maxResults
 	if maxResults == 0 {
 		maxResultPtr = nil
@@ -85,7 +64,7 @@ func (c AzureKeysClient) GetKeys(ctx context.Context, maxResults int32) ([]keyva
 	return res.Values(), nil
 }
 
-func (c AzureKeysClient) UpdateKey(ctx context.Context, keyName string, version string, attr *keyvault.KeyAttributes,
+func (c *AKVClient) UpdateKey(ctx context.Context, keyName string, version string, attr *keyvault.KeyAttributes,
 	ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
 	return c.client.UpdateKey(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyUpdateParameters{
 		KeyAttributes: attr,
@@ -94,15 +73,15 @@ func (c AzureKeysClient) UpdateKey(ctx context.Context, keyName string, version 
 	})
 }
 
-func (c AzureKeysClient) DeleteKey(ctx context.Context, keyName string) (result keyvault.DeletedKeyBundle, err error) {
+func (c *AKVClient) DeleteKey(ctx context.Context, keyName string) (result keyvault.DeletedKeyBundle, err error) {
 	return c.client.DeleteKey(ctx, c.cfg.Endpoint, keyName)
 }
 
-func (c AzureKeysClient) GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
+func (c *AKVClient) GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
 	return c.client.GetDeletedKey(ctx, c.cfg.Endpoint, keyName)
 }
 
-func (c AzureKeysClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error) {
+func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error) {
 	maxResultPtr := &maxResults
 	if maxResults == 0 {
 		maxResultPtr = nil
@@ -118,7 +97,7 @@ func (c AzureKeysClient) GetDeletedKeys(ctx context.Context, maxResults int32) (
 	return res.Values(), nil
 }
 
-func (c AzureKeysClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, error) {
+func (c *AKVClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, error) {
 	res, err := c.client.PurgeDeletedKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
 		return false, err
@@ -126,11 +105,11 @@ func (c AzureKeysClient) PurgeDeletedKey(ctx context.Context, keyName string) (b
 	return res.StatusCode == http.StatusNoContent, nil
 }
 
-func (c AzureKeysClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error) {
 	return c.client.RecoverDeletedKey(ctx, c.cfg.Endpoint, keyName)
 }
 
-func (c AzureKeysClient) Sign(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
+func (c *AKVClient) Sign(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
 	if alg == "" {
 		return "", errors.InvalidParameterError("key signature algorithm cannot be empty")
 	}
@@ -149,7 +128,7 @@ func (c AzureKeysClient) Sign(ctx context.Context, keyName string, version strin
 	return *res.Result, nil
 }
 
-func (c AzureKeysClient) Encrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error) {
+func (c *AKVClient) Encrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error) {
 	if alg == "" {
 		return "", errors.InvalidParameterError("key signature algorithm cannot be empty")
 	}
@@ -168,7 +147,7 @@ func (c AzureKeysClient) Encrypt(ctx context.Context, keyName string, version st
 	return *res.Result, nil
 }
 
-func (c AzureKeysClient) Decrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error) {
+func (c *AKVClient) Decrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error) {
 	if alg == "" {
 		return "", errors.InvalidParameterError("key signature algorithm cannot be empty")
 	}

@@ -23,7 +23,7 @@ type Specs struct {
 
 func NewSecretStore(spec *Specs) (*akv.SecretStore, error) {
 	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
-	cli, err := client.NewSecretClient(cfg)
+	cli, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}

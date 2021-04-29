@@ -20,7 +20,6 @@ type KeyStore struct {
 
 var _ keys.Store = KeyStore{}
 
-// New creates an HashiCorp key store
 func New(client akv.KeysClient) *KeyStore {
 	return &KeyStore{
 		client: client,

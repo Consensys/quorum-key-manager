@@ -1,4 +1,4 @@
-package integrationtests
+package utils
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
-const hashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
-const hashicorpPluginVersion = "v0.0.10-alpha.5"
+const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
+const HashicorpPluginVersion = "v0.0.10-alpha.5"
 
 func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 	logger := log.FromContext(ctx)
@@ -33,7 +33,7 @@ func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 		SetHost(hashicorpHost).
 		SetPluginSourceDirectory(pluginPath)
 
-	pluginPath, err = vaultContainer.DownloadPlugin(hashicorpPluginFilename, hashicorpPluginVersion)
+	pluginPath, err = vaultContainer.DownloadPlugin(HashicorpPluginFilename, HashicorpPluginVersion)
 	if err != nil {
 		logger.WithError(err).Error("cannot download hashicorp vault plugin")
 		return nil, err
