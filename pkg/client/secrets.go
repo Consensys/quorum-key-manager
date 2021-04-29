@@ -7,15 +7,12 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
 )
 
-const (
-	secretsPath          = "secrets"
-	secretStoreHeaderKey = "X-Secret-Store"
-)
+const secretsPath = "secrets"
 
 func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types.SetSecretRequest) (*types.SecretResponse, error) {
 	secret := &types.SecretResponse{}
 	reqURL := fmt.Sprintf("%s/%s", c.config.URL, secretsPath)
-	response, err := postRequest(withSecretStore(ctx, storeName), c.client, reqURL, req)
+	response, err := postRequest(withStore(ctx, storeName), c.client, reqURL, req)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +34,7 @@ func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version strin
 		reqURL = fmt.Sprintf("%s?version=%s", reqURL, version)
 	}
 
-	response, err := getRequest(withSecretStore(ctx, storeName), c.client, reqURL)
+	response, err := getRequest(withStore(ctx, storeName), c.client, reqURL)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +51,7 @@ func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version strin
 func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string) ([]string, error) {
 	var ids []string
 	reqURL := fmt.Sprintf("%s/%s", c.config.URL, secretsPath)
-	response, err := getRequest(withSecretStore(ctx, storeName), c.client, reqURL)
+	response, err := getRequest(withStore(ctx, storeName), c.client, reqURL)
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +63,4 @@ func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string) ([]strin
 	}
 
 	return ids, nil
-}
-
-func withSecretStore(ctx context.Context, storeName string) context.Context {
-	return context.WithValue(ctx, RequestHeaderKey, map[string]string{
-		secretStoreHeaderKey: storeName,
-	})
 }

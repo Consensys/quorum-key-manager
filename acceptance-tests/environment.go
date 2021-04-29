@@ -30,6 +30,7 @@ const (
 	networkName          = "key-manager"
 	localhostPath        = "http://localhost"
 	SecretStoreName      = "HashicorpSecrets"
+	KeyStoreName         = "HashicorpKeys"
 )
 
 type IntegrationEnvironment struct {
@@ -230,7 +231,7 @@ func newKeyManager(
 	hashicorpKeySpecsRaw, _ := json.Marshal(hashicorpKeyStoreSpecs)
 	hashicorpKeyManifest := &manifest.Manifest{
 		Kind:    types.HashicorpKeys,
-		Name:    "HashicorpKeys",
+		Name:    KeyStoreName,
 		Version: "0.0.0",
 		Specs:   hashicorpKeySpecsRaw,
 	}
