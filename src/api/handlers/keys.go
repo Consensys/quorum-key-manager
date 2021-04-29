@@ -26,9 +26,12 @@ func NewKeysHandler(backend core.Backend) *mux.Router {
 	router := mux.NewRouter()
 	router.Methods(http.MethodPost).Path("/").HandlerFunc(h.create)
 	router.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importKey)
+	router.Methods(http.MethodPost).Path("/{id}/sign").HandlerFunc(h.sign)
+
 	router.Methods(http.MethodGet).Path("/").HandlerFunc(h.list)
 	router.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
-	router.Methods(http.MethodGet).Path("/{id}/sign").HandlerFunc(h.sign)
+
+	router.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.destroy)
 
 	return router
 }
@@ -170,4 +173,25 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	_ = json.NewEncoder(rw).Encode(ids)
+}
+
+func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+
+	id := mux.Vars(request)["id"]
+	version := request.URL.Query().Get("version")
+
+	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	err = keyStore.Destroy(ctx, id, version)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	rw.WriteHeader(http.StatusNoContent)
 }
