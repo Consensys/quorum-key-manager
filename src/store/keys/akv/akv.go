@@ -48,11 +48,13 @@ func (k KeyStore) Import(ctx context.Context, id, privKey string, alg *entities.
 	for _, op := range convertToAKVOps(attr.Operations) {
 		kOps = append(kOps, string(op))
 	}
+	
+	//@TODO 
 	res, err := k.client.ImportKey(ctx, id, &keyvault.JSONWebKey{
 		Crv: convertToAKVCurve(alg),
 		Kty: convertToAKVKeyType(alg),
-		KeyOps: &kOps,
-		K: &privKey,
+		// KeyOps: &kOps,
+		D: &privKey,
 	}, attr.Tags)
 
 	if err != nil {
@@ -174,20 +176,9 @@ func (k KeyStore) Sign(ctx context.Context, id, data, version string) (string, e
 }
 
 func (k KeyStore) Encrypt(ctx context.Context, id, version, data string) (string, error) {
-	//@TODO Shouldn't we expect a encryption algo as argument?
-	signature, err := k.client.Encrypt(ctx, id, version, keyvault.RSA15, data)
-	if err != nil {
-		return "", akvclient.ParseErrorResponse(err)
-	}
-	return signature, nil
+	return "", errors.NotImplementedError
 }
 
 func (k KeyStore) Decrypt(ctx context.Context, id, version, data string) (string, error) {
-	//@TODO Shouldn't we expect a encryption algo as argument?
-	decryptedData, err := k.client.Decrypt(ctx, id, version, keyvault.RSA15, data)
-	if err != nil {
-		return "", akvclient.ParseErrorResponse(err)
-	}
-
-	return decryptedData, nil
+	return "", errors.NotImplementedError
 }

@@ -24,7 +24,7 @@ func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.
 		Kty:           kty,
 		Curve:         crv,
 		Tags:          common.Tomapstrptr(tags),
-		KeyOps:        &ops,
+		// KeyOps:        &ops,
 		KeyAttributes: attr,
 	})
 }

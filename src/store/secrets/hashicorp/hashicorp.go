@@ -7,6 +7,7 @@ import (
 	"time"
 
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
@@ -27,6 +28,8 @@ type SecretStore struct {
 	client     hashicorp.VaultClient
 	mountPoint string
 }
+
+var _ secrets.Store = &SecretStore{}
 
 // New creates an HashiCorp secret store
 func New(client hashicorp.VaultClient, mountPoint string) *SecretStore {
