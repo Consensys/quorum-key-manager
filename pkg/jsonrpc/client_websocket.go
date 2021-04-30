@@ -57,6 +57,8 @@ func (c *WebSocketClient) Start(context.Context) error {
 	return nil
 }
 
+// Stop the client from receiving new messages
+// It finishes to read all messages before quiting
 func (c *WebSocketClient) Stop(ctx context.Context) error {
 	// Close stop channel
 	close(c.stop)
@@ -151,17 +153,17 @@ func (c *WebSocketClient) manageOp() {
 			// Register op
 			c.addOp(op)
 
+			// Compute write deadline
 			ctx := op.msg.Context()
 			deadline, ok := ctx.Deadline()
 			if !ok {
 				deadline = time.Now().Add(c.writeTimeout)
 			}
-			_ = op.c.conn.SetWriteDeadline(deadline)
 
 			// Write Message
+			_ = op.c.conn.SetWriteDeadline(deadline)
 			err := op.c.conn.WriteJSON(op.msg)
 			op.sent <- err
-			close(op.sent)
 
 			if err != nil {
 				select {
