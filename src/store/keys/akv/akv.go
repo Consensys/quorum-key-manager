@@ -49,13 +49,7 @@ func (k KeyStore) Import(ctx context.Context, id, privKey string, alg *entities.
 		kOps = append(kOps, string(op))
 	}
 	
-	//@TODO 
-	res, err := k.client.ImportKey(ctx, id, &keyvault.JSONWebKey{
-		Crv: convertToAKVCurve(alg),
-		Kty: convertToAKVKeyType(alg),
-		// KeyOps: &kOps,
-		D: &privKey,
-	}, attr.Tags)
+	res, err := k.client.ImportKey(ctx, id, WebImportKey(privKey, alg), attr.Tags)
 
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
