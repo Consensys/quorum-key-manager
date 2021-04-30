@@ -28,44 +28,6 @@ func DefaultRWHandler(h Handler) Handler {
 	})
 }
 
-// // ToHTTPHandler wraps a jsonrpc.Handler into a http.Handler
-// func ToHTTPHandler(h Handler) http.Handler {
-// 	h = DefaultRWHandler(h)
-// 	return http.HandlerFunc(func(rw http.ResponseWriter, msg *http.Request) {
-// 		rpwRW := NewResponseWriter(rw)
-
-// 		// extract JSON-RPC msguest from context
-// 		rpcReq := RequestFromContext(msg.Context())
-// 		if rpcReq == nil {
-// 			// if no JSON-RPC msguest is found then creates one and attached to http.Request context
-// 			rpcReq = NewRequest(msg)
-// 			err := rpcReq.ReadBody()
-// 			if err != nil {
-// 				_ = WriteError(rpwRW, InvalidRequest(err))
-// 				return
-// 			}
-// 			rpcReq.msg = msg.WithContext(WithRequest(msg.Context(), rpcReq))
-// 		} else {
-// 			// if found update http.Request
-// 			rpcReq.msg = msg
-// 		}
-
-// 		// Serve
-// 		h.ServeRPC(rpwRW, rpcReq)
-// 	})
-// }
-
-// // FromHTTPHandler wraps a http.Handler into a jsonrpc.Handler
-// func FromHTTPHandler(h http.Handler) Handler {
-// 	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
-// 		// Write JSON-RPC msguest message into msguest body
-// 		_ = msg.WriteBody()
-
-// 		// Serve HTTP msguest
-// 		h.ServeHTTP(rw.(common.WriterWrapper).Writer().(http.ResponseWriter), msg.Request())
-// 	})
-// }
-
 func NotSupportedVersion(rw ResponseWriter, msg *RequestMsg) {
 	_ = WriteError(rw, NotSupporteVersionError(msg.Version))
 }
