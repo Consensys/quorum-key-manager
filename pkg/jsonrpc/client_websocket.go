@@ -33,6 +33,8 @@ type WebSocketClient struct {
 	close   chan struct{}
 
 	err error
+
+	errors chan error
 }
 
 // NewClient creates a new jsonrpc HTTPClient from an HTTP HTTPClient
@@ -48,6 +50,7 @@ func NewWebsocketClient(conn *websocket.Conn) *WebSocketClient {
 		closing:      make(chan struct{}),
 		close:        make(chan struct{}),
 		stop:         make(chan struct{}),
+		errors:       make(chan error, 1),
 	}
 }
 
@@ -73,6 +76,10 @@ func (c *WebSocketClient) Stop(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func (c *WebSocketClient) Errors() <-chan error {
+	return c.errors
 }
 
 // Do sends an jsonrpc request over the underlying HTTP client and returns a jsonrpc response
@@ -192,8 +199,10 @@ func (c *WebSocketClient) manageOp() {
 			close(c.failedOps)
 			if err != ErrClientStop {
 				c.err = err
+				c.errors <- err
 			}
 			close(c.close)
+			close(c.errors)
 
 			return
 		case op := <-c.failedOps:
