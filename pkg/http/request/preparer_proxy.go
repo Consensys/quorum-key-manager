@@ -4,8 +4,6 @@ import "net/url"
 
 // Proxy creates a preparer for proxying request
 func Proxy(cfg *ProxyConfig) (Preparer, error) {
-	cfg = cfg.Copy().SetDefault()
-
 	var preparers []Preparer
 	if cfg.Addr != "" {
 		u, err := url.Parse(cfg.Addr)
@@ -31,7 +29,6 @@ func Proxy(cfg *ProxyConfig) (Preparer, error) {
 		preparers,
 		BasicAuth(cfg.BasicAuth),
 		Body(),
-		WebSocketHeaders(),
 	)
 
 	return CombinePreparer(preparers...), nil
