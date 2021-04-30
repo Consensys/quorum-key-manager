@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,6 +84,7 @@ func (h bckndHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func createProxyServer(uri string) *httptest.Server {
 	prep, _ := request.Proxy(&request.ProxyConfig{Addr: uri})
+	modif := response.Proxy(&response.ProxyConfig{})
 	prx := &Proxy{
 		Upgrader:               upgrader,
 		Dialer:                 dialer,
@@ -90,10 +92,11 @@ func createProxyServer(uri string) *httptest.Server {
 		PingPongTimeout:        time.Second,
 		WriteControlMsgTimeout: time.Second,
 		ReqPreparer:            prep,
+		RespModifier:           modif,
 	}
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		prx.ServeHTTP(w, req, nil)
+		prx.ServeHTTP(w, req)
 	}))
 }
 
@@ -116,7 +119,6 @@ func TestProxy(t *testing.T) {
 
 	pongs := make(chan string, 1)
 	clientConn.SetPongHandler(func(data string) error {
-		fmt.Printf("Client handle pong %v\n", data)
 		pongs <- data
 		return nil
 	})
@@ -228,7 +230,7 @@ func TestProxyCloseServer(t *testing.T) {
 	}()
 
 	// Waits for server to close
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	var s string
 	err = clientConn.ReadJSON(&s)

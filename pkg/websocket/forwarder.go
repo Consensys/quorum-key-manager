@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var goingAway = websocket.FormatCloseMessage(websocket.CloseGoingAway, "")
+var GoingAway = websocket.FormatCloseMessage(websocket.CloseGoingAway, "")
 
 func Forward(req *http.Request, clientConn, serverConn *websocket.Conn) {
 	logger := log.FromContext(req.Context())
@@ -19,7 +19,7 @@ func Forward(req *http.Request, clientConn, serverConn *websocket.Conn) {
 			if err != nil {
 				logger.WithError(err).Debugf("error reading message on client connection")
 
-				err = serverConn.WriteControl(websocket.CloseMessage, goingAway, time.Now().Add(time.Second))
+				err = serverConn.WriteControl(websocket.CloseMessage, GoingAway, time.Now().Add(time.Second))
 				if err != nil {
 					logger.WithError(err).Debugf("error writing Close control message on server connection")
 				}
@@ -41,7 +41,7 @@ func Forward(req *http.Request, clientConn, serverConn *websocket.Conn) {
 			if err != nil {
 				logger.WithError(err).Debugf("error reading message on server connection")
 
-				err = clientConn.WriteControl(websocket.CloseMessage, goingAway, time.Now().Add(time.Second))
+				err = clientConn.WriteControl(websocket.CloseMessage, GoingAway, time.Now().Add(time.Second))
 				if err != nil {
 					logger.WithError(err).Debugf("error writing Close control message on client connection")
 				}

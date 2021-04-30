@@ -2,15 +2,46 @@ package websocket
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/gorilla/websocket"
 )
+
+type ProxyConfig struct {
+	Upgrader *UpgraderConfig `json:"upgrader,omitempty"`
+	Dialer   *DialerConfig   `json:"dialer,omitempty"`
+
+	PingPongTimeout        *json.Duration `json:"pingPongTimeout,omitempty"`
+	WriteControlMsgTimeout *json.Duration `json:"writeControlMsgTimeout,omitempty"`
+}
+
+func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
+	if cfg.Upgrader == nil {
+		cfg.Upgrader = new(UpgraderConfig)
+	}
+	cfg.Upgrader.SetDefault()
+
+	if cfg.Dialer == nil {
+		cfg.Dialer = new(DialerConfig)
+	}
+	cfg.Dialer.SetDefault()
+
+	if cfg.PingPongTimeout == nil {
+		cfg.PingPongTimeout = &json.Duration{Duration: 60 * time.Second}
+	}
+
+	if cfg.WriteControlMsgTimeout == nil {
+		cfg.WriteControlMsgTimeout = &json.Duration{Duration: time.Second}
+	}
+
+	return cfg
+}
 
 type Proxy struct {
 	Upgrader *websocket.Upgrader
@@ -18,12 +49,22 @@ type Proxy struct {
 
 	Interceptor func(req *http.Request, clientConn, serverConn *websocket.Conn)
 
-	ReqPreparer request.Preparer
+	ReqPreparer  request.Preparer
+	RespModifier response.Modifier
 
 	ErrorHandler proxy.HandleRoundTripErrorFunc
 
 	PingPongTimeout        time.Duration
 	WriteControlMsgTimeout time.Duration
+}
+
+func NewProxy(cfg *ProxyConfig) *Proxy {
+	return &Proxy{
+		Upgrader:               NewUpgrader(cfg.Upgrader),
+		Dialer:                 NewDialer(cfg.Dialer),
+		PingPongTimeout:        cfg.PingPongTimeout.Duration,
+		WriteControlMsgTimeout: cfg.WriteControlMsgTimeout.Duration,
+	}
 }
 
 func (prx *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -79,9 +120,11 @@ func (prx *Proxy) handleUpgrade(rw http.ResponseWriter, req *http.Request) (clie
 		}
 	}
 
+	// Prepare headers for proxying
 	outReq, _ = request.RemoveConnectionHeaders().Prepare(outReq)
 	outReq, _ = request.RemoveHopByHopHeaders().Prepare(outReq)
 	outReq, _ = request.ForwardedFor().Prepare(outReq)
+	outReq, _ = request.WebSocketHeaders().Prepare(outReq)
 
 	// delete headers that will be re-populated on Dial
 	deleteStandardWebSocketHeader(outReq.Header)
@@ -94,6 +137,14 @@ func (prx *Proxy) handleUpgrade(rw http.ResponseWriter, req *http.Request) (clie
 	if err != nil {
 		prx.errorHandler()(rw, outReq, err)
 		return
+	}
+
+	if prx.RespModifier != nil {
+		err = prx.RespModifier.Modify(resp)
+		if err != nil {
+			prx.errorHandler()(rw, outReq, err)
+			return
+		}
 	}
 
 	// delete headers that will be re-populated on Upgrade
@@ -177,7 +228,6 @@ func (prx *Proxy) pipeControlMessages(ctx context.Context, clientConn, serverCon
 	clientConn.SetCloseHandler(func(code int, text string) error {
 		logger.WithField("text", text).WithField("code", code).Trace("received client Close")
 
-		fmt.Printf("Handle client close cose=%v text=%v\n", code, text)
 		message := websocket.FormatCloseMessage(code, text)
 		// We are polite we answer Close back to client
 		err := clientConn.WriteControl(websocket.CloseMessage, message, time.Now().Add(prx.WriteControlMsgTimeout))
