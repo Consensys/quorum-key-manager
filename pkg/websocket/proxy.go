@@ -26,13 +26,8 @@ type Proxy struct {
 	WriteControlMsgTimeout time.Duration
 }
 
-func (prx *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request, next http.Handler) {
-	if websocket.IsWebSocketUpgrade(req) {
-		// If websocket we serve websocket
-		prx.serveWS(rw, req)
-	} else {
-		next.ServeHTTP(rw, req)
-	}
+func (prx *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	prx.serveWS(rw, req)
 }
 
 func (prx *Proxy) serveWS(rw http.ResponseWriter, req *http.Request) {
