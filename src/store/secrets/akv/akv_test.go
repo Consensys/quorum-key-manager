@@ -23,7 +23,7 @@ type akvSecretStoreTestSuite struct {
 	suite.Suite
 	mockVault   *mocks.MockClient
 	mountPoint  string
-	secretStore secrets.Store
+	secretStore secrets.SecretStore
 }
 
 func TestAkvSecretStore(t *testing.T) {

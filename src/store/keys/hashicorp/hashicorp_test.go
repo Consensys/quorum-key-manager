@@ -27,7 +27,7 @@ type hashicorpKeyStoreTestSuite struct {
 	suite.Suite
 	mockVault  *mocks.MockVaultClient
 	mountPoint string
-	keyStore   keys.Store
+	keyStore   keys.KeyStore
 }
 
 func TestHashicorpKeyStore(t *testing.T) {

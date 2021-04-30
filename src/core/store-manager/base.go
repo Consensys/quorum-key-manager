@@ -28,7 +28,7 @@ type storeBundle struct {
 	store    interface{}
 }
 
-func New() Manager {
+func New() StoreManager {
 	return &manager{
 		mux:     sync.RWMutex{},
 		secrets: make(map[string]*storeBundle),
@@ -49,12 +49,12 @@ func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error 
 	return nil
 }
 
-func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store, error) {
+func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.SecretStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
 	if storeBundle, ok := m.secrets[name]; ok {
-		if store, ok := storeBundle.store.(secrets.Store); ok {
+		if store, ok := storeBundle.store.(secrets.SecretStore); ok {
 			return store, nil
 		}
 	}
@@ -62,11 +62,11 @@ func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store,
 	return nil, errors.NotFoundError("secret store %s was not found", name)
 }
 
-func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
+func (m *manager) GetKeyStore(_ context.Context, name string) (keys.KeyStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[name]; ok {
-		if store, ok := storeBundle.store.(keys.Store); ok {
+		if store, ok := storeBundle.store.(keys.KeyStore); ok {
 			return store, nil
 		}
 	}

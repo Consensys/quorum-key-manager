@@ -23,7 +23,7 @@ type hashicorpSecretStoreTestSuite struct {
 	suite.Suite
 	mockVault   *mocks.MockVaultClient
 	mountPoint  string
-	secretStore secrets.Store
+	secretStore secrets.SecretStore
 }
 
 func TestHashicorpSecretStore(t *testing.T) {

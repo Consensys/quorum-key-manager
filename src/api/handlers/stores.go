@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const StoreIDHeader = "X-Store-Id"
+
 type StoresHandler struct {
 	backend core.Backend
 }
@@ -28,5 +30,5 @@ func (c *StoresHandler) testRoute(rw http.ResponseWriter, _ *http.Request) {
 }
 
 func getStoreName(request *http.Request) string {
-	return request.Header.Get("X-Store-Id")
+	return request.Header.Get(StoreIDHeader)
 }

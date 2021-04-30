@@ -3,6 +3,7 @@ package flags
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"

@@ -9,7 +9,7 @@ import (
 
 //go:generate mockgen -source=keys.go -destination=mocks/keys.go -package=mocks
 
-type Store interface {
+type KeyStore interface {
 	// Info returns store information
 	Info(context.Context) (*entities.StoreInfo, error)
 
