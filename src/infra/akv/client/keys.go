@@ -7,18 +7,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 )
 
 func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType,
 	crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation,
 	tags map[string]string) (keyvault.KeyBundle, error) {
-	if crv == "" {
-		return keyvault.KeyBundle{}, errors.InvalidParameterError("key curve name cannot be empty")
-	}
-	if kty == "" {
-		return keyvault.KeyBundle{}, errors.InvalidParameterError("key type cannot be empty")
-	}
 
 	return c.client.CreateKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyCreateParameters{
 		Kty:           kty,
@@ -30,13 +23,6 @@ func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.
 }
 
 func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error) {
-	if k.Crv == "" {
-		return keyvault.KeyBundle{}, errors.InvalidParameterError("key curve name cannot be empty")
-	}
-	if k.Kty == "" {
-		return keyvault.KeyBundle{}, errors.InvalidParameterError("key type cannot be empty")
-	}
-
 	return c.client.ImportKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyImportParameters{
 		Key:  k,
 		Tags: common.Tomapstrptr(tags),
@@ -110,10 +96,6 @@ func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyv
 }
 
 func (c *AKVClient) Sign(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
-	if alg == "" {
-		return "", errors.InvalidParameterError("key signature algorithm cannot be empty")
-	}
-
 	res, err := c.client.Sign(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeySignParameters{
 		Value: &payload,
 		Algorithm: alg,
@@ -129,10 +111,6 @@ func (c *AKVClient) Sign(ctx context.Context, keyName string, version string, al
 }
 
 func (c *AKVClient) Encrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error) {
-	if alg == "" {
-		return "", errors.InvalidParameterError("key signature algorithm cannot be empty")
-	}
-
 	res, err := c.client.Encrypt(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyOperationsParameters{
 		Value: &payload,
 		Algorithm: alg,
@@ -148,10 +126,6 @@ func (c *AKVClient) Encrypt(ctx context.Context, keyName string, version string,
 }
 
 func (c *AKVClient) Decrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error) {
-	if alg == "" {
-		return "", errors.InvalidParameterError("key signature algorithm cannot be empty")
-	}
-
 	res, err := c.client.Decrypt(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyOperationsParameters{
 		Value: &value,
 		Algorithm: alg,

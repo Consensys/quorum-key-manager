@@ -9,15 +9,16 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+// TODO Verify list of KM operation and their corresponding into AKV
 func convertToAKVOps(ops []entities.CryptoOperation) []keyvault.JSONWebKeyOperation {
 	akvOps := []keyvault.JSONWebKeyOperation{}
 
-	// TODO Verify list of KM operation and their corresponding into AKV
 	for _, op := range ops {
 		switch op {
 		case entities.Encryption:
@@ -30,41 +31,57 @@ func convertToAKVOps(ops []entities.CryptoOperation) []keyvault.JSONWebKeyOperat
 	return akvOps
 }
 
-func convertToAKVCurve(alg *entities.Algorithm) keyvault.JSONWebKeyCurveName {
+func convertToAKVCurve(alg *entities.Algorithm) (keyvault.JSONWebKeyCurveName, error) {
 	switch alg.EllipticCurve {
 	case entities.Secp256k1:
-		return keyvault.P256K
+		return keyvault.P256K, nil
 	default:
-		return ""
+		return "", errors.NotImplementedError
 	}
 }
 
-func convertToAKVKeyType(alg *entities.Algorithm) keyvault.JSONWebKeyType {
+func convertToAKVKeyType(alg *entities.Algorithm) (keyvault.JSONWebKeyType, error) {
 	switch alg.Type {
 	case entities.Ecdsa:
-		return keyvault.EC
+		return keyvault.EC, nil
 	default:
-		return ""
+		return "", errors.NotImplementedError
 	}
 }
 
-func WebImportKey(privKey string, alg *entities.Algorithm) *keyvault.JSONWebKey {
+func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
 	var pKeyD, pKeyX, pKeyY string
 	switch alg.Type {
 	case entities.Ecdsa:
-		pKey, _ := crypto.HexToECDSA(privKey)
+		pKey, err := crypto.HexToECDSA(privKey)
+		if err != nil {
+			return nil, errors.InvalidFormatError("invalid private key format. %s", err.Error())
+		}
+
 		pKeyD = base64.URLEncoding.EncodeToString(pKey.D.Bytes())
 		pKeyX = base64.URLEncoding.EncodeToString(pKey.X.Bytes())
 		pKeyY = base64.URLEncoding.EncodeToString(pKey.Y.Bytes())
+	default:
+		return nil, errors.NotImplementedError
+	}
+
+	var err error
+	var crv keyvault.JSONWebKeyCurveName
+	var kty keyvault.JSONWebKeyType
+	if crv, err = convertToAKVCurve(alg); err != nil {
+		return nil, err
+	}
+	if kty, err = convertToAKVKeyType(alg); err != nil {
+		return nil, err
 	}
 
 	return &keyvault.JSONWebKey{
-		Crv: convertToAKVCurve(alg),
-		Kty: convertToAKVKeyType(alg),
+		Crv: crv,
+		Kty: kty,
 		D:   &pKeyD,
 		X:   &pKeyX,
 		Y:   &pKeyY,
-	}
+	}, nil
 }
 
 func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities.Algorithm {
@@ -85,8 +102,8 @@ func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyC
 func pubKeyString(key *keyvault.JSONWebKey) string {
 	switch {
 	case key.Kty == keyvault.EC && key.Crv == keyvault.P256K:
-		xBytes := encodeBase64(*key.X, 32)
-		yBytes := encodeBase64(*key.Y, 32)
+		xBytes := decodeBase64(*key.X, 32)
+		yBytes := decodeBase64(*key.Y, 32)
 		pKey := ecdsa.PublicKey{X: new(big.Int).SetBytes(xBytes), Y: new(big.Int).SetBytes(yBytes)}
 		return hexutil.Encode(crypto.FromECDSAPub(&pKey))
 	default:
@@ -95,26 +112,17 @@ func pubKeyString(key *keyvault.JSONWebKey) string {
 
 }
 
-func encodeBase64(src string, n int) []byte {
-	b := make([]byte, n)
-	for (base64.StdEncoding.DecodedLen(len(src)) < n){
-		src =  src + string(base64.StdPadding)
-	}
-	base64.URLEncoding.Decode(b, []byte(src))
-	return b
-}
-
-func convertToSignatureAlgo(alg *entities.Algorithm) keyvault.JSONWebKeySignatureAlgorithm {
+func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatureAlgorithm, error) {
 	switch alg.Type {
 	case entities.Ecdsa:
 		switch alg.EllipticCurve {
 		case entities.Secp256k1:
-			return keyvault.ES256
+			return keyvault.ES256K, nil
 		default:
-			return ""
+			return "", errors.NotImplementedError
 		}
 	default:
-		return ""
+		return "", errors.NotImplementedError
 	}
 }
 
@@ -130,14 +138,30 @@ func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 		Tags: common.Tomapstr(res.Tags),
 	}
 
-	if res.Key.Kid != nil {
-		// path.Base to only retrieve the secretVersion instead of https://<vaultName>.vault.azure.net/keys/<keyName>/<secretVersion>
-		chunks := strings.Split(*res.Key.Kid, "/")
-		key.Metadata.Version = chunks[len(chunks)-1]
-		key.ID = chunks[len(chunks)-2]
+	key.ID, key.Metadata.Version = parseKeyID(res.Key.Kid)
+	return key
+}
+
+func parseKeyID(kid *string) (id, version string) {
+	if kid == nil {
+		return "", ""
+	}
+	// path.Base to only retrieve the secretVersion instead of https://<vaultName>.vault.azure.net/keys/<keyName>/<secretVersion>
+	chunks := strings.Split(*kid, "/")
+	var idx int
+	for idx = range chunks {
+		if chunks[idx] == "keys" {
+			break
+		}
 	}
 
-	return key
+	if len(chunks) > idx+1 {
+		id = chunks[idx+1]
+	}
+	if len(chunks) > idx+2 {
+		version = chunks[idx+2]
+	}
+	return id, version
 }
 
 func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
@@ -146,4 +170,13 @@ func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
 		Key:        res.Key,
 		Tags:       res.Tags,
 	})
+}
+
+func decodeBase64(src string, n int) []byte {
+	b := make([]byte, n)
+	for base64.StdEncoding.DecodedLen(len(src)) < n {
+		src = src + string(base64.StdPadding)
+	}
+	base64.URLEncoding.Decode(b, []byte(src))
+	return b
 }
