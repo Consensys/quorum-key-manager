@@ -2,7 +2,9 @@ package akv
 
 import (
 	"crypto/ecdsa"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"math/big"
 	"strings"
 	"time"
@@ -102,8 +104,8 @@ func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyC
 func pubKeyString(key *keyvault.JSONWebKey) string {
 	switch {
 	case key.Kty == keyvault.EC && key.Crv == keyvault.P256K:
-		xBytes := decodeBase64(*key.X, 32)
-		yBytes := decodeBase64(*key.Y, 32)
+		xBytes, _ := decodeBase64(*key.X, 32)
+		yBytes, _ := decodeBase64(*key.Y, 32)
 		pKey := ecdsa.PublicKey{X: new(big.Int).SetBytes(xBytes), Y: new(big.Int).SetBytes(yBytes)}
 		return hexutil.Encode(crypto.FromECDSAPub(&pKey))
 	default:
@@ -172,11 +174,44 @@ func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
 	})
 }
 
-func decodeBase64(src string, n int) []byte {
+func decodeBase64(src string, n int) ([]byte, error) {
+	if n == 0 {
+		return base64.URLEncoding.DecodeString(src)
+	}
 	b := make([]byte, n)
 	for base64.StdEncoding.DecodedLen(len(src)) < n {
 		src = src + string(base64.StdPadding)
 	}
-	base64.URLEncoding.Decode(b, []byte(src))
-	return b
+	
+	_, err := base64.URLEncoding.Decode(b, []byte(src))
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func hexToSha256Base64(value string) (string, error) {
+	// Expected data to be Hex
+	if strings.Contains(value, "0x") {
+		value = value[2:]
+	}
+	
+	bData, err := hex.DecodeString(value)
+	if err != nil {
+		return "", err
+	}
+	
+	hash := sha256.Sum256(bData)
+	b64Data := base64.URLEncoding.EncodeToString(hash[:])
+	return b64Data, nil
+}
+
+func base64ToHex(value string) (string, error) {
+	bData, err := base64.URLEncoding.DecodeString(value)
+	if err != nil {
+		return "", err
+	}
+	
+	hexData := hex.EncodeToString(bData)
+	return "0x" + hexData, nil
 }

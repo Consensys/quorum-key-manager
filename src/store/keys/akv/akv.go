@@ -2,8 +2,6 @@ package akv
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/hex"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -187,14 +185,19 @@ func (k KeyStore) Sign(ctx context.Context, id, data, version string) (string, e
 		return "", err
 	}
 
-	b64Data := base64.URLEncoding.EncodeToString([]byte(data))
+	b64Data, err := hexToSha256Base64(data)
+	if err != nil {
+		return "", err
+	}
 	b64Signature, err := k.client.Sign(ctx, id, version, algo, b64Data)
 	if err != nil {
 		return "", akvclient.ParseErrorResponse(err)
 	}
 	
-	bSignature, _ := base64.URLEncoding.DecodeString(b64Signature)
-	signature := "0x" + hex.EncodeToString(bSignature)
+	signature, err := base64ToHex(b64Signature)
+	if err != nil {
+		return "", errors.InvalidFormatError("expected base64 value. %s", err)
+	}
 	return signature, nil
 }
 
