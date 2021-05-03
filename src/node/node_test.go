@@ -43,14 +43,14 @@ func TestNodeRPC(t *testing.T) {
 	)
 	defer privTxMngrServer.Close()
 
-	cfg := &Config{
+	cfg := (&Config{
 		RPC: &DownstreamConfig{
 			Addr: rpcServer.URL,
 		},
 		PrivTxManager: &DownstreamConfig{
 			Addr: privTxMngrServer.URL,
 		},
-	}
+	}).SetDefault()
 
 	n, err := New(cfg)
 	require.NoError(t, err, "New must not error")

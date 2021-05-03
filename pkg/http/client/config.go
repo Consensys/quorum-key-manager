@@ -15,28 +15,10 @@ type Config struct {
 	Response  *response.ProxyConfig `json:"response,omitempty"`
 }
 
-func (cfg *Config) Copy() *Config {
-	if cfg == nil {
-		return nil
-	}
-
-	return &Config{
-		Transport: cfg.Transport.Copy(),
-		Timeout:   cfg.Timeout.Copy(),
-		Request:   cfg.Request.Copy(),
-		Response:  cfg.Response.Copy(),
-	}
-}
-
 func (cfg *Config) SetDefault() *Config {
-	if cfg == nil {
-		cfg = new(Config)
-	}
-
 	if cfg.Transport == nil {
 		cfg.Transport = new(transport.Config)
 	}
-
 	cfg.Transport.SetDefault()
 
 	if cfg.Timeout == nil {
@@ -46,7 +28,6 @@ func (cfg *Config) SetDefault() *Config {
 	if cfg.Request == nil {
 		cfg.Request = new(request.ProxyConfig)
 	}
-
 	cfg.Request.SetDefault()
 
 	if cfg.Response == nil {

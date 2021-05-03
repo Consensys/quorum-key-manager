@@ -26,7 +26,7 @@ func Bool(v bool) *bool { return &v }
 
 func TestWebSocketTCPClose(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -73,7 +73,7 @@ func TestWebSocketTCPClose(t *testing.T) {
 
 func TestWebSocketPingPong(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -145,7 +145,7 @@ func TestWebSocketPingPong(t *testing.T) {
 
 func TestWebSocketEcho(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -217,7 +217,7 @@ func TestWebSocketPassHost(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.desc, func(t *testing.T) {
 			f, e := New(
-				&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(test.passHost)}},
+				(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(test.passHost)}}).SetDefault(),
 				http.DefaultTransport,
 				nil,
 				nil,
@@ -282,7 +282,7 @@ func TestWebSocketPassHost(t *testing.T) {
 
 func TestWebSocketServerWithoutCheckOrigin(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -330,7 +330,7 @@ func TestWebSocketServerWithoutCheckOrigin(t *testing.T) {
 
 func TestWebSocketRequestWithOrigin(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -383,7 +383,7 @@ func TestWebSocketRequestWithOrigin(t *testing.T) {
 
 func TestWebSocketRequestWithQueryParams(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -430,7 +430,7 @@ func TestWebSocketRequestWithQueryParams(t *testing.T) {
 
 func TestWebSocketRequestWithHeadersInResponseWriter(t *testing.T) {
 	f, err := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -469,7 +469,7 @@ func TestWebSocketRequestWithHeadersInResponseWriter(t *testing.T) {
 
 func TestWebSocketRequestWithEncodedChar(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -516,7 +516,7 @@ func TestWebSocketRequestWithEncodedChar(t *testing.T) {
 
 func TestWebSocketUpgradeFailed(t *testing.T) {
 	f, err := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -573,7 +573,7 @@ func TestWebSocketUpgradeFailed(t *testing.T) {
 
 func TestForwardsWebsocketTraffic(t *testing.T) {
 	f, e := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -636,7 +636,7 @@ func TestWebSocketTransferTLSConfig(t *testing.T) {
 	defer srv.Close()
 
 	forwarderWithoutTLSConfig, err := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,
@@ -659,7 +659,7 @@ func TestWebSocketTransferTLSConfig(t *testing.T) {
 	require.EqualError(t, err, "bad status")
 
 	forwarderWithTLSConfig, err := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		&http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
@@ -687,7 +687,7 @@ func TestWebSocketTransferTLSConfig(t *testing.T) {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	forwarderWithTLSConfigFromDefaultTransport, err := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(true)}}).SetDefault(),
 		http.DefaultTransport,
 		nil,
 		nil,

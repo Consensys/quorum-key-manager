@@ -14,20 +14,11 @@ type ProxyConfig struct {
 	Response *response.ProxyConfig `json:"response,omitempty"`
 }
 
-func (cfg *ProxyConfig) Copy() *ProxyConfig {
-	if cfg == nil {
-		return nil
-	}
-	return &ProxyConfig{
-		Request:  cfg.Request.Copy(),
-		Response: cfg.Response.Copy(),
-	}
-}
-
 func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
 	if cfg.Request == nil {
 		cfg.Request = new(request.ProxyConfig)
 	}
+	cfg.Request.SetDefault()
 
 	if cfg.Response == nil {
 		cfg.Response = new(response.ProxyConfig)
@@ -44,33 +35,24 @@ type DownstreamConfig struct {
 	ClientTimeout *json.Duration    `json:"clientTimeout,omitempty"`
 }
 
-func (cfg *DownstreamConfig) Copy() *DownstreamConfig {
-	if cfg == nil {
-		return nil
-	}
-
-	return &DownstreamConfig{
-		Addr:          cfg.Addr,
-		Transport:     cfg.Transport.Copy(),
-		Proxy:         cfg.Proxy.Copy(),
-		ClientTimeout: cfg.ClientTimeout.Copy(),
-	}
-}
-
 func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
-	defaultCfg := new(httpclient.Config).SetDefault()
+	defaultCfg := new(httpclient.Config)
+	defaultCfg.SetDefault()
 
 	if cfg.Transport == nil {
 		cfg.Transport = defaultCfg.Transport
 	}
+	cfg.Transport.SetDefault()
 
 	if cfg.Proxy == nil {
 		cfg.Proxy = new(ProxyConfig)
 	}
+	cfg.Proxy.SetDefault()
 
 	if cfg.Proxy.Request == nil {
 		cfg.Proxy.Request = defaultCfg.Request
 	}
+	cfg.Proxy.Request.SetDefault()
 
 	if cfg.Proxy.Request.Addr == "" {
 		cfg.Proxy.Request.Addr = cfg.Addr
@@ -89,27 +71,19 @@ func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
 
 // Config is the cfg format for an Hashicorp Vault secret store
 type Config struct {
-	RPC           *DownstreamConfig `json:"json-rpc,omitempty"`
+	RPC           *DownstreamConfig `json:"rpc,omitempty"`
 	PrivTxManager *DownstreamConfig `json:"tessera,omitempty"`
 }
 
-func (cfg *Config) Copy() *Config {
-	return &Config{
-		RPC:           cfg.RPC.Copy(),
-		PrivTxManager: cfg.PrivTxManager.Copy(),
-	}
-}
-
 func (cfg *Config) SetDefault() *Config {
-	if cfg == nil {
-		return nil
-	}
-
 	if cfg.RPC == nil {
 		cfg.RPC = new(DownstreamConfig)
 	}
-
 	cfg.RPC.SetDefault()
+
+	if cfg.RPC.Addr == "" {
+		cfg.RPC.Addr = "localhost:8545"
+	}
 
 	if cfg.PrivTxManager != nil {
 		cfg.PrivTxManager.SetDefault()

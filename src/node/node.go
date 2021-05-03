@@ -47,8 +47,6 @@ type Session interface {
 
 // New creates a Node
 func New(cfg *Config) (Node, error) {
-	cfg = cfg.Copy().SetDefault()
-
 	n := new(node)
 	var err error
 	n.rpc, err = newRPCDownstream(cfg.RPC)
@@ -139,7 +137,8 @@ func newhttpDownstream(cfg *DownstreamConfig) (*httpDownstream, error) {
 		return nil, err
 	}
 
-	n.proxy, err = proxy.New(nil, n.transport, n.reqPreparer, n.respModifier, nil, nil)
+	proxyCfg := (&proxy.Config{}).SetDefault()
+	n.proxy, err = proxy.New(proxyCfg, n.transport, n.reqPreparer, n.respModifier, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +163,8 @@ func newRPCDownstream(cfg *DownstreamConfig) (*rpcDownstream, error) {
 	n.client = jsonrpc.NewClient(n.http.client)
 
 	// Overide HTTP Proy
-	n.http.proxy, err = proxy.New(nil, n.http.transport, n.http.reqPreparer, n.http.respModifier, jsonrpc.HandleProxyRoundTripError, nil)
+	proxyCfg := (&proxy.Config{}).SetDefault()
+	n.http.proxy, err = proxy.New(proxyCfg, n.http.transport, n.http.reqPreparer, n.http.respModifier, jsonrpc.HandleProxyRoundTripError, nil)
 	if err != nil {
 		return nil, err
 	}
