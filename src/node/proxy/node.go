@@ -163,10 +163,6 @@ func (n *Node) newSession(jsonrpcClient jsonrpc.Client, msg *jsonrpc.RequestMsg)
 	}
 }
 
-func (n *Node) newWebSocketJSONRPCClient(conn *gorillawebsocket.Conn) jsonrpc.Client {
-	return jsonrpc.NewWebsocketClient(conn)
-}
-
 func (n *Node) newHTTPJSONRPCClient(req *http.Request) jsonrpc.Client {
 	httpClient := httpclient.WithRequest(req)(n.rpc.client)
 	return jsonrpc.NewHTTPClient(httpClient)
