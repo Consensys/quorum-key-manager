@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -35,8 +35,8 @@ func NodeFlags(f *pflag.FlagSet) {
 }
 
 func newNodeManifest(vipr *viper.Viper) *manifest.Manifest {
-	specs := &node.Config{
-		RPC: &node.DownstreamConfig{
+	specs := &proxynode.Config{
+		RPC: &proxynode.DownstreamConfig{
 			Addr: vipr.GetString(nodeAddrViperKey),
 		},
 	}

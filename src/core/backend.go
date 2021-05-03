@@ -30,3 +30,11 @@ func New() *BaseBackend {
 		nodeMngr:  nodes,
 	}
 }
+
+func (bckend *BaseBackend) StoreManager() storemanager.Manager {
+	return bckend.storeMngr
+}
+
+func (bckend *BaseBackend) NodeManager() nodemanager.Manager {
+	return bckend.nodeMngr
+}
