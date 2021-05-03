@@ -109,7 +109,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			n.err = err
 			return err
 		}
-
+		cfg.SetDefault()
 		n.node, n.err = node.New(cfg)
 	default:
 		return fmt.Errorf("invalid manifest kind %s", mnf.Kind)

@@ -16,19 +16,6 @@ type Config struct {
 	Response      *response.ProxyConfig `json:"response,omitempty"`
 }
 
-func (cfg *Config) Copy() *Config {
-	if cfg == nil {
-		return nil
-	}
-
-	return &Config{
-		Transport:     cfg.Transport.Copy(),
-		FlushInterval: cfg.FlushInterval.Copy(),
-		Request:       cfg.Request.Copy(),
-		Response:      cfg.Response.Copy(),
-	}
-}
-
 func (cfg *Config) SetDefault() *Config {
 	if cfg == nil {
 		cfg = new(Config)

@@ -31,7 +31,7 @@ func BenchmarkProxy(b *testing.B) {
 	req, _ := http.NewRequest(http.MethodGet, "http://foo.bar/", nil)
 
 	proxy, err := New(
-		&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(false)}},
+		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(false)}}).SetDefault(),
 		&staticTransport{res},
 		nil,
 		nil,

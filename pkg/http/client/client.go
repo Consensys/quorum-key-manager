@@ -28,8 +28,6 @@ func New(
 	preparer request.Preparer,
 	modifier response.Modifier,
 ) (Client, error) {
-	cfg = cfg.Copy().SetDefault()
-
 	var err error
 	if trnsprt == nil {
 		trnsprt, err = transport.New(cfg.Transport)
