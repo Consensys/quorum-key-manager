@@ -155,15 +155,12 @@ func TestNodeWebSocket(t *testing.T) {
 	defer clientConn.Close()
 
 	reqMsg := new(jsonrpc.RequestMsg).WithVersion("2.0").WithMethod("testMethod").WithID("test-id").WithParams("test-message")
-	fmt.Printf("Piou test WriteJSON\n")
 	err = clientConn.WriteJSON(reqMsg)
 	require.NoError(t, err, "WriteJSON must not error")
 
 	respMsg := new(jsonrpc.ResponseMsg)
 	err = clientConn.ReadJSON(respMsg)
 	require.NoError(t, err, "ReadJSON must not error")
-	b, _ := json.Marshal(respMsg)
-	fmt.Printf("Piou test WriteJSON %v\n", string(b))
 	assertResponse(t, respMsg, "2.0", "test-id", "test-message")
 
 	done := make(chan struct{})

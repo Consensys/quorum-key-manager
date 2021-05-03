@@ -6,7 +6,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera"
 )
 
-//go:generate mockgen -source=session.go -destination=mock/session.go -package=mock
+//go:generate mockgen -source=session.go -destination=session_mock.go -package=proxynode
 
 // Session holds client interface to a downstream node
 type Session interface {

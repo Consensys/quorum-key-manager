@@ -152,7 +152,7 @@ func (n *Node) handler() jsonrpc.Handler {
 	if n.Handler != nil {
 		return n.Handler
 	}
-	return defaultHandler
+	return ProxyHandler
 }
 
 func (n *Node) newSession(jsonrpcClient jsonrpc.Client, msg *jsonrpc.RequestMsg) *session {
@@ -220,7 +220,7 @@ func newhttpDownstream(cfg *DownstreamConfig) (*httpDownstream, error) {
 	return n, nil
 }
 
-var defaultHandler = jsonrpc.DefaultRWHandler(
+var ProxyHandler = jsonrpc.DefaultRWHandler(
 	jsonrpc.HandlerFunc(func(rw jsonrpc.ResponseWriter, msg *jsonrpc.RequestMsg) {
 		// Sen RPC request
 		resp, err := SessionFromContext(msg.Context()).ClientRPC().Do(msg)

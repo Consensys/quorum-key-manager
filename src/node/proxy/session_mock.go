@@ -2,7 +2,7 @@
 // Source: session.go
 
 // Package mock is a generated GoMock package.
-package mock
+package proxynode
 
 import (
 	reflect "reflect"
