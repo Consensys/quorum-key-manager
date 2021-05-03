@@ -3,7 +3,6 @@ package flags
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
@@ -13,84 +12,40 @@ import (
 )
 
 func init() {
-	viper.SetDefault(hashicorpTokenFilePathViperKey, hashicorpTokenFilePathDefault)
-	_ = viper.BindEnv(hashicorpTokenFilePathViperKey, hashicorpTokenFilePathEnv)
-
-	viper.SetDefault(hashicorpMountPointViperKey, hashicorpMountPointDefault)
-	_ = viper.BindEnv(hashicorpMountPointViperKey, hashicorpMountPointEnv)
-
-	viper.SetDefault(hashicorpAddrViperKey, hashicorpAddrDefault)
-	_ = viper.BindEnv(hashicorpAddrViperKey, hashicorpAddrEnv)
+	viper.SetDefault(hashicorpEnvironmentViperKey, hashicorpEnvironmentDefault)
+	_ = viper.BindEnv(hashicorpEnvironmentViperKey, hashicorpEnvironmentEnv)
 }
 
 const (
-	hashicorpTokenFilePathEnv      = "HASHICORP_TOKEN_FILE"
-	hashicorpTokenFilePathDefault  = "/hashicorp/token/.hashicorp-token"
-	hashicorpTokenFilePathViperKey = "hashicorp.token.file"
-	HashicorpTokenFilePathFlag     = "hashicorp-token-file"
-)
-
-const (
-	hashicorpMountPointEnv      = "HASHICORP_MOUNT_POINT"
-	hashicorpMountPointFlag     = "hashicorp-mount-point"
-	hashicorpMountPointViperKey = "hashicorp.mount.point"
-	hashicorpMountPointDefault  = "orchestrate"
-)
-
-const (
-	HashicorpAddrFlag     = "hashicorp-addr"
-	hashicorpAddrEnv      = "HASHICORP_ADDR"
-	hashicorpAddrViperKey = "hashicorp.addr"
-	hashicorpAddrDefault  = "https://127.0.0.1:8200"
+	hashicorpEnvironmentEnv      = "HASHICORP_ENVIRONMENT"
+	hashicorpEnvironmentViperKey = "hashicorp.environment"
+	hashicorpEnvironmentFlag     = "hashicorp-environment"
+	hashicorpEnvironmentDefault  = "{}"
 )
 
 // Flags register flags for HashiCorp Hashicorp
 func HashicorpFlags(f *pflag.FlagSet) {
-	hashicorpAddr(f)
-	hashicorpMountPoint(f)
-	hashicorpTokenFilePath(f)
+	hashicorpEnvironment(f)
 }
 
-func hashicorpTokenFilePath(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Specifies the token file path.
-Parameter ignored if the token has been passed by HASHICORP_TOKEN
-Environment variable: %q `, hashicorpTokenFilePathEnv)
-	f.String(HashicorpTokenFilePathFlag, hashicorpTokenFilePathDefault, desc)
-	_ = viper.BindPFlag(hashicorpTokenFilePathViperKey, f.Lookup(HashicorpTokenFilePathFlag))
-}
-
-func hashicorpMountPoint(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Specifies the mount point used. Should not start with a //
-Environment variable: %q `, hashicorpMountPointEnv)
-	f.String(hashicorpMountPointFlag, hashicorpMountPointDefault, desc)
-	_ = viper.BindPFlag(hashicorpMountPointViperKey, f.Lookup(hashicorpMountPointFlag))
-}
-
-func hashicorpAddr(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Hashicorp URL of the remote hashicorp hashicorp
-Environment variable: %q`, hashicorpAddrEnv)
-	f.String(HashicorpAddrFlag, hashicorpAddrDefault, desc)
-	_ = viper.BindPFlag(hashicorpAddrViperKey, f.Lookup(HashicorpAddrFlag))
+func hashicorpEnvironment(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Specifies the Hashicorp environment.
+Environment variable: %q `, hashicorpEnvironmentEnv)
+	f.String(hashicorpEnvironmentFlag, hashicorpEnvironmentDefault, desc)
+	_ = viper.BindPFlag(hashicorpEnvironmentViperKey, f.Lookup(hashicorpEnvironmentFlag))
 }
 
 func newHashicorpManifest(vipr *viper.Viper) *manifest.Manifest {
-	specs := hashicorp.SecretSpecs{
-		MountPoint: vipr.GetString(hashicorpMountPointViperKey),
-		Address:    vipr.GetString(hashicorpAddrViperKey),
-	}
-
-	tokenFilePath := vipr.GetString(hashicorpTokenFilePathViperKey)
-	token, err := ioutil.ReadFile(tokenFilePath)
-	if err == nil {
-		specs.Token = string(token)
-	}
-
+	envStr := vipr.GetString(hashicorpEnvironmentViperKey)
+	specs := hashicorp.SecretSpecs{}
+	//TODO: Handle invalid not empty specs
+	_ = json.Unmarshal([]byte(envStr), &specs)
 	specRaw, _ := json.Marshal(specs)
 
 	return &manifest.Manifest{
 		Kind:    types.HashicorpSecrets,
 		Name:    "HashicorpSecrets",
-		Version: "0.0.0",
+		Version: "0.0.1",
 		Specs:   specRaw,
 	}
 }

@@ -28,7 +28,7 @@ type storeBundle struct {
 	store    interface{}
 }
 
-func New() Manager {
+func New() StoreManager {
 	return &manager{
 		mux:     sync.RWMutex{},
 		secrets: make(map[string]*storeBundle),

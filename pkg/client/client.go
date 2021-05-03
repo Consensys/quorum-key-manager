@@ -14,6 +14,16 @@ type SecretsClient interface {
 	ListSecrets(ctx context.Context, storeName string) ([]string, error)
 }
 
+type KeysClient interface {
+	CreateKey(ctx context.Context, storeName string, request *types.CreateKeyRequest) (*types.KeyResponse, error)
+	ImportKey(ctx context.Context, storeName string, request *types.ImportKeyRequest) (*types.KeyResponse, error)
+	Sign(ctx context.Context, storeName, id string, request *types.SignPayloadRequest) (string, error)
+	GetKey(ctx context.Context, storeName, id, version string) (*types.KeyResponse, error)
+	ListKeys(ctx context.Context, storeName string) ([]string, error)
+	DestroyKey(ctx context.Context, storeName, id string) error
+}
+
 type KeyManagerClient interface {
 	SecretsClient
+	KeysClient
 }

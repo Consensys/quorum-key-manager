@@ -69,7 +69,7 @@ func isCurve(fl validator.FieldLevel) bool {
 	return true
 }
 
-func isAlgorithm(fl validator.FieldLevel) bool {
+func isSigningAlgorithm(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
 		case entities.Ecdsa, entities.Eddsa:
@@ -92,7 +92,7 @@ func init() {
 	_ = validate.RegisterValidation("isHexAddress", isHexAddress)
 	_ = validate.RegisterValidation("isDuration", isDuration)
 	_ = validate.RegisterValidation("isCurve", isCurve)
-	_ = validate.RegisterValidation("isAlgorithm", isAlgorithm)
+	_ = validate.RegisterValidation("isSigningAlgorithm", isSigningAlgorithm)
 }
 
 func getValidator() *validator.Validate {

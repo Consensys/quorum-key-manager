@@ -9,8 +9,10 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 )
 
-// Manager allows to manage multiple stores
-type Manager interface {
+//go:generate mockgen -source=manager.go -destination=mocks/manager.go -package=mocks
+
+// StoreManager allows to manage multiple stores
+type StoreManager interface {
 	// Load manifests and performs associated actions (such as creating stores)
 	// If any error occurs it is attached to the corresponding Message
 	Load(ctx context.Context, mnfsts ...*manifest.Manifest) error

@@ -6,18 +6,20 @@ import (
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
 )
 
+//go:generate mockgen -source=backend.go -destination=mocks/backend.go -package=mocks
+
 // Backend holds internal Key Manager components and
 // makes it available for API components
 type Backend interface {
 	// StoreManager returns the Store Manager
-	StoreManager() storemanager.Manager
+	StoreManager() storemanager.StoreManager
 
 	// NodeManager returns the Node Manager
 	NodeManager() nodemanager.Manager
 }
 
 type BaseBackend struct {
-	storeMngr storemanager.Manager
+	storeMngr storemanager.StoreManager
 	nodeMngr  nodemanager.Manager
 }
 
@@ -28,7 +30,7 @@ func New() *BaseBackend {
 	}
 }
 
-func (bckend *BaseBackend) StoreManager() storemanager.Manager {
+func (bckend *BaseBackend) StoreManager() storemanager.StoreManager {
 	return bckend.storeMngr
 }
 
