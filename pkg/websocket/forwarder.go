@@ -1,8 +1,7 @@
 package websocket
 
 import (
-	"net/http"
-	"time"
+	"context"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/gorilla/websocket"
@@ -10,49 +9,36 @@ import (
 
 var GoingAway = websocket.FormatCloseMessage(websocket.CloseGoingAway, "")
 
-func Forward(req *http.Request, clientConn, serverConn *websocket.Conn) {
-	logger := log.FromContext(req.Context())
-	go func() {
-		defer clientConn.Close()
-		for {
-			typ, msg, err := clientConn.ReadMessage()
-			if err != nil {
-				logger.WithError(err).Debugf("error reading message on client connection")
+func Forward(ctx context.Context, from, to *websocket.Conn) error {
+	logger := log.FromContext(ctx)
 
-				err = serverConn.WriteControl(websocket.CloseMessage, GoingAway, time.Now().Add(time.Second))
-				if err != nil {
-					logger.WithError(err).Debugf("error writing Close control message on server connection")
-				}
-
-				return
-			}
-
-			err = serverConn.WriteMessage(typ, msg)
-			if err != nil {
-				logger.WithError(err).Debugf("error writing message on server connection")
-			}
+	for {
+		typ, msg, err := from.ReadMessage()
+		if err != nil {
+			logger.WithError(err).Debugf("error reading message")
+			return err
 		}
+
+		err = to.WriteMessage(typ, msg)
+		if err != nil {
+			logger.WithError(err).Debugf("error writing message")
+		}
+	}
+}
+
+func PipeConn(ctx context.Context, clientConn, serverConn *websocket.Conn) (clientErrors, serverErrors <-chan error) {
+	clientErrs := make(chan error, 1)
+	serverErrs := make(chan error, 1)
+
+	go func() {
+		clientErrs <- Forward(ctx, clientConn, serverConn)
+		close(clientErrs)
 	}()
 
 	go func() {
-		defer serverConn.Close()
-		for {
-			typ, msg, err := serverConn.ReadMessage()
-			if err != nil {
-				logger.WithError(err).Debugf("error reading message on server connection")
-
-				err = clientConn.WriteControl(websocket.CloseMessage, GoingAway, time.Now().Add(time.Second))
-				if err != nil {
-					logger.WithError(err).Debugf("error writing Close control message on client connection")
-				}
-
-				return
-			}
-
-			err = clientConn.WriteMessage(typ, msg)
-			if err != nil {
-				logger.WithError(err).Debugf("error writing message on client connection")
-			}
-		}
+		serverErrs <- Forward(ctx, serverConn, clientConn)
+		close(serverErrs)
 	}()
+
+	return clientErrs, serverErrs
 }

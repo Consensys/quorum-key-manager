@@ -14,19 +14,19 @@ type UpgraderConfig struct {
 }
 
 func (cfg *UpgraderConfig) SetDefault() *UpgraderConfig {
-	if cfg.HandshakeTimeout != nil {
+	if cfg.HandshakeTimeout == nil {
 		cfg.HandshakeTimeout = &json.Duration{Duration: 0}
 	}
 
-	if cfg.ReadBufferSize != nil {
+	if cfg.ReadBufferSize == nil {
 		cfg.ReadBufferSize = common.IntPtr(1024)
 	}
 
-	if cfg.WriteBufferSize != nil {
+	if cfg.WriteBufferSize == nil {
 		cfg.WriteBufferSize = common.IntPtr(1024)
 	}
 
-	if cfg.EnableCompression != nil {
+	if cfg.EnableCompression == nil {
 		cfg.EnableCompression = common.BoolPtr(false)
 	}
 

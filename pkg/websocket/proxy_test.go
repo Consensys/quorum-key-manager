@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -40,6 +41,8 @@ type nextMsg struct {
 type bckndHandler struct {
 	in  chan *nextMsg
 	out chan interface{}
+
+	stop chan struct{}
 }
 
 func (h bckndHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -57,9 +60,15 @@ func (h bckndHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	go func() {
+		<-h.stop
+		clientConn.Close()
+	}()
+
+	go func() {
 		defer clientConn.Close()
 		defer close(h.in)
 		for {
+
 			nextMsg := new(nextMsg)
 			nextMsg.typ, nextMsg.msg, nextMsg.err = clientConn.ReadMessage()
 			fmt.Printf("test-server: ReadMessage: %v %v %v\n", nextMsg.typ, nextMsg.msg, nextMsg.err)
@@ -73,6 +82,11 @@ func (h bckndHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer clientConn.Close()
 		for out := range h.out {
+			select {
+			case <-h.stop:
+				return
+			default:
+			}
 			err = clientConn.WriteJSON(out)
 			fmt.Printf("test-server: WriteJSON: %v\n", err)
 			if err != nil {
@@ -82,22 +96,26 @@ func (h bckndHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-func createProxyServer(uri string) *httptest.Server {
+func createProxyServer(uri string) (*httptest.Server, *Proxy) {
 	prep, _ := request.Proxy(&request.ProxyConfig{Addr: uri})
 	modif := response.Proxy(&response.ProxyConfig{})
-	prx := &Proxy{
-		Upgrader:               upgrader,
-		Dialer:                 dialer,
-		Interceptor:            Forward,
-		PingPongTimeout:        time.Second,
-		WriteControlMsgTimeout: time.Second,
-		ReqPreparer:            prep,
-		RespModifier:           modif,
-	}
+	cfg := (&ProxyConfig{}).SetDefault()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	prx := NewProxy(cfg)
+	prx.Upgrader = upgrader
+	prx.Dialer = dialer
+	prx.ReqPreparer = prep
+	prx.RespModifier = modif
+
+	_ = prx.Start(context.TODO())
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		prx.ServeHTTP(w, req)
 	}))
+
+	prx.RegisterServerShutdown(srv.Config)
+
+	return srv, prx
 }
 
 func TestProxy(t *testing.T) {
@@ -109,7 +127,7 @@ func TestProxy(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL)
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -153,7 +171,7 @@ func TestProxy(t *testing.T) {
 	assert.Equal(t, "test control", pong, "Pong message should be correct")
 }
 
-func TestProxyCloseClientNormal(t *testing.T) {
+func TestCloseClientNormal(t *testing.T) {
 	h := bckndHandler{
 		in:  make(chan *nextMsg, 3),
 		out: make(chan interface{}),
@@ -162,7 +180,7 @@ func TestProxyCloseClientNormal(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL)
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -178,7 +196,7 @@ func TestProxyCloseClientNormal(t *testing.T) {
 	assert.Equal(t, &websocket.CloseError{Code: websocket.CloseNormalClosure, Text: "test close"}, next.err, "Error should be correct")
 }
 
-func TestProxyCloseClient(t *testing.T) {
+func TestCloseClient(t *testing.T) {
 	h := bckndHandler{
 		in:  make(chan *nextMsg, 3),
 		out: make(chan interface{}),
@@ -187,7 +205,7 @@ func TestProxyCloseClient(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL)
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -202,38 +220,77 @@ func TestProxyCloseClient(t *testing.T) {
 
 func TestProxyCloseServer(t *testing.T) {
 	h := bckndHandler{
-		in:  make(chan *nextMsg, 3),
-		out: make(chan interface{}),
+		in:   make(chan *nextMsg, 3),
+		out:  make(chan interface{}),
+		stop: make(chan struct{}),
 	}
 
 	backSrv := httptest.NewServer(h)
+	defer backSrv.Close()
 
-	proxySrv := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL)
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
 	clientConn, _, err := dialer.Dial(fmt.Sprintf("ws://%v", proxyAddr), nil)
 	require.NoError(t, err, "Dial must not error")
 	defer clientConn.Close()
-	// Make sure client conn will not timeout
-	_ = clientConn.SetReadDeadline(time.Now().Add(10 * time.Second))
-
-	// Close server and waits for server to close
-	backSrv.Close()
 
 	// Keeps client connection active
 	go func() {
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 10; i++ {
 			_ = clientConn.WriteControl(websocket.PingMessage, nil, time.Now().Add(time.Second))
 			time.Sleep(500 * time.Millisecond)
 		}
 	}()
 
-	// Waits for server to close
-	time.Sleep(200 * time.Millisecond)
+	// Simulate server closing server
+	close(h.stop)
 
 	var s string
 	err = clientConn.ReadJSON(&s)
 	require.Error(t, err, "ReadJSON must error")
 	assert.Equal(t, &websocket.CloseError{Code: websocket.CloseGoingAway}, err, "Message should be correct")
+}
+
+func TestProxyStop(t *testing.T) {
+	h := bckndHandler{
+		in:   make(chan *nextMsg, 3),
+		out:  make(chan interface{}),
+		stop: make(chan struct{}),
+	}
+
+	backSrv := httptest.NewServer(h)
+	defer backSrv.Close()
+
+	proxySrv, prx := createProxyServer(backSrv.URL)
+
+	proxyAddr := proxySrv.Listener.Addr().String()
+	clientConn, _, err := dialer.Dial(fmt.Sprintf("ws://%v", proxyAddr), nil)
+	require.NoError(t, err, "Dial must not error")
+	defer clientConn.Close()
+
+	// Keeps connection active
+	go func() {
+		for i := 0; i < 10; i++ {
+			_ = clientConn.WriteControl(websocket.PingMessage, nil, time.Now().Add(time.Second))
+			time.Sleep(500 * time.Millisecond)
+		}
+	}()
+
+	// Close server
+	proxySrv.Close()
+	_ = proxySrv.Config.Shutdown(context.TODO())
+
+	var s string
+	err = clientConn.ReadJSON(&s)
+	require.Error(t, err, "ReadJSON must error")
+	assert.Equal(t, &websocket.CloseError{Code: websocket.CloseGoingAway}, err, "Message should be correct")
+
+	next := <-h.in
+	require.Error(t, next.err, "NextMessage must error")
+	assert.Equal(t, &websocket.CloseError{Code: websocket.CloseGoingAway}, next.err, "Error should be correct")
+
+	// Wait for proxy to complete
+	<-prx.Done()
 }
