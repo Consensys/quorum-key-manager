@@ -18,10 +18,10 @@ type StoreManager interface {
 	Load(ctx context.Context, mnfsts ...*manifest.Manifest) error
 
 	// GetSecretStore by name
-	GetSecretStore(ctx context.Context, name string) (secrets.SecretStore, error)
+	GetSecretStore(ctx context.Context, name string) (secrets.Store, error)
 
 	// GetKeyStore by name
-	GetKeyStore(ctx context.Context, name string) (keys.KeyStore, error)
+	GetKeyStore(ctx context.Context, name string) (keys.Store, error)
 
 	// GetAccountStore by name
 	GetAccountStore(ctx context.Context, name string) (accounts.Store, error)

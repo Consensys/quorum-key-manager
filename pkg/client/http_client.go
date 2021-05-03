@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+const storeIDHeader = "X-Store-Id"
+
 type HTTPClient struct {
 	client *http.Client
 	config *Config
@@ -21,6 +23,6 @@ func NewHTTPClient(h *http.Client, c *Config) *HTTPClient {
 
 func withStore(ctx context.Context, storeName string) context.Context {
 	return context.WithValue(ctx, RequestHeaderKey, map[string]string{
-		"X-Store-Id": storeName,
+		storeIDHeader: storeName,
 	})
 }

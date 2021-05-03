@@ -57,10 +57,10 @@ func (mr *MockStoreManagerMockRecorder) Load(ctx interface{}, mnfsts ...interfac
 }
 
 // GetSecretStore mocks base method
-func (m *MockStoreManager) GetSecretStore(ctx context.Context, name string) (secrets.SecretStore, error) {
+func (m *MockStoreManager) GetSecretStore(ctx context.Context, name string) (secrets.Store, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecretStore", ctx, name)
-	ret0, _ := ret[0].(secrets.SecretStore)
+	ret0, _ := ret[0].(secrets.Store)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -72,10 +72,10 @@ func (mr *MockStoreManagerMockRecorder) GetSecretStore(ctx, name interface{}) *g
 }
 
 // GetKeyStore mocks base method
-func (m *MockStoreManager) GetKeyStore(ctx context.Context, name string) (keys.KeyStore, error) {
+func (m *MockStoreManager) GetKeyStore(ctx context.Context, name string) (keys.Store, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKeyStore", ctx, name)
-	ret0, _ := ret[0].(keys.KeyStore)
+	ret0, _ := ret[0].(keys.Store)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

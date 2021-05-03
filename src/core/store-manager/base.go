@@ -49,12 +49,12 @@ func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error 
 	return nil
 }
 
-func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.SecretStore, error) {
+func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
 	if storeBundle, ok := m.secrets[name]; ok {
-		if store, ok := storeBundle.store.(secrets.SecretStore); ok {
+		if store, ok := storeBundle.store.(secrets.Store); ok {
 			return store, nil
 		}
 	}
@@ -62,11 +62,11 @@ func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Secret
 	return nil, errors.NotFoundError("secret store %s was not found", name)
 }
 
-func (m *manager) GetKeyStore(_ context.Context, name string) (keys.KeyStore, error) {
+func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[name]; ok {
-		if store, ok := storeBundle.store.(keys.KeyStore); ok {
+		if store, ok := storeBundle.store.(keys.Store); ok {
 			return store, nil
 		}
 	}
