@@ -13,24 +13,23 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 )
 
-// Store is an implementation of key store relying on Hashicorp Vault ConsenSys secret engine
-type KeyStore struct {
+type Store struct {
 	client akv.KeysClient
 }
 
-var _ keys.Store = KeyStore{}
+var _ keys.Store = Store{}
 
-func New(client akv.KeysClient) *KeyStore {
-	return &KeyStore{
+func New(client akv.KeysClient) *Store {
+	return &Store{
 		client: client,
 	}
 }
 
-func (k KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
+func (k Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.NotImplementedError
 }
 
-func (k KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (k Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 
 	kty, err := convertToAKVKeyType(alg)
 	if err != nil {
@@ -51,7 +50,7 @@ func (k KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm
 	return parseKeyBundleRes(&res), nil
 }
 
-func (k KeyStore) Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (k Store) Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	// kOps := []string{}
 	// for _, op := range convertToAKVOps(attr.Operations) {
 	// 	kOps = append(kOps, string(op))
@@ -71,7 +70,7 @@ func (k KeyStore) Import(ctx context.Context, id, privKey string, alg *entities.
 	return parseKeyBundleRes(&res), nil
 }
 
-func (k KeyStore) Get(ctx context.Context, id, version string) (*entities.Key, error) {
+func (k Store) Get(ctx context.Context, id, version string) (*entities.Key, error) {
 	res, err := k.client.GetKey(ctx, id, version)
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
@@ -80,7 +79,7 @@ func (k KeyStore) Get(ctx context.Context, id, version string) (*entities.Key, e
 	return parseKeyBundleRes(&res), nil
 }
 
-func (k KeyStore) List(ctx context.Context) ([]string, error) {
+func (k Store) List(ctx context.Context) ([]string, error) {
 	res, err := k.client.GetKeys(ctx, 0)
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
@@ -94,7 +93,7 @@ func (k KeyStore) List(ctx context.Context) ([]string, error) {
 	return kIds, nil
 }
 
-func (k KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
+func (k Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
 	// @TODO CHeck if empty version updates latest key
 	res, err := k.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
@@ -107,7 +106,7 @@ func (k KeyStore) Update(ctx context.Context, id string, attr *entities.Attribut
 	return parseKeyBundleRes(&res), nil
 }
 
-func (k KeyStore) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
+func (k Store) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
 	expireAt := date.NewUnixTimeFromNanoseconds(expirationDate.UnixNano())
 	// @TODO CHeck if empty version updates latest key
 	_, err := k.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
@@ -120,7 +119,7 @@ func (k KeyStore) Refresh(ctx context.Context, id string, expirationDate time.Ti
 	return nil
 }
 
-func (k KeyStore) Delete(ctx context.Context, id string) (*entities.Key, error) {
+func (k Store) Delete(ctx context.Context, id string) (*entities.Key, error) {
 	res, err := k.client.DeleteKey(ctx, id)
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
@@ -129,7 +128,7 @@ func (k KeyStore) Delete(ctx context.Context, id string) (*entities.Key, error) 
 	return parseKeyDeleteBundleRes(&res), nil
 }
 
-func (k KeyStore) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
+func (k Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	res, err := k.client.GetDeletedKey(ctx, id)
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
@@ -138,7 +137,7 @@ func (k KeyStore) GetDeleted(ctx context.Context, id string) (*entities.Key, err
 	return parseKeyDeleteBundleRes(&res), nil
 }
 
-func (k KeyStore) ListDeleted(ctx context.Context) ([]string, error) {
+func (k Store) ListDeleted(ctx context.Context) ([]string, error) {
 	res, err := k.client.GetDeletedKeys(ctx, 0)
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
@@ -153,7 +152,7 @@ func (k KeyStore) ListDeleted(ctx context.Context) ([]string, error) {
 	return kIds, nil
 }
 
-func (k KeyStore) Undelete(ctx context.Context, id string) error {
+func (k Store) Undelete(ctx context.Context, id string) error {
 	_, err := k.client.RecoverDeletedKey(ctx, id)
 	if err != nil {
 		return akvclient.ParseErrorResponse(err)
@@ -162,7 +161,7 @@ func (k KeyStore) Undelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (k KeyStore) Destroy(ctx context.Context, id string) error {
+func (k Store) Destroy(ctx context.Context, id string) error {
 	_, err := k.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
 		return akvclient.ParseErrorResponse(err)
@@ -171,7 +170,7 @@ func (k KeyStore) Destroy(ctx context.Context, id string) error {
 	return nil
 }
 
-func (k KeyStore) Sign(ctx context.Context, id, data, version string) (string, error) {
+func (k Store) Sign(ctx context.Context, id, data, version string) (string, error) {
 	kItem, err := k.Get(ctx, id, version)
 	if err != nil {
 		return "", err
@@ -199,10 +198,10 @@ func (k KeyStore) Sign(ctx context.Context, id, data, version string) (string, e
 	return signature, nil
 }
 
-func (k KeyStore) Encrypt(ctx context.Context, id, version, data string) (string, error) {
+func (k Store) Encrypt(ctx context.Context, id, version, data string) (string, error) {
 	return "", errors.NotImplementedError
 }
 
-func (k KeyStore) Decrypt(ctx context.Context, id, version, data string) (string, error) {
+func (k Store) Decrypt(ctx context.Context, id, version, data string) (string, error) {
 	return "", errors.NotImplementedError
 }

@@ -19,7 +19,7 @@ import (
 type akvSecretTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store *akv.SecretStore
+	store *akv.Store
 }
 
 func (s *akvSecretTestSuite) TestSet() {

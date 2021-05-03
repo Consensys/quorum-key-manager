@@ -14,7 +14,7 @@ type SecretSpecs struct {
 	Namespace  string `json:"namespace"`
 }
 
-func NewSecretStore(specs *SecretSpecs) (*hashicorp.SecretStore, error) {
+func NewSecretStore(specs *SecretSpecs) (*hashicorp.Store, error) {
 	cfg := client.NewBaseConfig(specs.Address, specs.Token, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {

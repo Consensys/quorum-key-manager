@@ -19,7 +19,7 @@ import (
 type hashicorpSecretTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store *hashicorp.SecretStore
+	store *hashicorp.Store
 }
 
 func (s *hashicorpSecretTestSuite) TestSet() {

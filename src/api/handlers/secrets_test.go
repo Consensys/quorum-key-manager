@@ -30,7 +30,7 @@ const (
 
 type secretsHandlerTestSuite struct {
 	suite.Suite
-	secretStore *mocks3.MockSecretStore
+	secretStore *mocks3.MockStore
 	router      *mux.Router
 }
 
@@ -45,7 +45,7 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 
 	backend := mocks.NewMockBackend(ctrl)
 	storeManager := mocks2.NewMockStoreManager(ctrl)
-	s.secretStore = mocks3.NewMockSecretStore(ctrl)
+	s.secretStore = mocks3.NewMockStore(ctrl)
 
 	backend.EXPECT().StoreManager().Return(storeManager).AnyTimes()
 	storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil).AnyTimes()

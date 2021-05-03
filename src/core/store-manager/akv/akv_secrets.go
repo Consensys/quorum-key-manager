@@ -21,7 +21,7 @@ type Specs struct {
 	Resource            string `json:"resource"`
 }
 
-func NewSecretStore(spec *Specs) (*akv.SecretStore, error) {
+func NewSecretStore(spec *Specs) (*akv.Store, error) {
 	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
 	cli, err := client.NewClient(cfg)
 	if err != nil {

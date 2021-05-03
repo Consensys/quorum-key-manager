@@ -37,7 +37,7 @@ func convertToAKVCurve(alg *entities.Algorithm) (keyvault.JSONWebKeyCurveName, e
 	case entities.Secp256k1:
 		return keyvault.P256K, nil
 	case entities.Bn254:
-		return "", errors.NotImplementedError
+		return "", errors.NotSupported
 	default:
 		return "", errors.InvalidParameterError("invalid elliptic curve")
 	}
@@ -75,8 +75,10 @@ func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey
 		pKeyD = base64.RawURLEncoding.EncodeToString(pKey.D.Bytes())
 		pKeyX = base64.RawURLEncoding.EncodeToString(pKey.X.Bytes())
 		pKeyY = base64.RawURLEncoding.EncodeToString(pKey.Y.Bytes())
-	default:
+	case entities.Eddsa:
 		return nil, errors.NotImplementedError
+	default:
+		return nil, errors.InvalidParameterError("invalid key type")
 	}
 
 	var err error
@@ -132,11 +134,15 @@ func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatu
 		switch alg.EllipticCurve {
 		case entities.Secp256k1:
 			return keyvault.ES256K, nil
+		case entities.Bn254:
+			return "", errors.NotSupported
 		default:
-			return "", errors.NotImplementedError
+			return "", errors.InvalidParameterError("invalid elliptic curve")
 		}
-	default:
+	case entities.Eddsa:
 		return "", errors.NotImplementedError
+	default:
+		return "", errors.InvalidParameterError("invalid key type")
 	}
 }
 
@@ -191,7 +197,7 @@ func decodePubKeyBase64(src string) ([]byte, error) {
 	for base64.RawURLEncoding.DecodedLen(len(src)) < 32 {
 		src = src + string(base64.StdPadding)
 	}
-	
+
 	_, err := base64.RawURLEncoding.Decode(b, []byte(src))
 	if err != nil {
 		return nil, err
@@ -202,7 +208,7 @@ func decodePubKeyBase64(src string) ([]byte, error) {
 func hexToSha256Base64(value string) (string, error) {
 	bData, err := hexutil.Decode(value)
 	if err != nil {
-		return "", err
+		return "", errors.InvalidFormatError("cannot decode hex value. ", err)
 	}
 
 	hash := crypto.Keccak256(bData)
@@ -213,7 +219,7 @@ func hexToSha256Base64(value string) (string, error) {
 func base64ToHex(value string) (string, error) {
 	bData, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil {
-		return "", err
+		return "", errors.InvalidFormatError("cannot decode base64 value. ", err)
 	}
 
 	return hexutil.Encode(bData), nil

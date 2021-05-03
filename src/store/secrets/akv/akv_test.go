@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
@@ -48,10 +49,6 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 	secretBundleID := id + "/" + version
 	value := "my-value1"
 	attributes := testutils.FakeAttributes()
-	params := keyvault.SecretSetParameters{
-		Value: &value,
-		Tags:  tomapstrptr(attributes.Tags),
-	}
 
 	expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
 	expectedUpdatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
@@ -64,11 +61,11 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 			Updated: &(&struct{ x date.UnixTime }{date.NewUnixTimeFromNanoseconds(expectedUpdatedAt.UnixNano())}).x,
 			Enabled: &(&struct{ x bool }{true}).x,
 		},
-		Tags: tomapstrptr(attributes.Tags),
+		Tags: common.Tomapstrptr(attributes.Tags),
 	}
 
 	s.T().Run("should set a new secret successfully", func(t *testing.T) {
-		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, params).Return(res, nil)
+		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(res, nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -88,7 +85,7 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 			StatusCode: 0,
 		}
 
-		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, params).Return(keyvault.SecretBundle{}, akvErr)
+		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(keyvault.SecretBundle{}, akvErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -116,7 +113,7 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 			Updated: &(&struct{ x date.UnixTime }{date.NewUnixTimeFromNanoseconds(expectedUpdatedAt.UnixNano())}).x,
 			Enabled: &(&struct{ x bool }{true}).x,
 		},
-		Tags: tomapstrptr(attributes.Tags),
+		Tags: common.Tomapstrptr(attributes.Tags),
 	}
 
 	s.T().Run("should get a secret successfully with empty version", func(t *testing.T) {
@@ -166,9 +163,9 @@ func (s *akvSecretStoreTestSuite) TestList() {
 		result := keyvault.SecretListResult{
 			Value: &items,
 		}
-		list := keyvault.NewSecretListResultPage(result, nil)
+		list := keyvault.NewSecretListResultPage(result, nil).Values()
 
-		s.mockVault.EXPECT().GetSecrets(gomock.Any(), nil).Return(list, nil)
+		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return(list, nil)
 		ids, err := s.secretStore.List(ctx)
 
 		assert.NoError(t, err)
@@ -176,9 +173,7 @@ func (s *akvSecretStoreTestSuite) TestList() {
 	})
 
 	s.T().Run("should return empty list if result is nil", func(t *testing.T) {
-		list := keyvault.NewSecretListResultPage(keyvault.SecretListResult{}, nil)
-
-		s.mockVault.EXPECT().GetSecrets(gomock.Any(), nil).Return(list, nil)
+		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.SecretItem{}, nil)
 		ids, err := s.secretStore.List(ctx)
 
 		assert.NoError(t, err)
@@ -186,7 +181,6 @@ func (s *akvSecretStoreTestSuite) TestList() {
 	})
 
 	s.T().Run("should fail if list fails", func(t *testing.T) {
-		list := keyvault.NewSecretListResultPage(keyvault.SecretListResult{}, nil)
 		expectedErr := fmt.Errorf("error")
 
 		akvErr := autorest.DetailedError{
@@ -194,7 +188,7 @@ func (s *akvSecretStoreTestSuite) TestList() {
 			StatusCode: http.StatusNotFound,
 		}
 
-		s.mockVault.EXPECT().GetSecrets(gomock.Any(), nil).Return(list, akvErr)
+		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.SecretItem{}, akvErr)
 		ids, err := s.secretStore.List(ctx)
 
 		assert.Nil(t, ids)
@@ -209,15 +203,8 @@ func (s *akvSecretStoreTestSuite) TestRefresh() {
 	version := "2"
 
 	expectedExpirationDate, _ := time.Parse(time.RFC3339, "2021-03-22T02:24:06.945319214Z")
-	expires := date.NewUnixTimeFromNanoseconds(expectedExpirationDate.UnixNano())
-	params := keyvault.SecretUpdateParameters{
-		SecretAttributes: &keyvault.SecretAttributes{
-			Expires: &expires,
-		},
-	}
-
 	s.T().Run("should refresh a secret with expiration date", func(t *testing.T) {
-		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, params).Return(keyvault.SecretBundle{}, nil)
+		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, expectedExpirationDate).Return(keyvault.SecretBundle{}, nil)
 		err := s.secretStore.Refresh(ctx, id, version, expectedExpirationDate)
 		assert.NoError(t, err)
 	})
@@ -229,7 +216,7 @@ func (s *akvSecretStoreTestSuite) TestRefresh() {
 			StatusCode: http.StatusNotFound,
 		}
 
-		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, params).Return(keyvault.SecretBundle{}, akvErr)
+		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, expectedExpirationDate).Return(keyvault.SecretBundle{}, akvErr)
 		err := s.secretStore.Refresh(ctx, id, version, expectedExpirationDate)
 
 		assert.True(t, errors.IsNotFoundError(err))

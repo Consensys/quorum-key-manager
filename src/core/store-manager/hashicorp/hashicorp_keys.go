@@ -13,7 +13,7 @@ type KeySpecs struct {
 	Namespace  string `json:"namespace"`
 }
 
-func NewKeyStore(specs *KeySpecs) (*hashicorp.KeyStore, error) {
+func NewKeyStore(specs *KeySpecs) (*hashicorp.Store, error) {
 	cfg := client.NewBaseConfig(specs.Address, specs.Token, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
