@@ -5,13 +5,13 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*ethcommon.Hash, error) {
 	// Get ChainID from Node
-	sess := node.SessionFromContext(ctx)
+	sess := proxynode.SessionFromContext(ctx)
 
 	if msg.GasPrice == nil {
 		gasPrice, err := sess.EthCaller().Eth().GasPrice(ctx)

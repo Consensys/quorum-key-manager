@@ -1,30 +1,30 @@
 package interceptor
 
 import (
-	"bytes"
+	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	mocknodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager/mock"
 	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func newInterceptor(ctrl *gomock.Controller) (i *Interceptor, stores *mockstoremanager.MockManager, nodes *mocknodemanager.MockManager) {
+func newInterceptor(ctrl *gomock.Controller) (i *Interceptor, stores *mockstoremanager.MockManager) {
 	stores = mockstoremanager.NewMockManager(ctrl)
-	nodes = mocknodemanager.NewMockManager(ctrl)
-
-	return New(stores, nodes), stores, nodes
+	return New(stores), stores
 }
 
 type testHandlerCase struct {
 	desc string
 
 	// JSON body of the response
+	ctx context.Context
+
 	prepare func()
 	handler jsonrpc.Handler
 
@@ -40,13 +40,33 @@ func assertHandlerScenario(t *testing.T, tt *testHandlerCase) {
 	rec := httptest.NewRecorder()
 	rw := jsonrpc.NewResponseWriter(rec)
 
-	httpReq, _ := http.NewRequest(http.MethodPost, "www.example.com", bytes.NewReader(tt.reqBody))
-	req := jsonrpc.NewRequest(httpReq)
-	err := req.ReadBody()
-	require.NoError(t, err, "ReadBody must not error")
+	msg := new(jsonrpc.RequestMsg)
+	err := json.Unmarshal(tt.reqBody, msg)
+	require.NoError(t, err, "Unmarshal must not error")
 
-	tt.handler.ServeRPC(rw, req)
+	tt.handler.ServeRPC(rw, msg.WithContext(tt.ctx))
 
 	assert.Equal(t, http.StatusOK, rec.Code, "Response code should be correct")
 	assert.Equal(t, tt.expectedRespBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Response body should be correct")
+}
+
+func TestPersonal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	i, _ := newInterceptor(ctrl)
+	tests := []*testHandlerCase{
+		{
+			desc:             "Personal",
+			handler:          i,
+			reqBody:          []byte(`{"jsonrpc":"2.0","method":"personal_accounts","params":[]}`),
+			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":-32601,"message":"Method not found","data":null},"id":null}`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			assertHandlerScenario(t, tt)
+		})
+	}
 }

@@ -1,13 +1,14 @@
 package interceptor
 
 import (
+	"context"
 	"math/big"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum/mock"
 	mocktessera "github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera/mock"
-	mocknode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/mock"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
 	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
@@ -17,13 +18,11 @@ func TestEthSendTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, stores, nodes := newInterceptor(ctrl)
+	i, stores := newInterceptor(ctrl)
 	accountsStore := mockaccounts.NewMockStore(ctrl)
 
-	n := mocknode.NewMockNode(ctrl)
-	session := mocknode.NewMockSession(ctrl)
-	nodes.EXPECT().Node(gomock.Any(), "default").Return(n, nil).AnyTimes()
-	n.EXPECT().Session(gomock.Any()).Return(session, nil).AnyTimes()
+	session := proxynode.NewMockSession(ctrl)
+	ctx := proxynode.WithSession(context.TODO(), session)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	ethCaller := mockethereum.NewMockEthCaller(ctrl)
@@ -33,12 +32,12 @@ func TestEthSendTransaction(t *testing.T) {
 	tesseraClient := mocktessera.NewMockClient(ctrl)
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
 
-	handler := NewNodeSessionMiddleware(nodes).Next(i.EthSendTransaction())
 	tests := []*testHandlerCase{
 		{
 			desc:    "Public Transaction ",
-			handler: handler,
-			reqBody: []byte(`{"jsonrpc":"2.0","method":"test","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","data":"0x5208"}]}`),
+			handler: i.handler,
+			reqBody: []byte(`{"jsonrpc":"2.0","method":"eth_sendTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","data":"0x5208"}]}`),
+			ctx:     ctx,
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
@@ -76,12 +75,13 @@ func TestEthSendTransaction(t *testing.T) {
 				// SendRawTransaction
 				ethCaller.EXPECT().SendRawTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27")).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
 			},
-			expectedRespBody: []byte(`{"jsonrpc":"","result":"0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778","error":null,"id":null}`),
+			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":"0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778","error":null,"id":null}`),
 		},
 		{
 			desc:    "Transaction private transaction",
-			handler: handler,
-			reqBody: []byte(`{"jsonrpc":"2.0","method":"test","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","data":"0x5208","privateFrom":"GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=","privateFor":["KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=","eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="]}]}`),
+			handler: i.handler,
+			reqBody: []byte(`{"jsonrpc":"2.0","method":"eth_sendTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","data":"0x5208","privateFrom":"GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=","privateFor":["KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=","eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="]}]}`),
+			ctx:     ctx,
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
@@ -121,7 +121,7 @@ func TestEthSendTransaction(t *testing.T) {
 				expectedPrivateArgs := (&ethereum.PrivateArgs{}).WithPrivateFrom("GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=").WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
 				ethCaller.EXPECT().SendRawPrivateTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27"), expectedPrivateArgs).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
 			},
-			expectedRespBody: []byte(`{"jsonrpc":"","result":"0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778","error":null,"id":null}`),
+			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":"0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778","error":null,"id":null}`),
 		},
 	}
 

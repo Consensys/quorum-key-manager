@@ -12,11 +12,11 @@ func TestEthAccounts(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, stores, _ := newInterceptor(ctrl)
+	i, stores := newInterceptor(ctrl)
 	tests := []*testHandlerCase{
 		{
 			desc:    "Signature",
-			handler: i.EthAccounts(),
+			handler: i,
 			prepare: func() {
 				accts := []*entities.Account{
 					&entities.Account{Address: ethcommon.HexToAddress("0xfe3b557e8fb62b89f4916b721be55ceb828dbd73")},
@@ -24,8 +24,8 @@ func TestEthAccounts(t *testing.T) {
 				}
 				stores.EXPECT().ListAllAccounts(gomock.Any()).Return(accts, nil)
 			},
-			reqBody:          []byte(`{"jsonrpc":"2.0","method":"test","params":[]}`),
-			expectedRespBody: []byte(`{"jsonrpc":"","result":["0xfe3b557e8fb62b89f4916b721be55ceb828dbd73","0xea674fdde714fd979de3edf0f56aa9716b898ec8"],"error":null,"id":null}`),
+			reqBody:          []byte(`{"jsonrpc":"2.0","method":"eth_accounts","params":[]}`),
+			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":["0xfe3b557e8fb62b89f4916b721be55ceb828dbd73","0xea674fdde714fd979de3edf0f56aa9716b898ec8"],"error":null,"id":null}`),
 		},
 	}
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -16,7 +16,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		return nil, err
 	}
 
-	sess := node.SessionFromContext(ctx)
+	sess := proxynode.SessionFromContext(ctx)
 
 	if msg.Nonce == nil {
 		var n uint64
