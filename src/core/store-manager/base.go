@@ -10,8 +10,10 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 type manager struct {
@@ -71,9 +73,13 @@ func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error
 	return nil, fmt.Errorf("keys store not found")
 }
 
-func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Store, error) {
+func (m *manager) GetAccountStore(ctx context.Context, name string) (accounts.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
+	return m.getAccountStore(ctx, name)
+}
+
+func (m *manager) getAccountStore(_ context.Context, name string) (accounts.Store, error) {
 	if storeBundle, ok := m.account[name]; ok {
 		if store, ok := storeBundle.store.(accounts.Store); ok {
 			return store, nil
@@ -83,10 +89,45 @@ func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Stor
 	return nil, fmt.Errorf("account store not found")
 }
 
-func (m *manager) List(_ context.Context, kind manifest.Kind) ([]string, error) {
+func (m *manager) GetAccountStoreByAddr(ctx context.Context, addr ethcommon.Address) (accounts.Store, error) {
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+	storeNames, err := m.list(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, storeName := range storeNames {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			account, err := m.getAccountStore(ctx, storeName)
+			if err == nil {
+				// Check if account exists in store and returns it
+				_, err := account.Get(ctx, addr)
+				if err == nil {
+					return account, nil
+				}
+
+				if err != accounts.ErrorNotfound {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("account store not found")
+}
+
+func (m *manager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
+	return m.list(ctx, kind)
+}
+
+func (m *manager) list(_ context.Context, kind manifest.Kind) ([]string, error) {
 	storeNames := []string{}
 	switch kind {
 	case "":
@@ -99,6 +140,29 @@ func (m *manager) List(_ context.Context, kind manifest.Kind) ([]string, error) 
 	}
 
 	return storeNames, nil
+}
+
+func (m *manager) ListAllAccounts(ctx context.Context) ([]*entities.Account, error) {
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+
+	accs := []*entities.Account{}
+	storeNames, err := m.list(ctx, "")
+	if err != nil {
+		return accs, err
+	}
+
+	for _, storeName := range storeNames {
+		store, err := m.getAccountStore(ctx, storeName)
+		if err == nil {
+			storeAccs, _, err := store.List(ctx, 0, "")
+			if err == nil {
+				accs = append(accs, storeAccs...)
+			}
+		}
+	}
+
+	return accs, nil
 }
 
 func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {

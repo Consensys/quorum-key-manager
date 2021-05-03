@@ -5,9 +5,13 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
+
+//go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
 
 // Manager allows to manage multiple stores
 type Manager interface {
@@ -24,6 +28,12 @@ type Manager interface {
 	// GetAccountStore by name
 	GetAccountStore(ctx context.Context, name string) (accounts.Store, error)
 
+	// GetAccountStoreByAddr
+	GetAccountStoreByAddr(ctx context.Context, addr ethcommon.Address) (accounts.Store, error)
+
 	// List stores
 	List(ctx context.Context, kind manifest.Kind) ([]string, error)
+
+	// ListAllAccounts list all accounts from all stores
+	ListAllAccounts(context.Context) ([]*entities.Account, error)
 }

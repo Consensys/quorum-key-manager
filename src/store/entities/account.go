@@ -1,8 +1,12 @@
 package entities
 
+import (
+	ethcommon "github.com/ethereum/go-ethereum/common"
+)
+
 type Account struct {
 	// Address
-	Address string
+	Address ethcommon.Address
 
 	// Attr
 	Attr *Attributes
