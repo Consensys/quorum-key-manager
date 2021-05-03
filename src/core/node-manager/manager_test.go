@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	"github.com/stretchr/testify/require"
 )
 
 var manifestWithTessera = &manifest.Manifest{
@@ -70,7 +69,7 @@ var manifestRPCOnly = &manifest.Manifest{
 }
 
 func TestManager(t *testing.T) {
-	mngr := New()
+	mngr := New(nil)
 
 	mnfsts := []*manifest.Manifest{
 		manifestWithTessera,

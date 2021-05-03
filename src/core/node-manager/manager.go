@@ -2,13 +2,17 @@ package nodemanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/interceptor"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
 )
 
 var NodeKind manifest.Kind = "Node"
@@ -31,19 +35,43 @@ type Manager interface {
 type manager struct {
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
+
+	stores storemanager.Manager
 }
 
 type nodeBundle struct {
 	manifest *manifest.Manifest
 	node     node.Node
 	err      error
+	stop     func(context.Context) error
 }
 
-func New() Manager {
+func New(stores storemanager.Manager) Manager {
 	return &manager{
-		mux:   sync.RWMutex{},
-		nodes: make(map[string]*nodeBundle),
+		mux:    sync.RWMutex{},
+		nodes:  make(map[string]*nodeBundle),
+		stores: stores,
 	}
+}
+
+func (m *manager) Start(ctx context.Context) error {
+	return nil
+}
+
+func (m *manager) Stop(ctx context.Context) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	wg := &sync.WaitGroup{}
+	for name, n := range m.nodes {
+		wg.Add(1)
+		go func(name string, n *nodeBundle) {
+			err := n.stop(ctx)
+			log.FromContext(ctx).WithError(err).WithField("name", name).Errorf("error closing node")
+			wg.Done()
+		}(name, n)
+	}
+	wg.Wait()
+	return nil
 }
 
 func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error {
@@ -103,13 +131,37 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		n.manifest = mnf
 		m.nodes[mnf.Name] = n
 
-		cfg := new(node.Config)
+		cfg := new(proxynode.Config)
 		if err := mnf.UnmarshalSpecs(cfg); err != nil {
+			logger.WithError(err).Errorf("invalid specs")
+			n.err = err
+			return err
+		}
+		cfg.SetDefault()
+
+		b, _ := json.Marshal(cfg)
+		logger.Infof("creating node with config %v", string(b))
+
+		// Create proxy node
+		prxNode, err := proxynode.New(cfg)
+		if err != nil {
+			logger.WithError(err).Errorf("error creating node")
 			n.err = err
 			return err
 		}
 
-		n.node, n.err = node.New(cfg)
+		// Set interceptor on proxy node
+		prxNode.Handler = interceptor.New(m.stores)
+
+		// Start node
+		err = prxNode.Start(ctx)
+		if err != nil {
+			logger.WithError(err).Errorf("error starting node")
+			n.err = err
+			return err
+		}
+		n.node = prxNode
+		n.stop = prxNode.Stop
 	default:
 		return fmt.Errorf("invalid manifest kind %s", mnf.Kind)
 	}
