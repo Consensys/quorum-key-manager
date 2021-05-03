@@ -22,10 +22,11 @@ func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.
 	})
 }
 
-func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
 	return c.client.ImportKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyImportParameters{
 		Key:  k,
 		Tags: common.Tomapstrptr(tags),
+		KeyAttributes: attr,
 	})
 }
 

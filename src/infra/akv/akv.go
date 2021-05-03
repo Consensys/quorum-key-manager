@@ -24,7 +24,7 @@ type SecretClient interface {
 
 type KeysClient interface {
 	CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error)
-	ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error)
+	ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error)
 	GetKey(ctx context.Context, name string, version string) (keyvault.KeyBundle, error)
 	GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error)
 	UpdateKey(ctx context.Context, keyName string, version string, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error)

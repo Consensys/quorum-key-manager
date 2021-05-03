@@ -126,18 +126,18 @@ func (mr *MockClientMockRecorder) CreateKey(ctx, keyName, kty, crv, attr, ops, t
 }
 
 // ImportKey mocks base method
-func (m *MockClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error) {
+func (m *MockClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ImportKey", ctx, keyName, k, tags)
+	ret := m.ctrl.Call(m, "ImportKey", ctx, keyName, k, attr, tags)
 	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ImportKey indicates an expected call of ImportKey
-func (mr *MockClientMockRecorder) ImportKey(ctx, keyName, k, tags interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ImportKey(ctx, keyName, k, attr, tags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockClient)(nil).ImportKey), ctx, keyName, k, tags)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockClient)(nil).ImportKey), ctx, keyName, k, attr, tags)
 }
 
 // GetKey mocks base method
@@ -442,18 +442,18 @@ func (mr *MockKeysClientMockRecorder) CreateKey(ctx, keyName, kty, crv, attr, op
 }
 
 // ImportKey mocks base method
-func (m *MockKeysClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, tags map[string]string) (keyvault.KeyBundle, error) {
+func (m *MockKeysClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ImportKey", ctx, keyName, k, tags)
+	ret := m.ctrl.Call(m, "ImportKey", ctx, keyName, k, attr, tags)
 	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ImportKey indicates an expected call of ImportKey
-func (mr *MockKeysClientMockRecorder) ImportKey(ctx, keyName, k, tags interface{}) *gomock.Call {
+func (mr *MockKeysClientMockRecorder) ImportKey(ctx, keyName, k, attr, tags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockKeysClient)(nil).ImportKey), ctx, keyName, k, tags)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockKeysClient)(nil).ImportKey), ctx, keyName, k, attr, tags)
 }
 
 // GetKey mocks base method

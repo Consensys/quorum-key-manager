@@ -146,7 +146,6 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 }
 
 func (env *IntegrationEnvironment) Start(ctx context.Context) error {
-	return nil
 	err := env.dockerClient.CreateNetwork(ctx, networkName)
 	if err != nil {
 		env.logger.WithError(err).Error("could not create network")
@@ -201,7 +200,6 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 }
 
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
-	return
 	env.logger.Info("tearing test suite down")
 
 	err := env.keyManager.Stop(ctx)

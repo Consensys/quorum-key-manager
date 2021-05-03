@@ -31,7 +31,6 @@ func (k KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (k KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
 
 	kty, err := convertToAKVKeyType(alg)
 	if err != nil {
@@ -43,9 +42,7 @@ func (k KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm
 		return nil, err
 	}
 
-	res, err := k.client.CreateKey(ctx, id, kty, crv, &keyvault.KeyAttributes{
-		Expires: &expireAt,
-	}, nil, attr.Tags)
+	res, err := k.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
 
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
@@ -55,17 +52,17 @@ func (k KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm
 }
 
 func (k KeyStore) Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	kOps := []string{}
-	for _, op := range convertToAKVOps(attr.Operations) {
-		kOps = append(kOps, string(op))
-	}
+	// kOps := []string{}
+	// for _, op := range convertToAKVOps(attr.Operations) {
+	// 	kOps = append(kOps, string(op))
+	// }
 
 	iWebKey, err := WebImportKey(privKey, alg)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := k.client.ImportKey(ctx, id, iWebKey, attr.Tags)
+	res, err := k.client.ImportKey(ctx, id, iWebKey, convertToAKVKeyAttr(attr), attr.Tags)
 
 	if err != nil {
 		return nil, akvclient.ParseErrorResponse(err)
@@ -198,6 +195,7 @@ func (k KeyStore) Sign(ctx context.Context, id, data, version string) (string, e
 	if err != nil {
 		return "", errors.InvalidFormatError("expected base64 value. %s", err)
 	}
+
 	return signature, nil
 }
 

@@ -2,14 +2,13 @@ package akv
 
 import (
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"math/big"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -37,8 +36,10 @@ func convertToAKVCurve(alg *entities.Algorithm) (keyvault.JSONWebKeyCurveName, e
 	switch alg.EllipticCurve {
 	case entities.Secp256k1:
 		return keyvault.P256K, nil
-	default:
+	case entities.Bn254:
 		return "", errors.NotImplementedError
+	default:
+		return "", errors.InvalidParameterError("invalid elliptic curve")
 	}
 }
 
@@ -46,9 +47,20 @@ func convertToAKVKeyType(alg *entities.Algorithm) (keyvault.JSONWebKeyType, erro
 	switch alg.Type {
 	case entities.Ecdsa:
 		return keyvault.EC, nil
-	default:
+	case entities.Eddsa:
 		return "", errors.NotImplementedError
+	default:
+		return "", errors.InvalidParameterError("invalid key type")
 	}
+}
+
+func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
+	kAttr := &keyvault.KeyAttributes{}
+	if attr.TTL.Milliseconds() > 0 {
+		ttl := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
+		kAttr.Expires = &ttl
+	}
+	return kAttr
 }
 
 func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
@@ -60,9 +72,9 @@ func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey
 			return nil, errors.InvalidFormatError("invalid private key format. %s", err.Error())
 		}
 
-		pKeyD = base64.URLEncoding.EncodeToString(pKey.D.Bytes())
-		pKeyX = base64.URLEncoding.EncodeToString(pKey.X.Bytes())
-		pKeyY = base64.URLEncoding.EncodeToString(pKey.Y.Bytes())
+		pKeyD = base64.RawURLEncoding.EncodeToString(pKey.D.Bytes())
+		pKeyX = base64.RawURLEncoding.EncodeToString(pKey.X.Bytes())
+		pKeyY = base64.RawURLEncoding.EncodeToString(pKey.Y.Bytes())
 	default:
 		return nil, errors.NotImplementedError
 	}
@@ -104,8 +116,8 @@ func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyC
 func pubKeyString(key *keyvault.JSONWebKey) string {
 	switch {
 	case key.Kty == keyvault.EC && key.Crv == keyvault.P256K:
-		xBytes, _ := decodeBase64(*key.X, 32)
-		yBytes, _ := decodeBase64(*key.Y, 32)
+		xBytes, _ := decodePubKeyBase64(*key.X)
+		yBytes, _ := decodePubKeyBase64(*key.Y)
 		pKey := ecdsa.PublicKey{X: new(big.Int).SetBytes(xBytes), Y: new(big.Int).SetBytes(yBytes)}
 		return hexutil.Encode(crypto.FromECDSAPub(&pKey))
 	default:
@@ -174,16 +186,13 @@ func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
 	})
 }
 
-func decodeBase64(src string, n int) ([]byte, error) {
-	if n == 0 {
-		return base64.URLEncoding.DecodeString(src)
-	}
-	b := make([]byte, n)
-	for base64.StdEncoding.DecodedLen(len(src)) < n {
+func decodePubKeyBase64(src string) ([]byte, error) {
+	b := make([]byte, 32)
+	for base64.RawURLEncoding.DecodedLen(len(src)) < 32 {
 		src = src + string(base64.StdPadding)
 	}
 	
-	_, err := base64.URLEncoding.Decode(b, []byte(src))
+	_, err := base64.RawURLEncoding.Decode(b, []byte(src))
 	if err != nil {
 		return nil, err
 	}
@@ -191,27 +200,21 @@ func decodeBase64(src string, n int) ([]byte, error) {
 }
 
 func hexToSha256Base64(value string) (string, error) {
-	// Expected data to be Hex
-	if strings.Contains(value, "0x") {
-		value = value[2:]
-	}
-	
-	bData, err := hex.DecodeString(value)
+	bData, err := hexutil.Decode(value)
 	if err != nil {
 		return "", err
 	}
-	
-	hash := sha256.Sum256(bData)
-	b64Data := base64.URLEncoding.EncodeToString(hash[:])
+
+	hash := crypto.Keccak256(bData)
+	b64Data := base64.RawURLEncoding.EncodeToString(hash[:])
 	return b64Data, nil
 }
 
 func base64ToHex(value string) (string, error) {
-	bData, err := base64.URLEncoding.DecodeString(value)
+	bData, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil {
 		return "", err
 	}
-	
-	hexData := hex.EncodeToString(bData)
-	return "0x" + hexData, nil
+
+	return hexutil.Encode(bData), nil
 }
