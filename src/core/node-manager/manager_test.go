@@ -5,8 +5,14 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/stretchr/testify/require"
 )
+
+var manifestWithTessera = &manifest.Manifest{
+	Kind:    "Node",
+	Version: "v1alpha",
+	Name:    "node-test1",
 	Tags: map[string]string{
 		"key1": "value1",
 		"key2": "value2",

@@ -5,50 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockBackend is a mock of Backend interface
+// MockBackend is a mock of Backend interface.
 type MockBackend struct {
 	ctrl     *gomock.Controller
 	recorder *MockBackendMockRecorder
 }
 
-// MockBackendMockRecorder is the mock recorder for MockBackend
+// MockBackendMockRecorder is the mock recorder for MockBackend.
 type MockBackendMockRecorder struct {
 	mock *MockBackend
 }
 
-// NewMockBackend creates a new mock instance
+// NewMockBackend creates a new mock instance.
 func NewMockBackend(ctrl *gomock.Controller) *MockBackend {
 	mock := &MockBackend{ctrl: ctrl}
 	mock.recorder = &MockBackendMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBackend) EXPECT() *MockBackendMockRecorder {
 	return m.recorder
 }
 
-// StoreManager mocks base method
-func (m *MockBackend) StoreManager() storemanager.StoreManager {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StoreManager")
-	ret0, _ := ret[0].(storemanager.StoreManager)
-	return ret0
-}
-
-// StoreManager indicates an expected call of StoreManager
-func (mr *MockBackendMockRecorder) StoreManager() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreManager", reflect.TypeOf((*MockBackend)(nil).StoreManager))
-}
-
-// NodeManager mocks base method
+// NodeManager mocks base method.
 func (m *MockBackend) NodeManager() nodemanager.Manager {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NodeManager")
@@ -56,8 +43,22 @@ func (m *MockBackend) NodeManager() nodemanager.Manager {
 	return ret0
 }
 
-// NodeManager indicates an expected call of NodeManager
+// NodeManager indicates an expected call of NodeManager.
 func (mr *MockBackendMockRecorder) NodeManager() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NodeManager", reflect.TypeOf((*MockBackend)(nil).NodeManager))
+}
+
+// StoreManager mocks base method.
+func (m *MockBackend) StoreManager() storemanager.Manager {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StoreManager")
+	ret0, _ := ret[0].(storemanager.Manager)
+	return ret0
+}
+
+// StoreManager indicates an expected call of StoreManager.
+func (mr *MockBackendMockRecorder) StoreManager() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreManager", reflect.TypeOf((*MockBackend)(nil).StoreManager))
 }
