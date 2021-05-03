@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-// matchers try to match a msguest.
+// matchers try to match a request.
 type matcher interface {
 	Match(*RequestMsg, *RouteMatch) bool
 }
@@ -16,7 +16,7 @@ type RouteMatch struct {
 	Err     error
 }
 
-// versionMatcher matches msguest with a given version
+// versionMatcher matches request with a given version
 type versionMatcher struct {
 	version string
 }
@@ -25,7 +25,7 @@ func (matcher *versionMatcher) Match(msg *RequestMsg, _ *RouteMatch) bool {
 	return msg.Version == matcher.version
 }
 
-// methodMatcher matches msguest with a given method
+// methodMatcher matches request with a given method
 type methodMatcher struct {
 	method string
 }
@@ -34,7 +34,7 @@ func (matcher *methodMatcher) Match(msg *RequestMsg, _ *RouteMatch) bool {
 	return msg.Method == matcher.method
 }
 
-// methodMatcher matches msguest with a given prefix
+// methodMatcher matches request with a given prefix
 type methodPrefixMatcher struct {
 	prefix string
 }

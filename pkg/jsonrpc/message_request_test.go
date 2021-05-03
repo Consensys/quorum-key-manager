@@ -251,3 +251,21 @@ func TestRequestMsgMarshalUnmarshal(t *testing.T) {
 		})
 	}
 }
+
+func TestCopyRequestMsg(t *testing.T) {
+	b := []byte(`{"jsonrpc":"2.0","method":"testMethod","params":[1,2,3],"id":"abcd"}`)
+
+	msg := new(RequestMsg)
+	err := json.Unmarshal(b, msg)
+	require.NoError(t, err, "Unmarshal must not error")
+
+	cpy := msg.Copy()
+	assert.Equal(t, msg.Version, cpy.Version, "Version should equal")
+	assert.Equal(t, msg.Method, cpy.Method, "Method should equal")
+	assert.Equal(t, msg.Params, cpy.Params, "Method should equal")
+	assert.Equal(t, msg.ID, cpy.ID, "ID should equal")
+	assert.Equal(t, msg.raw.Version, cpy.raw.Version, "raw.Version should equal")
+	assert.Equal(t, msg.raw.Method, cpy.raw.Method, "raw.Method should equal")
+	assert.Equal(t, msg.raw.Params, cpy.raw.Params, "raw.Params should equal")
+	assert.Equal(t, msg.raw.ID, cpy.raw.ID, "raw.ID should equal")
+}

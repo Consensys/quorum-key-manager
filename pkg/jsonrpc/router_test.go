@@ -84,7 +84,8 @@ func TestRouter(t *testing.T) {
 
 func TestRouterServeRPC(t *testing.T) {
 	router := NewRouter()
-	router.Handle("known", &mockHandler{value: 1})
+	v3Router := router.Version("3.0").Subrouter()
+	v3Router.Handle("known", &mockHandler{value: 1})
 
 	// Request matching router
 	msg := (&RequestMsg{}).

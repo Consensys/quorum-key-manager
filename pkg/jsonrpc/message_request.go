@@ -112,13 +112,15 @@ func (msg *RequestMsg) Copy() *RequestMsg {
 		newMsg.raw.Method = msg.raw.Method
 
 		if msg.raw.ID != nil {
-			newMsg.raw.ID = new(json.RawMessage)
-			copy(*newMsg.raw.ID, *msg.raw.ID)
+			newID := make([]byte, len(*msg.raw.ID))
+			newMsg.raw.ID = (*json.RawMessage)(&newID)
+			copy(newID, *msg.raw.ID)
 		}
 
 		if msg.raw.Params != nil {
-			newMsg.raw.Params = new(json.RawMessage)
-			copy(*newMsg.raw.Params, *msg.raw.Params)
+			newParams := make([]byte, len(*msg.raw.Params))
+			newMsg.raw.Params = (*json.RawMessage)(&newParams)
+			copy(newParams, *msg.raw.Params)
 		}
 	}
 
