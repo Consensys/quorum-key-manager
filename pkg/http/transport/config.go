@@ -38,14 +38,9 @@ func (cfg *Config) Copy() *Config {
 }
 
 func (cfg *Config) SetDefault() *Config {
-	if cfg == nil {
-		cfg = new(Config)
-	}
-
 	if cfg.Dialer == nil {
 		cfg.Dialer = new(dialer.Config)
 	}
-
 	cfg.Dialer.SetDefault()
 
 	if cfg.IdleConnTimeout == nil {

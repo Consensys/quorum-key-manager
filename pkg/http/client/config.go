@@ -29,14 +29,9 @@ func (cfg *Config) Copy() *Config {
 }
 
 func (cfg *Config) SetDefault() *Config {
-	if cfg == nil {
-		cfg = new(Config)
-	}
-
 	if cfg.Transport == nil {
 		cfg.Transport = new(transport.Config)
 	}
-
 	cfg.Transport.SetDefault()
 
 	if cfg.Timeout == nil {
@@ -46,7 +41,6 @@ func (cfg *Config) SetDefault() *Config {
 	if cfg.Request == nil {
 		cfg.Request = new(request.ProxyConfig)
 	}
-
 	cfg.Request.SetDefault()
 
 	if cfg.Response == nil {
