@@ -8,10 +8,7 @@ import (
 	http "net/http"
 	reflect "reflect"
 
-	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	tessera "github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera"
-	node "github.com/ConsenSysQuorum/quorum-key-manager/src/node"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -38,207 +35,26 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 	return m.recorder
 }
 
-// ClientPrivTxManager mocks base method.
-func (m *MockNode) ClientPrivTxManager() tessera.Client {
+// ServeHTTP mocks base method.
+func (m *MockNode) ServeHTTP(arg0 http.ResponseWriter, arg1 *http.Request) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ClientPrivTxManager")
-	ret0, _ := ret[0].(tessera.Client)
-	return ret0
+	m.ctrl.Call(m, "ServeHTTP", arg0, arg1)
 }
 
-// ClientPrivTxManager indicates an expected call of ClientPrivTxManager.
-func (mr *MockNodeMockRecorder) ClientPrivTxManager() *gomock.Call {
+// ServeHTTP indicates an expected call of ServeHTTP.
+func (mr *MockNodeMockRecorder) ServeHTTP(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientPrivTxManager", reflect.TypeOf((*MockNode)(nil).ClientPrivTxManager))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServeHTTP", reflect.TypeOf((*MockNode)(nil).ServeHTTP), arg0, arg1)
 }
 
-// ClientRPC mocks base method.
-func (m *MockNode) ClientRPC() jsonrpc.Client {
+// SetRPCHandler mocks base method.
+func (m *MockNode) SetRPCHandler(h jsonrpc.Handler) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ClientRPC")
-	ret0, _ := ret[0].(jsonrpc.Client)
-	return ret0
+	m.ctrl.Call(m, "SetRPCHandler", h)
 }
 
-// ClientRPC indicates an expected call of ClientRPC.
-func (mr *MockNodeMockRecorder) ClientRPC() *gomock.Call {
+// SetRPCHandler indicates an expected call of SetRPCHandler.
+func (mr *MockNodeMockRecorder) SetRPCHandler(h interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientRPC", reflect.TypeOf((*MockNode)(nil).ClientRPC))
-}
-
-// ProxyPrivTxManager mocks base method.
-func (m *MockNode) ProxyPrivTxManager() http.Handler {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ProxyPrivTxManager")
-	ret0, _ := ret[0].(http.Handler)
-	return ret0
-}
-
-// ProxyPrivTxManager indicates an expected call of ProxyPrivTxManager.
-func (mr *MockNodeMockRecorder) ProxyPrivTxManager() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProxyPrivTxManager", reflect.TypeOf((*MockNode)(nil).ProxyPrivTxManager))
-}
-
-// ProxyRPC mocks base method.
-func (m *MockNode) ProxyRPC() jsonrpc.Handler {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ProxyRPC")
-	ret0, _ := ret[0].(jsonrpc.Handler)
-	return ret0
-}
-
-// ProxyRPC indicates an expected call of ProxyRPC.
-func (mr *MockNodeMockRecorder) ProxyRPC() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProxyRPC", reflect.TypeOf((*MockNode)(nil).ProxyRPC))
-}
-
-// Session mocks base method.
-func (m *MockNode) Session(arg0 *jsonrpc.Request) (node.Session, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Session", arg0)
-	ret0, _ := ret[0].(node.Session)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Session indicates an expected call of Session.
-func (mr *MockNodeMockRecorder) Session(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Session", reflect.TypeOf((*MockNode)(nil).Session), arg0)
-}
-
-// MockSession is a mock of Session interface.
-type MockSession struct {
-	ctrl     *gomock.Controller
-	recorder *MockSessionMockRecorder
-}
-
-// MockSessionMockRecorder is the mock recorder for MockSession.
-type MockSessionMockRecorder struct {
-	mock *MockSession
-}
-
-// NewMockSession creates a new mock instance.
-func NewMockSession(ctrl *gomock.Controller) *MockSession {
-	mock := &MockSession{ctrl: ctrl}
-	mock.recorder = &MockSessionMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSession) EXPECT() *MockSessionMockRecorder {
-	return m.recorder
-}
-
-// CallerRPC mocks base method.
-func (m *MockSession) CallerRPC() jsonrpc.Caller {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CallerRPC")
-	ret0, _ := ret[0].(jsonrpc.Caller)
-	return ret0
-}
-
-// CallerRPC indicates an expected call of CallerRPC.
-func (mr *MockSessionMockRecorder) CallerRPC() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallerRPC", reflect.TypeOf((*MockSession)(nil).CallerRPC))
-}
-
-// ClientPrivTxManager mocks base method.
-func (m *MockSession) ClientPrivTxManager() tessera.Client {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ClientPrivTxManager")
-	ret0, _ := ret[0].(tessera.Client)
-	return ret0
-}
-
-// ClientPrivTxManager indicates an expected call of ClientPrivTxManager.
-func (mr *MockSessionMockRecorder) ClientPrivTxManager() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientPrivTxManager", reflect.TypeOf((*MockSession)(nil).ClientPrivTxManager))
-}
-
-// ClientRPC mocks base method.
-func (m *MockSession) ClientRPC() jsonrpc.Client {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ClientRPC")
-	ret0, _ := ret[0].(jsonrpc.Client)
-	return ret0
-}
-
-// ClientRPC indicates an expected call of ClientRPC.
-func (mr *MockSessionMockRecorder) ClientRPC() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientRPC", reflect.TypeOf((*MockSession)(nil).ClientRPC))
-}
-
-// Close mocks base method.
-func (m *MockSession) Close() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Close")
-}
-
-// Close indicates an expected call of Close.
-func (mr *MockSessionMockRecorder) Close() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockSession)(nil).Close))
-}
-
-// EthCaller mocks base method.
-func (m *MockSession) EthCaller() ethereum.Caller {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EthCaller")
-	ret0, _ := ret[0].(ethereum.Caller)
-	return ret0
-}
-
-// EthCaller indicates an expected call of EthCaller.
-func (mr *MockSessionMockRecorder) EthCaller() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EthCaller", reflect.TypeOf((*MockSession)(nil).EthCaller))
-}
-
-// ProxyPrivTxManager mocks base method.
-func (m *MockSession) ProxyPrivTxManager() http.Handler {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ProxyPrivTxManager")
-	ret0, _ := ret[0].(http.Handler)
-	return ret0
-}
-
-// ProxyPrivTxManager indicates an expected call of ProxyPrivTxManager.
-func (mr *MockSessionMockRecorder) ProxyPrivTxManager() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProxyPrivTxManager", reflect.TypeOf((*MockSession)(nil).ProxyPrivTxManager))
-}
-
-// ProxyRPC mocks base method.
-func (m *MockSession) ProxyRPC() jsonrpc.Handler {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ProxyRPC")
-	ret0, _ := ret[0].(jsonrpc.Handler)
-	return ret0
-}
-
-// ProxyRPC indicates an expected call of ProxyRPC.
-func (mr *MockSessionMockRecorder) ProxyRPC() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProxyRPC", reflect.TypeOf((*MockSession)(nil).ProxyRPC))
-}
-
-// Session mocks base method.
-func (m *MockSession) Session(arg0 *jsonrpc.Request) (node.Session, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Session", arg0)
-	ret0, _ := ret[0].(node.Session)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Session indicates an expected call of Session.
-func (mr *MockSessionMockRecorder) Session(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Session", reflect.TypeOf((*MockSession)(nil).Session), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRPCHandler", reflect.TypeOf((*MockNode)(nil).SetRPCHandler), h)
 }
