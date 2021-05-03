@@ -11,108 +11,85 @@ version: "3.7"
 x-quorum-def:
   &quorum-def
   restart: "on-failure"
-  image: "${QUORUM_DOCKER_IMAGE:-quorumengineering/quorum:2.7.0}"
+  image: quorumengineering/quorum:21.4.0
   expose:
-    - 21000
-    - 50400
+    - 30303
+    - 8545
+  labels:
+    com.quorum.consensus: ${QUORUM_CONSENSUS:-istanbul}
   healthcheck:
     test: ["CMD", "wget", "--spider", "--proxy", "off", "http://localhost:8545"]
     interval: 3s
     timeout: 3s
     retries: 10
     start_period: 5s
-  labels:
-    com.quorum.consensus: ${QUORUM_CONSENSUS:-istanbul}
   entrypoint:
     - /bin/sh
     - -c
     - |
-      UDS_WAIT=3
-      for i in $$(seq 1 100)
-      do
-        set -e
-        if [ -z $${PRIVATE_CONFIG} ] || \
-          [ "I'm up!" == "$$(wget --timeout $${UDS_WAIT} -qO- --proxy off 172.16.239.10$${NODE_ID}:9000/upcheck)" ];
-        then break
-        else
-          echo "Sleep $${UDS_WAIT} seconds. Waiting for TxManager."
-          sleep $${UDS_WAIT}
-        fi
-      done
-      DDIR=/qdata/dd
-      rm -rf $${DDIR}
-      mkdir -p $${DDIR}/keystore
-      mkdir -p $${DDIR}/geth
-      cp /examples/nodekeys/nodekey$${NODE_ID} $${DDIR}/geth/nodekey
-      cp /examples/keys/key$${NODE_ID} $${DDIR}/keystore/
-      cat /examples/permissioned-nodes.json | sed 's/^\(.*\)@.*\?\(.*\)raftport=5040\([0-9]\)\(.*\)$$/\1@172.16.239.1\3:21000?discport=0\&raftport=50400\4/g' > $${DDIR}/static-nodes.json
-      cp $${DDIR}/static-nodes.json $${DDIR}/permissioned-nodes.json
-      cat $${DDIR}/static-nodes.json
-      GENESIS_FILE="/examples/genesis.json"
-      NETWORK_ID=$$(cat $${GENESIS_FILE} | grep chainId | awk -F " " '{print $$2}' | awk -F "," '{print $$1}')
-      GETH_ARGS_ISTANBUL="--emitcheckpoints --istanbul.blockperiod 5 --mine --minerthreads 1 --syncmode full"
-      geth --datadir $${DDIR} init $${GENESIS_FILE}
+
+      if [ ! -z $${TESSERA_CLIENT} ]; then
+        for i in $$(seq 1 100); do
+          set -e
+          if [ "I'm up!" == "$$(wget --timeout 10 -qO- --proxy off $${TESSERA_CLIENT}/upcheck)" ];
+            then break
+          else
+            echo "Waiting for Tessera..."
+            sleep 2
+          fi
+        done
+      fi
+
+      mkdir -p /data/dd;
+      cp -r /quorum/* /data/dd/;
+      geth --datadir=/data/dd init /config/genesis.json;
+      cp /config/keys/accountkey /data/dd/keystore/key;
+      cp /config/keys/nodekey /data/dd/geth/nodekey;
       geth \
-        --identity node$${NODE_ID}-${QUORUM_CONSENSUS:-istanbul} \
-        --datadir $${DDIR} \
-        --permissioned \
-        --nodiscover \
-        --verbosity 3 \
-        --networkid $${NETWORK_ID} \
-        --rpc \
-        --rpcaddr "0.0.0.0" \
-        --rpcport 8545 \
-        --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,${QUORUM_CONSENSUS:-istanbul} \
-        --port 21000 \
-        --unlock 0 \
-        --allow-insecure-unlock \
-        --password /examples/passwords.txt \
-        ${QUORUM_GETH_ARGS:-} $${GETH_ARGS_ISTANBUL}
+      --datadir /data/dd \
+      --nodiscover \
+      --permissioned \
+      --verbosity 3 \
+      --istanbul.blockperiod 5 --mine --minerthreads 1 --emitcheckpoints \
+      --syncmode full --nousb \
+      --networkid $${QUORUM_NETWORK_ID:-10} \
+      --rpc --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain "*" --rpcvhosts "*" --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,$${QUORUM_CONS_ALGO:-istanbul} \
+      --ws --wsaddr 0.0.0.0 --wsport 8546 --wsorigins "*" --wsapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,$${QUORUM_CONS_ALGO:-istanbul} \
+      --port 30303 \
+      --identity node$${NODE_ID}-$${QUORUM_CONS_ALGO:-istanbul} \
+      --unlock 0 \
+      --allow-insecure-unlock \
+      --password /config/passwords.txt
+      ;
+
 x-tessera-def:
   &tessera-def
-  image: "${QUORUM_TX_MANAGER_DOCKER_IMAGE:-quorumengineering/tessera:0.10.6}"
+  image: quorumengineering/tessera:21.1.1
   expose:
     - 9000
     - 9080
   restart: "no"
+  healthcheck:
+    test: ["CMD-SHELL", "[ -S /data/tm/tm.ipc ] || exit 1"]
+    interval: 3s
+    timeout: 3s
+    retries: 20
+    start_period: 5s
   entrypoint:
     - /bin/sh
     - -c
     - |
-      DDIR=/qdata/tm
-      rm -rf $${DDIR}
-      mkdir -p $${DDIR}
-      DOCKER_IMAGE="${QUORUM_TX_MANAGER_DOCKER_IMAGE:-quorumengineering/tessera:0.9.2}"
-      TX_MANAGER=$$(echo $${DOCKER_IMAGE} | sed 's/^.*\/\(.*\):.*$$/\1/g')
-      echo "TxManager: $${TX_MANAGER}"
-      case $${TX_MANAGER}
-      in
-        tessera)
-          cp /examples/keys/tm$${NODE_ID}.pub $${DDIR}/tm.pub
-          cp /examples/keys/tm$${NODE_ID}.priv $${DDIR}/tm.priv
-          #extract the tessera version from the jar
-          TESSERA_VERSION=$$(unzip -p /tessera/tessera-app.jar META-INF/MANIFEST.MF | grep Tessera-Version | cut -d" " -f2)
-          echo "Tessera version (extracted from manifest file): $${TESSERA_VERSION}"
-          # sorting versions to target correct configuration
-          V08=$$(echo -e "0.8\n$${TESSERA_VERSION}" | sort -n -r -t '.' -k 1,1 -k 2,2 | head -n1)
-          V09AndAbove=$$(echo -e "0.9\n$${TESSERA_VERSION}" | sort -n -r -t '.' -k 1,1 -k 2,2 | head -n1)
-          TESSERA_CONFIG_TYPE="-09"
-          case "$${TESSERA_VERSION}" in
-              "$${V09AndAbove}")
-                  TESSERA_CONFIG_TYPE="-09"
-                  ;;
-          esac
+      mkdir -p /data/tm/;
+      rm -rf /data/tm/*;
+      cp /config/keys/tm.* /data/tm/ ;
 
-          echo Config type $${TESSERA_CONFIG_TYPE}
-
-          #generating the two config flavors
-          cat <<EOF > $${DDIR}/tessera-config-09.json
+          cat <<EOF > /data/tm/tessera-config-09.json
           {
             "useWhiteList": false,
             "jdbc": {
               "username": "sa",
               "password": "",
-              "url": "jdbc:h2:./$${DDIR}/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
+              "url": "jdbc:h2:./data/tm/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
               "autoCreateTables": true
             },
             "serverConfigs":[
@@ -125,7 +102,7 @@ x-tessera-def:
             {
               "app":"Q2T",
               "enabled": true,
-              "serverAddress": "unix:$${DDIR}/tm.ipc",
+              "serverAddress": "unix:/data/tm/tm.ipc",
               "communicationType" : "REST"
             },
             {
@@ -153,128 +130,146 @@ x-tessera-def:
               "passwords": [],
               "keyData": [
                 {
-                  "config": $$(cat $${DDIR}/tm.priv),
-                  "publicKey": "$$(cat $${DDIR}/tm.pub)"
+                  "config": $$(cat /data/tm/tm.key),
+                  "publicKey": "$$(cat /data/tm/tm.pub)"
                 }
               ]
             },
             "alwaysSendTo": []
           }
       EOF
-          cat $${DDIR}/tessera-config$${TESSERA_CONFIG_TYPE}.json
-          java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile $${DDIR}/tessera-config$${TESSERA_CONFIG_TYPE}.json
-          ;;
-        constellation)
-          echo "socket=\"$${DDIR}/tm.ipc\"\npublickeys=[\"/examples/keys/tm$${NODE_ID}.pub\"]\n" > $${DDIR}/tm.conf
-          constellation-node \
-            --url=http://$$(hostname -i):9000/ \
-            --port=9000 \
-            --socket=$${DDIR}/tm.ipc \
-            --othernodes=http://172.16.239.101:9000/,http://172.16.239.102:9000/,http://172.16.239.103:9000/ \
-            --publickeys=/examples/keys/tm$${NODE_ID}.pub \
-            --privatekeys=/examples/keys/tm$${NODE_ID}.priv \
-            --storage=$${DDIR} \
-            --verbosity=4
-          ;;
-        *)
-          echo "Invalid Transaction Manager"
-          exit 1
-          ;;
-      esac
+          cat /data/tm/tessera-config-09.json
+          java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /data/tm/tessera-config-09.json
+
 services:
   quorum1:
     <<: *quorum-def
-    hostname: quorum1
     ports:
-      - 22000:8545
+      - 21001:8545/tcp
+      - 30303
+    environment:
+      - NODE_ID=1
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - TESSERA_CLIENT=172.16.238.21:9000
+      - QUORUM_CONSENSUS=${QUORUM_CONS_ALGO:-istanbul}
     volumes:
-      - vol1:/qdata
-      - ./config:/examples:ro
+      - ./config/quorum/passwords.txt:/config/passwords.txt
+      - ./config/quorum/${QUORUM_CONS_ALGO:-istanbul}Genesis.json:/config/genesis.json
+      - ./config/quorum/support:/quorum
+      - ./config/quorum/networkFiles/validator1:/config/keys
+      - vol1:/data
     depends_on:
       - tessera1
-    environment:
-      - PRIVATE_CONFIG=/qdata/tm/tm.ipc
-      - NODE_ID=1
     networks:
       quorum:
-      quorum-tessera:
-        ipv4_address: 172.16.239.11
+        ipv4_address: 172.16.238.11
+
   tessera1:
     <<: *tessera-def
-    hostname: tessera1
     ports:
       - 9081:9080
-    volumes:
-      - vol1:/qdata
-      - ./config:/examples:ro
-    networks:
-      quorum-tessera:
-        ipv4_address: 172.16.239.101
     environment:
-      - NODE_ID=1
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - TESSERA_CONFIG_TYPE="-09"
+    volumes:
+      - ./config/quorum/networkFiles/tessera1:/config/keys
+      - vol1:/data
+    networks:
+      quorum:
+        ipv4_address: 172.16.238.21
+
   quorum2:
     <<: *quorum-def
-    hostname: quorum2
     ports:
-      - 22001:8545
+      - 21002:8545/tcp
+      - 30303
+    environment:
+      - NODE_ID=2
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - QUORUM_CONSENSUS=${QUORUM_CONS_ALGO:-istanbul}
+      - TESSERA_CLIENT=172.16.238.22:9000
     volumes:
-      - vol2:/qdata
-      - ./config:/examples:ro
+      - ./config/quorum/passwords.txt:/config/passwords.txt
+      - ./config/quorum/${QUORUM_CONS_ALGO:-istanbul}Genesis.json:/config/genesis.json
+      - ./config/quorum/support:/quorum
+      - ./config/quorum/networkFiles/validator2:/config/keys
+      - vol2:/data
     depends_on:
       - tessera2
-    environment:
-      - PRIVATE_CONFIG=/qdata/tm/tm.ipc
-      - NODE_ID=2
     networks:
       quorum:
-      quorum-tessera:
-        ipv4_address: 172.16.239.12
+        ipv4_address: 172.16.238.12
+
   tessera2:
     <<: *tessera-def
-    hostname: tessera2
     ports:
       - 9082:9080
-    volumes:
-      - vol2:/qdata
-      - ./config:/examples:ro
-    networks:
-      quorum-tessera:
-        ipv4_address: 172.16.239.102
     environment:
-      - NODE_ID=2
-  quorum3:
-    <<: *quorum-def
-    hostname: quorum3
-    ports:
-      - 22002:8545
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - TESSERA_CONFIG_TYPE="-09"
     volumes:
-      - vol3:/qdata
-      - ./config:/examples:ro
-    environment:
-      - PRIVATE_CONFIG=/qdata/tm/tm.ipc
-      - NODE_ID=3
+      - ./config/quorum/networkFiles/tessera2:/config/keys
+      - vol2:/data
     networks:
       quorum:
-      quorum-tessera:
-        ipv4_address: 172.16.239.13
-  tessera3:
-    <<: *tessera-def
-    hostname: tessera3
+        ipv4_address: 172.16.238.22
+
+  quorum3:
+    <<: *quorum-def
     ports:
-      - 9083:9080
-    volumes:
-      - vol3:/qdata
-      - ./config:/examples:ro
-    networks:
-      quorum-tessera:
-        ipv4_address: 172.16.239.103
+      - 21003:8545/tcp
+      - 30303
     environment:
       - NODE_ID=3
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - QUORUM_CONSENSUS=${QUORUM_CONS_ALGO:-istanbul}
+      - TESSERA_CLIENT=172.16.238.23:9000 
+    volumes:
+      - ./config/quorum/passwords.txt:/config/passwords.txt
+      - ./config/quorum/${QUORUM_CONS_ALGO:-istanbul}Genesis.json:/config/genesis.json
+      - ./config/quorum/support:/quorum
+      - ./config/quorum/networkFiles/validator3:/config/keys
+      - vol3:/data
+    depends_on:
+      - tessera3
+    networks:
+      quorum:
+        ipv4_address: 172.16.238.13
+
+  tessera3:
+    <<: *tessera-def
+    ports:
+      - 9083:9080
+    environment:
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - TESSERA_CONFIG_TYPE="-09"
+      - NODE_ID=8
+    volumes:
+      - ./config/quorum/networkFiles/tessera3:/config/keys
+      - vol3:/data
+    networks:
+      quorum:
+        ipv4_address: 172.16.238.23
+
+  quorum4:
+    <<: *quorum-def
+    ports:
+      - 21004:8545/tcp
+      - 30303
+    environment:
+      - NODE_ID=4
+      - PRIVATE_CONFIG=ignore
+      - QUORUM_CONSENSUS=${QUORUM_CONS_ALGO:-istanbul}
+    volumes:
+      - ./config/quorum/passwords.txt:/config/passwords.txt
+      - ./config/quorum/${QUORUM_CONS_ALGO:-istanbul}Genesis.json:/config/genesis.json
+      - ./config/quorum/support:/quorum
+      - ./config/quorum/networkFiles/validator4:/config/keys
+    networks:
+      quorum:
+        ipv4_address: 172.16.238.14
 
 networks:
-  quorum-tessera:
-    external:
-      name: deps_quorum-tessera
   quorum:
     external:
       name: quorum

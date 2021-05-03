@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -34,7 +36,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 
 	res, err := s.client.SetSecret(ctx, id, params)
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, akvclient.ParseErrorResponse(err)
 	}
 
 	return parseSecretBundle(res), nil
@@ -43,7 +45,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	res, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, akvclient.ParseErrorResponse(err)
 	}
 
 	return parseSecretBundle(res), nil
@@ -52,7 +54,7 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	res, err := s.client.GetSecrets(ctx, nil)
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, akvclient.ParseErrorResponse(err)
 	}
 
 	if len(res.Values()) == 0 {
@@ -77,7 +79,7 @@ func (s *SecretStore) Refresh(ctx context.Context, id, version string, expiratio
 
 	_, err := s.client.UpdateSecret(ctx, id, version, params)
 	if err != nil {
-		return parseErrorResponse(err)
+		return akvclient.ParseErrorResponse(err)
 	}
 
 	return nil
@@ -103,7 +105,7 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 func (s *SecretStore) Destroy(ctx context.Context, id string, _ ...string) error {
 	_, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
-		return parseErrorResponse(err)
+		return akvclient.ParseErrorResponse(err)
 	}
 
 	return nil

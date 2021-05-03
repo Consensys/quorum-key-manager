@@ -15,6 +15,7 @@ func New(_ core.Backend) func(handlers http.Handler) http.Handler {
 			Level:     log.InfoLevel,
 			Timestamp: false,
 		}).SetComponent("accesslog")
+
 		return handlers.LoggingHandler(logger, h)
 	}
 }

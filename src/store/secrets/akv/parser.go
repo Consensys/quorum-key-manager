@@ -1,13 +1,10 @@
 package akv
 
 import (
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
@@ -38,23 +35,6 @@ func parseSecretBundle(secretBundle keyvault.SecretBundle) *entities.Secret {
 	}
 
 	return secret
-}
-
-func parseErrorResponse(err error) error {
-	aerr, _ := err.(autorest.DetailedError)
-
-	switch aerr.StatusCode.(int) {
-	case http.StatusNotFound:
-		return errors.NotFoundError("%v", aerr.Original)
-	case http.StatusBadRequest:
-		return errors.InvalidFormatError("%v", aerr.Original)
-	case http.StatusUnprocessableEntity:
-		return errors.InvalidParameterError("%v", aerr.Original)
-	case http.StatusConflict:
-		return errors.AlreadyExistsError("%v", aerr.Original)
-	default:
-		return errors.AKVConnectionError("%v", aerr.Original)
-	}
 }
 
 func tomapstrptr(m map[string]string) map[string]*string {

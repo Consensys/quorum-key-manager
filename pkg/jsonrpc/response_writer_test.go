@@ -81,5 +81,3 @@ func TestWriteError(t *testing.T) {
 	err := WriteError(rw, fmt.Errorf("test error"))
 	require.NoError(t, err, "WriteError should not error")
 	expectedBody := []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":-32603,"message":"Internal error","data":{"message":"test error"}},"id":"abcd"}`)
-	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "WriteError should write correct body")
-}
