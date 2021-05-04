@@ -1,4 +1,4 @@
-package node
+package proxynode
 
 import (
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"

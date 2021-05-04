@@ -9,6 +9,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/node"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
 )
 
 var NodeKind manifest.Kind = "Node"
@@ -104,13 +105,13 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		n.manifest = mnf
 		m.nodes[mnf.Name] = n
 
-		cfg := new(node.Config)
+		cfg := new(proxynode.Config)
 		if err := mnf.UnmarshalSpecs(cfg); err != nil {
 			n.err = err
 			return err
 		}
 		cfg.SetDefault()
-		n.node, n.err = node.New(cfg)
+		n.node, n.err = proxynode.New(cfg)
 	default:
 		return fmt.Errorf("invalid manifest kind %s", mnf.Kind)
 	}
