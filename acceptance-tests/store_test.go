@@ -4,9 +4,6 @@ package integrationtests
 
 import (
 	"context"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
-	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
-	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"os"
 	"testing"
 
@@ -56,48 +53,48 @@ func TestKeyManagerStore(t *testing.T) {
 
 	suite.Run(t, s)
 }
-
-func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	store := hashicorpsecret.New(s.env.hashicorpClient, "secret")
-
-	testSuite := new(hashicorpSecretTestSuite)
-	testSuite.env = s.env
-	testSuite.store = store
-	suite.Run(s.T(), testSuite)
-}
-
-func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	store := akvsecret.New(s.env.akvClient)
-
-	testSuite := new(akvSecretTestSuite)
-	testSuite.env = s.env
-	testSuite.store = store
-	suite.Run(s.T(), testSuite)
-}
-
-func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	store := hashicorpkey.New(s.env.hashicorpClient, "orchestrate")
-
-	testSuite := new(hashicorpKeyTestSuite)
-	testSuite.env = s.env
-	testSuite.store = store
-	suite.Run(s.T(), testSuite)
-}
+// 
+// func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
+// 	if s.err != nil {
+// 		s.env.logger.Warn("skipping test...")
+// 		return
+// 	}
+// 
+// 	store := hashicorpsecret.New(s.env.hashicorpClient, "secret")
+// 
+// 	testSuite := new(hashicorpSecretTestSuite)
+// 	testSuite.env = s.env
+// 	testSuite.store = store
+// 	suite.Run(s.T(), testSuite)
+// }
+// 
+// func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
+// 	if s.err != nil {
+// 		s.env.logger.Warn("skipping test...")
+// 		return
+// 	}
+// 
+// 	store := akvsecret.New(s.env.akvClient)
+// 
+// 	testSuite := new(akvSecretTestSuite)
+// 	testSuite.env = s.env
+// 	testSuite.store = store
+// 	suite.Run(s.T(), testSuite)
+// }
+// 
+// func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
+// 	if s.err != nil {
+// 		s.env.logger.Warn("skipping test...")
+// 		return
+// 	}
+// 
+// 	store := hashicorpkey.New(s.env.hashicorpClient, "orchestrate")
+// 
+// 	testSuite := new(hashicorpKeyTestSuite)
+// 	testSuite.env = s.env
+// 	testSuite.store = store
+// 	suite.Run(s.T(), testSuite)
+// }
 
 func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 	if s.err != nil {

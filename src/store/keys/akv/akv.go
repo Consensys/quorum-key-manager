@@ -162,7 +162,17 @@ func (k Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (k Store) Destroy(ctx context.Context, id string) error {
-	_, err := k.client.PurgeDeletedKey(ctx, id)
+	// Firstly, we check if key was previously soft-deleted, otherwise we trigger its delete first
+	_, err := k.GetDeleted(ctx, id)
+	if errors.IsNotFoundError(err) {
+		_, err = k.client.DeleteKey(ctx, id)
+	}
+
+	if err != nil {
+		return akvclient.ParseErrorResponse(err)
+	}
+
+	_, err = k.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
 		return akvclient.ParseErrorResponse(err)
 	}
@@ -171,6 +181,11 @@ func (k Store) Destroy(ctx context.Context, id string) error {
 }
 
 func (k Store) Sign(ctx context.Context, id, data, version string) (string, error) {
+	b64Data, err := hexToSha256Base64(data)
+	if err != nil {
+		return "", err
+	}
+
 	kItem, err := k.Get(ctx, id, version)
 	if err != nil {
 		return "", err
@@ -181,10 +196,6 @@ func (k Store) Sign(ctx context.Context, id, data, version string) (string, erro
 		return "", err
 	}
 
-	b64Data, err := hexToSha256Base64(data)
-	if err != nil {
-		return "", err
-	}
 	b64Signature, err := k.client.Sign(ctx, id, version, algo, b64Data)
 	if err != nil {
 		return "", akvclient.ParseErrorResponse(err)

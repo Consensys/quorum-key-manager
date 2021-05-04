@@ -2,15 +2,15 @@
 
 package integrationtests
 
-import "C"
 import (
 	"crypto/ecdsa"
+	"math/big"
+	"testing"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
-	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -101,7 +101,7 @@ func (s *akvKeyTestSuite) TestImport() {
 		assert.False(t, key.Metadata.Disabled)
 	})
 
-	s.T().Run("should import a new key pair successfully: EDDSA/BN254", func(t *testing.T) {
+	s.T().Run("should fail to import a new key pair: EDDSA/BN254 (not implemented yet)", func(t *testing.T) {
 		id := "my-key-eddsa-import"
 		tags := testutils.FakeTags()
 
@@ -162,6 +162,13 @@ func (s *akvKeyTestSuite) TestGet() {
 		assert.True(t, keyRetrieved.Metadata.ExpireAt.IsZero())
 		assert.False(t, keyRetrieved.Metadata.Disabled)
 	})
+	
+	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
+		keyRetrieved, err := s.store.Get(ctx, "invalidID", "")
+
+		require.Nil(t, keyRetrieved)
+		assert.True(t, errors.IsNotFoundError(err))
+	})
 }
 
 func (s *akvKeyTestSuite) TestList() {
@@ -199,14 +206,28 @@ func (s *akvKeyTestSuite) TestSign() {
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
+	
+	defer func() {
+		err := s.store.Destroy(ctx, id)
+		assert.Error(s.T(), err)	
+	}()
 
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
 		signature, err := s.store.Sign(ctx, id, payload, "")
 		require.NoError(t, err)
-
+	
 		verified, err := verifySignature(signature, payload, privKey)
 		require.NoError(t, err)
 		require.True(t, verified)
+	})
+	
+	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
+		id := "my-key"
+
+		key, err := s.store.Sign(ctx, id, "", "")
+
+		require.Empty(t, key)
+		assert.True(t, errors.IsInvalidFormatError(err))
 	})
 
 	// TODO: Implement error tests and destroy keys (delete + purge)
