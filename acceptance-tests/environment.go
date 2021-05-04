@@ -118,7 +118,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	akvSpecStr := os.Getenv(flags.AKVEnvironmentEnv)
-	specs := akv.Specs{}
+	specs := akv.KeySpecs{}
 	_ = json.Unmarshal([]byte(akvSpecStr), &specs)
 
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(

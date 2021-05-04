@@ -65,6 +65,7 @@ func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store,
 func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
+	fmt.Println(m.keys)
 	if storeBundle, ok := m.keys[name]; ok {
 		if store, ok := storeBundle.store.(keys.Store); ok {
 			return store, nil
@@ -127,11 +128,21 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVSecrets:
-		spec := &akv.Specs{}
+		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			return err
 		}
 		store, err := akv.NewSecretStore(spec)
+		if err != nil {
+			return err
+		}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.AKVKeys:
+		spec := &akv.KeySpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			return err
+		}
+		store, err := akv.NewKeyStore(spec)
 		if err != nil {
 			return err
 		}

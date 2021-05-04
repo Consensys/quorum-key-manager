@@ -35,7 +35,7 @@ Environment variable: %q `, hashicorpEnvironmentEnv)
 	_ = viper.BindPFlag(hashicorpEnvironmentViperKey, f.Lookup(hashicorpEnvironmentFlag))
 }
 
-func newHashicorpManifest(vipr *viper.Viper) *manifest.Manifest {
+func newHashicorpSecretsManifest(vipr *viper.Viper) *manifest.Manifest {
 	envStr := vipr.GetString(hashicorpEnvironmentViperKey)
 	specs := hashicorp.SecretSpecs{}
 	//TODO: Handle invalid not empty specs
@@ -45,6 +45,21 @@ func newHashicorpManifest(vipr *viper.Viper) *manifest.Manifest {
 	return &manifest.Manifest{
 		Kind:    types.HashicorpSecrets,
 		Name:    "HashicorpSecrets",
+		Version: "0.0.1",
+		Specs:   specRaw,
+	}
+}
+
+func newHashicorpKeysManifest(vipr *viper.Viper) *manifest.Manifest {
+	envStr := vipr.GetString(hashicorpEnvironmentViperKey)
+	specs := hashicorp.SecretSpecs{}
+	//TODO: Handle invalid not empty specs
+	_ = json.Unmarshal([]byte(envStr), &specs)
+	specRaw, _ := json.Marshal(specs)
+
+	return &manifest.Manifest{
+		Kind:    types.HashicorpKeys,
+		Name:    "HashicorpKeys",
 		Version: "0.0.1",
 		Specs:   specRaw,
 	}
