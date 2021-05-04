@@ -189,7 +189,7 @@ func (k Store) Sign(ctx context.Context, id, data, version string) (string, erro
 	if err != nil {
 		return "", akvclient.ParseErrorResponse(err)
 	}
-	
+
 	signature, err := base64ToHex(b64Signature)
 	if err != nil {
 		return "", errors.InvalidFormatError("expected base64 value. %s", err)

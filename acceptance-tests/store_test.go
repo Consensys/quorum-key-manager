@@ -4,14 +4,13 @@ package integrationtests
 
 import (
 	"context"
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
+	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
+	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"os"
 	"testing"
 
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
-	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
 	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/stretchr/testify/suite"
 )

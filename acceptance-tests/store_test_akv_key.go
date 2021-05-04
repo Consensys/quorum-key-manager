@@ -4,16 +4,16 @@ package integrationtests
 
 import "C"
 import (
-	"fmt"
-	"math/rand"
-	"testing"
-
+	"crypto/ecdsa"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
+	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
+	"testing"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -189,32 +189,38 @@ func (s *akvKeyTestSuite) TestSign() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 	payload := hexutil.Encode([]byte("my data to sign"))
+	privKey := "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
+
+	id := "mykey-sign-ecdsa"
+	_, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+		Type:          entities.Ecdsa,
+		EllipticCurve: entities.Secp256k1,
+	}, &entities.Attributes{
+		Tags: tags,
+	})
+	require.NoError(s.T(), err)
 
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
-		id := fmt.Sprintf("mykeysignecdsa-%d", rand.Intn(1000))
-		iKey, err := s.store.Import(ctx, id, "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c", &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
-		}, &entities.Attributes{
-			Tags: tags,
-		})
-		require.NoError(t, err)
-		
-
-		signature, err := s.store.Sign(ctx, id, payload, iKey.Metadata.Version)
+		signature, err := s.store.Sign(ctx, id, payload, "")
 		require.NoError(t, err)
 		assert.NotEmpty(t, signature)
-		//@TODO Restore following checks once AKV random signing is resolved
-		// assert.True(t, verifySignature(signature, payload, iKey.PublicKey))
-		// assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", signature)
+
+		assert.True(t, verifySignature(signature, payload, privKey))
 	})
+
+	// TODO: Implement error tests and destroy keys (delete + purge)
 }
 
-func verifySignature(signature, msg, pubkey string) bool {
+func verifySignature(signature, msg, privKey string) bool {
 	bSig, _ := hexutil.Decode(signature)
 	bMsg, _ := hexutil.Decode(msg)
-	bPubKey, _ := hexutil.Decode(pubkey)
-	verified := secp256k1.VerifySignature(bSig, bMsg, bPubKey)
-	return verified
-}
+	privKeyS, err := crypto.HexToECDSA(privKey)
+	if err != nil {
+		return false
+	}
 
+	r := new(big.Int).SetBytes(bSig[0:32])
+	s := new(big.Int).SetBytes(bSig[32:64])
+
+	return ecdsa.Verify(&privKeyS.PublicKey, crypto.Keccak256(bMsg), r, s)
+}

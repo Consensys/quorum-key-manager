@@ -49,4 +49,3 @@ func (c *AKVClient) UpdateSecret(ctx context.Context, secretName, secretVersion 
 func (c *AKVClient) DeleteSecret(ctx context.Context, secretName string) (result keyvault.DeletedSecretBundle, err error) {
 	return c.client.DeleteSecret(ctx, c.cfg.Endpoint, secretName)
 }
-

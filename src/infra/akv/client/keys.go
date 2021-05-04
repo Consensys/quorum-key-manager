@@ -14,9 +14,9 @@ func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.
 	tags map[string]string) (keyvault.KeyBundle, error) {
 
 	return c.client.CreateKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyCreateParameters{
-		Kty:           kty,
-		Curve:         crv,
-		Tags:          common.Tomapstrptr(tags),
+		Kty:   kty,
+		Curve: crv,
+		Tags:  common.Tomapstrptr(tags),
 		// KeyOps:        &ops,
 		KeyAttributes: attr,
 	})
@@ -24,8 +24,8 @@ func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.
 
 func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
 	return c.client.ImportKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyImportParameters{
-		Key:  k,
-		Tags: common.Tomapstrptr(tags),
+		Key:           k,
+		Tags:          common.Tomapstrptr(tags),
 		KeyAttributes: attr,
 	})
 }
@@ -98,7 +98,7 @@ func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyv
 
 func (c *AKVClient) Sign(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
 	res, err := c.client.Sign(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeySignParameters{
-		Value: &payload,
+		Value:     &payload,
 		Algorithm: alg,
 	})
 	if err != nil {
@@ -113,7 +113,7 @@ func (c *AKVClient) Sign(ctx context.Context, keyName string, version string, al
 
 func (c *AKVClient) Encrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error) {
 	res, err := c.client.Encrypt(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyOperationsParameters{
-		Value: &payload,
+		Value:     &payload,
 		Algorithm: alg,
 	})
 	if err != nil {
@@ -128,7 +128,7 @@ func (c *AKVClient) Encrypt(ctx context.Context, keyName string, version string,
 
 func (c *AKVClient) Decrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error) {
 	res, err := c.client.Decrypt(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyOperationsParameters{
-		Value: &value,
+		Value:     &value,
 		Algorithm: alg,
 	})
 	if err != nil {
