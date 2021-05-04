@@ -1,36 +1,14 @@
 package jsonrpc
 
 import (
-	"context"
 	"fmt"
-	"net/http"
+	"reflect"
 	"sync/atomic"
-
-	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 )
 
 var defaultVersion = "2.0"
 
-type ClientConfig struct {
-	Version string             `json:"version,omitempty"`
-	HTTP    *httpclient.Config `json:"http,omitempty"`
-}
-
-func (cfg *ClientConfig) SetDefault() *ClientConfig {
-	if cfg.HTTP == nil {
-		cfg.HTTP = new(httpclient.Config)
-	}
-
-	cfg.HTTP.SetDefault()
-
-	if cfg.Version == "" {
-		cfg.Version = defaultVersion
-	}
-
-	return cfg
-}
+//go:generate mockgen -source=client.go -destination=mock/client.go -package=mock
 
 // Client is an jsonrpc HTTPClient interface
 type Client interface {
@@ -38,68 +16,17 @@ type Client interface {
 	Do(*RequestMsg) (*ResponseMsg, error)
 }
 
-// client is a connector to a jsonrpc server
-type client struct {
-	client httpclient.Client
-}
-
-// NewClient creates a new jsonrpc client from an HTTP client
-func NewClient(c httpclient.Client) Client {
-	return &client{
-		client: c,
-	}
-}
-
-// Do sends an jsonrpc request and returns an jsonrpc response
-func (c *client) Do(reqMsg *RequestMsg) (*ResponseMsg, error) {
-	err := reqMsg.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	req, _ := http.NewRequestWithContext(reqMsg.Context(), http.MethodPost, "", nil)
-
-	// write request body
-	err = request.WriteJSON(req, reqMsg)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return nil, DownstreamError(err)
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, InvalidDownstreamHTTPStatuError(resp.StatusCode)
-	}
-
-	// Create response and reads body
-	respMsg := new(ResponseMsg)
-	err = response.ReadJSON(resp, respMsg)
-	if err != nil {
-		return nil, InvalidDownstreamResponse(err)
-	}
-
-	err = respMsg.Validate()
-	if err != nil {
-		return nil, InvalidDownstreamResponse(err)
-	}
-
-	return respMsg, nil
-}
-
-type idClient struct {
+type incrementalIDlient struct {
 	client Client
 
 	baseID    string
 	idCounter uint32
 }
 
-// WithID wraps a client with an ID counter an increases it each time a new request comes out
-func WithID(id interface{}) func(Client) Client {
+// WithIncrementalID wraps a HTTPClient with an ID counter an increases it each time a new request comes out
+func WithIncrementalID(id interface{}) func(Client) Client {
 	return func(c Client) Client {
-		idC := &idClient{
+		idC := &incrementalIDlient{
 			client: c,
 		}
 
@@ -111,12 +38,15 @@ func WithID(id interface{}) func(Client) Client {
 	}
 }
 
-func (c *idClient) nextID() string {
+func (c *incrementalIDlient) nextID() string {
 	return fmt.Sprintf("%v%v", c.baseID, atomic.AddUint32(&c.idCounter, 1))
 }
 
-func (c *idClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
-	msg.WithID(c.nextID())
+func (c *incrementalIDlient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+	if msg.ID == nil {
+		msg.WithID(c.nextID())
+	}
+
 	return c.client.Do(msg)
 }
 
@@ -126,7 +56,7 @@ type versionClient struct {
 	version string
 }
 
-// WithVersion wraps a client to set version each time a new request comes out
+// WithVersion wraps a HTTPClient to set version each time a new request comes out
 func WithVersion(version string) func(Client) Client {
 	return func(c Client) Client {
 		if version == "" {
@@ -147,7 +77,31 @@ func (c *versionClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
 	return c.client.Do(msg)
 }
 
-// Caller is an interface for a JSON-RPC caller
-type Caller interface {
-	Call(ctx context.Context, method string, params interface{}) (*ResponseMsg, error)
+type validateIDClient struct {
+	client Client
+}
+
+func ValidateID(client Client) Client {
+	return &validateIDClient{client: client}
+}
+
+func (c *validateIDClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+	respMsg, err := c.client.Do(msg)
+	if err != nil {
+		return respMsg, err
+	}
+
+	if msg.ID != nil {
+		var respIDVal = reflect.New(reflect.TypeOf(msg.ID))
+		err = respMsg.UnmarshalID(respIDVal.Interface())
+		if err != nil {
+			return respMsg, InvalidDownstreamResponse(err)
+		}
+
+		if respIDVal.Elem().Interface() != msg.ID {
+			return respMsg, InvalidDownstreamResponse(fmt.Errorf("response id does not match request id"))
+		}
+	}
+
+	return respMsg, nil
 }
