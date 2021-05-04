@@ -13,6 +13,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -203,18 +204,26 @@ func (s *akvKeyTestSuite) TestSign() {
 
 		signature, err := s.store.Sign(ctx, id, payload, iKey.Metadata.Version)
 		require.NoError(t, err)
-		assert.NotEmpty(t, signature)
-		//@TODO Restore following checks once AKV random signing is resolved
-		// assert.True(t, verifySignature(signature, payload, iKey.PublicKey))
-		// assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", signature)
+		assert.True(t, verifySignature(signature, payload, iKey.PublicKey))
 	})
 }
 
 func verifySignature(signature, msg, pubkey string) bool {
-	bSig, _ := hexutil.Decode(signature)
-	bMsg, _ := hexutil.Decode(msg)
-	bPubKey, _ := hexutil.Decode(pubkey)
-	verified := secp256k1.VerifySignature(bSig, bMsg, bPubKey)
-	return verified
+	for _, recId := range []string{"00", "01", "02", "03"} {
+		bSig, _ := hexutil.Decode(signature + recId)
+		bMsg, _ := hexutil.Decode(msg)
+		bExPubKey, err := secp256k1.RecoverPubkey(crypto.Keccak256(bMsg), bSig)
+		exPubKey := hexutil.Encode(bExPubKey)
+
+		if err != nil {
+			return false
+		}
+		if pubkey == exPubKey {
+			return true
+		}
+	}
+
+	return false
 }
+
 
