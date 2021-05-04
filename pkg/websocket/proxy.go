@@ -75,7 +75,7 @@ func NewProxy(cfg *ProxyConfig) *Proxy {
 		Dialer:                 NewDialer(cfg.Dialer),
 		PingPongTimeout:        cfg.PingPongTimeout.Duration,
 		WriteControlMsgTimeout: cfg.WriteControlMsgTimeout.Duration,
-		CloseGracePeriod:       10 * time.Second,
+		CloseGracePeriod:       5 * time.Second,
 		stop:                   make(chan struct{}),
 		done:                   make(chan struct{}),
 		ops:                    make(chan *operation),

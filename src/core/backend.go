@@ -24,9 +24,12 @@ type BaseBackend struct {
 }
 
 func New() *BaseBackend {
+	stores := storemanager.New()
+	nodes := nodemanager.New(stores)
+
 	return &BaseBackend{
-		storeMngr: storemanager.New(),
-		nodeMngr:  nodemanager.New(),
+		storeMngr: stores,
+		nodeMngr:  nodes,
 	}
 }
 
