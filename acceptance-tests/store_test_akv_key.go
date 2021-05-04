@@ -203,24 +203,25 @@ func (s *akvKeyTestSuite) TestSign() {
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
 		signature, err := s.store.Sign(ctx, id, payload, "")
 		require.NoError(t, err)
-		assert.NotEmpty(t, signature)
 
-		assert.True(t, verifySignature(signature, payload, privKey))
+		verified, err := verifySignature(signature, payload, privKey)
+		require.NoError(t, err)
+		require.True(t, verified)
 	})
 
 	// TODO: Implement error tests and destroy keys (delete + purge)
 }
 
-func verifySignature(signature, msg, privKey string) bool {
+func verifySignature(signature, msg, privKey string) (bool, error) {
 	bSig, _ := hexutil.Decode(signature)
 	bMsg, _ := hexutil.Decode(msg)
 	privKeyS, err := crypto.HexToECDSA(privKey)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	r := new(big.Int).SetBytes(bSig[0:32])
 	s := new(big.Int).SetBytes(bSig[32:64])
 
-	return ecdsa.Verify(&privKeyS.PublicKey, crypto.Keccak256(bMsg), r, s)
+	return ecdsa.Verify(&privKeyS.PublicKey, crypto.Keccak256(bMsg), r, s), nil
 }
