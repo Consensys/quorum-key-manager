@@ -14,6 +14,8 @@ var (
 	ErrorNotfound = fmt.Errorf("account not found")
 )
 
+//go:generate mockgen -source=accounts.go -destination=mock/accounts.go -package=mock
+
 type Store interface {
 	// Info returns store information
 	Info(context.Context) *entities.StoreInfo
