@@ -6,12 +6,14 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/websocket"
 )
 
 // ProxyConfig
 type ProxyConfig struct {
-	Request  *request.ProxyConfig  `json:"request,omitempty"`
-	Response *response.ProxyConfig `json:"response,omitempty"`
+	Request   *request.ProxyConfig   `json:"request,omitempty"`
+	Response  *response.ProxyConfig  `json:"response,omitempty"`
+	WebSocket *websocket.ProxyConfig `json:"websocket,omitempty"`
 }
 
 func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
@@ -23,6 +25,12 @@ func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
 	if cfg.Response == nil {
 		cfg.Response = new(response.ProxyConfig)
 	}
+
+	if cfg.WebSocket == nil {
+		cfg.WebSocket = new(websocket.ProxyConfig)
+	}
+
+	cfg.WebSocket.SetDefault()
 
 	return cfg
 }
@@ -65,6 +73,11 @@ func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
 	if cfg.ClientTimeout == nil {
 		cfg.ClientTimeout = defaultCfg.Timeout
 	}
+
+	if cfg.Proxy.WebSocket == nil {
+		cfg.Proxy.WebSocket = new(websocket.ProxyConfig)
+	}
+	cfg.Proxy.WebSocket.SetDefault()
 
 	return cfg
 }

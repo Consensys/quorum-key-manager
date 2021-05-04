@@ -70,7 +70,7 @@ var manifestRPCOnly = &manifest.Manifest{
 }
 
 func TestManager(t *testing.T) {
-	mngr := New()
+	mngr := New(nil)
 
 	mnfsts := []*manifest.Manifest{
 		manifestWithTessera,
