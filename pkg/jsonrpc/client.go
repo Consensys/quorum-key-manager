@@ -3,9 +3,12 @@ package jsonrpc
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync/atomic"
 
 	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 )
 
 var defaultVersion = "2.0"
@@ -29,17 +32,10 @@ func (cfg *ClientConfig) SetDefault() *ClientConfig {
 	return cfg
 }
 
-// Client is an jsonrpc client interface
+// Client is an jsonrpc HTTPClient interface
 type Client interface {
-	// Do sends an jsonrpc request and returns an jsonrpc response, following
-	// policy (such as redirects, cookies, auth)
-	Do(*Request) (*Response, error)
-
-	// CloseIdleConnections closes any connections on its Transport which
-	// were previously connected from previous requests but are now
-	// sitting idle in a "keep-alive" state. It does not interrupt any
-	// connections currently in use.
-	CloseIdleConnections()
+	// Do sends an jsonrpc request and returns an jsonrpc response
+	Do(*RequestMsg) (*ResponseMsg, error)
 }
 
 // client is a connector to a jsonrpc server
@@ -55,35 +51,42 @@ func NewClient(c httpclient.Client) Client {
 }
 
 // Do sends an jsonrpc request and returns an jsonrpc response
-func (c *client) Do(req *Request) (*Response, error) {
-	// write request body
-	err := req.WriteBody()
+func (c *client) Do(reqMsg *RequestMsg) (*ResponseMsg, error) {
+	err := reqMsg.Validate()
 	if err != nil {
 		return nil, err
 	}
 
-	httpResp, err := c.client.Do(req.Request())
+	req, _ := http.NewRequestWithContext(reqMsg.Context(), http.MethodPost, "", nil)
+
+	// write request body
+	err = request.WriteJSON(req, reqMsg)
 	if err != nil {
 		return nil, err
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, DownstreamError(err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, InvalidDownstreamHTTPStatuError(resp.StatusCode)
 	}
 
 	// Create response and reads body
-	resp := NewResponse(httpResp)
-	err = resp.ReadBody()
+	respMsg := new(ResponseMsg)
+	err = response.ReadJSON(resp, respMsg)
 	if err != nil {
-		return resp, err
+		return nil, InvalidDownstreamResponse(err)
 	}
 
-	err = resp.Error()
+	err = respMsg.Validate()
 	if err != nil {
-		return resp, err
+		return nil, InvalidDownstreamResponse(err)
 	}
 
-	return resp, nil
-}
-
-func (c *client) CloseIdleConnections() {
-	c.client.CloseIdleConnections()
+	return respMsg, nil
 }
 
 type idClient struct {
@@ -112,13 +115,9 @@ func (c *idClient) nextID() string {
 	return fmt.Sprintf("%v%v", c.baseID, atomic.AddUint32(&c.idCounter, 1))
 }
 
-func (c *idClient) Do(req *Request) (*Response, error) {
-	req.WithID(c.nextID())
-	return c.client.Do(req)
-}
-
-func (c *idClient) CloseIdleConnections() {
-	c.client.CloseIdleConnections()
+func (c *idClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+	msg.WithID(c.nextID())
+	return c.client.Do(msg)
 }
 
 type versionClient struct {
@@ -140,46 +139,15 @@ func WithVersion(version string) func(Client) Client {
 	}
 }
 
-func (c *versionClient) Do(req *Request) (*Response, error) {
-	req.WithVersion(c.version)
-	return c.client.Do(req)
-}
+func (c *versionClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+	if msg.Version == "" {
+		msg.WithVersion(c.version)
+	}
 
-func (c *versionClient) CloseIdleConnections() {
-	c.client.CloseIdleConnections()
+	return c.client.Do(msg)
 }
 
 // Caller is an interface for a JSON-RPC caller
 type Caller interface {
-	Call(ctx context.Context, method string, params interface{}) (*Response, error)
-}
-
-type caller struct {
-	client Client
-	req    *Request
-}
-
-func NewCaller(c Client, req *Request) Caller {
-	return &caller{
-		client: c,
-		req:    req,
-	}
-}
-
-// Call sends a JSON-RPC request over underlying http.Transport
-
-// Returns an http.Response which body as already been consumed in the jsonrpc.ResponseMsg
-
-// It returns an error in following scenarios
-// - underlying transport failed to roundtrip
-// - response status code is not 2XX
-// - response body is an invalid JSON-RPC response
-// - JSON-RPC response is failed (in which case it returns the jsonrpc.ErrorMsg)
-func (c *caller) Call(ctx context.Context, method string, params interface{}) (*Response, error) {
-	req := RequestFromContext(ctx)
-	if req == nil {
-		req = c.req
-	}
-
-	return c.client.Do(req.Clone(ctx).WithMethod(method).WithParams(params))
+	Call(ctx context.Context, method string, params interface{}) (*ResponseMsg, error)
 }

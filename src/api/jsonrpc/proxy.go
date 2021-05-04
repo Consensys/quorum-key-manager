@@ -6,10 +6,10 @@ import (
 )
 
 // Proxy proxies the request to session downstream JSON-RPC
-func Proxy(rw jsonrpc.ResponseWriter, req *jsonrpc.Request) {
+func Proxy(rw jsonrpc.ResponseWriter, msg *jsonrpc.RequestMsg) {
 	// Extract node session from context
-	sess := node.SessionFromContext(req.Request().Context())
+	sess := node.SessionFromContext(msg.Context())
 
 	// Proxy request
-	sess.ProxyRPC().ServeRPC(rw, req)
+	sess.ProxyRPC().ServeRPC(rw, msg)
 }

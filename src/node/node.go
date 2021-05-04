@@ -28,7 +28,7 @@ type Node interface {
 	ProxyPrivTxManager() http.Handler
 
 	// Returns a session contextualized to a request
-	Session(*jsonrpc.Request) (Session, error)
+	Session(msg *jsonrpc.RequestMsg) (Session, error)
 }
 
 // Session holds client interface to a downstream node
@@ -86,13 +86,12 @@ func (n *node) ProxyPrivTxManager() http.Handler {
 }
 
 // Session returns a new session
-func (n *node) Session(req *jsonrpc.Request) (Session, error) {
-	client := jsonrpc.WithID(req.ID())(n.rpc.client)
-	client = jsonrpc.WithVersion(req.Version())(client)
+func (n *node) Session(msg *jsonrpc.RequestMsg) (Session, error) {
+	client := jsonrpc.WithID(msg.ID)(n.rpc.client)
+	client = jsonrpc.WithVersion(msg.Version)(client)
 
 	return &session{
-		node:      n,
-		rpcCaller: jsonrpc.NewCaller(client, req),
+		node: n,
 	}, nil
 }
 
@@ -168,8 +167,6 @@ func newRPCDownstream(cfg *DownstreamConfig) (*rpcDownstream, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	n.proxy = jsonrpc.FromHTTPHandler(n.http.proxy)
 
 	return n, nil
 }

@@ -1,6 +1,7 @@
 package jsonrpcapi
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
@@ -21,10 +22,22 @@ func New(bcknd core.Backend) http.Handler {
 
 	// Wrap router into middlewares
 
-	// Node Manager Middleware is responsible to attach Node session to context
-	handler := NewNodeMiddleware(bcknd.NodeManager()).Next(router)
+	handler := jsonrpc.LoggedHandler(router)
 
-	handler = jsonrpc.LoggedHandler(handler)
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		// Create ResponseWriter
+		rpcRw := jsonrpc.NewResponseWriter(rw)
 
-	return jsonrpc.ToHTTPHandler(handler)
+		// Parse request body
+		msg := new(jsonrpc.RequestMsg)
+		err := json.NewDecoder(req.Body).Decode(msg)
+		req.Body.Close()
+		if err != nil {
+			_ = rpcRw.WriteError(jsonrpc.ParseError(err))
+			return
+		}
+
+		// Serve
+		handler.ServeRPC(rpcRw, msg.WithContext(req.Context()))
+	})
 }
