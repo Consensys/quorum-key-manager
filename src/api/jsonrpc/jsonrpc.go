@@ -33,7 +33,7 @@ func New(bcknd core.Backend) http.Handler {
 		err := json.NewDecoder(req.Body).Decode(msg)
 		req.Body.Close()
 		if err != nil {
-			_ = rpcRw.WriteError(jsonrpc.ParseError(err))
+			_ = jsonrpc.WriteError(rpcRw, jsonrpc.ParseError(err))
 			return
 		}
 
