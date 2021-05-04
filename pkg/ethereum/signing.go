@@ -16,15 +16,15 @@ func ECDSASigner(privKey *ecdsa.PrivateKey) SigningFunc {
 	}
 }
 
-func HomesteadSign(tx *Transaction, sign SigningFunc) ([]byte, error) {
+func HomesteadSign(tx *TxData, sign SigningFunc) ([]byte, error) {
 	return sign(FrontierHash(tx).Bytes())
 }
 
-func EIP155Sign(tx *Transaction, chainID *big.Int, sign SigningFunc) ([]byte, error) {
+func EIP155Sign(tx *TxData, chainID *big.Int, sign SigningFunc) ([]byte, error) {
 	return sign(EIP155Hash(tx, chainID).Bytes())
 }
 
-func EEASign(tx *Transaction, chainID *big.Int, args *EEAPrivateArgs, sign SigningFunc) ([]byte, error) {
+func EEASign(tx *TxData, chainID *big.Int, args *PrivateArgs, sign SigningFunc) ([]byte, error) {
 	return sign(EEAHash(tx, chainID, args).Bytes())
 }
 
