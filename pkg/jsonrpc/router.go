@@ -25,18 +25,18 @@ func NewRouter() *Router {
 	return &Router{methodRoutes: make(map[string][]*Route)}
 }
 
-func (r *Router) Match(req *Request, match *RouteMatch) bool {
-	methodRoutes, ok := r.methodRoutes[req.Method()]
+func (r *Router) Match(msg *RequestMsg, match *RouteMatch) bool {
+	methodRoutes, ok := r.methodRoutes[msg.Method]
 	if ok {
 		for _, route := range methodRoutes {
-			if route.Match(req, match) {
+			if route.Match(msg, match) {
 				return true
 			}
 		}
 	}
 
 	for _, route := range r.routes {
-		if route.Match(req, match) {
+		if route.Match(msg, match) {
 			return true
 		}
 	}
@@ -67,7 +67,7 @@ func (r *Router) Handle(method string, handler Handler) *Route {
 }
 
 // HandleFunc registers a new route for a given method
-func (r *Router) HandleFunc(method string, f func(ResponseWriter, *Request)) *Route {
+func (r *Router) HandleFunc(method string, f func(ResponseWriter, *RequestMsg)) *Route {
 	return r.NewRoute().Method(method).HandleFunc(f)
 }
 
@@ -93,16 +93,16 @@ func (r *Router) Version(version string) *Route {
 }
 
 // ServeRPC dispatches the handler registered in the matched route.
-func (r *Router) ServeRPC(rw ResponseWriter, req *Request) {
+func (r *Router) ServeRPC(rw ResponseWriter, msg *RequestMsg) {
 	var match RouteMatch
 	var handler Handler
-	if r.Match(req, &match) {
+	if r.Match(msg, &match) {
 		handler = match.Handler
 	}
 
 	if handler == nil {
-		handler = NotSupportedHandler()
+		handler = MethodNotFoundHandler()
 	}
 
-	handler.ServeRPC(rw, req)
+	handler.ServeRPC(rw, msg)
 }
