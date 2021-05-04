@@ -14,7 +14,7 @@ type mockHandler struct {
 }
 
 func (h *mockHandler) ServeRPC(rw ResponseWriter, msg *RequestMsg) {
-	_ = rw.WriteResult(h.value)
+	_ = WriteResult(RWWithVersion(msg.Version)(RWWithID(msg.ID)(rw)), h.value)
 }
 
 func TestRouter(t *testing.T) {
@@ -98,7 +98,7 @@ func TestRouterServeRPC(t *testing.T) {
 
 	router.ServeRPC(rw, msg)
 
-	expectedBody := []byte(`{"jsonrpc":"2.0","result":1,"error":null,"id":null}`)
+	expectedBody := []byte(`{"jsonrpc":"3.0","result":1,"error":null,"id":"abcd"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 
@@ -113,7 +113,7 @@ func TestRouterServeRPC(t *testing.T) {
 
 	router.ServeRPC(rw, msg)
 
-	expectedBody = []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":-32601,"message":"Method not found","data":null},"id":null}`)
+	expectedBody = []byte(`{"jsonrpc":"","result":null,"error":{"code":-32601,"message":"Method not found","data":null},"id":null}`)
 	assert.Equal(t, http.StatusOK, rec.Code, "Code should be correct")
 	assert.Equal(t, expectedBody, rec.Body.Bytes()[:(rec.Body.Len()-1)], "Correct body should have been written")
 }
