@@ -40,7 +40,7 @@ func New(client hashicorp.VaultClient, mountPoint string) *Store {
 }
 
 func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Set a secret
@@ -144,27 +144,27 @@ func (s *Store) Refresh(_ context.Context, id, _ string, expirationDate time.Tim
 
 // Delete a secret
 func (s *Store) Delete(_ context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Gets a deleted secret
 func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Lists all deleted secrets
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Undelete a previously deleted secret
 func (s *Store) Undelete(ctx context.Context, id string) error {
-	return errors.NotImplementedError
+	return errors.ErrNotImplemented
 }
 
 // Destroy a secret permanently
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	return errors.NotImplementedError
+	return errors.ErrNotImplemented
 }
 
 // path compute path from hashicorp mount

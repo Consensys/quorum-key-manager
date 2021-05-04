@@ -9,7 +9,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 )
 
-func (c *AKVClient) SetSecret(ctx context.Context, secretName string, value string, tags map[string]string) (keyvault.SecretBundle, error) {
+func (c *AKVClient) SetSecret(ctx context.Context, secretName, value string, tags map[string]string) (keyvault.SecretBundle, error) {
 	return c.client.SetSecret(ctx, c.cfg.Endpoint, secretName, keyvault.SecretSetParameters{
 		Value: &value,
 		Tags:  common.Tomapstrptr(tags),

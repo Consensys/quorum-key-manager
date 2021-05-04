@@ -26,7 +26,7 @@ func New(client akv.SecretClient) *Store {
 }
 
 func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
@@ -73,19 +73,19 @@ func (s *Store) Refresh(ctx context.Context, id, version string, expirationDate 
 
 func (s *Store) Delete(ctx context.Context, id string) (*entities.Secret, error) {
 
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) Undelete(ctx context.Context, id string) error {
-	return errors.NotImplementedError
+	return errors.ErrNotImplemented
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {

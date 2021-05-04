@@ -36,9 +36,8 @@ var (
 
 type akvKeyStoreTestSuite struct {
 	suite.Suite
-	mockVault  *mocks.MockKeysClient
-	mountPoint string
-	keyStore   keys.Store
+	mockVault *mocks.MockKeysClient
+	keyStore  keys.Store
 }
 
 func TestHashicorpKeyStore(t *testing.T) {
@@ -60,7 +59,7 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 	algorithm := testutils.FakeAlgorithm()
 	version := "1234"
 
-	akvKeyId := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
+	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
 	akvKey := akv.KeyBundle{
 		Attributes: &akv.KeyAttributes{
 			Enabled: common.ToPtr(true).(*bool),
@@ -68,7 +67,7 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 			Updated: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
 		},
 		Key: &akv.JSONWebKey{
-			Kid: &akvKeyId,
+			Kid: &akvKeyID,
 			Crv: akv.P256K,
 			Kty: akv.EC,
 			X:   &base64PubKeyX,
@@ -98,7 +97,7 @@ func (s *akvKeyStoreTestSuite) TestImport() {
 	algorithm := testutils.FakeAlgorithm()
 	version := "1234"
 
-	akvKeyId := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
+	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
 	akvKey := akv.KeyBundle{
 		Attributes: &akv.KeyAttributes{
 			Enabled: common.ToPtr(true).(*bool),
@@ -106,7 +105,7 @@ func (s *akvKeyStoreTestSuite) TestImport() {
 			Updated: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
 		},
 		Key: &akv.JSONWebKey{
-			Kid: &akvKeyId,
+			Kid: &akvKeyID,
 			Crv: akv.P256K,
 			Kty: akv.EC,
 			X:   &base64PubKeyX,
@@ -142,7 +141,7 @@ func (s *akvKeyStoreTestSuite) TestGet() {
 	attributes := testutils.FakeAttributes()
 	version := "1234"
 
-	akvKeyId := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
+	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
 	akvKey := akv.KeyBundle{
 		Attributes: &akv.KeyAttributes{
 			Enabled: common.ToPtr(true).(*bool),
@@ -151,7 +150,7 @@ func (s *akvKeyStoreTestSuite) TestGet() {
 		},
 		Tags: common.Tomapstrptr(attributes.Tags),
 		Key: &akv.JSONWebKey{
-			Kid: &akvKeyId,
+			Kid: &akvKeyID,
 			Crv: akv.P256K,
 			Kty: akv.EC,
 			X:   &base64PubKeyX,
@@ -200,7 +199,7 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 	payload := "my data"
 	attributes := testutils.FakeAttributes()
 	expectedSignature := "0x8b9679a75861e72fa6968dd5add3bf96e2747f0f124a2e728980f91e1958367e19c2486a40fdc65861824f247603bc18255fa497ca0b8b0a394aa7a6740fdc4601"
-	akvKeyId := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
+	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
 
 	akvKey := akv.KeyBundle{
 		Attributes: &akv.KeyAttributes{
@@ -210,7 +209,7 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 		},
 		Tags: common.Tomapstrptr(attributes.Tags),
 		Key: &akv.JSONWebKey{
-			Kid: &akvKeyId,
+			Kid: &akvKeyID,
 			Crv: akv.P256K,
 			Kty: akv.EC,
 			X:   &base64PubKeyX,

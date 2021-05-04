@@ -26,7 +26,7 @@ func New(client akv.KeysClient) *Store {
 }
 
 func (k Store) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 func (k Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
@@ -51,11 +51,6 @@ func (k Store) Create(ctx context.Context, id string, alg *entities.Algorithm, a
 }
 
 func (k Store) Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	// kOps := []string{}
-	// for _, op := range convertToAKVOps(attr.Operations) {
-	// 	kOps = append(kOps, string(op))
-	// }
-
 	iWebKey, err := WebImportKey(privKey, alg)
 	if err != nil {
 		return nil, err
@@ -85,12 +80,12 @@ func (k Store) List(ctx context.Context) ([]string, error) {
 		return nil, akvclient.ParseErrorResponse(err)
 	}
 
-	kIds := []string{}
+	kIDs := []string{}
 	for _, kItem := range res {
-		kId, _ := parseKeyID(kItem.Kid)
-		kIds = append(kIds, kId)
+		kID, _ := parseKeyID(kItem.Kid)
+		kIDs = append(kIDs, kID)
 	}
-	return kIds, nil
+	return kIDs, nil
 }
 
 func (k Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
@@ -145,8 +140,8 @@ func (k Store) ListDeleted(ctx context.Context) ([]string, error) {
 
 	kIds := []string{}
 	for _, kItem := range res {
-		kId, _ := parseKeyID(kItem.Kid)
-		kIds = append(kIds, kId)
+		kID, _ := parseKeyID(kItem.Kid)
+		kIds = append(kIds, kID)
 	}
 
 	return kIds, nil
@@ -210,9 +205,9 @@ func (k Store) Sign(ctx context.Context, id, data, version string) (string, erro
 }
 
 func (k Store) Encrypt(ctx context.Context, id, version, data string) (string, error) {
-	return "", errors.NotImplementedError
+	return "", errors.ErrNotImplemented
 }
 
 func (k Store) Decrypt(ctx context.Context, id, version, data string) (string, error) {
-	return "", errors.NotImplementedError
+	return "", errors.ErrNotImplemented
 }

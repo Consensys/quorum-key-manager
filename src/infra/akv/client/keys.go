@@ -30,7 +30,7 @@ func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.J
 	})
 }
 
-func (c *AKVClient) GetKey(ctx context.Context, keyName string, version string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) GetKey(ctx context.Context, keyName, version string) (keyvault.KeyBundle, error) {
 	return c.client.GetKey(ctx, c.cfg.Endpoint, keyName, version)
 }
 
@@ -51,7 +51,7 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 	return res.Values(), nil
 }
 
-func (c *AKVClient) UpdateKey(ctx context.Context, keyName string, version string, attr *keyvault.KeyAttributes,
+func (c *AKVClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes,
 	ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
 	return c.client.UpdateKey(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyUpdateParameters{
 		KeyAttributes: attr,
@@ -96,7 +96,7 @@ func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyv
 	return c.client.RecoverDeletedKey(ctx, c.cfg.Endpoint, keyName)
 }
 
-func (c *AKVClient) Sign(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
+func (c *AKVClient) Sign(ctx context.Context, keyName, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
 	res, err := c.client.Sign(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeySignParameters{
 		Value:     &payload,
 		Algorithm: alg,
@@ -111,7 +111,7 @@ func (c *AKVClient) Sign(ctx context.Context, keyName string, version string, al
 	return *res.Result, nil
 }
 
-func (c *AKVClient) Encrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error) {
+func (c *AKVClient) Encrypt(ctx context.Context, keyName, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error) {
 	res, err := c.client.Encrypt(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyOperationsParameters{
 		Value:     &payload,
 		Algorithm: alg,
@@ -126,7 +126,7 @@ func (c *AKVClient) Encrypt(ctx context.Context, keyName string, version string,
 	return *res.Result, nil
 }
 
-func (c *AKVClient) Decrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error) {
+func (c *AKVClient) Decrypt(ctx context.Context, keyName, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error) {
 	res, err := c.client.Decrypt(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyOperationsParameters{
 		Value:     &value,
 		Algorithm: alg,

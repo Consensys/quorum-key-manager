@@ -45,7 +45,7 @@ func New(client hashicorp.VaultClient, mountPoint string) *Store {
 }
 
 func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Create a key
@@ -83,7 +83,7 @@ func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algo
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error) {
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != "" {
-		return nil, errors.NotImplementedError
+		return nil, errors.ErrNotImplemented
 	}
 
 	res, err := s.client.Read(s.pathKeys(id), nil)
@@ -105,13 +105,13 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
-	keys, ok := res.Data["keys"].([]interface{})
+	keyIds, ok := res.Data["keys"].([]interface{})
 	if !ok {
 		return []string{}, nil
 	}
 
 	var ids []string
-	for _, id := range keys {
+	for _, id := range keyIds {
 		ids = append(ids, id.(string))
 	}
 
@@ -120,44 +120,44 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 
 // Update key tags
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Refresh key (create new identical version with different TTL)
 func (s *Store) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
-	return errors.NotImplementedError
+	return errors.ErrNotImplemented
 }
 
 // Delete a key
 func (s *Store) Delete(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Gets a deleted key
 func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Lists all deleted keys
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.NotImplementedError
+	return nil, errors.ErrNotImplemented
 }
 
 // Undelete a previously deleted key
 func (s *Store) Undelete(ctx context.Context, id string) error {
-	return errors.NotImplementedError
+	return errors.ErrNotImplemented
 }
 
 // Destroy a key permanently
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	return errors.NotImplementedError
+	return errors.ErrNotImplemented
 }
 
 // Sign any arbitrary data
 func (s *Store) Sign(_ context.Context, id, data, version string) (string, error) {
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != "" {
-		return "", errors.NotImplementedError
+		return "", errors.ErrNotImplemented
 	}
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
@@ -172,13 +172,13 @@ func (s *Store) Sign(_ context.Context, id, data, version string) (string, error
 
 // Encrypt any arbitrary data using a specified key
 func (s *Store) Encrypt(ctx context.Context, id, version, data string) (string, error) {
-	return "", errors.NotImplementedError
+	return "", errors.ErrNotImplemented
 
 }
 
 // Decrypt a single block of encrypted data.
 func (s *Store) Decrypt(ctx context.Context, id, version, data string) (string, error) {
-	return "", errors.NotImplementedError
+	return "", errors.ErrNotImplemented
 }
 
 func (s *Store) pathKeys(suffix string) string {

@@ -37,7 +37,7 @@ func convertToAKVCurve(alg *entities.Algorithm) (keyvault.JSONWebKeyCurveName, e
 	case entities.Secp256k1:
 		return keyvault.P256K, nil
 	case entities.Bn254:
-		return "", errors.NotSupported
+		return "", errors.ErrNotSupported
 	default:
 		return "", errors.InvalidParameterError("invalid elliptic curve")
 	}
@@ -48,7 +48,7 @@ func convertToAKVKeyType(alg *entities.Algorithm) (keyvault.JSONWebKeyType, erro
 	case entities.Ecdsa:
 		return keyvault.EC, nil
 	case entities.Eddsa:
-		return "", errors.NotImplementedError
+		return "", errors.ErrNotImplemented
 	default:
 		return "", errors.InvalidParameterError("invalid key type")
 	}
@@ -76,7 +76,7 @@ func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey
 		pKeyX = base64.RawURLEncoding.EncodeToString(pKey.X.Bytes())
 		pKeyY = base64.RawURLEncoding.EncodeToString(pKey.Y.Bytes())
 	case entities.Eddsa:
-		return nil, errors.NotImplementedError
+		return nil, errors.ErrNotImplemented
 	default:
 		return nil, errors.InvalidParameterError("invalid key type")
 	}
@@ -102,13 +102,11 @@ func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey
 
 func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities.Algorithm {
 	algo := &entities.Algorithm{}
-	switch kty {
-	case keyvault.EC:
+	if kty == keyvault.EC {
 		algo.Type = entities.Ecdsa
 	}
 
-	switch crv {
-	case keyvault.P256K:
+	if crv == keyvault.P256K {
 		algo.EllipticCurve = entities.Secp256k1
 	}
 
@@ -135,12 +133,12 @@ func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatu
 		case entities.Secp256k1:
 			return keyvault.ES256K, nil
 		case entities.Bn254:
-			return "", errors.NotSupported
+			return "", errors.ErrNotSupported
 		default:
 			return "", errors.InvalidParameterError("invalid elliptic curve")
 		}
 	case entities.Eddsa:
-		return "", errors.NotImplementedError
+		return "", errors.ErrNotImplemented
 	default:
 		return "", errors.InvalidParameterError("invalid key type")
 	}
@@ -195,7 +193,7 @@ func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
 func decodePubKeyBase64(src string) ([]byte, error) {
 	b := make([]byte, 32)
 	for base64.RawURLEncoding.DecodedLen(len(src)) < 32 {
-		src = src + string(base64.StdPadding)
+		src += string(base64.StdPadding)
 	}
 
 	_, err := base64.RawURLEncoding.Decode(b, []byte(src))
@@ -208,18 +206,17 @@ func decodePubKeyBase64(src string) ([]byte, error) {
 func hexToSha256Base64(value string) (string, error) {
 	bData, err := hexutil.Decode(value)
 	if err != nil {
-		return "", errors.InvalidFormatError("cannot decode hex value. ", err)
+		return "", errors.InvalidFormatError("cannot decode hex value. %s", err.Error())
 	}
 
-	hash := crypto.Keccak256(bData)
-	b64Data := base64.RawURLEncoding.EncodeToString(hash[:])
+	b64Data := base64.RawURLEncoding.EncodeToString(crypto.Keccak256(bData))
 	return b64Data, nil
 }
 
 func base64ToHex(value string) (string, error) {
 	bData, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil {
-		return "", errors.InvalidFormatError("cannot decode base64 value. ", err)
+		return "", errors.InvalidFormatError("cannot decode base64 value. %s", err.Error())
 	}
 
 	return hexutil.Encode(bData), nil

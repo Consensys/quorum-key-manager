@@ -180,7 +180,6 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	// version := request.URL.Query().Get("version")
 
 	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
 	if err != nil {
