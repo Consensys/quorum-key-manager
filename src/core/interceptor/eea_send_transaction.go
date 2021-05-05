@@ -37,11 +37,6 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		msg.Nonce = &n
 	}
 
-	txData, err := msg.TxData()
-	if err != nil {
-		return nil, err
-	}
-
 	// Get ChainID from Node
 	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
@@ -49,7 +44,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Sign
-	sig, err := store.SignEEA(ctx, chainID, msg.From, txData, &msg.PrivateArgs)
+	sig, err := store.SignEEA(ctx, chainID, msg.From, msg.TxData(), &msg.PrivateArgs)
 	if err != nil {
 		return nil, err
 	}
