@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 )
@@ -44,7 +43,7 @@ func (k Store) Create(ctx context.Context, id string, alg *entities.Algorithm, a
 	res, err := k.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
 
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseKeyBundleRes(&res), nil
@@ -59,7 +58,7 @@ func (k Store) Import(ctx context.Context, id, privKey string, alg *entities.Alg
 	res, err := k.client.ImportKey(ctx, id, iWebKey, convertToAKVKeyAttr(attr), attr.Tags)
 
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseKeyBundleRes(&res), nil
@@ -68,7 +67,7 @@ func (k Store) Import(ctx context.Context, id, privKey string, alg *entities.Alg
 func (k Store) Get(ctx context.Context, id, version string) (*entities.Key, error) {
 	res, err := k.client.GetKey(ctx, id, version)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseKeyBundleRes(&res), nil
@@ -77,7 +76,7 @@ func (k Store) Get(ctx context.Context, id, version string) (*entities.Key, erro
 func (k Store) List(ctx context.Context) ([]string, error) {
 	res, err := k.client.GetKeys(ctx, 0)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	kIDs := []string{}
@@ -90,12 +89,11 @@ func (k Store) List(ctx context.Context) ([]string, error) {
 
 func (k Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
-	// @TODO CHeck if empty version updates latest key
 	res, err := k.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
 		Expires: &expireAt,
 	}, convertToAKVOps(attr.Operations), attr.Tags)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseKeyBundleRes(&res), nil
@@ -103,12 +101,11 @@ func (k Store) Update(ctx context.Context, id string, attr *entities.Attributes)
 
 func (k Store) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
 	expireAt := date.NewUnixTimeFromNanoseconds(expirationDate.UnixNano())
-	// @TODO CHeck if empty version updates latest key
 	_, err := k.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
 		Expires: &expireAt,
 	}, nil, nil)
 	if err != nil {
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	return nil
@@ -117,7 +114,7 @@ func (k Store) Refresh(ctx context.Context, id string, expirationDate time.Time)
 func (k Store) Delete(ctx context.Context, id string) (*entities.Key, error) {
 	res, err := k.client.DeleteKey(ctx, id)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseKeyDeleteBundleRes(&res), nil
@@ -126,7 +123,7 @@ func (k Store) Delete(ctx context.Context, id string) (*entities.Key, error) {
 func (k Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	res, err := k.client.GetDeletedKey(ctx, id)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseKeyDeleteBundleRes(&res), nil
@@ -135,7 +132,7 @@ func (k Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error)
 func (k Store) ListDeleted(ctx context.Context) ([]string, error) {
 	res, err := k.client.GetDeletedKeys(ctx, 0)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	kIds := []string{}
@@ -150,7 +147,7 @@ func (k Store) ListDeleted(ctx context.Context) ([]string, error) {
 func (k Store) Undelete(ctx context.Context, id string) error {
 	_, err := k.client.RecoverDeletedKey(ctx, id)
 	if err != nil {
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	return nil
@@ -183,7 +180,7 @@ func (k Store) Sign(ctx context.Context, id, data, version string) (string, erro
 
 	b64Signature, err := k.client.Sign(ctx, id, version, algo, b64Data)
 	if err != nil {
-		return "", akvclient.ParseErrorResponse(err)
+		return "", err
 	}
 
 	signature, err := base64ToHex(b64Signature)

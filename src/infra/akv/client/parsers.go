@@ -11,7 +11,7 @@ import (
 func ParseErrorResponse(err error) error {
 	aerr, ok := err.(autorest.DetailedError)
 	if !ok {
-		return err
+		return errors.AKVConnectionError("%v", err)
 	}
 
 	if rerr, ok := aerr.Original.(*azure.RequestError); ok && rerr.ServiceError.Code == "NotSupported" {

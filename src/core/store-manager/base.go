@@ -65,7 +65,6 @@ func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store,
 func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
-	fmt.Println(m.keys)
 	if storeBundle, ok := m.keys[name]; ok {
 		if store, ok := storeBundle.store.(keys.Store); ok {
 			return store, nil

@@ -38,7 +38,11 @@ func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.J
 }
 
 func (c *AKVClient) GetKey(ctx context.Context, keyName, version string) (keyvault.KeyBundle, error) {
-	return c.client.GetKey(ctx, c.cfg.Endpoint, keyName, version)
+	result, err := c.client.GetKey(ctx, c.cfg.Endpoint, keyName, version)
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
 func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {

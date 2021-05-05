@@ -3,12 +3,10 @@ package akv
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -80,17 +78,13 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 	})
 
 	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
-		akvErr := autorest.DetailedError{
-			Original:   fmt.Errorf("error"),
-			StatusCode: 0,
-		}
-
-		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(keyvault.SecretBundle{}, akvErr)
+		expectedErr := fmt.Errorf("error")
+		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
 		assert.Nil(t, secret)
-		assert.Equal(t, errors.AKVConnectionError("%v", akvErr.Original), err)
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -133,17 +127,14 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 	})
 
 	s.T().Run("should fail with error if bad request in response", func(t *testing.T) {
-		akvErr := autorest.DetailedError{
-			Original:   fmt.Errorf("error"),
-			StatusCode: http.StatusBadRequest,
-		}
+		expectedErr := errors.AKVConnectionError("conn err")
 
-		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(keyvault.SecretBundle{}, akvErr)
+		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.Nil(t, secret)
-		assert.Equal(t, errors.InvalidFormatError("%v", akvErr.Original), err)
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -183,17 +174,11 @@ func (s *akvSecretStoreTestSuite) TestList() {
 	s.T().Run("should fail if list fails", func(t *testing.T) {
 		expectedErr := fmt.Errorf("error")
 
-		akvErr := autorest.DetailedError{
-			Original:   expectedErr,
-			StatusCode: http.StatusNotFound,
-		}
-
-		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.SecretItem{}, akvErr)
+		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.SecretItem{}, expectedErr)
 		ids, err := s.secretStore.List(ctx)
 
 		assert.Nil(t, ids)
-		assert.True(t, errors.IsNotFoundError(err))
-		assert.Equal(t, errors.NotFoundError("%v", expectedErr), err)
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -211,16 +196,10 @@ func (s *akvSecretStoreTestSuite) TestRefresh() {
 
 	s.T().Run("should fail if UpdateSecret fails", func(t *testing.T) {
 		expectedErr := fmt.Errorf("error")
-		akvErr := autorest.DetailedError{
-			Original:   expectedErr,
-			StatusCode: http.StatusNotFound,
-		}
-
-		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, expectedExpirationDate).Return(keyvault.SecretBundle{}, akvErr)
+		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, expectedExpirationDate).Return(keyvault.SecretBundle{}, expectedErr)
 		err := s.secretStore.Refresh(ctx, id, version, expectedExpirationDate)
 
-		assert.True(t, errors.IsNotFoundError(err))
-		assert.Equal(t, errors.NotFoundError("%v", expectedErr), err)
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -235,11 +214,11 @@ func (s *akvSecretStoreTestSuite) TestDestroy() {
 	})
 
 	s.T().Run("should fail with NotFoundError if DeleteSecret fails with 404", func(t *testing.T) {
-		akvErr := errors.NotFoundError("not found")
+		expectedErr := errors.NotFoundError("not found")
 
-		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(false, akvErr)
+		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(false, expectedErr)
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.True(t, errors.IsNotFoundError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 }

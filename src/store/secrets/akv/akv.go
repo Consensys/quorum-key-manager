@@ -5,7 +5,6 @@ import (
 	"path"
 	"time"
 
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -32,7 +31,7 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	res, err := s.client.SetSecret(ctx, id, value, attr.Tags)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseSecretBundle(&res), nil
@@ -41,7 +40,7 @@ func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attrib
 func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	res, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseSecretBundle(&res), nil
@@ -50,7 +49,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 func (s *Store) List(ctx context.Context) ([]string, error) {
 	items, err := s.client.GetSecrets(ctx, 0)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	var list []string
@@ -65,7 +64,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 func (s *Store) Refresh(ctx context.Context, id, version string, expirationDate time.Time) error {
 	_, err := s.client.UpdateSecret(ctx, id, version, expirationDate)
 	if err != nil {
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	return nil
@@ -74,7 +73,7 @@ func (s *Store) Refresh(ctx context.Context, id, version string, expirationDate 
 func (s *Store) Delete(ctx context.Context, id string) (*entities.Secret, error) {
 	res, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseDeleteSecretBundle(&res), nil
