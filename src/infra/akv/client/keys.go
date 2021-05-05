@@ -13,21 +13,28 @@ func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.
 	crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation,
 	tags map[string]string) (keyvault.KeyBundle, error) {
 
-	return c.client.CreateKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyCreateParameters{
-		Kty:   kty,
-		Curve: crv,
-		Tags:  common.Tomapstrptr(tags),
-		// KeyOps:        &ops,
+	result, err := c.client.CreateKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyCreateParameters{
+		Kty:           kty,
+		Curve:         crv,
+		Tags:          common.Tomapstrptr(tags),
 		KeyAttributes: attr,
 	})
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
 func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
-	return c.client.ImportKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyImportParameters{
+	result, err := c.client.ImportKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyImportParameters{
 		Key:           k,
 		Tags:          common.Tomapstrptr(tags),
 		KeyAttributes: attr,
 	})
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
 func (c *AKVClient) GetKey(ctx context.Context, keyName, version string) (keyvault.KeyBundle, error) {
@@ -41,7 +48,7 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 	}
 	res, err := c.client.GetKeys(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
-		return nil, err
+		return nil, ParseErrorResponse(err)
 	}
 
 	if len(res.Values()) == 0 {
@@ -53,19 +60,31 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 
 func (c *AKVClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes,
 	ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
-	return c.client.UpdateKey(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyUpdateParameters{
+	result, err := c.client.UpdateKey(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyUpdateParameters{
 		KeyAttributes: attr,
 		Tags:          common.Tomapstrptr(tags),
 		KeyOps:        &ops,
 	})
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
-func (c *AKVClient) DeleteKey(ctx context.Context, keyName string) (result keyvault.DeletedKeyBundle, err error) {
-	return c.client.DeleteKey(ctx, c.cfg.Endpoint, keyName)
+func (c *AKVClient) DeleteKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
+	result, err := c.client.DeleteKey(ctx, c.cfg.Endpoint, keyName)
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
 func (c *AKVClient) GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
-	return c.client.GetDeletedKey(ctx, c.cfg.Endpoint, keyName)
+	result, err := c.client.GetDeletedKey(ctx, c.cfg.Endpoint, keyName)
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
 func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error) {
@@ -75,7 +94,7 @@ func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]key
 	}
 	res, err := c.client.GetDeletedKeys(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
-		return nil, err
+		return nil, ParseErrorResponse(err)
 	}
 	if len(res.Values()) == 0 {
 		return []keyvault.DeletedKeyItem{}, nil
@@ -87,13 +106,17 @@ func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]key
 func (c *AKVClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, error) {
 	res, err := c.client.PurgeDeletedKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return false, err
+		return false, ParseErrorResponse(err)
 	}
 	return res.StatusCode == http.StatusNoContent, nil
 }
 
 func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error) {
-	return c.client.RecoverDeletedKey(ctx, c.cfg.Endpoint, keyName)
+	result, err := c.client.RecoverDeletedKey(ctx, c.cfg.Endpoint, keyName)
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
 func (c *AKVClient) Sign(ctx context.Context, keyName, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
@@ -102,7 +125,7 @@ func (c *AKVClient) Sign(ctx context.Context, keyName, version string, alg keyva
 		Algorithm: alg,
 	})
 	if err != nil {
-		return "", err
+		return "", ParseErrorResponse(err)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -117,7 +140,7 @@ func (c *AKVClient) Encrypt(ctx context.Context, keyName, version string, alg ke
 		Algorithm: alg,
 	})
 	if err != nil {
-		return "", err
+		return "", ParseErrorResponse(err)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -132,7 +155,7 @@ func (c *AKVClient) Decrypt(ctx context.Context, keyName, version string, alg ke
 		Algorithm: alg,
 	})
 	if err != nil {
-		return "", err
+		return "", ParseErrorResponse(err)
 	}
 
 	if res.StatusCode != http.StatusOK {

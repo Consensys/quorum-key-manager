@@ -19,7 +19,9 @@ type SecretClient interface {
 	GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error)
 	GetSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error)
 	UpdateSecret(ctx context.Context, secretName string, secretVersion string, expireAt time.Time) (keyvault.SecretBundle, error)
-	DeleteSecret(ctx context.Context, secretName string) (result keyvault.DeletedSecretBundle, err error)
+	DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error)
+	GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error)
+	PurgeDeletedSecret(ctx context.Context, secretName string) (bool, error)
 }
 
 type KeysClient interface {

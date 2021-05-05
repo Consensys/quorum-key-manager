@@ -110,6 +110,36 @@ func (mr *MockClientMockRecorder) DeleteSecret(ctx, secretName interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockClient)(nil).DeleteSecret), ctx, secretName)
 }
 
+// GetDeletedSecret mocks base method
+func (m *MockClient) GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, secretName)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeletedSecret indicates an expected call of GetDeletedSecret
+func (mr *MockClientMockRecorder) GetDeletedSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedSecret", reflect.TypeOf((*MockClient)(nil).GetDeletedSecret), ctx, secretName)
+}
+
+// PurgeDeletedSecret mocks base method
+func (m *MockClient) PurgeDeletedSecret(ctx context.Context, secretName string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PurgeDeletedSecret", ctx, secretName)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PurgeDeletedSecret indicates an expected call of PurgeDeletedSecret
+func (mr *MockClientMockRecorder) PurgeDeletedSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PurgeDeletedSecret", reflect.TypeOf((*MockClient)(nil).PurgeDeletedSecret), ctx, secretName)
+}
+
 // CreateKey mocks base method
 func (m *MockClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
@@ -401,6 +431,36 @@ func (m *MockSecretClient) DeleteSecret(ctx context.Context, secretName string) 
 func (mr *MockSecretClientMockRecorder) DeleteSecret(ctx, secretName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockSecretClient)(nil).DeleteSecret), ctx, secretName)
+}
+
+// GetDeletedSecret mocks base method
+func (m *MockSecretClient) GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, secretName)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeletedSecret indicates an expected call of GetDeletedSecret
+func (mr *MockSecretClientMockRecorder) GetDeletedSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedSecret", reflect.TypeOf((*MockSecretClient)(nil).GetDeletedSecret), ctx, secretName)
+}
+
+// PurgeDeletedSecret mocks base method
+func (m *MockSecretClient) PurgeDeletedSecret(ctx context.Context, secretName string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PurgeDeletedSecret", ctx, secretName)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PurgeDeletedSecret indicates an expected call of PurgeDeletedSecret
+func (mr *MockSecretClientMockRecorder) PurgeDeletedSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PurgeDeletedSecret", reflect.TypeOf((*MockSecretClient)(nil).PurgeDeletedSecret), ctx, secretName)
 }
 
 // MockKeysClient is a mock of KeysClient interface

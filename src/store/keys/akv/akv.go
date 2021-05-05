@@ -51,7 +51,7 @@ func (k Store) Create(ctx context.Context, id string, alg *entities.Algorithm, a
 }
 
 func (k Store) Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	iWebKey, err := WebImportKey(privKey, alg)
+	iWebKey, err := webImportKey(privKey, alg)
 	if err != nil {
 		return nil, err
 	}
@@ -157,19 +157,9 @@ func (k Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (k Store) Destroy(ctx context.Context, id string) error {
-	// Firstly, we check if key was previously soft-deleted, otherwise we trigger its delete first
-	_, err := k.GetDeleted(ctx, id)
-	if errors.IsNotFoundError(err) {
-		_, err = k.client.DeleteKey(ctx, id)
-	}
-
+	_, err := k.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
-		return akvclient.ParseErrorResponse(err)
-	}
-
-	_, err = k.client.PurgeDeletedKey(ctx, id)
-	if err != nil {
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	return nil

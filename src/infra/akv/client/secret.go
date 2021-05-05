@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -10,14 +11,22 @@ import (
 )
 
 func (c *AKVClient) SetSecret(ctx context.Context, secretName, value string, tags map[string]string) (keyvault.SecretBundle, error) {
-	return c.client.SetSecret(ctx, c.cfg.Endpoint, secretName, keyvault.SecretSetParameters{
+	result, err := c.client.SetSecret(ctx, c.cfg.Endpoint, secretName, keyvault.SecretSetParameters{
 		Value: &value,
 		Tags:  common.Tomapstrptr(tags),
 	})
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
-func (c *AKVClient) GetSecret(ctx context.Context, secretName, secretVersion string) (result keyvault.SecretBundle, err error) {
-	return c.client.GetSecret(ctx, c.cfg.Endpoint, secretName, secretVersion)
+func (c *AKVClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
+	result, err := c.client.GetSecret(ctx, c.cfg.Endpoint, secretName, secretVersion)
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
 func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error) {
@@ -27,7 +36,7 @@ func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvaul
 	}
 	res, err := c.client.GetSecrets(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
-		return nil, err
+		return nil, ParseErrorResponse(err)
 	}
 
 	if len(res.Values()) == 0 {
@@ -37,15 +46,40 @@ func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvaul
 	return res.Values(), nil
 }
 
-func (c *AKVClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (result keyvault.SecretBundle, err error) {
+func (c *AKVClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (keyvault.SecretBundle, error) {
 	expireAtDate := date.NewUnixTimeFromNanoseconds(expireAt.UnixNano())
-	return c.client.UpdateSecret(ctx, c.cfg.Endpoint, secretName, secretVersion, keyvault.SecretUpdateParameters{
+	result, err := c.client.UpdateSecret(ctx, c.cfg.Endpoint, secretName, secretVersion, keyvault.SecretUpdateParameters{
 		SecretAttributes: &keyvault.SecretAttributes{
 			Expires: &expireAtDate,
 		},
 	})
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
 }
 
-func (c *AKVClient) DeleteSecret(ctx context.Context, secretName string) (result keyvault.DeletedSecretBundle, err error) {
-	return c.client.DeleteSecret(ctx, c.cfg.Endpoint, secretName)
+func (c *AKVClient) DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
+	result, err := c.client.DeleteSecret(ctx, c.cfg.Endpoint, secretName)
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
+}
+
+func (c *AKVClient) GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
+	result, err := c.client.GetDeletedSecret(ctx, c.cfg.Endpoint, secretName)
+	if err != nil {
+		return result, ParseErrorResponse(err)
+	}
+	return result, nil
+}
+
+func (c *AKVClient) PurgeDeletedSecret(ctx context.Context, secretName string) (bool, error) {
+	res, err := c.client.PurgeDeletedSecret(ctx, c.cfg.Endpoint, secretName)
+	if err != nil {
+		return false, ParseErrorResponse(err)
+	}
+
+	return res.StatusCode == http.StatusNoContent, nil
 }

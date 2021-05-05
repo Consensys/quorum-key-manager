@@ -4,13 +4,15 @@ package integrationtests
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"testing"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"os"
-	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
@@ -42,7 +44,7 @@ func (s *secretsTestSuite) TearDownSuite() {
 
 func TestKeyManagerSecrets(t *testing.T) {
 	s := new(secretsTestSuite)
-	
+
 	var err error
 	s.env, err = NewIntegrationEnvironment(context.Background())
 	if err != nil {
@@ -64,10 +66,10 @@ func TestKeyManagerSecrets(t *testing.T) {
 
 func (s *secretsTestSuite) TestSet() {
 	ctx := s.env.ctx
-
+	id := fmt.Sprintf("my-secret-set-%d", common.RandInt(1000))
 	s.T().Run("should set a new secret successfully", func(t *testing.T) {
 		request := &types.SetSecretRequest{
-			ID:    "my-secret-set",
+			ID:    id,
 			Value: "my-secret-value",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -110,9 +112,10 @@ func (s *secretsTestSuite) TestSet() {
 }
 
 func (s *secretsTestSuite) TestGet() {
+	id := fmt.Sprintf("my-secret-get-%d", common.RandInt(1000))
 	ctx := s.env.ctx
 	request := &types.SetSecretRequest{
-		ID:    "my-secret-get",
+		ID:    id,
 		Value: "my-secret-value",
 	}
 
@@ -156,9 +159,10 @@ func (s *secretsTestSuite) TestGet() {
 }
 
 func (s *secretsTestSuite) TestList() {
+	id := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
 	ctx := s.env.ctx
 	request := &types.SetSecretRequest{
-		ID:    "my-secret-list",
+		ID:    id,
 		Value: "my-secret-value",
 	}
 

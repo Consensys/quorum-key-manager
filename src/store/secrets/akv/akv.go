@@ -35,7 +35,7 @@ func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attrib
 		return nil, akvclient.ParseErrorResponse(err)
 	}
 
-	return parseSecretBundle(res), nil
+	return parseSecretBundle(&res), nil
 }
 
 func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
@@ -44,7 +44,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 		return nil, akvclient.ParseErrorResponse(err)
 	}
 
-	return parseSecretBundle(res), nil
+	return parseSecretBundle(&res), nil
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
@@ -72,8 +72,12 @@ func (s *Store) Refresh(ctx context.Context, id, version string, expirationDate 
 }
 
 func (s *Store) Delete(ctx context.Context, id string) (*entities.Secret, error) {
+	res, err := s.client.DeleteSecret(ctx, id)
+	if err != nil {
+		return nil, akvclient.ParseErrorResponse(err)
+	}
 
-	return nil, errors.ErrNotImplemented
+	return parseDeleteSecretBundle(&res), nil
 }
 
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
@@ -89,9 +93,9 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	_, err := s.client.DeleteSecret(ctx, id)
+	_, err := s.client.PurgeDeletedSecret(ctx, id)
 	if err != nil {
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	return nil

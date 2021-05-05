@@ -3,6 +3,11 @@
 package integrationtests
 
 import (
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
@@ -10,11 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
-
-// TODO: Destroy secrets when done with the tests to avoid conflicts between tests
 
 type akvSecretTestSuite struct {
 	suite.Suite
@@ -26,7 +27,7 @@ func (s *akvSecretTestSuite) TestSet() {
 	ctx := s.env.ctx
 
 	s.T().Run("should create a new secret successfully", func(t *testing.T) {
-		id := "my-secret"
+		id := fmt.Sprintf("my-secret-%d", common.RandInt(1000))
 		value := "my-secret-value"
 		tags := testutils.FakeTags()
 
@@ -47,12 +48,13 @@ func (s *akvSecretTestSuite) TestSet() {
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.False(t, secret.Metadata.Disabled)
 
-		err = s.store.Destroy(ctx, id)
+		_, err = s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	})
 
 	s.T().Run("should increase version at each set", func(t *testing.T) {
-		id := "my-secret-versioned"
+		id := fmt.Sprintf("my-secret-versioned-%d", common.RandInt(1000))
 		value1 := "my-secret-value1"
 		value2 := "my-secret-value2"
 		tags1 := testutils.FakeTags()
@@ -77,15 +79,16 @@ func (s *akvSecretTestSuite) TestSet() {
 		assert.Equal(t, value2, secret2.Value)
 		assert.NotEqual(t, secret1.Metadata.Version, secret2.Metadata.Version)
 
-		err = s.store.Destroy(ctx, id)
+		_, err = s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	})
 }
 
 func (s *akvSecretTestSuite) TestList() {
 	ctx := s.env.ctx
-	id := "my-secret-list1"
-	id2 := "my-secret-list2"
+	id := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
+	id2 := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
 	value := "my-secret-value"
 
 	// 2 with same ID and 1 different
@@ -103,15 +106,18 @@ func (s *akvSecretTestSuite) TestList() {
 		assert.NotEmpty(t, ids)
 	})
 
-	err = s.store.Destroy(ctx, id)
+	_, err = s.store.Delete(ctx, id)
 	require.NoError(s.T(), err)
-	err = s.store.Destroy(ctx, id2)
+	_ = s.store.Destroy(ctx, id)
+
+	_, err = s.store.Delete(ctx, id2)
 	require.NoError(s.T(), err)
+	_ = s.store.Destroy(ctx, id2)
 }
 
 func (s *akvSecretTestSuite) TestGet() {
 	ctx := s.env.ctx
-	id := "my-secret-get"
+	id := fmt.Sprintf("my-secret-get-%d", common.RandInt(1000))
 	value := "my-secret-value"
 
 	// 2 with same ID
@@ -169,23 +175,25 @@ func (s *akvSecretTestSuite) TestGet() {
 		require.True(t, errors.IsNotFoundError(err))
 	})
 
-	err = s.store.Destroy(ctx, id)
+	_, err = s.store.Delete(ctx, id)
 	require.NoError(s.T(), err)
+	_ = s.store.Destroy(ctx, id)
 }
 
 func (s *akvSecretTestSuite) TestRefresh() {
 	ctx := s.env.ctx
-	id := "my-secret-refresh"
-	value1 := "my-secret-value1"
-	value2 := "my-secret-value2"
-
-	_, err := s.store.Set(ctx, id, value1, &entities.Attributes{})
-	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id, value2, &entities.Attributes{})
-	require.NoError(s.T(), err)
+	id := fmt.Sprintf("my-secret-refresh-%d", common.RandInt(1000))
 
 	s.T().Run("should refresh secret with new expiration date", func(t *testing.T) {
-		err := s.store.Refresh(ctx, id, "", time.Now().Add(time.Hour*24))
+		value1 := "my-secret-value1"
+		value2 := "my-secret-value2"
+
+		_, err := s.store.Set(ctx, id, value1, &entities.Attributes{})
+		require.NoError(s.T(), err)
+		_, err = s.store.Set(ctx, id, value2, &entities.Attributes{})
+		require.NoError(s.T(), err)
+
+		err = s.store.Refresh(ctx, id, "", time.Now().Add(time.Hour*24))
 		require.NoError(t, err)
 
 		secret, err := s.store.Get(ctx, id, "")
@@ -194,8 +202,10 @@ func (s *akvSecretTestSuite) TestRefresh() {
 		assert.NotEmpty(t, secret.Metadata.Version)
 
 		assert.True(t, secret.Metadata.ExpireAt.After(time.Now()))
+
+		_, err = s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	})
 
-	err = s.store.Destroy(ctx, id)
-	require.NoError(s.T(), err)
 }

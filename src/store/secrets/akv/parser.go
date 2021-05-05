@@ -9,11 +9,13 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-func parseSecretBundle(secretBundle keyvault.SecretBundle) *entities.Secret {
+func parseSecretBundle(secretBundle *keyvault.SecretBundle) *entities.Secret {
 	secret := &entities.Secret{
-		Value:    *secretBundle.Value,
 		Tags:     common.Tomapstr(secretBundle.Tags),
 		Metadata: &entities.Metadata{},
+	}
+	if secretBundle.Value != nil {
+		secret.Value = *secretBundle.Value
 	}
 
 	if secretBundle.ID != nil {
@@ -36,4 +38,13 @@ func parseSecretBundle(secretBundle keyvault.SecretBundle) *entities.Secret {
 	}
 
 	return secret
+}
+
+func parseDeleteSecretBundle(res *keyvault.DeletedSecretBundle) *entities.Secret {
+	return parseSecretBundle(&keyvault.SecretBundle{
+		ID:         res.ID,
+		Tags:       res.Tags,
+		Value:      res.Value,
+		Attributes: res.Attributes,
+	})
 }

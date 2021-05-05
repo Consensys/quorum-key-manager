@@ -16,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// TODO Verify list of KM operation and their corresponding into AKV
 func convertToAKVOps(ops []entities.CryptoOperation) []keyvault.JSONWebKeyOperation {
 	akvOps := []keyvault.JSONWebKeyOperation{}
 
@@ -48,7 +47,7 @@ func convertToAKVKeyType(alg *entities.Algorithm) (keyvault.JSONWebKeyType, erro
 	case entities.Ecdsa:
 		return keyvault.EC, nil
 	case entities.Eddsa:
-		return "", errors.ErrNotImplemented
+		return "", errors.ErrNotSupported
 	default:
 		return "", errors.InvalidParameterError("invalid key type")
 	}
@@ -63,7 +62,7 @@ func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	return kAttr
 }
 
-func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
+func webImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
 	var pKeyD, pKeyX, pKeyY string
 	switch alg.Type {
 	case entities.Ecdsa:
@@ -76,7 +75,7 @@ func WebImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey
 		pKeyX = base64.RawURLEncoding.EncodeToString(pKey.X.Bytes())
 		pKeyY = base64.RawURLEncoding.EncodeToString(pKey.Y.Bytes())
 	case entities.Eddsa:
-		return nil, errors.ErrNotImplemented
+		return nil, errors.ErrNotSupported
 	default:
 		return nil, errors.InvalidParameterError("invalid key type")
 	}
@@ -138,7 +137,7 @@ func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatu
 			return "", errors.InvalidParameterError("invalid elliptic curve")
 		}
 	case entities.Eddsa:
-		return "", errors.ErrNotImplemented
+		return "", errors.ErrNotSupported
 	default:
 		return "", errors.InvalidParameterError("invalid key type")
 	}

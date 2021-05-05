@@ -229,22 +229,17 @@ func (s *akvSecretStoreTestSuite) TestDestroy() {
 	id := "my-secret6"
 
 	s.T().Run("should delete a secret successfully", func(t *testing.T) {
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id).Return(keyvault.DeletedSecretBundle{}, nil)
+		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(true, nil)
 		err := s.secretStore.Destroy(ctx, id)
 		assert.NoError(t, err)
 	})
 
 	s.T().Run("should fail with NotFoundError if DeleteSecret fails with 404", func(t *testing.T) {
-		expectedErr := fmt.Errorf("error")
-		akvErr := autorest.DetailedError{
-			Original:   expectedErr,
-			StatusCode: http.StatusNotFound,
-		}
+		akvErr := errors.NotFoundError("not found")
 
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id).Return(keyvault.DeletedSecretBundle{}, akvErr)
+		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(false, akvErr)
 		err := s.secretStore.Destroy(ctx, id)
 
 		assert.True(t, errors.IsNotFoundError(err))
-		assert.Equal(t, errors.NotFoundError("%v", expectedErr), err)
 	})
 }

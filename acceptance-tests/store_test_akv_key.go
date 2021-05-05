@@ -4,16 +4,17 @@ package integrationtests
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 	"testing"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -29,7 +30,7 @@ func (s *akvKeyTestSuite) TestCreate() {
 	ctx := s.env.ctx
 
 	s.T().Run("should create a new key pair successfully", func(t *testing.T) {
-		id := "my-key-create"
+		id := fmt.Sprintf("my-key-create-%d", common.RandInt(1000))
 		tags := testutils.FakeTags()
 
 		key, err := s.store.Create(ctx, id, &entities.Algorithm{
@@ -53,9 +54,10 @@ func (s *akvKeyTestSuite) TestCreate() {
 		assert.True(t, key.Metadata.DestroyedAt.IsZero())
 		assert.True(t, key.Metadata.ExpireAt.IsZero())
 		assert.False(t, key.Metadata.Disabled)
-		
-		err = s.store.Destroy(ctx, id)
-		assert.Error(s.T(), err)
+
+		_, err = s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	})
 
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
@@ -79,7 +81,7 @@ func (s *akvKeyTestSuite) TestImport() {
 	tags := testutils.FakeTags()
 
 	s.T().Run("should import a new key pair successfully: ECDSA/Secp256k1", func(t *testing.T) {
-		id := "my-key-ecdsa-import"
+		id := fmt.Sprintf("my-key-ecdsa-import-%d", common.RandInt(1000))
 
 		key, err := s.store.Import(ctx, id, "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c", &entities.Algorithm{
 			Type:          entities.Ecdsa,
@@ -90,7 +92,6 @@ func (s *akvKeyTestSuite) TestImport() {
 
 		require.NoError(t, err)
 
-		
 		assert.Equal(t, id, key.ID)
 		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", key.PublicKey)
 		assert.Equal(t, tags, key.Tags)
@@ -103,9 +104,10 @@ func (s *akvKeyTestSuite) TestImport() {
 		assert.True(t, key.Metadata.DestroyedAt.IsZero())
 		assert.True(t, key.Metadata.ExpireAt.IsZero())
 		assert.False(t, key.Metadata.Disabled)
-		
-		err = s.store.Destroy(ctx, id)
-		assert.Error(s.T(), err)
+
+		_, err = s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	})
 
 	s.T().Run("should fail to import a new key pair: EDDSA/BN254 (not implemented yet)", func(t *testing.T) {
@@ -120,7 +122,7 @@ func (s *akvKeyTestSuite) TestImport() {
 		})
 
 		require.Nil(t, key)
-		assert.Equal(t, err, errors.ErrNotImplemented)
+		assert.Equal(t, err, errors.ErrNotSupported)
 	})
 
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
@@ -141,7 +143,7 @@ func (s *akvKeyTestSuite) TestImport() {
 
 func (s *akvKeyTestSuite) TestGet() {
 	ctx := s.env.ctx
-	id := "my-key-get"
+	id := fmt.Sprintf("my-key-get-%d", common.RandInt(1000))
 	tags := testutils.FakeTags()
 
 	key, err := s.store.Import(ctx, id, "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c", &entities.Algorithm{
@@ -153,8 +155,9 @@ func (s *akvKeyTestSuite) TestGet() {
 	require.NoError(s.T(), err)
 
 	defer func() {
-		err := s.store.Destroy(ctx, id)
-		assert.Error(s.T(), err)
+		_, err = s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	}()
 
 	s.T().Run("should get a key pair successfully", func(t *testing.T) {
@@ -182,30 +185,30 @@ func (s *akvKeyTestSuite) TestGet() {
 		assert.True(t, errors.IsNotFoundError(err))
 	})
 }
-
 func (s *akvKeyTestSuite) TestList() {
 	ctx := s.env.ctx
-	id := "my-key-list1"
 	tags := testutils.FakeTags()
+	id := fmt.Sprintf("my-key-list-%s", common.RandString(5))
 
-	_, err := s.store.Import(ctx, id, "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c", &entities.Algorithm{
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
-
+	
 	defer func() {
-		err := s.store.Destroy(ctx, id)
-		assert.Error(s.T(), err)
+		_, err := s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	}()
 
 	s.T().Run("should list all key pairs", func(t *testing.T) {
 		keys, err := s.store.List(ctx)
 		require.NoError(t, err)
 
-		assert.Contains(t, keys, id)
+		assert.NotEmpty(t, keys)
 	})
 }
 
@@ -215,7 +218,7 @@ func (s *akvKeyTestSuite) TestSign() {
 	payload := hexutil.Encode([]byte("my data to sign"))
 	privKey := "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
 
-	id := "mykey-sign-ecdsa"
+	id := fmt.Sprintf("mykey-sign-ecdsa-%d", common.RandInt(1000))
 	_, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
@@ -225,8 +228,9 @@ func (s *akvKeyTestSuite) TestSign() {
 	require.NoError(s.T(), err)
 
 	defer func() {
-		err := s.store.Destroy(ctx, id)
-		assert.Error(s.T(), err)
+		_, err = s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+		_ = s.store.Destroy(ctx, id)
 	}()
 
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
@@ -246,8 +250,6 @@ func (s *akvKeyTestSuite) TestSign() {
 		require.Empty(t, key)
 		assert.True(t, errors.IsInvalidFormatError(err))
 	})
-
-	// TODO: Implement error tests and destroy keys (delete + purge)
 }
 
 func verifySignature(signature, msg, privKey string) (bool, error) {
