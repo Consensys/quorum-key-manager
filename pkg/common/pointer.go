@@ -1,9 +1,9 @@
 package common
 
-func BoolPtr(b bool) *bool {
-	return &b
-}
+import "reflect"
 
-func IntPtr(i int) *int {
-	return &i
+func ToPtr(v interface{}) interface{} {
+	p := reflect.New(reflect.TypeOf(v))
+	p.Elem().Set(reflect.ValueOf(v))
+	return p.Interface()
 }

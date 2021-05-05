@@ -19,15 +19,15 @@ func (cfg *DialerConfig) SetDefault() *DialerConfig {
 	}
 
 	if cfg.ReadBufferSize == nil {
-		cfg.ReadBufferSize = common.IntPtr(1024)
+		cfg.ReadBufferSize = common.ToPtr(int(1024)).(*int)
 	}
 
 	if cfg.WriteBufferSize == nil {
-		cfg.WriteBufferSize = common.IntPtr(1024)
+		cfg.WriteBufferSize = common.ToPtr(int(1024)).(*int)
 	}
 
 	if cfg.EnableCompression == nil {
-		cfg.EnableCompression = common.BoolPtr(false)
+		cfg.EnableCompression = common.ToPtr(false).(*bool)
 	}
 
 	return cfg
