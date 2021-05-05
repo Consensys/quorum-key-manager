@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
@@ -10,13 +11,20 @@ import (
 )
 
 func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*hexutil.Bytes, error) {
-	// Get store for from
-	store, err := i.stores.GetAccountStoreByAddr(ctx, msg.From)
-	if err != nil {
-		return nil, err
+	if msg.Gas == nil {
+		return nil, jsonrpc.InvalidParamsError(fmt.Errorf("gas not specified"))
 	}
 
-	txData, err := msg.TxData()
+	if msg.GasPrice == nil {
+		return nil, jsonrpc.InvalidParamsError(fmt.Errorf("gasPrice not specified"))
+	}
+
+	if msg.Nonce == nil {
+		return nil, jsonrpc.InvalidParamsError(fmt.Errorf("nonce not specified"))
+	}
+
+	// Get store for from
+	store, err := i.stores.GetAccountStoreByAddr(ctx, msg.From)
 	if err != nil {
 		return nil, err
 	}
@@ -31,9 +39,9 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	// Sign
 	sig := new([]byte)
 	if msg.IsPrivate() {
-		*sig, err = store.SignPrivate(ctx, msg.From, txData)
+		*sig, err = store.SignPrivate(ctx, msg.From, msg.TxData())
 	} else {
-		*sig, err = store.SignEIP155(ctx, chainID, msg.From, txData)
+		*sig, err = store.SignEIP155(ctx, chainID, msg.From, msg.TxData())
 	}
 
 	if err != nil {

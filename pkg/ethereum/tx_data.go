@@ -15,7 +15,7 @@ type TxData struct {
 	Data     []byte
 }
 
-func (tx *TxData) SetDefault() {
+func (tx *TxData) SetDefault() *TxData {
 	if tx.Value == nil {
 		tx.Value = big.NewInt(0)
 	}
@@ -23,4 +23,6 @@ func (tx *TxData) SetDefault() {
 	if tx.GasPrice == nil {
 		tx.GasPrice = big.NewInt(0)
 	}
+
+	return tx
 }

@@ -2,7 +2,6 @@ package ethereum
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -67,34 +66,26 @@ func (msg *SendTxMsg) IsPrivate() bool {
 	return msg.PrivateArgs != PrivateArgs{}
 }
 
-func (msg *SendTxMsg) TxData() (*TxData, error) {
-	if msg.Gas == nil {
-		return nil, fmt.Errorf("gas not specified")
-	}
-
-	if msg.GasPrice == nil {
-		return nil, fmt.Errorf("gasPrice not specified")
-	}
-
-	if msg.Nonce == nil {
-		return nil, fmt.Errorf("nonce not specified")
-	}
-
-	tx := &TxData{
+func (msg *SendTxMsg) TxData() *TxData {
+	data := &TxData{
 		To:       msg.To,
-		GasLimit: *msg.Gas,
 		GasPrice: msg.GasPrice,
 		Value:    msg.Value,
-		Nonce:    *msg.Nonce,
+	}
+
+	if msg.Gas != nil {
+		data.GasLimit = *msg.Gas
+	}
+
+	if msg.Nonce != nil {
+		data.Nonce = *msg.Nonce
 	}
 
 	if msg.Data != nil {
-		tx.Data = *msg.Data
+		data.Data = *msg.Data
 	}
 
-	tx.SetDefault()
-
-	return tx, nil
+	return data.SetDefault()
 }
 
 type jsonSendTxMsg struct {
@@ -163,21 +154,20 @@ type SendEEATxMsg struct {
 	PrivateArgs
 }
 
-func (msg *SendEEATxMsg) TxData() (*EEATxData, error) {
-	if msg.Nonce == nil {
-		return nil, fmt.Errorf("nonce not specified")
+func (msg *SendEEATxMsg) TxData() *EEATxData {
+	data := &EEATxData{
+		To: msg.To,
 	}
 
-	tx := &EEATxData{
-		To:    msg.To,
-		Nonce: *msg.Nonce,
+	if msg.Nonce != nil {
+		data.Nonce = *msg.Nonce
 	}
 
 	if msg.Data != nil {
-		tx.Data = *msg.Data
+		data.Data = *msg.Data
 	}
 
-	return tx, nil
+	return data
 }
 
 type jsonSendEEATxMsg struct {
