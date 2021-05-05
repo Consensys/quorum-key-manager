@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
 	"github.com/oxtoacart/bpool"
 )
 
@@ -31,7 +30,7 @@ func BenchmarkProxy(b *testing.B) {
 	req, _ := http.NewRequest(http.MethodGet, "http://foo.bar/", nil)
 
 	proxy, err := New(
-		(&Config{Request: &request.ProxyConfig{PassHostHeader: Bool(false)}}).SetDefault(),
+		testCfg(false),
 		&staticTransport{res},
 		nil,
 		nil,
