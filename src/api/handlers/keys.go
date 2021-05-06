@@ -58,8 +58,8 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 		ctx,
 		createKeyRequest.ID,
 		&entities.Algorithm{
-			Type:          createKeyRequest.SigningAlgorithm,
-			EllipticCurve: createKeyRequest.Curve,
+			Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
+			EllipticCurve: entities.Curve(createKeyRequest.Curve),
 		},
 		&entities.Attributes{
 			Tags: createKeyRequest.Tags,
@@ -94,8 +94,8 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		importKeyRequest.ID,
 		importKeyRequest.PrivateKey,
 		&entities.Algorithm{
-			Type:          importKeyRequest.SigningAlgorithm,
-			EllipticCurve: importKeyRequest.Curve,
+			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
+			EllipticCurve: entities.Curve(importKeyRequest.Curve),
 		},
 		&entities.Attributes{
 			Tags: importKeyRequest.Tags,
@@ -180,7 +180,6 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	version := request.URL.Query().Get("version")
 
 	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
 	if err != nil {
@@ -188,7 +187,7 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = keyStore.Destroy(ctx, id, version)
+	err = keyStore.Destroy(ctx, id)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

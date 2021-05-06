@@ -4,13 +4,15 @@ package integrationtests
 
 import (
 	"context"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
-	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"os"
 	"testing"
 
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
+	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
+	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -76,7 +78,7 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
 		return
 	}
 
-	store := akv.New(s.env.akvClient)
+	store := akvsecret.New(s.env.akvClient)
 
 	testSuite := new(akvSecretTestSuite)
 	testSuite.env = s.env
@@ -93,6 +95,20 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
 	store := hashicorpkey.New(s.env.hashicorpClient, "orchestrate")
 
 	testSuite := new(hashicorpKeyTestSuite)
+	testSuite.env = s.env
+	testSuite.store = store
+	suite.Run(s.T(), testSuite)
+}
+
+func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+
+	store := akvkey.New(s.env.akvClient)
+
+	testSuite := new(akvKeyTestSuite)
 	testSuite.env = s.env
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)

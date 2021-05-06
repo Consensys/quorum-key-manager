@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"fmt"
+	"math/rand"
 	"testing"
 )
 
@@ -19,14 +21,14 @@ import (
 type hashicorpKeyTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store *hashicorp.KeyStore
+	store *hashicorp.Store
 }
 
 func (s *hashicorpKeyTestSuite) TestCreate() {
 	ctx := s.env.ctx
 
 	s.T().Run("should create a new key pair successfully", func(t *testing.T) {
-		id := "my-key-create"
+		id := fmt.Sprintf("my-key-create-%d", rand.Intn(1000))
 		tags := testutils.FakeTags()
 
 		key, err := s.store.Create(ctx, id, &entities.Algorithm{
@@ -73,7 +75,7 @@ func (s *hashicorpKeyTestSuite) TestImport() {
 	tags := testutils.FakeTags()
 
 	s.T().Run("should import a new key pair successfully: ECDSA/Secp256k1", func(t *testing.T) {
-		id := "my-key-ecdsa-import"
+		id := fmt.Sprintf("my-key-ecdsa-import-%d", rand.Intn(1000))
 
 		key, err := s.store.Import(ctx, id, "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c", &entities.Algorithm{
 			Type:          entities.Ecdsa,

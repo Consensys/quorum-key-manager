@@ -5,14 +5,17 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-func parseSecretBundle(secretBundle keyvault.SecretBundle) *entities.Secret {
+func parseSecretBundle(secretBundle *keyvault.SecretBundle) *entities.Secret {
 	secret := &entities.Secret{
-		Value:    *secretBundle.Value,
-		Tags:     tomapstr(secretBundle.Tags),
+		Tags:     common.Tomapstr(secretBundle.Tags),
 		Metadata: &entities.Metadata{},
+	}
+	if secretBundle.Value != nil {
+		secret.Value = *secretBundle.Value
 	}
 
 	if secretBundle.ID != nil {
@@ -37,18 +40,11 @@ func parseSecretBundle(secretBundle keyvault.SecretBundle) *entities.Secret {
 	return secret
 }
 
-func tomapstrptr(m map[string]string) map[string]*string {
-	nm := make(map[string]*string)
-	for k, v := range m {
-		nm[k] = &(&struct{ x string }{v}).x
-	}
-	return nm
-}
-
-func tomapstr(m map[string]*string) map[string]string {
-	nm := make(map[string]string)
-	for k, v := range m {
-		nm[k] = *v
-	}
-	return nm
+func parseDeleteSecretBundle(res *keyvault.DeletedSecretBundle) *entities.Secret {
+	return parseSecretBundle(&keyvault.SecretBundle{
+		ID:         res.ID,
+		Tags:       res.Tags,
+		Value:      res.Value,
+		Attributes: res.Attributes,
+	})
 }

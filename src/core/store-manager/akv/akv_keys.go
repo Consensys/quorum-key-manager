@@ -5,8 +5,8 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
 )
 
-// Specs is the specs format for an Azure Key Vault secret store
-type SecretSpecs struct {
+// Specs is the specs format for an Azure Key Vault key store
+type KeySpecs struct {
 	VaultName           string `json:"vaultName"`
 	SubscriptionID      string `json:"subscriptionID"`
 	TenantID            string `json:"tenantID"`
@@ -21,7 +21,7 @@ type SecretSpecs struct {
 	Resource            string `json:"resource"`
 }
 
-func NewSecretStore(spec *SecretSpecs) (*akv.Store, error) {
+func NewKeyStore(spec *KeySpecs) (*akv.Store, error) {
 	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
 	cli, err := client.NewClient(cfg)
 	if err != nil {

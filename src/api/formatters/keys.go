@@ -9,8 +9,8 @@ func FormatKeyResponse(key *entities.Key) *types.KeyResponse {
 	return &types.KeyResponse{
 		ID:               key.ID,
 		PublicKey:        key.PublicKey,
-		Curve:            key.Algo.EllipticCurve,
-		SigningAlgorithm: key.Algo.Type,
+		Curve:            string(key.Algo.EllipticCurve),
+		SigningAlgorithm: string(key.Algo.Type),
 		Tags:             key.Tags,
 		Version:          key.Metadata.Version,
 		Disabled:         key.Metadata.Disabled,

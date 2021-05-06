@@ -13,8 +13,8 @@ func parseResponse(hashicorpSecret *api.Secret) *entities.Key {
 		ID:        hashicorpSecret.Data[idLabel].(string),
 		PublicKey: hashicorpSecret.Data[publicKeyLabel].(string),
 		Algo: &entities.Algorithm{
-			Type:          hashicorpSecret.Data[algorithmLabel].(string),
-			EllipticCurve: hashicorpSecret.Data[curveLabel].(string),
+			Type:          entities.KeyType(hashicorpSecret.Data[algorithmLabel].(string)),
+			EllipticCurve: entities.Curve(hashicorpSecret.Data[curveLabel].(string)),
 		},
 		Metadata: &entities.Metadata{
 			Version:  hashicorpSecret.Data[versionLabel].(json.Number).String(),

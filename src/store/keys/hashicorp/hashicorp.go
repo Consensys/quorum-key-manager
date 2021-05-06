@@ -7,6 +7,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -28,25 +29,27 @@ const (
 )
 
 // Store is an implementation of key store relying on Hashicorp Vault ConsenSys secret engine
-type KeyStore struct {
+type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
 }
 
+var _ keys.Store = &Store{}
+
 // New creates an HashiCorp key store
-func New(client hashicorp.VaultClient, mountPoint string) *KeyStore {
-	return &KeyStore{
+func New(client hashicorp.VaultClient, mountPoint string) *Store {
+	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
 	}
 }
 
-func (s *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Create a key
-func (s *KeyStore) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -61,7 +64,7 @@ func (s *KeyStore) Create(_ context.Context, id string, alg *entities.Algorithm,
 }
 
 // Import a key
-func (s *KeyStore) Import(_ context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -77,10 +80,10 @@ func (s *KeyStore) Import(_ context.Context, id, privKey string, alg *entities.A
 }
 
 // Get a key
-func (s *KeyStore) Get(_ context.Context, id, version string) (*entities.Key, error) {
+func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error) {
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != "" {
-		return nil, errors.NotImplementedError
+		return nil, errors.ErrNotImplemented
 	}
 
 	res, err := s.client.Read(s.pathKeys(id), nil)
@@ -96,19 +99,19 @@ func (s *KeyStore) Get(_ context.Context, id, version string) (*entities.Key, er
 }
 
 // Get all key ids
-func (s *KeyStore) List(_ context.Context) ([]string, error) {
+func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
-	keys, ok := res.Data["keys"].([]interface{})
+	keyIds, ok := res.Data["keys"].([]interface{})
 	if !ok {
 		return []string{}, nil
 	}
 
 	var ids []string
-	for _, id := range keys {
+	for _, id := range keyIds {
 		ids = append(ids, id.(string))
 	}
 
@@ -116,45 +119,45 @@ func (s *KeyStore) List(_ context.Context) ([]string, error) {
 }
 
 // Update key tags
-func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Refresh key (create new identical version with different TTL)
-func (s *KeyStore) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
-	return errors.NotImplementedError
+func (s *Store) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
+	return errors.ErrNotImplemented
 }
 
 // Delete a key
-func (s *KeyStore) Delete(_ context.Context, id string, versions ...string) (*entities.Key, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) Delete(_ context.Context, id string) (*entities.Key, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Gets a deleted key
-func (s *KeyStore) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Lists all deleted keys
-func (s *KeyStore) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Undelete a previously deleted key
-func (s *KeyStore) Undelete(ctx context.Context, id string) error {
-	return errors.NotImplementedError
+func (s *Store) Undelete(ctx context.Context, id string) error {
+	return errors.ErrNotImplemented
 }
 
 // Destroy a key permanently
-func (s *KeyStore) Destroy(ctx context.Context, id string, versions ...string) error {
-	return errors.NotImplementedError
+func (s *Store) Destroy(ctx context.Context, id string) error {
+	return errors.ErrNotImplemented
 }
 
 // Sign any arbitrary data
-func (s *KeyStore) Sign(_ context.Context, id, data, version string) (string, error) {
+func (s *Store) Sign(_ context.Context, id, data, version string) (string, error) {
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != "" {
-		return "", errors.NotImplementedError
+		return "", errors.ErrNotImplemented
 	}
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
@@ -168,16 +171,16 @@ func (s *KeyStore) Sign(_ context.Context, id, data, version string) (string, er
 }
 
 // Encrypt any arbitrary data using a specified key
-func (s *KeyStore) Encrypt(ctx context.Context, id, data string) (string, error) {
-	return "", errors.NotImplementedError
+func (s *Store) Encrypt(ctx context.Context, id, version, data string) (string, error) {
+	return "", errors.ErrNotImplemented
 
 }
 
 // Decrypt a single block of encrypted data.
-func (s *KeyStore) Decrypt(ctx context.Context, id, data string) (string, error) {
-	return "", errors.NotImplementedError
+func (s *Store) Decrypt(ctx context.Context, id, version, data string) (string, error) {
+	return "", errors.ErrNotImplemented
 }
 
-func (s *KeyStore) pathKeys(suffix string) string {
+func (s *Store) pathKeys(suffix string) string {
 	return path.Join(s.mountPoint, urlPath, suffix)
 }

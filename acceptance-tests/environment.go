@@ -7,10 +7,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
 	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
+	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
+	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 	"k8s.io/apimachinery/pkg/util/rand"
 
@@ -20,7 +23,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
+	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/hashicorp/vault/api"
 )
@@ -36,8 +39,8 @@ const (
 type IntegrationEnvironment struct {
 	ctx             context.Context
 	logger          *log.Logger
-	hashicorpClient *hashicorpclient.HashicorpVaultClient
-	akvClient       *akvclient.AzureClient
+	hashicorpClient hashicorp2.VaultClient
+	akvClient       akv2.Client
 	dockerClient    *docker.Client
 	keyManager      *keymanager.App
 	baseURL         string
@@ -70,7 +73,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
 	logger := log.NewDefaultLogger().WithContext(ctx)
 
-	hashicorpContainer, err := HashicorpContainer(ctx)
+	hashicorpContainer, err := utils.HashicorpContainer(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +118,9 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	akvSpecStr := os.Getenv(flags.AKVEnvironmentEnv)
-	specs := akv.Specs{}
+	specs := akv.KeySpecs{}
 	_ = json.Unmarshal([]byte(akvSpecStr), &specs)
+
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
 		specs.VaultName,
 		specs.TenantID,
@@ -174,7 +178,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 			ForceNoCache:              true,
 			PassthroughRequestHeaders: []string{"X-Vault-Namespace"},
 		},
-		PluginName: hashicorpPluginFilename,
+		PluginName: utils.HashicorpPluginFilename,
 	})
 	if err != nil {
 		env.logger.WithError(err).Error("failed to mount (enable) orchestrate vault plugin")

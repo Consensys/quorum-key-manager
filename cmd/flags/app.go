@@ -11,9 +11,11 @@ func NewAppConfig(vipr *viper.Viper) *app.Config {
 		Logger: newLoggerConfig(vipr),
 		HTTP:   newHTTPConfig(vipr),
 		Manifests: []*manifest.Manifest{
-			newHashicorpManifest(vipr),
+			newHashicorpSecretsManifest(vipr),
+			newHashicorpKeysManifest(vipr),
+			newAKVSecretsManifest(vipr),
+			newAKVKeysManifest(vipr),
 			newNodeManifest(vipr),
-			newAKVManifest(vipr),
 		},
 	}
 }

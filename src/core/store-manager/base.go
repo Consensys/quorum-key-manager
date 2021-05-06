@@ -127,11 +127,21 @@ func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVSecrets:
-		spec := &akv.Specs{}
+		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			return err
 		}
 		store, err := akv.NewSecretStore(spec)
+		if err != nil {
+			return err
+		}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.AKVKeys:
+		spec := &akv.KeySpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			return err
+		}
+		store, err := akv.NewKeyStore(spec)
 		if err != nil {
 			return err
 		}

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
@@ -23,25 +24,27 @@ const (
 )
 
 // Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
-type SecretStore struct {
+type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
 }
 
+var _ secrets.Store = &Store{}
+
 // New creates an HashiCorp secret store
-func New(client hashicorp.VaultClient, mountPoint string) *SecretStore {
-	return &SecretStore{
+func New(client hashicorp.VaultClient, mountPoint string) *Store {
+	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
 	}
 }
 
-func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Set a secret
-func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	data := map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
@@ -63,7 +66,7 @@ func (s *SecretStore) Set(_ context.Context, id, value string, attr *entities.At
 }
 
 // Get a secret
-func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secret, error) {
+func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {
 	var callData map[string][]string
 	if version != "" {
 		_, err := strconv.Atoi(version)
@@ -105,7 +108,7 @@ func (s *SecretStore) Get(_ context.Context, id, version string) (*entities.Secr
 }
 
 // Get all secret ids
-func (s *SecretStore) List(_ context.Context) ([]string, error) {
+func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
 		return nil, hashicorpclient.ParseErrorResponse(err)
@@ -125,7 +128,7 @@ func (s *SecretStore) List(_ context.Context) ([]string, error) {
 }
 
 // Refresh an existing secret by extending its TTL
-func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate time.Time) error {
+func (s *Store) Refresh(_ context.Context, id, _ string, expirationDate time.Time) error {
 	data := make(map[string]interface{})
 	if !expirationDate.IsZero() {
 		data[deleteAfterLabel] = time.Until(expirationDate).String()
@@ -140,35 +143,35 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 }
 
 // Delete a secret
-func (s *SecretStore) Delete(_ context.Context, id string, versions ...string) (*entities.Secret, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) Delete(_ context.Context, id string) (*entities.Secret, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Gets a deleted secret
-func (s *SecretStore) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Lists all deleted secrets
-func (s *SecretStore) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.NotImplementedError
+func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 // Undelete a previously deleted secret
-func (s *SecretStore) Undelete(ctx context.Context, id string) error {
-	return errors.NotImplementedError
+func (s *Store) Undelete(ctx context.Context, id string) error {
+	return errors.ErrNotImplemented
 }
 
 // Destroy a secret permanently
-func (s *SecretStore) Destroy(ctx context.Context, id string, versions ...string) error {
-	return errors.NotImplementedError
+func (s *Store) Destroy(ctx context.Context, id string) error {
+	return errors.ErrNotImplemented
 }
 
 // path compute path from hashicorp mount
-func (s *SecretStore) pathData(id string) string {
+func (s *Store) pathData(id string) string {
 	return path.Join(s.mountPoint, dataLabel, id)
 }
 
-func (s *SecretStore) pathMetadata(id string) string {
+func (s *Store) pathMetadata(id string) string {
 	return path.Join(s.mountPoint, metadataLabel, id)
 }

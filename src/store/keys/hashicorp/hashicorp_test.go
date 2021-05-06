@@ -60,8 +60,8 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		Data: map[string]interface{}{
 			"id":         id,
 			"public_key": publicKey,
-			"curve":      entities.Secp256k1,
-			"algorithm":  entities.Ecdsa,
+			"curve":      string(entities.Secp256k1),
+			"algorithm":  string(entities.Ecdsa),
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
@@ -162,8 +162,8 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		Data: map[string]interface{}{
 			"id":         id,
 			"public_key": publicKey,
-			"curve":      entities.Secp256k1,
-			"algorithm":  entities.Ecdsa,
+			"curve":      string(entities.Secp256k1),
+			"algorithm":  string(entities.Ecdsa),
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
@@ -255,8 +255,8 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		Data: map[string]interface{}{
 			"id":         id,
 			"public_key": publicKey,
-			"curve":      entities.Secp256k1,
-			"algorithm":  entities.Ecdsa,
+			"curve":      string(entities.Secp256k1),
+			"algorithm":  string(entities.Ecdsa),
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",

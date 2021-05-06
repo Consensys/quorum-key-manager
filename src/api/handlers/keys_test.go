@@ -32,7 +32,7 @@ const (
 
 type keysHandlerTestSuite struct {
 	suite.Suite
-	keyStore *mocks3.MockKeyStore
+	keyStore *mocks3.MockStore
 	router   *mux.Router
 }
 
@@ -47,7 +47,7 @@ func (s *keysHandlerTestSuite) SetupTest() {
 
 	backend := mocks.NewMockBackend(ctrl)
 	storeManager := mocks2.NewMockStoreManager(ctrl)
-	s.keyStore = mocks3.NewMockKeyStore(ctrl)
+	s.keyStore = mocks3.NewMockStore(ctrl)
 
 	backend.EXPECT().StoreManager().Return(storeManager).AnyTimes()
 	storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil).AnyTimes()
@@ -70,8 +70,8 @@ func (s *keysHandlerTestSuite) TestCreate() {
 			gomock.Any(),
 			createKeyRequest.ID,
 			&entities.Algorithm{
-				Type:          createKeyRequest.SigningAlgorithm,
-				EllipticCurve: createKeyRequest.Curve,
+				Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
+				EllipticCurve: entities.Curve(createKeyRequest.Curve),
 			},
 			&entities.Attributes{
 				Tags: createKeyRequest.Tags,
@@ -143,8 +143,8 @@ func (s *keysHandlerTestSuite) TestImport() {
 			importKeyRequest.ID,
 			importKeyRequest.PrivateKey,
 			&entities.Algorithm{
-				Type:          importKeyRequest.SigningAlgorithm,
-				EllipticCurve: importKeyRequest.Curve,
+				Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
+				EllipticCurve: entities.Curve(importKeyRequest.Curve),
 			},
 			&entities.Attributes{
 				Tags: importKeyRequest.Tags,
@@ -334,14 +334,12 @@ func (s *keysHandlerTestSuite) TestList() {
 }
 
 func (s *keysHandlerTestSuite) TestDestroy() {
-	version := "1"
-
 	s.T().Run("should execute request successfully", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%s", keyID), nil)
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID, "").Return(nil)
+		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -351,10 +349,10 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 
 	s.T().Run("should execute request successfully with version", func(t *testing.T) {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%s?version=%s", keyID, version), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%s", keyID), nil)
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID, version).Return(nil)
+		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -368,7 +366,7 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%s", keyID), nil)
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID, "").Return(errors.NotFoundError("error"))
+		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusNotFound, rw.Code)

@@ -35,9 +35,9 @@ Environment variable: %q `, AKVEnvironmentEnv)
 	_ = viper.BindPFlag(akvEnvironmentViperKey, f.Lookup(akvEnvironmentFlag))
 }
 
-func newAKVManifest(vipr *viper.Viper) *manifest.Manifest {
+func newAKVSecretsManifest(vipr *viper.Viper) *manifest.Manifest {
 	envStr := vipr.GetString(akvEnvironmentViperKey)
-	specs := akv.Specs{}
+	specs := akv.SecretSpecs{}
 	//TODO: Handle invalid not empty specs
 	_ = json.Unmarshal([]byte(envStr), &specs)
 	specRaw, _ := json.Marshal(specs)
@@ -45,6 +45,21 @@ func newAKVManifest(vipr *viper.Viper) *manifest.Manifest {
 	return &manifest.Manifest{
 		Kind:    types.AKVSecrets,
 		Name:    "AKVSecrets",
+		Version: "0.0.1",
+		Specs:   specRaw,
+	}
+}
+
+func newAKVKeysManifest(vipr *viper.Viper) *manifest.Manifest {
+	envStr := vipr.GetString(akvEnvironmentViperKey)
+	specs := akv.KeySpecs{}
+	//TODO: Handle invalid not empty specs
+	_ = json.Unmarshal([]byte(envStr), &specs)
+	specRaw, _ := json.Marshal(specs)
+
+	return &manifest.Manifest{
+		Kind:    types.AKVKeys,
+		Name:    "AKVKeys",
 		Version: "0.0.1",
 		Specs:   specRaw,
 	}
