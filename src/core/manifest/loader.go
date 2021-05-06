@@ -4,6 +4,12 @@ import (
 	"fmt"
 )
 
+type Action string
+
+const CreateAction = "Create"
+const UpdateAction = "Update"
+const DeleteAction = "Update"
+
 // Message wraps a manifest with information related to the Loader that loaded it
 type Message struct {
 	// Name of the loader that loaded the manifest
@@ -13,7 +19,7 @@ type Message struct {
 	Manifest *Manifest
 
 	// Action to perform (e.g. create, update, delete...)
-	Action string
+	Action Action
 
 	// Err while loading manifest
 	Err error
