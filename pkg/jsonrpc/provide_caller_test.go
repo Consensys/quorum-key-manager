@@ -35,6 +35,9 @@ func TestProvideCaller(t *testing.T) {
 		MethodTag                func(Client) func()                                                 `method:"testMethod"`
 		NamespaceTag             func(Client) func()                                                 `namespace:"eth"`
 		ObjectTag                func(Client) func(*TestParam)                                       `object:"-"`
+		ByteInput_ByteOutput     func(Client) func([]byte) []byte                                    // nolint
+		SliceInput_SliceOutput   func(Client) func([]string) []int                                   // nolint
+		MapInput_MapOutput       func(Client) func(map[string][]string) map[string][]string          // nolint
 	}
 
 	srv := new(TestService)
@@ -180,6 +183,22 @@ func TestProvideCaller(t *testing.T) {
 	require.NoError(t, err, "StructInput_StructOutput must not error")
 	assert.Equal(t, "test-resp-value", res2.Value, "StructInput_StructOutput result should match")
 
+	// StructInput_StructOutput passing nil arg
+	m = testutils.RequestMatcher(
+		t,
+		"",
+		[]byte(`{"jsonrpc":"2.0","method":"StructInput_StructOutput","params":[null],"id":null}`),
+	)
+	respBody = []byte(`{"jsonrpc": "1.0", "result": {"value":"test-resp-value"}}`)
+	transport.EXPECT().RoundTrip(m).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		Header:     header,
+	}, nil)
+	res2, err = srv.StructInput_StructOutput(client)(context.Background(), nil)
+	require.NoError(t, err, "StructInput_StructOutput must not error")
+	assert.Equal(t, "test-resp-value", res2.Value, "StructInput_StructOutput result should match")
+
 	// AllTags
 	m = testutils.RequestMatcher(
 		t,
@@ -239,4 +258,55 @@ func TestProvideCaller(t *testing.T) {
 	}, nil)
 
 	srv.ObjectTag(client)(&TestParam{Value: "test-req-value"})
+
+	// ByteInput_ByteOutput
+	m = testutils.RequestMatcher(
+		t,
+		"",
+		[]byte(`{"jsonrpc":"2.0","method":"ByteInput_ByteOutput","params":["YWJjZA=="],"id":null}`),
+	)
+	respBody = []byte(`{"jsonrpc": "1.0", "result":"ZWZnaA=="}`)
+	transport.EXPECT().RoundTrip(m).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		Header:     header,
+	}, nil)
+
+	b := srv.ByteInput_ByteOutput(client)([]byte("abcd"))
+	assert.Equal(t, "efgh", string(b), "ByteInput_ByteOutput result should be correct")
+
+	// SliceInput_SliceOutput   func(Client) func([]string) []int                                   // nolint
+	// MapInput_MapOutput       func(Client) func(map[string][]string) map[string][]string          // nolint
+
+	// SliceInput_SliceOutput
+	m = testutils.RequestMatcher(
+		t,
+		"",
+		[]byte(`{"jsonrpc":"2.0","method":"SliceInput_SliceOutput","params":[["abcd"]],"id":null}`),
+	)
+	respBody = []byte(`{"jsonrpc": "1.0", "result":[5]}`)
+	transport.EXPECT().RoundTrip(m).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		Header:     header,
+	}, nil)
+
+	resInts := srv.SliceInput_SliceOutput(client)([]string{"abcd"})
+	assert.Equal(t, []int{5}, resInts, "SliceInput_SliceOutput result should be correct")
+
+	// MapInput_MapOutput
+	m = testutils.RequestMatcher(
+		t,
+		"",
+		[]byte(`{"jsonrpc":"2.0","method":"MapInput_MapOutput","params":[{"key1":["value1"]}],"id":null}`),
+	)
+	respBody = []byte(`{"jsonrpc": "1.0", "result":{"key2":["value2"],"key3":["value3","value4"]}}`)
+	transport.EXPECT().RoundTrip(m).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		Header:     header,
+	}, nil)
+
+	mapStrs := srv.MapInput_MapOutput(client)(map[string][]string{"key1": []string{"value1"}})
+	assert.Equal(t, map[string][]string{"key2": []string{"value2"}, "key3": []string{"value3", "value4"}}, mapStrs, "SliceInput_SliceOutput result should be correct")
 }
