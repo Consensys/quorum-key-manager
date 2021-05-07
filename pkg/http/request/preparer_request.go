@@ -1,6 +1,53 @@
 package request
 
-import "net/http"
+import (
+	"net/http"
+	"net/url"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/header"
+)
+
+func OverideURL(dst, src *url.URL) {
+	if src.Scheme != "" {
+		dst.Scheme = src.Scheme
+	}
+
+	if src.Opaque != "" {
+		dst.Opaque = src.Opaque
+	}
+
+	if src.User != nil {
+		dst.User = src.User
+	}
+
+	if src.Host != "" {
+		dst.Host = src.Host
+	}
+
+	if src.Path != "" {
+		dst.Path = src.Path
+	}
+
+	if src.RawPath != "" {
+		dst.RawPath = src.RawPath
+	}
+
+	if src.ForceQuery {
+		dst.ForceQuery = src.ForceQuery
+	}
+
+	if src.RawQuery != "" {
+		dst.RawQuery = src.RawQuery
+	}
+
+	if src.Fragment != "" {
+		dst.Fragment = src.Fragment
+	}
+
+	if src.RawFragment != "" {
+		dst.RawFragment = src.RawFragment
+	}
+}
 
 // Request is a preparer that enhance req with baseReq fields
 func Request(baseReq *http.Request) Preparer {
@@ -11,58 +58,22 @@ func Request(baseReq *http.Request) Preparer {
 		// Set Method
 		outReq.Method = req.Method
 
-		for k := range req.Header {
-			outReq.Header.Set(k, req.Header.Get(k))
-		}
+		// Overide Header
+		header.Overide(outReq.Header, req.Header)
 
+		// Overide URL
 		if outReq.URL == nil {
 			outReq.URL = CopyURL(req.URL)
+		} else {
+			OverideURL(outReq.URL, req.URL)
 		}
 
-		if req.URL.Scheme != "" {
-			outReq.URL.Scheme = req.URL.Scheme
-		}
-
-		if req.URL.Opaque != "" {
-			outReq.URL.Opaque = req.URL.Opaque
-		}
-
-		if req.URL.User != nil {
-			outReq.URL.User = req.URL.User
-		}
-
-		if req.URL.Host != "" {
-			outReq.URL.Host = req.URL.Host
-		}
-
-		if req.URL.Path != "" {
-			outReq.URL.Path = req.URL.Path
-		}
-
-		if req.URL.RawPath != "" {
-			outReq.URL.RawPath = req.URL.RawPath
-		}
-
-		if req.URL.ForceQuery {
-			outReq.URL.ForceQuery = req.URL.ForceQuery
-		}
-
-		if req.URL.RawQuery != "" {
-			outReq.URL.RawQuery = req.URL.RawQuery
-		}
-
-		if req.URL.Fragment != "" {
-			outReq.URL.Fragment = req.URL.Fragment
-		}
-
-		if req.URL.RawFragment != "" {
-			outReq.URL.RawFragment = req.URL.RawFragment
-		}
-
+		// Overide URI
 		if req.RequestURI != "" {
 			outReq.RequestURI = req.RequestURI
 		}
 
+		// Overide body
 		outReq.Body = req.Body
 		outReq.GetBody = req.GetBody
 		outReq.ContentLength = req.ContentLength

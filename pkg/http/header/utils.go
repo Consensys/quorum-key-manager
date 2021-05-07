@@ -2,9 +2,6 @@ package header
 
 import (
 	"net/http"
-	"strings"
-
-	"golang.org/x/net/http/httpguts"
 )
 
 func Copy(dst, src http.Header) {
@@ -15,9 +12,26 @@ func Copy(dst, src http.Header) {
 	}
 }
 
-func UpgradeType(h http.Header) string {
-	if !httpguts.HeaderValuesContainsToken(h["Connection"], "Upgrade") {
-		return ""
+func FromMap(m map[string][]string) http.Header {
+	header := make(http.Header)
+	for k, vv := range m {
+		for _, v := range vv {
+			header.Add(k, v)
+		}
 	}
-	return strings.ToLower(h.Get("Upgrade"))
+	return header
+}
+
+func Overide(dst http.Header, overides map[string][]string) {
+	for header, vv := range overides {
+		if len(vv) == 0 {
+			dst.Del(header)
+		} else {
+			for _, v := range vv {
+				if v != "" {
+					dst.Add(header, v)
+				}
+			}
+		}
+	}
 }
