@@ -8,6 +8,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 )
 
@@ -29,7 +30,7 @@ type App struct {
 	// Manifest local filesystem loader 
 	mnfstsLoader *manifest.LocalLoader
 
-	mnfstsMsgs <-chan []*manifest.Message
+	mnfstsMsgs <-chan []manifest.Message
 }
 
 func New(cfg *Config, logger *log.Logger) (*App, error) {
@@ -41,7 +42,7 @@ func New(cfg *Config, logger *log.Logger) (*App, error) {
 		return nil, err
 	}
 
-	msgs := make(chan []*manifest.Message, 1)
+	msgs := make(chan []manifest.Message, 1)
 	// @TODO Implement unsubscribe and error handling
 	_, err = mnfstsLoader.Subscribe(msgs)
 	if err != nil {
@@ -63,10 +64,14 @@ func (app App) Start(ctx context.Context) error {
 	defer close(cerr)
 
 	go func(cerr chan error) {
-		// @TODO Improve to read in batches
 		for _, msg := range <-app.mnfstsMsgs {
+			if msg.Err != nil {
+				app.logger.WithError(msg.Err).Warn("failed to read manifest")
+				continue
+			}
+
 			switch msg.Manifest.Kind {
-			case "Node":
+			case nodemanager.NodeKind:
 				if err := app.backend.NodeManager().Load(log.With(ctx, app.logger), msg.Manifest); err != nil {
 					cerr <- err
 				}

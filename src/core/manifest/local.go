@@ -9,10 +9,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const LoaderID = "LocalLoader"
+
 type LocalLoader struct {
 	path          string
 	isDir         bool
-	subscriptions []chan<- []*Message
+	subscriptions []chan<- []Message
 }
 
 func NewLocalLoader(path string) (*LocalLoader, error) {
@@ -31,14 +33,14 @@ func NewLocalLoader(path string) (*LocalLoader, error) {
 	return nil, err
 }
 
-func (ll *LocalLoader) Subscribe(mnfsts chan<- []*Message) (Subscription, error) {
+func (ll *LocalLoader) Subscribe(mnfsts chan<- []Message) (Subscription, error) {
 	ll.subscriptions = append(ll.subscriptions, mnfsts)
 	// @TODO Implemented unsubscribe and error methods 
 	return nil, nil
 }
 
 func (ll *LocalLoader) Start() error {
-	msgs := []*Message{}
+	msgs := []Message{}
 	if ll.isDir {
 		err := filepath.Walk(ll.path, func(fp string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -48,10 +50,10 @@ func (ll *LocalLoader) Start() error {
 			if info.IsDir() {
 				return nil
 			}
-			
-			//@TODO Read only *.yml and *.yaml
 
-			msgs = append(msgs, ll.buildMessage(fp))
+			// @TODO Read only *.yml and *.yaml
+
+			msgs = append(msgs, ll.buildMessages(fp)...)
 			return nil
 		})
 
@@ -59,37 +61,53 @@ func (ll *LocalLoader) Start() error {
 			return err
 		}
 	} else {
-		msgs = append(msgs, ll.buildMessage(ll.path))
+		msgs = append(msgs, ll.buildMessages(ll.path)...)
 	}
-	
-	// Send messages to subcripted
-	for _, s := range(ll.subscriptions) {
-		go func(sb chan<- []*Message) {
+
+	for _, s := range ll.subscriptions {
+		go func(sb chan<- []Message) {
 			sb <- msgs
 		}(s)
-	} 
+	}
 
 	return nil
 }
 
-func (ll *LocalLoader) buildMessage(fp string) *Message {
-	msg := &Message{
-		Loader: "LocalLoader",
-		Action: CreateAction,
-	}
-
+func (ll *LocalLoader) buildMessages(fp string) []Message {
 	data, err := ioutil.ReadFile(fp)
 	if err != nil {
-		msg.Err = err
-		return msg
+		return []Message{{
+			Loader: LoaderID,
+			Action: CreateAction,
+			Err:    err,
+		}}
 	}
 
-	err = yaml.Unmarshal(data, &msg.Manifest)
-	if err != nil {
-		msg.Err = err
-		return msg
+	mnf := &Manifest{}
+	if err = yaml.Unmarshal(data, mnf); err == nil {
+		return []Message{{
+			Loader:   LoaderID,
+			Action:   CreateAction,
+			Manifest: mnf,
+		}}
 	}
 
-	return msg
+	mnfs := []*Manifest{}
+	if err = yaml.Unmarshal(data, &mnfs); err == nil {
+		msgs := []Message{}
+		for _, mnf := range mnfs {
+			msgs = append(msgs, Message{
+				Loader:   LoaderID,
+				Action:   CreateAction,
+				Manifest: mnf,
+			})
+		}
+		return msgs
+	}
+
+	return []Message{{
+		Loader: LoaderID,
+		Action: CreateAction,
+		Err:    errors.InvalidFormatError("cannot read manifest file %s", fp),
+	}}
 }
-

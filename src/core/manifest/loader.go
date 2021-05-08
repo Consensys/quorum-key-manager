@@ -38,7 +38,7 @@ type Loader interface {
 	// given kinds to the given mnfsts channel
 
 	// If no kind is passed then all manifest are written
-	Subscribe(mnfsts chan<- []*Message) (Subscription, error)
+	Subscribe(mnfsts chan<- []Message) (Subscription, error)
 }
 
 // Subscription

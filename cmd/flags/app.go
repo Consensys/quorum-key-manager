@@ -10,13 +10,13 @@ func NewAppConfig(vipr *viper.Viper) *app.Config {
 		Logger: newLoggerConfig(vipr),
 		HTTP:   newHTTPConfig(vipr),
 		//@TODO Add env ver
-		ManifestPath: "./deps/config/default.yml",
+		ManifestPath: newManifest(vipr),
 		// Manifests: []*manifest.Manifest{
 		// 	newHashicorpSecretsManifest(vipr),
 		// 	newHashicorpKeysManifest(vipr),
 		// 	newAKVSecretsManifest(vipr),
 		// 	newAKVKeysManifest(vipr),
-		// 	newNodeManifest(vipr),
+		// 	newManifest(vipr),
 		// },
 	}
 }

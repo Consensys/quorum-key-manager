@@ -1,17 +1,22 @@
----
 - kind: AKVKeys
   version: 0.0.1
   name: akv-keys
   specs:
-    vaultName: quorumkeymanager
-    tenantID: 17255fb0-373b-4a1a-bd47-d211ab86df81
-    clientID: 8c925036-dd6f-4a1e-a315-5e6fab4f2f09
-    clientSecret: Cp1BSu50gx-._Q6UJQsSc2oQE-2b.cF.2y
-- kind: HashicorpKeys
+    vaultName: '{VAULT_NAME}'
+    tenantID: '{TENANT_ID}'
+    clientID: '{CLIENT_ID}'
+    clientSecret: '{SECRET}'
+- kind: HashicorpSecrets
   version: 0.0.1
-  name: hashicorp-keys
+  name: hashicorp-secrets
   specs:
-    mountPoint: ''
-    address: ''
-    token: ''
+    mountPoint: secret
+    address: http://localhost:8200
+    token: '{VAULT_TOKEN}'
     namespace: ''
+- kind: Node
+  name: default
+  version: 0.0.0
+  specs:
+    rpc:
+      addr: http://localhost:8545
