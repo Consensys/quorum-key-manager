@@ -48,6 +48,8 @@ func (ll *LocalLoader) Start() error {
 			if info.IsDir() {
 				return nil
 			}
+			
+			//@TODO Read only *.yml and *.yaml
 
 			msgs = append(msgs, ll.buildMessage(fp))
 			return nil

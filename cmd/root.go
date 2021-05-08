@@ -52,7 +52,11 @@ func run(cmd *cobra.Command, _ []string) error {
 	logger := log.NewLogger(cfg.Logger)
 
 	ctx := log.With(cmd.Context(), logger)
-	appli := app.New(cfg, logger)
+	appli, err := app.New(cfg, logger)
+	if err != nil {
+		logger.WithError(err).Error("application failed to start")
+		return err
+	}
 
 	sig := common.NewSignalListener(func(sig os.Signal) {
 		logger.WithField("sig", sig.String()).Warn("signal intercepted")
@@ -63,7 +67,7 @@ func run(cmd *cobra.Command, _ []string) error {
 
 	defer sig.Close()
 
-	err := appli.Start(ctx)
+	err = appli.Start(ctx)
 	if err != nil {
 		logger.WithError(err).Error("application exited with errors")
 		return err

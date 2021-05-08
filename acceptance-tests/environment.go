@@ -9,9 +9,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
 	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
@@ -108,7 +106,11 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Token:      hashicorpContainer.RootToken,
 		Namespace:  "",
 	}
-	keyManager := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs, uint32(envHTTPPort))
+	keyManager, err := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs, uint32(envHTTPPort))
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize keymanager server")
+		return nil, err
+	}
 
 	// Hashicorp client for direct integration tests
 	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpSecretSpecs.Address, hashicorpSecretSpecs.Token, ""))
@@ -220,34 +222,13 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 
 func newKeyManager(
 	logger *log.Logger,
-	hashicorpSecretStoreSpecs *hashicorp.SecretSpecs,
-	hashicorpKeyStoreSpecs *hashicorp.KeySpecs,
 	port uint32,
-) *keymanager.App {
-	hashicorpSecretSpecsRaw, _ := json.Marshal(hashicorpSecretStoreSpecs)
-	hashicorpSecretManifest := &manifest.Manifest{
-		Kind:    types.HashicorpSecrets,
-		Name:    SecretStoreName,
-		Version: "0.0.0",
-		Specs:   hashicorpSecretSpecsRaw,
-	}
-
-	hashicorpKeySpecsRaw, _ := json.Marshal(hashicorpKeyStoreSpecs)
-	hashicorpKeyManifest := &manifest.Manifest{
-		Kind:    types.HashicorpKeys,
-		Name:    KeyStoreName,
-		Version: "0.0.0",
-		Specs:   hashicorpKeySpecsRaw,
-	}
-
+) (*keymanager.App, error) {
 	httpConfig := http.NewDefaultConfig()
 	httpConfig.Port = port
 	cfg := &keymanager.Config{
 		HTTP: httpConfig,
-		Manifests: []*manifest.Manifest{
-			hashicorpSecretManifest,
-			hashicorpKeyManifest,
-		},
+		ManifestPath: "./deps/config/default.yml",
 	}
 
 	return keymanager.New(cfg, logger)

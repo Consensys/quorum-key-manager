@@ -19,7 +19,7 @@ var NodeKind manifest.Kind = "Node"
 type Manager interface {
 	// Load manifest
 	// If any error occurs it is attached to the corresponding Message
-	Load(ctx context.Context, mnfsts <-chan []*manifest.Message) error
+	Load(ctx context.Context, mnfsts ...*manifest.Manifest) error
 
 	// Node return by name
 	Node(ctx context.Context, name string) (node.Node, error)
@@ -46,14 +46,12 @@ func New() Manager {
 	}
 }
 
-func (m *manager) Load(ctx context.Context, mnfsts <-chan []*manifest.Message) error {
+func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
-	for _, mnf := range <-mnfsts {
-		if mnf.Action == manifest.CreateAction {
-			if err := m.load(ctx, mnf.Manifest); err != nil {
-				return err
-			}
+	for _, mnf := range mnfsts {
+		if err := m.load(ctx, mnf); err != nil {
+			return err
 		}
 	}
 
@@ -93,7 +91,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	logger := log.FromContext(ctx).
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
-	logger.WithField("data", string(mnf.Specs)).Info("load manifest with specs")
+	logger.WithField("data", mnf.Specs).Info("load manifest with specs")
 
 	if _, ok := m.nodes[mnf.Name]; ok {
 		return fmt.Errorf("node %q already exist", mnf.Name)

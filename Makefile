@@ -55,6 +55,9 @@ run-acceptance:
 gobuild:
 	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager
 
+gobuild-dbg:
+	CGO_ENABLED=1 go build -gcflags=all="-N -l" -i -o ./build/bin/key-manager
+
 run-coverage:
 	@sh scripts/coverage.sh $(PACKAGES)
 
@@ -72,6 +75,9 @@ down: down-deps
 
 run: gobuild
 	@build/bin/key-manager run
+
+run-dbg: gobuild-dbg
+	@dlv --listen=:2345 --headless=true --api-version=2 --accept-multiclient exec ./build/bin/key-manager run
 
 go-quorum: networks
 	@docker-compose -f deps/go-quorum/docker-compose.yml up -d
