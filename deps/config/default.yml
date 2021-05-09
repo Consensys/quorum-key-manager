@@ -1,8 +1,0 @@
-kind: AKVKeys
-version: 0.0.1
-name: akv-keys
-specs:
-  vaultName: quorumkeymanager
-  tenantID: 17255fb0-373b-4a1a-bd47-d211ab86df81
-  clientID: 8c925036-dd6f-4a1e-a315-5e6fab4f2f09
-  clientSecret: Cp1BSu50gx-._Q6UJQsSc2oQE-2b.cF.2y

@@ -51,9 +51,10 @@ func (ll *LocalLoader) Start() error {
 				return nil
 			}
 
-			// @TODO Read only *.yml and *.yaml
-
-			msgs = append(msgs, ll.buildMessages(fp)...)
+			if filepath.Ext(fp) == ".yml" || filepath.Ext(fp) == ".yaml" {
+				msgs = append(msgs, ll.buildMessages(fp)...)
+			} 
+			
 			return nil
 		})
 

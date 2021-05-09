@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
@@ -104,7 +105,13 @@ func (m *manager) List(_ context.Context, kind manifest.Kind) ([]string, error) 
 	return storeNames, nil
 }
 
-func (m *manager) load(_ context.Context, mnf *manifest.Manifest) error {
+func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
+	logger := log.FromContext(ctx).
+		WithField("kind", mnf.Kind).
+		WithField("name", mnf.Name)
+
+	logger.Info("load store manifest with specs")
+
 	switch mnf.Kind {
 	case types.HashicorpSecrets:
 		spec := &hashicorp.SecretSpecs{}

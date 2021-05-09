@@ -47,6 +47,7 @@ atlassian-ide-plugin.xml
 tests/report/node_modules
 tests/report/output/report.html
 tests/report/output/report.json
+deps/config/*.yml
 
 # API Doc
 combined-schema.json
