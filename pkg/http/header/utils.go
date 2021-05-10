@@ -29,7 +29,7 @@ func Overide(dst http.Header, overides map[string][]string) {
 		} else {
 			for _, v := range vv {
 				if v != "" {
-					dst.Add(header, v)
+					dst.Set(header, v)
 				}
 			}
 		}
