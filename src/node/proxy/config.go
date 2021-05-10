@@ -58,17 +58,19 @@ func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
 	cfg.Proxy.SetDefault()
 
 	if cfg.Proxy.Request == nil {
-		cfg.Proxy.Request = defaultCfg.Request
+		cfg.Proxy.Request = new(request.ProxyConfig)
 	}
-	cfg.Proxy.Request.SetDefault()
 
 	if cfg.Proxy.Request.Addr == "" {
 		cfg.Proxy.Request.Addr = cfg.Addr
 	}
 
+	cfg.Proxy.Request.SetDefault()
+
 	if cfg.Proxy.Response == nil {
-		cfg.Proxy.Response = defaultCfg.Response
+		cfg.Proxy.Response = new(response.ProxyConfig)
 	}
+	cfg.Proxy.Response.SetDefault()
 
 	if cfg.ClientTimeout == nil {
 		cfg.ClientTimeout = defaultCfg.Timeout
