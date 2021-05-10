@@ -2,6 +2,8 @@ package manifest
 
 import (
 	"encoding/json"
+
+	json2 "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 )
 
 type Kind string
@@ -21,9 +23,14 @@ type Manifest struct {
 	Tags map[string]string `json:"tags"`
 
 	// Specs specifications of a store
-	Specs json.RawMessage `json:"specs"`
+	Specs interface{} `json:"specs"`
 }
 
 func (mnfst *Manifest) UnmarshalSpecs(specs interface{}) error {
-	return json.Unmarshal(mnfst.Specs, specs)
+	bdata, err := json.Marshal(json2.RecursiveToJSON(mnfst.Specs))
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(bdata, specs)
 }

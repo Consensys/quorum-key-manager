@@ -8,6 +8,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 )
 
@@ -25,43 +26,78 @@ type App struct {
 
 	// logger logger object
 	logger *log.Logger
+
+	// Manifest local filesystem loader
+	mnfstsLoader *manifest.LocalLoader
+
+	mnfstsMsgs <-chan []manifest.Message
 }
 
-func New(cfg *Config, logger *log.Logger) *App {
+func New(cfg *Config, logger *log.Logger) (*App, error) {
 	backend := core.New()
 	httpServer := http.NewServer(cfg.HTTP, api.New(backend), logger)
 
-	return &App{
-		cfg:        cfg,
-		httpServer: httpServer,
-		backend:    backend,
-		logger:     logger.SetComponent(Component),
+	mnfstsLoader, err := manifest.NewLocalLoader(cfg.ManifestPath)
+	if err != nil {
+		return nil, err
 	}
+
+	msgs := make(chan []manifest.Message, 1)
+	// @TODO Implement unsubscribe and error handling
+	_, err = mnfstsLoader.Subscribe(msgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &App{
+		cfg:          cfg,
+		httpServer:   httpServer,
+		backend:      backend,
+		logger:       logger.SetComponent(Component),
+		mnfstsLoader: mnfstsLoader,
+		mnfstsMsgs:   msgs,
+	}, nil
 }
 
 func (app App) Start(ctx context.Context) error {
-	var storeMnfsts []*manifest.Manifest
-	var nodeMnfsts []*manifest.Manifest
+	cerr := make(chan error, 1)
+	defer close(cerr)
 
-	for _, mnfst := range app.cfg.Manifests {
-		switch mnfst.Kind {
-		case "Node":
-			nodeMnfsts = append(nodeMnfsts, mnfst)
-		default:
-			storeMnfsts = append(storeMnfsts, mnfst)
+	go func(cerr chan error) {
+		for _, msg := range <-app.mnfstsMsgs {
+			if msg.Err != nil {
+				app.logger.WithError(msg.Err).Warn("failed to read manifest")
+				continue
+			}
+
+			switch msg.Manifest.Kind {
+			case nodemanager.NodeKind:
+				if err := app.backend.NodeManager().Load(log.With(ctx, app.logger), msg.Manifest); err != nil {
+					cerr <- err
+				}
+			default:
+				if err := app.backend.StoreManager().Load(log.With(ctx, app.logger), msg.Manifest); err != nil {
+					cerr <- err
+				}
+			}
 		}
-	}
+	}(cerr)
 
-	if err := app.backend.StoreManager().Load(log.With(ctx, app.logger), storeMnfsts...); err != nil {
+	go func(cerr chan error) {
+		app.logger.Info("starting application")
+		cerr <- app.httpServer.Start(ctx)
+	}(cerr)
+
+	if err := app.mnfstsLoader.Start(); err != nil {
 		return err
 	}
 
-	if err := app.backend.NodeManager().Load(log.With(ctx, app.logger), nodeMnfsts...); err != nil {
+	select {
+	case err := <-cerr:
 		return err
+	case <-ctx.Done():
+		return ctx.Err()
 	}
-
-	app.logger.Info("starting application")
-	return app.httpServer.Start(ctx)
 }
 
 func (app App) Stop(ctx context.Context) error {
