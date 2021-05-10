@@ -119,10 +119,11 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	logger := log.FromContext(ctx).
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
-	logger.Infof("load manifest with specs: %v", string(mnf.Specs))
 
 	if _, ok := m.nodes[mnf.Name]; ok {
-		return fmt.Errorf("node %q already exist", mnf.Name)
+		err := fmt.Errorf("node %q already exist", mnf.Name)
+		logger.WithError(err).Errorf("error loading node manifest")
+		return err
 	}
 
 	switch mnf.Kind {
@@ -133,7 +134,8 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 
 		cfg := new(proxynode.Config)
 		if err := mnf.UnmarshalSpecs(cfg); err != nil {
-			logger.WithError(err).Errorf("invalid specs")
+			err = fmt.Errorf("invalid node specs: %v", err)
+			logger.WithError(err).Errorf("error loading node manifest")
 			n.err = err
 			return err
 		}
