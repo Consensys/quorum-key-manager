@@ -18,6 +18,7 @@ x-container-common: &container-common
     - hashicorp
   volumes:
     - ./build/bin/key-manager:/bin/main:ro
+    - ./deps/config:/manifests
 
 services:
   key-manager:
