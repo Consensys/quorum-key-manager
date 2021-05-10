@@ -30,7 +30,7 @@ func (m requestMatcher) Matches(x interface{}) bool {
 		return false
 	}
 
-	b := make([]byte, req.ContentLength-1)
+	b := make([]byte, req.ContentLength)
 	_, _ = io.ReadFull(req.Body, b)
 
 	urlMatch := assert.Equal(m.t, m.urlPath, req.URL.Path, "URL path should match")

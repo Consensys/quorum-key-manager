@@ -39,7 +39,7 @@ func TestOveride(t *testing.T) {
 			},
 			expectedDst: map[string][]string{
 				"HEADER1": []string{"dst-value1.1"},
-				"HEADER2": []string{"dst-value1.1", "dst-value1.2", "src-value2.1"},
+				"HEADER2": []string{"src-value2.1"},
 			},
 		},
 		{
