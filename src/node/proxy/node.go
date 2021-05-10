@@ -164,7 +164,17 @@ func (n *Node) newSession(jsonrpcClient jsonrpc.Client, msg *jsonrpc.RequestMsg)
 }
 
 func (n *Node) newHTTPJSONRPCClient(req *http.Request) jsonrpc.Client {
-	httpClient := httpclient.WithRequest(req)(n.rpc.client)
+	httpClient := httpclient.CombineDecorators(
+		httpclient.WithModifier(n.rpc.respModifier),
+		httpclient.WithRequest(req),
+		httpclient.WithPreparer(n.rpc.reqPreparer),
+		httpclient.WithPreparer(
+			request.CombinePreparer(
+				request.RemoveConnectionHeaders(),
+				request.ForwardedFor(),
+			),
+		),
+	)(n.rpc.client)
 	return jsonrpc.NewHTTPClient(httpClient)
 }
 
@@ -208,7 +218,7 @@ func newhttpDownstream(cfg *DownstreamConfig) (*httpDownstream, error) {
 
 	n.errorHandler = proxy.HandleRoundTripError
 
-	n.client, err = httpclient.New(&httpclient.Config{Timeout: cfg.ClientTimeout}, n.transport, n.reqPreparer, n.respModifier)
+	n.client, err = httpclient.New(&httpclient.Config{Timeout: cfg.ClientTimeout}, n.transport)
 	if err != nil {
 		return nil, err
 	}
