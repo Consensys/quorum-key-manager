@@ -9,7 +9,7 @@ import (
 
 func TestNew(t *testing.T) {
 	cfg := new(Config).SetDefault()
-	client, err := New(cfg, nil, nil, nil)
+	client, err := New(cfg, nil)
 	require.NoError(t, err, "New must not error")
 	assert.Implements(t, (*Client)(nil), client, "Client should match Client interface")
 }

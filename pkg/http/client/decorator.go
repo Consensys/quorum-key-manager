@@ -76,3 +76,12 @@ func WithRequest(req *http.Request) Decorator {
 		return WithPreparer(request.Request(req))(c)
 	}
 }
+
+func CombineDecorators(decorators ...Decorator) Decorator {
+	return func(c Client) Client {
+		for i := len(decorators); i > 0; i-- {
+			c = decorators[i-1](c)
+		}
+		return c
+	}
+}

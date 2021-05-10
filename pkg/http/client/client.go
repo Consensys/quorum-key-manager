@@ -3,8 +3,6 @@ package httpclient
 import (
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
 )
 
@@ -25,8 +23,6 @@ type Client interface {
 func New(
 	cfg *Config,
 	trnsprt http.RoundTripper,
-	preparer request.Preparer,
-	modifier response.Modifier,
 ) (Client, error) {
 	var err error
 	if trnsprt == nil {
@@ -36,21 +32,8 @@ func New(
 		}
 	}
 
-	c := &http.Client{
+	return &http.Client{
 		Transport: trnsprt,
 		Timeout:   cfg.Timeout.Duration,
-	}
-
-	if preparer == nil {
-		preparer, err = request.Proxy(cfg.Request)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if modifier == nil {
-		modifier = response.Proxy(cfg.Response)
-	}
-
-	return WithModifier(modifier)(WithPreparer(preparer)(c)), nil
+	}, nil
 }

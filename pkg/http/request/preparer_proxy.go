@@ -29,7 +29,6 @@ func Proxy(cfg *ProxyConfig) (Preparer, error) {
 		preparers,
 		BasicAuth(cfg.BasicAuth),
 		Body(),
-		WebSocketHeaders(),
 	)
 
 	return CombinePreparer(preparers...), nil
