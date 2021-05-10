@@ -110,7 +110,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
 
-	logger.Info("load store manifest with specs")
+	logger.Info("loading store manifest")
 
 	switch mnf.Kind {
 	case types.HashicorpSecrets:

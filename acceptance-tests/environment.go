@@ -141,9 +141,9 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	if err != nil {
 		logger.WithError(err).Error("cannot create keymanager manifest")
 		return nil, err
-	} else {
-		logger.WithField("path", tmpYml).Info("new temporal manifest created")
 	}
+
+	logger.WithField("path", tmpYml).Info("new temporal manifest created")
 
 	httpConfig := http.NewDefaultConfig()
 	httpConfig.Port = uint32(envHTTPPort)

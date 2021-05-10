@@ -19,7 +19,7 @@ const (
 	manifestPathDefault = "/tmp"
 )
 
-func manfiestPath(f *pflag.FlagSet) {
+func manifestPath(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Path to manifest file/folder to configure key manager stores and nodes
 Environment variable: %q`, manifestPathEnv)
 	f.String(ManifestPath, manifestPathDefault, desc)
@@ -28,10 +28,9 @@ Environment variable: %q`, manifestPathEnv)
 
 // ManifestFlags register flags for Node
 func ManifestFlags(f *pflag.FlagSet) {
-	manfiestPath(f)
+	manifestPath(f)
 }
 
 func newManifest(vipr *viper.Viper) string {
-	// @TODO Verify folder exits
 	return vipr.GetString(manifestPathKey)
 }
