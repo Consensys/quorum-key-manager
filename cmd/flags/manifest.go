@@ -16,7 +16,7 @@ const (
 	ManifestPath        = "manifest-path"
 	manifestPathEnv     = "MANIFEST_PATH"
 	manifestPathKey     = "manifest.path"
-	manifestPathDefault = "./deps/config"
+	manifestPathDefault = "/tmp"
 )
 
 func manfiestPath(f *pflag.FlagSet) {
@@ -32,6 +32,6 @@ func ManifestFlags(f *pflag.FlagSet) {
 }
 
 func newManifest(vipr *viper.Viper) string {
-	//@TODO Verify folder exits
+	// @TODO Verify folder exits
 	return vipr.GetString(manifestPathKey)
 }

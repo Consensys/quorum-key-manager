@@ -7,16 +7,8 @@ import (
 
 func NewAppConfig(vipr *viper.Viper) *app.Config {
 	return &app.Config{
-		Logger: newLoggerConfig(vipr),
-		HTTP:   newHTTPConfig(vipr),
-		//@TODO Add env ver
+		Logger:       newLoggerConfig(vipr),
+		HTTP:         newHTTPConfig(vipr),
 		ManifestPath: newManifest(vipr),
-		// Manifests: []*manifest.Manifest{
-		// 	newHashicorpSecretsManifest(vipr),
-		// 	newHashicorpKeysManifest(vipr),
-		// 	newAKVSecretsManifest(vipr),
-		// 	newAKVKeysManifest(vipr),
-		// 	newManifest(vipr),
-		// },
 	}
 }

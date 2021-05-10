@@ -9,5 +9,4 @@ type Config struct {
 	Logger       *log.Config
 	HTTP         *http.Config
 	ManifestPath string
-	// Manifests []*manifest.Manifest
 }

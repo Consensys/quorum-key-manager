@@ -4,11 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
+	"gopkg.in/yaml.v2"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
 	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
@@ -17,7 +22,6 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
 	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
-	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
@@ -27,11 +31,16 @@ import (
 )
 
 const (
-	hashicorpContainerID = "hashicorp-vault"
-	networkName          = "key-manager"
-	localhostPath        = "http://localhost"
-	SecretStoreName      = "HashicorpSecrets"
-	KeyStoreName         = "HashicorpKeys"
+	hashicorpContainerID      = "hashicorp-vault"
+	networkName               = "key-manager"
+	localhostPath             = "http://localhost"
+	HashicorpSecretStoreName  = "HashicorpSecrets"
+	HashicorpKeyStoreName     = "HashicorpKeys"
+	HashicorpSecretMountPoint = "secret"
+	HashicorpKeyMountPoint    = "orchestrate"
+	AKVSecretStoreName        = "AKVSecrets"
+	AKVKeyStoreName           = "AKVKeys"
+	AKVSpecENV                = "AKV_ENVIRONMENT"
 )
 
 type IntegrationEnvironment struct {
@@ -43,6 +52,7 @@ type IntegrationEnvironment struct {
 	keyManager      *keymanager.App
 	baseURL         string
 	Cancel          context.CancelFunc
+	tmpYml          string
 }
 
 type TestSuiteEnv interface {
@@ -92,42 +102,72 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	akvSpecStr := os.Getenv(AKVSpecENV)
+	akvKeySpecs := akv.KeySpecs{}
+	akvSecretSpecs := akv.KeySpecs{}
+	_ = json.Unmarshal([]byte(akvSpecStr), &akvKeySpecs)
+	_ = json.Unmarshal([]byte(akvSpecStr), &akvSecretSpecs)
+
 	envHTTPPort := rand.IntnRange(20000, 28080)
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	hashicorpSecretSpecs := &hashicorp.SecretSpecs{
-		Token:      hashicorpContainer.RootToken,
-		MountPoint: "secret",
-		Address:    hashicorpAddr,
-		Namespace:  "",
+	tmpYml, err := newTemporalManifestYml(&manifest.Manifest{
+		Kind: types.HashicorpSecrets,
+		Name: HashicorpSecretStoreName,
+		Specs: &hashicorp.SecretSpecs{
+			Token:      hashicorpContainer.RootToken,
+			MountPoint: HashicorpSecretMountPoint,
+			Address:    hashicorpAddr,
+			Namespace:  "",
+		},
+	}, &manifest.Manifest{
+		Kind: types.HashicorpKeys,
+		Name: HashicorpKeyStoreName,
+		Specs: &hashicorp.KeySpecs{
+			MountPoint: HashicorpKeyMountPoint,
+			Address:    hashicorpAddr,
+			Token:      hashicorpContainer.RootToken,
+			Namespace:  "",
+		},
+	}, &manifest.Manifest{
+		Kind:  types.AKVSecrets,
+		Name:  AKVSecretStoreName,
+		Specs: akvSecretSpecs,
+	}, &manifest.Manifest{
+		Kind:  types.AKVKeys,
+		Name:  AKVKeyStoreName,
+		Specs: akvKeySpecs,
+	})
+
+	if err != nil {
+		logger.WithError(err).Error("cannot create keymanager manifest")
+		return nil, err
+	} else {
+		logger.WithField("path", tmpYml).Info("new temporal manifest created")
 	}
-	hashicorpKeySpecs := &hashicorp.KeySpecs{
-		MountPoint: "orchestrate",
-		Address:    hashicorpAddr,
-		Token:      hashicorpContainer.RootToken,
-		Namespace:  "",
-	}
-	keyManager, err := newKeyManager(logger, hashicorpSecretSpecs, hashicorpKeySpecs, uint32(envHTTPPort))
+
+	httpConfig := http.NewDefaultConfig()
+	httpConfig.Port = uint32(envHTTPPort)
+	keyManager, err := newKeyManager(&keymanager.Config{
+		HTTP:         httpConfig,
+		ManifestPath: tmpYml,
+	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize keymanager server")
 		return nil, err
 	}
 
 	// Hashicorp client for direct integration tests
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpSecretSpecs.Address, hashicorpSecretSpecs.Token, ""))
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken, ""))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
 
-	akvSpecStr := os.Getenv(flags.AKVEnvironmentEnv)
-	specs := akv.KeySpecs{}
-	_ = json.Unmarshal([]byte(akvSpecStr), &specs)
-
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
-		specs.VaultName,
-		specs.TenantID,
-		specs.ClientID,
-		specs.ClientSecret,
+		akvKeySpecs.VaultName,
+		akvKeySpecs.TenantID,
+		akvKeySpecs.ClientID,
+		akvKeySpecs.ClientSecret,
 	))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize akv client")
@@ -218,18 +258,33 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	if err != nil {
 		env.logger.WithError(err).Error("could not remove network")
 	}
+
+	err = os.Remove(env.tmpYml)
+	if err != nil {
+		env.logger.WithError(err).Error("cannot remove temporal yml file")
+	}
 }
 
-func newKeyManager(
-	logger *log.Logger,
-	port uint32,
-) (*keymanager.App, error) {
-	httpConfig := http.NewDefaultConfig()
-	httpConfig.Port = port
-	cfg := &keymanager.Config{
-		HTTP: httpConfig,
-		ManifestPath: "./deps/config/default.yml",
+func newTemporalManifestYml(manifests ...*manifest.Manifest) (string, error) {
+	file, err := ioutil.TempFile(os.TempDir(), "acceptanceTest_")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	data, err := yaml.Marshal(manifests)
+	if err != nil {
+		return "", err
 	}
 
+	_, err = file.Write(data)
+	if err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
+}
+
+func newKeyManager(cfg *keymanager.Config, logger *log.Logger) (*keymanager.App, error) {
 	return keymanager.New(cfg, logger)
 }

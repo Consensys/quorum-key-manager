@@ -64,7 +64,7 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 		return
 	}
 
-	store := hashicorpsecret.New(s.env.hashicorpClient, "secret")
+	store := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint)
 
 	testSuite := new(hashicorpSecretTestSuite)
 	testSuite.env = s.env
@@ -92,7 +92,7 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
 		return
 	}
 
-	store := hashicorpkey.New(s.env.hashicorpClient, "orchestrate")
+	store := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint)
 
 	testSuite := new(hashicorpKeyTestSuite)
 	testSuite.env = s.env

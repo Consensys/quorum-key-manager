@@ -31,6 +31,6 @@ func (mnfst *Manifest) UnmarshalSpecs(specs interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return json.Unmarshal(bdata, specs)
 }

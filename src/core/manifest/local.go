@@ -35,7 +35,7 @@ func NewLocalLoader(path string) (*LocalLoader, error) {
 
 func (ll *LocalLoader) Subscribe(mnfsts chan<- []Message) (Subscription, error) {
 	ll.subscriptions = append(ll.subscriptions, mnfsts)
-	// @TODO Implemented unsubscribe and error methods 
+	// @TODO Implemented unsubscribe and error methods
 	return nil, nil
 }
 
@@ -53,8 +53,8 @@ func (ll *LocalLoader) Start() error {
 
 			if filepath.Ext(fp) == ".yml" || filepath.Ext(fp) == ".yaml" {
 				msgs = append(msgs, ll.buildMessages(fp)...)
-			} 
-			
+			}
+
 			return nil
 		})
 

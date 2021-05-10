@@ -27,7 +27,7 @@ type App struct {
 	// logger logger object
 	logger *log.Logger
 
-	// Manifest local filesystem loader 
+	// Manifest local filesystem loader
 	mnfstsLoader *manifest.LocalLoader
 
 	mnfstsMsgs <-chan []manifest.Message
@@ -87,7 +87,7 @@ func (app App) Start(ctx context.Context) error {
 		app.logger.Info("starting application")
 		cerr <- app.httpServer.Start(ctx)
 	}(cerr)
-	
+
 	if err := app.mnfstsLoader.Start(); err != nil {
 		return err
 	}

@@ -38,10 +38,8 @@ func newRunCommand() *cobra.Command {
 	}
 
 	flags.HTTPFlags(runCmd.Flags())
-	flags.HashicorpFlags(runCmd.Flags())
 	flags.ManifestFlags(runCmd.Flags())
 	flags.LoggerFlags(runCmd.Flags())
-	flags.AKVFlags(runCmd.Flags())
 
 	return runCmd
 }
@@ -60,7 +58,7 @@ func run(cmd *cobra.Command, _ []string) error {
 
 	sig := common.NewSignalListener(func(sig os.Signal) {
 		logger.WithField("sig", sig.String()).Warn("signal intercepted")
-		if err := appli.Stop(ctx); err != nil {
+		if err = appli.Stop(ctx); err != nil {
 			logger.WithError(err).Error("application stopped with errors")
 		}
 	})
