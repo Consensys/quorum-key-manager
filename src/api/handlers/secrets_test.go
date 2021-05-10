@@ -29,11 +29,7 @@ const (
 
 type secretsHandlerTestSuite struct {
 	suite.Suite
-<<<<<<< HEAD
-	secretStore *mocksecretstore.MockStore
-=======
 	secretStore *mocksecrets.MockStore
->>>>>>> refactor@store(mock): rename mock package
 	router      *mux.Router
 }
 
@@ -48,11 +44,7 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 
 	backend := mocks.NewMockBackend(ctrl)
 	storeManager := mockstoremanager.NewMockStoreManager(ctrl)
-<<<<<<< HEAD
-	s.secretStore = mocksecretstore.NewMockStore(ctrl)
-=======
 	s.secretStore = mocksecrets.NewMockStore(ctrl)
->>>>>>> refactor@store(mock): rename mock package
 
 	backend.EXPECT().StoreManager().Return(storeManager).AnyTimes()
 	storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil).AnyTimes()
