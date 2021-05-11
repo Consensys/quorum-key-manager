@@ -24,7 +24,7 @@ type StoreManager interface {
 	GetKeyStore(ctx context.Context, name string) (keys.Store, error)
 
 	// GetAccountStore by name
-	GetAccountStore(ctx context.Context, name string) (accounts.Store, error)
+	GetAccountStore(ctx context.Context, name string) (eth1.Store, error)
 
 	// List stores
 	List(ctx context.Context, kind manifest.Kind) ([]string, error)

@@ -1,4 +1,4 @@
-package accounts
+package eth1
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
+
+//go:generate mockgen -source=eth1.go -destination=mocks/eth1.go -package=mocks
 
 type Store interface {
 	// Info returns store information

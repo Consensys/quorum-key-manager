@@ -74,11 +74,11 @@ func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error
 	return nil, errors.NotFoundError("key store %s was not found", name)
 }
 
-func (m *manager) GetAccountStore(_ context.Context, name string) (accounts.Store, error) {
+func (m *manager) GetAccountStore(_ context.Context, name string) (eth1.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.account[name]; ok {
-		if store, ok := storeBundle.store.(accounts.Store); ok {
+		if store, ok := storeBundle.store.(eth1.Store); ok {
 			return store, nil
 		}
 	}
