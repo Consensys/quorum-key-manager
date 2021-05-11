@@ -5,7 +5,7 @@ x-default-variables: &default-variables
   HTTP_HOST: ${HTTP_HOST-0.0.0.0}
   HTTP_PORT: ${HTTP_PORT-8080}
   NODE_ADDR: ${NODE_ADDR-http://validator2:8545}
-  AKV_ENVIRONMENT: ${AKV_ENVIRONMENT-}
+  MANIFEST_PATH: ${MANIFEST_PATH-}
 
 x-container-common: &container-common
   image: golang:1.15-buster

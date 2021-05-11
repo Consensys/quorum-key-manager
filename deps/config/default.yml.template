@@ -1,0 +1,22 @@
+- kind: AKVKeys
+  version: 0.0.1
+  name: akv-keys
+  specs:
+    vaultName: '{VAULT_NAME}'
+    tenantID: '{TENANT_ID}'
+    clientID: '{CLIENT_ID}'
+    clientSecret: '{SECRET}'
+- kind: HashicorpSecrets
+  version: 0.0.1
+  name: hashicorp-secrets
+  specs:
+    mountPoint: secret
+    address: http://localhost:8200
+    token: '{VAULT_TOKEN}'
+    namespace: ''
+- kind: Node
+  name: default
+  version: 0.0.0
+  specs:
+    rpc:
+      addr: http://localhost:8545
