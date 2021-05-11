@@ -20,19 +20,19 @@ type EntryField struct {
 
 func FromContext(ctx context.Context) *Logger {
 	if ctx == nil {
-		return NewDefaultLogger()
+		return DefaultLogger()
 	}
 
 	logger, ok := ctx.Value(ctxLogKey).(*Logger)
 	if !ok {
-		return NewDefaultLogger().WithContext(ctx)
+		return DefaultLogger().WithContext(ctx)
 	}
 
 	return logger
 }
 
 func WithContext(ctx context.Context) *Logger {
-	return NewDefaultLogger().WithContext(ctx)
+	return DefaultLogger().WithContext(ctx)
 }
 
 func With(ctx context.Context, logger *Logger) context.Context {

@@ -14,16 +14,26 @@ type Logger struct {
 	cfg       *Config
 }
 
-func NewDefaultLogger() *Logger {
+var defaultLogger *Logger
+
+func DefaultLogger() *Logger {
+	if defaultLogger != nil {
+		return defaultLogger
+	}
+
 	logger := logrus.New()
 	return &Logger{
 		entry: logrus.NewEntry(logger),
 	}
 }
 
+func SetDefaultLogger(lg *Logger) {
+	defaultLogger = lg
+}
+
 func NewLogger(cfg *Config) *Logger {
 	if cfg == nil {
-		return NewDefaultLogger()
+		return DefaultLogger()
 	}
 
 	logger := logrus.New()

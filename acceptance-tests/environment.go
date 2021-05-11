@@ -79,7 +79,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger := log.NewDefaultLogger().WithContext(ctx)
+	logger := log.DefaultLogger().WithContext(ctx)
 
 	hashicorpContainer, err := utils.HashicorpContainer(ctx)
 	if err != nil {
@@ -152,12 +152,14 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		ManifestPath: tmpYml,
 	}, logger)
 	if err != nil {
-		logger.WithError(err).Error("cannot initialize keymanager server")
+		logger.WithError(err).Error("cannot initialize Key Manager server")
 		return nil, err
 	}
 
 	// Hashicorp client for direct integration tests
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken, ""))
+	hashicorpCfg := hashicorpclient.NewConfig(hashicorpAddr, "")
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpCfg)
+	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err

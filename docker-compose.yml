@@ -5,7 +5,7 @@ x-default-variables: &default-variables
   HTTP_HOST: ${HTTP_HOST-0.0.0.0}
   HTTP_PORT: ${HTTP_PORT-8080}
   NODE_ADDR: ${NODE_ADDR-http://validator2:8545}
-  MANIFEST_PATH: ${MANIFEST_PATH-}
+  MANIFEST_PATH: ${MANIFEST_PATH-/manifests}
 
 x-container-common: &container-common
   image: golang:1.15-buster
@@ -16,9 +16,6 @@ x-container-common: &container-common
     - quorum
     - besu
     - hashicorp
-  volumes:
-    - ./build/bin/key-manager:/bin/main:ro
-    - ./deps/config:/manifests
 
 services:
   key-manager:
@@ -29,6 +26,10 @@ services:
       - 8080:8080
     restart: "no"
     command: run
+    volumes:
+      - ./build/bin/key-manager:/bin/main:ro
+      - ./deps/config:/manifests
+      - hashicorp-token:/vault/token
 
 networks:
   quorum:
@@ -40,4 +41,9 @@ networks:
   hashicorp:
     external:
       name: hashicorp
+
+volumes:
+  hashicorp-token:
+    external:
+      name: hashicorp-token
 

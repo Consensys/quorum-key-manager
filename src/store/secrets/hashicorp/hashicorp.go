@@ -31,7 +31,7 @@ type Store struct {
 
 var _ secrets.Store = &Store{}
 
-// New creates an HashiCorp secret store
+// New creates an Hashicorp secret store
 func New(client hashicorp.VaultClient, mountPoint string) *Store {
 	return &Store{
 		client:     client,
