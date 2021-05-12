@@ -16,7 +16,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 	}
 
 	client.SetNamespace(cfg.Namespace)
-	client.SetToken(cfg.Token)
+
 	return &HashicorpVaultClient{client}, nil
 }
 
@@ -34,6 +34,10 @@ func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (
 
 func (c *HashicorpVaultClient) List(path string) (*hashicorp.Secret, error) {
 	return c.client.Logical().List(path)
+}
+
+func (c *HashicorpVaultClient) SetToken(token string) {
+	c.client.SetToken(token)
 }
 
 func (c *HashicorpVaultClient) HealthCheck() error {

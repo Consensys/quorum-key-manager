@@ -181,7 +181,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			return err
 		}
-		store, err := hashicorp.NewSecretStore(spec)
+		store, err := hashicorp.NewSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
@@ -191,7 +191,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			return err
 		}
-		store, err := hashicorp.NewKeyStore(spec)
+		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}

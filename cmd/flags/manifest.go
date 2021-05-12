@@ -16,7 +16,7 @@ const (
 	ManifestPath        = "manifest-path"
 	manifestPathEnv     = "MANIFEST_PATH"
 	manifestPathKey     = "manifest.path"
-	manifestPathDefault = "/tmp"
+	manifestPathDefault = ""
 )
 
 func manifestPath(f *pflag.FlagSet) {

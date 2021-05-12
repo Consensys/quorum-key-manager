@@ -57,6 +57,7 @@ services:
 volumes:
   hashicorp-token:
     driver: local
+    name: hashicorp-token
   hashicorp-plugin:
     driver: local
 

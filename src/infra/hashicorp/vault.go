@@ -11,5 +11,6 @@ type VaultClient interface {
 	Write(path string, data map[string]interface{}) (*hashicorp.Secret, error)
 	List(path string) (*hashicorp.Secret, error)
 	Client() *hashicorp.Client
+	SetToken(token string)
 	HealthCheck() error
 }

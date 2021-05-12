@@ -44,15 +44,16 @@ const (
 )
 
 type IntegrationEnvironment struct {
-	ctx             context.Context
-	logger          *log.Logger
-	hashicorpClient hashicorp2.VaultClient
-	akvClient       akv2.Client
-	dockerClient    *docker.Client
-	keyManager      *keymanager.App
-	baseURL         string
-	Cancel          context.CancelFunc
-	tmpYml          string
+	ctx               context.Context
+	logger            *log.Logger
+	hashicorpClient   hashicorp2.VaultClient
+	akvClient         akv2.Client
+	dockerClient      *docker.Client
+	keyManager        *keymanager.App
+	baseURL           string
+	Cancel            context.CancelFunc
+	tmpManifestYaml   string
+	tmpHashicorpToken string
 }
 
 type TestSuiteEnv interface {
@@ -79,9 +80,14 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger := log.NewDefaultLogger().WithContext(ctx)
+	logger := log.DefaultLogger().WithContext(ctx)
 
 	hashicorpContainer, err := utils.HashicorpContainer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpTokenFile, err := newTmpFile(hashicorpContainer.RootToken)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +116,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	envHTTPPort := rand.IntnRange(20000, 28080)
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	tmpYml, err := newTemporalManifestYml(&manifest.Manifest{
+	tmpYml, err := newTmpManifestYml(&manifest.Manifest{
 		Kind: types.HashicorpSecrets,
 		Name: HashicorpSecretStoreName,
 		Specs: &hashicorp.SecretSpecs{
@@ -125,7 +131,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Specs: &hashicorp.KeySpecs{
 			MountPoint: HashicorpKeyMountPoint,
 			Address:    hashicorpAddr,
-			Token:      hashicorpContainer.RootToken,
+			TokenPath:  tmpTokenFile,
 			Namespace:  "",
 		},
 	}, &manifest.Manifest{
@@ -152,12 +158,14 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		ManifestPath: tmpYml,
 	}, logger)
 	if err != nil {
-		logger.WithError(err).Error("cannot initialize keymanager server")
+		logger.WithError(err).Error("cannot initialize Key Manager server")
 		return nil, err
 	}
 
 	// Hashicorp client for direct integration tests
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewBaseConfig(hashicorpAddr, hashicorpContainer.RootToken, ""))
+	hashicorpCfg := hashicorpclient.NewConfig(hashicorpAddr, "")
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpCfg)
+	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
@@ -176,14 +184,16 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
-		ctx:             ctx,
-		logger:          logger,
-		hashicorpClient: hashicorpClient,
-		akvClient:       akvClient,
-		dockerClient:    dockerClient,
-		keyManager:      keyManager,
-		baseURL:         fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
-		Cancel:          cancel,
+		ctx:               ctx,
+		logger:            logger,
+		hashicorpClient:   hashicorpClient,
+		akvClient:         akvClient,
+		dockerClient:      dockerClient,
+		keyManager:        keyManager,
+		baseURL:           fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
+		Cancel:            cancel,
+		tmpManifestYaml:   tmpYml,
+		tmpHashicorpToken: tmpTokenFile,
 	}, nil
 }
 
@@ -259,13 +269,38 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 		env.logger.WithError(err).Error("could not remove network")
 	}
 
-	err = os.Remove(env.tmpYml)
+	err = os.Remove(env.tmpManifestYaml)
 	if err != nil {
-		env.logger.WithError(err).Error("cannot remove temporal yml file")
+		env.logger.WithError(err).Error("cannot remove temporary manifest yml file")
+	}
+
+	err = os.Remove(env.tmpHashicorpToken)
+	if err != nil {
+		env.logger.WithError(err).Error("cannot remove temporary hashicorp token file")
 	}
 }
 
-func newTemporalManifestYml(manifests ...*manifest.Manifest) (string, error) {
+func newTmpFile(data interface{}) (string, error) {
+	file, err := ioutil.TempFile(os.TempDir(), "acceptanceTest_")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	bData, err := yaml.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = file.Write(bData)
+	if err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
+}
+
+func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
 	file, err := ioutil.TempFile(os.TempDir(), "acceptanceTest_")
 	if err != nil {
 		return "", err

@@ -14,26 +14,23 @@ import (
 
 // Config object that be converted into an api.Config later
 type Config struct {
-	SecretPath    string
 	Address       string
 	CACert        string
 	CAPath        string
 	ClientCert    string
 	ClientKey     string
 	TLSServerName string
+	Namespace     string
 	ClientTimeout time.Duration
 	RateLimit     float64
 	BurstLimit    int
 	MaxRetries    int
 	SkipVerify    bool
-	Token         string
-	Namespace     string
 }
 
-func NewBaseConfig(addr, token, namespace string) *Config {
+func NewConfig(addr, namespace string) *Config {
 	return &Config{
 		Address:   addr,
-		Token:     token,
 		Namespace: namespace,
 	}
 }

@@ -32,6 +32,7 @@ lint-tools: ## Install linting tools
 
 hashicorp:
 	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_HASHICORP)
+	@sleep 2 # Sleep couple seconds to wait token to be created
 
 hashicorp-down:
 	@docker-compose -f deps/hashicorp/docker-compose.yml down --volumes --timeout 0
@@ -70,7 +71,11 @@ dev: gobuild
 up: deps gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
-down: down-deps
+down:
+	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
+	@make down-deps
+
+down-dev:
 	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
 
 run: gobuild
