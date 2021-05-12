@@ -111,13 +111,13 @@ func (k Store) Refresh(ctx context.Context, id string, expirationDate time.Time)
 	return nil
 }
 
-func (k Store) Delete(ctx context.Context, id string) (*entities.Key, error) {
-	res, err := k.client.DeleteKey(ctx, id)
+func (k Store) Delete(ctx context.Context, id string) error {
+	_, err := k.client.DeleteKey(ctx, id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return parseKeyDeleteBundleRes(&res), nil
+	return nil
 }
 
 func (k Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {

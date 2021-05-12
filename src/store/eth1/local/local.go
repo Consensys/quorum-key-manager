@@ -2,35 +2,36 @@ package local
 
 import (
 	"context"
+	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
-	"path"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/signer/core"
+	"math/big"
+	"sync"
 	"time"
 
-	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-const (
-	urlPath         = "keys"
-	idLabel         = "id"
-	curveLabel      = "curve"
-	algorithmLabel  = "algorithm"
-	tagsLabel       = "tags"
-	publicKeyLabel  = "public_key"
-	privateKeyLabel = "privateKey"
-	dataLabel       = "data"
-	signatureLabel  = "signature"
-	versionLabel    = "version"
-	createdAtLabel  = "created_at"
-	updatedAtLabel  = "updated_at"
-)
+const domainLabel = "EIP712Domain"
+
+var eth1KeyAlgo = &entities.Algorithm{
+	Type:          entities.Ecdsa,
+	EllipticCurve: entities.Secp256k1,
+}
 
 // Store is an implementation of ethereum (ETH1) store relying on an underlying key store
 type Store struct {
-	keyStore keys.Store
+	keyStore        keys.Store
+	addrToId        map[string]string
+	deletedAddrToId map[string]string
+	mux             sync.RWMutex
 }
 
 var _ eth1.Store = &Store{}
@@ -38,7 +39,10 @@ var _ eth1.Store = &Store{}
 // New creates an HashiCorp key store
 func New(keyStore keys.Store) *Store {
 	return &Store{
-		keyStore: keyStore,
+		mux:             sync.RWMutex{},
+		keyStore:        keyStore,
+		addrToId:        make(map[string]string),
+		deletedAddrToId: make(map[string]string),
 	}
 }
 
@@ -47,138 +51,344 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 // Create an Ethereum account
-func (s *Store) Create(_ context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	res, err := s.keyStore.Create(s.pathKeys(""), map[string]interface{}{
-		idLabel:        id,
-		curveLabel:     alg.EllipticCurve,
-		algorithmLabel: alg.Type,
-		tagsLabel:      attr.Tags,
-	})
+func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
+	key, err := s.keyStore.Create(ctx, id, eth1KeyAlgo, attr)
 	if err != nil {
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
-	return parseResponse(res), nil
+	acc, err := parseKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	s.addID(acc.Address, acc.ID)
+	return acc, nil
 }
 
-// Import a key
-func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
-		idLabel:         id,
-		curveLabel:      alg.EllipticCurve,
-		algorithmLabel:  alg.Type,
-		tagsLabel:       attr.Tags,
-		privateKeyLabel: privKey,
-	})
+// Import an ETH1 account
+func (s *Store) Import(ctx context.Context, id, privKey string, attr *entities.Attributes) (*entities.ETH1Account, error) {
+	key, err := s.keyStore.Import(ctx, id, privKey, eth1KeyAlgo, attr)
 	if err != nil {
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
-	return parseResponse(res), nil
+	acc, err := parseKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	s.addID(acc.Address, acc.ID)
+	return acc, nil
 }
 
-// Get a key
-func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error) {
-	// TODO: Versioning is not yet implemented on the plugin
-	if version != "" {
-		return nil, errors.ErrNotImplemented
-	}
-
-	res, err := s.client.Read(s.pathKeys(id), nil)
+// Get an account
+func (s *Store) Get(ctx context.Context, addr, version string) (*entities.ETH1Account, error) {
+	id, err := s.getID(addr)
 	if err != nil {
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
-	if res.Data["error"] != nil {
-		return nil, errors.NotFoundError("could not find key pair")
+	key, err := s.keyStore.Get(ctx, id, version)
+	if err != nil {
+		return nil, err
 	}
 
-	return parseResponse(res), nil
+	return parseKey(key)
 }
 
-// Get all key ids
+// Get all account ids
 func (s *Store) List(_ context.Context) ([]string, error) {
-	res, err := s.client.List(s.pathKeys(""))
-	if err != nil {
-		return nil, hashicorpclient.ParseErrorResponse(err)
-	}
+	ids := make([]string, len(s.addrToId))
 
-	keyIds, ok := res.Data["keys"].([]interface{})
-	if !ok {
-		return []string{}, nil
-	}
-
-	var ids []string
-	for _, id := range keyIds {
-		ids = append(ids, id.(string))
+	for _, value := range s.addrToId {
+		ids = append(ids, value)
 	}
 
 	return ids, nil
 }
 
-// Update key tags
-func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+// Update account tags
+func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
+	id, err := s.getID(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := s.keyStore.Update(ctx, id, attr)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseKey(key)
 }
 
-// Refresh key (create new identical version with different TTL)
-func (s *Store) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
-	return errors.ErrNotImplemented
+// Refresh an account (create new identical version with different TTL)
+func (s *Store) Refresh(ctx context.Context, addr string, expirationDate time.Time) error {
+	id, err := s.getID(addr)
+	if err != nil {
+		return err
+	}
+
+	return s.keyStore.Refresh(ctx, id, expirationDate)
 }
 
-// Delete a key
-func (s *Store) Delete(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+// Delete an account
+func (s *Store) Delete(ctx context.Context, addr string) error {
+	id, err := s.getID(addr)
+	if err != nil {
+		return err
+	}
+
+	err = s.keyStore.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	s.removeID(addr)
+	s.addDeletedID(addr, id)
+	return nil
 }
 
-// Gets a deleted key
-func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+// Gets a deleted account
+func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
+	id, err := s.getDeletedID(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := s.keyStore.GetDeleted(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseKey(key)
 }
 
-// Lists all deleted keys
-func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+// Lists all deleted accounts
+func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
+	ids := make([]string, len(s.deletedAddrToId))
+
+	for _, value := range s.deletedAddrToId {
+		ids = append(ids, value)
+	}
+
+	return ids, nil
 }
 
-// Undelete a previously deleted key
-func (s *Store) Undelete(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+// Undelete a previously deleted account
+func (s *Store) Undelete(ctx context.Context, addr string) error {
+	id, err := s.getDeletedID(addr)
+	if err != nil {
+		return err
+	}
+
+	err = s.keyStore.Undelete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	s.removeDeletedID(addr)
+	s.addID(addr, id)
+
+	return nil
 }
 
-// Destroy a key permanently
-func (s *Store) Destroy(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+// Destroy an account permanently
+func (s *Store) Destroy(ctx context.Context, addr string) error {
+	id, err := s.getDeletedID(addr)
+	if err != nil {
+		return err
+	}
+
+	err = s.keyStore.Destroy(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	s.removeDeletedID(addr)
+	return nil
 }
 
 // Sign any arbitrary data
-func (s *Store) Sign(_ context.Context, id, data, version string) (string, error) {
-	// TODO: Versioning is not yet implemented on the plugin
-	if version != "" {
-		return "", errors.ErrNotImplemented
-	}
-
-	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
-		dataLabel: data,
-	})
+func (s *Store) Sign(ctx context.Context, addr, version, data string) (string, error) {
+	id, err := s.getID(addr)
 	if err != nil {
-		return "", hashicorpclient.ParseErrorResponse(err)
+		return "", err
 	}
 
-	return res.Data[signatureLabel].(string), nil
+	return s.keyStore.Sign(ctx, id, data, version)
 }
 
-// Encrypt any arbitrary data using a specified key
-func (s *Store) Encrypt(ctx context.Context, id, version, data string) (string, error) {
-	return "", errors.ErrNotImplemented
+// Sign EIP-712 formatted data using the specified account
+func (s *Store) SignTypedData(ctx context.Context, addr, version string, typedData *core.TypedData) (string, error) {
+	encodedData, err := getEIP712EncodedData(typedData)
+	if err != nil {
+		return "", err
+	}
 
+	return s.Sign(ctx, addr, version, hexutil.Encode([]byte(encodedData)))
+}
+
+func (s *Store) SignTransaction(ctx context.Context, addr, version, chainID string, tx *types.Transaction) (string, error) {
+	chainIDBigInt, _ := new(big.Int).SetString(chainID, 10)
+	signer := types.NewEIP155Signer(chainIDBigInt)
+
+	signature, err := s.Sign(ctx, addr, version, signer.Hash(tx).Hex())
+	if err != nil {
+		return "", err
+	}
+
+	key, err := s.keyStore.Get(ctx, addr, version)
+	if err != nil {
+		return "", err
+	}
+
+	// The signature is [R||S] and we want to add the V value to make it compatible with Ethereum [R||S||V]
+	recID, err := parseRecID(key)
+	if err != nil {
+		return "", err
+	}
+
+	sigB, err := hexutil.Decode(signature + recID)
+	if err != nil {
+		return "", err
+	}
+
+	ethSignature, err := ethereum.EIP155Signature(sigB, chainIDBigInt)
+	if err != nil {
+		return "", err
+	}
+
+	return hexutil.Encode(ethSignature), nil
+}
+
+// SignEEA transaction
+func (s *Store) SignEEA(ctx context.Context, addr, version, chainID string, tx *types.Transaction, args *ethereum.EEAPrivateArgs) (string, error) {
+	return "", errors.ErrNotImplemented
+}
+
+// SignPrivate transaction
+func (s *Store) SignPrivate(ctx context.Context, addr, version string, tx *types.Transaction) (string, error) {
+	return "", errors.ErrNotImplemented
+}
+
+// ECRevocer returns the address from a signature and data
+func (s *Store) ECRevocer(_ context.Context, data, sig string) (string, error) {
+	signatureBytes, err := hexutil.Decode(sig)
+	if err != nil {
+		return "", errors.InvalidParameterError("failed to decode signature")
+	}
+
+	payloadBytes, err := hexutil.Decode(data)
+	if err != nil {
+		return "", errors.InvalidParameterError("failed to decode payload")
+	}
+
+	pubKey, err := crypto.SigToPub(crypto.Keccak256(payloadBytes), signatureBytes)
+	if err != nil {
+		return "", errors.EncodingError("failed to recover public key")
+	}
+
+	return crypto.PubkeyToAddress(*pubKey).Hex(), nil
+}
+
+// Verify verifies that a signature belongs to a given address
+func (s *Store) Verify(ctx context.Context, addr, sig, payload string) error {
+	recoveredAddress, err := s.ECRevocer(ctx, payload, sig)
+	if err != nil {
+		return err
+	}
+
+	if addr != recoveredAddress {
+		return errors.InvalidParameterError("failed to verify signature: recovered address does not match the expected one or payload is malformed")
+	}
+
+	return nil
+}
+
+// Verify verifies that a typed data signature belongs to a given address
+func (s *Store) VerifyTypedData(ctx context.Context, addr, sig string, typedData *core.TypedData) error {
+	encodedData, err := getEIP712EncodedData(typedData)
+	if err != nil {
+		return err
+	}
+
+	return s.Verify(ctx, addr, sig, hexutil.Encode([]byte(encodedData)))
+}
+
+// Encrypt any arbitrary data using a specified account
+func (s *Store) Encrypt(ctx context.Context, addr, version, data string) (string, error) {
+	id, err := s.getID(addr)
+	if err != nil {
+		return "", err
+	}
+
+	return s.keyStore.Encrypt(ctx, id, version, data)
 }
 
 // Decrypt a single block of encrypted data.
-func (s *Store) Decrypt(ctx context.Context, id, version, data string) (string, error) {
-	return "", errors.ErrNotImplemented
+func (s *Store) Decrypt(ctx context.Context, addr, version, data string) (string, error) {
+	id, err := s.getID(addr)
+	if err != nil {
+		return "", err
+	}
+
+	return s.keyStore.Decrypt(ctx, id, version, data)
 }
 
-func (s *Store) pathKeys(suffix string) string {
-	return path.Join(s.mountPoint, urlPath, suffix)
+func (s *Store) getID(addr string) (string, error) {
+	id, ok := s.addrToId[addr]
+	if !ok {
+		return "", errors.NotFoundError("account %s was not found", addr)
+	}
+
+	return id, nil
+}
+
+func (s *Store) getDeletedID(addr string) (string, error) {
+	id, ok := s.deletedAddrToId[addr]
+	if !ok {
+		return "", errors.NotFoundError("deleted account %s was not found", addr)
+	}
+
+	return id, nil
+}
+
+func (s *Store) addID(addr, id string) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.addrToId[addr] = id
+}
+
+func (s *Store) addDeletedID(addr, id string) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.deletedAddrToId[addr] = id
+}
+
+func (s *Store) removeID(addr string) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	delete(s.addrToId, addr)
+}
+
+func (s *Store) removeDeletedID(addr string) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	delete(s.deletedAddrToId, addr)
+}
+
+func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
+	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
+	if err != nil {
+		return "", errors.InvalidParameterError("invalid typed data message")
+	}
+
+	domainSeparatorHash, err := typedData.HashStruct(domainLabel, typedData.Domain.Map())
+	if err != nil {
+		return "", errors.InvalidParameterError("invalid domain separator")
+	}
+
+	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }

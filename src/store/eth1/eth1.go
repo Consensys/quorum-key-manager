@@ -2,6 +2,8 @@ package eth1
 
 import (
 	"context"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/signer/core"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -11,53 +13,65 @@ import (
 
 type Store interface {
 	// Info returns store information
-	Info(context.Context) *entities.StoreInfo
+	Info(context.Context) (*entities.StoreInfo, error)
 
 	// Create an account
-	Create(ctx context.Context, attr *entities.Attributes) (*entities.Account, error)
+	Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Import an externally created key and store account
-	Import(ctx context.Context, privKey []byte, attr *entities.Attributes) (*entities.Account, error)
+	Import(ctx context.Context, id, privKey string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Get account
-	Get(ctx context.Context, addr string) (*entities.Account, error)
+	Get(ctx context.Context, addr, version string) (*entities.ETH1Account, error)
 
 	// List accounts
-	List(ctx context.Context, count uint, skip string) (accounts []*entities.Account, next string, err error)
+	List(ctx context.Context) ([]string, error)
 
 	// Update account attributes
-	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.Account, error)
+	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
-	// Delete account not parmently, by using Undelete the account can be retrieve
-	Delete(ctx context.Context, addrs ...string) (*entities.Account, error)
+	// Delete account not permanently, by using Undelete the account can be retrieved
+	Delete(ctx context.Context, addr string) error
 
 	// GetDeleted accounts
-	GetDeleted(ctx context.Context, addr string)
+	GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error)
 
 	// ListDeleted accounts
-	ListDeleted(ctx context.Context, count uint, skip string) (keys []*entities.Account, next string, err error)
+	ListDeleted(ctx context.Context) ([]string, error)
 
 	// Undelete a previously deleted account
 	Undelete(ctx context.Context, addr string) error
 
 	// Destroy account permanently
-	Destroy(ctx context.Context, addrs ...string) error
+	Destroy(ctx context.Context, addr string) error
 
 	// Sign from a digest using the specified account
-	Sign(ctx context.Context, addr string, data []byte) (sig []byte, err error)
+	Sign(ctx context.Context, addr, version, data string) (string, error)
 
-	// SignHomestead transaction
-	SignHomestead(ctx context.Context, addr string, tx *ethereum.Transaction) (sig []byte, err error)
+	// Sign EIP-712 formatted data using the specified account
+	SignTypedData(ctx context.Context, addr, version string, typedData *core.TypedData) (string, error)
 
-	// SignEIP155 transaction
-	SignEIP155(ctx context.Context, addr string, chainID string, tx *ethereum.Transaction) (sig []byte, err error)
+	// SignTransaction transaction
+	SignTransaction(ctx context.Context, addr, version, chainID string, tx *types.Transaction) (string, error)
 
 	// SignEEA transaction
-	SignEEA(ctx context.Context, addr string, chainID string, tx *ethereum.Transaction, args *ethereum.EEAPrivateArgs) (sig []byte, err error)
+	SignEEA(ctx context.Context, addr, version, chainID string, tx *types.Transaction, args *ethereum.EEAPrivateArgs) (string, error)
 
 	// SignPrivate transaction
-	SignPrivate(ctx context.Context, addr string, tx *ethereum.Transaction) (sig []byte, err error)
+	SignPrivate(ctx context.Context, addr, version string, tx *types.Transaction) (string, error)
 
-	// Verify a signature using a specified key
-	ECRevocer(ctx context.Context, addr string, data []byte, sig []byte) (*entities.Account, error)
+	// ECRevocer returns the address from a signature and data
+	ECRevocer(ctx context.Context, data, sig string) (string, error)
+
+	// Verify verifies that a signature belongs to a given address
+	Verify(ctx context.Context, addr, sig, payload string) error
+
+	// Verify verifies that a typed data signature belongs to a given address
+	VerifyTypedData(ctx context.Context, addr, sig string, typedData *core.TypedData) error
+
+	// Encrypt any arbitrary data using a specified account
+	Encrypt(ctx context.Context, addr, version, data string) (string, error)
+
+	// Decrypt a single block of encrypted data.
+	Decrypt(ctx context.Context, addr, version, data string) (string, error)
 }

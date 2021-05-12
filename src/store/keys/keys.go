@@ -32,7 +32,7 @@ type Store interface {
 	Refresh(ctx context.Context, id string, expirationDate time.Time) error
 
 	// Delete secret not permanently, by using Undelete() the secret can be retrieve
-	Delete(ctx context.Context, id string) (*entities.Key, error)
+	Delete(ctx context.Context, id string) error
 
 	// GetDeleted keys
 	GetDeleted(ctx context.Context, id string) (*entities.Key, error)

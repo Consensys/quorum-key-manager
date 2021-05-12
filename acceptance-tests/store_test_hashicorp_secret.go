@@ -81,14 +81,13 @@ func (s *hashicorpSecretTestSuite) TestList() {
 	ctx := s.env.ctx
 	id := "my-secret-list1"
 	id2 := "my-secret-list2"
-	value := "my-secret-value"
+	value1 := "my-secret-value"
+	value2 := "my-secret-value2"
 
 	// 2 with same ID and 1 different
-	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
+	_, err := s.store.Set(ctx, id, value1, &entities.Attributes{})
 	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id, value, &entities.Attributes{})
-	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
+	_, err = s.store.Set(ctx, id2, value2, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
 	s.T().Run("should list all secrets ids successfully", func(t *testing.T) {
@@ -98,6 +97,8 @@ func (s *hashicorpSecretTestSuite) TestList() {
 		// TODO: Do exact check when Destroy is implemented
 		// assert.Equal(t, []string{id, id2}, ids)
 		assert.True(t, len(ids) >= 2)
+		assert.Contains(t, ids, id)
+		assert.Contains(t, ids, id2)
 	})
 }
 

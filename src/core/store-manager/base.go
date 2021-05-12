@@ -12,7 +12,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 )
@@ -75,7 +75,7 @@ func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error
 	return nil, errors.NotFoundError("key store %s was not found", name)
 }
 
-func (m *manager) GetAccountStore(_ context.Context, name string) (eth1.Store, error) {
+func (m *manager) GetEth1Store(_ context.Context, name string) (eth1.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.account[name]; ok {

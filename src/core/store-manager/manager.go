@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 )
@@ -23,8 +23,8 @@ type StoreManager interface {
 	// GetKeyStore by name
 	GetKeyStore(ctx context.Context, name string) (keys.Store, error)
 
-	// GetAccountStore by name
-	GetAccountStore(ctx context.Context, name string) (eth1.Store, error)
+	// GetEth1Store by name
+	GetEth1Store(ctx context.Context, name string) (eth1.Store, error)
 
 	// List stores
 	List(ctx context.Context, kind manifest.Kind) ([]string, error)
