@@ -94,6 +94,10 @@ func (s *Store) Get(ctx context.Context, addr, version string) (*entities.ETH1Ac
 		return nil, err
 	}
 
+	if key.Algo.Type != entities.Ecdsa && key.Algo.EllipticCurve != entities.Secp256k1 {
+		return nil, errors.InvalidParameterError("the specified key is not an ethereum account")
+	}
+
 	return parseKey(key)
 }
 
@@ -234,18 +238,18 @@ func (s *Store) SignTransaction(ctx context.Context, addr, version, chainID stri
 	chainIDBigInt, _ := new(big.Int).SetString(chainID, 10)
 	signer := types.NewEIP155Signer(chainIDBigInt)
 
+	key, err := s.Get(ctx, addr, version)
+	if err != nil {
+		return "", err
+	}
+
 	signature, err := s.Sign(ctx, addr, version, signer.Hash(tx).Hex())
 	if err != nil {
 		return "", err
 	}
 
-	key, err := s.keyStore.Get(ctx, addr, version)
-	if err != nil {
-		return "", err
-	}
-
 	// The signature is [R||S] and we want to add the V value to make it compatible with Ethereum [R||S||V]
-	recID, err := parseRecID(key)
+	recID, err := parseRecID(key.PublicKey)
 	if err != nil {
 		return "", err
 	}

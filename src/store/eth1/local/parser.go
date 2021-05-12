@@ -10,21 +10,23 @@ import (
 )
 
 func parseKey(key *entities.Key) (*entities.ETH1Account, error) {
-	pubKey, err := parsePubKey(key)
+	pubKey, err := parsePubKey(key.PublicKey)
 	if err != nil {
 		return nil, err
 	}
 
 	return &entities.ETH1Account{
-		ID:       key.ID,
-		Address:  crypto.PubkeyToAddress(*pubKey).Hex(),
-		Metadata: key.Metadata,
-		Tags:     key.Tags,
+		ID:                  key.ID,
+		Address:             crypto.PubkeyToAddress(*pubKey).Hex(),
+		Metadata:            key.Metadata,
+		Tags:                key.Tags,
+		PublicKey:           key.PublicKey,
+		CompressedPublicKey: hexutil.Encode(crypto.CompressPubkey(pubKey)),
 	}, nil
 }
 
-func parseRecID(key *entities.Key) (string, error) {
-	pubKey, err := parsePubKey(key)
+func parseRecID(pubKeyS string) (string, error) {
+	pubKey, err := parsePubKey(pubKeyS)
 	if err != nil {
 		return "", err
 	}
@@ -36,8 +38,8 @@ func parseRecID(key *entities.Key) (string, error) {
 	return "01", nil
 }
 
-func parsePubKey(key *entities.Key) (*ecdsa.PublicKey, error) {
-	pubKeyB, err := hexutil.Decode(key.PublicKey)
+func parsePubKey(pubKeyS string) (*ecdsa.PublicKey, error) {
+	pubKeyB, err := hexutil.Decode(pubKeyS)
 	if err != nil {
 		return nil, errors.EncodingError("failed to decode public key")
 	}
