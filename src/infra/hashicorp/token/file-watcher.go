@@ -1,4 +1,4 @@
-package hashicorp
+package token
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/fsnotify/fsnotify"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -19,12 +20,12 @@ import (
 // renewTokenLoop handle the token tokenWatcher of the application
 type RenewTokenWatcher struct {
 	tokenPath string
-	client    *api.Client
+	client    hashicorp.VaultClient
 	watcher   *fsnotify.Watcher
 	logger    *log.Logger
 }
 
-func NewRenewTokenWatcher(client *api.Client, tokenPath string, logger *log.Logger) (*RenewTokenWatcher, error) {
+func NewRenewTokenWatcher(client hashicorp.VaultClient, tokenPath string, logger *log.Logger) (*RenewTokenWatcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
@@ -44,10 +45,10 @@ func NewRenewTokenWatcher(client *api.Client, tokenPath string, logger *log.Logg
 }
 
 // Run contains the token regeneration routine
-func (rtl *RenewTokenWatcher) Run(ctx context.Context) error {
+func (rtl *RenewTokenWatcher) Start(ctx context.Context) error {
 	defer rtl.watcher.Close()
 
-	if err := rtl.reloadToken(); err != nil {
+	if err := rtl.refreshToken(); err != nil {
 		return err
 	}
 
@@ -66,12 +67,12 @@ func (rtl *RenewTokenWatcher) Run(ctx context.Context) error {
 
 			if event.Op&fsnotify.Write == fsnotify.Write {
 				rtl.logger.WithField("event_name", event.Name).Debug("file has been updated")
-				if err := rtl.reloadToken(); err != nil {
+				if err := rtl.refreshToken(); err != nil {
 					return err
 				}
 			} else if event.Op&fsnotify.Create == fsnotify.Create {
 				rtl.logger.WithField("event_name", event.Name).Debug("file has been created")
-				if err := rtl.reloadToken(); err != nil {
+				if err := rtl.refreshToken(); err != nil {
 					return err
 				}
 			}
@@ -87,7 +88,7 @@ func (rtl *RenewTokenWatcher) Run(ctx context.Context) error {
 }
 
 // Refresh the token
-func (rtl *RenewTokenWatcher) reloadToken() error {
+func (rtl *RenewTokenWatcher) refreshToken() error {
 	encoded, err := ioutil.ReadFile(rtl.tokenPath)
 	if err != nil {
 		return errors.ConfigError("token file path could not be found at %s", rtl.tokenPath)
@@ -102,7 +103,7 @@ func (rtl *RenewTokenWatcher) reloadToken() error {
 		token = strings.TrimSuffix(decoded, "\r")            // This one is for windows compatibility
 	} else {
 		// Unwrap token
-		secret, err2 := rtl.client.Logical().Unwrap(wrappedToken.Token)
+		secret, err2 := rtl.client.Client().Logical().Unwrap(wrappedToken.Token)
 		if err2 != nil {
 			return errors.InternalError("could not unwrap token")
 		}

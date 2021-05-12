@@ -2,13 +2,11 @@ package client
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	hashicorp "github.com/hashicorp/vault/api"
 )
 
 type HashicorpVaultClient struct {
 	client *hashicorp.Client
-	logger *log.Logger
 }
 
 func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
@@ -17,11 +15,9 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 		return nil, err
 	}
 
-	logger := log.DefaultLogger().SetComponent("hashicorp-client")
-
 	client.SetNamespace(cfg.Namespace)
 
-	return &HashicorpVaultClient{client, logger}, nil
+	return &HashicorpVaultClient{client}, nil
 }
 
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*hashicorp.Secret, error) {
@@ -38,6 +34,10 @@ func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (
 
 func (c *HashicorpVaultClient) List(path string) (*hashicorp.Secret, error) {
 	return c.client.Logical().List(path)
+}
+
+func (c *HashicorpVaultClient) SetToken(token string) {
+	c.client.SetToken(token)
 }
 
 func (c *HashicorpVaultClient) HealthCheck() error {

@@ -92,6 +92,18 @@ func (mr *MockVaultClientMockRecorder) Client() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockVaultClient)(nil).Client))
 }
 
+// SetToken mocks base method
+func (m *MockVaultClient) SetToken(token string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetToken", token)
+}
+
+// SetToken indicates an expected call of SetToken
+func (mr *MockVaultClientMockRecorder) SetToken(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockVaultClient)(nil).SetToken), token)
+}
+
 // HealthCheck mocks base method
 func (m *MockVaultClient) HealthCheck() error {
 	m.ctrl.T.Helper()

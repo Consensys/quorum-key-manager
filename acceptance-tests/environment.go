@@ -271,12 +271,12 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 
 	err = os.Remove(env.tmpManifestYaml)
 	if err != nil {
-		env.logger.WithError(err).Error("cannot remove temporal manifest yml file")
+		env.logger.WithError(err).Error("cannot remove temporary manifest yml file")
 	}
 
 	err = os.Remove(env.tmpHashicorpToken)
 	if err != nil {
-		env.logger.WithError(err).Error("cannot remove temporal hashicorp token file")
+		env.logger.WithError(err).Error("cannot remove temporary hashicorp token file")
 	}
 }
 

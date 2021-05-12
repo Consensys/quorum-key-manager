@@ -5,6 +5,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/token"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 )
 
@@ -27,13 +28,13 @@ func NewKeyStore(specs *KeySpecs, logger *log.Logger) (*hashicorp.Store, error) 
 	if specs.Token != "" {
 		cli.Client().SetToken(specs.Token)
 	} else if specs.TokenPath != "" {
-		tokenWatcher, err := NewRenewTokenWatcher(cli.Client(), specs.TokenPath, logger)
+		tokenWatcher, err := token.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
 		if err != nil {
 			return nil, err
 		}
 
 		go func() {
-			err = tokenWatcher.Run(context.Background())
+			err = tokenWatcher.Start(context.Background())
 			if err != nil {
 				logger.WithError(err).Error("token watcher has exited with errors")
 			}
