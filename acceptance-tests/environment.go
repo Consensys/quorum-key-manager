@@ -237,17 +237,6 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	go func() {
-		err = env.keyManager.Start(ctx)
-		if err != nil {
-			env.logger.WithError(err).Error("failed to start key manager")
-			env.Cancel()
-		}
-	}()
-
-	// TODO: Implement WaitFor functions based on ready endpoint
-	time.Sleep(2 * time.Second)
-
 	return nil
 }
 
