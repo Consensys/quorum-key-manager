@@ -6,10 +6,13 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/header"
 )
 
+func HeadersModifier(h func(http.Header) error) Modifier {
+	return ModifierFunc(func(resp *http.Response) error {
+		return h(resp.Header)
+	})
+}
+
 // Headers sets or deletes custom request headers
 func Headers(overides map[string][]string) Modifier {
-	return ModifierFunc(func(resp *http.Response) error {
-		header.Overide(resp.Header, overides)
-		return nil
-	})
+	return HeadersModifier(header.Overide(overides))
 }

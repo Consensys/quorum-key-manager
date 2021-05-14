@@ -59,7 +59,10 @@ func Request(baseReq *http.Request) Preparer {
 		outReq.Method = req.Method
 
 		// Overide Header
-		header.Overide(outReq.Header, req.Header)
+		err := header.Overide(req.Header)(outReq.Header)
+		if err != nil {
+			return nil, err
+		}
 
 		// Overide URL
 		if outReq.URL == nil {

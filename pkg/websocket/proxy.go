@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/header"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
@@ -172,14 +173,6 @@ func (prx *Proxy) errorHandler() proxy.HandleRoundTripErrorFunc {
 	return proxy.HandleRoundTripError
 }
 
-func deleteStandardWebSocketHeader(header http.Header) {
-	delete(header, "Sec-WebSocket-Key")
-	delete(header, "Sec-WebSocket-Extensions")
-	delete(header, "Sec-WebSocket-Protocol")
-	delete(header, "Sec-WebSocket-Version")
-	delete(header, "Sec-WebSocket-Accept")
-}
-
 func (prx *Proxy) handleUpgrade(rw http.ResponseWriter, req *http.Request) (clientConn, serverConn *websocket.Conn, err error) {
 	// Prepare request
 	outReq := req.Clone(req.Context())
@@ -195,10 +188,10 @@ func (prx *Proxy) handleUpgrade(rw http.ResponseWriter, req *http.Request) (clie
 	outReq, _ = request.RemoveConnectionHeaders().Prepare(outReq)
 	outReq, _ = request.RemoveHopByHopHeaders().Prepare(outReq)
 	outReq, _ = request.ForwardedFor().Prepare(outReq)
-	outReq, _ = request.WebSocketHeaders().Prepare(outReq)
 
-	// delete headers that will be re-populated on Dial
-	deleteStandardWebSocketHeader(outReq.Header)
+	// delete websocket headers that will be re-populated on Dial
+	outReq, _ = request.HeadersPreparer(header.WebSocketHeaders).Prepare(outReq)
+	outReq, _ = request.HeadersPreparer(header.DeleteWebSocketHeaders).Prepare(outReq)
 
 	outReq.URL.Scheme = "ws"
 
@@ -219,7 +212,7 @@ func (prx *Proxy) handleUpgrade(rw http.ResponseWriter, req *http.Request) (clie
 	}
 
 	// delete headers that will be re-populated on Upgrade
-	deleteStandardWebSocketHeader(resp.Header)
+	_ = response.HeadersModifier(header.DeleteWebSocketHeaders).Modify(resp)
 
 	// Upgrade client connection
 	clientConn, err = prx.Upgrader.Upgrade(rw, req, resp.Header)
