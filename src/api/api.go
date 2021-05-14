@@ -5,7 +5,6 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/handlers"
 
-	jsonrpcapi "github.com/ConsenSysQuorum/quorum-key-manager/src/api/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/middleware"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"
@@ -26,7 +25,7 @@ func New(backend core.Backend) http.Handler {
 	r.PathPrefix(keysPrefix).Handler(middleware.StripPrefix(keysPrefix, handlers.NewKeysHandler(backend)))
 	r.PathPrefix(accountsPrefix).Handler(middleware.StripPrefix(accountsPrefix, handlers.NewAccountsHandler(backend)))
 	r.PathPrefix(storesPrefix).Handler(middleware.StripPrefix(storesPrefix, handlers.NewStoresHandler(backend)))
-	r.PathPrefix(jsonRPCPrefix).Methods(http.MethodPost).Handler(middleware.StripPrefix(jsonRPCPrefix, jsonrpcapi.New(backend)))
+	r.PathPrefix(jsonRPCPrefix).Methods(http.MethodPost).Handler(middleware.StripPrefix(jsonRPCPrefix, handlers.NewJsonRPCHandler(backend)))
 
 	return middleware.New(backend)(r)
 }

@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
 )
 
@@ -23,7 +24,12 @@ type KeysClient interface {
 	DestroyKey(ctx context.Context, storeName, id string) error
 }
 
+type JsonRPC interface {
+	Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error)
+}
+
 type KeyManagerClient interface {
 	SecretsClient
 	KeysClient
+	JsonRPC
 }

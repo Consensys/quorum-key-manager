@@ -48,7 +48,7 @@ down-networks:
 
 deps: networks hashicorp
 
-down-deps: hashicorp-down down-networks
+down-deps: hashicorp-down
 
 run-acceptance:
 	@go test -v -tags acceptance -count=1 ./acceptance-tests

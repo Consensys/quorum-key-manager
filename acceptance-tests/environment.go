@@ -40,6 +40,10 @@ const (
 	HashicorpKeyMountPoint    = "orchestrate"
 	AKVSecretStoreName        = "AKVSecrets"
 	AKVKeyStoreName           = "AKVKeys"
+)
+
+// @TODO Read ENV vars
+const (
 	AKVSpecENV                = "AKV_ENVIRONMENT"
 )
 

@@ -18,10 +18,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// @TODO Read ENV vars
-const keyManagerURL = "http://localhost:8080"
-const HashicorpSecretStoreName = "hashicorp-secrets"
-
 type secretsTestSuite struct {
 	suite.Suite
 	err              error
