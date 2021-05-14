@@ -28,8 +28,8 @@ services:
     command: run
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config:/manifests
-      - hashicorp-token:/vault/token
+      - ./deps/config:/manifests:ro
+      - hashicorp-token:/vault/token:ro
 
 networks:
   quorum:

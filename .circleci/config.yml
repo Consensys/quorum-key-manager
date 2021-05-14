@@ -54,6 +54,22 @@ jobs:
       - run:
           name: Acceptance tests
           command: make run-acceptance
+          
+  e2e:
+    machine: true
+    steps:
+      - run:
+          name: Uninstall Go
+          command: sudo rm -rvf /usr/local/go/
+      - go/install:
+          version: 1.15.7
+      - prepare_golang
+      - run:
+          name: e2e tests
+          command: |
+            set +e
+            make up
+            make run-e2e
 
 workflows:
   version: 2
@@ -83,3 +99,10 @@ workflows:
               only: /^v.*/
             branches:
               only: /.*/
+      - e2e:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+#              only: master

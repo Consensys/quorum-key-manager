@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 
@@ -27,15 +28,17 @@ const (
 type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
+	logger     *log.Logger
 }
 
 var _ secrets.Store = &Store{}
 
 // New creates an Hashicorp secret store
-func New(client hashicorp.VaultClient, mountPoint string) *Store {
+func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
+		logger:     logger,
 	}
 }
 
@@ -54,6 +57,7 @@ func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attribut
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("failed to set secret")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -71,7 +75,9 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 	if version != "" {
 		_, err := strconv.Atoi(version)
 		if err != nil {
-			return nil, errors.InvalidParameterError("version must be a number")
+			err2 := errors.InvalidParameterError("version must be a number")
+			s.logger.WithError(err2).WithField("id", id).Error("failed to get secret")
+			return nil, err2
 		}
 
 		callData = map[string][]string{
@@ -81,6 +87,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
 	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("failed to get secret")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	} else if hashicorpSecretData == nil {
 		return nil, errors.NotFoundError("secret not found")
@@ -96,6 +103,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 	// We need to do a second call to get the metadata
 	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
 	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("failed to get secret")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -111,6 +119,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
+		s.logger.WithError(err).Error("failed to list secrets")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -136,6 +145,7 @@ func (s *Store) Refresh(_ context.Context, id, _ string, expirationDate time.Tim
 
 	_, err := s.client.Write(s.pathMetadata(id), data)
 	if err != nil {
+		s.logger.WithError(err).Error("failed to refresh secret")
 		return hashicorpclient.ParseErrorResponse(err)
 	}
 

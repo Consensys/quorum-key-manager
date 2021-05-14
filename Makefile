@@ -48,7 +48,7 @@ down-networks:
 
 deps: networks hashicorp
 
-down-deps: hashicorp-down
+down-deps: hashicorp-down down-networks
 
 run-acceptance:
 	@go test -v -tags acceptance -count=1 ./acceptance-tests
@@ -68,7 +68,7 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: gobuild
+dev: networks gobuild
 	@docker-compose -f ./docker-compose.yml up --build $(KEY_MANAGER_SERVICES)	
 
 up: deps gobuild

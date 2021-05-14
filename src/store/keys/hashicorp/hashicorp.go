@@ -5,6 +5,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
@@ -32,15 +33,17 @@ const (
 type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
+	logger     *log.Logger
 }
 
 var _ keys.Store = &Store{}
 
 // New creates an HashiCorp key store
-func New(client hashicorp.VaultClient, mountPoint string) *Store {
+func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
+		logger:     logger,
 	}
 }
 
@@ -57,6 +60,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 		tagsLabel:      attr.Tags,
 	})
 	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("failed to create key")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -73,6 +77,7 @@ func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algo
 		privateKeyLabel: privKey,
 	})
 	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("failed to import key")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -88,6 +93,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error
 
 	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("failed to get key")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -102,6 +108,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
+		s.logger.WithError(err).Error("failed to list keys")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -164,6 +171,7 @@ func (s *Store) Sign(_ context.Context, id, data, version string) (string, error
 		dataLabel: data,
 	})
 	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("failed to sign payload")
 		return "", hashicorpclient.ParseErrorResponse(err)
 	}
 
