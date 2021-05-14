@@ -61,7 +61,7 @@ func TestOveride(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			dst := FromMap(tt.dst)
 			expectedDst := FromMap(tt.expectedDst)
-			Overide(dst, tt.overides)
+			_ = Overide(tt.overides)(dst)
 			assert.Equal(t, expectedDst, dst, "Overide should be correct")
 		})
 	}
