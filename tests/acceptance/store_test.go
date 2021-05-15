@@ -1,6 +1,6 @@
 // +build acceptance
 
-package integrationtests
+package acceptancetests
 
 import (
 	"context"

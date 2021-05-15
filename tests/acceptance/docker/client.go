@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/container"
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/container/compose"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/compose"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/docker/docker/api/types"

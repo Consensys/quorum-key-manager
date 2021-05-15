@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	dockerhashicorp "github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/container/hashicorp"
+	dockerhashicorp "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 

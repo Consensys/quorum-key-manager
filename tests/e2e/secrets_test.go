@@ -11,6 +11,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -23,11 +24,16 @@ type secretsTestSuite struct {
 	err              error
 	ctx              context.Context
 	keyManagerClient *client.HTTPClient
+	cfg              *tests.Config
 }
 
 func (s *secretsTestSuite) SetupSuite() {
+	if s.err != nil {
+		s.T().Error(s.err)
+	}
+
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
-		URL: keyManagerURL,
+		URL: s.cfg.KeyManagerURL,
 	})
 }
 
@@ -47,6 +53,7 @@ func TestKeyManagerSecrets(t *testing.T) {
 	})
 	defer sig.Close()
 
+	s.cfg, s.err = tests.NewConfig()
 	suite.Run(t, s)
 }
 
@@ -62,7 +69,7 @@ func (s *secretsTestSuite) TestSet() {
 			},
 		}
 
-		secret, err := s.keyManagerClient.SetSecret(s.ctx, hashicorpSecretStoreName, request)
+		secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
 		require.NoError(t, err)
 
 		assert.Equal(t, request.Value, secret.Value)
@@ -103,14 +110,14 @@ func (s *secretsTestSuite) TestGet() {
 		Value: "my-secret-value",
 	}
 
-	secret, err := s.keyManagerClient.SetSecret(s.ctx, hashicorpSecretStoreName, request)
+	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
 	require.NoError(s.T(), err)
 
-	secret2, err := s.keyManagerClient.SetSecret(s.ctx, hashicorpSecretStoreName, request)
+	secret2, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
 	require.NoError(s.T(), err)
 
 	s.T().Run("should get a secret specific version successfully", func(t *testing.T) {
-		secretRetrieved, err := s.keyManagerClient.GetSecret(s.ctx, hashicorpSecretStoreName, secret.ID, secret.Version)
+		secretRetrieved, err := s.keyManagerClient.GetSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID, secret.Version)
 		require.NoError(t, err)
 
 		assert.Equal(t, request.Value, secretRetrieved.Value)
@@ -126,14 +133,14 @@ func (s *secretsTestSuite) TestGet() {
 	})
 
 	s.T().Run("should get the latest version of a secret successfully", func(t *testing.T) {
-		secretRetrieved, err := s.keyManagerClient.GetSecret(s.ctx, hashicorpSecretStoreName, secret.ID, "")
+		secretRetrieved, err := s.keyManagerClient.GetSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID, "")
 		require.NoError(t, err)
 
 		assert.Equal(t, secret2.Version, secretRetrieved.Version)
 	})
 
 	s.T().Run("should parse errors successfully", func(t *testing.T) {
-		secret, err := s.keyManagerClient.GetSecret(s.ctx, hashicorpSecretStoreName, secret.ID, "invalidVersion")
+		secret, err := s.keyManagerClient.GetSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID, "invalidVersion")
 		require.Nil(t, secret)
 
 		httpError := err.(*client.ResponseError)
@@ -149,11 +156,11 @@ func (s *secretsTestSuite) TestList() {
 		Value: "my-secret-value",
 	}
 
-	_, err := s.keyManagerClient.SetSecret(s.ctx, hashicorpSecretStoreName, request)
+	_, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
 	require.NoError(s.T(), err)
 
 	s.T().Run("should get all secret ids successfully", func(t *testing.T) {
-		ids, err := s.keyManagerClient.ListSecrets(s.ctx, hashicorpSecretStoreName)
+		ids, err := s.keyManagerClient.ListSecrets(s.ctx, s.cfg.HashicorpSecretStore)
 		require.NoError(t, err)
 
 		assert.GreaterOrEqual(t, len(ids), 1)
