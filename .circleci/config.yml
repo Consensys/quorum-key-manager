@@ -69,6 +69,7 @@ jobs:
           command: |
             set +e
             make up
+            make go-quorum
             make run-e2e
 
 workflows:

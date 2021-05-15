@@ -55,8 +55,8 @@ func (s *jsonRPCTestSuite) TestRequestForwarding() {
 	s.T().Run("should forward call eth_blockNumber", func(t *testing.T) {
 		resp, err := s.keyManagerClient.Call(s.ctx, nodeID, "eth_blockNumber")
 		require.NoError(t, err)
+		require.Nil(t, resp.Error)
 
-		assert.Empty(t, resp.Error)
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(t, err)
