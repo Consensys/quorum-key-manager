@@ -53,7 +53,8 @@ run:
   deadline: 20m
   skip-dirs:
     - .gocache
-    - /build
+    - build
     - mock
-    - /deps
-    - /vendor
+    - deps
+    - vendor
+    - tests

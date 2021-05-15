@@ -38,7 +38,7 @@ type Store struct {
 
 var _ keys.Store = &Store{}
 
-// New creates an HashiCorp key store
+// New creates an Hashicorp key store
 func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
 	return &Store{
 		client:     client,

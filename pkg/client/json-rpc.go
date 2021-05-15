@@ -11,7 +11,7 @@ import (
 
 const jsonRPCPath = ""
 
-type JsonRPCMessage struct {
+type JSONRPCMessage struct {
 	Version string          `json:"jsonrpc"`
 	Method  string          `json:"method"`
 	Params  json.RawMessage `json:"params,omitempty"`
@@ -20,7 +20,7 @@ type JsonRPCMessage struct {
 
 func (c *HTTPClient) Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error) {
 	reqURL := fmt.Sprintf("%s/%s", c.config.URL, jsonRPCPath)
-	req := &JsonRPCMessage{
+	req := &JSONRPCMessage{
 		Method:  method,
 		Version: "2.0",
 	}

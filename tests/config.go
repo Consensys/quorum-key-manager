@@ -28,7 +28,7 @@ type akvClient struct {
 func NewConfig() (*Config, error) {
 	cfgStr := os.Getenv(envVar)
 	if cfgStr == "" {
-		return nil, fmt.Errorf("expected test data at enviroment variable '%s'", envVar)
+		return nil, fmt.Errorf("expected test data at environment variable '%s'", envVar)
 	}
 
 	cfg := &Config{}

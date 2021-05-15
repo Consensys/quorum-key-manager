@@ -7,7 +7,7 @@ import (
 )
 
 // New creates a http.Handler to be served on JSON-RPC
-func NewJsonRPCHandler(bcknd core.Backend) http.Handler {
+func NewJSONRPCHandler(bcknd core.Backend) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		n, err := bcknd.NodeManager().Node(req.Context(), "default")
 		if err != nil {

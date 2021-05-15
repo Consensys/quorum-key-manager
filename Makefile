@@ -1,4 +1,4 @@
-GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" | egrep -v "^\./\.go" | grep -v _test.go)
+GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" -not -path "./tests/*" | egrep -v "^\./\.go" | grep -v _test.go)
 DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
 PACKAGES ?= $(shell go list ./... | egrep -v "tests|e2e|mocks|mock" )
 KEY_MANAGER_SERVICES = key-manager
@@ -16,7 +16,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-.PHONY: all lint integration-tests
+.PHONY: all lint lint-ci integration-tests
 
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)

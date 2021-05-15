@@ -24,12 +24,12 @@ type KeysClient interface {
 	DestroyKey(ctx context.Context, storeName, id string) error
 }
 
-type JsonRPC interface {
+type JSONRPC interface {
 	Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error)
 }
 
 type KeyManagerClient interface {
 	SecretsClient
 	KeysClient
-	JsonRPC
+	JSONRPC
 }

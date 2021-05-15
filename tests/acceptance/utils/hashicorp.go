@@ -7,8 +7,8 @@ import (
 	"os"
 	"strconv"
 
-	dockerhashicorp "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	dockerhashicorp "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
 )
 
 const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
