@@ -80,7 +80,8 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
 		return
 	}
 
-	store := akvsecret.New(s.env.akvClient)
+	logger := log.DefaultLogger().SetComponent("AKVSecret")
+	store := akvsecret.New(s.env.akvClient, logger)
 
 	testSuite := new(akvSecretTestSuite)
 	testSuite.env = s.env
@@ -109,7 +110,8 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 		return
 	}
 
-	store := akvkey.New(s.env.akvClient)
+	logger := log.DefaultLogger().SetComponent("AKVKey")
+	store := akvkey.New(s.env.akvClient, logger)
 
 	testSuite := new(akvKeyTestSuite)
 	testSuite.env = s.env

@@ -201,7 +201,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			return err
 		}
-		store, err := akv.NewSecretStore(spec)
+		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
@@ -211,7 +211,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			return err
 		}
-		store, err := akv.NewKeyStore(spec)
+		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
