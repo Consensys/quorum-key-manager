@@ -15,7 +15,7 @@ const (
 	keysPrefix     = "/keys"
 	accountsPrefix = "/accounts"
 	storesPrefix   = "/stores"
-	jsonRPCPrefix  = "/"
+	jsonRPCPrefix  = "/nodes"
 )
 
 func New(backend core.Backend) http.Handler {
