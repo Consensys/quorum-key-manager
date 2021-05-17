@@ -109,5 +109,4 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: /.*/
-#              only: master
+              only: master

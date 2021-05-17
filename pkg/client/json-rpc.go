@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 )
 
@@ -27,7 +26,7 @@ func (c *HTTPClient) Call(ctx context.Context, nodeID, method string, args ...in
 	if args != nil {
 		var err error
 		if req.Params, err = json.Marshal(args); err != nil {
-			return nil, errors.EncodingError(err.Error())
+			return nil, err
 		}
 	}
 
