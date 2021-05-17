@@ -4,8 +4,6 @@ x-container-common: &container-common
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
     - hashicorp
-    - quorum
-    - besu
 
 services:
   hashicorp:
@@ -28,7 +26,7 @@ services:
       VAULT_ADDR: ${VAULT_ADDR-http://hashicorp:8200}
       PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
       TOKEN_PATH: ${TOKEN_PATH-/vault/token}
-      PLUGIN_VERSION: ${PLUGIN_VERSION-v0.0.9}
+      PLUGIN_VERSION: ${PLUGIN_VERSION-v0.0.10-alpha.5}
     restart: "no"
     depends_on:
       - hashicorp
@@ -65,9 +63,3 @@ networks:
   hashicorp:
     external:
       name: hashicorp
-  quorum:
-    external:
-      name: quorum
-  besu:
-    external:
-      name: besu

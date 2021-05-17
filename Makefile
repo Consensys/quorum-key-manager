@@ -1,6 +1,6 @@
-GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" | egrep -v "^\./\.go" | grep -v _test.go)
+GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" -not -path "./tests/*" | egrep -v "^\./\.go" | grep -v _test.go)
 DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
-PACKAGES ?= $(shell go list ./... | egrep -v "integration-tests|mocks" )
+PACKAGES ?= $(shell go list ./... | egrep -v "tests|e2e|mocks|mock" )
 KEY_MANAGER_SERVICES = key-manager
 
 UNAME_S := $(shell uname -s)
@@ -16,7 +16,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-.PHONY: all lint integration-tests
+.PHONY: all lint lint-ci integration-tests
 
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)
@@ -51,7 +51,10 @@ deps: networks hashicorp
 down-deps: hashicorp-down
 
 run-acceptance:
-	@go test -v -tags acceptance -count=1 ./acceptance-tests
+	@go test -v -tags acceptance -count=1 ./tests/acceptance
+
+run-e2e:
+	@go test -v -tags e2e -count=1 ./tests/e2e
 
 gobuild:
 	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager
@@ -65,13 +68,13 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: gobuild
+dev: networks gobuild
 	@docker-compose -f ./docker-compose.yml up --build $(KEY_MANAGER_SERVICES)	
 
-up: deps gobuild
+up: deps go-quorum gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
-down:
+down: down-go-quorum
 	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
 	@make down-deps
 

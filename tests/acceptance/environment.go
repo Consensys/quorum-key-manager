@@ -1,32 +1,31 @@
-package integrationtests
+package acceptancetests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	"gopkg.in/yaml.v2"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/utils"
 	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/utils"
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker"
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/config"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
 	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker"
+	dconfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
 	"github.com/hashicorp/vault/api"
 )
 
@@ -40,7 +39,6 @@ const (
 	HashicorpKeyMountPoint    = "orchestrate"
 	AKVSecretStoreName        = "AKVSecrets"
 	AKVKeyStoreName           = "AKVKeys"
-	AKVSpecENV                = "AKV_ENVIRONMENT"
 )
 
 type IntegrationEnvironment struct {
@@ -54,6 +52,7 @@ type IntegrationEnvironment struct {
 	Cancel            context.CancelFunc
 	tmpManifestYaml   string
 	tmpHashicorpToken string
+	cfg               *tests.Config
 }
 
 type TestSuiteEnv interface {
@@ -93,8 +92,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	// Initialize environment container setup
-	composition := &config.Composition{
-		Containers: map[string]*config.Container{
+	composition := &dconfig.Composition{
+		Containers: map[string]*dconfig.Container{
 			hashicorpContainerID: {
 				HashicorpVault: hashicorpContainer,
 			},
@@ -108,11 +107,11 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	akvSpecStr := os.Getenv(AKVSpecENV)
-	akvKeySpecs := akv.KeySpecs{}
-	akvSecretSpecs := akv.KeySpecs{}
-	_ = json.Unmarshal([]byte(akvSpecStr), &akvKeySpecs)
-	_ = json.Unmarshal([]byte(akvSpecStr), &akvSecretSpecs)
+	testCfg, err := tests.NewConfig()
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize new environment")
+		return nil, err
+	}
 
 	envHTTPPort := rand.IntnRange(20000, 28080)
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
@@ -137,11 +136,11 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}, &manifest.Manifest{
 		Kind:  types.AKVSecrets,
 		Name:  AKVSecretStoreName,
-		Specs: akvSecretSpecs,
+		Specs: testCfg.AkvSecretSpecs(),
 	}, &manifest.Manifest{
 		Kind:  types.AKVKeys,
 		Name:  AKVKeyStoreName,
-		Specs: akvKeySpecs,
+		Specs: testCfg.AkvKeySpecs(),
 	})
 
 	if err != nil {
@@ -165,17 +164,17 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	// Hashicorp client for direct integration tests
 	hashicorpCfg := hashicorpclient.NewConfig(hashicorpAddr, "")
 	hashicorpClient, err := hashicorpclient.NewClient(hashicorpCfg)
-	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
+	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
-		akvKeySpecs.VaultName,
-		akvKeySpecs.TenantID,
-		akvKeySpecs.ClientID,
-		akvKeySpecs.ClientSecret,
+		testCfg.AkvClient.VaultName,
+		testCfg.AkvClient.TenantID,
+		testCfg.AkvClient.ClientID,
+		testCfg.AkvClient.ClientSecret,
 	))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize akv client")
@@ -194,6 +193,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Cancel:            cancel,
 		tmpManifestYaml:   tmpYml,
 		tmpHashicorpToken: tmpTokenFile,
+		cfg:               testCfg,
 	}, nil
 }
 
@@ -236,17 +236,6 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		env.logger.WithError(err).Error("failed to mount (enable) orchestrate vault plugin")
 		return err
 	}
-
-	go func() {
-		err = env.keyManager.Start(ctx)
-		if err != nil {
-			env.logger.WithError(err).Error("failed to start key manager")
-			env.Cancel()
-		}
-	}()
-
-	// TODO: Implement WaitFor functions based on ready endpoint
-	time.Sleep(2 * time.Second)
 
 	return nil
 }

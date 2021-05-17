@@ -1,6 +1,7 @@
 package akv
 
 import (
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
 )
@@ -21,13 +22,13 @@ type KeySpecs struct {
 	Resource            string `json:"resource"`
 }
 
-func NewKeyStore(spec *KeySpecs) (*akv.Store, error) {
+func NewKeyStore(spec *KeySpecs, logger *log.Logger) (*akv.Store, error) {
 	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	store := akv.New(cli)
+	store := akv.New(cli, logger)
 	return store, nil
 }

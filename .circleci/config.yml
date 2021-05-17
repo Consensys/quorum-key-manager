@@ -43,7 +43,8 @@ jobs:
           command: make run-coverage
 
   acceptance:
-    machine: true
+    machine:
+      image: ubuntu-2004:202010-01
     steps:
       - run:
           name: Uninstall Go
@@ -54,6 +55,26 @@ jobs:
       - run:
           name: Acceptance tests
           command: make run-acceptance
+          
+  e2e:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run:
+          name: Uninstall Go
+          command: sudo rm -rvf /usr/local/go/
+      - go/install:
+          version: 1.15.7
+      - prepare_golang
+      - run:
+          name: e2e tests
+          command: |
+            set +e
+            echo "$MANIFEST_B64" | base64 --decode > ./deps/config/manifest.yml
+            make up
+            echo "Wait 10 seconds for services to boot up correctly..."
+            sleep 10
+            make run-e2e
 
 workflows:
   version: 2
@@ -83,3 +104,9 @@ workflows:
               only: /^v.*/
             branches:
               only: /.*/
+      - e2e:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: master

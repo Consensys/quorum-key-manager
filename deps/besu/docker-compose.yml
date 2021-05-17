@@ -1,5 +1,5 @@
 ---
-version: '3.6'
+version: '3.7'
 
 x-default-variables: &default-variables
   LOG4J_CONFIGURATION_FILE: /config/log-config.xml

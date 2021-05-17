@@ -1,6 +1,4 @@
-// +build acceptance
-
-package integrationtests
+package acceptancetests
 
 import (
 	"crypto/ecdsa"
@@ -197,7 +195,7 @@ func (s *akvKeyTestSuite) TestList() {
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
-	
+
 	defer func() {
 		_, err := s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)

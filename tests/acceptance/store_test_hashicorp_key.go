@@ -1,8 +1,10 @@
-// +build acceptance
-
-package integrationtests
+package acceptancetests
 
 import (
+	"fmt"
+	"math/rand"
+	"testing"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
@@ -11,9 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"fmt"
-	"math/rand"
-	"testing"
 )
 
 // TODO: Destroy key pairs when done with the tests to avoid conflicts between tests

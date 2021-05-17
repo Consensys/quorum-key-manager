@@ -1,17 +1,20 @@
-// +build acceptance
+// +build e2e
 
-package integrationtests
+package e2e
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
@@ -19,23 +22,23 @@ import (
 
 type keysTestSuite struct {
 	suite.Suite
-	env              *IntegrationEnvironment
 	err              error
+	ctx              context.Context
 	keyManagerClient *client.HTTPClient
+	cfg              *tests.Config
 }
 
 func (s *keysTestSuite) SetupSuite() {
-	err := StartEnvironment(s.env.ctx, s.env)
-	if err != nil {
-		s.T().Error(err)
-		return
+	if s.err != nil {
+		s.T().Error(s.err)
 	}
 
-	s.env.logger.Info("setup test suite has completed")
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+		URL: s.cfg.KeyManagerURL,
+	})
 }
 
 func (s *keysTestSuite) TearDownSuite() {
-	s.env.Teardown(context.Background())
 	if s.err != nil {
 		s.T().Error(s.err)
 	}
@@ -44,28 +47,18 @@ func (s *keysTestSuite) TearDownSuite() {
 func TestKeyManagerKeys(t *testing.T) {
 	s := new(keysTestSuite)
 
-	var err error
-	s.env, err = NewIntegrationEnvironment(context.Background())
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
+	s.ctx = context.Background()
 	sig := common.NewSignalListener(func(signal os.Signal) {
-		s.env.Cancel()
+		s.err = fmt.Errorf("interrupt signal was caught")
+		t.FailNow()
 	})
 	defer sig.Close()
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
-		URL: s.env.baseURL,
-	})
-
+	s.cfg, s.err = tests.NewConfig()
 	suite.Run(t, s)
 }
 
 func (s *keysTestSuite) TestCreate() {
-	ctx := s.env.ctx
-
 	s.T().Run("should create a new key successfully: Secp256k1/ECDSA", func(t *testing.T) {
 		request := &types.CreateKeyRequest{
 			ID:               "my-key-ecdsa",
@@ -77,7 +70,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		assert.NotEmpty(t, key.PublicKey)
@@ -105,7 +98,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		assert.NotEmpty(t, key.PublicKey)
@@ -133,7 +126,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(ctx, "inexistentStoreName", request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, "inexistentStoreName", request)
 		require.Nil(t, key)
 
 		httpError := err.(*client.ResponseError)
@@ -152,7 +145,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.Nil(t, key)
 
 		httpError := err.(*client.ResponseError)
@@ -170,7 +163,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.Nil(t, key)
 
 		httpError := err.(*client.ResponseError)
@@ -179,8 +172,6 @@ func (s *keysTestSuite) TestCreate() {
 }
 
 func (s *keysTestSuite) TestImport() {
-	ctx := s.env.ctx
-
 	s.T().Run("should create a new key successfully: Secp256k1/ECDSA", func(t *testing.T) {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-import-ecdsa",
@@ -193,7 +184,7 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", key.PublicKey)
@@ -222,7 +213,7 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		assert.Equal(t, "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191", key.PublicKey)
@@ -251,7 +242,7 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.Nil(t, key)
 
 		httpError := err.(*client.ResponseError)
@@ -270,7 +261,7 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.Nil(t, key)
 
 		httpError := err.(*client.ResponseError)
@@ -279,7 +270,6 @@ func (s *keysTestSuite) TestImport() {
 }
 
 func (s *keysTestSuite) TestGet() {
-	ctx := s.env.ctx
 	request := &types.ImportKeyRequest{
 		ID:               "my-key-get",
 		Curve:            "secp256k1",
@@ -291,11 +281,11 @@ func (s *keysTestSuite) TestGet() {
 		},
 	}
 
-	key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 	require.NoError(s.T(), err)
 
 	s.T().Run("should get a key successfully", func(t *testing.T) {
-		keyRetrieved, err := s.keyManagerClient.GetKey(ctx, HashicorpKeyStoreName, key.ID, "")
+		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, "")
 		require.NoError(t, err)
 
 		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", keyRetrieved.PublicKey)
@@ -313,7 +303,7 @@ func (s *keysTestSuite) TestGet() {
 	// TODO: Add test to check that a specific version can be retrieved when versioning is implemented in Hashicorp
 
 	s.T().Run("should parse errors successfully", func(t *testing.T) {
-		secret, err := s.keyManagerClient.GetSecret(ctx, HashicorpKeyStoreName, "inexistentID", key.Version)
+		secret, err := s.keyManagerClient.GetSecret(s.ctx, s.cfg.HashicorpKeyStore, "inexistentID", key.Version)
 		require.Nil(t, secret)
 
 		httpError := err.(*client.ResponseError)
@@ -322,7 +312,6 @@ func (s *keysTestSuite) TestGet() {
 }
 
 func (s *keysTestSuite) TestList() {
-	ctx := s.env.ctx
 	request := &types.ImportKeyRequest{
 		ID:               "my-key-list",
 		Curve:            "secp256k1",
@@ -334,11 +323,11 @@ func (s *keysTestSuite) TestList() {
 		},
 	}
 
-	key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 	require.NoError(s.T(), err)
 
 	s.T().Run("should get all key ids successfully", func(t *testing.T) {
-		ids, err := s.keyManagerClient.ListKeys(ctx, HashicorpKeyStoreName)
+		ids, err := s.keyManagerClient.ListKeys(s.ctx, s.cfg.HashicorpKeyStore)
 		require.NoError(t, err)
 
 		assert.GreaterOrEqual(t, len(ids), 1)
@@ -346,7 +335,7 @@ func (s *keysTestSuite) TestList() {
 	})
 
 	s.T().Run("should parse errors successfully", func(t *testing.T) {
-		ids, err := s.keyManagerClient.ListSecrets(ctx, "inexistentStoreName")
+		ids, err := s.keyManagerClient.ListSecrets(s.ctx, "inexistentStoreName")
 		require.Empty(t, ids)
 
 		httpError := err.(*client.ResponseError)
@@ -356,8 +345,6 @@ func (s *keysTestSuite) TestList() {
 }
 
 func (s *keysTestSuite) TestSign() {
-	ctx := s.env.ctx
-
 	s.T().Run("should sign a new payload successfully: Secp256k1/ECDSA", func(t *testing.T) {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-ecdsa",
@@ -366,13 +353,13 @@ func (s *keysTestSuite) TestSign() {
 			SigningAlgorithm: "ecdsa",
 		}
 
-		key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		requestSign := &types.SignPayloadRequest{
 			Data: hexutil.Encode([]byte("my data to sign")),
 		}
-		signature, err := s.keyManagerClient.Sign(ctx, HashicorpKeyStoreName, key.ID, requestSign)
+		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(t, err)
 
 		assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", signature)
@@ -386,13 +373,13 @@ func (s *keysTestSuite) TestSign() {
 			SigningAlgorithm: "eddsa",
 			PrivateKey:       "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7",
 		}
-		key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		requestSign := &types.SignPayloadRequest{
 			Data: hexutil.Encode([]byte("my data to sign")),
 		}
-		signature, err := s.keyManagerClient.Sign(ctx, HashicorpKeyStoreName, key.ID, requestSign)
+		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(t, err)
 
 		assert.Equal(t, "0xb5da51f49917ee5292ba04af6095f689c7fafee4270809971bdbff146dbabd2d00701aa0e9e55a91940d6307e273f11cdcb5aacd26d7839e1306d790aba82b77", signature)
@@ -405,13 +392,13 @@ func (s *keysTestSuite) TestSign() {
 			SigningAlgorithm: "eddsa",
 			PrivateKey:       "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7",
 		}
-		key, err := s.keyManagerClient.ImportKey(ctx, HashicorpKeyStoreName, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		requestSign := &types.SignPayloadRequest{
 			Data: "my data to sign not in hexadecimal format",
 		}
-		signature, err := s.keyManagerClient.Sign(ctx, HashicorpKeyStoreName, key.ID, requestSign)
+		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.Empty(t, signature)
 
 		httpError := err.(*client.ResponseError)

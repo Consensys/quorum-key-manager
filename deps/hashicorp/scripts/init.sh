@@ -18,6 +18,12 @@ echo "SHA256SUM: ${SHA256SUM}"
 # Unseal Vault
 curl --request POST --data '{"key": '${UNSEAL_KEY}'}' ${VAULT_ADDR}/v1/sys/unseal
 
+# Enable kv-v2 secret engine
+curl --header "X-Vault-Token: ${VAULT_TOKEN}" --request POST \
+        --data '{"type": "kv-v2", "config": {"force_no_cache": true} }' \
+    ${VAULT_ADDR}/v1/sys/mounts/secret
+
+
 # Register orchestrate plugin
 curl --header "X-Vault-Token: ${VAULT_TOKEN}" --request POST \
   --data "{\"sha256\": \"${SHA256SUM}\", \"command\": \"orchestrate\" }" \

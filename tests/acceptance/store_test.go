@@ -1,12 +1,13 @@
 // +build acceptance
 
-package integrationtests
+package acceptancetests
 
 import (
 	"context"
 	"os"
 	"testing"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
 	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
@@ -64,7 +65,8 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 		return
 	}
 
-	store := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint)
+	logger := log.DefaultLogger().SetComponent("HashicorpSecret")
+	store := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
 
 	testSuite := new(hashicorpSecretTestSuite)
 	testSuite.env = s.env
@@ -78,7 +80,8 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
 		return
 	}
 
-	store := akvsecret.New(s.env.akvClient)
+	logger := log.DefaultLogger().SetComponent("AKVSecret")
+	store := akvsecret.New(s.env.akvClient, logger)
 
 	testSuite := new(akvSecretTestSuite)
 	testSuite.env = s.env
@@ -92,7 +95,8 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
 		return
 	}
 
-	store := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint)
+	logger := log.DefaultLogger().SetComponent("HashicorpKey")
+	store := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
 
 	testSuite := new(hashicorpKeyTestSuite)
 	testSuite.env = s.env
@@ -106,7 +110,8 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 		return
 	}
 
-	store := akvkey.New(s.env.akvClient)
+	logger := log.DefaultLogger().SetComponent("AKVKey")
+	store := akvkey.New(s.env.akvClient, logger)
 
 	testSuite := new(akvKeyTestSuite)
 	testSuite.env = s.env

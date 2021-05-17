@@ -38,11 +38,12 @@ func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*hashicorp.Store, e
 			err = tokenWatcher.Start(context.Background())
 			if err != nil {
 				logger.WithError(err).Error("token watcher has exited with errors")
+			} else {
+				logger.Warn("token watcher has exited gracefully")
 			}
-			logger.Warn("token watcher has exited gracefully")
 		}()
 	}
 
-	store := hashicorp.New(cli, specs.MountPoint)
+	store := hashicorp.New(cli, specs.MountPoint, logger)
 	return store, nil
 }
