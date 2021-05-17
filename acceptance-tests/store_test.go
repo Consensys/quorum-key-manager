@@ -4,11 +4,12 @@ package integrationtests
 
 import (
 	"context"
+	eth1local "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/local"
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 	"os"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -118,7 +119,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 		return
 	}
 
-	store := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint)
+	store := eth1local.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint))
 
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env

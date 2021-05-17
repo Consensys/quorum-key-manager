@@ -4,11 +4,11 @@ package integrationtests
 
 import (
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ import (
 type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store *hashicorp.Store
+	store *eth1.Store
 }
 
 func (s *eth1TestSuite) TestCreate() {
@@ -54,20 +54,5 @@ func (s *eth1TestSuite) TestCreate() {
 		_, err = s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
 		_ = s.store.Destroy(ctx, id)
-	})
-
-	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
-		id := "my-key"
-		tags := testutils.FakeTags()
-
-		key, err := s.store.Create(ctx, id, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: "invalidCurve",
-		}, &entities.Attributes{
-			Tags: tags,
-		})
-
-		require.Nil(t, key)
-		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 }
