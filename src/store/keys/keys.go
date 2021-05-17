@@ -20,7 +20,7 @@ type Store interface {
 	Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Get the public part of a stored key.
-	Get(ctx context.Context, id, version string) (*entities.Key, error)
+	Get(ctx context.Context, id string) (*entities.Key, error)
 
 	// List keys
 	List(ctx context.Context) ([]string, error)
@@ -47,11 +47,11 @@ type Store interface {
 	Destroy(ctx context.Context, id string) error
 
 	// Sign from any arbitrary data using the specified key
-	Sign(ctx context.Context, id, data, version string) (string, error)
+	Sign(ctx context.Context, id, data string) (string, error)
 
 	// Encrypt any arbitrary data using a specified key
-	Encrypt(ctx context.Context, id, version string, data string) (string, error)
+	Encrypt(ctx context.Context, id, data string) (string, error)
 
 	// Decrypt a single block of encrypted data.
-	Decrypt(ctx context.Context, id, version string, data string) (string, error)
+	Decrypt(ctx context.Context, id, data string) (string, error)
 }

@@ -78,9 +78,9 @@ func (s *Store) Import(ctx context.Context, id, privKey string, alg *entities.Al
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) Get(ctx context.Context, id, version string) (*entities.Key, error) {
+func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
-	res, err := s.client.GetKey(ctx, id, version)
+	res, err := s.client.GetKey(ctx, id, "")
 	if err != nil {
 		logger.WithError(err).Error("failed to get key")
 		return nil, err
@@ -137,26 +137,16 @@ func (s *Store) Refresh(ctx context.Context, id string, expirationDate time.Time
 	return nil
 }
 
-<<<<<<< HEAD
-func (k Store) Delete(ctx context.Context, id string) error {
-	_, err := k.client.DeleteKey(ctx, id)
+func (s *Store) Delete(ctx context.Context, id string) error {
+	logger := s.logger.WithField("id", id)
+	_, err := s.client.DeleteKey(ctx, id)
 	if err != nil {
+		logger.WithError(err).Error("failed to delete key")
 		return err
 	}
 
-	return nil
-=======
-func (s *Store) Delete(ctx context.Context, id string) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
-	res, err := s.client.DeleteKey(ctx, id)
-	if err != nil {
-		logger.WithError(err).Error("failed to delete key")
-		return nil, err
-	}
-
 	logger.Info("key was deleted successfully")
-	return parseKeyDeleteBundleRes(&res), nil
->>>>>>> master
+	return nil
 }
 
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
@@ -209,7 +199,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Sign(ctx context.Context, id, data, version string) (string, error) {
+func (s *Store) Sign(ctx context.Context, id, data string) (string, error) {
 	logger := s.logger.WithField("id", id).WithField("data", common.ShortString(data, 5))
 	errMsg := "failed to sign data"
 	b64Data, err := hexToSha256Base64(data)
@@ -218,7 +208,7 @@ func (s *Store) Sign(ctx context.Context, id, data, version string) (string, err
 		return "", err
 	}
 
-	kItem, err := s.Get(ctx, id, version)
+	kItem, err := s.Get(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error(errMsg)
 		return "", err
@@ -230,7 +220,7 @@ func (s *Store) Sign(ctx context.Context, id, data, version string) (string, err
 		return "", err
 	}
 
-	b64Signature, err := s.client.Sign(ctx, id, version, algo, b64Data)
+	b64Signature, err := s.client.Sign(ctx, id, "", algo, b64Data)
 	if err != nil {
 		logger.WithError(err).Error(errMsg)
 		return "", err
@@ -246,10 +236,10 @@ func (s *Store) Sign(ctx context.Context, id, data, version string) (string, err
 	return signature, nil
 }
 
-func (s *Store) Encrypt(ctx context.Context, id, version, data string) (string, error) {
+func (s *Store) Encrypt(ctx context.Context, id, data string) (string, error) {
 	return "", errors.ErrNotImplemented
 }
 
-func (s *Store) Decrypt(ctx context.Context, id, version, data string) (string, error) {
+func (s *Store) Decrypt(ctx context.Context, id, data string) (string, error) {
 	return "", errors.ErrNotImplemented
 }

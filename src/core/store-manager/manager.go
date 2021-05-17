@@ -2,13 +2,11 @@ package storemanager
 
 import (
 	"context"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 //go:generate mockgen -source=manager.go -destination=mocks/manager.go -package=mock
@@ -25,15 +23,11 @@ type StoreManager interface {
 	// GetKeyStore by name
 	GetKeyStore(ctx context.Context, name string) (keys.Store, error)
 
-	// GetAccountStore by name
-	GetAccountStore(ctx context.Context, name string) (accounts.Store, error)
+	// GetEth1Store by name
+	GetEth1Store(ctx context.Context, name string) (eth1.Store, error)
 
-	// GetAccountStoreByAddr
-	GetAccountStoreByAddr(ctx context.Context, addr ethcommon.Address) (accounts.Store, error)
+	GetEth1StoreByAddr(ctx context.Context, addr string) (eth1.Store, error)
 
 	// List stores
 	List(ctx context.Context, kind manifest.Kind) ([]string, error)
-
-	// ListAllAccounts list all accounts from all stores
-	ListAllAccounts(context.Context) ([]*entities.Account, error)
 }

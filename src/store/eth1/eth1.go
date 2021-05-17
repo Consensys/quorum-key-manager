@@ -22,7 +22,7 @@ type Store interface {
 	Import(ctx context.Context, id, privKey string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Get account
-	Get(ctx context.Context, addr, version string) (*entities.ETH1Account, error)
+	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
 
 	// List accounts
 	List(ctx context.Context) ([]string, error)
@@ -46,19 +46,19 @@ type Store interface {
 	Destroy(ctx context.Context, addr string) error
 
 	// Sign from a digest using the specified account
-	Sign(ctx context.Context, addr, version, data string) (string, error)
+	Sign(ctx context.Context, addr, data string) (string, error)
 
 	// Sign EIP-712 formatted data using the specified account
-	SignTypedData(ctx context.Context, addr, version string, typedData *core.TypedData) (string, error)
+	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) (string, error)
 
 	// SignTransaction transaction
-	SignTransaction(ctx context.Context, addr, version, chainID string, tx *types.Transaction) (string, error)
+	SignTransaction(ctx context.Context, addr, chainID string, tx *types.Transaction) (string, error)
 
 	// SignEEA transaction
-	SignEEA(ctx context.Context, addr, version, chainID string, tx *types.Transaction, args *ethereum.EEAPrivateArgs) (string, error)
+	SignEEA(ctx context.Context, addr, chainID string, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) (string, error)
 
 	// SignPrivate transaction
-	SignPrivate(ctx context.Context, addr, version string, tx *types.Transaction) (string, error)
+	SignPrivate(ctx context.Context, addr string, tx *types.Transaction) (string, error)
 
 	// ECRevocer returns the address from a signature and data
 	ECRevocer(ctx context.Context, data, sig string) (string, error)
@@ -70,8 +70,8 @@ type Store interface {
 	VerifyTypedData(ctx context.Context, addr, sig string, typedData *core.TypedData) error
 
 	// Encrypt any arbitrary data using a specified account
-	Encrypt(ctx context.Context, addr, version, data string) (string, error)
+	Encrypt(ctx context.Context, addr, data string) (string, error)
 
 	// Decrypt a single block of encrypted data.
-	Decrypt(ctx context.Context, addr, version, data string) (string, error)
+	Decrypt(ctx context.Context, addr, data string) (string, error)
 }

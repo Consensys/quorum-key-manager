@@ -83,13 +83,13 @@ func (s *Store) Import(ctx context.Context, id, privKey string, attr *entities.A
 }
 
 // Get an account
-func (s *Store) Get(ctx context.Context, addr, version string) (*entities.ETH1Account, error) {
+func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	id, err := s.getID(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := s.keyStore.Get(ctx, id, version)
+	key, err := s.keyStore.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -215,35 +215,35 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 }
 
 // Sign any arbitrary data
-func (s *Store) Sign(ctx context.Context, addr, version, data string) (string, error) {
+func (s *Store) Sign(ctx context.Context, addr, data string) (string, error) {
 	id, err := s.getID(addr)
 	if err != nil {
 		return "", err
 	}
 
-	return s.keyStore.Sign(ctx, id, data, version)
+	return s.keyStore.Sign(ctx, id, data)
 }
 
 // Sign EIP-712 formatted data using the specified account
-func (s *Store) SignTypedData(ctx context.Context, addr, version string, typedData *core.TypedData) (string, error) {
+func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) (string, error) {
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
 		return "", err
 	}
 
-	return s.Sign(ctx, addr, version, hexutil.Encode([]byte(encodedData)))
+	return s.Sign(ctx, addr, hexutil.Encode([]byte(encodedData)))
 }
 
-func (s *Store) SignTransaction(ctx context.Context, addr, version, chainID string, tx *types.Transaction) (string, error) {
+func (s *Store) SignTransaction(ctx context.Context, addr, chainID string, tx *types.Transaction) (string, error) {
 	chainIDBigInt, _ := new(big.Int).SetString(chainID, 10)
 	signer := types.NewEIP155Signer(chainIDBigInt)
 
-	key, err := s.Get(ctx, addr, version)
+	key, err := s.Get(ctx, addr)
 	if err != nil {
 		return "", err
 	}
 
-	signature, err := s.Sign(ctx, addr, version, signer.Hash(tx).Hex())
+	signature, err := s.Sign(ctx, addr, signer.Hash(tx).Hex())
 	if err != nil {
 		return "", err
 	}
@@ -268,12 +268,12 @@ func (s *Store) SignTransaction(ctx context.Context, addr, version, chainID stri
 }
 
 // SignEEA transaction
-func (s *Store) SignEEA(ctx context.Context, addr, version, chainID string, tx *types.Transaction, args *ethereum.EEAPrivateArgs) (string, error) {
+func (s *Store) SignEEA(ctx context.Context, addr, chainID string, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) (string, error) {
 	return "", errors.ErrNotImplemented
 }
 
 // SignPrivate transaction
-func (s *Store) SignPrivate(ctx context.Context, addr, version string, tx *types.Transaction) (string, error) {
+func (s *Store) SignPrivate(ctx context.Context, addr string, tx *types.Transaction) (string, error) {
 	return "", errors.ErrNotImplemented
 }
 
@@ -322,23 +322,23 @@ func (s *Store) VerifyTypedData(ctx context.Context, addr, sig string, typedData
 }
 
 // Encrypt any arbitrary data using a specified account
-func (s *Store) Encrypt(ctx context.Context, addr, version, data string) (string, error) {
+func (s *Store) Encrypt(ctx context.Context, addr, data string) (string, error) {
 	id, err := s.getID(addr)
 	if err != nil {
 		return "", err
 	}
 
-	return s.keyStore.Encrypt(ctx, id, version, data)
+	return s.keyStore.Encrypt(ctx, id, data)
 }
 
 // Decrypt a single block of encrypted data.
-func (s *Store) Decrypt(ctx context.Context, addr, version, data string) (string, error) {
+func (s *Store) Decrypt(ctx context.Context, addr, data string) (string, error) {
 	id, err := s.getID(addr)
 	if err != nil {
 		return "", err
 	}
 
-	return s.keyStore.Decrypt(ctx, id, version, data)
+	return s.keyStore.Decrypt(ctx, id, data)
 }
 
 func (s *Store) getID(addr string) (string, error) {
