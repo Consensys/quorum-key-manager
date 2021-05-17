@@ -7,10 +7,10 @@ import (
 )
 
 func TestTransport(t *testing.T) {
-	cfg := &Config{
+	cfg := (&Config{
 		EnableHTTP2: true,
 		EnableH2C:   true,
-	}
+	}).SetDefault()
 
 	_, err := New(cfg)
 

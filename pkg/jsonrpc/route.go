@@ -10,9 +10,9 @@ type Route struct {
 	methodRoutes map[string][]*Route
 }
 
-func (r *Route) Match(req *Request, match *RouteMatch) bool {
+func (r *Route) Match(msg *RequestMsg, match *RouteMatch) bool {
 	for _, m := range r.matchers {
-		if matched := m.Match(req, match); !matched {
+		if matched := m.Match(msg, match); !matched {
 			return false
 		}
 	}
@@ -56,7 +56,7 @@ func (r *Route) Handle(h Handler) *Route {
 	return r
 }
 
-func (r *Route) HandleFunc(f func(ResponseWriter, *Request)) *Route {
+func (r *Route) HandleFunc(f func(ResponseWriter, *RequestMsg)) *Route {
 	return r.Handle(HandlerFunc(f))
 }
 

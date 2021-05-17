@@ -70,3 +70,18 @@ func (c *modifiedClient) Do(req *http.Request) (*http.Response, error) {
 func (c *modifiedClient) CloseIdleConnections() {
 	c.client.CloseIdleConnections()
 }
+
+func WithRequest(req *http.Request) Decorator {
+	return func(c Client) Client {
+		return WithPreparer(request.Request(req))(c)
+	}
+}
+
+func CombineDecorators(decorators ...Decorator) Decorator {
+	return func(c Client) Client {
+		for i := len(decorators); i > 0; i-- {
+			c = decorators[i-1](c)
+		}
+		return c
+	}
+}

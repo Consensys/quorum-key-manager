@@ -6,7 +6,7 @@ import (
 
 // matchers try to match a request.
 type matcher interface {
-	Match(*Request, *RouteMatch) bool
+	Match(*RequestMsg, *RouteMatch) bool
 }
 
 // RouteMatch stores information about a matched route
@@ -21,8 +21,8 @@ type versionMatcher struct {
 	version string
 }
 
-func (matcher *versionMatcher) Match(req *Request, _ *RouteMatch) bool {
-	return req.Version() == matcher.version
+func (matcher *versionMatcher) Match(msg *RequestMsg, _ *RouteMatch) bool {
+	return msg.Version == matcher.version
 }
 
 // methodMatcher matches request with a given method
@@ -30,8 +30,8 @@ type methodMatcher struct {
 	method string
 }
 
-func (matcher *methodMatcher) Match(req *Request, _ *RouteMatch) bool {
-	return req.Method() == matcher.method
+func (matcher *methodMatcher) Match(msg *RequestMsg, _ *RouteMatch) bool {
+	return msg.Method == matcher.method
 }
 
 // methodMatcher matches request with a given prefix
@@ -39,6 +39,6 @@ type methodPrefixMatcher struct {
 	prefix string
 }
 
-func (matcher *methodPrefixMatcher) Match(req *Request, _ *RouteMatch) bool {
-	return strings.HasPrefix(req.Method(), matcher.prefix)
+func (matcher *methodPrefixMatcher) Match(msg *RequestMsg, _ *RouteMatch) bool {
+	return strings.HasPrefix(msg.Method, matcher.prefix)
 }

@@ -39,6 +39,8 @@ func StatusCodeFromRoundTripError(err error) int {
 		statusCode = http.StatusBadGateway
 	case errors.Is(err, context.Canceled):
 		statusCode = StatusClientClosedRequest
+	case errors.Is(err, context.DeadlineExceeded):
+		statusCode = StatusClientClosedRequest
 	default:
 		var netErr net.Error
 		if errors.As(err, &netErr) {

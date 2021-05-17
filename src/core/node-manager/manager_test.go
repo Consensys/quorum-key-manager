@@ -28,7 +28,7 @@ var manifestWithTessera = &manifest.Manifest{
 		"proxy": {
 			"request": {
 				"headers": {
-					"CUSTOM-HEADER": "test"
+					"CUSTOM-HEADER": ["test"]
 				}
 			}
 		}
@@ -61,7 +61,7 @@ var manifestRPCOnly = &manifest.Manifest{
 		},
 		"request": {
 			"headers": {
-				"CUSTOMER-HEADER": "test"
+				"CUSTOMER-HEADER": ["test"]
 			}
 		}
 	}
@@ -70,7 +70,7 @@ var manifestRPCOnly = &manifest.Manifest{
 }
 
 func TestManager(t *testing.T) {
-	mngr := New()
+	mngr := New(nil)
 
 	mnfsts := []*manifest.Manifest{
 		manifestWithTessera,

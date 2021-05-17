@@ -48,6 +48,7 @@ func run(cmd *cobra.Command, _ []string) error {
 	vipr := viper.GetViper()
 	cfg := flags.NewAppConfig(vipr)
 	logger := log.NewLogger(cfg.Logger)
+	log.SetDefaultLogger(logger)
 
 	ctx := log.With(cmd.Context(), logger)
 	appli, err := app.New(cfg, logger)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 
 	"bou.ke/monkey"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
@@ -38,7 +39,8 @@ func (s *hashicorpSecretStoreTestSuite) SetupTest() {
 	s.mountPoint = "secret"
 	s.mockVault = mocks.NewMockVaultClient(ctrl)
 
-	s.secretStore = New(s.mockVault, s.mountPoint)
+	logger := log.DefaultLogger()
+	s.secretStore = New(s.mockVault, s.mountPoint, logger)
 }
 
 func (s *hashicorpSecretStoreTestSuite) TestSet() {

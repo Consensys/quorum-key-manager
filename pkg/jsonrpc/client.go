@@ -1,102 +1,32 @@
 package jsonrpc
 
 import (
-	"context"
 	"fmt"
+	"reflect"
 	"sync/atomic"
-
-	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
 )
 
 var defaultVersion = "2.0"
 
-type ClientConfig struct {
-	Version string             `json:"version,omitempty"`
-	HTTP    *httpclient.Config `json:"http,omitempty"`
-}
+//go:generate mockgen -source=client.go -destination=mock/client.go -package=mock
 
-func (cfg *ClientConfig) SetDefault() *ClientConfig {
-	if cfg.HTTP == nil {
-		cfg.HTTP = new(httpclient.Config)
-	}
-
-	cfg.HTTP.SetDefault()
-
-	if cfg.Version == "" {
-		cfg.Version = defaultVersion
-	}
-
-	return cfg
-}
-
-// Client is an jsonrpc client interface
+// Client is an jsonrpc HTTPClient interface
 type Client interface {
-	// Do sends an jsonrpc request and returns an jsonrpc response, following
-	// policy (such as redirects, cookies, auth)
-	Do(*Request) (*Response, error)
-
-	// CloseIdleConnections closes any connections on its Transport which
-	// were previously connected from previous requests but are now
-	// sitting idle in a "keep-alive" state. It does not interrupt any
-	// connections currently in use.
-	CloseIdleConnections()
+	// Do sends an jsonrpc request and returns an jsonrpc response
+	Do(*RequestMsg) (*ResponseMsg, error)
 }
 
-// client is a connector to a jsonrpc server
-type client struct {
-	client httpclient.Client
-}
-
-// NewClient creates a new jsonrpc client from an HTTP client
-func NewClient(c httpclient.Client) Client {
-	return &client{
-		client: c,
-	}
-}
-
-// Do sends an jsonrpc request and returns an jsonrpc response
-func (c *client) Do(req *Request) (*Response, error) {
-	// write request body
-	err := req.WriteBody()
-	if err != nil {
-		return nil, err
-	}
-
-	httpResp, err := c.client.Do(req.Request())
-	if err != nil {
-		return nil, err
-	}
-
-	// Create response and reads body
-	resp := NewResponse(httpResp)
-	err = resp.ReadBody()
-	if err != nil {
-		return resp, err
-	}
-
-	err = resp.Error()
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-func (c *client) CloseIdleConnections() {
-	c.client.CloseIdleConnections()
-}
-
-type idClient struct {
+type incrementalIDlient struct {
 	client Client
 
 	baseID    string
 	idCounter uint32
 }
 
-// WithID wraps a client with an ID counter an increases it each time a new request comes out
-func WithID(id interface{}) func(Client) Client {
+// WithIncrementalID wraps a HTTPClient with an ID counter an increases it each time a new request comes out
+func WithIncrementalID(id interface{}) func(Client) Client {
 	return func(c Client) Client {
-		idC := &idClient{
+		idC := &incrementalIDlient{
 			client: c,
 		}
 
@@ -108,17 +38,16 @@ func WithID(id interface{}) func(Client) Client {
 	}
 }
 
-func (c *idClient) nextID() string {
+func (c *incrementalIDlient) nextID() string {
 	return fmt.Sprintf("%v%v", c.baseID, atomic.AddUint32(&c.idCounter, 1))
 }
 
-func (c *idClient) Do(req *Request) (*Response, error) {
-	req.WithID(c.nextID())
-	return c.client.Do(req)
-}
+func (c *incrementalIDlient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+	if msg.ID == nil {
+		msg.WithID(c.nextID())
+	}
 
-func (c *idClient) CloseIdleConnections() {
-	c.client.CloseIdleConnections()
+	return c.client.Do(msg)
 }
 
 type versionClient struct {
@@ -127,7 +56,7 @@ type versionClient struct {
 	version string
 }
 
-// WithVersion wraps a client to set version each time a new request comes out
+// WithVersion wraps a HTTPClient to set version each time a new request comes out
 func WithVersion(version string) func(Client) Client {
 	return func(c Client) Client {
 		if version == "" {
@@ -140,46 +69,39 @@ func WithVersion(version string) func(Client) Client {
 	}
 }
 
-func (c *versionClient) Do(req *Request) (*Response, error) {
-	req.WithVersion(c.version)
-	return c.client.Do(req)
+func (c *versionClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+	if msg.Version == "" {
+		msg.WithVersion(c.version)
+	}
+
+	return c.client.Do(msg)
 }
 
-func (c *versionClient) CloseIdleConnections() {
-	c.client.CloseIdleConnections()
-}
-
-// Caller is an interface for a JSON-RPC caller
-type Caller interface {
-	Call(ctx context.Context, method string, params interface{}) (*Response, error)
-}
-
-type caller struct {
+type validateIDClient struct {
 	client Client
-	req    *Request
 }
 
-func NewCaller(c Client, req *Request) Caller {
-	return &caller{
-		client: c,
-		req:    req,
-	}
+func ValidateID(client Client) Client {
+	return &validateIDClient{client: client}
 }
 
-// Call sends a JSON-RPC request over underlying http.Transport
-
-// Returns an http.Response which body as already been consumed in the jsonrpc.ResponseMsg
-
-// It returns an error in following scenarios
-// - underlying transport failed to roundtrip
-// - response status code is not 2XX
-// - response body is an invalid JSON-RPC response
-// - JSON-RPC response is failed (in which case it returns the jsonrpc.ErrorMsg)
-func (c *caller) Call(ctx context.Context, method string, params interface{}) (*Response, error) {
-	req := RequestFromContext(ctx)
-	if req == nil {
-		req = c.req
+func (c *validateIDClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+	respMsg, err := c.client.Do(msg)
+	if err != nil {
+		return respMsg, err
 	}
 
-	return c.client.Do(req.Clone(ctx).WithMethod(method).WithParams(params))
+	if msg.ID != nil {
+		var respIDVal = reflect.New(reflect.TypeOf(msg.ID))
+		err = respMsg.UnmarshalID(respIDVal.Interface())
+		if err != nil {
+			return respMsg, InvalidDownstreamResponse(err)
+		}
+
+		if respIDVal.Elem().Interface() != msg.ID {
+			return respMsg, InvalidDownstreamResponse(fmt.Errorf("response id does not match request id"))
+		}
+	}
+
+	return respMsg, nil
 }

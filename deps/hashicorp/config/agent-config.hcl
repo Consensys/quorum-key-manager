@@ -16,6 +16,7 @@ auto_auth {
   sink "file" {
     config = {
       path = "/vault/token/.vault-token"
+      mode = 0666
     }
   }
 }

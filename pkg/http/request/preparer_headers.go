@@ -2,21 +2,17 @@ package request
 
 import (
 	"net/http"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/header"
 )
 
-// Headers sets or deletes custom request headers
-func Headers(headers map[string]string) Preparer {
+func HeadersPreparer(h func(http.Header) error) Preparer {
 	return PrepareFunc(func(req *http.Request) (*http.Request, error) {
-		// Loop through Custom request headers
-		for header, value := range headers {
-			switch {
-			case value == "":
-				req.Header.Del(header)
-			default:
-				req.Header.Set(header, value)
-			}
-		}
-
-		return req, nil
+		return req, h(req.Header)
 	})
+}
+
+// Headers sets or deletes custom request headers
+func Headers(overides map[string][]string) Preparer {
+	return HeadersPreparer(header.Overide(overides))
 }

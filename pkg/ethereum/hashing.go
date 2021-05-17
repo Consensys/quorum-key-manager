@@ -19,7 +19,7 @@ func RLPHash(x interface{}) (h ethcommon.Hash) {
 	return h
 }
 
-func FrontierHash(tx *Transaction) ethcommon.Hash {
+func FrontierHash(tx *TxData) ethcommon.Hash {
 	return RLPHash([]interface{}{
 		tx.Nonce,
 		tx.GasPrice,
@@ -30,7 +30,7 @@ func FrontierHash(tx *Transaction) ethcommon.Hash {
 	})
 }
 
-func EIP155Hash(tx *Transaction, chainID *big.Int) ethcommon.Hash {
+func EIP155Hash(tx *TxData, chainID *big.Int) ethcommon.Hash {
 	return RLPHash([]interface{}{
 		tx.Nonce,
 		tx.GasPrice,
@@ -44,7 +44,7 @@ func EIP155Hash(tx *Transaction, chainID *big.Int) ethcommon.Hash {
 	})
 }
 
-func EEAHash(tx *Transaction, chainID *big.Int, args *EEAPrivateArgs) ethcommon.Hash {
+func EEAHash(tx *TxData, chainID *big.Int, args *PrivateArgs) ethcommon.Hash {
 	// TODO: to be implemented
 	return ethcommon.Hash{}
 }

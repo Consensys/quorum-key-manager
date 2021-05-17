@@ -12,11 +12,10 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/mocks"
-	mocks2 "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/mocks"
+	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/mock"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	mocks3 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/mocks"
-
+	mocksecrets "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +29,7 @@ const (
 
 type secretsHandlerTestSuite struct {
 	suite.Suite
-	secretStore *mocks3.MockStore
+	secretStore *mocksecrets.MockStore
 	router      *mux.Router
 }
 
@@ -44,8 +43,8 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	backend := mocks.NewMockBackend(ctrl)
-	storeManager := mocks2.NewMockStoreManager(ctrl)
-	s.secretStore = mocks3.NewMockStore(ctrl)
+	storeManager := mockstoremanager.NewMockStoreManager(ctrl)
+	s.secretStore = mocksecrets.NewMockStore(ctrl)
 
 	backend.EXPECT().StoreManager().Return(storeManager).AnyTimes()
 	storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil).AnyTimes()

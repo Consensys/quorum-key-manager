@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
@@ -32,15 +34,17 @@ const (
 type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
+	logger     *log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-// New creates an HashiCorp key store
-func New(client hashicorp.VaultClient, mountPoint string) *Store {
+// New creates an Hashicorp key store
+func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
+		logger:     logger,
 	}
 }
 
@@ -50,6 +54,7 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 
 // Create a key
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+	logger := s.logger.WithField("id", id)
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -57,14 +62,17 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 		tagsLabel:      attr.Tags,
 	})
 	if err != nil {
+		logger.WithError(err).Error("failed to create key")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
+	logger.Info("key was created successfully")
 	return parseResponse(res), nil
 }
 
 // Import a key
 func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+	logger := s.logger.WithField("id", id)
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -72,15 +80,19 @@ func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algo
 		tagsLabel:       attr.Tags,
 		privateKeyLabel: privKey,
 	})
+
 	if err != nil {
+		logger.WithError(err).Error("failed to import key")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
+	logger.Info("key was imported successfully")
 	return parseResponse(res), nil
 }
 
 // Get a key
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error) {
+	logger := s.logger.WithField("id", id)
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != "" {
 		return nil, errors.ErrNotImplemented
@@ -88,6 +100,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error
 
 	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
+		logger.WithError(err).Error("failed to get key")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -95,6 +108,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error
 		return nil, errors.NotFoundError("could not find key pair")
 	}
 
+	logger.Debug("key was retrieved successfully")
 	return parseResponse(res), nil
 }
 
@@ -102,6 +116,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
+		s.logger.WithError(err).Error("failed to list keys")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
@@ -115,6 +130,7 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 		ids = append(ids, id.(string))
 	}
 
+	s.logger.Debug("keys were listed successfully")
 	return ids, nil
 }
 
@@ -155,6 +171,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 
 // Sign any arbitrary data
 func (s *Store) Sign(_ context.Context, id, data, version string) (string, error) {
+	logger := s.logger.WithField("id", id).WithField("data", common.ShortString(data, 5))
 	// TODO: Versioning is not yet implemented on the plugin
 	if version != "" {
 		return "", errors.ErrNotImplemented
@@ -164,9 +181,11 @@ func (s *Store) Sign(_ context.Context, id, data, version string) (string, error
 		dataLabel: data,
 	})
 	if err != nil {
+		logger.WithError(err).Error("failed to sign data")
 		return "", hashicorpclient.ParseErrorResponse(err)
 	}
 
+	logger.Debug("data was signed successfully")
 	return res.Data[signatureLabel].(string), nil
 }
 

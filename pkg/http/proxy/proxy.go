@@ -19,8 +19,6 @@ func New(
 	errorHandler HandleRoundTripErrorFunc,
 	pool httputil.BufferPool,
 ) (*httputil.ReverseProxy, error) {
-	cfg = cfg.Copy().SetDefault()
-
 	var err error
 	if trnsprt == nil {
 		trnsprt, err = transport.New(cfg.Transport)

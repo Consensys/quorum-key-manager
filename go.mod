@@ -18,6 +18,7 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/ethereum/go-ethereum v1.9.25
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-playground/validator/v10 v10.5.0
 	github.com/golang/mock v1.5.0
 	github.com/gorilla/handlers v1.5.1
@@ -39,5 +40,6 @@ require (
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/sys v0.0.0-20210324051608-47abb6519492 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
+	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.0
 )

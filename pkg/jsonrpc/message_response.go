@@ -3,6 +3,7 @@ package jsonrpc
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 // ResponseMsg allows to manipulate a JSON-RPC v2 response
@@ -161,9 +162,7 @@ func (msg *ResponseMsg) WithError(err error) *ResponseMsg {
 	if errMsg, ok := err.(*ErrorMsg); ok {
 		msg.Error = errMsg
 	} else {
-		msg.Error = &ErrorMsg{
-			Message: err.Error(),
-		}
+		msg.Error = Error(err)
 	}
 
 	return msg
@@ -171,6 +170,10 @@ func (msg *ResponseMsg) WithError(err error) *ResponseMsg {
 
 // UnmarshalResult into v
 func (msg *ResponseMsg) UnmarshalResult(v interface{}) error {
+	if msg.raw == nil {
+		return fmt.Errorf("cannot unmarshal result from a non unmarshaled response message")
+	}
+
 	var err error
 	if msg.raw.Result != nil {
 		err = json.Unmarshal(*msg.raw.Result, v)
@@ -179,7 +182,7 @@ func (msg *ResponseMsg) UnmarshalResult(v interface{}) error {
 	}
 
 	if err == nil {
-		msg.WithResult(v)
+		msg.WithResult(reflect.ValueOf(v).Elem().Interface())
 	}
 
 	return err
@@ -187,6 +190,10 @@ func (msg *ResponseMsg) UnmarshalResult(v interface{}) error {
 
 // UnmarshalID into v
 func (msg *ResponseMsg) UnmarshalID(v interface{}) error {
+	if msg.raw == nil {
+		return fmt.Errorf("cannot unmarshal id from a non unmarshaled response message")
+	}
+
 	var err error
 	if msg.raw != nil && msg.raw.ID != nil {
 		err = json.Unmarshal(*msg.raw.ID, v)
@@ -195,7 +202,7 @@ func (msg *ResponseMsg) UnmarshalID(v interface{}) error {
 	}
 
 	if err == nil {
-		msg.WithID(v)
+		msg.WithID(reflect.ValueOf(v).Elem().Interface())
 	}
 
 	return err

@@ -2,82 +2,34 @@ package jsonrpc
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
-//go:generate mockgen -source=handler.go -destination=handler_mock.go -package=jsonrpc
+//go:generate mockgen -source=handler.go -destination=mock/handler.go -package=mock
 
 // Handler is and JSON-RPC handler to be used in a JSON-RPC server
 // It provides the JSON-RPC abstraction over http.Handler interface
 type Handler interface {
-	ServeRPC(ResponseWriter, *Request)
+	ServeRPC(ResponseWriter, *RequestMsg)
 }
 
-type HandlerFunc func(ResponseWriter, *Request)
+type HandlerFunc func(ResponseWriter, *RequestMsg)
 
-func (f HandlerFunc) ServeRPC(rw ResponseWriter, req *Request) {
-	f(rw, req)
+func (f HandlerFunc) ServeRPC(rw ResponseWriter, msg *RequestMsg) {
+	f(rw, msg)
 }
 
-// ToHTTPHandler wraps a jsonrpc.Handler into a http.Handler
-func ToHTTPHandler(h Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		// extract JSON-RPC request from context
-		rpcReq := RequestFromContext(req.Context())
-		if rpcReq == nil {
-			// if no JSON-RPC request is found then creates one and attached to http.Request context
-			rpcReq = NewRequest(req)
-			err := rpcReq.ReadBody()
-			if err != nil {
-				_ = NewResponseWriter(rw).WriteError(&ErrorMsg{
-					Message: fmt.Sprintf("invalid json-rpc request (%v)", err),
-				})
-				return
-			}
-			rpcReq.req = req.WithContext(WithRequest(req.Context(), rpcReq))
-		} else {
-			// if found update http.Request
-			rpcReq.req = req
-		}
-
-		rpcRw, ok := rw.(ResponseWriter)
-		if !ok {
-			rpcRw = NewResponseWriter(rw).WithVersion(rpcReq.Version()).WithID(rpcReq.ID())
-		}
-
-		// Serve
-		h.ServeRPC(rpcRw, rpcReq)
+// DefaultRWHandler is an utility middleware that attaches request ID and Version to ResponseWriter
+// so when developper has not to bother with response ID and Version when writing response
+func DefaultRWHandler(h Handler) Handler {
+	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
+		h.ServeRPC(RWWithVersion(msg.Version)(RWWithID(msg.ID)(rw)), msg)
 	})
 }
 
-// FromHTTPHandler wraps a http.Handler into a jsonrpc.Handler
-func FromHTTPHandler(h http.Handler) Handler {
-	return HandlerFunc(func(rw ResponseWriter, req *Request) {
-		// Write JSON-RPC request message into request body
-		_ = req.WriteBody()
-
-		// Serve HTTP request
-		h.ServeHTTP(rw, req.Request())
-	})
-}
-
-// NotSupported replies to the request with a not supported request error
-func NotSupported(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Message: "not supported",
-	})
-}
-
-// NotSupportedHandler returns a simple handler
-// that replies to each request with a not supported version request error
-func NotSupportedHandler() Handler { return HandlerFunc(NotSupported) }
-
-func NotSupportedVersion(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Message: fmt.Sprintf("JSON-RPC version %q not supported", req.Version()),
-	})
+func NotSupportedVersion(rw ResponseWriter, msg *RequestMsg) {
+	_ = WriteError(rw, NotSupporteVersionError(msg.Version))
 }
 
 // NotSupportedVersionHandler returns a simple handler
@@ -85,11 +37,8 @@ func NotSupportedVersion(rw ResponseWriter, req *Request) {
 func NotSupportedVersionHandler() Handler { return HandlerFunc(NotSupportedVersion) }
 
 // InvalidMethod replies to the request with an invalid method error
-func InvalidMethod(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Code:    -32601,
-		Message: fmt.Sprintf("invalid method %q", req.Method()),
-	})
+func InvalidMethod(rw ResponseWriter, msg *RequestMsg) {
+	_ = WriteError(rw, InvalidMethodError(msg.Method))
 }
 
 // InvalidMethod returns a simple handler
@@ -97,11 +46,8 @@ func InvalidMethod(rw ResponseWriter, req *Request) {
 func InvalidMethodHandler() Handler { return HandlerFunc(InvalidMethod) }
 
 // MethodNotFound replies to the request with a method not found error
-func MethodNotFound(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Code:    -32601,
-		Message: "Method not found",
-	})
+func MethodNotFound(rw ResponseWriter, msg *RequestMsg) {
+	_ = WriteError(rw, MethodNotFoundError())
 }
 
 // InvalidMethod returns a simple handler
@@ -109,25 +55,30 @@ func MethodNotFound(rw ResponseWriter, req *Request) {
 func MethodNotFoundHandler() Handler { return HandlerFunc(MethodNotFound) }
 
 // NotImplementedMethod replies to the request with an not implemented error
-func NotImplementedMethod(rw ResponseWriter, req *Request) {
-	_ = rw.WriteError(&ErrorMsg{
-		Code:    -32601,
-		Message: fmt.Sprintf("not implemented method %q", req.Method()),
-	})
+func NotImplementedMethod(rw ResponseWriter, msg *RequestMsg) {
+	_ = WriteError(rw, NotImplementedMethodError(msg.Method))
 }
 
 // NotImplementedMethodHandler returns a simple handler
 // that replies to each request with an invalid method error
 func NotImplementedMethodHandler() Handler { return HandlerFunc(NotImplementedMethod) }
 
+// InvalidParamsHandler returns a simple handler
+// that replies to each request with an invalid parameters error
+func InvalidParamsHandler(err error) Handler {
+	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
+		_ = WriteError(rw, InvalidParamsError(err))
+	})
+}
+
 // LoggedHandler
 func LoggedHandler(h Handler) Handler {
-	return HandlerFunc(func(rw ResponseWriter, req *Request) {
-		log.FromContext(req.Request().Context()).
-			WithField("version", req.Version()).
-			WithField("id", fmt.Sprintf("%s", req.ID())).
-			WithField("method", req.Method()).
+	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
+		log.FromContext(msg.Context()).
+			WithField("version", msg.Version).
+			WithField("id", fmt.Sprintf("%s", msg.ID)).
+			WithField("method", msg.Method).
 			Info("serve JSON-RPC request")
-		h.ServeRPC(rw, req)
+		h.ServeRPC(rw, msg)
 	})
 }

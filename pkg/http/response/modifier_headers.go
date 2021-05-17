@@ -1,18 +1,18 @@
 package response
 
-import "net/http"
+import (
+	"net/http"
 
-// Headers set "X-Backend-Server" header to the the URL of the request
-func Headers(headers map[string]string) Modifier {
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/header"
+)
+
+func HeadersModifier(h func(http.Header) error) Modifier {
 	return ModifierFunc(func(resp *http.Response) error {
-		for header, value := range headers {
-			switch {
-			case value == "":
-				resp.Header.Del(header)
-			default:
-				resp.Header.Set(header, value)
-			}
-		}
-		return nil
+		return h(resp.Header)
 	})
+}
+
+// Headers sets or deletes custom request headers
+func Headers(overides map[string][]string) Modifier {
+	return HeadersModifier(header.Overide(overides))
 }
