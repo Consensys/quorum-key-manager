@@ -13,13 +13,12 @@ type ImportKeyRequest struct {
 	ID               string            `json:"id" validate:"required" example:"my-key"`
 	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa"`
-	PrivateKey       string            `json:"privateKey" validate:"required" example:"0xfeee"`
+	PrivateKey       string            `json:"privateKey" validate:"required,isBase64" example:"0xfeee"`
 	Tags             map[string]string `json:"tags,omitempty"`
 }
 
 type SignPayloadRequest struct {
-	Data    string `json:"data" validate:"required,isHex" example:"0xfeee"`
-	Version string `json:"version,omitempty" example:"1"`
+	Data string `json:"data" validate:"required,isBase64" example:"0xfeee"`
 }
 
 type KeyResponse struct {

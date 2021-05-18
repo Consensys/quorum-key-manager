@@ -160,9 +160,9 @@ func (s *akvKeyStoreTestSuite) TestGet() {
 	}
 
 	s.T().Run("should get a key successfully", func(t *testing.T) {
-		s.mockVault.EXPECT().GetKey(gomock.Any(), id, version).Return(akvKey, nil)
+		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
 
-		key, err := s.keyStore.Get(ctx, id, version)
+		key, err := s.keyStore.Get(ctx, id)
 
 		assert.NoError(t, err)
 		assert.Equal(t, publicKey, key.PublicKey)
@@ -224,10 +224,10 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 	hexPayload := hexutil.Encode([]byte(payload))
 
 	s.T().Run("should sign payload successfully", func(t *testing.T) {
-		s.mockVault.EXPECT().GetKey(gomock.Any(), id, version).Return(akvKey, nil)
-		s.mockVault.EXPECT().Sign(gomock.Any(), id, version, akv.ES256K, b64Payload).Return(b64Sig, nil)
+		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
+		s.mockVault.EXPECT().Sign(gomock.Any(), id, "", akv.ES256K, b64Payload).Return(b64Sig, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, hexPayload, version)
+		signature, err := s.keyStore.Sign(ctx, id, hexPayload)
 
 		assert.NoError(t, err)
 		assert.Equal(t, signature, expectedSignature)

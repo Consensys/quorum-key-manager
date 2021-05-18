@@ -6,6 +6,7 @@ package mock
 
 import (
 	context "context"
+	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	types "github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -148,18 +149,18 @@ func (mr *MockKeysClientMockRecorder) Sign(ctx, storeName, id, request interface
 }
 
 // GetKey mocks base method
-func (m *MockKeysClient) GetKey(ctx context.Context, storeName, id, version string) (*types.KeyResponse, error) {
+func (m *MockKeysClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id)
 	ret0, _ := ret[0].(*types.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetKey indicates an expected call of GetKey
-func (mr *MockKeysClientMockRecorder) GetKey(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockKeysClientMockRecorder) GetKey(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKey", reflect.TypeOf((*MockKeysClient)(nil).GetKey), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKey", reflect.TypeOf((*MockKeysClient)(nil).GetKey), ctx, storeName, id)
 }
 
 // ListKeys mocks base method
@@ -189,6 +190,49 @@ func (m *MockKeysClient) DestroyKey(ctx context.Context, storeName, id string) e
 func (mr *MockKeysClientMockRecorder) DestroyKey(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyKey", reflect.TypeOf((*MockKeysClient)(nil).DestroyKey), ctx, storeName, id)
+}
+
+// MockJSONRPC is a mock of JSONRPC interface
+type MockJSONRPC struct {
+	ctrl     *gomock.Controller
+	recorder *MockJSONRPCMockRecorder
+}
+
+// MockJSONRPCMockRecorder is the mock recorder for MockJSONRPC
+type MockJSONRPCMockRecorder struct {
+	mock *MockJSONRPC
+}
+
+// NewMockJSONRPC creates a new mock instance
+func NewMockJSONRPC(ctrl *gomock.Controller) *MockJSONRPC {
+	mock := &MockJSONRPC{ctrl: ctrl}
+	mock.recorder = &MockJSONRPCMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockJSONRPC) EXPECT() *MockJSONRPCMockRecorder {
+	return m.recorder
+}
+
+// Call mocks base method
+func (m *MockJSONRPC) Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, nodeID, method}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Call", varargs...)
+	ret0, _ := ret[0].(*jsonrpc.ResponseMsg)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Call indicates an expected call of Call
+func (mr *MockJSONRPCMockRecorder) Call(ctx, nodeID, method interface{}, args ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, nodeID, method}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockJSONRPC)(nil).Call), varargs...)
 }
 
 // MockKeyManagerClient is a mock of KeyManagerClient interface
@@ -305,18 +349,18 @@ func (mr *MockKeyManagerClientMockRecorder) Sign(ctx, storeName, id, request int
 }
 
 // GetKey mocks base method
-func (m *MockKeyManagerClient) GetKey(ctx context.Context, storeName, id, version string) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id)
 	ret0, _ := ret[0].(*types.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetKey indicates an expected call of GetKey
-func (mr *MockKeyManagerClientMockRecorder) GetKey(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) GetKey(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKey", reflect.TypeOf((*MockKeyManagerClient)(nil).GetKey), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKey", reflect.TypeOf((*MockKeyManagerClient)(nil).GetKey), ctx, storeName, id)
 }
 
 // ListKeys mocks base method
@@ -346,4 +390,24 @@ func (m *MockKeyManagerClient) DestroyKey(ctx context.Context, storeName, id str
 func (mr *MockKeyManagerClientMockRecorder) DestroyKey(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyKey", reflect.TypeOf((*MockKeyManagerClient)(nil).DestroyKey), ctx, storeName, id)
+}
+
+// Call mocks base method
+func (m *MockKeyManagerClient) Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, nodeID, method}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Call", varargs...)
+	ret0, _ := ret[0].(*jsonrpc.ResponseMsg)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Call indicates an expected call of Call
+func (mr *MockKeyManagerClientMockRecorder) Call(ctx, nodeID, method interface{}, args ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, nodeID, method}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockKeyManagerClient)(nil).Call), varargs...)
 }

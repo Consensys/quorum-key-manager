@@ -54,13 +54,9 @@ func (c *HTTPClient) Sign(ctx context.Context, storeName, id string, req *types.
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) GetKey(ctx context.Context, storeName, id, version string) (*types.KeyResponse, error) {
+func (c *HTTPClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
 	reqURL := fmt.Sprintf("%s/%s/%s", c.config.URL, keysPath, id)
-
-	if version != "" {
-		reqURL = fmt.Sprintf("%s?version=%s", reqURL, version)
-	}
 
 	response, err := getRequest(withStore(ctx, storeName), c.client, reqURL)
 	if err != nil {
