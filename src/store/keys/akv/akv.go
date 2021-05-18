@@ -202,7 +202,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 func (s *Store) Sign(ctx context.Context, id, data string) (string, error) {
 	logger := s.logger.WithField("id", id).WithField("data", common.ShortString(data, 5))
 	errMsg := "failed to sign data"
-	b64Data, err := hexToSha256Base64(data)
+	b64Data, err := sha256Base64(data)
 	if err != nil {
 		logger.WithError(err).Error(errMsg)
 		return "", err
@@ -220,16 +220,10 @@ func (s *Store) Sign(ctx context.Context, id, data string) (string, error) {
 		return "", err
 	}
 
-	b64Signature, err := s.client.Sign(ctx, id, "", algo, b64Data)
+	signature, err := s.client.Sign(ctx, id, "", algo, b64Data)
 	if err != nil {
 		logger.WithError(err).Error(errMsg)
 		return "", err
-	}
-
-	signature, err := base64ToHex(b64Signature)
-	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return "", errors.InvalidFormatError("expected base64 value. %s", err)
 	}
 
 	logger.Debug("data was signed successfully")

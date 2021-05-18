@@ -2,6 +2,7 @@ package acceptancetests
 
 import (
 	"crypto/ecdsa"
+	"encoding/base64"
 	"fmt"
 	"math/big"
 	"testing"
@@ -250,10 +251,12 @@ func (s *akvKeyTestSuite) TestSign() {
 	})
 }
 
-func verifySignature(signature, msg, privKey string) (bool, error) {
-	bSig, _ := hexutil.Decode(signature)
-	bMsg, _ := hexutil.Decode(msg)
-	privKeyS, err := crypto.HexToECDSA(privKey)
+func verifySignature(signature, msg, privKeyS string) (bool, error) {
+	bSig, _ := base64.URLEncoding.DecodeString(signature)
+	bMsg, _ := base64.URLEncoding.DecodeString(msg)
+	bPrivKey, _ := base64.URLEncoding.DecodeString(privKeyS)
+
+	privKey, err := crypto.ToECDSA(bPrivKey)
 	if err != nil {
 		return false, err
 	}
@@ -261,5 +264,5 @@ func verifySignature(signature, msg, privKey string) (bool, error) {
 	r := new(big.Int).SetBytes(bSig[0:32])
 	s := new(big.Int).SetBytes(bSig[32:64])
 
-	return ecdsa.Verify(&privKeyS.PublicKey, crypto.Keccak256(bMsg), r, s), nil
+	return ecdsa.Verify(&privKey.PublicKey, crypto.Keccak256(bMsg), r, s), nil
 }

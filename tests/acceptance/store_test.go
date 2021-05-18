@@ -5,10 +5,8 @@ package acceptancetests
 import (
 	"context"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
+	eth1local "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/local"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
-	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
-	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"os"
 	"testing"
 
@@ -58,6 +56,7 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
+/*
 func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -117,8 +116,8 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)
 }
+*/
 
-/*
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -133,4 +132,3 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)
 }
-*/

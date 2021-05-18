@@ -12,7 +12,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -66,9 +65,14 @@ func webImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey
 	var pKeyD, pKeyX, pKeyY string
 	switch alg.Type {
 	case entities.Ecdsa:
-		pKey, err := crypto.HexToECDSA(privKey)
+		privKeyB, err := base64.RawURLEncoding.DecodeString(privKey)
 		if err != nil {
-			return nil, errors.InvalidFormatError("invalid private key format. %s", err.Error())
+			return nil, errors.InvalidParameterError("invalid base64 private key. %s", err.Error())
+		}
+
+		pKey, err := crypto.ToECDSA(privKeyB)
+		if err != nil {
+			return nil, errors.InvalidParameterError("failed to create public key. %s", err.Error())
 		}
 
 		pKeyD = base64.RawURLEncoding.EncodeToString(pKey.D.Bytes())
@@ -118,11 +122,10 @@ func pubKeyString(key *keyvault.JSONWebKey) string {
 		xBytes, _ := decodePubKeyBase64(*key.X)
 		yBytes, _ := decodePubKeyBase64(*key.Y)
 		pKey := ecdsa.PublicKey{X: new(big.Int).SetBytes(xBytes), Y: new(big.Int).SetBytes(yBytes)}
-		return hexutil.Encode(crypto.FromECDSAPub(&pKey))
+		return base64.RawURLEncoding.EncodeToString(crypto.FromECDSAPub(&pKey))
 	default:
 		return ""
 	}
-
 }
 
 func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatureAlgorithm, error) {
@@ -202,21 +205,11 @@ func decodePubKeyBase64(src string) ([]byte, error) {
 	return b, nil
 }
 
-func hexToSha256Base64(value string) (string, error) {
-	bData, err := hexutil.Decode(value)
-	if err != nil {
-		return "", errors.InvalidFormatError("cannot decode hex value. %s", err.Error())
-	}
-
-	b64Data := base64.RawURLEncoding.EncodeToString(crypto.Keccak256(bData))
-	return b64Data, nil
-}
-
-func base64ToHex(value string) (string, error) {
+func sha256Base64(value string) (string, error) {
 	bData, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil {
 		return "", errors.InvalidFormatError("cannot decode base64 value. %s", err.Error())
 	}
 
-	return hexutil.Encode(bData), nil
+	return base64.RawURLEncoding.EncodeToString(crypto.Keccak256(bData)), nil
 }

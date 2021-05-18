@@ -2,6 +2,7 @@ package local
 
 import (
 	"crypto/ecdsa"
+	"encoding/base64"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,7 +40,7 @@ func parseRecID(pubKeyS string) (string, error) {
 }
 
 func parsePubKey(pubKeyS string) (*ecdsa.PublicKey, error) {
-	pubKeyB, err := hexutil.Decode(pubKeyS)
+	pubKeyB, err := base64.URLEncoding.DecodeString(pubKeyS)
 	if err != nil {
 		return nil, errors.EncodingError("failed to decode public key")
 	}

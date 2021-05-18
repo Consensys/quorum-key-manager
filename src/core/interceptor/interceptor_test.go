@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/mock"
+	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
