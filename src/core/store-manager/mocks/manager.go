@@ -7,9 +7,11 @@ package mock
 import (
 	context "context"
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 	keys "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	secrets "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
+	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -102,7 +104,7 @@ func (mr *MockStoreManagerMockRecorder) GetEth1Store(ctx, name interface{}) *gom
 }
 
 // GetEth1StoreByAddr mocks base method
-func (m *MockStoreManager) GetEth1StoreByAddr(ctx context.Context, addr string) (eth1.Store, error) {
+func (m *MockStoreManager) GetEth1StoreByAddr(ctx context.Context, addr common.Address) (eth1.Store, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEth1StoreByAddr", ctx, addr)
 	ret0, _ := ret[0].(eth1.Store)
@@ -129,4 +131,19 @@ func (m *MockStoreManager) List(ctx context.Context, kind manifest.Kind) ([]stri
 func (mr *MockStoreManagerMockRecorder) List(ctx, kind interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockStoreManager)(nil).List), ctx, kind)
+}
+
+// ListAllAccounts mocks base method
+func (m *MockStoreManager) ListAllAccounts(arg0 context.Context) ([]*entities.ETH1Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAllAccounts", arg0)
+	ret0, _ := ret[0].([]*entities.ETH1Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAllAccounts indicates an expected call of ListAllAccounts
+func (mr *MockStoreManagerMockRecorder) ListAllAccounts(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllAccounts", reflect.TypeOf((*MockStoreManager)(nil).ListAllAccounts), arg0)
 }

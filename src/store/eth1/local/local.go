@@ -101,6 +101,11 @@ func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, er
 	return parseKey(key)
 }
 
+// Get all accounts
+func (s *Store) GetAll(_ context.Context) ([]*entities.ETH1Account, error) {
+	return nil, errors.ErrNotImplemented
+}
+
 // Get all account ids
 func (s *Store) List(_ context.Context) ([]string, error) {
 	ids := make([]string, len(s.addrToId))
@@ -234,16 +239,17 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 	return s.Sign(ctx, addr, hexutil.Encode([]byte(encodedData)))
 }
 
-func (s *Store) SignTransaction(ctx context.Context, addr, chainID string, tx *types.Transaction) (string, error) {
-	chainIDBigInt, _ := new(big.Int).SetString(chainID, 10)
-	signer := types.NewEIP155Signer(chainIDBigInt)
-
+func (s *Store) SignTransaction(ctx context.Context, addr, chainID string, tx *ethereum.TxData) (string, error) {
 	key, err := s.Get(ctx, addr)
 	if err != nil {
 		return "", err
 	}
 
-	signature, err := s.Sign(ctx, addr, signer.Hash(tx).Hex())
+	chainIDBigInt, _ := new(big.Int).SetString(chainID, 10)
+	signer := types.NewEIP155Signer(chainIDBigInt)
+	ethTx := types.NewTransaction(tx.Nonce, *tx.To, tx.Value, tx.GasLimit, tx.GasPrice, tx.Data)
+
+	signature, err := s.Sign(ctx, addr, signer.Hash(ethTx).Hex())
 	if err != nil {
 		return "", err
 	}
@@ -273,7 +279,7 @@ func (s *Store) SignEEA(ctx context.Context, addr, chainID string, tx *ethereum.
 }
 
 // SignPrivate transaction
-func (s *Store) SignPrivate(ctx context.Context, addr string, tx *types.Transaction) (string, error) {
+func (s *Store) SignPrivate(ctx context.Context, addr string, tx *ethereum.TxData) (string, error) {
 	return "", errors.ErrNotImplemented
 }
 

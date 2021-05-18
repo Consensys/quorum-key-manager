@@ -9,18 +9,22 @@ import (
 )
 
 func (i *Interceptor) ethSign(ctx context.Context, from ethcommon.Address, data hexutil.Bytes) (*hexutil.Bytes, error) {
-	store, err := i.stores.GetAccountStoreByAddr(ctx, from)
+	store, err := i.stores.GetEth1StoreByAddr(ctx, from)
 	if err != nil {
 		return nil, err
 	}
 
-	var sig hexutil.Bytes
-	sig, err = store.Sign(ctx, from, data)
+	sig, err := store.Sign(ctx, from.Hex(), data.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return &sig, nil
+	sigB, err := hexutil.Decode(sig)
+	if err != nil {
+		return nil, err
+	}
+
+	return (*hexutil.Bytes)(&sigB), nil
 }
 
 func (i *Interceptor) EthSign() jsonrpc.Handler {

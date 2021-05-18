@@ -11,7 +11,7 @@ import (
 
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
 	// Get store for from
-	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From.Hex())
+	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
 	if err != nil {
 		return nil, err
 	}

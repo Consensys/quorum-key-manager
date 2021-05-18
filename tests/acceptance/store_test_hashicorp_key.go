@@ -156,7 +156,7 @@ func (s *hashicorpKeyTestSuite) TestGet() {
 	require.NoError(s.T(), err)
 
 	s.T().Run("should get a key pair successfully", func(t *testing.T) {
-		keyRetrieved, err := s.store.Get(ctx, id, "")
+		keyRetrieved, err := s.store.Get(ctx, id)
 		require.NoError(t, err)
 
 		assert.Equal(t, id, keyRetrieved.ID)
@@ -174,7 +174,7 @@ func (s *hashicorpKeyTestSuite) TestGet() {
 	})
 
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
-		keyRetrieved, err := s.store.Get(ctx, "invalidID", "")
+		keyRetrieved, err := s.store.Get(ctx, "invalidID")
 
 		require.Nil(t, keyRetrieved)
 		assert.True(t, errors.IsNotFoundError(err))
@@ -228,7 +228,7 @@ func (s *hashicorpKeyTestSuite) TestSign() {
 		})
 		require.NoError(s.T(), err)
 
-		signature, err := s.store.Sign(ctx, id, payload, "")
+		signature, err := s.store.Sign(ctx, id, payload)
 		require.NoError(t, err)
 
 		assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", signature)
@@ -245,7 +245,7 @@ func (s *hashicorpKeyTestSuite) TestSign() {
 		})
 		require.NoError(s.T(), err)
 
-		signature, err := s.store.Sign(ctx, id, payload, "")
+		signature, err := s.store.Sign(ctx, id, payload)
 		require.NoError(t, err)
 
 		assert.Equal(t, "0xb5da51f49917ee5292ba04af6095f689c7fafee4270809971bdbff146dbabd2d00701aa0e9e55a91940d6307e273f11cdcb5aacd26d7839e1306d790aba82b77", signature)
@@ -254,7 +254,7 @@ func (s *hashicorpKeyTestSuite) TestSign() {
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
 		id := "my-key"
 
-		key, err := s.store.Sign(ctx, id, "", "")
+		key, err := s.store.Sign(ctx, id, "")
 
 		require.Empty(t, key)
 		assert.True(t, errors.IsInvalidFormatError(err))

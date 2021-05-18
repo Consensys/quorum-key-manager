@@ -2,7 +2,6 @@ package eth1
 
 import (
 	"context"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/signer/core"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
@@ -24,8 +23,11 @@ type Store interface {
 	// Get account
 	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
 
-	// List accounts
+	// List account ids
 	List(ctx context.Context) ([]string, error)
+
+	// GetAll accounts
+	GetAll(ctx context.Context) ([]*entities.ETH1Account, error)
 
 	// Update account attributes
 	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error)
@@ -52,13 +54,13 @@ type Store interface {
 	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) (string, error)
 
 	// SignTransaction transaction
-	SignTransaction(ctx context.Context, addr, chainID string, tx *types.Transaction) (string, error)
+	SignTransaction(ctx context.Context, addr, chainID string, tx *ethereum.TxData) (string, error)
 
 	// SignEEA transaction
 	SignEEA(ctx context.Context, addr, chainID string, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) (string, error)
 
 	// SignPrivate transaction
-	SignPrivate(ctx context.Context, addr string, tx *types.Transaction) (string, error)
+	SignPrivate(ctx context.Context, addr string, tx *ethereum.TxData) (string, error)
 
 	// ECRevocer returns the address from a signature and data
 	ECRevocer(ctx context.Context, data, sig string) (string, error)
