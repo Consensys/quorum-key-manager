@@ -9,6 +9,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -111,4 +112,26 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		assert.Nil(t, secret)
 		assert.Equal(t, expectedErr, err)
 	})
+
+	putSecretInput := &secretsmanager.PutSecretValueInput{
+		SecretId:     &id,
+		SecretString: &value,
+	}
+
+	s.T().Run("should update secret if already exists", func(t *testing.T) {
+
+		s.mockVault.EXPECT().CreateSecret(gomock.Any(), createInput).Return(&secretsmanager.CreateSecretOutput{}, awserr.New(secretsmanager.ErrCodeResourceExistsException, "", nil))
+		s.mockVault.EXPECT().PutSecretValue(gomock.Any(), putSecretInput).Return(&secretsmanager.PutSecretValueOutput{}, nil)
+		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), tagInput).Return(&secretsmanager.TagResourceOutput{}, nil)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, nil)
+
+		secret, err := s.secretStore.Set(ctx, id, value, attributes)
+
+		assert.NoError(t, err)
+		assert.Equal(t, value, secret.Value)
+
+		assert.ObjectsAreEqual(attributes.Tags, secret.Tags)
+		assert.Equal(t, version, secret.Metadata.Version)
+	})
+
 }
