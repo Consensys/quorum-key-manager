@@ -96,7 +96,8 @@ func (s *storeTestSuite) TestKeyManagerStore_AWSSecret() {
 		return
 	}
 
-	store := aws.New(s.env.awsVaultClient)
+	logger := log.DefaultLogger().SetComponent("AWSSecret")
+	store := aws.New(s.env.awsVaultClient, logger)
 
 	testSuite := new(awsSecretTestSuite)
 	testSuite.env = s.env

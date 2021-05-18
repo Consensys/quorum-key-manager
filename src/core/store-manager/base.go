@@ -11,6 +11,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/aws"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -218,7 +219,16 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
-			logger.WithError(err).Error(errMsg)
+			return err
+		}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.AWSSecrets:
+		spec := &aws.SecretSpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			return err
+		}
+		store, err := aws.NewSecretStore(spec, logger)
+		if err != nil {
 			return err
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
