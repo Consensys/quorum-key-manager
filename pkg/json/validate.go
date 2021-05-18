@@ -1,6 +1,7 @@
 package json
 
 import (
+	"encoding/base64"
 	"reflect"
 	"time"
 
@@ -19,6 +20,15 @@ var (
 func isHex(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		_, err := hexutil.Decode(fl.Field().String())
+		return err == nil
+	}
+
+	return true
+}
+
+func isBase64(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		_, err := base64.URLEncoding.DecodeString(fl.Field().String())
 		return err == nil
 	}
 
@@ -93,6 +103,7 @@ func init() {
 	_ = validate.RegisterValidation("isDuration", isDuration)
 	_ = validate.RegisterValidation("isCurve", isCurve)
 	_ = validate.RegisterValidation("isSigningAlgorithm", isSigningAlgorithm)
+	_ = validate.RegisterValidation("isBase64", isBase64)
 }
 
 func getValidator() *validator.Validate {

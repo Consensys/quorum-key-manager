@@ -20,6 +20,11 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const (
+	ecdsaPrivKey = "2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw="
+	eddsaPrivKey = "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZGGbioek5qYuzJzTNZpTHrVjjFk7iFe3FYwfpxZyNPxtIaFB5gb9VP9IcHZewwNZly821re7RkmB8pGdjywygPH"
+)
+
 type keysTestSuite struct {
 	suite.Suite
 	err              error
@@ -176,7 +181,7 @@ func (s *keysTestSuite) TestImport() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-import-ecdsa",
 			Curve:            "secp256k1",
-			PrivateKey:       "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c",
+			PrivateKey:       ecdsaPrivKey,
 			SigningAlgorithm: "ecdsa",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -187,7 +192,7 @@ func (s *keysTestSuite) TestImport() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
-		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", key.PublicKey)
+		assert.Equal(t, "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", key.PublicKey)
 		assert.Equal(t, request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(t, request.Curve, key.Curve)
 		assert.Equal(t, request.ID, key.ID)
@@ -206,7 +211,7 @@ func (s *keysTestSuite) TestImport() {
 			ID:               "my-key-import-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
-			PrivateKey:       "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7",
+			PrivateKey:       eddsaPrivKey,
 			Tags: map[string]string{
 				"myTag0": "tag0",
 				"myTag1": "tag1",
@@ -216,7 +221,7 @@ func (s *keysTestSuite) TestImport() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
-		assert.Equal(t, "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191", key.PublicKey)
+		assert.Equal(t, "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", key.PublicKey)
 		assert.Equal(t, request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(t, request.Curve, key.Curve)
 		assert.Equal(t, request.ID, key.ID)
@@ -235,7 +240,7 @@ func (s *keysTestSuite) TestImport() {
 			ID:               "my-key-import",
 			Curve:            "invalidCurve",
 			SigningAlgorithm: "eddsa",
-			PrivateKey:       "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c",
+			PrivateKey:       ecdsaPrivKey,
 			Tags: map[string]string{
 				"myTag0": "tag0",
 				"myTag1": "tag1",
@@ -254,7 +259,7 @@ func (s *keysTestSuite) TestImport() {
 			ID:               "my-key-import",
 			Curve:            "secp256k1",
 			SigningAlgorithm: "invalidSigningAlgorithm",
-			PrivateKey:       "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c",
+			PrivateKey:       ecdsaPrivKey,
 			Tags: map[string]string{
 				"myTag0": "tag0",
 				"myTag1": "tag1",
@@ -274,7 +279,7 @@ func (s *keysTestSuite) TestGet() {
 		ID:               "my-key-get",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
-		PrivateKey:       "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c",
+		PrivateKey:       ecdsaPrivKey,
 		Tags: map[string]string{
 			"myTag0": "tag0",
 			"myTag1": "tag1",
@@ -285,10 +290,10 @@ func (s *keysTestSuite) TestGet() {
 	require.NoError(s.T(), err)
 
 	s.T().Run("should get a key successfully", func(t *testing.T) {
-		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, "")
+		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID)
 		require.NoError(t, err)
 
-		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", keyRetrieved.PublicKey)
+		assert.Equal(t, "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", keyRetrieved.PublicKey)
 		assert.Equal(t, request.ID, keyRetrieved.ID)
 		assert.Equal(t, request.Tags, keyRetrieved.Tags)
 		assert.Equal(t, "1", keyRetrieved.Version)
@@ -316,7 +321,7 @@ func (s *keysTestSuite) TestList() {
 		ID:               "my-key-list",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
-		PrivateKey:       "fa88c4a5912f80503d6b5503880d0745f4b88a1ff90ce8f64cdd8f32cc3bc249",
+		PrivateKey:       ecdsaPrivKey,
 		Tags: map[string]string{
 			"myTag0": "tag0",
 			"myTag1": "tag1",
@@ -349,7 +354,7 @@ func (s *keysTestSuite) TestSign() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-ecdsa",
 			Curve:            "secp256k1",
-			PrivateKey:       "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c",
+			PrivateKey:       ecdsaPrivKey,
 			SigningAlgorithm: "ecdsa",
 		}
 
@@ -362,7 +367,7 @@ func (s *keysTestSuite) TestSign() {
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(t, err)
 
-		assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", signature)
+		assert.Equal(t, "UWzxLZM7kztXXJGhWlkK0LeuYObJH7EOnMjv48qs6GB5rj7iEghkh3FfQyVCheWDTIHfdzBOst3eDRt0BGpaTg==", signature)
 
 	})
 
@@ -371,7 +376,7 @@ func (s *keysTestSuite) TestSign() {
 			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
-			PrivateKey:       "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7",
+			PrivateKey:       eddsaPrivKey,
 		}
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
@@ -382,21 +387,21 @@ func (s *keysTestSuite) TestSign() {
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(t, err)
 
-		assert.Equal(t, "0xb5da51f49917ee5292ba04af6095f689c7fafee4270809971bdbff146dbabd2d00701aa0e9e55a91940d6307e273f11cdcb5aacd26d7839e1306d790aba82b77", signature)
+		assert.Equal(t, "RypSRagTLbR6tlOXu-REakfQRqRufPRCT8FxpZXuXZMDgwa5qYd5FAl1pRlLmQ_-alt1Ba4dKojknaVyHvCDeQ==", signature)
 	})
 
-	s.T().Run("should fail if payload is not hexadecimal string", func(t *testing.T) {
+	s.T().Run("should fail if payload is not base64 string", func(t *testing.T) {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
-			PrivateKey:       "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7",
+			PrivateKey:       eddsaPrivKey,
 		}
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
 		requestSign := &types.SignPayloadRequest{
-			Data: "my data to sign not in hexadecimal format",
+			Data: "my data to sign not in base64 format",
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.Empty(t, signature)
