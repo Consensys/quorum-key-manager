@@ -126,7 +126,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := keyStore.Sign(ctx, id, signPayloadRequest.Data, signPayloadRequest.Version)
+	signature, err := keyStore.Sign(ctx, id, signPayloadRequest.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -140,7 +140,6 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	version := request.URL.Query().Get("version")
 
 	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
 	if err != nil {
@@ -148,7 +147,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	key, err := keyStore.Get(ctx, id, version)
+	key, err := keyStore.Get(ctx, id)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

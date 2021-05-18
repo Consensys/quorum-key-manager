@@ -12,7 +12,7 @@ import (
 )
 
 const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
-const HashicorpPluginVersion = "v0.0.10-alpha.5"
+const HashicorpPluginVersion = "v0.0.11-alpha.1"
 
 func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 	logger := log.FromContext(ctx)

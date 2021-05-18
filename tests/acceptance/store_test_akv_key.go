@@ -159,7 +159,7 @@ func (s *akvKeyTestSuite) TestGet() {
 	}()
 
 	s.T().Run("should get a key pair successfully", func(t *testing.T) {
-		keyRetrieved, err := s.store.Get(ctx, id, "")
+		keyRetrieved, err := s.store.Get(ctx, id)
 		require.NoError(t, err)
 
 		assert.Equal(t, id, keyRetrieved.ID)
@@ -177,7 +177,7 @@ func (s *akvKeyTestSuite) TestGet() {
 	})
 
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
-		keyRetrieved, err := s.store.Get(ctx, "invalidID", "")
+		keyRetrieved, err := s.store.Get(ctx, "invalidID")
 
 		require.Nil(t, keyRetrieved)
 		assert.True(t, errors.IsNotFoundError(err))
@@ -232,7 +232,7 @@ func (s *akvKeyTestSuite) TestSign() {
 	}()
 
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
-		signature, err := s.store.Sign(ctx, id, payload, "")
+		signature, err := s.store.Sign(ctx, id, payload)
 		require.NoError(t, err)
 
 		verified, err := verifySignature(signature, payload, privKey)
@@ -243,7 +243,7 @@ func (s *akvKeyTestSuite) TestSign() {
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
 		id := "my-key"
 
-		key, err := s.store.Sign(ctx, id, "", "")
+		key, err := s.store.Sign(ctx, id, "")
 
 		require.Empty(t, key)
 		assert.True(t, errors.IsInvalidFormatError(err))

@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
 	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/stretchr/testify/suite"
 )
 

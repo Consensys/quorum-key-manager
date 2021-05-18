@@ -15,7 +15,7 @@ import (
 	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/mock"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	mockkeys "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/mock"
+	mockkeys "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -214,7 +214,6 @@ func (s *keysHandlerTestSuite) TestSign() {
 			gomock.Any(),
 			keyID,
 			signPayloadRequest.Data,
-			signPayloadRequest.Version,
 		).Return(signature, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -245,7 +244,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/%s/sign", keyID), bytes.NewReader(requestBytes))
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.NotFoundError("error"))
+		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusNotFound, rw.Code)
@@ -253,33 +252,14 @@ func (s *keysHandlerTestSuite) TestSign() {
 }
 
 func (s *keysHandlerTestSuite) TestGet() {
-	s.T().Run("should execute request successfully with version", func(t *testing.T) {
-		version := "1"
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s?version=%s", keyID, version), nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
-
-		key := testutils2.FakeKey()
-
-		s.keyStore.EXPECT().Get(gomock.Any(), keyID, version).Return(key, nil)
-
-		s.router.ServeHTTP(rw, httpRequest)
-
-		response := formatters.FormatKeyResponse(key)
-		expectedBody, _ := json.Marshal(response)
-		assert.Equal(t, string(expectedBody)+"\n", rw.Body.String())
-		assert.Equal(t, http.StatusOK, rw.Code)
-	})
-
-	s.T().Run("should execute request successfully without version", func(t *testing.T) {
+	s.T().Run("should execute request successfully", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", keyID), nil)
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
 		key := testutils2.FakeKey()
 
-		s.keyStore.EXPECT().Get(gomock.Any(), keyID, "").Return(key, nil)
+		s.keyStore.EXPECT().Get(gomock.Any(), keyID).Return(key, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -295,7 +275,7 @@ func (s *keysHandlerTestSuite) TestGet() {
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", keyID), nil)
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		s.keyStore.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
+		s.keyStore.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusNotFound, rw.Code)

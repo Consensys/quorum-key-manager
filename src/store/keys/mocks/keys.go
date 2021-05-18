@@ -81,18 +81,18 @@ func (mr *MockStoreMockRecorder) Import(ctx, id, privKey, alg, attr interface{})
 }
 
 // Get mocks base method
-func (m *MockStore) Get(ctx context.Context, id, version string) (*entities.Key, error) {
+func (m *MockStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id, version)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockStoreMockRecorder) Get(ctx, id, version interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), ctx, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), ctx, id)
 }
 
 // List mocks base method
@@ -213,46 +213,46 @@ func (mr *MockStoreMockRecorder) Destroy(ctx, id interface{}) *gomock.Call {
 }
 
 // Sign mocks base method
-func (m *MockStore) Sign(ctx context.Context, id, data, version string) (string, error) {
+func (m *MockStore) Sign(ctx context.Context, id, data string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Sign", ctx, id, data, version)
+	ret := m.ctrl.Call(m, "Sign", ctx, id, data)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Sign indicates an expected call of Sign
-func (mr *MockStoreMockRecorder) Sign(ctx, id, data, version interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Sign(ctx, id, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockStore)(nil).Sign), ctx, id, data, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockStore)(nil).Sign), ctx, id, data)
 }
 
 // Encrypt mocks base method
-func (m *MockStore) Encrypt(ctx context.Context, id, version, data string) (string, error) {
+func (m *MockStore) Encrypt(ctx context.Context, id, data string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Encrypt", ctx, id, version, data)
+	ret := m.ctrl.Call(m, "Encrypt", ctx, id, data)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Encrypt indicates an expected call of Encrypt
-func (mr *MockStoreMockRecorder) Encrypt(ctx, id, version, data interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Encrypt(ctx, id, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockStore)(nil).Encrypt), ctx, id, version, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockStore)(nil).Encrypt), ctx, id, data)
 }
 
 // Decrypt mocks base method
-func (m *MockStore) Decrypt(ctx context.Context, id, version, data string) (string, error) {
+func (m *MockStore) Decrypt(ctx context.Context, id, data string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Decrypt", ctx, id, version, data)
+	ret := m.ctrl.Call(m, "Decrypt", ctx, id, data)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Decrypt indicates an expected call of Decrypt
-func (mr *MockStoreMockRecorder) Decrypt(ctx, id, version, data interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Decrypt(ctx, id, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Decrypt", reflect.TypeOf((*MockStore)(nil).Decrypt), ctx, id, version, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Decrypt", reflect.TypeOf((*MockStore)(nil).Decrypt), ctx, id, data)
 }
