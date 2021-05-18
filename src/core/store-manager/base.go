@@ -222,7 +222,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			return err
 		}
-		store, err := aws.NewSecretStore(spec)
+		store, err := aws.NewSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
