@@ -135,3 +135,42 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 	})
 
 }
+
+func (s *awsSecretStoreTestSuite) TestList() {
+	ctx := context.Background()
+	sec3, sec4 := "my-secret3", "my-secret4"
+	expected := []string{sec3, sec4}
+	secretsList := []*secretsmanager.SecretListEntry{{Name: &sec3}, {Name: &sec4}}
+
+	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
+
+		listInput := &secretsmanager.ListSecretsInput{}
+		listOutput := &secretsmanager.ListSecretsOutput{
+			SecretList: secretsList,
+		}
+
+		s.mockVault.EXPECT().ListSecrets(gomock.Any(), listInput).Return(listOutput, nil)
+		ids, err := s.secretStore.List(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, ids)
+	})
+
+	s.T().Run("should return empty list if result is nil", func(t *testing.T) {
+		s.mockVault.EXPECT().ListSecrets(gomock.Any(), gomock.Any()).Return(&secretsmanager.ListSecretsOutput{}, nil)
+		ids, err := s.secretStore.List(ctx)
+
+		assert.NoError(t, err)
+		assert.Empty(t, ids)
+	})
+
+	s.T().Run("should fail if list fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("error")
+
+		s.mockVault.EXPECT().ListSecrets(gomock.Any(), gomock.Any()).Return(&secretsmanager.ListSecretsOutput{}, expectedErr)
+		ids, err := s.secretStore.List(ctx)
+
+		assert.Nil(t, ids)
+		assert.Equal(t, expectedErr, err)
+	})
+}

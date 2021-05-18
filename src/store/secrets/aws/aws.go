@@ -197,11 +197,11 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	listInput := &secretsmanager.ListSecretsInput{}
 	listOutput, err := s.client.ListSecrets(ctx, listInput)
 	if err != nil {
-		return nil, errors.NotFoundError("secret not found")
+		return nil, err
 	}
 
 	//return only a list of secret names (IDs)
-	secretNamesList := make([]string, len(listOutput.SecretList))
+	secretNamesList := []string{}
 	for _, secret := range listOutput.SecretList {
 		secretNamesList = append(secretNamesList, *secret.Name)
 	}
