@@ -3,10 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
-	"log"
+
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	sdk "github.com/aws/aws-sdk-go/aws"
@@ -24,15 +25,17 @@ const (
 	maxTagsAllowed   = 50
 )
 
-// Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
+// Store is an implementation of secret store relying on AWS secretsmanager
 type SecretStore struct {
 	client aws.SecretsManagerClient
+	logger *log.Logger
 }
 
-// New creates an HashiCorp secret store
-func New(client aws.SecretsManagerClient) *SecretStore {
+// New creates an AWS secret store
+func New(client aws.SecretsManagerClient, logger *log.Logger) *SecretStore {
 	return &SecretStore{
 		client: client,
+		logger: logger,
 	}
 }
 
@@ -42,7 +45,7 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 
 //Set Set a secret and tag it when tags exist
 func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
-
+	logger := s.logger.WithField("id", id)
 	createSecretInput := &secretsmanager.CreateSecretInput{
 		SecretString: &value,
 		Name:         &id,
@@ -60,14 +63,13 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 				}
 				_, err1 := s.client.PutSecretValue(ctx, putSecretInput)
 				if err1 != nil {
-					log.Printf("PutSecretValue error for secret %v : %v", id, err1)
 					return nil, err1
 				}
 			default:
 				return nil, err
 			}
 		}
-
+		return nil, err
 	}
 
 	//Tag secret resource when tags found
@@ -95,7 +97,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		_, err = s.client.TagSecretResource(ctx, tagResourceInput)
 		if err != nil {
 			//TODO parse aws flavored errors
-			log.Printf("Tagging error : %s", err.Error())
+			logger.Error("failed to tag secret")
 		}
 	}
 
@@ -110,11 +112,10 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 	describeOutput, err := s.client.DescribeSecret(ctx, describeInput)
 
 	if err != nil {
-		log.Printf("Description error for secret %v", describeInput.SecretId)
+		logger.Error("failed to describe secret")
 	}
 
 	if err == nil && describeOutput != nil {
-		log.Printf("Description for secret %v", describeOutput)
 		//Trick to help us getting the actual current version as there is no versionID metadata
 		currentVersion := ""
 		for version, stages := range describeOutput.VersionIdsToStages {
@@ -137,6 +138,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		}
 
 	}
+	logger.Info("secret was set successfully")
 	return formatAwsSecret(id, value, tags, metadata), nil
 }
 
@@ -211,7 +213,7 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 }
 
 //Delete Delete a secret
-func (s *SecretStore) Delete(ctx context.Context, id string, versions ...string) (*entities.Secret, error) {
+func (s *SecretStore) Delete(ctx context.Context, id string) (*entities.Secret, error) {
 	deleteInput := &secretsmanager.DeleteSecretInput{
 		SecretId: &id,
 	}
@@ -246,7 +248,7 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 }
 
 // Destroy a secret permanently (force deletion, secret will be unrecoverable)
-func (s *SecretStore) Destroy(ctx context.Context, id string, versions ...string) error {
+func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	forceDeletion := true
 	deleteInput := &secretsmanager.DeleteSecretInput{
 		SecretId:                   &id,
