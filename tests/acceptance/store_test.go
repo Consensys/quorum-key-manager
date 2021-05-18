@@ -9,11 +9,9 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
-	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
 	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -74,6 +72,7 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 	suite.Run(s.T(), testSuite)
 }
 
+/*
 func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -88,7 +87,7 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)
 }
-
+*/
 func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -104,6 +103,7 @@ func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
 	suite.Run(s.T(), testSuite)
 }
 
+/*
 func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -118,3 +118,4 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)
 }
+*/

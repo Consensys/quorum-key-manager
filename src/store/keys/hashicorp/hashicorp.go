@@ -91,12 +91,8 @@ func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algo
 }
 
 // Get a key
-func (s *Store) Get(_ context.Context, id, version string) (*entities.Key, error) {
+func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
-	// TODO: Versioning is not yet implemented on the plugin
-	if version != "" {
-		return nil, errors.ErrNotImplemented
-	}
 
 	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
@@ -170,12 +166,8 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 }
 
 // Sign any arbitrary data
-func (s *Store) Sign(_ context.Context, id, data, version string) (string, error) {
+func (s *Store) Sign(_ context.Context, id, data string) (string, error) {
 	logger := s.logger.WithField("id", id).WithField("data", common.ShortString(data, 5))
-	// TODO: Versioning is not yet implemented on the plugin
-	if version != "" {
-		return "", errors.ErrNotImplemented
-	}
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
 		dataLabel: data,
@@ -190,13 +182,13 @@ func (s *Store) Sign(_ context.Context, id, data, version string) (string, error
 }
 
 // Encrypt any arbitrary data using a specified key
-func (s *Store) Encrypt(ctx context.Context, id, version, data string) (string, error) {
+func (s *Store) Encrypt(ctx context.Context, id, data string) (string, error) {
 	return "", errors.ErrNotImplemented
 
 }
 
 // Decrypt a single block of encrypted data.
-func (s *Store) Decrypt(ctx context.Context, id, version, data string) (string, error) {
+func (s *Store) Decrypt(ctx context.Context, id, data string) (string, error) {
 	return "", errors.ErrNotImplemented
 }
 

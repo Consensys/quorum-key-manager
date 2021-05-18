@@ -18,8 +18,7 @@ type ImportKeyRequest struct {
 }
 
 type SignPayloadRequest struct {
-	Data    string `json:"data" validate:"required,isHex" example:"0xfeee"`
-	Version string `json:"version,omitempty" example:"1"`
+	Data string `json:"data" validate:"required,isHex" example:"0xfeee"`
 }
 
 type KeyResponse struct {
