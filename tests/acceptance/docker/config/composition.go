@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/utils"
 )
 
@@ -10,7 +11,8 @@ type Composition struct {
 }
 
 type Container struct {
-	HashicorpVault *hashicorp.Config
+	HashicorpVault  *hashicorp.Config
+	LocalstackVault *localstack.Config
 }
 
 func (c *Container) Field() (interface{}, error) {

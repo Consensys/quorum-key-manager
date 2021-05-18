@@ -23,6 +23,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
+	awsclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws/client"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
@@ -31,6 +32,7 @@ import (
 
 const (
 	hashicorpContainerID      = "hashicorp-vault"
+	localStackContainerID     = "localstack"
 	networkName               = "key-manager"
 	localhostPath             = "http://localhost"
 	HashicorpSecretStoreName  = "HashicorpSecrets"
@@ -45,6 +47,7 @@ type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            *log.Logger
 	hashicorpClient   hashicorp2.VaultClient
+	awsVaultClient    *awsclient.AwsVaultClient
 	akvClient         akv2.Client
 	dockerClient      *docker.Client
 	keyManager        *keymanager.App
@@ -91,11 +94,19 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	localstackContainer, err := utils.LocalstackContainer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	// Initialize environment container setup
 	composition := &dconfig.Composition{
 		Containers: map[string]*dconfig.Container{
 			hashicorpContainerID: {
 				HashicorpVault: hashicorpContainer,
+			},
+			localStackContainerID: {
+				LocalstackVault: localstackContainer,
 			},
 		},
 	}
@@ -181,12 +192,20 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	localstackAddr := fmt.Sprintf("http://%s:%s", localstackContainer.Host, localstackContainer.Port)
+	awsClient, err := awsclient.NewClientWithEndpoint(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize aws client")
+		return nil, err
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
 		ctx:               ctx,
 		logger:            logger,
 		hashicorpClient:   hashicorpClient,
 		akvClient:         akvClient,
+		awsVaultClient:    awsClient,
 		dockerClient:      dockerClient,
 		keyManager:        keyManager,
 		baseURL:           fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
