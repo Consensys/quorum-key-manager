@@ -68,8 +68,9 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 			default:
 				return nil, err
 			}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	//Tag secret resource when tags found
