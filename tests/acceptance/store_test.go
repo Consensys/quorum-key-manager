@@ -10,6 +10,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
 	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/aws"
 	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
@@ -84,6 +85,20 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
 	store := akvsecret.New(s.env.akvClient, logger)
 
 	testSuite := new(akvSecretTestSuite)
+	testSuite.env = s.env
+	testSuite.store = store
+	suite.Run(s.T(), testSuite)
+}
+
+func (s *storeTestSuite) TestKeyManagerStore_AWSSecret() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+
+	store := aws.New(s.env.awsVaultClient)
+
+	testSuite := new(awsSecretTestSuite)
 	testSuite.env = s.env
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)
