@@ -9,6 +9,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/aws"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
@@ -212,6 +213,16 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 		store, err := akv.NewKeyStore(spec, logger)
+		if err != nil {
+			return err
+		}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.AWSSecrets:
+		spec := &aws.SecretSpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			return err
+		}
+		store, err := aws.NewSecretStore(spec)
 		if err != nil {
 			return err
 		}
