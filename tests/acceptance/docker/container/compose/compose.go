@@ -6,9 +6,9 @@ import (
 	goreflect "reflect"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
-
+	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/container/localstack"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -24,6 +24,7 @@ func New() *Compose {
 	}
 
 	factory.reflect.AddGenerator(goreflect.TypeOf(&hashicorp.Config{}), &hashicorp.Vault{})
+	factory.reflect.AddGenerator(goreflect.TypeOf(&localstack.Config{}), &localstack.Vault{})
 
 	return factory
 }
