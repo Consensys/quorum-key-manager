@@ -223,6 +223,19 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
+	// Start localstack container
+	err = env.dockerClient.Up(ctx, localStackContainerID, networkName)
+	if err != nil {
+		env.logger.WithError(err).Error("could not up localstack container")
+		return err
+	}
+
+	err = env.dockerClient.WaitTillIsReady(ctx, localStackContainerID, 10*time.Second)
+	if err != nil {
+		env.logger.WithError(err).Error("could not start localstack")
+		return err
+	}
+
 	// Start Hashicorp Vault
 	err = env.dockerClient.Up(ctx, hashicorpContainerID, networkName)
 	if err != nil {
@@ -265,6 +278,11 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	err := env.keyManager.Stop(ctx)
 	if err != nil {
 		env.logger.WithError(err).Error("failed to stop key manager")
+	}
+
+	err = env.dockerClient.Down(ctx, localStackContainerID)
+	if err != nil {
+		env.logger.WithError(err).Error("could not down localstack")
 	}
 
 	err = env.dockerClient.Down(ctx, hashicorpContainerID)
