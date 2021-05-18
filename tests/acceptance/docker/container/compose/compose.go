@@ -6,9 +6,9 @@ import (
 	goreflect "reflect"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/acceptance-tests/docker/container/localstack"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"

@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	dockerlocalstack "github.com/ConsenSysQuorum/quorum-key-manager/tests/docker/container/localstack"
+	dockerlocalstack "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
 )
 
 func LocalstackContainer(ctx context.Context) (*dockerlocalstack.Config, error) {
