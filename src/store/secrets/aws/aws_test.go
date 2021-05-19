@@ -116,6 +116,18 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 
 	})
 
+	s.T().Run("should fail with tag error", func(t *testing.T) {
+		expectedErr := fmt.Errorf("any error")
+		s.mockVault.EXPECT().CreateSecret(gomock.Any(), createInput).Return(createOutput, nil)
+		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), tagInput).Return(nil, expectedErr)
+
+		secret, err := s.secretStore.Set(ctx, id, value, attributes)
+
+		assert.Equal(t, err, expectedErr)
+		assert.Nil(t, secret)
+
+	})
+
 	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
 		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), createInput).Return(&secretsmanager.CreateSecretOutput{}, expectedErr)
