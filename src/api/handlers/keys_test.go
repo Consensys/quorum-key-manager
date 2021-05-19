@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -62,7 +63,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		key := testutils2.FakeKey()
 
@@ -92,7 +93,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -105,7 +106,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -118,7 +119,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
 
@@ -134,7 +135,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/import", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		key := testutils2.FakeKey()
 
@@ -166,7 +167,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/import", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -179,7 +180,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/import", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -192,7 +193,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/import", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
@@ -208,7 +209,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/%s/sign", keyID), bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		signature := []byte("signature")
 		data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
@@ -227,7 +228,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/%s/sign", keyID), bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -240,7 +241,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/%s/sign", keyID), bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
@@ -253,7 +254,7 @@ func (s *keysHandlerTestSuite) TestGet() {
 	s.T().Run("should execute request successfully", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", keyID), nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		key := testutils2.FakeKey()
 
@@ -271,7 +272,7 @@ func (s *keysHandlerTestSuite) TestGet() {
 	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", keyID), nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
@@ -284,7 +285,7 @@ func (s *keysHandlerTestSuite) TestList() {
 	s.T().Run("should execute request successfully", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		ids := []string{"key1", "key2"}
 
@@ -301,7 +302,7 @@ func (s *keysHandlerTestSuite) TestList() {
 	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
@@ -314,7 +315,7 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 	s.T().Run("should execute request successfully", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%s", keyID), nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
@@ -327,7 +328,7 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 	s.T().Run("should execute request successfully with version", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%s", keyID), nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
@@ -341,7 +342,7 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%s", keyID), nil)
-		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, keyStoreName))
 
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(errors.NotFoundError("error"))
 

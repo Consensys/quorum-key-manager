@@ -1,11 +1,9 @@
 package client
 
 import (
-	"context"
+	"fmt"
 	"net/http"
 )
-
-const storeIDHeader = "X-Store-Id"
 
 type HTTPClient struct {
 	client *http.Client
@@ -21,8 +19,6 @@ func NewHTTPClient(h *http.Client, c *Config) *HTTPClient {
 	}
 }
 
-func withStore(ctx context.Context, storeName string) context.Context {
-	return context.WithValue(ctx, RequestHeaderKey, map[string]string{
-		storeIDHeader: storeName,
-	})
+func withURLStore(rootURL, storeID string) string {
+	return fmt.Sprintf("%s/stores/%s", rootURL, storeID)
 }

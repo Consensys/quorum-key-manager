@@ -7,8 +7,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type ctxKeyType string
+
 const StoreIDHeader = "X-Store-Id"
-const StoreContextID = "storeID"
+const StoreContextID ctxKeyType = "storeID"
 
 type StoresHandler struct {
 	backend core.Backend
@@ -31,5 +33,9 @@ func (c *StoresHandler) testRoute(rw http.ResponseWriter, _ *http.Request) {
 }
 
 func getStoreName(request *http.Request) string {
-	return request.Context().Value(StoreContextID).(string)
+	storeName := request.Context().Value(StoreContextID)
+	if storeName == nil {
+		return ""
+	}
+	return storeName.(string)
 }

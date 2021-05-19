@@ -16,7 +16,8 @@ func StoreSelector(storePath string, h http.Handler) http.Handler {
 		}
 
 		pieces := strings.Split(r.URL.Path[1:], "/")
-		ctx := context.WithValue(r.Context(), handlers.StoreContextID, pieces[1])
-		h.ServeHTTP(w, r.WithContext(ctx))
+		h.ServeHTTP(w, r.WithContext(
+			context.WithValue(r.Context(), handlers.StoreContextID, pieces[1]),
+		))
 	})
 }

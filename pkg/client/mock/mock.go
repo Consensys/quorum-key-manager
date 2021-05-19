@@ -51,18 +51,18 @@ func (mr *MockSecretsClientMockRecorder) SetSecret(ctx, storeName, request inter
 }
 
 // GetSecret mocks base method
-func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSecret indicates an expected call of GetSecret
-func (mr *MockSecretsClientMockRecorder) GetSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsClientMockRecorder) GetSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsClient)(nil).GetSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsClient)(nil).GetSecret), ctx, storeName, id)
 }
 
 // ListSecrets mocks base method
@@ -274,18 +274,18 @@ func (mr *MockKeyManagerClientMockRecorder) SetSecret(ctx, storeName, request in
 }
 
 // GetSecret mocks base method
-func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSecret indicates an expected call of GetSecret
-func (mr *MockKeyManagerClientMockRecorder) GetSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) GetSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetSecret), ctx, storeName, id)
 }
 
 // ListSecrets mocks base method

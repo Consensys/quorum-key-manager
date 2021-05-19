@@ -173,9 +173,9 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
 
-	logger.Info("loading store manifest")
-
+	logger.Debug("loading store manifest")
 	errMsg := "error creating new store store"
+
 	switch mnf.Kind {
 	case types.HashicorpSecrets:
 		spec := &hashicorp.SecretSpecs{}
@@ -193,7 +193,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &hashicorp.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			return err
 		}
 		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
@@ -205,7 +205,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			return err
 		}
 		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
@@ -217,7 +217,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &akv.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			return err
 		}
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
@@ -231,6 +231,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		return err
 	}
 
+	logger.Debug("Store manifest loaded successfully")
 	return nil
 }
 
