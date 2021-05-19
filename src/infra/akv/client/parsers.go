@@ -20,14 +20,14 @@ func ParseErrorResponse(err error) error {
 
 	switch aerr.StatusCode.(int) {
 	case http.StatusNotFound:
-		return errors.NotFoundError("%v", aerr.Original)
+		return errors.NotFoundError(aerr.Original.Error())
 	case http.StatusBadRequest:
-		return errors.InvalidFormatError("%v", aerr.Original)
+		return errors.InvalidFormatError(aerr.Original.Error())
 	case http.StatusUnprocessableEntity:
-		return errors.InvalidParameterError("%v", aerr.Original)
+		return errors.InvalidParameterError(aerr.Original.Error())
 	case http.StatusConflict:
-		return errors.AlreadyExistsError("%v", aerr.Original)
+		return errors.AlreadyExistsError(aerr.Original.Error())
 	default:
-		return errors.AKVConnectionError("%v", aerr.Original)
+		return errors.AKVConnectionError(aerr.Original.Error())
 	}
 }

@@ -2,10 +2,9 @@ package hashicorp
 
 import (
 	"context"
+	"encoding/base64"
 	"path"
-	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
@@ -67,27 +66,27 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 	}
 
 	logger.Info("key was created successfully")
-	return parseResponse(res), nil
+	return parseResponse(res)
 }
 
 // Import a key
-func (s *Store) Import(_ context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
+
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
 		algorithmLabel:  alg.Type,
 		tagsLabel:       attr.Tags,
-		privateKeyLabel: privKey,
+		privateKeyLabel: base64.URLEncoding.EncodeToString(privKey),
 	})
-
 	if err != nil {
 		logger.WithError(err).Error("failed to import key")
 		return nil, hashicorpclient.ParseErrorResponse(err)
 	}
 
 	logger.Info("key was imported successfully")
-	return parseResponse(res), nil
+	return parseResponse(res)
 }
 
 // Get a key
@@ -105,7 +104,7 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	}
 
 	logger.Debug("key was retrieved successfully")
-	return parseResponse(res), nil
+	return parseResponse(res)
 }
 
 // Get all key ids
@@ -135,14 +134,9 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 	return nil, errors.ErrNotImplemented
 }
 
-// Refresh key (create new identical version with different TTL)
-func (s *Store) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
-	return errors.ErrNotImplemented
-}
-
 // Delete a key
-func (s *Store) Delete(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) Delete(_ context.Context, id string) error {
+	return errors.ErrNotImplemented
 }
 
 // Gets a deleted key
@@ -166,30 +160,37 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 }
 
 // Sign any arbitrary data
-func (s *Store) Sign(_ context.Context, id, data string) (string, error) {
-	logger := s.logger.WithField("id", id).WithField("data", common.ShortString(data, 5))
+func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) {
+	logger := s.logger.WithField("id", id)
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
 		dataLabel: data,
 	})
 	if err != nil {
 		logger.WithError(err).Error("failed to sign data")
-		return "", hashicorpclient.ParseErrorResponse(err)
+		return nil, hashicorpclient.ParseErrorResponse(err)
+	}
+
+	signature, err := base64.URLEncoding.DecodeString(res.Data[signatureLabel].(string))
+	if err != nil {
+		errMessage := "failed to decode signature from Hashicorp Vault"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.HashicorpVaultConnectionError(errMessage)
 	}
 
 	logger.Debug("data was signed successfully")
-	return res.Data[signatureLabel].(string), nil
+	return signature, nil
 }
 
 // Encrypt any arbitrary data using a specified key
-func (s *Store) Encrypt(ctx context.Context, id, data string) (string, error) {
-	return "", errors.ErrNotImplemented
+func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+	return nil, errors.ErrNotImplemented
 
 }
 
 // Decrypt a single block of encrypted data.
-func (s *Store) Decrypt(ctx context.Context, id, data string) (string, error) {
-	return "", errors.ErrNotImplemented
+func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) pathKeys(suffix string) string {

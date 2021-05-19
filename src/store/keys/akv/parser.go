@@ -12,7 +12,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -62,13 +61,13 @@ func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	return kAttr
 }
 
-func webImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
+func webImportKey(privKey []byte, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
 	var pKeyD, pKeyX, pKeyY string
 	switch alg.Type {
 	case entities.Ecdsa:
-		pKey, err := crypto.HexToECDSA(privKey)
+		pKey, err := crypto.ToECDSA(privKey)
 		if err != nil {
-			return nil, errors.InvalidFormatError("invalid private key format. %s", err.Error())
+			return nil, errors.InvalidParameterError("invalid private key. %s", err.Error())
 		}
 
 		pKeyD = base64.RawURLEncoding.EncodeToString(pKey.D.Bytes())
@@ -112,15 +111,15 @@ func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyC
 	return algo
 }
 
-func pubKeyString(key *keyvault.JSONWebKey) string {
+func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 	switch {
 	case key.Kty == keyvault.EC && key.Crv == keyvault.P256K:
 		xBytes, _ := decodePubKeyBase64(*key.X)
 		yBytes, _ := decodePubKeyBase64(*key.Y)
 		pKey := ecdsa.PublicKey{X: new(big.Int).SetBytes(xBytes), Y: new(big.Int).SetBytes(yBytes)}
-		return hexutil.Encode(crypto.FromECDSAPub(&pKey))
+		return crypto.FromECDSAPub(&pKey)
 	default:
-		return ""
+		return nil
 	}
 
 }
@@ -145,7 +144,7 @@ func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatu
 
 func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 	key := &entities.Key{
-		PublicKey: pubKeyString(res.Key),
+		PublicKey: pubKeyBytes(res.Key),
 		Algo:      algoFromAKVKeyTypeCrv(res.Key.Kty, res.Key.Crv),
 		Metadata: &entities.Metadata{
 			Disabled:  !*res.Attributes.Enabled,
@@ -200,23 +199,4 @@ func decodePubKeyBase64(src string) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
-}
-
-func hexToSha256Base64(value string) (string, error) {
-	bData, err := hexutil.Decode(value)
-	if err != nil {
-		return "", errors.InvalidFormatError("cannot decode hex value. %s", err.Error())
-	}
-
-	b64Data := base64.RawURLEncoding.EncodeToString(crypto.Keccak256(bData))
-	return b64Data, nil
-}
-
-func base64ToHex(value string) (string, error) {
-	bData, err := base64.RawURLEncoding.DecodeString(value)
-	if err != nil {
-		return "", errors.InvalidFormatError("cannot decode base64 value. %s", err.Error())
-	}
-
-	return hexutil.Encode(bData), nil
 }

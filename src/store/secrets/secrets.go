@@ -7,7 +7,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-//go:generate mockgen -source=secrets.go -destination=mocks/secrets.go -package=mocks
+//go:generate mockgen -source=secrets.go -destination=mock/secrets.go -package=mock
 
 type Store interface {
 	// Info returns store information

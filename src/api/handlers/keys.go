@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 
@@ -83,6 +84,12 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	privKey, err := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
 	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
@@ -92,7 +99,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	key, err := keyStore.Import(
 		ctx,
 		importKeyRequest.ID,
-		importKeyRequest.PrivateKey,
+		privKey,
 		&entities.Algorithm{
 			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
 			EllipticCurve: entities.Curve(importKeyRequest.Curve),
@@ -118,7 +125,11 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	id := mux.Vars(request)["id"]
+	data, err := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
 
 	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
 	if err != nil {
@@ -126,28 +137,26 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := keyStore.Sign(ctx, id, signPayloadRequest.Data)
+	signature, err := keyStore.Sign(ctx, mux.Vars(request)["id"], data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_, _ = rw.Write([]byte(signature))
+	_, _ = rw.Write(signature)
 }
 
 func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	id := mux.Vars(request)["id"]
-
 	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	key, err := keyStore.Get(ctx, id)
+	key, err := keyStore.Get(ctx, mux.Vars(request)["id"])
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -178,15 +187,13 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	id := mux.Vars(request)["id"]
-
 	keyStore, err := h.backend.StoreManager().GetKeyStore(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	err = keyStore.Destroy(ctx, id)
+	err = keyStore.Destroy(ctx, mux.Vars(request)["id"])
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
