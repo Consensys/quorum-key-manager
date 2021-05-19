@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
@@ -134,6 +135,51 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		assert.Equal(t, version, secret.Metadata.Version)
 	})
 
+}
+
+func (s *awsSecretStoreTestSuite) TestGet() {
+	ctx := context.Background()
+	id := "my-secret"
+	version := "some-version"
+	secretValue := "secret-value"
+
+	expectedSecret := &entities.Secret{
+		ID:    id,
+		Value: secretValue,
+	}
+
+	getSecretInput := &secretsmanager.GetSecretValueInput{
+		SecretId: &id,
+	}
+
+	getSecretOutput := &secretsmanager.GetSecretValueOutput{
+		Name:         &id,
+		SecretString: &secretValue,
+		VersionId:    &version,
+	}
+
+	descSecretInput := &secretsmanager.DescribeSecretInput{
+		SecretId: &id,
+	}
+
+	currentMark := "AWSCURRENT"
+	versionID2stages := map[string][]*string{
+		version: {&currentMark},
+	}
+
+	descSecretOutput := &secretsmanager.DescribeSecretOutput{
+		Name:               &id,
+		VersionIdsToStages: versionID2stages,
+	}
+
+	s.T().Run("should get a secret successfully", func(t *testing.T) {
+		s.mockVault.EXPECT().GetSecret(gomock.Any(), getSecretInput).Return(getSecretOutput, nil)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, nil)
+		retValue, err := s.secretStore.Get(ctx, id, "")
+		assert.NoError(t, err)
+		assert.Equal(t, retValue.Value, expectedSecret.Value)
+		assert.Equal(t, retValue.ID, expectedSecret.ID)
+	})
 }
 
 func (s *awsSecretStoreTestSuite) TestList() {
