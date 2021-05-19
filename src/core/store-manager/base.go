@@ -180,7 +180,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.HashicorpSecrets:
 		spec := &hashicorp.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			return err
+			return errors.InvalidFormatError("failed to unmarshall hashicorp secrets specs. %v", err)
 		}
 		store, err := hashicorp.NewSecretStore(spec, logger)
 		if err != nil {
@@ -190,7 +190,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.HashicorpKeys:
 		spec := &hashicorp.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			return err
+			return errors.InvalidFormatError("failed to unmarshall hashicorp key specs. %v", err)
 		}
 		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
@@ -200,7 +200,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.AKVSecrets:
 		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			return err
+			return errors.InvalidFormatError("failed to unmarshall akv secrets specs. %v", err)
 		}
 		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
@@ -210,7 +210,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			return err
+			return errors.InvalidFormatError("failed to unmarshall akv key specs. %v", err)
 		}
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
@@ -220,7 +220,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.AWSSecrets:
 		spec := &aws.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			return err
+			return errors.InvalidFormatError("failed to unmarshall aws secrets specs. %v", err)
 		}
 		store, err := aws.NewSecretStore(spec, logger)
 		if err != nil {
