@@ -63,15 +63,15 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 				_, err1 := s.client.PutSecretValue(ctx, putSecretInput)
 				if err1 != nil {
 					logger.Error("failed to update secret")
-					return nil, err1
+					return nil, translateAwsError(err1)
 				}
 			default:
 				logger.Error("failed to create secret")
-				return nil, err
+				return nil, translateAwsError(err)
 			}
 		} else {
 			logger.Error("failed to create secret")
-			return nil, err
+			return nil, translateAwsError(err)
 		}
 	}
 
@@ -99,8 +99,8 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 
 		_, err = s.client.TagSecretResource(ctx, tagResourceInput)
 		if err != nil {
-			//TODO parse aws flavored errors
 			logger.Error("failed to tag secret")
+			return nil, translateAwsError(err)
 		}
 	}
 
@@ -116,9 +116,10 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 
 	if err != nil {
 		logger.Error("failed to describe secret")
+		return nil, translateAwsError(err)
 	}
 
-	if err == nil && describeOutput != nil {
+	if describeOutput != nil {
 		//Trick to help us getting the actual current version as there is no versionID metadata
 		currentVersion := ""
 		for version, stages := range describeOutput.VersionIdsToStages {
@@ -164,7 +165,7 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 	getSecretOutput, err := s.client.GetSecret(ctx, getSecretInput)
 	if err != nil || getSecretOutput == nil {
 		logger.Error("secret not found")
-		return nil, errors.NotFoundError("secret not found")
+		return nil, translateAwsError(err)
 	}
 
 	describeInput := &secretsmanager.DescribeSecretInput{
@@ -177,7 +178,12 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 
 	describeOutput, err := s.client.DescribeSecret(ctx, describeInput)
 
-	if err == nil && describeOutput != nil {
+	if err != nil {
+		logger.Error("failed to describe secret")
+		return nil, translateAwsError(err)
+	}
+
+	if describeOutput != nil {
 		metadata = &entities.Metadata{
 			Version:   *getSecretOutput.VersionId,
 			CreatedAt: sdk.TimeValue(describeOutput.CreatedDate),
@@ -201,7 +207,7 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	listOutput, err := s.client.ListSecrets(ctx, listInput)
 	if err != nil {
 		s.logger.Error("failed to list secrets")
-		return nil, err
+		return nil, translateAwsError(err)
 	}
 
 	//return only a list of secret names (IDs)
@@ -227,7 +233,7 @@ func (s *SecretStore) Delete(ctx context.Context, id string) (*entities.Secret, 
 	deleteOutput, err := s.client.DeleteSecret(ctx, deleteInput)
 	if err != nil {
 		logger.Error("failed to delete secret")
-		return nil, errors.NotFoundError("secret not found")
+		return nil, translateAwsError(err)
 	}
 
 	logger.Info("secret was deleted successfully")
@@ -254,7 +260,7 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	_, err := s.client.RestoreSecret(ctx, restoreInput)
 	if err != nil {
 		logger.Error("failed to restore secret")
-		return errors.NotFoundError("secret not found")
+		return translateAwsError(err)
 	}
 	logger.Info("secret has been restored successfully")
 	return nil
@@ -271,8 +277,39 @@ func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	_, err := s.client.DeleteSecret(ctx, deleteInput)
 	if err != nil {
 		logger.Error("failed to destroy secret")
-		return errors.NotFoundError("secret not found")
+		return translateAwsError(err)
 	}
 	logger.Info("secret has been destroyed successfully")
 	return nil
+}
+
+func translateAwsError(err error) error {
+	if aerr, ok := err.(awserr.Error); ok {
+		switch aerr.Code() {
+		case secretsmanager.ErrCodeResourceExistsException:
+			return errors.AlreadyExistsError("resource already exists")
+		case secretsmanager.ErrCodeInternalServiceError:
+			return errors.InternalError("internal error")
+		case secretsmanager.ErrCodeInvalidParameterException:
+			return errors.InvalidParameterError("invalid parameter")
+		case secretsmanager.ErrCodeInvalidRequestException:
+			return errors.InvalidRequestError("invalid request")
+		case secretsmanager.ErrCodeResourceNotFoundException:
+			return errors.NotFoundError("resource was not found")
+		case secretsmanager.ErrCodeInvalidNextTokenException:
+			return errors.InvalidParameterError("invalid parameter, next token")
+		case secretsmanager.ErrCodeLimitExceededException:
+			return errors.InternalError("internal error, limit exceeded")
+		case secretsmanager.ErrCodePreconditionNotMetException:
+			return errors.InternalError("internal error, preconditions not met")
+		case secretsmanager.ErrCodeEncryptionFailure:
+			return errors.InternalError("internal error, encryption failed")
+		case secretsmanager.ErrCodeDecryptionFailure:
+			return errors.InternalError("internal error, decryption failed")
+		case secretsmanager.ErrCodeMalformedPolicyDocumentException:
+			return errors.InvalidParameterError("invalid policy documentation parameter")
+
+		}
+	}
+	return err
 }
