@@ -103,17 +103,17 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should NOT fail with describe error", func(t *testing.T) {
+	s.T().Run("should fail with describe error", func(t *testing.T) {
+		expectedErr := fmt.Errorf("any error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), createInput).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), tagInput).Return(&secretsmanager.TagResourceOutput{}, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, fmt.Errorf("any error"))
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
+		assert.Equal(t, err, expectedErr)
+		assert.Nil(t, secret)
 
-		assert.ObjectsAreEqual(attributes.Tags, secret.Tags)
 	})
 
 	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
@@ -197,20 +197,20 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 
 	s.T().Run("should fail with get error", func(t *testing.T) {
 		expectedErr := errors.NotFoundError("secret not found")
-		s.mockVault.EXPECT().GetSecret(gomock.Any(), getSecretInput).Return(getSecretOutput, fmt.Errorf("any error"))
+		s.mockVault.EXPECT().GetSecret(gomock.Any(), getSecretInput).Return(getSecretOutput, expectedErr)
 
 		retValue, err := s.secretStore.Get(ctx, id, "")
 		assert.Nil(t, retValue)
 		assert.Equal(t, err, expectedErr)
 	})
 
-	s.T().Run("should NOT fail with describe error", func(t *testing.T) {
+	s.T().Run("should fail with describe error", func(t *testing.T) {
+		expectedErr := errors.NotFoundError("secret not found")
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), getSecretInput).Return(getSecretOutput, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, fmt.Errorf("any error"))
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, expectedErr)
 		retValue, err := s.secretStore.Get(ctx, id, "")
-		assert.Nil(t, err)
-		assert.Equal(t, retValue.Value, expectedSecret.Value)
-		assert.Equal(t, retValue.ID, expectedSecret.ID)
+		assert.Nil(t, retValue)
+		assert.Equal(t, err, expectedErr)
 	})
 }
 

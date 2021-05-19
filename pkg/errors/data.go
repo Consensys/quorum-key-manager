@@ -37,3 +37,13 @@ func InvalidParameterError(format string, a ...interface{}) *Error {
 func IsInvalidParameterError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), InvalidParameter)
 }
+
+// InvalidRequestError is raised when a client request is invalid
+func InvalidRequestError(format string, a ...interface{}) *Error {
+	return Errorf(InvalidRequest, format, a...)
+}
+
+// IsInvalidRequestError indicate whether an error is an invalid request error
+func IsInvalidRequestError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), InvalidRequest)
+}
