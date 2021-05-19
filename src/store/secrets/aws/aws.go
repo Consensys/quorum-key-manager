@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -63,12 +62,15 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 				}
 				_, err1 := s.client.PutSecretValue(ctx, putSecretInput)
 				if err1 != nil {
+					logger.Error("failed to update secret")
 					return nil, err1
 				}
 			default:
+				logger.Error("failed to create secret")
 				return nil, err
 			}
 		} else {
+			logger.Error("failed to create secret")
 			return nil, err
 		}
 	}
@@ -143,9 +145,9 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 	return formatAwsSecret(id, value, tags, metadata), nil
 }
 
-//Get Get a secret and its description
+//Get Gets a secret and its description
 func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
-
+	logger := s.logger.WithField("id", id)
 	getSecretInput := &secretsmanager.GetSecretValueInput{
 		SecretId:  &id,
 		VersionId: &version,
@@ -161,6 +163,7 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 
 	getSecretOutput, err := s.client.GetSecret(ctx, getSecretInput)
 	if err != nil || getSecretOutput == nil {
+		logger.Error("secret not found")
 		return nil, errors.NotFoundError("secret not found")
 	}
 
@@ -186,17 +189,18 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 			tags[*outTag.Key] = *outTag.Value
 		}
 	}
-
+	logger.Info("secret was retrieved successfully")
 	return formatAwsSecret(id, *getSecretOutput.SecretString, tags, metadata), nil
 }
 
-//List Get all secret ids as a slice of arns
+//List Gets all secret ids as a slice of names
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 
 	//Leaving criteria unchanged should return all the keys (full list)
 	listInput := &secretsmanager.ListSecretsInput{}
 	listOutput, err := s.client.ListSecrets(ctx, listInput)
 	if err != nil {
+		s.logger.Error("failed to list secrets")
 		return nil, err
 	}
 
@@ -205,51 +209,60 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	for _, secret := range listOutput.SecretList {
 		secretNamesList = append(secretNamesList, *secret.Name)
 	}
+	s.logger.Info("secrets were listed successfully")
 	return secretNamesList, nil
 }
 
-// Refresh an existing secret by extending its TTL
+//Refresh Updates an existing secret by extending its TTL
 func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate time.Time) error {
 	return errors.ErrNotImplemented
 }
 
-//Delete Delete a secret
+//Delete Deletes a secret
 func (s *SecretStore) Delete(ctx context.Context, id string) (*entities.Secret, error) {
+	logger := s.logger.WithField("id", id)
 	deleteInput := &secretsmanager.DeleteSecretInput{
 		SecretId: &id,
 	}
 	deleteOutput, err := s.client.DeleteSecret(ctx, deleteInput)
 	if err != nil {
+		logger.Error("failed to delete secret")
 		return nil, errors.NotFoundError("secret not found")
 	}
+
+	logger.Info("secret was deleted successfully")
 	return formatAwsSecret(*deleteOutput.Name, "", nil, nil), nil
 }
 
-// Gets a deleted secret
+//GetDeleted Gets a deleted secret
 func (s *SecretStore) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Lists all deleted secrets
+//ListDeleted Lists all deleted secrets
 func (s *SecretStore) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Undelete a previously deleted secret
+//Undelete Restores a previously deleted secret
 func (s *SecretStore) Undelete(ctx context.Context, id string) error {
+	logger := s.logger.WithField("id", id)
 	restoreInput := &secretsmanager.RestoreSecretInput{
 		SecretId: &id,
 	}
 
 	_, err := s.client.RestoreSecret(ctx, restoreInput)
 	if err != nil {
+		logger.Error("failed to restore secret")
 		return errors.NotFoundError("secret not found")
 	}
+	logger.Info("secret has been restored successfully")
 	return nil
 }
 
-// Destroy a secret permanently (force deletion, secret will be unrecoverable)
+//Destroy Deletes a secret permanently (force deletion, secret will be unrecoverable)
 func (s *SecretStore) Destroy(ctx context.Context, id string) error {
+	logger := s.logger.WithField("id", id)
 	forceDeletion := true
 	deleteInput := &secretsmanager.DeleteSecretInput{
 		SecretId:                   &id,
@@ -257,7 +270,9 @@ func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	}
 	_, err := s.client.DeleteSecret(ctx, deleteInput)
 	if err != nil {
+		logger.Error("failed to destroy secret")
 		return errors.NotFoundError("secret not found")
 	}
+	logger.Info("secret has been destroyed successfully")
 	return nil
 }
