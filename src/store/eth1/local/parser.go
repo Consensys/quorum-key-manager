@@ -21,7 +21,7 @@ func parseKey(key *entities.Key) (*entities.ETH1Account, error) {
 		Address:             crypto.PubkeyToAddress(*pubKey).Hex(),
 		Metadata:            key.Metadata,
 		Tags:                key.Tags,
-		PublicKey:           key.PublicKey,
+		PublicKey:           hexutil.Encode(crypto.FromECDSAPub(pubKey)),
 		CompressedPublicKey: hexutil.Encode(crypto.CompressPubkey(pubKey)),
 	}, nil
 }

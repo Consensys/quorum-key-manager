@@ -18,8 +18,8 @@ import (
 // TODO: Destroy key pairs when done with the tests to avoid conflicts between tests
 
 const (
-	ecdsaPrivKey = "2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw="
-	eddsaPrivKey = "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZGGbioek5qYuzJzTNZpTHrVjjFk7iFe3FYwfpxZyNPxtIaFB5gb9VP9IcHZewwNZly821re7RkmB8pGdjywygPH"
+	ecdsaPrivKeyb64 = "2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw="
+	eddsaPrivKeyb64 = "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZGGbioek5qYuzJzTNZpTHrVjjFk7iFe3FYwfpxZyNPxtIaFB5gb9VP9IcHZewwNZly821re7RkmB8pGdjywygPH"
 )
 
 type hashicorpKeyTestSuite struct {
@@ -81,7 +81,7 @@ func (s *hashicorpKeyTestSuite) TestImport() {
 	s.T().Run("should import a new key pair successfully: ECDSA/Secp256k1", func(t *testing.T) {
 		id := fmt.Sprintf("my-key-ecdsa-import-%d", rand.Intn(1000))
 
-		key, err := s.store.Import(ctx, id, ecdsaPrivKey, &entities.Algorithm{
+		key, err := s.store.Import(ctx, id, ecdsaPrivKeyb64, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, &entities.Attributes{
@@ -108,7 +108,7 @@ func (s *hashicorpKeyTestSuite) TestImport() {
 		id := "my-key-eddsa-import"
 		tags := testutils.FakeTags()
 
-		key, err := s.store.Import(ctx, id, eddsaPrivKey, &entities.Algorithm{
+		key, err := s.store.Import(ctx, id, eddsaPrivKeyb64, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Bn254,
 		}, &entities.Attributes{
@@ -135,7 +135,7 @@ func (s *hashicorpKeyTestSuite) TestImport() {
 		id := "my-key"
 		tags := testutils.FakeTags()
 
-		key, err := s.store.Import(ctx, id, ecdsaPrivKey, &entities.Algorithm{
+		key, err := s.store.Import(ctx, id, ecdsaPrivKeyb64, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: "invalidCurve",
 		}, &entities.Attributes{
@@ -152,7 +152,7 @@ func (s *hashicorpKeyTestSuite) TestGet() {
 	id := "my-key-get"
 	tags := testutils.FakeTags()
 
-	key, err := s.store.Import(ctx, id, ecdsaPrivKey, &entities.Algorithm{
+	key, err := s.store.Import(ctx, id, ecdsaPrivKeyb64, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
@@ -192,7 +192,7 @@ func (s *hashicorpKeyTestSuite) TestList() {
 	id2 := "my-key-list2"
 	tags := testutils.FakeTags()
 
-	_, err := s.store.Import(ctx, id1, ecdsaPrivKey, &entities.Algorithm{
+	_, err := s.store.Import(ctx, id1, ecdsaPrivKeyb64, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
@@ -200,7 +200,7 @@ func (s *hashicorpKeyTestSuite) TestList() {
 	})
 	require.NoError(s.T(), err)
 
-	_, err = s.store.Import(ctx, id2, eddsaPrivKey, &entities.Algorithm{
+	_, err = s.store.Import(ctx, id2, eddsaPrivKeyb64, &entities.Algorithm{
 		Type:          entities.Eddsa,
 		EllipticCurve: entities.Bn254,
 	}, &entities.Attributes{
@@ -225,7 +225,7 @@ func (s *hashicorpKeyTestSuite) TestSign() {
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
 		id := "my-key-sign-ecdsa"
 
-		_, err := s.store.Import(ctx, id, ecdsaPrivKey, &entities.Algorithm{
+		_, err := s.store.Import(ctx, id, ecdsaPrivKeyb64, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, &entities.Attributes{
@@ -242,7 +242,7 @@ func (s *hashicorpKeyTestSuite) TestSign() {
 	s.T().Run("should sign a message successfully: EDDSA/BN254", func(t *testing.T) {
 		id := "my-key-sign-eddsa"
 
-		_, err := s.store.Import(ctx, id, eddsaPrivKey, &entities.Algorithm{
+		_, err := s.store.Import(ctx, id, eddsaPrivKeyb64, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Bn254,
 		}, &entities.Attributes{

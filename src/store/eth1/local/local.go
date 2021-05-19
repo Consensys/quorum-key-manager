@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core"
 	"math/big"
 	"sync"
-	"time"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -108,13 +106,13 @@ func (s *Store) GetAll(_ context.Context) ([]*entities.ETH1Account, error) {
 
 // Get all account ids
 func (s *Store) List(_ context.Context) ([]string, error) {
-	ids := make([]string, len(s.addrToId))
+	addresses := make([]string, len(s.addrToId))
 
-	for _, value := range s.addrToId {
-		ids = append(ids, value)
+	for address, _ := range s.addrToId {
+		addresses = append(addresses, address)
 	}
 
-	return ids, nil
+	return addresses, nil
 }
 
 // Update account tags
@@ -130,16 +128,6 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 	}
 
 	return parseKey(key)
-}
-
-// Refresh an account (create new identical version with different TTL)
-func (s *Store) Refresh(ctx context.Context, addr string, expirationDate time.Time) error {
-	id, err := s.getID(addr)
-	if err != nil {
-		return err
-	}
-
-	return s.keyStore.Refresh(ctx, id, expirationDate)
 }
 
 // Delete an account
@@ -221,12 +209,22 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 
 // Sign any arbitrary data
 func (s *Store) Sign(ctx context.Context, addr, data string) (string, error) {
-	id, err := s.getID(addr)
+	key, err := s.Get(ctx, addr)
 	if err != nil {
 		return "", err
 	}
 
-	return s.keyStore.Sign(ctx, id, data)
+	signature, err := s.keyStore.Sign(ctx, key.ID, data)
+	if err != nil {
+		return "", err
+	}
+
+	recID, err := parseRecID(key.PublicKey)
+	if err != nil {
+		return "", err
+	}
+
+	return signature + recID, nil
 }
 
 // Sign EIP-712 formatted data using the specified account
@@ -284,7 +282,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *ethereum.TxDat
 }
 
 // ECRevocer returns the address from a signature and data
-func (s *Store) ECRevocer(_ context.Context, data, sig string) (string, error) {
+func (s *Store) ECRevocer(_ context.Context, sig, data string) (string, error) {
 	signatureBytes, err := hexutil.Decode(sig)
 	if err != nil {
 		return "", errors.InvalidParameterError("failed to decode signature")
