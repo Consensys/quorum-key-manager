@@ -45,22 +45,14 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 //Set Set a secret and tag it when tags exist
 func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
-	createSecretInput := &secretsmanager.CreateSecretInput{
-		SecretString: &value,
-		Name:         &id,
-	}
 
-	_, err := s.client.CreateSecret(ctx, createSecretInput)
+	_, err := s.client.CreateSecret(ctx, id, value)
 	if err != nil {
 		//TODO parse aws flavored errors
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case secretsmanager.ErrCodeResourceExistsException:
-				putSecretInput := &secretsmanager.PutSecretValueInput{
-					SecretId:     &id,
-					SecretString: &value,
-				}
-				_, err1 := s.client.PutSecretValue(ctx, putSecretInput)
+				_, err1 := s.client.PutSecretValue(ctx, id, value)
 				if err1 != nil {
 					logger.Error("failed to update secret")
 					return nil, translateAwsError(err1)
@@ -81,38 +73,18 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		if len(attr.Tags) > maxTagsAllowed {
 			return nil, fmt.Errorf("resource may not be tagged with more than %d items", maxTagsAllowed)
 		}
-		inputTags := []*secretsmanager.Tag{}
 
-		for key, value := range attr.Tags {
-			k, v := key, value
-			var in secretsmanager.Tag = secretsmanager.Tag{
-				Key:   &k,
-				Value: &v,
-			}
-			inputTags = append(inputTags, &in)
-		}
-
-		tagResourceInput := &secretsmanager.TagResourceInput{
-			SecretId: &id,
-			Tags:     inputTags,
-		}
-
-		_, err = s.client.TagSecretResource(ctx, tagResourceInput)
+		_, err = s.client.TagSecretResource(ctx, id, attr.Tags)
 		if err != nil {
 			logger.Error("failed to tag secret")
 			return nil, translateAwsError(err)
 		}
 	}
 
-	//Now retrieve resource description for metadata
-	describeInput := &secretsmanager.DescribeSecretInput{
-		SecretId: &id,
-	}
-
 	tags := make(map[string]string)
 	metadata := &entities.Metadata{}
 
-	describeOutput, err := s.client.DescribeSecret(ctx, describeInput)
+	describeOutput, err := s.client.DescribeSecret(ctx, id)
 
 	if err != nil {
 		logger.Error("failed to describe secret")
@@ -149,34 +121,18 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 //Get Gets a secret and its description
 func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
-	getSecretInput := &secretsmanager.GetSecretValueInput{
-		SecretId:  &id,
-		VersionId: &version,
-	}
 
-	if len(version) == 0 {
-		//Get with secret-id only
-		//Here adding version would cause a not found error
-		getSecretInput = &secretsmanager.GetSecretValueInput{
-			SecretId: &id,
-		}
-	}
-
-	getSecretOutput, err := s.client.GetSecret(ctx, getSecretInput)
+	getSecretOutput, err := s.client.GetSecret(ctx, id, version)
 	if err != nil || getSecretOutput == nil {
 		logger.Error("secret not found")
 		return nil, translateAwsError(err)
-	}
-
-	describeInput := &secretsmanager.DescribeSecretInput{
-		SecretId: &id,
 	}
 
 	//Prepare to get tags and metadata via description
 	tags := make(map[string]string)
 	metadata := &entities.Metadata{}
 
-	describeOutput, err := s.client.DescribeSecret(ctx, describeInput)
+	describeOutput, err := s.client.DescribeSecret(ctx, id)
 
 	if err != nil {
 		logger.Error("failed to describe secret")
@@ -202,9 +158,7 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 //List Gets all secret ids as a slice of names
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 
-	//Leaving criteria unchanged should return all the keys (full list)
-	listInput := &secretsmanager.ListSecretsInput{}
-	listOutput, err := s.client.ListSecrets(ctx, listInput)
+	listOutput, err := s.client.ListSecrets(ctx)
 	if err != nil {
 		s.logger.Error("failed to list secrets")
 		return nil, translateAwsError(err)
@@ -227,10 +181,8 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 //Delete Deletes a secret
 func (s *SecretStore) Delete(ctx context.Context, id string) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
-	deleteInput := &secretsmanager.DeleteSecretInput{
-		SecretId: &id,
-	}
-	deleteOutput, err := s.client.DeleteSecret(ctx, deleteInput)
+	destroy := false
+	deleteOutput, err := s.client.DeleteSecret(ctx, id, destroy)
 	if err != nil {
 		logger.Error("failed to delete secret")
 		return nil, translateAwsError(err)
@@ -253,11 +205,8 @@ func (s *SecretStore) ListDeleted(ctx context.Context) ([]string, error) {
 //Undelete Restores a previously deleted secret
 func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
-	restoreInput := &secretsmanager.RestoreSecretInput{
-		SecretId: &id,
-	}
 
-	_, err := s.client.RestoreSecret(ctx, restoreInput)
+	_, err := s.client.RestoreSecret(ctx, id)
 	if err != nil {
 		logger.Error("failed to restore secret")
 		return translateAwsError(err)
@@ -269,12 +218,9 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 //Destroy Deletes a secret permanently (force deletion, secret will be unrecoverable)
 func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
-	forceDeletion := true
-	deleteInput := &secretsmanager.DeleteSecretInput{
-		SecretId:                   &id,
-		ForceDeleteWithoutRecovery: &forceDeletion,
-	}
-	_, err := s.client.DeleteSecret(ctx, deleteInput)
+	destroy := true
+
+	_, err := s.client.DeleteSecret(ctx, id, destroy)
 	if err != nil {
 		logger.Error("failed to destroy secret")
 		return translateAwsError(err)

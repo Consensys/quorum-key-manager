@@ -36,136 +36,136 @@ func (m *MockSecretsManagerClient) EXPECT() *MockSecretsManagerClientMockRecorde
 }
 
 // CreateSecret mocks base method.
-func (m *MockSecretsManagerClient) CreateSecret(ctx context.Context, input *secretsmanager.CreateSecretInput) (*secretsmanager.CreateSecretOutput, error) {
+func (m *MockSecretsManagerClient) CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSecret", ctx, input)
+	ret := m.ctrl.Call(m, "CreateSecret", ctx, id, value)
 	ret0, _ := ret[0].(*secretsmanager.CreateSecretOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateSecret indicates an expected call of CreateSecret.
-func (mr *MockSecretsManagerClientMockRecorder) CreateSecret(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) CreateSecret(ctx, id, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).CreateSecret), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).CreateSecret), ctx, id, value)
 }
 
 // DeleteSecret mocks base method.
-func (m *MockSecretsManagerClient) DeleteSecret(ctx context.Context, input *secretsmanager.DeleteSecretInput) (*secretsmanager.DeleteSecretOutput, error) {
+func (m *MockSecretsManagerClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSecret", ctx, input)
+	ret := m.ctrl.Call(m, "DeleteSecret", ctx, id, force)
 	ret0, _ := ret[0].(*secretsmanager.DeleteSecretOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteSecret indicates an expected call of DeleteSecret.
-func (mr *MockSecretsManagerClientMockRecorder) DeleteSecret(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) DeleteSecret(ctx, id, force interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).DeleteSecret), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).DeleteSecret), ctx, id, force)
 }
 
 // DescribeSecret mocks base method.
-func (m *MockSecretsManagerClient) DescribeSecret(ctx context.Context, input *secretsmanager.DescribeSecretInput) (*secretsmanager.DescribeSecretOutput, error) {
+func (m *MockSecretsManagerClient) DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DescribeSecret", ctx, input)
+	ret := m.ctrl.Call(m, "DescribeSecret", ctx, id)
 	ret0, _ := ret[0].(*secretsmanager.DescribeSecretOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DescribeSecret indicates an expected call of DescribeSecret.
-func (mr *MockSecretsManagerClientMockRecorder) DescribeSecret(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) DescribeSecret(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).DescribeSecret), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).DescribeSecret), ctx, id)
 }
 
 // GetSecret mocks base method.
-func (m *MockSecretsManagerClient) GetSecret(ctx context.Context, input *secretsmanager.GetSecretValueInput) (*secretsmanager.GetSecretValueOutput, error) {
+func (m *MockSecretsManagerClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, input)
+	ret := m.ctrl.Call(m, "GetSecret", ctx, id, version)
 	ret0, _ := ret[0].(*secretsmanager.GetSecretValueOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSecret indicates an expected call of GetSecret.
-func (mr *MockSecretsManagerClientMockRecorder) GetSecret(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) GetSecret(ctx, id, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).GetSecret), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).GetSecret), ctx, id, version)
 }
 
 // ListSecrets mocks base method.
-func (m *MockSecretsManagerClient) ListSecrets(ctx context.Context, criteria *secretsmanager.ListSecretsInput) (*secretsmanager.ListSecretsOutput, error) {
+func (m *MockSecretsManagerClient) ListSecrets(ctx context.Context) (*secretsmanager.ListSecretsOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListSecrets", ctx, criteria)
+	ret := m.ctrl.Call(m, "ListSecrets", ctx)
 	ret0, _ := ret[0].(*secretsmanager.ListSecretsOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListSecrets indicates an expected call of ListSecrets.
-func (mr *MockSecretsManagerClientMockRecorder) ListSecrets(ctx, criteria interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) ListSecrets(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockSecretsManagerClient)(nil).ListSecrets), ctx, criteria)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockSecretsManagerClient)(nil).ListSecrets), ctx)
 }
 
 // PutSecretValue mocks base method.
-func (m *MockSecretsManagerClient) PutSecretValue(ctx context.Context, input *secretsmanager.PutSecretValueInput) (*secretsmanager.PutSecretValueOutput, error) {
+func (m *MockSecretsManagerClient) PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutSecretValue", ctx, input)
+	ret := m.ctrl.Call(m, "PutSecretValue", ctx, id, value)
 	ret0, _ := ret[0].(*secretsmanager.PutSecretValueOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PutSecretValue indicates an expected call of PutSecretValue.
-func (mr *MockSecretsManagerClientMockRecorder) PutSecretValue(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) PutSecretValue(ctx, id, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutSecretValue", reflect.TypeOf((*MockSecretsManagerClient)(nil).PutSecretValue), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutSecretValue", reflect.TypeOf((*MockSecretsManagerClient)(nil).PutSecretValue), ctx, id, value)
 }
 
 // RestoreSecret mocks base method.
-func (m *MockSecretsManagerClient) RestoreSecret(ctx context.Context, input *secretsmanager.RestoreSecretInput) (*secretsmanager.RestoreSecretOutput, error) {
+func (m *MockSecretsManagerClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RestoreSecret", ctx, input)
+	ret := m.ctrl.Call(m, "RestoreSecret", ctx, id)
 	ret0, _ := ret[0].(*secretsmanager.RestoreSecretOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RestoreSecret indicates an expected call of RestoreSecret.
-func (mr *MockSecretsManagerClientMockRecorder) RestoreSecret(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) RestoreSecret(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).RestoreSecret), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).RestoreSecret), ctx, id)
 }
 
 // TagSecretResource mocks base method.
-func (m *MockSecretsManagerClient) TagSecretResource(ctx context.Context, input *secretsmanager.TagResourceInput) (*secretsmanager.TagResourceOutput, error) {
+func (m *MockSecretsManagerClient) TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TagSecretResource", ctx, input)
+	ret := m.ctrl.Call(m, "TagSecretResource", ctx, id, tags)
 	ret0, _ := ret[0].(*secretsmanager.TagResourceOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TagSecretResource indicates an expected call of TagSecretResource.
-func (mr *MockSecretsManagerClientMockRecorder) TagSecretResource(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) TagSecretResource(ctx, id, tags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TagSecretResource", reflect.TypeOf((*MockSecretsManagerClient)(nil).TagSecretResource), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TagSecretResource", reflect.TypeOf((*MockSecretsManagerClient)(nil).TagSecretResource), ctx, id, tags)
 }
 
 // UpdateSecret mocks base method.
-func (m *MockSecretsManagerClient) UpdateSecret(ctx context.Context, input *secretsmanager.UpdateSecretInput) (*secretsmanager.UpdateSecretOutput, error) {
+func (m *MockSecretsManagerClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateSecret", ctx, input)
+	ret := m.ctrl.Call(m, "UpdateSecret", ctx, id, value, keyID, desc)
 	ret0, _ := ret[0].(*secretsmanager.UpdateSecretOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateSecret indicates an expected call of UpdateSecret.
-func (mr *MockSecretsManagerClientMockRecorder) UpdateSecret(ctx, input interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) UpdateSecret(ctx, id, value, keyID, desc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).UpdateSecret), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).UpdateSecret), ctx, id, value, keyID, desc)
 }

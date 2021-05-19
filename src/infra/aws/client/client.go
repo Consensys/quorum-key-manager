@@ -33,36 +33,81 @@ func NewClientWithEndpoint(cfg *Config) (*AwsVaultClient, error) {
 
 }
 
-func (c *AwsVaultClient) GetSecret(ctx context.Context, input *secretsmanager.GetSecretValueInput) (*secretsmanager.GetSecretValueOutput, error) {
-	return c.client.GetSecretValue(input)
+func (c *AwsVaultClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
+	getSecretInput := &secretsmanager.GetSecretValueInput{
+		SecretId:  &id,
+		VersionId: &version,
+	}
+
+	if len(version) == 0 {
+		//Get with secret-id only
+		//Here adding version would cause a not found error
+		getSecretInput = &secretsmanager.GetSecretValueInput{
+			SecretId: &id,
+		}
+	}
+	return c.client.GetSecretValue(getSecretInput)
 }
-func (c *AwsVaultClient) CreateSecret(ctx context.Context, input *secretsmanager.CreateSecretInput) (*secretsmanager.CreateSecretOutput, error) {
-	return c.client.CreateSecret(input)
+func (c *AwsVaultClient) CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
+	return c.client.CreateSecret(&secretsmanager.CreateSecretInput{
+		Name:         &id,
+		SecretString: &value,
+	})
 }
 
-func (c *AwsVaultClient) PutSecretValue(ctx context.Context, input *secretsmanager.PutSecretValueInput) (*secretsmanager.PutSecretValueOutput, error) {
-	return c.client.PutSecretValue(input)
+func (c *AwsVaultClient) PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
+	return c.client.PutSecretValue(&secretsmanager.PutSecretValueInput{
+		SecretId:     &id,
+		SecretString: &value,
+	})
 }
 
-func (c *AwsVaultClient) TagSecretResource(ctx context.Context, input *secretsmanager.TagResourceInput) (*secretsmanager.TagResourceOutput, error) {
-	return c.client.TagResource(input)
+func (c *AwsVaultClient) TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
+
+	var inputTags []*secretsmanager.Tag
+
+	for key, value := range tags {
+		k, v := key, value
+		var inTag = secretsmanager.Tag{
+			Key:   &k,
+			Value: &v,
+		}
+		inputTags = append(inputTags, &inTag)
+	}
+	return c.client.TagResource(&secretsmanager.TagResourceInput{
+		SecretId: &id,
+		Tags:     inputTags,
+	})
 }
 
-func (c *AwsVaultClient) DescribeSecret(ctx context.Context, input *secretsmanager.DescribeSecretInput) (*secretsmanager.DescribeSecretOutput, error) {
-	return c.client.DescribeSecret(input)
+func (c *AwsVaultClient) DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error) {
+	return c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
+		SecretId: &id,
+	})
 }
 
-func (c *AwsVaultClient) ListSecrets(ctx context.Context, criteria *secretsmanager.ListSecretsInput) (*secretsmanager.ListSecretsOutput, error) {
-	return c.client.ListSecrets(criteria)
+func (c *AwsVaultClient) ListSecrets(ctx context.Context) (*secretsmanager.ListSecretsOutput, error) {
+	return c.client.ListSecrets(&secretsmanager.ListSecretsInput{})
 
 }
-func (c *AwsVaultClient) UpdateSecret(ctx context.Context, input *secretsmanager.UpdateSecretInput) (*secretsmanager.UpdateSecretOutput, error) {
-	return c.client.UpdateSecret(input)
+func (c *AwsVaultClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
+	return c.client.UpdateSecret(&secretsmanager.UpdateSecretInput{
+		SecretId:     &id,
+		SecretString: &value,
+		KmsKeyId:     &keyID,
+		Description:  &desc,
+	})
 }
 
-func (c *AwsVaultClient) RestoreSecret(ctx context.Context, input *secretsmanager.RestoreSecretInput) (*secretsmanager.RestoreSecretOutput, error) {
-	return c.client.RestoreSecret(input)
+func (c *AwsVaultClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
+	return c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
+		SecretId: &id,
+	})
 }
-func (c *AwsVaultClient) DeleteSecret(ctx context.Context, input *secretsmanager.DeleteSecretInput) (*secretsmanager.DeleteSecretOutput, error) {
-	return c.client.DeleteSecret(input)
+func (c *AwsVaultClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
+
+	return c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
+		SecretId:                   &id,
+		ForceDeleteWithoutRecovery: &force,
+	})
 }
