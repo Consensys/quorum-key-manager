@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"testing"
 
@@ -55,11 +54,11 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		VersionId: &version,
 	}
 
-	var fakeSecretsTags []*secretsmanager.Tag
+	fakeSecretsTags := []*secretsmanager.Tag{}
 
 	for key, value := range attributes.Tags {
 		k, v := key, value
-		var in = secretsmanager.Tag{
+		var in secretsmanager.Tag = secretsmanager.Tag{
 			Key:   &k,
 			Value: &v,
 		}
@@ -101,19 +100,6 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-	})
-
-	s.T().Run("should NOT fail with describe error", func(t *testing.T) {
-		s.mockVault.EXPECT().CreateSecret(gomock.Any(), createInput).Return(createOutput, nil)
-		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), tagInput).Return(&secretsmanager.TagResourceOutput{}, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, fmt.Errorf("any error"))
-
-		secret, err := s.secretStore.Set(ctx, id, value, attributes)
-
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
-
-		assert.ObjectsAreEqual(attributes.Tags, secret.Tags)
 	})
 
 	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
@@ -191,24 +177,6 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, nil)
 		retValue, err := s.secretStore.Get(ctx, id, "")
 		assert.NoError(t, err)
-		assert.Equal(t, retValue.Value, expectedSecret.Value)
-		assert.Equal(t, retValue.ID, expectedSecret.ID)
-	})
-
-	s.T().Run("should fail with get error", func(t *testing.T) {
-		expectedErr := errors.NotFoundError("secret not found")
-		s.mockVault.EXPECT().GetSecret(gomock.Any(), getSecretInput).Return(getSecretOutput, fmt.Errorf("any error"))
-
-		retValue, err := s.secretStore.Get(ctx, id, "")
-		assert.Nil(t, retValue)
-		assert.Equal(t, err, expectedErr)
-	})
-
-	s.T().Run("should NOT fail with describe error", func(t *testing.T) {
-		s.mockVault.EXPECT().GetSecret(gomock.Any(), getSecretInput).Return(getSecretOutput, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), descSecretInput).Return(descSecretOutput, fmt.Errorf("any error"))
-		retValue, err := s.secretStore.Get(ctx, id, "")
-		assert.Nil(t, err)
 		assert.Equal(t, retValue.Value, expectedSecret.Value)
 		assert.Equal(t, retValue.ID, expectedSecret.ID)
 	})
