@@ -8,6 +8,7 @@ import (
 )
 
 const StoreIDHeader = "X-Store-Id"
+const StoreContextID = "storeID"
 
 type StoresHandler struct {
 	backend core.Backend
@@ -30,5 +31,5 @@ func (c *StoresHandler) testRoute(rw http.ResponseWriter, _ *http.Request) {
 }
 
 func getStoreName(request *http.Request) string {
-	return request.Header.Get(StoreIDHeader)
+	return request.Context().Value(StoreContextID).(string)
 }
