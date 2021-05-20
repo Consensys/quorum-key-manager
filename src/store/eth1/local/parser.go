@@ -1,19 +1,16 @@
 package local
 
 import (
-	"crypto/ecdsa"
-	"encoding/base64"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 )
 
 func parseKey(key *entities.Key) (*entities.ETH1Account, error) {
-	pubKey, err := parsePubKey(key.PublicKey)
+	pubKey, err := crypto.UnmarshalPubkey(key.PublicKey)
 	if err != nil {
-		return nil, err
+		return nil, errors.EncodingError("failed to unmarshal public key")
 	}
 
 	return &entities.ETH1Account{
@@ -21,34 +18,22 @@ func parseKey(key *entities.Key) (*entities.ETH1Account, error) {
 		Address:             crypto.PubkeyToAddress(*pubKey).Hex(),
 		Metadata:            key.Metadata,
 		Tags:                key.Tags,
-		PublicKey:           hexutil.Encode(crypto.FromECDSAPub(pubKey)),
-		CompressedPublicKey: hexutil.Encode(crypto.CompressPubkey(pubKey)),
+		PublicKey:           crypto.FromECDSAPub(pubKey),
+		CompressedPublicKey: crypto.CompressPubkey(pubKey),
 	}, nil
 }
 
-func parseRecID(pubKeyS string) (string, error) {
-	pubKey, err := parsePubKey(pubKeyS)
-	if err != nil {
-		return "", err
-	}
-
-	if pubKey.Y.Mod(pubKey.Y, big.NewInt(2)) == big.NewInt(0) {
-		return "00", nil
-	}
-
-	return "01", nil
-}
-
-func parsePubKey(pubKeyS string) (*ecdsa.PublicKey, error) {
-	pubKeyB, err := base64.URLEncoding.DecodeString(pubKeyS)
-	if err != nil {
-		return nil, errors.EncodingError("failed to decode public key")
-	}
-
+func parseRecID(pubKeyB []byte) (*byte, error) {
 	pubKey, err := crypto.UnmarshalPubkey(pubKeyB)
 	if err != nil {
 		return nil, errors.EncodingError("failed to unmarshal public key")
 	}
 
-	return pubKey, nil
+	if pubKey.Y.Mod(pubKey.Y, big.NewInt(2)) == big.NewInt(0) {
+		b := byte(0)
+		return &b, nil
+	}
+
+	b := byte(1)
+	return &b, nil
 }

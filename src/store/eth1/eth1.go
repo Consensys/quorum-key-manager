@@ -3,12 +3,13 @@ package eth1
 import (
 	"context"
 	"github.com/ethereum/go-ethereum/signer/core"
+	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-//go:generate mockgen -source=eth1.go -destination=mocks/eth1.go -package=mocks
+//go:generate mockgen -source=eth1.go -destination=mock/eth1.go -package=mock
 
 type Store interface {
 	// Info returns store information
@@ -18,7 +19,7 @@ type Store interface {
 	Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Import an externally created key and store account
-	Import(ctx context.Context, id, privKey string, attr *entities.Attributes) (*entities.ETH1Account, error)
+	Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Get account
 	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
@@ -48,32 +49,32 @@ type Store interface {
 	Destroy(ctx context.Context, addr string) error
 
 	// Sign from a digest using the specified account
-	Sign(ctx context.Context, addr, data string) (string, error)
+	Sign(ctx context.Context, addr string, data []byte) ([]byte, error)
 
 	// Sign EIP-712 formatted data using the specified account
-	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) (string, error)
+	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
 
 	// SignTransaction transaction
-	SignTransaction(ctx context.Context, addr, chainID string, tx *ethereum.TxData) (string, error)
+	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.TxData) ([]byte, error)
 
 	// SignEEA transaction
-	SignEEA(ctx context.Context, addr, chainID string, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) (string, error)
+	SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) ([]byte, error)
 
 	// SignPrivate transaction
-	SignPrivate(ctx context.Context, addr string, tx *ethereum.TxData) (string, error)
+	SignPrivate(ctx context.Context, addr string, tx *ethereum.TxData) ([]byte, error)
 
 	// ECRevocer returns the address from a signature and data
-	ECRevocer(ctx context.Context, data, sig string) (string, error)
+	ECRevocer(ctx context.Context, data, sig []byte) (string, error)
 
 	// Verify verifies that a signature belongs to a given address
-	Verify(ctx context.Context, addr, sig, payload string) error
+	Verify(ctx context.Context, addr string, sig, payload []byte) error
 
 	// Verify verifies that a typed data signature belongs to a given address
-	VerifyTypedData(ctx context.Context, addr, sig string, typedData *core.TypedData) error
+	VerifyTypedData(ctx context.Context, addr string, sig []byte, typedData *core.TypedData) error
 
 	// Encrypt any arbitrary data using a specified account
-	Encrypt(ctx context.Context, addr, data string) (string, error)
+	Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error)
 
 	// Decrypt a single block of encrypted data.
-	Decrypt(ctx context.Context, addr, data string) (string, error)
+	Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error)
 }

@@ -4,7 +4,7 @@ type ETH1Account struct {
 	ID                  string
 	Address             string
 	Metadata            *Metadata
-	PublicKey           string
-	CompressedPublicKey string
+	PublicKey           []byte
+	CompressedPublicKey []byte
 	Tags                map[string]string
 }
