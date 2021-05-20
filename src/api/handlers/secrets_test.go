@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -59,7 +60,7 @@ func (s *secretsHandlerTestSuite) TestSet() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, secretStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
 
 		secret := testutils2.FakeSecret()
 
@@ -82,7 +83,7 @@ func (s *secretsHandlerTestSuite) TestSet() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest.Header.Set(StoreIDHeader, secretStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
 
 		s.secretStore.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
 
@@ -97,7 +98,7 @@ func (s *secretsHandlerTestSuite) TestGet() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s?version=%s", secretID, version), nil)
-		httpRequest.Header.Set(StoreIDHeader, secretStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
 
 		secret := testutils2.FakeSecret()
 
@@ -114,7 +115,7 @@ func (s *secretsHandlerTestSuite) TestGet() {
 	s.T().Run("should execute request successfully without version", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", secretID), nil)
-		httpRequest.Header.Set(StoreIDHeader, secretStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
 
 		secret := testutils2.FakeSecret()
 
@@ -132,7 +133,7 @@ func (s *secretsHandlerTestSuite) TestGet() {
 	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", secretID), nil)
-		httpRequest.Header.Set(StoreIDHeader, secretStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
 
 		s.secretStore.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
@@ -145,7 +146,7 @@ func (s *secretsHandlerTestSuite) TestList() {
 	s.T().Run("should execute request successfully", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-		httpRequest.Header.Set(StoreIDHeader, secretStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
 
 		ids := []string{"secret1", "secret2"}
 
@@ -162,7 +163,7 @@ func (s *secretsHandlerTestSuite) TestList() {
 	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-		httpRequest.Header.Set(StoreIDHeader, secretStoreName)
+		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
 
 		s.secretStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
 

@@ -3,6 +3,7 @@ package manifest
 import (
 	"encoding/json"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	json2 "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 )
 
@@ -29,7 +30,7 @@ type Manifest struct {
 func (mnfst *Manifest) UnmarshalSpecs(specs interface{}) error {
 	bdata, err := json.Marshal(json2.RecursiveToJSON(mnfst.Specs))
 	if err != nil {
-		return err
+		return errors.InvalidFormatError(err.Error())
 	}
 
 	return json.Unmarshal(bdata, specs)

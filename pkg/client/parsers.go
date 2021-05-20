@@ -16,11 +16,18 @@ func parseResponse(response *http.Response, resp interface{}) error {
 
 		return nil
 	}
-
+	
 	// Read body
 	respMsg, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return err
+	}
+
+	if response.StatusCode == http.StatusNotFound {
+		return &ResponseError{
+			StatusCode: response.StatusCode,
+			Message:    string(respMsg),
+		}
 	}
 
 	errResp := &ErrorResponse{}

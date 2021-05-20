@@ -76,7 +76,7 @@ func LoggedHandler(h Handler) Handler {
 	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
 		log.FromContext(msg.Context()).
 			WithField("version", msg.Version).
-			WithField("id", fmt.Sprintf("%s", msg.ID)).
+			WithField("id", fmt.Sprintf("%v", msg.ID)).
 			WithField("method", msg.Method).
 			Info("serve JSON-RPC request")
 		h.ServeRPC(rw, msg)

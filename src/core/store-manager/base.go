@@ -173,53 +173,65 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
 
-	logger.Info("loading store manifest")
+	logger.Debug("loading store manifest")
+	errMsg := "error creating new store store"
 
 	switch mnf.Kind {
 	case types.HashicorpSecrets:
 		spec := &hashicorp.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			return err
+			logger.WithError(err).Error(errMsg)
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := hashicorp.NewSecretStore(spec, logger)
 		if err != nil {
+			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.HashicorpKeys:
 		spec := &hashicorp.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
+			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVSecrets:
 		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
+			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
+			logger.WithError(err).Error(errMsg)
 			return err
 		}
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	default:
-		return fmt.Errorf("invalid manifest kind %s", mnf.Kind)
+		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
+		logger.WithError(err).Error()
+		return err
 	}
 
+	logger.Info("store manifest loaded successfully")
 	return nil
 }
 
