@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,7 +16,7 @@ import (
 	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/mock"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	mockkeys "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/mocks"
+	mockkeys "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -137,10 +138,11 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 		key := testutils2.FakeKey()
 
+		privKey, _ := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
 		s.keyStore.EXPECT().Import(
 			gomock.Any(),
 			importKeyRequest.ID,
-			importKeyRequest.PrivateKey,
+			privKey,
 			&entities.Algorithm{
 				Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
 				EllipticCurve: entities.Curve(importKeyRequest.Curve),
@@ -208,13 +210,9 @@ func (s *keysHandlerTestSuite) TestSign() {
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/%s/sign", keyID), bytes.NewReader(requestBytes))
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		signature := "0xsignature"
-
-		s.keyStore.EXPECT().Sign(
-			gomock.Any(),
-			keyID,
-			signPayloadRequest.Data,
-		).Return(signature, nil)
+		signature := "signature"
+		data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
+		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, data).Return([]byte(signature), nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -244,7 +242,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/%s/sign", keyID), bytes.NewReader(requestBytes))
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.NotFoundError("error"))
+		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusNotFound, rw.Code)

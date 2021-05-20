@@ -22,18 +22,38 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*hashicorp.Secret, error) {
 	if data == nil {
-		return c.client.Logical().Read(path)
+		secret, err := c.client.Logical().Read(path)
+		if err != nil {
+			return nil, parseErrorResponse(err)
+		}
+
+		return secret, nil
 	}
 
-	return c.client.Logical().ReadWithData(path, data)
+	secret, err := c.client.Logical().ReadWithData(path, data)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return secret, nil
 }
 
 func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (*hashicorp.Secret, error) {
-	return c.client.Logical().Write(path, data)
+	secret, err := c.client.Logical().Write(path, data)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return secret, nil
 }
 
 func (c *HashicorpVaultClient) List(path string) (*hashicorp.Secret, error) {
-	return c.client.Logical().List(path)
+	secret, err := c.client.Logical().List(path)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return secret, nil
 }
 
 func (c *HashicorpVaultClient) SetToken(token string) {
@@ -43,7 +63,7 @@ func (c *HashicorpVaultClient) SetToken(token string) {
 func (c *HashicorpVaultClient) HealthCheck() error {
 	resp, err := c.client.Sys().Health()
 	if err != nil {
-		return err
+		return parseErrorResponse(err)
 	}
 
 	if !resp.Initialized {

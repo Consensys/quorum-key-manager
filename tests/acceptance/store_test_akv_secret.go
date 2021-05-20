@@ -2,9 +2,6 @@ package acceptancetests
 
 import (
 	"fmt"
-	"testing"
-	"time"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -13,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
 type akvSecretTestSuite struct {
@@ -176,34 +174,4 @@ func (s *akvSecretTestSuite) TestGet() {
 	_, err = s.store.Delete(ctx, id)
 	require.NoError(s.T(), err)
 	_ = s.store.Destroy(ctx, id)
-}
-
-func (s *akvSecretTestSuite) TestRefresh() {
-	ctx := s.env.ctx
-	id := fmt.Sprintf("my-secret-refresh-%d", common.RandInt(1000))
-
-	s.T().Run("should refresh secret with new expiration date", func(t *testing.T) {
-		value1 := "my-secret-value1"
-		value2 := "my-secret-value2"
-
-		_, err := s.store.Set(ctx, id, value1, &entities.Attributes{})
-		require.NoError(s.T(), err)
-		_, err = s.store.Set(ctx, id, value2, &entities.Attributes{})
-		require.NoError(s.T(), err)
-
-		err = s.store.Refresh(ctx, id, "", time.Now().Add(time.Hour*24))
-		require.NoError(t, err)
-
-		secret, err := s.store.Get(ctx, id, "")
-
-		require.NoError(t, err)
-		assert.NotEmpty(t, secret.Metadata.Version)
-
-		assert.True(t, secret.Metadata.ExpireAt.After(time.Now()))
-
-		_, err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
-	})
-
 }

@@ -6,9 +6,8 @@ import (
 )
 
 type Error struct {
-	Message   string
-	Code      uint64
-	Component string
+	Message string
+	Code    uint64
 }
 
 func (e *Error) GetCode() uint64 {
@@ -16,15 +15,15 @@ func (e *Error) GetCode() uint64 {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("%s %s", e.Component, e.Message)
+	return fmt.Sprintf("%s", e.Message)
 }
 
-func (m *Error) GetMessage() string {
-	return m.Message
+func (e *Error) GetMessage() string {
+	return e.Message
 }
 
 func Errorf(code uint64, format string, a ...interface{}) *Error {
-	return &Error{fmt.Sprintf(format, a...), code, ""}
+	return &Error{fmt.Sprintf(format, a...), code}
 }
 
 func FromError(err interface{}) *Error {

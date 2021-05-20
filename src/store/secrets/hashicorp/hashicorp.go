@@ -3,11 +3,8 @@ package hashicorp
 import (
 	"context"
 	"path"
-	"strconv"
-	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -16,12 +13,11 @@ import (
 )
 
 const (
-	dataLabel        = "data"
-	metadataLabel    = "metadata"
-	valueLabel       = "value"
-	deleteAfterLabel = "delete_version_after"
-	tagsLabel        = "tags"
-	versionLabel     = "version"
+	dataLabel     = "data"
+	metadataLabel = "metadata"
+	valueLabel    = "value"
+	tagsLabel     = "tags"
+	versionLabel  = "version"
 )
 
 // Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
@@ -49,7 +45,6 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 // Set a secret
 func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
-	errMsg := "failed to set secret"
 	data := map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
@@ -59,13 +54,13 @@ func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attribut
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		logger.WithError(err).Error("failed to set secret")
+		return nil, err
 	}
 
 	metadata, err := formatHashicorpSecretData(hashicorpSecret.Data)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to parse secret data")
 		return nil, err
 	}
 
@@ -76,16 +71,8 @@ func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attribut
 // Get a secret
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
-	errMsg := "failed to get secret"
 	var callData map[string][]string
 	if version != "" {
-		_, err := strconv.Atoi(version)
-		if err != nil {
-			err2 := errors.InvalidParameterError("version must be a number")
-			logger.WithError(err2).Error(errMsg)
-			return nil, err2
-		}
-
 		callData = map[string][]string{
 			versionLabel: {version},
 		}
@@ -93,8 +80,8 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		logger.WithError(err).Error("failed to get secret data")
+		return nil, err
 	} else if hashicorpSecretData == nil {
 		return nil, errors.NotFoundError("secret not found")
 	}
@@ -109,13 +96,13 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 	// We need to do a second call to get the metadata
 	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		logger.WithError(err).Error("failed to get secret metadata")
+		return nil, err
 	}
 
 	metadata, err := formatHashicorpSecretMetadata(hashicorpSecretMetadata, version)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to format secret metadata")
 		return nil, err
 	}
 
@@ -128,7 +115,7 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
 		s.logger.WithError(err).Error("failed to list secrets")
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	if res == nil {
@@ -141,27 +128,8 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 		keysStr[i] = key.(string)
 	}
 
-	s.logger.Debug("secrets were listed successfully")
+	s.logger.Debug("secrets listed successfully")
 	return keysStr, nil
-}
-
-// Refresh an existing secret by extending its TTL
-func (s *Store) Refresh(_ context.Context, id, _ string, expirationDate time.Time) error {
-	logger := s.logger.WithField("id", id)
-
-	data := make(map[string]interface{})
-	if !expirationDate.IsZero() {
-		data[deleteAfterLabel] = time.Until(expirationDate).String()
-	}
-
-	_, err := s.client.Write(s.pathMetadata(id), data)
-	if err != nil {
-		logger.WithError(err).Error("failed to refresh secret")
-		return hashicorpclient.ParseErrorResponse(err)
-	}
-
-	logger.Info("secret was refreshed successfully")
-	return nil
 }
 
 // Delete a secret

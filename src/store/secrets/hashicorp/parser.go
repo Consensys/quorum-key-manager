@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+
 	"github.com/hashicorp/vault/api"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -28,7 +30,7 @@ func formatHashicorpSecretData(jsonData map[string]interface{}) (*entities.Metad
 
 	metadata.CreatedAt, err = time.Parse(time.RFC3339, jsonData["created_time"].(string))
 	if err != nil {
-		return nil, err
+		return nil, errors.HashicorpVaultConnectionError("failed to parse hashicorp created time from data")
 	}
 
 	metadata.UpdatedAt = metadata.CreatedAt
@@ -51,7 +53,7 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 	if secretVersion["deletion_time"].(string) != "" {
 		deletionTime, err := time.Parse(time.RFC3339, secretVersion["deletion_time"].(string))
 		if err != nil {
-			return nil, err
+			return nil, errors.HashicorpVaultConnectionError("failed to parse deletion time from metadata")
 		}
 
 		metadata.DeletedAt = deletionTime
@@ -66,7 +68,7 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 	var err error
 	metadata.CreatedAt, err = time.Parse(time.RFC3339, secretVersion["created_time"].(string))
 	if err != nil {
-		return nil, err
+		return nil, errors.HashicorpVaultConnectionError("failed to parse created time from metadata")
 	}
 	metadata.UpdatedAt = metadata.CreatedAt
 
@@ -74,7 +76,7 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 	if expirationDurationStr != "0s" {
 		expirationDuration, der := time.ParseDuration(expirationDurationStr)
 		if der != nil {
-			return nil, der
+			return nil, errors.HashicorpVaultConnectionError("failed to parse expiration time from metadata")
 		}
 
 		metadata.ExpireAt = metadata.CreatedAt.Add(expirationDuration)

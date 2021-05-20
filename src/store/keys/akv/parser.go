@@ -61,18 +61,13 @@ func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	return kAttr
 }
 
-func webImportKey(privKey string, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
+func webImportKey(privKey []byte, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
 	var pKeyD, pKeyX, pKeyY string
 	switch alg.Type {
 	case entities.Ecdsa:
-		privKeyB, err := base64.RawURLEncoding.DecodeString(privKey)
+		pKey, err := crypto.ToECDSA(privKey)
 		if err != nil {
-			return nil, errors.InvalidParameterError("invalid base64 private key. %s", err.Error())
-		}
-
-		pKey, err := crypto.ToECDSA(privKeyB)
-		if err != nil {
-			return nil, errors.InvalidParameterError("failed to create public key. %s", err.Error())
+			return nil, errors.InvalidParameterError("invalid private key. %s", err.Error())
 		}
 
 		pKeyD = base64.RawURLEncoding.EncodeToString(pKey.D.Bytes())
@@ -116,16 +111,17 @@ func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyC
 	return algo
 }
 
-func pubKeyString(key *keyvault.JSONWebKey) string {
+func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 	switch {
 	case key.Kty == keyvault.EC && key.Crv == keyvault.P256K:
 		xBytes, _ := decodePubKeyBase64(*key.X)
 		yBytes, _ := decodePubKeyBase64(*key.Y)
 		pKey := ecdsa.PublicKey{X: new(big.Int).SetBytes(xBytes), Y: new(big.Int).SetBytes(yBytes)}
-		return base64.RawURLEncoding.EncodeToString(crypto.FromECDSAPub(&pKey))
+		return crypto.FromECDSAPub(&pKey)
 	default:
-		return ""
+		return nil
 	}
+
 }
 
 func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatureAlgorithm, error) {
@@ -148,7 +144,7 @@ func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatu
 
 func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 	key := &entities.Key{
-		PublicKey: pubKeyString(res.Key),
+		PublicKey: pubKeyBytes(res.Key),
 		Algo:      algoFromAKVKeyTypeCrv(res.Key.Kty, res.Key.Crv),
 		Metadata: &entities.Metadata{
 			Disabled:  !*res.Attributes.Enabled,
@@ -203,13 +199,4 @@ func decodePubKeyBase64(src string) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
-}
-
-func sha256Base64(value string) (string, error) {
-	bData, err := base64.RawURLEncoding.DecodeString(value)
-	if err != nil {
-		return "", errors.InvalidFormatError("cannot decode base64 value. %s", err.Error())
-	}
-
-	return base64.RawURLEncoding.EncodeToString(crypto.Keccak256(bData)), nil
 }

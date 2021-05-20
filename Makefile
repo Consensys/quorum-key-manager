@@ -69,7 +69,7 @@ coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
 dev: networks gobuild
-	@docker-compose -f ./docker-compose.yml up --build $(KEY_MANAGER_SERVICES)	
+	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)	
 
 up: deps go-quorum gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)

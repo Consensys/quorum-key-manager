@@ -2,11 +2,13 @@ package akv
 
 import (
 	"context"
+	"encoding/base64"
 	"time"
+
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
@@ -34,23 +36,22 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 
 func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
-	errMsg := "failed to create key"
 
 	kty, err := convertToAKVKeyType(alg)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to create request: key type")
 		return nil, err
 	}
 
 	crv, err := convertToAKVCurve(alg)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to create request: curve")
 		return nil, err
 	}
 
 	res, err := s.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to create key")
 		return nil, err
 	}
 
@@ -58,19 +59,18 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) Import(ctx context.Context, id, privKey string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
-	errMsg := "failed to import key"
 
 	iWebKey, err := webImportKey(privKey, alg)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to create request")
 		return nil, err
 	}
 
 	res, err := s.client.ImportKey(ctx, id, iWebKey, convertToAKVKeyAttr(attr), attr.Tags)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to import key")
 		return nil, err
 	}
 
@@ -120,21 +120,6 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 
 	logger.Info("key was updated successfully")
 	return parseKeyBundleRes(&res), nil
-}
-
-func (s *Store) Refresh(ctx context.Context, id string, expirationDate time.Time) error {
-	logger := s.logger.WithField("id", id)
-	expireAt := date.NewUnixTimeFromNanoseconds(expirationDate.UnixNano())
-	_, err := s.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
-		Expires: &expireAt,
-	}, nil, nil)
-	if err != nil {
-		logger.WithError(err).Error("failed to refresh key")
-		return err
-	}
-
-	logger.Info("key was refreshed successfully")
-	return nil
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
@@ -199,41 +184,42 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Sign(ctx context.Context, id, data string) (string, error) {
-	logger := s.logger.WithField("id", id).WithField("data", common.ShortString(data, 5))
-	errMsg := "failed to sign data"
-	b64Data, err := sha256Base64(data)
-	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return "", err
-	}
+func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
+	logger := s.logger.WithField("id", id)
 
 	kItem, err := s.Get(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return "", err
+		return nil, err
 	}
 
 	algo, err := convertToSignatureAlgo(kItem.Algo)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return "", err
+		logger.WithError(err).Error(err.Error())
+		return nil, err
 	}
 
-	signature, err := s.client.Sign(ctx, id, "", algo, b64Data)
+	b64Signature, err := s.client.Sign(ctx, id, "", algo, base64.RawURLEncoding.EncodeToString(crypto.Keccak256(data)))
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
-		return "", err
+		errMessage := "failed to sign payload"
+		logger.WithError(err).Error(errMessage)
+		return nil, err
+	}
+
+	signature, err := base64.RawURLEncoding.DecodeString(b64Signature)
+	if err != nil {
+		errMessage := "failed to decode signature"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.AKVConnectionError(errMessage)
 	}
 
 	logger.Debug("data was signed successfully")
 	return signature, nil
 }
 
-func (s *Store) Encrypt(ctx context.Context, id, data string) (string, error) {
-	return "", errors.ErrNotImplemented
+func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Decrypt(ctx context.Context, id, data string) (string, error) {
-	return "", errors.ErrNotImplemented
+func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+	return nil, errors.ErrNotImplemented
 }

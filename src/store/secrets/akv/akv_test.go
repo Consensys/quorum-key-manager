@@ -183,27 +183,6 @@ func (s *akvSecretStoreTestSuite) TestList() {
 	})
 }
 
-func (s *akvSecretStoreTestSuite) TestRefresh() {
-	ctx := context.Background()
-	id := "my-secret5"
-	version := "2"
-
-	expectedExpirationDate, _ := time.Parse(time.RFC3339, "2021-03-22T02:24:06.945319214Z")
-	s.T().Run("should refresh a secret with expiration date", func(t *testing.T) {
-		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, expectedExpirationDate).Return(keyvault.SecretBundle{}, nil)
-		err := s.secretStore.Refresh(ctx, id, version, expectedExpirationDate)
-		assert.NoError(t, err)
-	})
-
-	s.T().Run("should fail if UpdateSecret fails", func(t *testing.T) {
-		expectedErr := fmt.Errorf("error")
-		s.mockVault.EXPECT().UpdateSecret(gomock.Any(), id, version, expectedExpirationDate).Return(keyvault.SecretBundle{}, expectedErr)
-		err := s.secretStore.Refresh(ctx, id, version, expectedExpirationDate)
-
-		assert.Equal(t, expectedErr, err)
-	})
-}
-
 func (s *akvSecretStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 	id := "my-secret6"

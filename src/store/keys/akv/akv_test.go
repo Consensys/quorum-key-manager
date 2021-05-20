@@ -3,6 +3,7 @@ package akv
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"testing"
 	"time"
@@ -83,7 +84,7 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicKey, key.PublicKey)
+		assert.Equal(t, publicKey, hexutil.Encode(key.PublicKey))
 		assert.Equal(t, id, key.ID)
 		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
 		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
@@ -125,10 +126,11 @@ func (s *akvKeyStoreTestSuite) TestImport() {
 				return akvKey, nil
 			})
 
-		key, err := s.keyStore.Import(ctx, id, privKey, algorithm, attributes)
+		privKeyB, _ := hex.DecodeString(privKey)
+		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicKey, key.PublicKey)
+		assert.Equal(t, publicKey, hexutil.Encode(key.PublicKey))
 		assert.Equal(t, id, key.ID)
 		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
 		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
@@ -165,7 +167,7 @@ func (s *akvKeyStoreTestSuite) TestGet() {
 		key, err := s.keyStore.Get(ctx, id)
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicKey, key.PublicKey)
+		assert.Equal(t, publicKey, hexutil.Encode(key.PublicKey))
 		assert.Equal(t, id, key.ID)
 		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
 		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
@@ -197,7 +199,7 @@ func (s *akvKeyStoreTestSuite) TestList() {
 func (s *akvKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
 	version := "1234"
-	payload := "my data"
+	payload := []byte("my data")
 	attributes := testutils.FakeAttributes()
 	expectedSignature := "0x8b9679a75861e72fa6968dd5add3bf96e2747f0f124a2e728980f91e1958367e19c2486a40fdc65861824f247603bc18255fa497ca0b8b0a394aa7a6740fdc4601"
 	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
@@ -220,16 +222,15 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 
 	bSig, _ := hexutil.Decode(expectedSignature)
 	b64Sig := base64.RawURLEncoding.EncodeToString(bSig)
-	b64Payload := base64.RawURLEncoding.EncodeToString(crypto.Keccak256([]byte(payload)))
-	hexPayload := hexutil.Encode([]byte(payload))
+	b64Payload := base64.RawURLEncoding.EncodeToString(crypto.Keccak256(payload))
 
 	s.T().Run("should sign payload successfully", func(t *testing.T) {
 		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
 		s.mockVault.EXPECT().Sign(gomock.Any(), id, "", akv.ES256K, b64Payload).Return(b64Sig, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, hexPayload)
+		signature, err := s.keyStore.Sign(ctx, id, payload)
 
 		assert.NoError(t, err)
-		assert.Equal(t, signature, expectedSignature)
+		assert.Equal(t, hexutil.Encode(signature), expectedSignature)
 	})
 }
