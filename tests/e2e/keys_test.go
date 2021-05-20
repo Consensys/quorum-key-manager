@@ -4,6 +4,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -136,7 +136,7 @@ func (s *keysTestSuite) TestCreate() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(t, 404, httpError.StatusCode)
-		assert.Equal(t, " key store inexistentStoreName was not found", httpError.Message)
+		assert.Equal(t, "key store inexistentStoreName was not found", httpError.Message)
 	})
 
 	s.T().Run("should fail with bad request if curve is not supported", func(t *testing.T) {
@@ -345,11 +345,13 @@ func (s *keysTestSuite) TestList() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(t, 404, httpError.StatusCode)
-		assert.Equal(t, " secret store inexistentStoreName was not found", httpError.Message)
+		assert.Equal(t, "secret store inexistentStoreName was not found", httpError.Message)
 	})
 }
 
 func (s *keysTestSuite) TestSign() {
+	payload := base64.URLEncoding.EncodeToString([]byte("my data to sign"))
+
 	s.T().Run("should sign a new payload successfully: Secp256k1/ECDSA", func(t *testing.T) {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-ecdsa",
@@ -362,12 +364,12 @@ func (s *keysTestSuite) TestSign() {
 		require.NoError(t, err)
 
 		requestSign := &types.SignPayloadRequest{
-			Data: hexutil.Encode([]byte("my data to sign")),
+			Data: payload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(t, err)
 
-		assert.Equal(t, "UWzxLZM7kztXXJGhWlkK0LeuYObJH7EOnMjv48qs6GB5rj7iEghkh3FfQyVCheWDTIHfdzBOst3eDRt0BGpaTg==", signature)
+		assert.Equal(t, "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
 
 	})
 
@@ -382,12 +384,12 @@ func (s *keysTestSuite) TestSign() {
 		require.NoError(t, err)
 
 		requestSign := &types.SignPayloadRequest{
-			Data: hexutil.Encode([]byte("my data to sign")),
+			Data: payload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(t, err)
 
-		assert.Equal(t, "RypSRagTLbR6tlOXu-REakfQRqRufPRCT8FxpZXuXZMDgwa5qYd5FAl1pRlLmQ_-alt1Ba4dKojknaVyHvCDeQ==", signature)
+		assert.Equal(t, "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
 	})
 
 	s.T().Run("should fail if payload is not base64 string", func(t *testing.T) {
