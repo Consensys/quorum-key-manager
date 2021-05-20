@@ -9,7 +9,6 @@ import (
 
 type ctxKeyType string
 
-const StoreIDHeader = "X-Store-Id"
 const StoreContextID ctxKeyType = "storeID"
 
 type StoresHandler struct {

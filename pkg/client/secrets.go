@@ -26,9 +26,13 @@ func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types
 	return secret, nil
 }
 
-func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
+func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
 	secret := &types.SecretResponse{}
 	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), secretsPath, id)
+
+	if version != "" {
+		reqURL = fmt.Sprintf("%s?version=%s", reqURL, version)
+	}
 
 	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {

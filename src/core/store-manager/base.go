@@ -231,7 +231,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		return err
 	}
 
-	logger.Debug("Store manifest loaded successfully")
+	logger.Info("Store manifest loaded successfully")
 	return nil
 }
 
