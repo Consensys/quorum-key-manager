@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"net/http"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -92,59 +91,14 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.True(t, key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with NotFound error if write fails with 404", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusNotFound,
-		})
+	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
 		assert.Nil(t, key)
-		assert.True(t, errors.IsNotFoundError(err))
-	})
-
-	s.T().Run("should fail with InvalidFormat error if write fails with 400", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusBadRequest,
-		})
-
-		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsInvalidFormatError(err))
-	})
-
-	s.T().Run("should fail with InvalidParameter error if write fails with 422", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusUnprocessableEntity,
-		})
-
-		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsInvalidParameterError(err))
-	})
-
-	s.T().Run("should fail with AlreadyExists error if write fails with 409", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusConflict,
-		})
-
-		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsAlreadyExistsError(err))
-	})
-
-	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
-
-		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -195,59 +149,14 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.True(t, key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with NotFound error if write fails with 404", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusNotFound,
-		})
+	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
 		assert.Nil(t, key)
-		assert.True(t, errors.IsNotFoundError(err))
-	})
-
-	s.T().Run("should fail with InvalidFormat error if write fails with 400", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusBadRequest,
-		})
-
-		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsInvalidFormatError(err))
-	})
-
-	s.T().Run("should fail with InvalidParameter error if write fails with 422", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusUnprocessableEntity,
-		})
-
-		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsInvalidParameterError(err))
-	})
-
-	s.T().Run("should fail with AlreadyExists error if write fails with 409", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusConflict,
-		})
-
-		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsAlreadyExistsError(err))
-	})
-
-	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
-
-		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -288,26 +197,14 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		assert.True(t, key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with NotFound error if read fails with 404", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusNotFound,
-		})
+	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Get(ctx, id)
 
 		assert.Nil(t, key)
-		assert.True(t, errors.IsNotFoundError(err))
-	})
-
-	s.T().Run("should fail with HashicorpVaultConnection error if read fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
-
-		key, err := s.keyStore.Get(ctx, id)
-
-		assert.Nil(t, key)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -331,15 +228,14 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 		assert.Equal(t, []string{"my-key1", "my-key2"}, ids)
 	})
 
-	s.T().Run("should fail with HashicorpVaultConnection error if list fails", func(t *testing.T) {
-		s.mockVault.EXPECT().List(expectedPath).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
+	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
 		key, err := s.keyStore.List(ctx)
 
 		assert.Nil(t, key)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -365,68 +261,15 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 		assert.Equal(t, expectedSignature, base64.URLEncoding.EncodeToString(signature))
 	})
 
-	s.T().Run("should fail with NotFound error if write fails with 404", func(t *testing.T) {
+	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
 			dataLabel: expectedData,
-		}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusNotFound,
-		})
+		}).Return(nil, expectedErr)
 
 		signature, err := s.keyStore.Sign(ctx, id, expectedData)
 
 		assert.Empty(t, signature)
-		assert.True(t, errors.IsNotFoundError(err))
-	})
-
-	s.T().Run("should fail with InvalidFormat error if write fails with 400", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			dataLabel: expectedData,
-		}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusBadRequest,
-		})
-
-		signature, err := s.keyStore.Sign(ctx, id, expectedData)
-
-		assert.Empty(t, signature)
-		assert.True(t, errors.IsInvalidFormatError(err))
-	})
-
-	s.T().Run("should fail with InvalidParameter error if write fails with 422", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			dataLabel: expectedData,
-		}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusUnprocessableEntity,
-		})
-
-		signature, err := s.keyStore.Sign(ctx, id, expectedData)
-
-		assert.Empty(t, signature)
-		assert.True(t, errors.IsInvalidParameterError(err))
-	})
-
-	s.T().Run("should fail with AlreadyExists error if write fails with 409", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			dataLabel: expectedData,
-		}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusConflict,
-		})
-
-		signature, err := s.keyStore.Sign(ctx, id, expectedData)
-
-		assert.Empty(t, signature)
-		assert.True(t, errors.IsAlreadyExistsError(err))
-	})
-
-	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			dataLabel: expectedData,
-		}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
-
-		signature, err := s.keyStore.Sign(ctx, id, expectedData)
-
-		assert.Empty(t, signature)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 }

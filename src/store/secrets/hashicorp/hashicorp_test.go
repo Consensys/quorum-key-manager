@@ -3,7 +3,7 @@ package hashicorp
 import (
 	"context"
 	"encoding/json"
-	"net/http"
+	"fmt"
 	"testing"
 	"time"
 
@@ -81,39 +81,15 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 	})
 
 	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusBadRequest,
-		})
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
 		assert.Nil(t, secret)
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusUnprocessableEntity,
-		})
-
-		secret, err := s.secretStore.Set(ctx, id, value, attributes)
-
-		assert.Nil(t, secret)
-		assert.True(t, errors.IsInvalidParameterError(err))
-	})
-
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
-
-		secret, err := s.secretStore.Set(ctx, id, value, attributes)
-
-		assert.Nil(t, secret)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
-	})
-
-	// TODO: Implement specific error types and check that the function return the right error type
 	s.T().Run("should fail with error if it fails to extract metadata", func(t *testing.T) {
 		hashSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
@@ -127,7 +103,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
 		assert.Nil(t, secret)
-		assert.Error(t, err)
+		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
 	})
 }
 
@@ -226,28 +202,25 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		assert.Equal(t, secret.Metadata.DestroyedAt, secret.Metadata.DeletedAt)
 	})
 
-	s.T().Run("should fail with NotFoundError if read fails with 404", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusNotFound,
-		})
-		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
+	s.T().Run("should fail with same error if read data fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.Nil(t, secret)
-		assert.True(t, errors.IsNotFoundError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 
-	s.T().Run("should fail with HashicorpVaultError error if read fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
-		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
+	s.T().Run("should fail with same error if read metadata fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(hashicorpSecretData, nil)
+		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.Nil(t, secret)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Equal(t, expectedErr, err)
 	})
 }
 
@@ -281,14 +254,13 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 		assert.Empty(t, ids)
 	})
 
-	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().List(expectedPath).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
+	s.T().Run("should fail with same error if read data fails", func(t *testing.T) {
+		expectedErr := fmt.Errorf("my error")
+		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
 		ids, err := s.secretStore.List(ctx)
 
-		assert.Nil(t, ids)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Empty(t, ids)
+		assert.Equal(t, expectedErr, err)
 	})
 }

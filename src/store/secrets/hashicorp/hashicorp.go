@@ -45,7 +45,6 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 // Set a secret
 func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
-	errMsg := "failed to set secret"
 	data := map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
@@ -55,13 +54,13 @@ func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attribut
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to set secret")
 		return nil, err
 	}
 
 	metadata, err := formatHashicorpSecretData(hashicorpSecret.Data)
 	if err != nil {
-		logger.WithError(err).Error(errMsg)
+		logger.WithError(err).Error("failed to parse secret data")
 		return nil, err
 	}
 
