@@ -14,17 +14,12 @@ func (i *Interceptor) ethSign(ctx context.Context, from ethcommon.Address, data 
 		return nil, err
 	}
 
-	sig, err := store.Sign(ctx, from.Hex(), data.String())
+	sig, err := store.Sign(ctx, from.Hex(), data)
 	if err != nil {
 		return nil, err
 	}
 
-	sigB, err := hexutil.Decode(sig)
-	if err != nil {
-		return nil, err
-	}
-
-	return (*hexutil.Bytes)(&sigB), nil
+	return (*hexutil.Bytes)(&sig), nil
 }
 
 func (i *Interceptor) EthSign() jsonrpc.Handler {

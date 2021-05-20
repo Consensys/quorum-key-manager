@@ -44,13 +44,13 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Sign
-	sig, err := store.SignEEA(ctx, msg.From.Hex(), chainID.String(), msg.TxData(), &msg.PrivateArgs)
+	sig, err := store.SignEEA(ctx, msg.From.Hex(), chainID, msg.TxData(), &msg.PrivateArgs)
 	if err != nil {
 		return nil, err
 	}
 
 	// Submit transaction to downstream node
-	hash, err := sess.EthCaller().EEA().SendRawTransaction(ctx, []byte(sig))
+	hash, err := sess.EthCaller().EEA().SendRawTransaction(ctx, sig)
 	if err != nil {
 		return nil, err
 	}

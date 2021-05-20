@@ -256,14 +256,17 @@ func (s *akvKeyTestSuite) TestSign() {
 	})
 }
 
-func verifySignature(signature, msg, privKey []byte) (bool, error) {
-	privKeyS, err := crypto.ToECDSA(privKey)
+func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
+	privKey, err := crypto.ToECDSA(privKeyB)
 	if err != nil {
 		return false, err
 	}
 
+	if len(signature) == 65 {
+		crypto.VerifySignature(crypto.FromECDSAPub(&privKey.PublicKey), crypto.Keccak256(msg), signature)
+	}
+
 	r := new(big.Int).SetBytes(signature[0:32])
 	s := new(big.Int).SetBytes(signature[32:64])
-
-	return ecdsa.Verify(&privKeyS.PublicKey, crypto.Keccak256(msg), r, s), nil
+	return ecdsa.Verify(&privKey.PublicKey, crypto.Keccak256(msg), r, s), nil
 }

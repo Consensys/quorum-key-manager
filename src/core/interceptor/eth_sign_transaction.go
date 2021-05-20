@@ -37,22 +37,17 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Sign
-	var sig string
+	var sig []byte
 	if msg.IsPrivate() {
 		sig, err = store.SignPrivate(ctx, msg.From.Hex(), msg.TxData())
 	} else {
-		sig, err = store.SignTransaction(ctx, msg.From.Hex(), chainID.String(), msg.TxData())
+		sig, err = store.SignTransaction(ctx, msg.From.Hex(), chainID, msg.TxData())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	sigB, err := hexutil.Decode(sig)
-	if err != nil {
-		return nil, err
-	}
-
-	return (*hexutil.Bytes)(&sigB), nil
+	return (*hexutil.Bytes)(&sig), nil
 }
 
 func (i *Interceptor) EthSignTransaction() jsonrpc.Handler {
