@@ -143,7 +143,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_, _ = rw.Write(signature)
+	_, _ = rw.Write([]byte(base64.URLEncoding.EncodeToString(signature)))
 }
 
 func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
