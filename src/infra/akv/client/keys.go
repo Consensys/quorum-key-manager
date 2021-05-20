@@ -20,7 +20,7 @@ func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.
 		KeyAttributes: attr,
 	})
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -32,7 +32,7 @@ func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.J
 		KeyAttributes: attr,
 	})
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -40,7 +40,7 @@ func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.J
 func (c *AKVClient) GetKey(ctx context.Context, keyName, version string) (keyvault.KeyBundle, error) {
 	result, err := c.client.GetKey(ctx, c.cfg.Endpoint, keyName, version)
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -52,7 +52,7 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 	}
 	res, err := c.client.GetKeys(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
-		return nil, ParseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
 
 	if len(res.Values()) == 0 {
@@ -70,7 +70,7 @@ func (c *AKVClient) UpdateKey(ctx context.Context, keyName, version string, attr
 		KeyOps:        &ops,
 	})
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -78,7 +78,7 @@ func (c *AKVClient) UpdateKey(ctx context.Context, keyName, version string, attr
 func (c *AKVClient) DeleteKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
 	result, err := c.client.DeleteKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -86,7 +86,7 @@ func (c *AKVClient) DeleteKey(ctx context.Context, keyName string) (keyvault.Del
 func (c *AKVClient) GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
 	result, err := c.client.GetDeletedKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -98,7 +98,7 @@ func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]key
 	}
 	res, err := c.client.GetDeletedKeys(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
-		return nil, ParseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
 	if len(res.Values()) == 0 {
 		return []keyvault.DeletedKeyItem{}, nil
@@ -110,7 +110,7 @@ func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]key
 func (c *AKVClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, error) {
 	res, err := c.client.PurgeDeletedKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return false, ParseErrorResponse(err)
+		return false, parseErrorResponse(err)
 	}
 	return res.StatusCode == http.StatusNoContent, nil
 }
@@ -118,7 +118,7 @@ func (c *AKVClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, 
 func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error) {
 	result, err := c.client.RecoverDeletedKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -129,7 +129,7 @@ func (c *AKVClient) Sign(ctx context.Context, keyName, version string, alg keyva
 		Algorithm: alg,
 	})
 	if err != nil {
-		return "", ParseErrorResponse(err)
+		return "", parseErrorResponse(err)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -144,7 +144,7 @@ func (c *AKVClient) Encrypt(ctx context.Context, keyName, version string, alg ke
 		Algorithm: alg,
 	})
 	if err != nil {
-		return "", ParseErrorResponse(err)
+		return "", parseErrorResponse(err)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -159,7 +159,7 @@ func (c *AKVClient) Decrypt(ctx context.Context, keyName, version string, alg ke
 		Algorithm: alg,
 	})
 	if err != nil {
-		return "", ParseErrorResponse(err)
+		return "", parseErrorResponse(err)
 	}
 
 	if res.StatusCode != http.StatusOK {

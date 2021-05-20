@@ -2,12 +2,11 @@ package secrets
 
 import (
 	"context"
-	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-//go:generate mockgen -source=secrets.go -destination=mocks/secrets.go -package=mocks
+//go:generate mockgen -source=secrets.go -destination=mock/secrets.go -package=mock
 
 type Store interface {
 	// Info returns store information
@@ -21,9 +20,6 @@ type Store interface {
 
 	// List secrets
 	List(ctx context.Context) ([]string, error)
-
-	// Update secret
-	Refresh(ctx context.Context, id string, version string, expirationDate time.Time) error
 
 	// Delete secret not permanently, by using Undelete the secret can be restored
 	Delete(ctx context.Context, id string) (*entities.Secret, error)

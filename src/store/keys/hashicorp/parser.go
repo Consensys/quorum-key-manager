@@ -1,17 +1,25 @@
 package hashicorp
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"time"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/hashicorp/vault/api"
 )
 
-func parseResponse(hashicorpSecret *api.Secret) *entities.Key {
+func parseResponse(hashicorpSecret *api.Secret) (*entities.Key, error) {
+	pubKey, err := base64.URLEncoding.DecodeString(hashicorpSecret.Data[publicKeyLabel].(string))
+	if err != nil {
+		return nil, errors.HashicorpVaultConnectionError("failed to decode public key")
+	}
+
 	key := &entities.Key{
 		ID:        hashicorpSecret.Data[idLabel].(string),
-		PublicKey: hashicorpSecret.Data[publicKeyLabel].(string),
+		PublicKey: pubKey,
 		Algo: &entities.Algorithm{
 			Type:          entities.KeyType(hashicorpSecret.Data[algorithmLabel].(string)),
 			EllipticCurve: entities.Curve(hashicorpSecret.Data[curveLabel].(string)),
@@ -33,5 +41,5 @@ func parseResponse(hashicorpSecret *api.Secret) *entities.Key {
 	key.Metadata.CreatedAt, _ = time.Parse(time.RFC3339, hashicorpSecret.Data[createdAtLabel].(string))
 	key.Metadata.UpdatedAt, _ = time.Parse(time.RFC3339, hashicorpSecret.Data[updatedAtLabel].(string))
 
-	return key
+	return key, nil
 }
