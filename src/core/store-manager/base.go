@@ -224,14 +224,14 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			logger.WithError(err).Error(errMsg)
 			return err
 		}
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	default:
 		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
 		logger.WithError(err).Error()
 		return err
 	}
 
-	logger.Info("Store manifest loaded successfully")
+	logger.Info("store manifest loaded successfully")
 	return nil
 }
 
