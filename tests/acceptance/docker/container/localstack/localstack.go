@@ -10,62 +10,16 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 )
 
-const defaultLocalstackVaultImage = "localstack/localstack"
-const defaultHostPort = "4566"
-const defaultHost = "localhost"
-const defaultRegion = "eu-west-3"
-const defaultAccessID = "test"
-const defaultAccessKey = "test"
-
 type Vault struct{}
 
-type Config struct {
-	Image    string
-	Port     string
-	Host     string
-	Region   string
-	Services []string
-}
-
-func NewDefault() *Config {
-	return &Config{
-		Image:  defaultLocalstackVaultImage,
-		Port:   defaultHostPort,
-		Host:   defaultHost,
-		Region: defaultRegion,
-	}
-}
-
-func (cfg *Config) SetHostPort(port string) *Config {
-	cfg.Port = port
-	return cfg
-}
-
-func (cfg *Config) SetHost(host string) *Config {
-	if host != "" {
-		cfg.Host = host
-	}
-
-	return cfg
-}
-
-func (cfg *Config) SetRegion(port string) *Config {
-	cfg.Port = port
-	return cfg
-}
-
-func (cfg *Config) SetServices(services []string) *Config {
-	cfg.Services = services
-	return cfg
-}
-
 func (vault *Vault) GenerateContainerConfig(_ context.Context, configuration interface{}) (*dockercontainer.Config, *dockercontainer.HostConfig, *network.NetworkingConfig, error) {
-	cfg, ok := configuration.(*Config)
+	cfg, ok := configuration.(*localstack.Config)
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("invalid configuration type (expected %T but got %T)", cfg, configuration)
 	}
@@ -79,7 +33,7 @@ func (vault *Vault) GenerateContainerConfig(_ context.Context, configuration int
 			fmt.Sprintf("SERVICES=%v", strings.Join(cfg.Services, ",")),
 		},
 		ExposedPorts: nat.PortSet{
-			nat.Port(fmt.Sprintf("%s/tcp", defaultHostPort)): struct{}{},
+			nat.Port(fmt.Sprintf("%s/tcp", localstack.DefaultHostPort)): struct{}{},
 		},
 		Tty:        true,
 		Entrypoint: []string{"docker-entrypoint.sh"},
@@ -97,7 +51,7 @@ func (vault *Vault) GenerateContainerConfig(_ context.Context, configuration int
 }
 
 func (vault *Vault) WaitForService(ctx context.Context, configuration interface{}, timeout time.Duration) error {
-	cfg, ok := configuration.(*Config)
+	cfg, ok := configuration.(*localstack.Config)
 	if !ok {
 		return fmt.Errorf("invalid configuration type (expected %T but got %T)", cfg, configuration)
 	}
@@ -105,7 +59,7 @@ func (vault *Vault) WaitForService(ctx context.Context, configuration interface{
 	rctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	retryT := time.NewTicker(5 * time.Second)
+	retryT := time.NewTicker(2 * time.Second)
 	defer retryT.Stop()
 
 	httpClient := http.Client{}

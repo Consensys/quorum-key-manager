@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/utils"
 )
 
