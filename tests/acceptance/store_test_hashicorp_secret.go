@@ -1,9 +1,6 @@
 package acceptancetests
 
 import (
-	"testing"
-	"time"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
@@ -11,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
 // TODO: Destroy secrets when done with the tests to avoid conflicts between tests
@@ -150,29 +148,5 @@ func (s *hashicorpSecretTestSuite) TestGet() {
 
 		assert.Nil(t, secret)
 		require.True(t, errors.IsNotFoundError(err))
-	})
-}
-
-func (s *hashicorpSecretTestSuite) TestRefresh() {
-	ctx := s.env.ctx
-	id := "my-secret-refresh"
-	value1 := "my-secret-value1"
-	value2 := "my-secret-value2"
-
-	_, err := s.store.Set(ctx, id, value1, &entities.Attributes{})
-	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id, value2, &entities.Attributes{})
-	require.NoError(s.T(), err)
-
-	s.T().Run("should refresh secret with new expiration date", func(t *testing.T) {
-		err := s.store.Refresh(ctx, id, "", time.Now().Add(time.Hour*24))
-		require.NoError(t, err)
-
-		secret, err := s.store.Get(ctx, id, "")
-
-		require.NoError(t, err)
-		assert.Equal(t, "2", secret.Metadata.Version)
-
-		assert.True(t, secret.Metadata.ExpireAt.After(time.Now()))
 	})
 }

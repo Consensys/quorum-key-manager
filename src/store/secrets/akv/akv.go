@@ -3,7 +3,6 @@ package akv
 import (
 	"context"
 	"path"
-	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
@@ -70,18 +69,6 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 
 	s.logger.Debug("secrets were listed successfully")
 	return list, nil
-}
-
-func (s *Store) Refresh(ctx context.Context, id, version string, expirationDate time.Time) error {
-	logger := s.logger.WithField("id", id)
-	_, err := s.client.UpdateSecret(ctx, id, version, expirationDate)
-	if err != nil {
-		logger.Error("failed to refresh secret")
-		return err
-	}
-
-	logger.Info("secret was refreshed successfully")
-	return nil
 }
 
 func (s *Store) Delete(ctx context.Context, id string) (*entities.Secret, error) {

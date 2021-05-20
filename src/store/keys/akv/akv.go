@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"time"
 
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv/client"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -53,7 +52,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 	res, err := s.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
 	if err != nil {
 		logger.WithError(err).Error("failed to create key")
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	logger.Info("key was created successfully")
@@ -72,7 +71,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 	res, err := s.client.ImportKey(ctx, id, iWebKey, convertToAKVKeyAttr(attr), attr.Tags)
 	if err != nil {
 		logger.WithError(err).Error("failed to import key")
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	logger.Info("key was imported successfully")
@@ -84,7 +83,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	res, err := s.client.GetKey(ctx, id, "")
 	if err != nil {
 		logger.WithError(err).Error("failed to get key")
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	logger.Debug("key was retrieved successfully")
@@ -95,7 +94,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	res, err := s.client.GetKeys(ctx, 0)
 	if err != nil {
 		s.logger.WithError(err).Error("failed to list keys")
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	kIDs := []string{}
@@ -116,7 +115,7 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 	}, convertToAKVOps(attr.Operations), attr.Tags)
 	if err != nil {
 		logger.WithError(err).Error("failed to update key")
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	logger.Info("key was updated successfully")
@@ -128,7 +127,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	_, err := s.client.DeleteKey(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete key")
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	logger.Info("key was deleted successfully")
@@ -139,7 +138,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 	res, err := s.client.GetDeletedKey(ctx, id)
 	if err != nil {
 		s.logger.WithField("id", id).Error("failed to get deleted keys")
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	return parseKeyDeleteBundleRes(&res), nil
@@ -149,7 +148,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	res, err := s.client.GetDeletedKeys(ctx, 0)
 	if err != nil {
 		s.logger.Error("failed to list deleted keys")
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	kIds := []string{}
@@ -166,7 +165,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 	_, err := s.client.RecoverDeletedKey(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error("failed to undelete key")
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	logger.Info("key was undeleted successfully")
@@ -178,7 +177,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	_, err := s.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error("failed to destroy key")
-		return akvclient.ParseErrorResponse(err)
+		return err
 	}
 
 	logger.Info("key was destroyed successfully")
@@ -203,7 +202,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 	if err != nil {
 		errMessage := "failed to sign payload"
 		logger.WithError(err).Error(errMessage)
-		return nil, akvclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	signature, err := base64.RawURLEncoding.DecodeString(b64Signature)

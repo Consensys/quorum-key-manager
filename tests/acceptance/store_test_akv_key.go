@@ -188,7 +188,6 @@ func (s *akvKeyTestSuite) TestGet() {
 		keyRetrieved, getErr := s.store.Get(ctx, "invalidID")
 
 		require.Nil(t, keyRetrieved)
-		fmt.Println(getErr)
 		assert.True(t, errors.IsNotFoundError(getErr))
 	})
 }

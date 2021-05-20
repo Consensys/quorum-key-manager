@@ -16,7 +16,7 @@ func (c *AKVClient) SetSecret(ctx context.Context, secretName, value string, tag
 		Tags:  common.Tomapstrptr(tags),
 	})
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -24,7 +24,7 @@ func (c *AKVClient) SetSecret(ctx context.Context, secretName, value string, tag
 func (c *AKVClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
 	result, err := c.client.GetSecret(ctx, c.cfg.Endpoint, secretName, secretVersion)
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -36,7 +36,7 @@ func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvaul
 	}
 	res, err := c.client.GetSecrets(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
-		return nil, ParseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
 
 	if len(res.Values()) == 0 {
@@ -54,7 +54,7 @@ func (c *AKVClient) UpdateSecret(ctx context.Context, secretName, secretVersion 
 		},
 	})
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -62,7 +62,7 @@ func (c *AKVClient) UpdateSecret(ctx context.Context, secretName, secretVersion 
 func (c *AKVClient) DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
 	result, err := c.client.DeleteSecret(ctx, c.cfg.Endpoint, secretName)
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -70,7 +70,7 @@ func (c *AKVClient) DeleteSecret(ctx context.Context, secretName string) (keyvau
 func (c *AKVClient) GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
 	result, err := c.client.GetDeletedSecret(ctx, c.cfg.Endpoint, secretName)
 	if err != nil {
-		return result, ParseErrorResponse(err)
+		return result, parseErrorResponse(err)
 	}
 	return result, nil
 }
@@ -78,7 +78,7 @@ func (c *AKVClient) GetDeletedSecret(ctx context.Context, secretName string) (ke
 func (c *AKVClient) PurgeDeletedSecret(ctx context.Context, secretName string) (bool, error) {
 	res, err := c.client.PurgeDeletedSecret(ctx, c.cfg.Endpoint, secretName)
 	if err != nil {
-		return false, ParseErrorResponse(err)
+		return false, parseErrorResponse(err)
 	}
 
 	return res.StatusCode == http.StatusNoContent, nil

@@ -10,7 +10,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 
-	"bou.ke/monkey"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
@@ -290,78 +289,6 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 		ids, err := s.secretStore.List(ctx)
 
 		assert.Nil(t, ids)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
-	})
-}
-
-func (s *hashicorpSecretStoreTestSuite) TestRefresh() {
-	ctx := context.Background()
-	id := "my-secret-3"
-	expectedPath := s.mountPoint + "/metadata/" + id
-	hashicorpSecret := &hashicorp.Secret{
-		Data: map[string]interface{}{},
-	}
-
-	s.T().Run("should refresh a secret without expiration date", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(hashicorpSecret, nil)
-
-		err := s.secretStore.Refresh(ctx, id, "", time.Time{})
-
-		assert.NoError(t, err)
-	})
-
-	s.T().Run("should refresh a secret with expiration date", func(t *testing.T) {
-		monkey.Patch(time.Now, func() time.Time {
-			return time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC)
-		})
-		expirationDate := time.Date(2021, 1, 1, 2, 0, 0, 0, time.UTC)
-
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			deleteAfterLabel: "1h0m0s",
-		}).Return(hashicorpSecret, nil)
-
-		err := s.secretStore.Refresh(ctx, id, "", expirationDate)
-
-		assert.NoError(t, err)
-	})
-
-	s.T().Run("should fail with NotFound error if write fails with 404", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusNotFound,
-		})
-
-		err := s.secretStore.Refresh(ctx, id, "", time.Time{})
-
-		assert.True(t, errors.IsNotFoundError(err))
-	})
-
-	s.T().Run("should fail with InvalidFormat error if write fails with 400", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusBadRequest,
-		})
-
-		err := s.secretStore.Refresh(ctx, id, "", time.Time{})
-
-		assert.True(t, errors.IsInvalidFormatError(err))
-	})
-
-	s.T().Run("should fail with InvalidParameter error if write fails with 422", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusUnprocessableEntity,
-		})
-
-		err := s.secretStore.Refresh(ctx, id, "", time.Time{})
-
-		assert.True(t, errors.IsInvalidParameterError(err))
-	})
-
-	s.T().Run("should fail with HashicorpVaultConnection error if write fails with 500", func(t *testing.T) {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{}).Return(nil, &hashicorp.ResponseError{
-			StatusCode: http.StatusInternalServerError,
-		})
-
-		err := s.secretStore.Refresh(ctx, id, "", time.Time{})
-
 		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
 	})
 }

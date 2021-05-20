@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-func ParseErrorResponse(err error) error {
+func parseErrorResponse(err error) error {
 	httpError, ok := err.(*api.ResponseError)
 	if !ok {
 		return errors.HashicorpVaultConnectionError("failed to connect to Hashicorp store")

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -8,7 +9,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 )
 
-func ParseErrorResponse(err error) error {
+func parseErrorResponse(err error) error {
 	aerr, ok := err.(autorest.DetailedError)
 	if !ok {
 		return errors.AKVConnectionError("%v", err)
@@ -20,6 +21,7 @@ func ParseErrorResponse(err error) error {
 
 	switch aerr.StatusCode.(int) {
 	case http.StatusNotFound:
+		fmt.Println("I'm in the not found!!!")
 		return errors.NotFoundError(aerr.Original.Error())
 	case http.StatusBadRequest:
 		return errors.InvalidFormatError(aerr.Original.Error())

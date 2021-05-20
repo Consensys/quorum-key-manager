@@ -7,7 +7,6 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp"
-	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -62,7 +61,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 	})
 	if err != nil {
 		logger.WithError(err).Error("failed to create key")
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	logger.Info("key was created successfully")
@@ -82,7 +81,7 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 	})
 	if err != nil {
 		logger.WithError(err).Error("failed to import key")
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	logger.Info("key was imported successfully")
@@ -96,7 +95,7 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
 		logger.WithError(err).Error("failed to get key")
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	if res.Data["error"] != nil {
@@ -112,7 +111,7 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
 		s.logger.WithError(err).Error("failed to list keys")
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	keyIds, ok := res.Data["keys"].([]interface{})
@@ -168,7 +167,7 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 	})
 	if err != nil {
 		logger.WithError(err).Error("failed to sign data")
-		return nil, hashicorpclient.ParseErrorResponse(err)
+		return nil, err
 	}
 
 	signature, err := base64.URLEncoding.DecodeString(res.Data[signatureLabel].(string))

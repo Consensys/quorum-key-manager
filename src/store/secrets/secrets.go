@@ -2,7 +2,6 @@ package secrets
 
 import (
 	"context"
-	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
@@ -21,9 +20,6 @@ type Store interface {
 
 	// List secrets
 	List(ctx context.Context) ([]string, error)
-
-	// Update secret
-	Refresh(ctx context.Context, id string, version string, expirationDate time.Time) error
 
 	// Delete secret not permanently, by using Undelete the secret can be restored
 	Delete(ctx context.Context, id string) (*entities.Secret, error)
