@@ -210,13 +210,13 @@ func (s *keysHandlerTestSuite) TestSign() {
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/%s/sign", keyID), bytes.NewReader(requestBytes))
 		httpRequest.Header.Set(StoreIDHeader, keyStoreName)
 
-		signature := "signature"
+		signature := []byte("signature")
 		data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
-		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, data).Return([]byte(signature), nil)
+		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, data).Return(signature, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		assert.Equal(t, signature, rw.Body.String())
+		assert.Equal(t, base64.URLEncoding.EncodeToString(signature), rw.Body.String())
 		assert.Equal(t, http.StatusOK, rw.Code)
 	})
 

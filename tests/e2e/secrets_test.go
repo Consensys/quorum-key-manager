@@ -99,7 +99,7 @@ func (s *secretsTestSuite) TestSet() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(t, 404, httpError.StatusCode)
-		assert.Equal(t, " secret store inexistentStoreName was not found", httpError.Message)
+		assert.Equal(t, "secret store inexistentStoreName was not found", httpError.Message)
 	})
 }
 
@@ -145,7 +145,7 @@ func (s *secretsTestSuite) TestGet() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(t, 422, httpError.StatusCode)
-		assert.Equal(t, " version must be a number", httpError.Message)
+		assert.Equal(t, "version must be a number", httpError.Message)
 	})
 }
 
@@ -173,6 +173,6 @@ func (s *secretsTestSuite) TestList() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(t, 404, httpError.StatusCode)
-		assert.Equal(t, " secret store inexistentStoreName was not found", httpError.Message)
+		assert.Equal(t, "secret store inexistentStoreName was not found", httpError.Message)
 	})
 }
