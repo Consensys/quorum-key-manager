@@ -206,6 +206,17 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 	})
 }
 
+func (s *awsSecretStoreTestSuite) TestGetDeleted() {
+	s.T().Run("should fail with not implemented error", func(t *testing.T) {
+		ctx := context.Background()
+		id := "some-id"
+		expectedError := errors.ErrNotImplemented
+		_, err := s.secretStore.GetDeleted(ctx, id)
+
+		assert.Equal(t, err, expectedError)
+	})
+}
+
 func (s *awsSecretStoreTestSuite) TestList() {
 	ctx := context.Background()
 	sec3, sec4 := "my-secret3", "my-secret4"
@@ -241,6 +252,16 @@ func (s *awsSecretStoreTestSuite) TestList() {
 
 		assert.Nil(t, ids)
 		assert.Equal(t, expectedErr, err)
+	})
+}
+
+func (s *awsSecretStoreTestSuite) TestListDeleted() {
+	s.T().Run("should fail with not implemented error", func(t *testing.T) {
+		ctx := context.Background()
+		expectedError := errors.ErrNotImplemented
+		_, err := s.secretStore.ListDeleted(ctx)
+
+		assert.Equal(t, err, expectedError)
 	})
 }
 
