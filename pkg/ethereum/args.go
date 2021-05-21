@@ -69,6 +69,10 @@ func (msg *SendTxMsg) IsPrivate() bool {
 }
 
 func (msg *SendTxMsg) TxData() *types.Transaction {
+	if msg.To == nil {
+		return types.NewContractCreation(*msg.Nonce, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
+	}
+
 	return types.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
 }
 

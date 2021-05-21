@@ -17,7 +17,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -222,7 +221,7 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 
 	bSig, _ := hexutil.Decode(expectedSignature)
 	b64Sig := base64.RawURLEncoding.EncodeToString(bSig)
-	b64Payload := base64.RawURLEncoding.EncodeToString(crypto.Keccak256(payload))
+	b64Payload := base64.RawURLEncoding.EncodeToString(payload)
 
 	s.T().Run("should sign payload successfully", func(t *testing.T) {
 		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
