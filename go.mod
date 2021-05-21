@@ -3,7 +3,6 @@ module github.com/ConsenSysQuorum/quorum-key-manager
 go 1.15
 
 require (
-	bou.ke/monkey v1.0.2 // indirect
 	github.com/Azure/azure-sdk-for-go v52.5.0+incompatible
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Azure/go-autorest/autorest v0.11.18
@@ -18,7 +17,7 @@ require (
 	github.com/docker/docker v1.4.2-0.20200204220554-5f6d6f3f2203
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/ethereum/go-ethereum v1.10.3
+	github.com/ethereum/go-ethereum v1.9.25
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-playground/validator/v10 v10.5.0
 	github.com/golang/mock v1.5.0
