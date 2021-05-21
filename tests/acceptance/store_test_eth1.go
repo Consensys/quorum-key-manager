@@ -228,34 +228,3 @@ func (s *eth1TestSuite) TestSignTransaction() {
 		assert.True(t, errors.IsNotFoundError(err))
 	})
 }
-
-func (s *eth1TestSuite) TestSignPrivate() {
-	ctx := s.env.ctx
-	id := fmt.Sprintf("my-account-sign-private-%d", common.RandInt(1000))
-	tx := types.NewTransaction(
-		0,
-		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
-		big.NewInt(0),
-		0,
-		big.NewInt(0),
-		nil,
-	)
-	privKey, _ := hex.DecodeString(privKeyECDSA)
-
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
-		Tags: testutils.FakeTags(),
-	})
-	require.NoError(s.T(), err)
-
-	s.T().Run("should sign a private transaction successfully", func(t *testing.T) {
-		signature, err := s.store.SignPrivate(ctx, account.Address, tx)
-		require.NoError(t, err)
-		assert.Equal(t, "0xe80a82b880ee9c16c30a0d2093590ef64ea2750b9ec9f0c0ca65bb2c2304082f39dc7fcc8621f2f639efef51324bf2c32468b1ab0198527639179bf2f97a77ed26", hexutil.Encode(signature))
-	})
-
-	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
-		signature, err := s.store.SignPrivate(ctx, "invalidAccount", tx)
-		require.Empty(t, signature)
-		assert.True(t, errors.IsNotFoundError(err))
-	})
-}

@@ -221,7 +221,7 @@ func (s *akvKeyTestSuite) TestList() {
 func (s *akvKeyTestSuite) TestSign() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
-	payload := []byte("my data to sign")
+	payload := crypto.Keccak256([]byte("my data to sign"))
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
 	id := fmt.Sprintf("mykey-sign-ecdsa-%d", common.RandInt(1000))
