@@ -17,55 +17,55 @@ type Store interface {
 	// Info returns store information
 	Info(context.Context) (*entities.StoreInfo, error)
 
-	// Create an account
+	// Create creates an Ethereum account
 	Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
-	// Import an externally created key and store account
+	// Import imports an externally created Ethereum account
 	Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error)
 
-	// Get account
+	// Get gets an Ethereum account
 	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
 
-	// List account ids
-	List(ctx context.Context) ([]string, error)
-
-	// GetAll accounts
+	// GetAll gets all Ethereum accounts
 	GetAll(ctx context.Context) ([]*entities.ETH1Account, error)
 
-	// Update account attributes
+	// List lists all Ethereum account addresses
+	List(ctx context.Context) ([]string, error)
+
+	// Update updates Ethereum account attributes
 	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
-	// Delete account not permanently, by using Undelete the account can be retrieved
+	// Delete deletes an account temporarily, by using Undelete the account can be restored
 	Delete(ctx context.Context, addr string) error
 
-	// GetDeleted accounts
+	// GetDeleted Gets a deleted Ethereum accounts
 	GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error)
 
-	// ListDeleted accounts
+	// ListDeleted lists all deleted Ethereum accounts
 	ListDeleted(ctx context.Context) ([]string, error)
 
-	// Undelete a previously deleted account
+	// Undelete restores a previously deleted Ethereum account
 	Undelete(ctx context.Context, addr string) error
 
-	// Destroy account permanently
+	// Destroy destroys (purges) an Ethereum account permanently
 	Destroy(ctx context.Context, addr string) error
 
-	// Sign from a digest using the specified account
+	// Sign signs a payload using the specified Ethereum account
 	Sign(ctx context.Context, addr string, data []byte) ([]byte, error)
 
-	// Sign EIP-712 formatted data using the specified account
+	// Sign signs EIP-712 formatted data using the specified Ethereum account
 	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
 
-	// SignTransaction transaction
+	// SignTransaction signs a plublic Ethereum transaction
 	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error)
 
-	// SignEEA transaction
+	// SignEEA signs an EEA transaction
 	SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) ([]byte, error)
 
-	// SignPrivate transaction
+	// SignPrivate signs a Quorum private transaction
 	SignPrivate(ctx context.Context, addr string, tx *types.Transaction) ([]byte, error)
 
-	// ECRevocer returns the address from a signature and data
+	// ECRevocer returns the Ethereum address from a signature and data
 	ECRevocer(ctx context.Context, data, sig []byte) (string, error)
 
 	// Verify verifies that a signature belongs to a given address
@@ -74,9 +74,9 @@ type Store interface {
 	// Verify verifies that a typed data signature belongs to a given address
 	VerifyTypedData(ctx context.Context, addr string, sig []byte, typedData *core.TypedData) error
 
-	// Encrypt any arbitrary data using a specified account
+	// Encrypt encrypts any arbitrary data using a specified account
 	Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error)
 
-	// Decrypt a single block of encrypted data.
+	// Decrypt decrypts a single block of encrypted data.
 	Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error)
 }

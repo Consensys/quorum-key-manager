@@ -4,106 +4,98 @@ import (
 	"context"
 	"sync"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/database"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
-type Database struct {
-	addrToID        map[string]string
-	deletedAddrToID map[string]string
-	mux             sync.RWMutex
-	logger          *log.Logger
+type ETH1Accounts struct {
+	addrToAccounts        map[string]*entities.ETH1Account
+	deletedAddrToAccounts map[string]*entities.ETH1Account
+	mux                   sync.RWMutex
+	logger                *log.Logger
 }
 
-var _ database.Database = &Database{}
+var _ database.ETH1Accounts = &ETH1Accounts{}
 
-func New(logger *log.Logger) *Database {
-	return &Database{
-		mux:             sync.RWMutex{},
-		addrToID:        make(map[string]string),
-		deletedAddrToID: make(map[string]string),
-		logger:          logger,
+func New(logger *log.Logger) *ETH1Accounts {
+	return &ETH1Accounts{
+		mux:                   sync.RWMutex{},
+		addrToAccounts:        make(map[string]*entities.ETH1Account),
+		deletedAddrToAccounts: make(map[string]*entities.ETH1Account),
+		logger:                logger,
 	}
 }
 
-func (d *Database) GetID(_ context.Context, addr string) (string, error) {
-	id, ok := d.addrToID[addr]
+func (d *ETH1Accounts) GetAccount(_ context.Context, addr string) (*entities.ETH1Account, error) {
+	account, ok := d.addrToAccounts[addr]
 	if !ok {
-		return "", errors.NotFoundError("account %s was not found", addr)
+		return nil, errors.NotFoundError("account %s was not found", addr)
+	}
+
+	return account, nil
+}
+
+func (d *ETH1Accounts) GetDeletedAccount(_ context.Context, addr string) (*entities.ETH1Account, error) {
+	id, ok := d.deletedAddrToAccounts[addr]
+	if !ok {
+		return nil, errors.NotFoundError("deleted account %s was not found", addr)
 	}
 
 	return id, nil
 }
 
-func (d *Database) GetDeletedID(_ context.Context, addr string) (string, error) {
-	id, ok := d.deletedAddrToID[addr]
-	if !ok {
-		return "", errors.NotFoundError("deleted account %s was not found", addr)
+func (d *ETH1Accounts) GetAllAccounts(_ context.Context) ([]*entities.ETH1Account, error) {
+	accounts := []*entities.ETH1Account{}
+
+	for _, account := range d.addrToAccounts {
+		accounts = append(accounts, account)
 	}
 
-	return id, nil
+	return accounts, nil
 }
 
-func (d *Database) GetAll(_ context.Context) ([]string, error) {
-	addresses := make([]string, len(d.addrToID))
+func (d *ETH1Accounts) GetAllDeletedAccounts(_ context.Context) ([]*entities.ETH1Account, error) {
+	accounts := []*entities.ETH1Account{}
 
-	for address := range d.addrToID {
-		addresses = append(addresses, address)
+	for _, account := range d.deletedAddrToAccounts {
+		accounts = append(accounts, account)
 	}
 
-	return addresses, nil
+	return accounts, nil
 }
 
-func (d *Database) GetAllIDs(_ context.Context) ([]string, error) {
-	ids := make([]string, len(d.addrToID))
-
-	for _, id := range d.addrToID {
-		ids = append(ids, id)
-	}
-
-	return ids, nil
-}
-
-func (d *Database) GetAllDeleted(_ context.Context) ([]string, error) {
-	addresses := make([]string, len(d.deletedAddrToID))
-
-	for address := range d.deletedAddrToID {
-		addresses = append(addresses, address)
-	}
-
-	return addresses, nil
-}
-
-func (d *Database) AddID(_ context.Context, addr, id string) error {
+func (d *ETH1Accounts) AddAccount(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
-	d.addrToID[addr] = id
+	d.addrToAccounts[account.Address] = account
 
 	return nil
 }
 
-func (d *Database) AddDeletedID(_ context.Context, addr, id string) error {
+func (d *ETH1Accounts) AddDeletedAccount(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
-	d.deletedAddrToID[addr] = id
+	d.deletedAddrToAccounts[account.Address] = account
 
 	return nil
 }
 
-func (d *Database) RemoveID(_ context.Context, addr string) error {
+func (d *ETH1Accounts) RemoveAccount(_ context.Context, addr string) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
-	delete(d.addrToID, addr)
+	delete(d.addrToAccounts, addr)
 
 	return nil
 }
 
-func (d *Database) RemoveDeletedID(_ context.Context, addr string) error {
+func (d *ETH1Accounts) RemoveDeletedAccount(_ context.Context, addr string) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
-	delete(d.deletedAddrToID, addr)
+	delete(d.deletedAddrToAccounts, addr)
 
 	return nil
 }

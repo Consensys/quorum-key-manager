@@ -26,18 +26,18 @@ var eth1KeyAlgo = &entities.Algorithm{
 }
 
 type Store struct {
-	keyStore       keys.Store
-	eth1AccountsDB database.Database
-	logger         *log.Logger
+	keyStore     keys.Store
+	eth1Accounts database.ETH1Accounts
+	logger       *log.Logger
 }
 
 var _ eth1.Store = &Store{}
 
-func New(keyStore keys.Store, eth1AccountsDB database.Database, logger *log.Logger) *Store {
+func New(keyStore keys.Store, eth1Accounts database.ETH1Accounts, logger *log.Logger) *Store {
 	return &Store{
-		keyStore:       keyStore,
-		logger:         logger,
-		eth1AccountsDB: eth1AccountsDB,
+		keyStore:     keyStore,
+		logger:       logger,
+		eth1Accounts: eth1Accounts,
 	}
 }
 
@@ -56,7 +56,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	err = s.eth1AccountsDB.AddID(ctx, acc.Address, acc.ID)
+	err = s.eth1Accounts.AddAccount(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 		return nil, err
 	}
 
-	err = s.eth1AccountsDB.AddID(ctx, acc.Address, acc.ID)
+	err = s.eth1Accounts.AddAccount(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -84,143 +84,133 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 }
 
 func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	id, err := s.eth1AccountsDB.GetID(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := s.keyStore.Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return parseKey(key)
+	return s.eth1Accounts.GetAccount(ctx, addr)
 }
 
 func (s *Store) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
-	ids, err := s.eth1AccountsDB.GetAllIDs(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var accounts = make([]*entities.ETH1Account, len(ids))
-	for _, id := range ids {
-		key, err := s.keyStore.Get(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-
-		account, err := parseKey(key)
-		if err != nil {
-			return nil, err
-		}
-
-		accounts = append(accounts, account)
-	}
-
-	return accounts, nil
+	return s.eth1Accounts.GetAllAccounts(ctx)
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
-	return s.eth1AccountsDB.GetAll(ctx)
+	addresses := []string{}
+	accounts, err := s.eth1Accounts.GetAllAccounts(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, account := range accounts {
+		addresses = append(addresses, account.Address)
+	}
+
+	return addresses, nil
 }
 
 func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	id, err := s.eth1AccountsDB.GetID(ctx, addr)
+	account, err := s.eth1Accounts.GetAccount(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := s.keyStore.Update(ctx, id, attr)
+	key, err := s.keyStore.Update(ctx, account.ID, attr)
 	if err != nil {
 		return nil, err
 	}
 
-	return parseKey(key)
+	acc, err := parseKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.eth1Accounts.AddAccount(ctx, acc)
+	if err != nil {
+		return nil, err
+	}
+
+	return acc, nil
 }
 
 func (s *Store) Delete(ctx context.Context, addr string) error {
-	id, err := s.eth1AccountsDB.GetID(ctx, addr)
+	account, err := s.eth1Accounts.GetAccount(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	err = s.keyStore.Delete(ctx, id)
+	err = s.keyStore.Delete(ctx, account.ID)
 	if err != nil {
 		return err
 	}
 
-	err = s.eth1AccountsDB.RemoveID(ctx, addr)
+	err = s.eth1Accounts.RemoveAccount(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	return s.eth1AccountsDB.AddDeletedID(ctx, addr, id)
+	return s.eth1Accounts.AddDeletedAccount(ctx, account)
 }
 
 func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	id, err := s.eth1AccountsDB.GetDeletedID(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := s.keyStore.GetDeleted(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return parseKey(key)
+	return s.eth1Accounts.GetDeletedAccount(ctx, addr)
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return s.eth1AccountsDB.GetAllDeleted(ctx)
+	addresses := []string{}
+	accounts, err := s.eth1Accounts.GetAllDeletedAccounts(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, account := range accounts {
+		addresses = append(addresses, account.Address)
+	}
+
+	return addresses, nil
 }
 
 func (s *Store) Undelete(ctx context.Context, addr string) error {
-	id, err := s.eth1AccountsDB.GetDeletedID(ctx, addr)
+	account, err := s.eth1Accounts.GetDeletedAccount(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	err = s.keyStore.Undelete(ctx, id)
+	err = s.keyStore.Undelete(ctx, account.ID)
 	if err != nil {
 		return err
 	}
 
-	err = s.eth1AccountsDB.RemoveDeletedID(ctx, addr)
+	err = s.eth1Accounts.RemoveDeletedAccount(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	return s.eth1AccountsDB.AddID(ctx, addr, id)
+	return s.eth1Accounts.AddAccount(ctx, account)
 }
 
 func (s *Store) Destroy(ctx context.Context, addr string) error {
-	id, err := s.eth1AccountsDB.GetDeletedID(ctx, addr)
+	account, err := s.eth1Accounts.GetDeletedAccount(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	err = s.keyStore.Destroy(ctx, id)
+	err = s.keyStore.Destroy(ctx, account.ID)
 	if err != nil {
 		return err
 	}
 
-	return s.eth1AccountsDB.RemoveDeletedID(ctx, addr)
+	return s.eth1Accounts.RemoveDeletedAccount(ctx, addr)
 }
 
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	key, err := s.Get(ctx, addr)
+	account, err := s.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
 
-	signature, err := s.keyStore.Sign(ctx, key.ID, data)
+	signature, err := s.keyStore.Sign(ctx, account.ID, data)
 	if err != nil {
 		return nil, err
 	}
 
-	return appendRecID(signature, key.PublicKey)
+	return appendRecID(signature, account.PublicKey)
 }
 
 func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
@@ -229,7 +219,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 		return nil, err
 	}
 
-	key, err := s.Get(ctx, addr)
+	account, err := s.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +229,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 		return nil, err
 	}
 
-	return appendRecID(signature, key.PublicKey)
+	return appendRecID(signature, account.PublicKey)
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
@@ -302,21 +292,21 @@ func (s *Store) VerifyTypedData(ctx context.Context, addr string, sig []byte, ty
 }
 
 func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	id, err := s.eth1AccountsDB.GetID(ctx, addr)
+	account, err := s.eth1Accounts.GetAccount(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.keyStore.Encrypt(ctx, id, data)
+	return s.keyStore.Encrypt(ctx, account.ID, data)
 }
 
 func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	id, err := s.eth1AccountsDB.GetID(ctx, addr)
+	account, err := s.eth1Accounts.GetAccount(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.keyStore.Decrypt(ctx, id, data)
+	return s.keyStore.Decrypt(ctx, account.ID, data)
 }
 
 func getEIP712EncodedData(typedData *core.TypedData) (string, error) {

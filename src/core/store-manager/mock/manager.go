@@ -136,7 +136,7 @@ func (mr *MockStoreManagerMockRecorder) List(ctx, kind interface{}) *gomock.Call
 // ListAllAccounts mocks base method
 func (m *MockStoreManager) ListAllAccounts(arg0 context.Context) ([]*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAllAccounts", arg0)
+	ret := m.ctrl.Call(m, "GetAllAccounts", arg0)
 	ret0, _ := ret[0].([]*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -145,5 +145,5 @@ func (m *MockStoreManager) ListAllAccounts(arg0 context.Context) ([]*entities.ET
 // ListAllAccounts indicates an expected call of ListAllAccounts
 func (mr *MockStoreManagerMockRecorder) ListAllAccounts(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllAccounts", reflect.TypeOf((*MockStoreManager)(nil).ListAllAccounts), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllAccounts", reflect.TypeOf((*MockStoreManager)(nil).ListAllAccounts), arg0)
 }

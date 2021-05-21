@@ -1,17 +1,24 @@
 package database
 
-import "context"
+import (
+	"context"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+)
 
 //go:generate mockgen -source=database.go -destination=mock/database.go -package=mock
 
 type Database interface {
-	GetID(ctx context.Context, addr string) (string, error)
-	GetDeletedID(ctx context.Context, addr string) (string, error)
-	GetAll(ctx context.Context) ([]string, error)
-	GetAllDeleted(ctx context.Context) ([]string, error)
-	GetAllIDs(ctx context.Context) ([]string, error)
-	AddID(ctx context.Context, addr, id string) error
-	AddDeletedID(ctx context.Context, addr, id string) error
-	RemoveID(ctx context.Context, addr string) error
-	RemoveDeletedID(ctx context.Context, addr string) error
+	ETH1Accounts() ETH1Accounts
+}
+
+type ETH1Accounts interface {
+	GetAccount(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	GetDeletedAccount(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	GetAllAccounts(ctx context.Context) ([]*entities.ETH1Account, error)
+	GetAllDeletedAccounts(ctx context.Context) ([]*entities.ETH1Account, error)
+	AddAccount(ctx context.Context, account *entities.ETH1Account) error
+	AddDeletedAccount(ctx context.Context, account *entities.ETH1Account) error
+	RemoveAccount(ctx context.Context, addr string) error
+	RemoveDeletedAccount(ctx context.Context, addr string) error
 }
