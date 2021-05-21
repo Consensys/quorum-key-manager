@@ -251,7 +251,7 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 		return nil, err
 	}
 
-	ethSignature, err := signatureValues(tx, signature, signer)
+	ethSignature, err := parseSignatureValues(tx, signature, signer)
 	if err != nil {
 		errMessage := "failed to generate transaction signature"
 		logger.WithError(err).Error(errMessage)
@@ -342,11 +342,3 @@ func appendRecID(sig, pubKey []byte) ([]byte, error) {
 	return append(sig, *recID), nil
 }
 
-func signatureValues(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
-	r, s, v, err := signer.SignatureValues(tx, sig)
-	if err != nil {
-		return nil, err
-	}
-
-	return append(append(r.Bytes(), s.Bytes()...), v.Bytes()...), nil
-}

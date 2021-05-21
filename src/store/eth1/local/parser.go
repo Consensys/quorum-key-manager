@@ -1,6 +1,7 @@
 package local
 
 import (
+	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -37,4 +38,13 @@ func parseRecID(pubKeyB []byte) (*byte, error) {
 
 	b := byte(1)
 	return &b, nil
+}
+
+func parseSignatureValues(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
+	r, s, v, err := signer.SignatureValues(tx, sig)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(append(r.Bytes(), s.Bytes()...), v.Bytes()...), nil
 }
