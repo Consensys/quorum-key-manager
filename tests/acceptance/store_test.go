@@ -4,6 +4,7 @@ package acceptancetests
 
 import (
 	"context"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/database/memory"
 	"os"
 	"testing"
 
@@ -127,7 +128,9 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	}
 
 	logger := log.DefaultLogger().SetComponent("Eth1")
-	store := eth1local.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), logger)
+	hashicorpKeyStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
+	eth1AccountsDB := memory.New(logger)
+	store := eth1local.New(hashicorpKeyStore, eth1AccountsDB, logger)
 
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env

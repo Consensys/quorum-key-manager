@@ -341,4 +341,3 @@ func appendRecID(sig, pubKey []byte) ([]byte, error) {
 
 	return append(sig, *recID), nil
 }
-
