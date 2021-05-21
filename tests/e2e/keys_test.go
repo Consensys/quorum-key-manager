@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/ethereum/go-ethereum/crypto"
 	"net/http"
 	"os"
 	"testing"
@@ -350,7 +351,9 @@ func (s *keysTestSuite) TestList() {
 }
 
 func (s *keysTestSuite) TestSign() {
-	payload := base64.URLEncoding.EncodeToString([]byte("my data to sign"))
+	data := []byte("my data to sign")
+	hashedPayload := base64.URLEncoding.EncodeToString(crypto.Keccak256(data))
+	payload := base64.URLEncoding.EncodeToString(data)
 
 	s.T().Run("should sign a new payload successfully: Secp256k1/ECDSA", func(t *testing.T) {
 		request := &types.ImportKeyRequest{
@@ -364,7 +367,7 @@ func (s *keysTestSuite) TestSign() {
 		require.NoError(t, err)
 
 		requestSign := &types.SignPayloadRequest{
-			Data: payload,
+			Data: hashedPayload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(t, err)
