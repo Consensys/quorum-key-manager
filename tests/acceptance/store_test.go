@@ -57,6 +57,7 @@ func TestKeyManagerStore(t *testing.T) {
 
 	suite.Run(t, s)
 }
+
 /*
 func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 	if s.err != nil {
