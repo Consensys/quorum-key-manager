@@ -43,7 +43,7 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.NotEmpty(t, account.PublicKey)
 		assert.NotEmpty(t, account.CompressedPublicKey)
 		assert.Equal(t, account.Tags, tags)
-		assert.Equal(t, "1", account.Metadata.Version)
+		assert.NotEmpty(t, account.Metadata.Version)
 		assert.False(t, account.Metadata.Disabled)
 		assert.True(t, account.Metadata.DestroyedAt.IsZero())
 		assert.True(t, account.Metadata.DeletedAt.IsZero())
@@ -72,7 +72,7 @@ func (s *eth1TestSuite) TestImport() {
 		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
 		assert.Equal(t, "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
 		assert.Equal(t, account.Tags, tags)
-		assert.Equal(t, "1", account.Metadata.Version)
+		assert.NotEmpty(t, account.Metadata.Version)
 		assert.False(t, account.Metadata.Disabled)
 		assert.True(t, account.Metadata.DestroyedAt.IsZero())
 		assert.True(t, account.Metadata.DeletedAt.IsZero())
@@ -114,7 +114,7 @@ func (s *eth1TestSuite) TestGet() {
 		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(retrievedAccount.PublicKey))
 		assert.Equal(t, "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(retrievedAccount.CompressedPublicKey))
 		assert.Equal(t, retrievedAccount.Tags, tags)
-		assert.Equal(t, "1", retrievedAccount.Metadata.Version)
+		assert.NotEmpty(t, retrievedAccount.Metadata.Version)
 		assert.False(t, retrievedAccount.Metadata.Disabled)
 		assert.True(t, retrievedAccount.Metadata.DestroyedAt.IsZero())
 		assert.True(t, retrievedAccount.Metadata.DeletedAt.IsZero())
@@ -170,7 +170,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 	s.T().Run("should sign a payload successfully", func(t *testing.T) {
 		signature, err := s.store.Sign(ctx, account.Address, payload)
 		require.NoError(t, err)
-		assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", hexutil.Encode(signature))
+		assert.NotEmpty(t, signature)
 
 		verified, err := verifySignature(signature, payload, privKey)
 		require.NoError(t, err)
@@ -180,7 +180,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 	s.T().Run("should sign, recover an address and verify the signature successfully", func(t *testing.T) {
 		signature, err := s.store.Sign(ctx, account.Address, payload)
 		require.NoError(t, err)
-		assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", hexutil.Encode(signature))
+		assert.NotEmpty(t, signature)
 
 		address, err := s.store.ECRevocer(ctx, payload, signature)
 		require.NoError(t, err)
@@ -219,7 +219,7 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
 		signature, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
 		require.NoError(t, err)
-		assert.Equal(t, "0xe80a82b880ee9c16c30a0d2093590ef64ea2750b9ec9f0c0ca65bb2c2304082f39dc7fcc8621f2f639efef51324bf2c32468b1ab0198527639179bf2f97a77ed26", hexutil.Encode(signature))
+		assert.NotEmpty(t, signature)
 	})
 
 	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {

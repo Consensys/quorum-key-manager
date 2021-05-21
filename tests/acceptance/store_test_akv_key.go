@@ -261,12 +261,15 @@ func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	fmt.Println(privKey.PublicKey.X.String(), privKey.PublicKey.Y.String())
 
 	if len(signature) == 65 {
 		retrievedPubkey, err := crypto.SigToPub(msg, signature)
 		if err != nil {
 			return false, err
 		}
+
+		fmt.Println(retrievedPubkey.X.String(), retrievedPubkey.Y.String())
 
 		return privKey.PublicKey.Equal(retrievedPubkey), nil
 	}
