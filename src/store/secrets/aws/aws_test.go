@@ -50,18 +50,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		VersionId: &version,
 	}
 
-	var fakeSecretsTags []*secretsmanager.Tag
-
-	for key, value := range attributes.Tags {
-		k, v := key, value
-		var in = secretsmanager.Tag{
-			Key:   &k,
-			Value: &v,
-		}
-		fakeSecretsTags = append(fakeSecretsTags, &in)
-	}
-
-	currentMark := "AWSCURRENT"
+	currentMark := CurrentVersionMark
 	versionID2stages := map[string][]*string{
 		version: {&currentMark},
 	}
@@ -69,7 +58,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 	descSecretOutput := &secretsmanager.DescribeSecretOutput{
 		Name:               &id,
 		VersionIdsToStages: versionID2stages,
-		Tags:               fakeSecretsTags,
+		Tags:               ToSecretmanagerTags(attributes.Tags),
 	}
 
 	s.T().Run("should set a new secret successfully", func(t *testing.T) {
@@ -87,6 +76,24 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		assert.False(t, secret.Metadata.Disabled)
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.True(t, secret.Metadata.DeletedAt.IsZero())
+	})
+
+	s.T().Run("should fail when too many tags", func(t *testing.T) {
+		tooManyTags := map[string]string{}
+
+		for i := 0; i <= maxTagsAllowed; i++ {
+			tooManyTags[fmt.Sprintf("tag%d", i)] = fmt.Sprintf("value%d", i)
+		}
+		attributes.Tags = tooManyTags
+		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
+		secret, err := s.secretStore.Set(ctx, id, value, attributes)
+
+		// tags back to normal
+		attributes.Tags = testutils.FakeTags()
+
+		assert.NotNil(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Nil(t, secret)
 	})
 
 	s.T().Run("should fail with describe error", func(t *testing.T) {
@@ -161,7 +168,7 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 		VersionId:    &version,
 	}
 
-	currentMark := "AWSCURRENT"
+	currentMark := CurrentVersionMark
 	versionID2stages := map[string][]*string{
 		version: {&currentMark},
 	}
@@ -235,4 +242,18 @@ func (s *awsSecretStoreTestSuite) TestList() {
 		assert.Nil(t, ids)
 		assert.Equal(t, expectedErr, err)
 	})
+}
+
+func ToSecretmanagerTags(tags map[string]string) []*secretsmanager.Tag {
+	var fakeSecretsTags []*secretsmanager.Tag
+
+	for key, value := range tags {
+		k, v := key, value
+		var in = secretsmanager.Tag{
+			Key:   &k,
+			Value: &v,
+		}
+		fakeSecretsTags = append(fakeSecretsTags, &in)
+	}
+	return fakeSecretsTags
 }

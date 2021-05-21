@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -15,13 +14,9 @@ import (
 )
 
 const (
-	dataLabel        = "data"
-	metadataLabel    = "metadata"
-	valueLabel       = "value"
-	deleteAfterLabel = "delete_version_after"
-	tagsLabel        = "tags"
-	versionLabel     = "version"
-	maxTagsAllowed   = 50
+	CurrentVersionMark = "AWSCURRENT"
+	versionLabel       = "version"
+	maxTagsAllowed     = 50
 )
 
 // Store is an implementation of secret store relying on AWS secretsmanager
@@ -71,7 +66,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 	if len(attr.Tags) > 0 {
 		//check overall len must be limited to max according to doc
 		if len(attr.Tags) > maxTagsAllowed {
-			return nil, fmt.Errorf("resource may not be tagged with more than %d items", maxTagsAllowed)
+			return nil, errors.InvalidParameterError("resource may not be tagged with more than %d items", maxTagsAllowed)
 		}
 
 		_, err = s.client.TagSecretResource(ctx, id, attr.Tags)
@@ -96,7 +91,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		currentVersion := ""
 		for version, stages := range describeOutput.VersionIdsToStages {
 			for _, stage := range stages {
-				if *stage == "AWSCURRENT" {
+				if *stage == CurrentVersionMark {
 					currentVersion = version
 				}
 			}
@@ -114,7 +109,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		}
 
 	}
-	logger.Info("secret was set successfully")
+	logger.Info("secret set successfully")
 	return formatAwsSecret(id, value, tags, metadata), nil
 }
 
@@ -123,9 +118,9 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 	logger := s.logger.WithField("id", id)
 
 	getSecretOutput, err := s.client.GetSecret(ctx, id, version)
-	if err != nil || getSecretOutput == nil {
+	if err != nil {
 		logger.Error("secret not found")
-		return nil, translateAwsError(err)
+		return nil, errors.NotFoundError("secret not found")
 	}
 
 	//Prepare to get tags and metadata via description
