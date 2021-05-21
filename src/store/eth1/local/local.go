@@ -241,7 +241,7 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 		return nil, err
 	}
 
-	ethSignature, err := parseSignatureValues(tx, signature, signer)
+	ethSignature, err := appendSignatureV(tx, signature, signer)
 	if err != nil {
 		errMessage := "failed to generate transaction signature"
 		logger.WithError(err).Error(errMessage)

@@ -20,8 +20,9 @@ import (
 )
 
 const (
-	privKeyECDSA = "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
-	privKeyEDDSA = "5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
+	privKeyECDSA       = "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
+	privKeyEDDSA       = "5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
+	EthSignatureLength = 65
 )
 
 type akvKeyTestSuite struct {
@@ -263,7 +264,7 @@ func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
 	}
 	fmt.Println(privKey.PublicKey.X.String(), privKey.PublicKey.Y.String())
 
-	if len(signature) == 65 {
+	if len(signature) == EthSignatureLength {
 		retrievedPubkey, err := crypto.SigToPub(msg, signature)
 		if err != nil {
 			return false, err

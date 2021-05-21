@@ -41,7 +41,7 @@ func parseRecID(pubKeyB []byte) (*byte, error) {
 	return &b, nil
 }
 
-func parseSignatureValues(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
+func appendSignatureV(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
 	r, s, v, err := signer.SignatureValues(tx, sig)
 	if err != nil {
 		return nil, err
