@@ -2,6 +2,8 @@ package client
 
 import (
 	"context"
+	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -24,10 +26,14 @@ func NewClientWithEndpoint(cfg *Config) (*AwsVaultClient, error) {
 	//Create a new session
 	session, _ := session.NewSession()
 	//Create a Secrets Manager client
-	client := secretsmanager.New(session, aws.NewConfig().
+	config := aws.NewConfig().
 		WithRegion(cfg.Region).
-		WithLogLevel(aws.LogDebug).
-		WithEndpoint(cfg.Endpoint))
+		WithEndpoint(cfg.Endpoint)
+
+	if isDebugOn() {
+		config.WithLogLevel(aws.LogDebug)
+	}
+	client := secretsmanager.New(session, config)
 
 	return &AwsVaultClient{*client}, nil
 
@@ -110,4 +116,15 @@ func (c *AwsVaultClient) DeleteSecret(ctx context.Context, id string, force bool
 		SecretId:                   &id,
 		ForceDeleteWithoutRecovery: &force,
 	})
+}
+
+func isDebugOn() bool {
+	val, ok := os.LookupEnv("AWS_DEBUG")
+	if !ok {
+		return false
+	} else {
+		return strings.EqualFold("true", val) ||
+			strings.EqualFold("on", val) ||
+			strings.EqualFold("yes", val)
+	}
 }
