@@ -2,6 +2,7 @@ package storemanager
 
 import (
 	"context"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
@@ -11,7 +12,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-//go:generate mockgen -source=manager.go -destination=mocks/manager.go -package=mock
+//go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
 
 // StoreManager allows to manage multiple stores
 type StoreManager interface {

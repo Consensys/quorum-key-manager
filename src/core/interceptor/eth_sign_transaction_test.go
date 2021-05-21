@@ -8,7 +8,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum/mock"
 	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
-	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts/mock"
+	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )
@@ -39,7 +39,7 @@ func TestEthSignTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetAccountStoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
@@ -52,7 +52,7 @@ func TestEthSignTransaction(t *testing.T) {
 					GasPrice: big.NewInt(10000000000000),
 					GasLimit: 21000,
 				}
-				accountsStore.EXPECT().SignEIP155(gomock.Any(), big.NewInt(1998), expectedFrom, expectedTxData).Return(ethcommon.FromHex("0xa6122e27"), nil)
+				accountsStore.EXPECT().SignTransaction(gomock.Any(), big.NewInt(1998), expectedFrom, expectedTxData).Return(ethcommon.FromHex("0xa6122e27"), nil)
 			},
 			reqBody:          []byte(`{"jsonrpc":"2.0","method":"eth_signTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","gas":"0x5208","gasPrice":"0x9184e72a000","nonce":"0x5"}]}`),
 			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":"0xa6122e27","error":null,"id":null}`),
@@ -64,7 +64,7 @@ func TestEthSignTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetAccountStoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)

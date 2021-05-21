@@ -8,6 +8,7 @@ import (
 	context "context"
 	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	types "github.com/ethereum/go-ethereum/core/types"
 	core "github.com/ethereum/go-ethereum/signer/core"
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
@@ -245,7 +246,7 @@ func (mr *MockStoreMockRecorder) SignTypedData(ctx, addr, typedData interface{})
 }
 
 // SignTransaction mocks base method
-func (m *MockStore) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.TxData) ([]byte, error) {
+func (m *MockStore) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTransaction", ctx, addr, chainID, tx)
 	ret0, _ := ret[0].([]byte)
@@ -275,7 +276,7 @@ func (mr *MockStoreMockRecorder) SignEEA(ctx, addr, chainID, tx, args interface{
 }
 
 // SignPrivate mocks base method
-func (m *MockStore) SignPrivate(ctx context.Context, addr string, tx *ethereum.TxData) ([]byte, error) {
+func (m *MockStore) SignPrivate(ctx context.Context, addr string, tx *types.Transaction) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignPrivate", ctx, addr, tx)
 	ret0, _ := ret[0].([]byte)
@@ -305,17 +306,17 @@ func (mr *MockStoreMockRecorder) ECRevocer(ctx, data, sig interface{}) *gomock.C
 }
 
 // Verify mocks base method
-func (m *MockStore) Verify(ctx context.Context, addr string, sig, payload []byte) error {
+func (m *MockStore) Verify(ctx context.Context, addr string, data, sig []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", ctx, addr, sig, payload)
+	ret := m.ctrl.Call(m, "Verify", ctx, addr, data, sig)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Verify indicates an expected call of Verify
-func (mr *MockStoreMockRecorder) Verify(ctx, addr, sig, payload interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Verify(ctx, addr, data, sig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockStore)(nil).Verify), ctx, addr, sig, payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockStore)(nil).Verify), ctx, addr, data, sig)
 }
 
 // VerifyTypedData mocks base method

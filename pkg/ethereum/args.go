@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/core/types"
+
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -66,26 +68,8 @@ func (msg *SendTxMsg) IsPrivate() bool {
 	return msg.PrivateArgs != PrivateArgs{}
 }
 
-func (msg *SendTxMsg) TxData() *TxData {
-	data := &TxData{
-		To:       msg.To,
-		GasPrice: msg.GasPrice,
-		Value:    msg.Value,
-	}
-
-	if msg.Gas != nil {
-		data.GasLimit = *msg.Gas
-	}
-
-	if msg.Nonce != nil {
-		data.Nonce = *msg.Nonce
-	}
-
-	if msg.Data != nil {
-		data.Data = *msg.Data
-	}
-
-	return data.SetDefault()
+func (msg *SendTxMsg) TxData() *types.Transaction {
+	return types.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
 }
 
 type jsonSendTxMsg struct {

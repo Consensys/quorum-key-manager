@@ -2,8 +2,10 @@ package eth1
 
 import (
 	"context"
-	"github.com/ethereum/go-ethereum/signer/core"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/signer/core"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -55,19 +57,19 @@ type Store interface {
 	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
 
 	// SignTransaction transaction
-	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.TxData) ([]byte, error)
+	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error)
 
 	// SignEEA transaction
 	SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) ([]byte, error)
 
 	// SignPrivate transaction
-	SignPrivate(ctx context.Context, addr string, tx *ethereum.TxData) ([]byte, error)
+	SignPrivate(ctx context.Context, addr string, tx *types.Transaction) ([]byte, error)
 
 	// ECRevocer returns the address from a signature and data
 	ECRevocer(ctx context.Context, data, sig []byte) (string, error)
 
 	// Verify verifies that a signature belongs to a given address
-	Verify(ctx context.Context, addr string, sig, payload []byte) error
+	Verify(ctx context.Context, addr string, data, sig []byte) error
 
 	// Verify verifies that a typed data signature belongs to a given address
 	VerifyTypedData(ctx context.Context, addr string, sig []byte, typedData *core.TypedData) error

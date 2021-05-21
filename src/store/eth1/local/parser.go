@@ -1,10 +1,11 @@
 package local
 
 import (
+	"math/big"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
 )
 
 func parseKey(key *entities.Key) (*entities.ETH1Account, error) {

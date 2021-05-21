@@ -163,7 +163,7 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 	logger := s.logger.WithField("id", id)
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
-		dataLabel: data,
+		dataLabel: base64.URLEncoding.EncodeToString(data),
 	})
 	if err != nil {
 		logger.WithError(err).Error("failed to sign data")
@@ -177,7 +177,7 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 		return nil, errors.HashicorpVaultConnectionError(errMessage)
 	}
 
-	logger.Debug("data was signed successfully")
+	logger.Debug("data signed successfully")
 	return signature, nil
 }
 

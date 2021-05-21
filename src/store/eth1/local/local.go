@@ -3,14 +3,16 @@ package local
 import (
 	"context"
 	"fmt"
+	"math/big"
+	"sync"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core"
-	"math/big"
-	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -26,20 +28,22 @@ var eth1KeyAlgo = &entities.Algorithm{
 // Store is an implementation of ethereum (ETH1) store relying on an underlying key store
 type Store struct {
 	keyStore        keys.Store
-	addrToId        map[string]string
-	deletedAddrToId map[string]string
+	addrToID        map[string]string
+	deletedAddrToID map[string]string
 	mux             sync.RWMutex
+	logger          *log.Logger
 }
 
 var _ eth1.Store = &Store{}
 
 // New creates an HashiCorp key store
-func New(keyStore keys.Store) *Store {
+func New(keyStore keys.Store, logger *log.Logger) *Store {
 	return &Store{
 		mux:             sync.RWMutex{},
 		keyStore:        keyStore,
-		addrToId:        make(map[string]string),
-		deletedAddrToId: make(map[string]string),
+		addrToID:        make(map[string]string),
+		deletedAddrToID: make(map[string]string),
+		logger:          logger,
 	}
 }
 
@@ -96,9 +100,9 @@ func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, er
 
 // Get all accounts
 func (s *Store) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
-	var accounts = make([]*entities.ETH1Account, len(s.addrToId))
+	var accounts = make([]*entities.ETH1Account, len(s.addrToID))
 
-	for _, id := range s.addrToId {
+	for _, id := range s.addrToID {
 		key, err := s.keyStore.Get(ctx, id)
 		if err != nil {
 			return nil, err
@@ -117,9 +121,9 @@ func (s *Store) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 
 // Get all account ids
 func (s *Store) List(_ context.Context) ([]string, error) {
-	addresses := make([]string, len(s.addrToId))
+	addresses := make([]string, len(s.addrToID))
 
-	for address, _ := range s.addrToId {
+	for address := range s.addrToID {
 		addresses = append(addresses, address)
 	}
 
@@ -176,9 +180,9 @@ func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Acco
 
 // Lists all deleted accounts
 func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
-	addresses := make([]string, len(s.deletedAddrToId))
+	addresses := make([]string, len(s.deletedAddrToID))
 
-	for addr, _ := range s.deletedAddrToId {
+	for addr := range s.deletedAddrToID {
 		addresses = append(addresses, addr)
 	}
 
@@ -246,7 +250,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 		return nil, err
 	}
 
-	signature, err := s.Sign(ctx, addr, []byte(encodedData))
+	signature, err := s.Sign(ctx, addr, crypto.Keccak256([]byte(encodedData)))
 	if err != nil {
 		return nil, err
 	}
@@ -254,27 +258,20 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 	return appendRecID(signature, key.PublicKey)
 }
 
-func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.TxData) ([]byte, error) {
-	key, err := s.Get(ctx, addr)
+func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
+	logger := s.logger.WithField("address", addr)
+
+	signer := types.NewEIP155Signer(chainID)
+	signature, err := s.Sign(ctx, addr, signer.Hash(tx).Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	ethTx := types.NewTransaction(tx.Nonce, *tx.To, tx.Value, tx.GasLimit, tx.GasPrice, tx.Data)
-	signature, err := s.Sign(ctx, addr, types.NewEIP155Signer(chainID).Hash(ethTx).Bytes())
+	ethSignature, err := signatureValues(tx, signature, signer)
 	if err != nil {
-		return nil, err
-	}
-
-	// The signature is [R||S] and we want to add the V value to make it compatible with Ethereum [R||S||V]
-	signature, err = appendRecID(signature, key.PublicKey)
-	if err != nil {
-		return nil, err
-	}
-
-	ethSignature, err := ethereum.EIP155Signature(signature, chainID)
-	if err != nil {
-		return nil, errors.EncodingError("failed to recover signature V value")
+		errMessage := "failed to generate transaction signature"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.EncodingError(errMessage)
 	}
 
 	return ethSignature, nil
@@ -286,14 +283,15 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 }
 
 // SignPrivate transaction
-func (s *Store) SignPrivate(ctx context.Context, addr string, tx *ethereum.TxData) ([]byte, error) {
+func (s *Store) SignPrivate(ctx context.Context, addr string, tx *types.Transaction) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
 // ECRevocer returns the address from a signature and data
-func (s *Store) ECRevocer(_ context.Context, sig, data []byte) (string, error) {
-	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
+func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
+	pubKey, err := crypto.SigToPub(data, sig)
 	if err != nil {
+		s.logger.WithError(err).Error("failed to recover public key")
 		return "", errors.InvalidParameterError("failed to recover public key, please verify your signature and payload")
 	}
 
@@ -301,8 +299,8 @@ func (s *Store) ECRevocer(_ context.Context, sig, data []byte) (string, error) {
 }
 
 // Verify verifies that a signature belongs to a given address
-func (s *Store) Verify(ctx context.Context, addr string, sig, payload []byte) error {
-	recoveredAddress, err := s.ECRevocer(ctx, payload, sig)
+func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error {
+	recoveredAddress, err := s.ECRevocer(ctx, data, sig)
 	if err != nil {
 		return err
 	}
@@ -345,7 +343,7 @@ func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 }
 
 func (s *Store) getID(addr string) (string, error) {
-	id, ok := s.addrToId[addr]
+	id, ok := s.addrToID[addr]
 	if !ok {
 		return "", errors.NotFoundError("account %s was not found", addr)
 	}
@@ -354,7 +352,7 @@ func (s *Store) getID(addr string) (string, error) {
 }
 
 func (s *Store) getDeletedID(addr string) (string, error) {
-	id, ok := s.deletedAddrToId[addr]
+	id, ok := s.deletedAddrToID[addr]
 	if !ok {
 		return "", errors.NotFoundError("deleted account %s was not found", addr)
 	}
@@ -365,25 +363,25 @@ func (s *Store) getDeletedID(addr string) (string, error) {
 func (s *Store) addID(addr, id string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.addrToId[addr] = id
+	s.addrToID[addr] = id
 }
 
 func (s *Store) addDeletedID(addr, id string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.deletedAddrToId[addr] = id
+	s.deletedAddrToID[addr] = id
 }
 
 func (s *Store) removeID(addr string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	delete(s.addrToId, addr)
+	delete(s.addrToID, addr)
 }
 
 func (s *Store) removeDeletedID(addr string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	delete(s.deletedAddrToId, addr)
+	delete(s.deletedAddrToID, addr)
 }
 
 func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
@@ -407,4 +405,13 @@ func appendRecID(sig, pubKey []byte) ([]byte, error) {
 	}
 
 	return append(sig, *recID), nil
+}
+
+func signatureValues(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
+	r, s, v, err := signer.SignatureValues(tx, sig)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(append(r.Bytes(), s.Bytes()...), v.Bytes()...), nil
 }

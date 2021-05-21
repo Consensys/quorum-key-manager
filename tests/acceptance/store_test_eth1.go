@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -155,9 +156,9 @@ func (s *eth1TestSuite) TestList() {
 	})
 }
 
-func (s *eth1TestSuite) TestSign() {
+func (s *eth1TestSuite) TestSignVerify() {
 	ctx := s.env.ctx
-	payload := []byte("my data to sign")
+	payload := crypto.Keccak256([]byte("my data to sign"))
 	id := fmt.Sprintf("my-account-sign-%d", common.RandInt(1000))
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
@@ -176,6 +177,19 @@ func (s *eth1TestSuite) TestSign() {
 		assert.True(t, verified)
 	})
 
+	s.T().Run("should sign, recover an address and verify the signature successfully", func(t *testing.T) {
+		signature, err := s.store.Sign(ctx, account.Address, payload)
+		require.NoError(t, err)
+		assert.Equal(t, "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", hexutil.Encode(signature))
+
+		address, err := s.store.ECRevocer(ctx, payload, signature)
+		require.NoError(t, err)
+		assert.Equal(t, account.Address, address)
+
+		err = s.store.Verify(ctx, address, payload, signature)
+		require.NoError(t, err)
+	})
+
 	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
 		signature, err := s.store.Sign(ctx, "invalidAccount", payload)
 		require.Empty(t, signature)
@@ -187,15 +201,14 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	ctx := s.env.ctx
 	id := fmt.Sprintf("my-account-sign-tx-%d", common.RandInt(1000))
 	chainID := big.NewInt(1)
-	to := ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
-	txData := &ethereum.TxData{
-		Nonce:    0,
-		To:       &to,
-		Value:    big.NewInt(0),
-		GasPrice: big.NewInt(0),
-		GasLimit: 0,
-		Data:     nil,
-	}
+	tx := types.NewTransaction(
+		0,
+		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
+		big.NewInt(0),
+		0,
+		big.NewInt(0),
+		nil,
+	)
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
 	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
@@ -204,20 +217,45 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	require.NoError(s.T(), err)
 
 	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
-		signature, err := s.store.SignTransaction(ctx, account.Address, chainID, txData)
+		signature, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
 		require.NoError(t, err)
-		assert.Equal(t, "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
+		assert.Equal(t, "0xe80a82b880ee9c16c30a0d2093590ef64ea2750b9ec9f0c0ca65bb2c2304082f39dc7fcc8621f2f639efef51324bf2c32468b1ab0198527639179bf2f97a77ed26", hexutil.Encode(signature))
 	})
 
 	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
-		signature, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, txData)
+		signature, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, tx)
 		require.Empty(t, signature)
 		assert.True(t, errors.IsNotFoundError(err))
 	})
+}
 
-	s.T().Run("should fail with InvalidParameterError if tx data is invalid", func(t *testing.T) {
-		signature, err := s.store.SignTransaction(ctx, account.Address, chainID, txData)
+func (s *eth1TestSuite) TestSignPrivate() {
+	ctx := s.env.ctx
+	id := fmt.Sprintf("my-account-sign-private-%d", common.RandInt(1000))
+	tx := types.NewTransaction(
+		0,
+		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
+		big.NewInt(0),
+		0,
+		big.NewInt(0),
+		nil,
+	)
+	privKey, _ := hex.DecodeString(privKeyECDSA)
+
+	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+		Tags: testutils.FakeTags(),
+	})
+	require.NoError(s.T(), err)
+
+	s.T().Run("should sign a private transaction successfully", func(t *testing.T) {
+		signature, err := s.store.SignPrivate(ctx, account.Address, tx)
+		require.NoError(t, err)
+		assert.Equal(t, "0xe80a82b880ee9c16c30a0d2093590ef64ea2750b9ec9f0c0ca65bb2c2304082f39dc7fcc8621f2f639efef51324bf2c32468b1ab0198527639179bf2f97a77ed26", hexutil.Encode(signature))
+	})
+
+	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+		signature, err := s.store.SignPrivate(ctx, "invalidAccount", tx)
 		require.Empty(t, signature)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.True(t, errors.IsNotFoundError(err))
 	})
 }

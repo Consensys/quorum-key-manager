@@ -124,8 +124,8 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 		return
 	}
 
-	logger := log.DefaultLogger().SetComponent("HashicorpKey")
-	store := eth1local.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger))
+	logger := log.DefaultLogger().SetComponent("Eth1")
+	store := eth1local.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), logger)
 
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
