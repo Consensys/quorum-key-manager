@@ -217,6 +217,90 @@ func (s *awsSecretStoreTestSuite) TestGetDeleted() {
 	})
 }
 
+func (s *awsSecretStoreTestSuite) TestDeleted() {
+	ctx := context.Background()
+	id := "my-secret"
+	destroy := false
+
+	deleteOutput := &secretsmanager.DeleteSecretOutput{
+		Name: &id,
+	}
+
+	s.T().Run("should delete secret successfully", func(t *testing.T) {
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
+
+		_, err := s.secretStore.Delete(ctx, id)
+
+		assert.NoError(t, err)
+	})
+}
+
+func (s *awsSecretStoreTestSuite) TestDestroy() {
+	ctx := context.Background()
+	id := "my-secret"
+	destroy := true
+
+	deleteOutput := &secretsmanager.DeleteSecretOutput{
+		Name: &id,
+	}
+
+	s.T().Run("should destroy secret successfully", func(t *testing.T) {
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
+
+		err := s.secretStore.Destroy(ctx, id)
+
+		assert.NoError(t, err)
+	})
+
+	s.T().Run("should fail to destroy secret with internal error", func(t *testing.T) {
+
+		awsError := awserr.New(secretsmanager.ErrCodeInternalServiceError, "", nil)
+		expectedError := errors.InternalError("internal error")
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+
+		err := s.secretStore.Destroy(ctx, id)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedError)
+	})
+
+	s.T().Run("should fail to destroy secret with internal error", func(t *testing.T) {
+
+		awsError := awserr.New(secretsmanager.ErrCodeInternalServiceError, "", nil)
+		expectedError := errors.InternalError("internal error")
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+
+		err := s.secretStore.Destroy(ctx, id)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedError)
+	})
+
+	s.T().Run("should fail to destroy secret with not found error", func(t *testing.T) {
+
+		awsError := awserr.New(secretsmanager.ErrCodeResourceNotFoundException, "", nil)
+		expectedError := errors.NotFoundError("resource was not found")
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+
+		err := s.secretStore.Destroy(ctx, id)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedError)
+	})
+
+	s.T().Run("should fail to destroy secret with not found error", func(t *testing.T) {
+
+		awsError := awserr.New(secretsmanager.ErrCodeLimitExceededException, "", nil)
+		expectedError := errors.InternalError("internal error, limit exceeded")
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+
+		err := s.secretStore.Destroy(ctx, id)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedError)
+	})
+}
+
 func (s *awsSecretStoreTestSuite) TestList() {
 	ctx := context.Background()
 	sec3, sec4 := "my-secret3", "my-secret4"
