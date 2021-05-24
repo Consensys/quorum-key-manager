@@ -24,7 +24,7 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Get store for from
-	store, err := i.stores.GetAccountStoreByAddr(ctx, msg.From)
+	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
 	if err != nil {
 		return nil, err
 	}
@@ -37,18 +37,17 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Sign
-	sig := new([]byte)
+	var sig []byte
 	if msg.IsPrivate() {
-		*sig, err = store.SignPrivate(ctx, msg.From, msg.TxData())
+		sig, err = store.SignPrivate(ctx, msg.From.Hex(), msg.TxData())
 	} else {
-		*sig, err = store.SignEIP155(ctx, chainID, msg.From, msg.TxData())
+		sig, err = store.SignTransaction(ctx, msg.From.Hex(), chainID, msg.TxData())
 	}
-
 	if err != nil {
 		return nil, err
 	}
 
-	return (*hexutil.Bytes)(sig), nil
+	return (*hexutil.Bytes)(&sig), nil
 }
 
 func (i *Interceptor) EthSignTransaction() jsonrpc.Handler {

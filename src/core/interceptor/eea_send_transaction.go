@@ -11,7 +11,7 @@ import (
 
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
 	// Get store for from
-	store, err := i.stores.GetAccountStoreByAddr(ctx, msg.From)
+	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Sign
-	sig, err := store.SignEEA(ctx, chainID, msg.From, msg.TxData(), &msg.PrivateArgs)
+	sig, err := store.SignEEA(ctx, msg.From.Hex(), chainID, msg.TxData(), &msg.PrivateArgs)
 	if err != nil {
 		return nil, err
 	}

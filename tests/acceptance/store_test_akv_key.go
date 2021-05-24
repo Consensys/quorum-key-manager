@@ -20,8 +20,9 @@ import (
 )
 
 const (
-	privKeyECDSA = "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
-	privKeyEDDSA = "5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
+	privKeyECDSA       = "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
+	privKeyEDDSA       = "5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
+	EthSignatureLength = 65
 )
 
 type akvKeyTestSuite struct {
@@ -221,7 +222,7 @@ func (s *akvKeyTestSuite) TestList() {
 func (s *akvKeyTestSuite) TestSign() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
-	payload := []byte("my data to sign")
+	payload := crypto.Keccak256([]byte("my data to sign"))
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
 	id := fmt.Sprintf("mykey-sign-ecdsa-%d", common.RandInt(1000))
@@ -256,14 +257,25 @@ func (s *akvKeyTestSuite) TestSign() {
 	})
 }
 
-func verifySignature(signature, msg, privKey []byte) (bool, error) {
-	privKeyS, err := crypto.ToECDSA(privKey)
+func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
+	privKey, err := crypto.ToECDSA(privKeyB)
 	if err != nil {
 		return false, err
+	}
+	fmt.Println(privKey.PublicKey.X.String(), privKey.PublicKey.Y.String())
+
+	if len(signature) == EthSignatureLength {
+		retrievedPubkey, err := crypto.SigToPub(msg, signature)
+		if err != nil {
+			return false, err
+		}
+
+		fmt.Println(retrievedPubkey.X.String(), retrievedPubkey.Y.String())
+
+		return privKey.PublicKey.Equal(retrievedPubkey), nil
 	}
 
 	r := new(big.Int).SetBytes(signature[0:32])
 	s := new(big.Int).SetBytes(signature[32:64])
-
-	return ecdsa.Verify(&privKeyS.PublicKey, crypto.Keccak256(msg), r, s), nil
+	return ecdsa.Verify(&privKey.PublicKey, msg, r, s), nil
 }

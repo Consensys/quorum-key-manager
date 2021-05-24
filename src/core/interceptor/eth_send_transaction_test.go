@@ -9,7 +9,7 @@ import (
 	mockethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum/mock"
 	mocktessera "github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera/mock"
 	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/node/proxy"
-	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts/mock"
+	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )
@@ -41,7 +41,7 @@ func TestEthSendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetAccountStoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
 
 				// Get Gas price
 				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)
@@ -61,16 +61,7 @@ func TestEthSendTransaction(t *testing.T) {
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
 				// Sign
-				expectedTxData := &ethereum.TxData{
-					Nonce:    5,
-					To:       nil,
-					GasLimit: 21000,
-					GasPrice: big.NewInt(1000000000),
-					Value:    big.NewInt(0),
-					Data:     ethcommon.FromHex("0x5208"),
-				}
-
-				accountsStore.EXPECT().SignEIP155(gomock.Any(), big.NewInt(1998), expectedFrom, expectedTxData).Return(ethcommon.FromHex("0xa6122e27"), nil)
+				accountsStore.EXPECT().SignTransaction(gomock.Any(), expectedFrom.Hex(), big.NewInt(1998), gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
 
 				// SendRawTransaction
 				ethCaller.EXPECT().SendRawTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27")).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
@@ -85,7 +76,7 @@ func TestEthSendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetAccountStoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
 
 				// Get Gas price
 				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)
@@ -107,16 +98,7 @@ func TestEthSendTransaction(t *testing.T) {
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
 				// Sign
-				expectedTxData := &ethereum.TxData{
-					Nonce:    5,
-					To:       nil,
-					GasLimit: 21000,
-					GasPrice: big.NewInt(1000000000),
-					Value:    big.NewInt(0),
-					Data:     ethcommon.FromHex("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"),
-				}
-
-				accountsStore.EXPECT().SignPrivate(gomock.Any(), expectedFrom, expectedTxData).Return(ethcommon.FromHex("0xa6122e27"), nil)
+				accountsStore.EXPECT().SignPrivate(gomock.Any(), expectedFrom.Hex(), gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
 
 				expectedPrivateArgs := (&ethereum.PrivateArgs{}).WithPrivateFrom("GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=").WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
 				ethCaller.EXPECT().SendRawPrivateTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27"), expectedPrivateArgs).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)

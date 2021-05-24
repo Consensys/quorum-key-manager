@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
@@ -76,15 +77,15 @@ func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error
 	return nil, errors.NotFoundError("key store %s was not found", name)
 }
 
-func (m *manager) GetAccountStore(ctx context.Context, name string) (accounts.Store, error) {
+func (m *manager) GetEth1Store(ctx context.Context, name string) (eth1.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
-	return m.getAccountStore(ctx, name)
+	return m.getEth1Store(ctx, name)
 }
 
-func (m *manager) getAccountStore(_ context.Context, name string) (accounts.Store, error) {
+func (m *manager) getEth1Store(_ context.Context, name string) (eth1.Store, error) {
 	if storeBundle, ok := m.account[name]; ok {
-		if store, ok := storeBundle.store.(accounts.Store); ok {
+		if store, ok := storeBundle.store.(eth1.Store); ok {
 			return store, nil
 		}
 	}
@@ -92,7 +93,7 @@ func (m *manager) getAccountStore(_ context.Context, name string) (accounts.Stor
 	return nil, errors.NotFoundError("account store %s was not found", name)
 }
 
-func (m *manager) GetAccountStoreByAddr(ctx context.Context, addr ethcommon.Address) (accounts.Store, error) {
+func (m *manager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	storeNames, err := m.list(ctx, "")
@@ -105,16 +106,12 @@ func (m *manager) GetAccountStoreByAddr(ctx context.Context, addr ethcommon.Addr
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
-			account, err := m.getAccountStore(ctx, storeName)
+			account, err := m.getEth1Store(ctx, storeName)
 			if err == nil {
 				// Check if account exists in store and returns it
-				_, err := account.Get(ctx, addr)
+				_, err := account.Get(ctx, addr.Hex())
 				if err == nil {
 					return account, nil
-				}
-
-				if err != accounts.ErrorNotfound {
-					return nil, err
 				}
 			}
 		}
@@ -145,20 +142,20 @@ func (m *manager) list(_ context.Context, kind manifest.Kind) ([]string, error) 
 	return storeNames, nil
 }
 
-func (m *manager) ListAllAccounts(ctx context.Context) ([]*entities.Account, error) {
+func (m *manager) ListAllAccounts(ctx context.Context) ([]*entities.ETH1Account, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	accs := []*entities.Account{}
+	accs := []*entities.ETH1Account{}
 	storeNames, err := m.list(ctx, "")
 	if err != nil {
 		return accs, err
 	}
 
 	for _, storeName := range storeNames {
-		store, err := m.getAccountStore(ctx, storeName)
+		store, err := m.getEth1Store(ctx, storeName)
 		if err == nil {
-			storeAccs, _, err := store.List(ctx, 0, "")
+			storeAccs, err := store.GetAll(ctx)
 			if err == nil {
 				accs = append(accs, storeAccs...)
 			}

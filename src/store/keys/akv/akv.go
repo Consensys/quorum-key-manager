@@ -5,8 +5,6 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -198,7 +196,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 		return nil, err
 	}
 
-	b64Signature, err := s.client.Sign(ctx, id, "", algo, base64.RawURLEncoding.EncodeToString(crypto.Keccak256(data)))
+	b64Signature, err := s.client.Sign(ctx, id, "", algo, base64.RawURLEncoding.EncodeToString(data))
 	if err != nil {
 		errMessage := "failed to sign payload"
 		logger.WithError(err).Error(errMessage)

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/ethereum/go-ethereum/crypto"
 	"math/rand"
 	"testing"
 
@@ -219,6 +220,7 @@ func (s *hashicorpKeyTestSuite) TestSign() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 	payload := []byte("my data to sign")
+	hashedPayload := crypto.Keccak256(payload)
 
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
 		id := "my-key-sign-ecdsa"
@@ -232,7 +234,7 @@ func (s *hashicorpKeyTestSuite) TestSign() {
 		})
 		require.NoError(s.T(), err)
 
-		signature, err := s.store.Sign(ctx, id, payload)
+		signature, err := s.store.Sign(ctx, id, hashedPayload)
 		require.NoError(t, err)
 
 		assert.Equal(t, "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", base64.URLEncoding.EncodeToString(signature))

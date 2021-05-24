@@ -242,7 +242,8 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 func (s *hashicorpKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
 	expectedPath := s.mountPoint + "/keys/" + id + "/sign"
-	expectedData := []byte("my data")
+	data := []byte("my data")
+	expectedData := base64.URLEncoding.EncodeToString(data)
 	expectedSignature := base64.URLEncoding.EncodeToString([]byte("mySignature"))
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
@@ -255,7 +256,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			dataLabel: expectedData,
 		}).Return(hashicorpSecret, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData)
+		signature, err := s.keyStore.Sign(ctx, id, data)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedSignature, base64.URLEncoding.EncodeToString(signature))
@@ -267,7 +268,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			dataLabel: expectedData,
 		}).Return(nil, expectedErr)
 
-		signature, err := s.keyStore.Sign(ctx, id, expectedData)
+		signature, err := s.keyStore.Sign(ctx, id, data)
 
 		assert.Empty(t, signature)
 		assert.Equal(t, expectedErr, err)
