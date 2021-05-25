@@ -19,7 +19,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-const domainLabel = "EIP712Domain"
+const eip712DomainLabel = "EIP712Domain"
 
 var eth1KeyAlgo = &entities.Algorithm{
 	Type:          entities.Ecdsa,
@@ -323,7 +323,7 @@ func (s *Store) appendRecID(data, sig, pubKey []byte) ([]byte, error) {
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
-		if bytes.Compare(crypto.FromECDSAPub(recoveredPubKey), pubKey) == 0 {
+		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), pubKey) {
 			return appendedSignature, nil
 		}
 	}
@@ -339,7 +339,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 		return "", errors.InvalidParameterError("invalid typed data message")
 	}
 
-	domainSeparatorHash, err := typedData.HashStruct(domainLabel, typedData.Domain.Map())
+	domainSeparatorHash, err := typedData.HashStruct(eip712DomainLabel, typedData.Domain.Map())
 	if err != nil {
 		return "", errors.InvalidParameterError("invalid domain separator")
 	}

@@ -31,6 +31,9 @@ func New(logger *log.Logger) *ETH1Accounts {
 }
 
 func (d *ETH1Accounts) Get(_ context.Context, addr string) (*entities.ETH1Account, error) {
+	d.mux.RLock()
+	defer d.mux.RUnlock()
+
 	account, ok := d.addrToAccounts[addr]
 	if !ok {
 		return nil, errors.NotFoundError("account %s was not found", addr)
@@ -40,6 +43,9 @@ func (d *ETH1Accounts) Get(_ context.Context, addr string) (*entities.ETH1Accoun
 }
 
 func (d *ETH1Accounts) GetDeleted(_ context.Context, addr string) (*entities.ETH1Account, error) {
+	d.mux.RLock()
+	defer d.mux.RUnlock()
+
 	id, ok := d.deletedAddrToAccounts[addr]
 	if !ok {
 		return nil, errors.NotFoundError("deleted account %s was not found", addr)
@@ -49,6 +55,9 @@ func (d *ETH1Accounts) GetDeleted(_ context.Context, addr string) (*entities.ETH
 }
 
 func (d *ETH1Accounts) GetAll(_ context.Context) ([]*entities.ETH1Account, error) {
+	d.mux.RLock()
+	defer d.mux.RUnlock()
+
 	accounts := []*entities.ETH1Account{}
 
 	for _, account := range d.addrToAccounts {
@@ -59,6 +68,9 @@ func (d *ETH1Accounts) GetAll(_ context.Context) ([]*entities.ETH1Account, error
 }
 
 func (d *ETH1Accounts) GetAllDeleted(_ context.Context) ([]*entities.ETH1Account, error) {
+	d.mux.RLock()
+	defer d.mux.RUnlock()
+
 	accounts := []*entities.ETH1Account{}
 
 	for _, account := range d.deletedAddrToAccounts {
@@ -71,6 +83,7 @@ func (d *ETH1Accounts) GetAllDeleted(_ context.Context) ([]*entities.ETH1Account
 func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
+
 	d.addrToAccounts[account.Address] = account
 
 	return nil
