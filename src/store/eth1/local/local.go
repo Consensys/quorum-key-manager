@@ -1,6 +1,7 @@
 package local
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/big"
@@ -210,7 +211,7 @@ func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, err
 		return nil, err
 	}
 
-	return appendRecID(signature, account.PublicKey)
+	return s.appendRecID(data, signature, account.PublicKey)
 }
 
 func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
@@ -224,19 +225,21 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 		return nil, err
 	}
 
-	signature, err := s.Sign(ctx, addr, crypto.Keccak256([]byte(encodedData)))
+	data := crypto.Keccak256([]byte(encodedData))
+	signature, err := s.Sign(ctx, addr, data)
 	if err != nil {
 		return nil, err
 	}
 
-	return appendRecID(signature, account.PublicKey)
+	return s.appendRecID(data, signature, account.PublicKey)
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	logger := s.logger.WithField("address", addr)
 
 	signer := types.NewEIP155Signer(chainID)
-	signature, err := s.Sign(ctx, addr, signer.Hash(tx).Bytes())
+	txData := signer.Hash(tx).Bytes()
+	signature, err := s.Sign(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -247,6 +250,8 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 		logger.WithError(err).Error(errMessage)
 		return nil, errors.EncodingError(errMessage)
 	}
+
+	fmt.Println(s.Verify(ctx, addr, txData, ethSignature))
 
 	return ethSignature, nil
 }
@@ -309,6 +314,27 @@ func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 	return s.keyStore.Decrypt(ctx, account.ID, data)
 }
 
+// To understand this function, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
+func (s *Store) appendRecID(data, sig, pubKey []byte) ([]byte, error) {
+	for _, recID := range []byte{0, 1, 2, 3} {
+		appendedSignature := append(sig, recID)
+		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
+		if err != nil {
+			errMessage := "failed to recover public key candidate with appended recID"
+			s.logger.WithField("recID", recID).WithError(err).Error(errMessage)
+			return nil, errors.InvalidParameterError(errMessage)
+		}
+
+		if bytes.Compare(crypto.FromECDSAPub(recoveredPubKey), pubKey) == 0 {
+			return appendedSignature, nil
+		}
+	}
+
+	errMessage := "failed to compute recovery ID"
+	s.logger.Error(errMessage)
+	return nil, errors.DependencyFailureError(errMessage)
+}
+
 func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
@@ -323,11 +349,11 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-func appendRecID(sig, pubKey []byte) ([]byte, error) {
-	recID, err := parseRecID(pubKey)
+func appendSignatureV(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
+	r, s, v, err := signer.SignatureValues(tx, sig)
 	if err != nil {
 		return nil, err
 	}
 
-	return append(sig, *recID), nil
+	return append(append(r.Bytes(), s.Bytes()...), v.Bytes()...), nil
 }
