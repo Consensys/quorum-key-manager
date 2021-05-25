@@ -57,7 +57,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	err = s.eth1Accounts.AddAccount(ctx, acc)
+	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 		return nil, err
 	}
 
-	err = s.eth1Accounts.AddAccount(ctx, acc)
+	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -85,16 +85,16 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 }
 
 func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	return s.eth1Accounts.GetAccount(ctx, addr)
+	return s.eth1Accounts.Get(ctx, addr)
 }
 
 func (s *Store) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
-	return s.eth1Accounts.GetAllAccounts(ctx)
+	return s.eth1Accounts.GetAll(ctx)
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
 	addresses := []string{}
-	accounts, err := s.eth1Accounts.GetAllAccounts(ctx)
+	accounts, err := s.eth1Accounts.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 		return nil, err
 	}
 
-	err = s.eth1Accounts.AddAccount(ctx, acc)
+	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 }
 
 func (s *Store) Delete(ctx context.Context, addr string) error {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return err
 	}
@@ -141,21 +141,21 @@ func (s *Store) Delete(ctx context.Context, addr string) error {
 		return err
 	}
 
-	err = s.eth1Accounts.RemoveAccount(ctx, addr)
+	err = s.eth1Accounts.Remove(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	return s.eth1Accounts.AddDeletedAccount(ctx, account)
+	return s.eth1Accounts.AddDeleted(ctx, account)
 }
 
 func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	return s.eth1Accounts.GetDeletedAccount(ctx, addr)
+	return s.eth1Accounts.GetDeleted(ctx, addr)
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	addresses := []string{}
-	accounts, err := s.eth1Accounts.GetAllDeletedAccounts(ctx)
+	accounts, err := s.eth1Accounts.GetAllDeleted(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) Undelete(ctx context.Context, addr string) error {
-	account, err := s.eth1Accounts.GetDeletedAccount(ctx, addr)
+	account, err := s.eth1Accounts.GetDeleted(ctx, addr)
 	if err != nil {
 		return err
 	}
@@ -178,16 +178,16 @@ func (s *Store) Undelete(ctx context.Context, addr string) error {
 		return err
 	}
 
-	err = s.eth1Accounts.RemoveDeletedAccount(ctx, addr)
+	err = s.eth1Accounts.RemoveDeleted(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	return s.eth1Accounts.AddAccount(ctx, account)
+	return s.eth1Accounts.Add(ctx, account)
 }
 
 func (s *Store) Destroy(ctx context.Context, addr string) error {
-	account, err := s.eth1Accounts.GetDeletedAccount(ctx, addr)
+	account, err := s.eth1Accounts.GetDeleted(ctx, addr)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 		return err
 	}
 
-	return s.eth1Accounts.RemoveDeletedAccount(ctx, addr)
+	return s.eth1Accounts.RemoveDeleted(ctx, addr)
 }
 
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
@@ -295,7 +295,7 @@ func (s *Store) VerifyTypedData(ctx context.Context, addr string, sig []byte, ty
 }
 
 func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 }
 
 func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}

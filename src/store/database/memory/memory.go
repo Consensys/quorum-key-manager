@@ -30,7 +30,7 @@ func New(logger *log.Logger) *ETH1Accounts {
 	}
 }
 
-func (d *ETH1Accounts) GetAccount(_ context.Context, addr string) (*entities.ETH1Account, error) {
+func (d *ETH1Accounts) Get(_ context.Context, addr string) (*entities.ETH1Account, error) {
 	account, ok := d.addrToAccounts[addr]
 	if !ok {
 		return nil, errors.NotFoundError("account %s was not found", addr)
@@ -39,7 +39,7 @@ func (d *ETH1Accounts) GetAccount(_ context.Context, addr string) (*entities.ETH
 	return account, nil
 }
 
-func (d *ETH1Accounts) GetDeletedAccount(_ context.Context, addr string) (*entities.ETH1Account, error) {
+func (d *ETH1Accounts) GetDeleted(_ context.Context, addr string) (*entities.ETH1Account, error) {
 	id, ok := d.deletedAddrToAccounts[addr]
 	if !ok {
 		return nil, errors.NotFoundError("deleted account %s was not found", addr)
@@ -48,7 +48,7 @@ func (d *ETH1Accounts) GetDeletedAccount(_ context.Context, addr string) (*entit
 	return id, nil
 }
 
-func (d *ETH1Accounts) GetAllAccounts(_ context.Context) ([]*entities.ETH1Account, error) {
+func (d *ETH1Accounts) GetAll(_ context.Context) ([]*entities.ETH1Account, error) {
 	accounts := []*entities.ETH1Account{}
 
 	for _, account := range d.addrToAccounts {
@@ -58,7 +58,7 @@ func (d *ETH1Accounts) GetAllAccounts(_ context.Context) ([]*entities.ETH1Accoun
 	return accounts, nil
 }
 
-func (d *ETH1Accounts) GetAllDeletedAccounts(_ context.Context) ([]*entities.ETH1Account, error) {
+func (d *ETH1Accounts) GetAllDeleted(_ context.Context) ([]*entities.ETH1Account, error) {
 	accounts := []*entities.ETH1Account{}
 
 	for _, account := range d.deletedAddrToAccounts {
@@ -68,7 +68,7 @@ func (d *ETH1Accounts) GetAllDeletedAccounts(_ context.Context) ([]*entities.ETH
 	return accounts, nil
 }
 
-func (d *ETH1Accounts) AddAccount(_ context.Context, account *entities.ETH1Account) error {
+func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 	d.addrToAccounts[account.Address] = account
@@ -76,7 +76,7 @@ func (d *ETH1Accounts) AddAccount(_ context.Context, account *entities.ETH1Accou
 	return nil
 }
 
-func (d *ETH1Accounts) AddDeletedAccount(_ context.Context, account *entities.ETH1Account) error {
+func (d *ETH1Accounts) AddDeleted(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 	d.deletedAddrToAccounts[account.Address] = account
@@ -84,7 +84,7 @@ func (d *ETH1Accounts) AddDeletedAccount(_ context.Context, account *entities.ET
 	return nil
 }
 
-func (d *ETH1Accounts) RemoveAccount(_ context.Context, addr string) error {
+func (d *ETH1Accounts) Remove(_ context.Context, addr string) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 	delete(d.addrToAccounts, addr)
@@ -92,7 +92,7 @@ func (d *ETH1Accounts) RemoveAccount(_ context.Context, addr string) error {
 	return nil
 }
 
-func (d *ETH1Accounts) RemoveDeletedAccount(_ context.Context, addr string) error {
+func (d *ETH1Accounts) RemoveDeleted(_ context.Context, addr string) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 	delete(d.deletedAddrToAccounts, addr)
