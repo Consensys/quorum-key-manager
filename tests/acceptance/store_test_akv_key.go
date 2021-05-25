@@ -275,6 +275,15 @@ func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
 		return privKey.PublicKey.Equal(retrievedPubkey), nil
 	}
 
+	if len(signature) == EthSignatureLength {
+		retrievedPubkey, err := crypto.SigToPub(msg, signature)
+		if err != nil {
+			return false, err
+		}
+
+		return privKey.PublicKey.Equal(retrievedPubkey), nil
+	}
+
 	r := new(big.Int).SetBytes(signature[0:32])
 	s := new(big.Int).SetBytes(signature[32:64])
 	return ecdsa.Verify(&privKey.PublicKey, msg, r, s), nil

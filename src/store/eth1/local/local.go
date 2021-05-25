@@ -1,6 +1,7 @@
 package local
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/big"
@@ -18,7 +19,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-const domainLabel = "EIP712Domain"
+const eip712DomainLabel = "EIP712Domain"
 
 var eth1KeyAlgo = &entities.Algorithm{
 	Type:          entities.Ecdsa,
@@ -56,7 +57,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	err = s.eth1Accounts.AddAccount(ctx, acc)
+	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 		return nil, err
 	}
 
-	err = s.eth1Accounts.AddAccount(ctx, acc)
+	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -84,16 +85,16 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 }
 
 func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	return s.eth1Accounts.GetAccount(ctx, addr)
+	return s.eth1Accounts.Get(ctx, addr)
 }
 
 func (s *Store) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
-	return s.eth1Accounts.GetAllAccounts(ctx)
+	return s.eth1Accounts.GetAll(ctx)
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
 	addresses := []string{}
-	accounts, err := s.eth1Accounts.GetAllAccounts(ctx)
+	accounts, err := s.eth1Accounts.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +107,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 		return nil, err
 	}
 
-	err = s.eth1Accounts.AddAccount(ctx, acc)
+	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +131,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 }
 
 func (s *Store) Delete(ctx context.Context, addr string) error {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return err
 	}
@@ -140,21 +141,21 @@ func (s *Store) Delete(ctx context.Context, addr string) error {
 		return err
 	}
 
-	err = s.eth1Accounts.RemoveAccount(ctx, addr)
+	err = s.eth1Accounts.Remove(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	return s.eth1Accounts.AddDeletedAccount(ctx, account)
+	return s.eth1Accounts.AddDeleted(ctx, account)
 }
 
 func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	return s.eth1Accounts.GetDeletedAccount(ctx, addr)
+	return s.eth1Accounts.GetDeleted(ctx, addr)
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	addresses := []string{}
-	accounts, err := s.eth1Accounts.GetAllDeletedAccounts(ctx)
+	accounts, err := s.eth1Accounts.GetAllDeleted(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +168,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) Undelete(ctx context.Context, addr string) error {
-	account, err := s.eth1Accounts.GetDeletedAccount(ctx, addr)
+	account, err := s.eth1Accounts.GetDeleted(ctx, addr)
 	if err != nil {
 		return err
 	}
@@ -177,16 +178,16 @@ func (s *Store) Undelete(ctx context.Context, addr string) error {
 		return err
 	}
 
-	err = s.eth1Accounts.RemoveDeletedAccount(ctx, addr)
+	err = s.eth1Accounts.RemoveDeleted(ctx, addr)
 	if err != nil {
 		return err
 	}
 
-	return s.eth1Accounts.AddAccount(ctx, account)
+	return s.eth1Accounts.Add(ctx, account)
 }
 
 func (s *Store) Destroy(ctx context.Context, addr string) error {
-	account, err := s.eth1Accounts.GetDeletedAccount(ctx, addr)
+	account, err := s.eth1Accounts.GetDeleted(ctx, addr)
 	if err != nil {
 		return err
 	}
@@ -196,7 +197,7 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 		return err
 	}
 
-	return s.eth1Accounts.RemoveDeletedAccount(ctx, addr)
+	return s.eth1Accounts.RemoveDeleted(ctx, addr)
 }
 
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
@@ -210,7 +211,7 @@ func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, err
 		return nil, err
 	}
 
-	return appendRecID(signature, account.PublicKey)
+	return s.appendRecID(data, signature, account.PublicKey)
 }
 
 func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
@@ -224,19 +225,21 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 		return nil, err
 	}
 
-	signature, err := s.Sign(ctx, addr, crypto.Keccak256([]byte(encodedData)))
+	data := crypto.Keccak256([]byte(encodedData))
+	signature, err := s.Sign(ctx, addr, data)
 	if err != nil {
 		return nil, err
 	}
 
-	return appendRecID(signature, account.PublicKey)
+	return s.appendRecID(data, signature, account.PublicKey)
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	logger := s.logger.WithField("address", addr)
 
 	signer := types.NewEIP155Signer(chainID)
-	signature, err := s.Sign(ctx, addr, signer.Hash(tx).Bytes())
+	txData := signer.Hash(tx).Bytes()
+	signature, err := s.Sign(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +295,7 @@ func (s *Store) VerifyTypedData(ctx context.Context, addr string, sig []byte, ty
 }
 
 func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -301,12 +304,33 @@ func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 }
 
 func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	account, err := s.eth1Accounts.GetAccount(ctx, addr)
+	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
 
 	return s.keyStore.Decrypt(ctx, account.ID, data)
+}
+
+// To understand this function, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
+func (s *Store) appendRecID(data, sig, pubKey []byte) ([]byte, error) {
+	for _, recID := range []byte{0, 1, 2, 3} {
+		appendedSignature := append(sig, recID)
+		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
+		if err != nil {
+			errMessage := "failed to recover public key candidate with appended recID"
+			s.logger.WithField("recID", recID).WithError(err).Error(errMessage)
+			return nil, errors.InvalidParameterError(errMessage)
+		}
+
+		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), pubKey) {
+			return appendedSignature, nil
+		}
+	}
+
+	errMessage := "failed to compute recovery ID"
+	s.logger.Error(errMessage)
+	return nil, errors.DependencyFailureError(errMessage)
 }
 
 func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
@@ -315,7 +339,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 		return "", errors.InvalidParameterError("invalid typed data message")
 	}
 
-	domainSeparatorHash, err := typedData.HashStruct(domainLabel, typedData.Domain.Map())
+	domainSeparatorHash, err := typedData.HashStruct(eip712DomainLabel, typedData.Domain.Map())
 	if err != nil {
 		return "", errors.InvalidParameterError("invalid domain separator")
 	}
@@ -323,11 +347,11 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-func appendRecID(sig, pubKey []byte) ([]byte, error) {
-	recID, err := parseRecID(pubKey)
+func appendSignatureV(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
+	r, s, v, err := signer.SignatureValues(tx, sig)
 	if err != nil {
 		return nil, err
 	}
 
-	return append(sig, *recID), nil
+	return append(append(r.Bytes(), s.Bytes()...), v.Bytes()...), nil
 }

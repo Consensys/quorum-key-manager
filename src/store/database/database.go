@@ -13,12 +13,12 @@ type Database interface {
 }
 
 type ETH1Accounts interface {
-	GetAccount(ctx context.Context, addr string) (*entities.ETH1Account, error)
-	GetDeletedAccount(ctx context.Context, addr string) (*entities.ETH1Account, error)
-	GetAllAccounts(ctx context.Context) ([]*entities.ETH1Account, error)
-	GetAllDeletedAccounts(ctx context.Context) ([]*entities.ETH1Account, error)
-	AddAccount(ctx context.Context, account *entities.ETH1Account) error
-	AddDeletedAccount(ctx context.Context, account *entities.ETH1Account) error
-	RemoveAccount(ctx context.Context, addr string) error
-	RemoveDeletedAccount(ctx context.Context, addr string) error
+	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	GetAll(ctx context.Context) ([]*entities.ETH1Account, error)
+	GetAllDeleted(ctx context.Context) ([]*entities.ETH1Account, error)
+	Add(ctx context.Context, account *entities.ETH1Account) error
+	AddDeleted(ctx context.Context, account *entities.ETH1Account) error
+	Remove(ctx context.Context, addr string) error
+	RemoveDeleted(ctx context.Context, addr string) error
 }
