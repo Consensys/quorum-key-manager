@@ -14,7 +14,7 @@ type SecretsManagerClient interface {
 	PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error)
 	TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error)
 	DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error)
-	ListSecrets(ctx context.Context) (*secretsmanager.ListSecretsOutput, error)
+	ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error)
 	UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error)
 	RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error)
 	DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error)

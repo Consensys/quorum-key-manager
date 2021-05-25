@@ -96,18 +96,18 @@ func (mr *MockSecretsManagerClientMockRecorder) GetSecret(ctx, id, version inter
 }
 
 // ListSecrets mocks base method.
-func (m *MockSecretsManagerClient) ListSecrets(ctx context.Context) (*secretsmanager.ListSecretsOutput, error) {
+func (m *MockSecretsManagerClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListSecrets", ctx)
+	ret := m.ctrl.Call(m, "ListSecrets", ctx, maxResults, nextToken)
 	ret0, _ := ret[0].(*secretsmanager.ListSecretsOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListSecrets indicates an expected call of ListSecrets.
-func (mr *MockSecretsManagerClientMockRecorder) ListSecrets(ctx interface{}) *gomock.Call {
+func (mr *MockSecretsManagerClientMockRecorder) ListSecrets(ctx, maxResults, nextToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockSecretsManagerClient)(nil).ListSecrets), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockSecretsManagerClient)(nil).ListSecrets), ctx, maxResults, nextToken)
 }
 
 // PutSecretValue mocks base method.

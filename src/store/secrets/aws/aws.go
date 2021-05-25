@@ -153,10 +153,32 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 //List Gets all secret ids as a slice of names
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 
-	listOutput, err := s.client.ListSecrets(ctx)
+	secrets := []string{}
+	nextToken := ""
+
+	//Loop until the entire list is constituted
+	for true {
+		ret, retToken, err := s.ListPaginated(ctx, 0, nextToken)
+		if err != nil {
+			return nil, err
+		}
+		secrets = append(secrets, ret...)
+		if retToken == nil {
+			break
+		}
+		nextToken = *retToken
+
+	}
+	return secrets, nil
+}
+
+//ListPaginated Gets all secret ids as a slice of names
+func (s *SecretStore) ListPaginated(ctx context.Context, maxResults int64, nextToken string) ([]string, *string, error) {
+
+	listOutput, err := s.client.ListSecrets(ctx, maxResults, nextToken)
 	if err != nil {
 		s.logger.Error("failed to list secrets")
-		return nil, translateAwsError(err)
+		return nil, nil, translateAwsError(err)
 	}
 
 	//return only a list of secret names (IDs)
@@ -165,7 +187,7 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 		secretNamesList = append(secretNamesList, *secret.Name)
 	}
 	s.logger.Info("secrets were listed successfully")
-	return secretNamesList, nil
+	return secretNamesList, listOutput.NextToken, nil
 }
 
 //Refresh Updates an existing secret by extending its TTL

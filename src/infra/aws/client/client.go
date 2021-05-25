@@ -92,8 +92,15 @@ func (c *AwsVaultClient) DescribeSecret(ctx context.Context, id string) (*secret
 	})
 }
 
-func (c *AwsVaultClient) ListSecrets(ctx context.Context) (*secretsmanager.ListSecretsOutput, error) {
-	return c.client.ListSecrets(&secretsmanager.ListSecretsInput{})
+func (c *AwsVaultClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
+	listInput := &secretsmanager.ListSecretsInput{}
+	if len(nextToken) > 0 {
+		listInput.NextToken = &nextToken
+	}
+	if maxResults > 0 {
+		listInput.MaxResults = &maxResults
+	}
+	return c.client.ListSecrets(listInput)
 
 }
 func (c *AwsVaultClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
