@@ -11,8 +11,8 @@ const keysPath = "keys"
 
 func (c *HTTPClient) CreateKey(ctx context.Context, storeName string, req *types.CreateKeyRequest) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
-	reqURL := fmt.Sprintf("%s/%s", c.config.URL, keysPath)
-	response, err := postRequest(withStore(ctx, storeName), c.client, reqURL, req)
+	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), keysPath)
+	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +28,8 @@ func (c *HTTPClient) CreateKey(ctx context.Context, storeName string, req *types
 
 func (c *HTTPClient) ImportKey(ctx context.Context, storeName string, req *types.ImportKeyRequest) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
-	reqURL := fmt.Sprintf("%s/%s/import", c.config.URL, keysPath)
-	response, err := postRequest(withStore(ctx, storeName), c.client, reqURL, req)
+	reqURL := fmt.Sprintf("%s/%s/import", withURLStore(c.config.URL, storeName), keysPath)
+	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +44,8 @@ func (c *HTTPClient) ImportKey(ctx context.Context, storeName string, req *types
 }
 
 func (c *HTTPClient) Sign(ctx context.Context, storeName, id string, req *types.SignPayloadRequest) (string, error) {
-	reqURL := fmt.Sprintf("%s/%s/%s/sign", c.config.URL, keysPath, id)
-	response, err := postRequest(withStore(ctx, storeName), c.client, reqURL, req)
+	reqURL := fmt.Sprintf("%s/%s/%s/sign", withURLStore(c.config.URL, storeName), keysPath, id)
+	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return "", err
 	}
@@ -56,9 +56,9 @@ func (c *HTTPClient) Sign(ctx context.Context, storeName, id string, req *types.
 
 func (c *HTTPClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
-	reqURL := fmt.Sprintf("%s/%s/%s", c.config.URL, keysPath, id)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), keysPath, id)
 
-	response, err := getRequest(withStore(ctx, storeName), c.client, reqURL)
+	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +74,8 @@ func (c *HTTPClient) GetKey(ctx context.Context, storeName, id string) (*types.K
 
 func (c *HTTPClient) ListKeys(ctx context.Context, storeName string) ([]string, error) {
 	var ids []string
-	reqURL := fmt.Sprintf("%s/%s", c.config.URL, keysPath)
-	response, err := getRequest(withStore(ctx, storeName), c.client, reqURL)
+	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), keysPath)
+	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +90,8 @@ func (c *HTTPClient) ListKeys(ctx context.Context, storeName string) ([]string, 
 }
 
 func (c *HTTPClient) DestroyKey(ctx context.Context, storeName, id string) error {
-	reqURL := fmt.Sprintf("%s/%s/%s", c.config.URL, keysPath, id)
-	response, err := deleteRequest(withStore(ctx, storeName), c.client, reqURL)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), keysPath, id)
+	response, err := deleteRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return err
 	}

@@ -114,12 +114,16 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 		return nil, err
 	}
 
+	if res == nil || res.Data == nil || res.Data["keys"] == nil {
+		return []string{}, nil
+	}
+
 	keyIds, ok := res.Data["keys"].([]interface{})
 	if !ok {
 		return []string{}, nil
 	}
 
-	var ids []string
+	var ids = []string{}
 	for _, id := range keyIds {
 		ids = append(ids, id.(string))
 	}

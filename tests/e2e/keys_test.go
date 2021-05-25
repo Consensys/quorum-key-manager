@@ -137,7 +137,6 @@ func (s *keysTestSuite) TestCreate() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(t, 404, httpError.StatusCode)
-		assert.Equal(t, "key store inexistentStoreName was not found", httpError.Message)
 	})
 
 	s.T().Run("should fail with bad request if curve is not supported", func(t *testing.T) {
@@ -305,16 +304,6 @@ func (s *keysTestSuite) TestGet() {
 		assert.True(t, keyRetrieved.DeletedAt.IsZero())
 		assert.True(t, keyRetrieved.DestroyedAt.IsZero())
 	})
-
-	// TODO: Add test to check that a specific version can be retrieved when versioning is implemented in Hashicorp
-
-	s.T().Run("should parse errors successfully", func(t *testing.T) {
-		secret, err := s.keyManagerClient.GetSecret(s.ctx, s.cfg.HashicorpKeyStore, "inexistentID", key.Version)
-		require.Nil(t, secret)
-
-		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 404, httpError.StatusCode)
-	})
 }
 
 func (s *keysTestSuite) TestList() {
@@ -346,7 +335,6 @@ func (s *keysTestSuite) TestList() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(t, 404, httpError.StatusCode)
-		assert.Equal(t, "secret store inexistentStoreName was not found", httpError.Message)
 	})
 }
 

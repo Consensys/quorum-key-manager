@@ -60,7 +60,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
-	var list []string
+	var list = []string{}
 	for _, secret := range items {
 		// path.Base to only retrieve the secretName instead of https://<vaultName>.vault.azure.net/secrets/<secretName>
 		// See listSecrets function in https://github.com/Azure-Samples/azure-sdk-for-go-samples/blob/master/keyvault/examples/go-keyvault-msi-example.go

@@ -169,7 +169,7 @@ func (s *akvSecretStoreTestSuite) TestList() {
 		ids, err := s.secretStore.List(ctx)
 
 		assert.NoError(t, err)
-		assert.Nil(t, ids)
+		assert.Empty(t, ids)
 	})
 
 	s.T().Run("should fail if list fails", func(t *testing.T) {

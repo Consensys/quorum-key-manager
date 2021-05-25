@@ -11,8 +11,8 @@ const secretsPath = "secrets"
 
 func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types.SetSecretRequest) (*types.SecretResponse, error) {
 	secret := &types.SecretResponse{}
-	reqURL := fmt.Sprintf("%s/%s", c.config.URL, secretsPath)
-	response, err := postRequest(withStore(ctx, storeName), c.client, reqURL, req)
+	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), secretsPath)
+	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
 	}
@@ -28,13 +28,13 @@ func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types
 
 func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
 	secret := &types.SecretResponse{}
-	reqURL := fmt.Sprintf("%s/%s/%s", c.config.URL, secretsPath, id)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), secretsPath, id)
 
 	if version != "" {
 		reqURL = fmt.Sprintf("%s?version=%s", reqURL, version)
 	}
 
-	response, err := getRequest(withStore(ctx, storeName), c.client, reqURL)
+	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +50,8 @@ func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version strin
 
 func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string) ([]string, error) {
 	var ids []string
-	reqURL := fmt.Sprintf("%s/%s", c.config.URL, secretsPath)
-	response, err := getRequest(withStore(ctx, storeName), c.client, reqURL)
+	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), secretsPath)
+	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return nil, err
 	}

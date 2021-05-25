@@ -165,7 +165,9 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		n.node = prxNode
 		n.stop = prxNode.Stop
 	default:
-		return fmt.Errorf("invalid manifest kind %s", mnf.Kind)
+		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
+		logger.WithError(err).Errorf("error starting node")
+		return err
 	}
 
 	return nil

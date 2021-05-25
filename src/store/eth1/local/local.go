@@ -251,8 +251,6 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 		return nil, errors.EncodingError(errMessage)
 	}
 
-	fmt.Println(s.Verify(ctx, addr, txData, ethSignature))
-
 	return ethSignature, nil
 }
 
