@@ -3,6 +3,8 @@
 package acceptancetests
 
 import (
+	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
@@ -96,6 +98,29 @@ func (s *awsSecretTestSuite) TestList() {
 	require.NoError(s.T(), err)
 	err = s.store.Destroy(ctx, id2)
 	require.NoError(s.T(), err)
+
+	// 100 with random IDs ID
+	randomIDs := make([]string, 100)
+	randomValues := make([]string, 100)
+
+	for i := 0; i < len(randomIDs); i++ {
+		randomIDs[i] = fmt.Sprintf("randomID%d", common.RandInt(100000))
+		randomValues[i] = fmt.Sprintf("randomValues%d", common.RandInt(100000))
+		s.store.Set(ctx, randomIDs[i], randomValues[i], &entities.Attributes{})
+	}
+
+	s.T().Run("should list all secrets ids successfully", func(t *testing.T) {
+		ids, err := s.store.List(ctx)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, ids)
+		assert.NotNil(t, ids)
+	})
+
+	for i := 0; i < len(randomIDs); i++ {
+		err = s.store.Destroy(ctx, randomIDs[i])
+		require.NoError(s.T(), err)
+	}
 }
 
 func (s *awsSecretTestSuite) TestGet() {
