@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math/big"
 
+	quorumtypes "github.com/consensys/quorum/core/types"
+
 	"github.com/ethereum/go-ethereum/core/types"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -76,6 +78,15 @@ func (msg *SendTxMsg) TxData() *types.Transaction {
 	return types.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
 }
 
+// TODO: Remove this function and use only go-quorum types when
+func (msg *SendTxMsg) TxDataQuorum() *quorumtypes.Transaction {
+	if msg.To == nil {
+		return quorumtypes.NewContractCreation(*msg.Nonce, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
+	}
+
+	return quorumtypes.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
+}
+
 type jsonSendTxMsg struct {
 	From     ethcommon.Address  `json:"from,omitempty"`
 	To       *ethcommon.Address `json:"to,omitempty"`
@@ -142,20 +153,12 @@ type SendEEATxMsg struct {
 	PrivateArgs
 }
 
-func (msg *SendEEATxMsg) TxData() *EEATxData {
-	data := &EEATxData{
-		To: msg.To,
+func (msg *SendEEATxMsg) TxData() *types.Transaction {
+	if msg.To == nil {
+		return types.NewContractCreation(*msg.Nonce, nil, 0, nil, *msg.Data)
 	}
 
-	if msg.Nonce != nil {
-		data.Nonce = *msg.Nonce
-	}
-
-	if msg.Data != nil {
-		data.Data = *msg.Data
-	}
-
-	return data
+	return types.NewTransaction(*msg.Nonce, *msg.To, nil, 0, nil, *msg.Data)
 }
 
 type jsonSendEEATxMsg struct {
