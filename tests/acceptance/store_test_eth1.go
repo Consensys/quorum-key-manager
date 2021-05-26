@@ -29,6 +29,27 @@ type eth1TestSuite struct {
 	store eth1.Store
 }
 
+func (s *eth1TestSuite) TearDownSuite() {
+	ctx := s.env.ctx
+
+	addresses, err := s.store.List(ctx)
+	require.NoError(s.T(), err)
+	for len(addresses) != 0 {
+		// TODO: Check error when Hashicorp implements Delete and Destroy
+		for _, address := range addresses {
+			_ = s.store.Delete(ctx, address)
+		}
+
+		for _, address := range addresses {
+			_ = s.store.Destroy(ctx, address)
+		}
+
+		addresses, err = s.store.List(ctx)
+		require.NoError(s.T(), err)
+	}
+
+}
+
 func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
 	id := "my-account-create"
@@ -173,6 +194,8 @@ func (s *eth1TestSuite) TestSignVerify() {
 		signature, err := s.store.Sign(ctx, account.Address, payload)
 		require.NoError(t, err)
 		assert.NotEmpty(t, signature)
+
+		fmt.Println(hexutil.Encode(signature))
 
 		verified, err := verifySignature(signature, payload, privKey)
 		require.NoError(t, err)

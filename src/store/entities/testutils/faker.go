@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"encoding/base64"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -17,13 +18,24 @@ func FakeSecret() *entities.Secret {
 }
 
 func FakeKey() *entities.Key {
-	pubKey, _ := base64.URLEncoding.DecodeString("0x0433d7f005495fb6c0a34e22336dc3adcf4064553d5e194f77126bcac6da19491e0bab2772115cd284605d3bba94b69dc8c7a215021b58bcc87a70c9a440a3ff83")
+	pubKey, _ := base64.URLEncoding.DecodeString("BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=")
 	return &entities.Key{
 		ID:        "my-key-id",
 		PublicKey: pubKey,
 		Algo:      FakeAlgorithm(),
 		Metadata:  FakeMetadata(),
 		Tags:      FakeTags(),
+	}
+}
+
+func FakeETH1Account() *entities.ETH1Account {
+	return &entities.ETH1Account{
+		ID:                  "my-account",
+		Address:             "0x83a0254be47813BBff771F4562744676C4e793F0",
+		Metadata:            FakeMetadata(),
+		PublicKey:           hexutil.MustDecode("0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2"),
+		CompressedPublicKey: hexutil.MustDecode("0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f"),
+		Tags:                FakeTags(),
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -61,11 +62,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	acc, err := parseKey(key)
-	if err != nil {
-		return nil, err
-	}
-
+	acc := parseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -80,11 +77,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 		return nil, err
 	}
 
-	acc, err := parseKey(key)
-	if err != nil {
-		return nil, err
-	}
-
+	acc := parseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -126,11 +119,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 		return nil, err
 	}
 
-	acc, err := parseKey(key)
-	if err != nil {
-		return nil, err
-	}
-
+	acc := parseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -219,6 +208,8 @@ func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(hexutil.Encode(signature))
 
 	return s.appendRecID(data, signature, account.PublicKey)
 }
@@ -422,7 +413,7 @@ func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 
 // To understand this function, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
 func (s *Store) appendRecID(data, sig, pubKey []byte) ([]byte, error) {
-	for _, recID := range []byte{0, 1, 2, 3} {
+	for _, recID := range []byte{0, 1} {
 		appendedSignature := append(sig, recID)
 		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
 		if err != nil {
