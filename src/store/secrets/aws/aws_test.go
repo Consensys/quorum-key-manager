@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"testing"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -153,7 +153,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 
 func (s *awsSecretStoreTestSuite) TestGet() {
 	ctx := context.Background()
-	id := "my-secret"
+	id := "my-secret-get"
 	version := "some-version"
 	secretValue := "secret-value"
 
@@ -219,7 +219,7 @@ func (s *awsSecretStoreTestSuite) TestGetDeleted() {
 
 func (s *awsSecretStoreTestSuite) TestDeleted() {
 	ctx := context.Background()
-	id := "my-secret"
+	id := "my-secret-deleted"
 	destroy := false
 
 	deleteOutput := &secretsmanager.DeleteSecretOutput{

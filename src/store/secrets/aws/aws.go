@@ -15,7 +15,6 @@ import (
 
 const (
 	CurrentVersionMark = "AWSCURRENT"
-	versionLabel       = "version"
 	maxTagsAllowed     = 50
 )
 
@@ -37,13 +36,12 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-//Set Set a secret and tag it when tags exist
+// Set Set a secret and tag it when tags exist
 func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
 
 	_, err := s.client.CreateSecret(ctx, id, value)
 	if err != nil {
-		//TODO parse aws flavored errors
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case secretsmanager.ErrCodeResourceExistsException:
@@ -62,9 +60,9 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		}
 	}
 
-	//Tag secret resource when tags found
+	// Tag secret resource when tags found
 	if len(attr.Tags) > 0 {
-		//check overall len must be limited to max according to doc
+		// check overall len must be limited to max according to doc
 		if len(attr.Tags) > maxTagsAllowed {
 			return nil, errors.InvalidParameterError("resource may not be tagged with more than %d items", maxTagsAllowed)
 		}
@@ -87,7 +85,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 	}
 
 	if describeOutput != nil {
-		//Trick to help us getting the actual current version as there is no versionID metadata
+		// Trick to help us getting the actual current version as there is no versionID metadata
 		currentVersion := ""
 		for version, stages := range describeOutput.VersionIdsToStages {
 			for _, stage := range stages {
@@ -113,7 +111,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 	return formatAwsSecret(id, value, tags, metadata), nil
 }
 
-//Get Gets a secret and its description
+// Get Gets a secret and its description
 func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
 
@@ -123,7 +121,7 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 		return nil, errors.NotFoundError("secret not found")
 	}
 
-	//Prepare to get tags and metadata via description
+	// Prepare to get tags and metadata via description
 	tags := make(map[string]string)
 	metadata := &entities.Metadata{}
 
@@ -150,14 +148,14 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 	return formatAwsSecret(id, *getSecretOutput.SecretString, tags, metadata), nil
 }
 
-//List Gets all secret ids as a slice of names
+// List Gets all secret ids as a slice of names
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 
 	secrets := []string{}
 	nextToken := ""
 
-	//Loop until the entire list is constituted
-	for true {
+	// Loop until the entire list is constituted
+	for {
 		ret, retToken, err := s.ListPaginated(ctx, 0, nextToken)
 		if err != nil {
 			return nil, err
@@ -172,8 +170,8 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	return secrets, nil
 }
 
-//ListPaginated Gets all secret ids as a slice of names
-func (s *SecretStore) ListPaginated(ctx context.Context, maxResults int64, nextToken string) ([]string, *string, error) {
+// ListPaginated Gets all secret ids as a slice of names
+func (s *SecretStore) ListPaginated(ctx context.Context, maxResults int64, nextToken string) (resList []string, resNextToken *string, err error) {
 
 	listOutput, err := s.client.ListSecrets(ctx, maxResults, nextToken)
 	if err != nil {
@@ -181,7 +179,7 @@ func (s *SecretStore) ListPaginated(ctx context.Context, maxResults int64, nextT
 		return nil, nil, translateAwsError(err)
 	}
 
-	//return only a list of secret names (IDs)
+	// return only a list of secret names (IDs)
 	secretNamesList := []string{}
 	for _, secret := range listOutput.SecretList {
 		secretNamesList = append(secretNamesList, *secret.Name)
@@ -190,12 +188,12 @@ func (s *SecretStore) ListPaginated(ctx context.Context, maxResults int64, nextT
 	return secretNamesList, listOutput.NextToken, nil
 }
 
-//Refresh Updates an existing secret by extending its TTL
+// Refresh Updates an existing secret by extending its TTL
 func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate time.Time) error {
 	return errors.ErrNotImplemented
 }
 
-//Delete Deletes a secret
+// Delete Deletes a secret
 func (s *SecretStore) Delete(ctx context.Context, id string) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
 	destroy := false
@@ -209,17 +207,17 @@ func (s *SecretStore) Delete(ctx context.Context, id string) (*entities.Secret, 
 	return formatAwsSecret(*deleteOutput.Name, "", nil, nil), nil
 }
 
-//GetDeleted Gets a deleted secret
+// GetDeleted Gets a deleted secret
 func (s *SecretStore) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-//ListDeleted Lists all deleted secrets
+// ListDeleted Lists all deleted secrets
 func (s *SecretStore) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-//Undelete Restores a previously deleted secret
+// Undelete Restores a previously deleted secret
 func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
 
@@ -232,7 +230,7 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	return nil
 }
 
-//Destroy Deletes a secret permanently (force deletion, secret will be unrecoverable)
+// Destroy Deletes a secret permanently (force deletion, secret will be unrecoverable)
 func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
 	destroy := true

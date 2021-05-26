@@ -15,17 +15,19 @@ type AwsVaultClient struct {
 }
 
 func NewClient(cfg *Config) (*AwsVaultClient, error) {
-	//Create a Secrets Manager client
-	client := secretsmanager.New(session.New(),
+	// Create a new newSession
+	newSession, _ := session.NewSession()
+	// Create a Secrets Manager client
+	client := secretsmanager.New(newSession,
 		aws.NewConfig().WithRegion(cfg.Region).WithLogLevel(aws.LogDebug))
 
 	return &AwsVaultClient{*client}, nil
 }
 
 func NewClientWithEndpoint(cfg *Config) (*AwsVaultClient, error) {
-	//Create a new session
-	session, _ := session.NewSession()
-	//Create a Secrets Manager client
+	// Create a new newSession
+	newSession, _ := session.NewSession()
+	// Create a Secrets Manager client
 	config := aws.NewConfig().
 		WithRegion(cfg.Region).
 		WithEndpoint(cfg.Endpoint)
@@ -33,7 +35,7 @@ func NewClientWithEndpoint(cfg *Config) (*AwsVaultClient, error) {
 	if isDebugOn() {
 		config.WithLogLevel(aws.LogDebug)
 	}
-	client := secretsmanager.New(session, config)
+	client := secretsmanager.New(newSession, config)
 
 	return &AwsVaultClient{*client}, nil
 
@@ -45,9 +47,9 @@ func (c *AwsVaultClient) GetSecret(ctx context.Context, id, version string) (*se
 		VersionId: &version,
 	}
 
-	if len(version) == 0 {
-		//Get with secret-id only
-		//Here adding version would cause a not found error
+	if version == "" {
+		// Get with secret-id only
+		// Here adding version would cause a not found error
 		getSecretInput = &secretsmanager.GetSecretValueInput{
 			SecretId: &id,
 		}
@@ -129,9 +131,9 @@ func isDebugOn() bool {
 	val, ok := os.LookupEnv("AWS_DEBUG")
 	if !ok {
 		return false
-	} else {
-		return strings.EqualFold("true", val) ||
-			strings.EqualFold("on", val) ||
-			strings.EqualFold("yes", val)
 	}
+	return strings.EqualFold("true", val) ||
+		strings.EqualFold("on", val) ||
+		strings.EqualFold("yes", val)
+
 }
