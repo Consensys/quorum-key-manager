@@ -14,7 +14,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
+	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src/app"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv"
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv/client"

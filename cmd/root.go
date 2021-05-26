@@ -6,7 +6,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	app "github.com/ConsenSysQuorum/quorum-key-manager/src"
+	app "github.com/ConsenSysQuorum/quorum-key-manager/src/app"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
