@@ -12,10 +12,10 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv"
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv/client"
 	awsclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws/client"
@@ -160,7 +160,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	logger.WithField("path", tmpYml).Info("new temporal manifest created")
 
-	httpConfig := http.NewDefaultConfig()
+	httpConfig := server.NewDefaultConfig()
 	httpConfig.Port = uint32(envHTTPPort)
 	keyManager, err := newKeyManager(&keymanager.Config{
 		HTTP:         httpConfig,
