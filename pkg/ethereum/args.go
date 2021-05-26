@@ -20,6 +20,7 @@ const (
 	StateValidationPrivacyFlag             = iota | PartyProtectionPrivacyFlag // 3 which includes PrivacyFlagPartyProtection
 )
 
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 // PrivateArgs arguments for private transactions
 type PrivateArgs struct {
 	PrivateFrom    *string      `json:"privateFrom,omitempty"`
@@ -54,6 +55,7 @@ func (args *PrivateArgs) WithPrivacyGroupID(id string) *PrivateArgs {
 	return args
 }
 
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type SendTxMsg struct {
 	From     ethcommon.Address
 	To       *ethcommon.Address
@@ -87,6 +89,7 @@ func (msg *SendTxMsg) TxDataQuorum() *quorumtypes.Transaction {
 	return quorumtypes.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
 }
 
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type jsonSendTxMsg struct {
 	From     ethcommon.Address  `json:"from,omitempty"`
 	To       *ethcommon.Address `json:"to,omitempty"`
@@ -138,12 +141,7 @@ func (msg *SendTxMsg) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type EEATxData struct {
-	Nonce uint64
-	To    *ethcommon.Address
-	Data  []byte
-}
-
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type SendEEATxMsg struct {
 	From  ethcommon.Address
 	To    *ethcommon.Address
@@ -161,6 +159,7 @@ func (msg *SendEEATxMsg) TxData() *types.Transaction {
 	return types.NewTransaction(*msg.Nonce, *msg.To, nil, 0, nil, *msg.Data)
 }
 
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type jsonSendEEATxMsg struct {
 	From  ethcommon.Address  `json:"from,omitempty"`
 	To    *ethcommon.Address `json:"to,omitempty"`

@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
+	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -217,14 +219,83 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	require.NoError(s.T(), err)
 
 	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
-		signature, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
+		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
 		require.NoError(t, err)
-		assert.NotEmpty(t, signature)
+		assert.NotEmpty(t, signedRaw)
 	})
 
 	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
-		signature, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, tx)
-		require.Empty(t, signature)
+		signedRaw, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, tx)
+		require.Empty(t, signedRaw)
+		assert.True(t, errors.IsNotFoundError(err))
+	})
+}
+
+func (s *eth1TestSuite) TestSignPrivate() {
+	ctx := s.env.ctx
+	id := fmt.Sprintf("my-account-sign-private-%d", common.RandInt(1000))
+	tx := quorumtypes.NewTransaction(
+		0,
+		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
+		big.NewInt(0),
+		0,
+		big.NewInt(0),
+		nil,
+	)
+	privKey, _ := hex.DecodeString(privKeyECDSA)
+
+	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+		Tags: testutils.FakeTags(),
+	})
+	require.NoError(s.T(), err)
+
+	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
+		signedRaw, err := s.store.SignPrivate(ctx, account.Address, tx)
+		require.NoError(t, err)
+		assert.NotEmpty(t, signedRaw)
+	})
+
+	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+		signedRaw, err := s.store.SignPrivate(ctx, "invalidAccount", tx)
+		require.Empty(t, signedRaw)
+		assert.True(t, errors.IsNotFoundError(err))
+	})
+}
+
+func (s *eth1TestSuite) TestSignEEA() {
+	ctx := s.env.ctx
+	id := fmt.Sprintf("my-account-sign-eea-%d", common.RandInt(1000))
+	chainID := big.NewInt(1)
+	tx := types.NewTransaction(
+		0,
+		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
+		big.NewInt(0),
+		0,
+		big.NewInt(0),
+		nil,
+	)
+	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
+	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
+	privateArgs := &ethereum.PrivateArgs{
+		PrivateFrom: &privateFrom,
+		PrivateFor:  &privateFor,
+	}
+	privKey, _ := hex.DecodeString(privKeyECDSA)
+
+	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+		Tags: testutils.FakeTags(),
+	})
+	require.NoError(s.T(), err)
+
+	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
+		signedRaw, err := s.store.SignEEA(ctx, account.Address, chainID, tx, privateArgs)
+		require.NoError(t, err)
+		assert.NotEmpty(t, signedRaw)
+	})
+
+	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+		signedRaw, err := s.store.SignEEA(ctx, "invalidAccount", chainID, tx, privateArgs)
+		require.Empty(t, signedRaw)
 		assert.True(t, errors.IsNotFoundError(err))
 	})
 }

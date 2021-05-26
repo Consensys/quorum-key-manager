@@ -280,7 +280,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	privateRecipientEncoded, err := getEncodedPrivateRecipient(*args.PrivacyGroupID, *args.PrivateFor)
+	privateRecipientEncoded, err := getEncodedPrivateRecipient(args.PrivacyGroupID, args.PrivateFor)
 	if err != nil {
 		errMessage := "invalid privacyGroupID or privateFor params"
 		logger.WithError(err).WithField("privateFor", *args.PrivateFor).WithField("privacyGroupID", *args.PrivacyGroupID).Error(errMessage)
@@ -455,17 +455,18 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-func getEncodedPrivateRecipient(privacyGroupID string, privateFor []string) (interface{}, error) {
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
+func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (interface{}, error) {
 	var privateRecipientEncoded interface{}
 	var err error
-	if privacyGroupID != "" {
-		privateRecipientEncoded, err = base64.StdEncoding.DecodeString(privacyGroupID)
+	if privacyGroupID != nil {
+		privateRecipientEncoded, err = base64.StdEncoding.DecodeString(*privacyGroupID)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		var privateForByteSlice [][]byte
-		for _, v := range privateFor {
+		for _, v := range *privateFor {
 			b, der := base64.StdEncoding.DecodeString(v)
 			if der != nil {
 				return nil, err

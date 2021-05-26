@@ -119,6 +119,7 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 	suite.Run(s.T(), testSuite)
 }
 */
+
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
