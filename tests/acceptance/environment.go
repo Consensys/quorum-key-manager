@@ -285,10 +285,10 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 		env.logger.WithError(err).Error("could not down localstack")
 	}
 
-	/*err = env.dockerClient.Down(ctx, hashicorpContainerID)
+	err = env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
-	}*/
+	}
 
 	err = env.dockerClient.RemoveNetwork(ctx, networkName)
 	if err != nil {
