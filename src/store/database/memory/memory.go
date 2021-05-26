@@ -12,17 +12,17 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 )
 
-type ETH1Accounts struct {
+type ETH1AccountsDataAgent struct {
 	addrToAccounts        map[string]*entities.ETH1Account
 	deletedAddrToAccounts map[string]*entities.ETH1Account
 	mux                   sync.RWMutex
 	logger                *log.Logger
 }
 
-var _ database.ETH1Accounts = &ETH1Accounts{}
+var _ database.ETH1Accounts = &ETH1AccountsDataAgent{}
 
-func New(logger *log.Logger) *ETH1Accounts {
-	return &ETH1Accounts{
+func New(logger *log.Logger) *ETH1AccountsDataAgent {
+	return &ETH1AccountsDataAgent{
 		mux:                   sync.RWMutex{},
 		addrToAccounts:        make(map[string]*entities.ETH1Account),
 		deletedAddrToAccounts: make(map[string]*entities.ETH1Account),
@@ -30,7 +30,7 @@ func New(logger *log.Logger) *ETH1Accounts {
 	}
 }
 
-func (d *ETH1Accounts) Get(_ context.Context, addr string) (*entities.ETH1Account, error) {
+func (d *ETH1AccountsDataAgent) Get(_ context.Context, addr string) (*entities.ETH1Account, error) {
 	d.mux.RLock()
 	defer d.mux.RUnlock()
 
@@ -42,7 +42,7 @@ func (d *ETH1Accounts) Get(_ context.Context, addr string) (*entities.ETH1Accoun
 	return account, nil
 }
 
-func (d *ETH1Accounts) GetDeleted(_ context.Context, addr string) (*entities.ETH1Account, error) {
+func (d *ETH1AccountsDataAgent) GetDeleted(_ context.Context, addr string) (*entities.ETH1Account, error) {
 	d.mux.RLock()
 	defer d.mux.RUnlock()
 
@@ -54,7 +54,7 @@ func (d *ETH1Accounts) GetDeleted(_ context.Context, addr string) (*entities.ETH
 	return id, nil
 }
 
-func (d *ETH1Accounts) GetAll(_ context.Context) ([]*entities.ETH1Account, error) {
+func (d *ETH1AccountsDataAgent) GetAll(_ context.Context) ([]*entities.ETH1Account, error) {
 	d.mux.RLock()
 	defer d.mux.RUnlock()
 
@@ -67,7 +67,7 @@ func (d *ETH1Accounts) GetAll(_ context.Context) ([]*entities.ETH1Account, error
 	return accounts, nil
 }
 
-func (d *ETH1Accounts) GetAllDeleted(_ context.Context) ([]*entities.ETH1Account, error) {
+func (d *ETH1AccountsDataAgent) GetAllDeleted(_ context.Context) ([]*entities.ETH1Account, error) {
 	d.mux.RLock()
 	defer d.mux.RUnlock()
 
@@ -80,7 +80,7 @@ func (d *ETH1Accounts) GetAllDeleted(_ context.Context) ([]*entities.ETH1Account
 	return accounts, nil
 }
 
-func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) error {
+func (d *ETH1AccountsDataAgent) Add(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 
@@ -89,7 +89,7 @@ func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) err
 	return nil
 }
 
-func (d *ETH1Accounts) AddDeleted(_ context.Context, account *entities.ETH1Account) error {
+func (d *ETH1AccountsDataAgent) AddDeleted(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 	d.deletedAddrToAccounts[account.Address] = account
@@ -97,7 +97,7 @@ func (d *ETH1Accounts) AddDeleted(_ context.Context, account *entities.ETH1Accou
 	return nil
 }
 
-func (d *ETH1Accounts) Remove(_ context.Context, addr string) error {
+func (d *ETH1AccountsDataAgent) Remove(_ context.Context, addr string) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 	delete(d.addrToAccounts, addr)
@@ -105,7 +105,7 @@ func (d *ETH1Accounts) Remove(_ context.Context, addr string) error {
 	return nil
 }
 
-func (d *ETH1Accounts) RemoveDeleted(_ context.Context, addr string) error {
+func (d *ETH1AccountsDataAgent) RemoveDeleted(_ context.Context, addr string) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 	delete(d.deletedAddrToAccounts, addr)

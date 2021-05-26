@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -21,7 +20,6 @@ func parseErrorResponse(err error) error {
 
 	switch aerr.StatusCode.(int) {
 	case http.StatusNotFound:
-		fmt.Println("I'm in the not found!!!")
 		return errors.NotFoundError(aerr.Original.Error())
 	case http.StatusBadRequest:
 		return errors.InvalidFormatError(aerr.Original.Error())

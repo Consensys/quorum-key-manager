@@ -46,7 +46,7 @@ func (s *eth1TestSuite) TearDownSuite() {
 
 func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
-	id := "my-account-create"
+	id := fmt.Sprintf("my-account-create-%d", common.RandInt(1000))
 	tags := testutils.FakeTags()
 
 	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
@@ -188,8 +188,6 @@ func (s *eth1TestSuite) TestSignVerify() {
 		signature, err := s.store.Sign(ctx, account.Address, payload)
 		require.NoError(t, err)
 		assert.NotEmpty(t, signature)
-
-		fmt.Println(hexutil.Encode(signature))
 
 		verified, err := verifySignature(signature, payload, privKey)
 		require.NoError(t, err)

@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
@@ -209,8 +207,6 @@ func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(hexutil.Encode(signature))
 
 	return s.appendRecID(data, signature, account.PublicKey)
 }
