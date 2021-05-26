@@ -152,11 +152,21 @@ type SendEEATxMsg struct {
 }
 
 func (msg *SendEEATxMsg) TxData() *types.Transaction {
-	if msg.To == nil {
-		return types.NewContractCreation(*msg.Nonce, nil, 0, nil, *msg.Data)
+	var data []byte
+	var nonce uint64
+	if msg.Data != nil {
+		data = *msg.Data
 	}
 
-	return types.NewTransaction(*msg.Nonce, *msg.To, nil, 0, nil, *msg.Data)
+	if msg.Nonce != nil {
+		nonce = *msg.Nonce
+	}
+
+	if msg.To == nil {
+		return types.NewContractCreation(nonce, nil, 0, nil, data)
+	}
+
+	return types.NewTransaction(nonce, *msg.To, nil, 0, nil, data)
 }
 
 // TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
