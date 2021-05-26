@@ -191,7 +191,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &hashicorp.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return err
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
@@ -203,7 +203,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return err
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
@@ -215,7 +215,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &akv.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return err
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
@@ -225,7 +225,8 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.AWSSecrets:
 		spec := &aws.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			return err
+			logger.WithError(err).Error(errMsg)
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := aws.NewSecretStore(spec, logger)
 		if err != nil {
