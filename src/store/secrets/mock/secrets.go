@@ -95,12 +95,11 @@ func (mr *MockStoreMockRecorder) List(ctx interface{}) *gomock.Call {
 }
 
 // Delete mocks base method
-func (m *MockStore) Delete(ctx context.Context, id string) (*entities.Secret, error) {
+func (m *MockStore) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, id)
-	ret0, _ := ret[0].(*entities.Secret)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Delete indicates an expected call of Delete

@@ -19,6 +19,23 @@ type akvSecretTestSuite struct {
 	store *akv.Store
 }
 
+func (s *akvSecretTestSuite) TearDownSuite() {
+	ctx := s.env.ctx
+
+	ids, err := s.store.List(ctx)
+	require.NoError(s.T(), err)
+
+	s.env.logger.WithField("keys", ids).Info("Deleting the following secrets")
+	for _, id := range ids {
+		err = s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+	}
+
+	for _, address := range ids {
+		_ = s.store.Destroy(ctx, address)
+	}
+}
+
 func (s *akvSecretTestSuite) TestSet() {
 	ctx := s.env.ctx
 
@@ -43,10 +60,6 @@ func (s *akvSecretTestSuite) TestSet() {
 		assert.True(t, secret.Metadata.DestroyedAt.IsZero())
 		assert.True(t, secret.Metadata.ExpireAt.IsZero())
 		assert.False(t, secret.Metadata.Disabled)
-
-		_, err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
 	})
 
 	s.T().Run("should increase version at each set", func(t *testing.T) {
@@ -74,10 +87,6 @@ func (s *akvSecretTestSuite) TestSet() {
 		assert.Equal(t, tags2, secret2.Tags)
 		assert.Equal(t, value2, secret2.Value)
 		assert.NotEqual(t, secret1.Metadata.Version, secret2.Metadata.Version)
-
-		_, err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
 	})
 }
 
@@ -101,14 +110,6 @@ func (s *akvSecretTestSuite) TestList() {
 		require.NoError(t, err)
 		assert.NotEmpty(t, ids)
 	})
-
-	_, err = s.store.Delete(ctx, id)
-	require.NoError(s.T(), err)
-	_ = s.store.Destroy(ctx, id)
-
-	_, err = s.store.Delete(ctx, id2)
-	require.NoError(s.T(), err)
-	_ = s.store.Destroy(ctx, id2)
 }
 
 func (s *akvSecretTestSuite) TestGet() {
@@ -170,8 +171,4 @@ func (s *akvSecretTestSuite) TestGet() {
 		assert.Nil(t, secret)
 		require.True(t, errors.IsNotFoundError(err))
 	})
-
-	_, err = s.store.Delete(ctx, id)
-	require.NoError(s.T(), err)
-	_ = s.store.Destroy(ctx, id)
 }

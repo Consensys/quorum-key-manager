@@ -31,6 +31,23 @@ type akvKeyTestSuite struct {
 	store *akv.Store
 }
 
+func (s *akvKeyTestSuite) TearDownSuite() {
+	ctx := s.env.ctx
+
+	ids, err := s.store.List(ctx)
+	require.NoError(s.T(), err)
+
+	s.env.logger.WithField("keys", ids).Info("Deleting the following keys")
+	for _, id := range ids {
+		err = s.store.Delete(ctx, id)
+		require.NoError(s.T(), err)
+	}
+
+	for _, address := range ids {
+		_ = s.store.Destroy(ctx, address)
+	}
+}
+
 func (s *akvKeyTestSuite) TestCreate() {
 	ctx := s.env.ctx
 
@@ -59,10 +76,6 @@ func (s *akvKeyTestSuite) TestCreate() {
 		assert.True(t, key.Metadata.DestroyedAt.IsZero())
 		assert.True(t, key.Metadata.ExpireAt.IsZero())
 		assert.False(t, key.Metadata.Disabled)
-
-		err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
 	})
 
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
@@ -110,10 +123,6 @@ func (s *akvKeyTestSuite) TestImport() {
 		assert.True(t, key.Metadata.DestroyedAt.IsZero())
 		assert.True(t, key.Metadata.ExpireAt.IsZero())
 		assert.False(t, key.Metadata.Disabled)
-
-		err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
 	})
 
 	s.T().Run("should fail to import a new key pair: EDDSA/BN254 (not implemented yet)", func(t *testing.T) {
@@ -161,12 +170,6 @@ func (s *akvKeyTestSuite) TestGet() {
 	})
 	require.NoError(s.T(), err)
 
-	defer func() {
-		err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
-	}()
-
 	s.T().Run("should get a key pair successfully", func(t *testing.T) {
 		keyRetrieved, err := s.store.Get(ctx, id)
 		require.NoError(t, err)
@@ -206,12 +209,6 @@ func (s *akvKeyTestSuite) TestList() {
 	})
 	require.NoError(s.T(), err)
 
-	defer func() {
-		err := s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
-	}()
-
 	s.T().Run("should list all key pairs", func(t *testing.T) {
 		ids, err := s.store.List(ctx)
 		require.NoError(t, err)
@@ -233,12 +230,6 @@ func (s *akvKeyTestSuite) TestSign() {
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
-
-	defer func() {
-		err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-		_ = s.store.Destroy(ctx, id)
-	}()
 
 	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
 		signature, err := s.store.Sign(ctx, id, payload)

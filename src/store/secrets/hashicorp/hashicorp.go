@@ -139,8 +139,8 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 }
 
 // Delete a secret
-func (s *Store) Delete(_ context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) Delete(_ context.Context, id string) error {
+	return errors.ErrNotImplemented
 }
 
 // Gets a deleted secret

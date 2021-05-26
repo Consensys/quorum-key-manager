@@ -21,8 +21,6 @@ import (
 	"testing"
 )
 
-// TODO: Destroy secrets when done with the tests to avoid conflicts between tests
-
 type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
@@ -34,20 +32,16 @@ func (s *eth1TestSuite) TearDownSuite() {
 
 	addresses, err := s.store.List(ctx)
 	require.NoError(s.T(), err)
-	for len(addresses) != 0 {
-		// TODO: Check error when Hashicorp implements Delete and Destroy
-		for _, address := range addresses {
-			_ = s.store.Delete(ctx, address)
-		}
 
-		for _, address := range addresses {
-			_ = s.store.Destroy(ctx, address)
-		}
-
-		addresses, err = s.store.List(ctx)
-		require.NoError(s.T(), err)
+	// TODO: Check error when Hashicorp implements Delete and Destroy
+	s.env.logger.WithField("addresses", addresses).Info("Deleting the following accounts")
+	for _, address := range addresses {
+		err = s.store.Delete(ctx, address)
 	}
 
+	for _, address := range addresses {
+		err = s.store.Destroy(ctx, address)
+	}
 }
 
 func (s *eth1TestSuite) TestCreate() {
