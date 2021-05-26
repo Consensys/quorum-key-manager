@@ -13,6 +13,8 @@ import (
 	eth1local "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/local"
 	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
+	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
+	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -58,7 +60,6 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-/*
 func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -118,7 +119,6 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)
 }
-*/
 
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
