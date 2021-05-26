@@ -7,9 +7,12 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/middleware"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/manager"
+	gorillamux "github.com/gorilla/mux"
 )
 
 const Component = "app"
@@ -20,6 +23,8 @@ type App struct {
 
 	// server processing entrying HTTP request
 	server *http.Server
+
+	router *gorillamux.Router
 
 	// backend managing core business components
 	backend core.Backend
@@ -34,10 +39,18 @@ type App struct {
 }
 
 func New(cfg *Config, logger *log.Logger) (*App, error) {
+	// Create backend
 	backend := core.New()
 
+	// Create router and register APIs
+	router := gorillamux.NewRouter()
+	api.Register(router, backend)
+
+	// Create server
 	httpServer := server.New(cfg.HTTP)
-	httpServer.Handler = api.New(backend)
+
+	// Wrap router into middleware
+	httpServer.Handler = middleware.New(backend)(router)
 
 	mnfstsLoader, err := manifest.NewLocalLoader(cfg.ManifestPath)
 	if err != nil {
@@ -54,11 +67,16 @@ func New(cfg *Config, logger *log.Logger) (*App, error) {
 	return &App{
 		cfg:          cfg,
 		server:       httpServer,
+		router:       router,
 		backend:      backend,
 		logger:       logger.SetComponent(Component),
 		mnfstsLoader: mnfstsLoader,
 		mnfstsMsgs:   msgs,
 	}, nil
+}
+
+func (app *App) Router() *gorillamux.Router {
+	return app.router
 }
 
 func (app *App) startServer(ctx context.Context) error {

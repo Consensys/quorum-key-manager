@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/handlers"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/middleware"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"
@@ -18,9 +17,7 @@ const (
 	jsonRPCPrefix      = "/nodes"
 )
 
-func New(backend core.Backend) http.Handler {
-	r := mux.NewRouter()
-
+func Register(r *mux.Router, backend core.Backend) {
 	r.PathPrefix(secretsPrefix).Handler(
 		middleware.StoreSelector(storesPrefix,
 			middleware.StripPrefix(secretsPrefix, handlers.NewSecretsHandler(backend)),
@@ -35,6 +32,4 @@ func New(backend core.Backend) http.Handler {
 		))
 	r.PathPrefix(storesPrefix).Handler(middleware.StripPrefix(storesPrefix, handlers.NewStoresHandler(backend)))
 	r.PathPrefix(jsonRPCPrefix).Methods(http.MethodPost).Handler(middleware.StripPrefix(jsonRPCPrefix, handlers.NewJSONRPCHandler(backend)))
-
-	return middleware.New(backend)(r)
 }
