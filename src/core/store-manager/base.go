@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/accounts"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/database/memory"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -20,10 +22,10 @@ import (
 )
 
 type manager struct {
-	mux     sync.RWMutex
-	secrets map[string]*storeBundle
-	keys    map[string]*storeBundle
-	account map[string]*storeBundle
+	mux          sync.RWMutex
+	secrets      map[string]*storeBundle
+	keys         map[string]*storeBundle
+	eth1Accounts map[string]*storeBundle
 }
 
 type storeBundle struct {
@@ -33,10 +35,10 @@ type storeBundle struct {
 
 func New() StoreManager {
 	return &manager{
-		mux:     sync.RWMutex{},
-		secrets: make(map[string]*storeBundle),
-		keys:    make(map[string]*storeBundle),
-		account: make(map[string]*storeBundle),
+		mux:          sync.RWMutex{},
+		secrets:      make(map[string]*storeBundle),
+		keys:         make(map[string]*storeBundle),
+		eth1Accounts: make(map[string]*storeBundle),
 	}
 }
 
@@ -84,7 +86,7 @@ func (m *manager) GetEth1Store(ctx context.Context, name string) (eth1.Store, er
 }
 
 func (m *manager) getEth1Store(_ context.Context, name string) (eth1.Store, error) {
-	if storeBundle, ok := m.account[name]; ok {
+	if storeBundle, ok := m.eth1Accounts[name]; ok {
 		if store, ok := storeBundle.store.(eth1.Store); ok {
 			return store, nil
 		}
@@ -106,12 +108,12 @@ func (m *manager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
-			account, err := m.getEth1Store(ctx, storeName)
+			acc, err := m.getEth1Store(ctx, storeName)
 			if err == nil {
 				// Check if account exists in store and returns it
-				_, err := account.Get(ctx, addr.Hex())
+				_, err := acc.Get(ctx, addr.Hex())
 				if err == nil {
-					return account, nil
+					return acc, nil
 				}
 			}
 		}
@@ -132,7 +134,7 @@ func (m *manager) list(_ context.Context, kind manifest.Kind) ([]string, error) 
 	switch kind {
 	case "":
 		storeNames = append(
-			append(m.storeNames(m.secrets, kind), m.storeNames(m.keys, kind)...), m.storeNames(m.account, kind)...)
+			append(m.storeNames(m.secrets, kind), m.storeNames(m.keys, kind)...), m.storeNames(m.eth1Accounts, kind)...)
 	case types.HashicorpSecrets, types.AKVSecrets, types.KMSSecrets:
 		storeNames = m.storeNames(m.secrets, kind)
 	case types.AKVKeys, types.HashicorpKeys, types.KMSKeys:
@@ -222,6 +224,20 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.Eth1Account:
+		spec := &accounts.Eth1Specs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			logger.WithError(err).Error(errMsg)
+			return err
+		}
+
+		memdb := memory.New(logger)
+		store, err := accounts.NewEth1(spec, memdb, logger)
+		if err != nil {
+			logger.WithError(err).Error(errMsg)
+			return err
+		}
+		m.eth1Accounts[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	default:
 		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
 		logger.WithError(err).Error()
