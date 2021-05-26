@@ -6,9 +6,9 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/core/node-manager"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
+	nodemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
 )
 

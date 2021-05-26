@@ -3,13 +3,16 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
+	"testing"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -17,8 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"math/big"
-	"testing"
 )
 
 type eth1TestSuite struct {

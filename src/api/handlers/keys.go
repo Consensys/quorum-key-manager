@@ -9,7 +9,7 @@ import (
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"

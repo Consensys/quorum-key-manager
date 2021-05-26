@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
 )
 
 func FakeSetSecretRequest() *types.SetSecretRequest {

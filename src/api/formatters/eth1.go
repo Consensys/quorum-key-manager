@@ -5,7 +5,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

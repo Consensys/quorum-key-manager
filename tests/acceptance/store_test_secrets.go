@@ -2,15 +2,16 @@ package acceptancetests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type secretsTestSuite struct {
