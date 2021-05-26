@@ -2,8 +2,9 @@ package testutils
 
 import (
 	"encoding/base64"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
