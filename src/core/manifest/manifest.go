@@ -28,10 +28,14 @@ type Manifest struct {
 }
 
 func (mnfst *Manifest) UnmarshalSpecs(specs interface{}) error {
-	bdata, err := json.Marshal(json2.RecursiveToJSON(mnfst.Specs))
+	return UnmarshalSpecs(mnfst.Specs, specs)
+}
+
+func UnmarshalSpecs(src, dest interface{}) error {
+	bdata, err := json.Marshal(json2.RecursiveToJSON(src))
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	return json.Unmarshal(bdata, specs)
+	return json.Unmarshal(bdata, dest)
 }
