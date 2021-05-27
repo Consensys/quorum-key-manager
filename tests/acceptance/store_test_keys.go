@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
 	"math/big"
 	"testing"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,34 +25,31 @@ const (
 	EthSignatureLength = 65
 )
 
-type akvKeyTestSuite struct {
+type keysTestSuite struct {
 	suite.Suite
-	env   *IntegrationEnvironment
-	store *akv.Store
+	env    *IntegrationEnvironment
+	store  keys.Store
+	keyIds []string
 }
 
-func (s *akvKeyTestSuite) TearDownSuite() {
+func (s *keysTestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	ids, err := s.store.List(ctx)
-	require.NoError(s.T(), err)
-
-	s.env.logger.WithField("keys", ids).Info("Deleting the following keys")
-	for _, id := range ids {
-		err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
+	s.env.logger.WithField("keys", s.keyIds).Info("Deleting the following keys")
+	for _, id := range s.keyIds {
+		_ = s.store.Delete(ctx, id)
 	}
 
-	for _, address := range ids {
-		_ = s.store.Destroy(ctx, address)
+	for _, id := range s.keyIds {
+		_ = s.store.Destroy(ctx, id)
 	}
 }
 
-func (s *akvKeyTestSuite) TestCreate() {
+func (s *keysTestSuite) TestCreate() {
 	ctx := s.env.ctx
 
 	s.T().Run("should create a new key pair successfully", func(t *testing.T) {
-		id := fmt.Sprintf("my-key-create-%d", common.RandInt(1000))
+		id := s.newID("my-key-create")
 		tags := testutils.FakeTags()
 
 		key, err := s.store.Create(ctx, id, &entities.Algorithm{
@@ -94,12 +91,12 @@ func (s *akvKeyTestSuite) TestCreate() {
 	})
 }
 
-func (s *akvKeyTestSuite) TestImport() {
+func (s *keysTestSuite) TestImport() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 
 	s.T().Run("should import a new key pair successfully: ECDSA/Secp256k1", func(t *testing.T) {
-		id := fmt.Sprintf("my-key-ecdsa-import-%d", common.RandInt(1000))
+		id := s.newID("my-key-ecdsa-import")
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
 		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
@@ -156,9 +153,9 @@ func (s *akvKeyTestSuite) TestImport() {
 	})
 }
 
-func (s *akvKeyTestSuite) TestGet() {
+func (s *keysTestSuite) TestGet() {
 	ctx := s.env.ctx
-	id := fmt.Sprintf("my-key-get-%d", common.RandInt(1000))
+	id := s.newID("my-key-get")
 	tags := testutils.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
@@ -196,10 +193,10 @@ func (s *akvKeyTestSuite) TestGet() {
 	})
 }
 
-func (s *akvKeyTestSuite) TestList() {
+func (s *keysTestSuite) TestList() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
-	id := fmt.Sprintf("my-key-list-%s", common.RandString(5))
+	id := s.newID("my-key-list")
 
 	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
@@ -216,13 +213,13 @@ func (s *akvKeyTestSuite) TestList() {
 	})
 }
 
-func (s *akvKeyTestSuite) TestSign() {
+func (s *keysTestSuite) TestSign() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 	payload := crypto.Keccak256([]byte("my data to sign"))
 	privKey, _ := hex.DecodeString(privKeyECDSA)
+	id := s.newID("mykey-sign-ecdsa")
 
-	id := fmt.Sprintf("mykey-sign-ecdsa-%d", common.RandInt(1000))
 	_, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
@@ -266,4 +263,11 @@ func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
 	r := new(big.Int).SetBytes(signature[0:32])
 	s := new(big.Int).SetBytes(signature[32:64])
 	return ecdsa.Verify(&privKey.PublicKey, msg, r, s), nil
+}
+
+func (s *keysTestSuite) newID(name string) string {
+	id := fmt.Sprintf("%s-%d", name, common.RandInt(1000))
+	s.keyIds = append(s.keyIds, id)
+
+	return id
 }

@@ -60,63 +60,53 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
+func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
 		return
 	}
 
-	logger := log.DefaultLogger().SetComponent("HashicorpSecret")
-	store := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
+	// Hashicorp tests
+	logger := log.DefaultLogger().SetComponent("Secrets-Hashicorp")
+	hashicorpStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
 
-	testSuite := new(hashicorpSecretTestSuite)
+	testSuite := new(secretsTestSuite)
 	testSuite.env = s.env
-	testSuite.store = store
+	testSuite.store = hashicorpStore
+	suite.Run(s.T(), testSuite)
+
+	// AKV test suite
+	logger = log.DefaultLogger().SetComponent("Secrets-AKV")
+	akvStore := akvsecret.New(s.env.akvClient, logger)
+
+	testSuite = new(secretsTestSuite)
+	testSuite.env = s.env
+	testSuite.store = akvStore
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
+func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
 		return
 	}
 
-	logger := log.DefaultLogger().SetComponent("AKVSecret")
-	store := akvsecret.New(s.env.akvClient, logger)
+	// Hashicorp tests
+	logger := log.DefaultLogger().SetComponent("Keys-Hashicorp")
+	hashicorpStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
 
-	testSuite := new(akvSecretTestSuite)
+	testSuite := new(keysTestSuite)
 	testSuite.env = s.env
-	testSuite.store = store
+	testSuite.store = hashicorpStore
 	suite.Run(s.T(), testSuite)
-}
 
-func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
+	// AKV test suite
+	logger = log.DefaultLogger().SetComponent("Keys-AKV")
+	akvStore := akvkey.New(s.env.akvClient, logger)
 
-	logger := log.DefaultLogger().SetComponent("HashicorpKey")
-	store := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
-
-	testSuite := new(hashicorpKeyTestSuite)
+	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
-	testSuite.store = store
-	suite.Run(s.T(), testSuite)
-}
-
-func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	logger := log.DefaultLogger().SetComponent("AKVKey")
-	store := akvkey.New(s.env.akvClient, logger)
-
-	testSuite := new(akvKeyTestSuite)
-	testSuite.env = s.env
-	testSuite.store = store
+	testSuite.store = akvStore
 	suite.Run(s.T(), testSuite)
 }
 

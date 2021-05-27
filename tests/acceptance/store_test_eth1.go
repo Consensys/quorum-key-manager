@@ -23,30 +23,28 @@ import (
 
 type eth1TestSuite struct {
 	suite.Suite
-	env   *IntegrationEnvironment
-	store eth1.Store
+	env        *IntegrationEnvironment
+	store      eth1.Store
+	accountIDs []string
 }
 
 func (s *eth1TestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	addresses, err := s.store.List(ctx)
-	require.NoError(s.T(), err)
-
 	// TODO: Check error when Hashicorp implements Delete and Destroy
-	s.env.logger.WithField("addresses", addresses).Info("Deleting the following accounts")
-	for _, address := range addresses {
-		err = s.store.Delete(ctx, address)
+	s.env.logger.WithField("addresses", s.accountIDs).Info("Deleting the following accounts")
+	for _, address := range s.accountIDs {
+		_ = s.store.Delete(ctx, address)
 	}
 
-	for _, address := range addresses {
-		err = s.store.Destroy(ctx, address)
+	for _, address := range s.accountIDs {
+		_ = s.store.Destroy(ctx, address)
 	}
 }
 
 func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
-	id := fmt.Sprintf("my-account-create-%d", common.RandInt(1000))
+	id := s.newID("my-account-create")
 	tags := testutils.FakeTags()
 
 	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
@@ -76,7 +74,7 @@ func (s *eth1TestSuite) TestImport() {
 	tags := testutils.FakeTags()
 
 	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
-		id := fmt.Sprintf("my-account-import-%d", common.RandInt(1000))
+		id := s.newID("my-account-import")
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
 		account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
@@ -113,7 +111,7 @@ func (s *eth1TestSuite) TestImport() {
 
 func (s *eth1TestSuite) TestGet() {
 	ctx := s.env.ctx
-	id := fmt.Sprintf("my-account-get-%d", common.RandInt(1000))
+	id := s.newID("my-account-get")
 	tags := testutils.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
@@ -151,8 +149,8 @@ func (s *eth1TestSuite) TestGet() {
 func (s *eth1TestSuite) TestList() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
-	id := fmt.Sprintf("my-account-list-%s", common.RandString(5))
-	id2 := fmt.Sprintf("my-account-list-%s", common.RandString(5))
+	id := s.newID("my-account-list")
+	id2 := s.newID("my-account-list")
 
 	account1, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: tags,
@@ -176,7 +174,7 @@ func (s *eth1TestSuite) TestList() {
 func (s *eth1TestSuite) TestSignVerify() {
 	ctx := s.env.ctx
 	payload := crypto.Keccak256([]byte("my data to sign"))
-	id := fmt.Sprintf("my-account-sign-%d", common.RandInt(1000))
+	id := s.newID("my-account-sign")
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
 	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
@@ -216,7 +214,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 
 func (s *eth1TestSuite) TestSignTransaction() {
 	ctx := s.env.ctx
-	id := fmt.Sprintf("my-account-sign-tx-%d", common.RandInt(1000))
+	id := s.newID("my-account-sign-tx")
 	chainID := big.NewInt(1)
 	tx := types.NewTransaction(
 		0,
@@ -248,7 +246,7 @@ func (s *eth1TestSuite) TestSignTransaction() {
 
 func (s *eth1TestSuite) TestSignPrivate() {
 	ctx := s.env.ctx
-	id := fmt.Sprintf("my-account-sign-private-%d", common.RandInt(1000))
+	id := s.newID("my-account-sign-private")
 	tx := quorumtypes.NewTransaction(
 		0,
 		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
@@ -279,7 +277,7 @@ func (s *eth1TestSuite) TestSignPrivate() {
 
 func (s *eth1TestSuite) TestSignEEA() {
 	ctx := s.env.ctx
-	id := fmt.Sprintf("my-account-sign-eea-%d", common.RandInt(1000))
+	id := s.newID("my-account-sign-eea")
 	chainID := big.NewInt(1)
 	tx := types.NewTransaction(
 		0,
@@ -313,4 +311,11 @@ func (s *eth1TestSuite) TestSignEEA() {
 		require.Empty(t, signedRaw)
 		assert.True(t, errors.IsNotFoundError(err))
 	})
+}
+
+func (s *eth1TestSuite) newID(name string) string {
+	id := fmt.Sprintf("%s-%d", name, common.RandInt(1000))
+	s.accountIDs = append(s.accountIDs, id)
+
+	return id
 }
