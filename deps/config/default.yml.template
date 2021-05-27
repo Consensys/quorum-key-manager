@@ -1,3 +1,11 @@
+- kind: AKVSecrets
+  version: 0.0.1
+  name: akv-secrets
+  specs:
+    vaultName: '{VAULT_NAME}'
+    tenantID: '{TENANT_ID}'
+    clientID: '{CLIENT_ID}'
+    clientSecret: '{SECRET}'
 - kind: AKVKeys
   version: 0.0.1
   name: akv-keys
@@ -14,6 +22,24 @@
     address: http://localhost:8200
     token: '{VAULT_TOKEN}'
     namespace: ''
+- kind: HashicorpKeys
+  version: 0.0.1
+  name: hashicorp-keys
+  specs:
+    mountPoint: orchestrate
+    address: http://localhost:8200
+    tokenPath: '{VAULT_TOKEN_PATH}'
+    namespace: ''
+- kind: Eth1Account
+  version: 0.0.1
+  name: hashicorp-eth1-accounts
+  specs:
+    keystore: HashicorpKeys
+    specs:
+      mountPoint: secret
+	  address: http://localhost:8200
+	  token: '{VAULT_TOKEN}'
+	  namespace: ''
 - kind: Node
   name: default
   version: 0.0.0

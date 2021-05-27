@@ -24,6 +24,10 @@ type KeysClient interface {
 	DestroyKey(ctx context.Context, storeName, id string) error
 }
 
+type Eth1Client interface {
+	CreateEth1Account(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1Response, error)
+}
+
 type JSONRPC interface {
 	Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error)
 }
@@ -31,5 +35,6 @@ type JSONRPC interface {
 type KeyManagerClient interface {
 	SecretsClient
 	KeysClient
+	Eth1Client
 	JSONRPC
 }
