@@ -39,7 +39,7 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	// Sign
 	var sig []byte
 	if msg.IsPrivate() {
-		sig, err = store.SignPrivate(ctx, msg.From.Hex(), msg.TxData())
+		sig, err = store.SignPrivate(ctx, msg.From.Hex(), msg.TxDataQuorum())
 	} else {
 		sig, err = store.SignTransaction(ctx, msg.From.Hex(), chainID, msg.TxData())
 	}

@@ -3,14 +3,20 @@ package local
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rlp"
+	"golang.org/x/crypto/sha3"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/database"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys"
+	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core"
@@ -19,7 +25,10 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
-const eip712DomainLabel = "EIP712Domain"
+const (
+	eip712DomainLabel       = "EIP712Domain"
+	privateTxTypeRestricted = "restricted"
+)
 
 var eth1KeyAlgo = &entities.Algorithm{
 	Type:          entities.Ecdsa,
@@ -52,11 +61,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	acc, err := parseKey(key)
-	if err != nil {
-		return nil, err
-	}
-
+	acc := parseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -71,11 +76,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 		return nil, err
 	}
 
-	acc, err := parseKey(key)
-	if err != nil {
-		return nil, err
-	}
-
+	acc := parseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -117,11 +118,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 		return nil, err
 	}
 
-	acc, err := parseKey(key)
-	if err != nil {
-		return nil, err
-	}
-
+	acc := parseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -244,22 +241,121 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 		return nil, err
 	}
 
-	ethSignature, err := appendSignatureV(tx, signature, signer)
+	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
-		errMessage := "failed to generate transaction signature"
+		errMessage := "failed to set transaction signature"
+		logger.WithError(err).WithField("signature", signature).Error(errMessage)
+		return nil, errors.DependencyFailureError(errMessage)
+	}
+
+	signedRaw, err := rlp.EncodeToBytes(signedTx)
+	if err != nil {
+		errMessage := "failed to RLP encode signed transaction"
 		logger.WithError(err).Error(errMessage)
 		return nil, errors.EncodingError(errMessage)
 	}
 
-	return ethSignature, nil
+	return signedRaw, nil
 }
 
-func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) ([]byte, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
+	logger := s.logger.WithField("address", addr)
+
+	privateFromEncoded, err := base64.StdEncoding.DecodeString(*args.PrivateFrom)
+	if err != nil {
+		errMessage := "invalid privateFrom param"
+		logger.WithError(err).WithField("privateFrom", *args.PrivateFrom).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+
+	privateRecipientEncoded, err := getEncodedPrivateRecipient(args.PrivacyGroupID, args.PrivateFor)
+	if err != nil {
+		errMessage := "invalid privacyGroupID or privateFor params"
+		logger.WithError(err).WithField("privateFor", *args.PrivateFor).WithField("privacyGroupID", *args.PrivacyGroupID).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+
+	hash, err := eeaHash([]interface{}{
+		tx.Nonce(),
+		tx.GasPrice(),
+		tx.Gas(),
+		tx.To(),
+		tx.Value(),
+		tx.Data(),
+		chainID,
+		uint(0),
+		uint(0),
+		privateFromEncoded,
+		privateRecipientEncoded,
+		privateTxTypeRestricted,
+	})
+	if err != nil {
+		errMessage := "failed to hash EEA transaction"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+
+	signature, err := s.Sign(ctx, addr, hash[:])
+	if err != nil {
+		return nil, err
+	}
+
+	signedTx, err := tx.WithSignature(types.NewEIP155Signer(chainID), signature)
+	if err != nil {
+		errMessage := "failed to set eea transaction signature"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.DependencyFailureError(errMessage)
+	}
+	V, R, S := signedTx.RawSignatureValues()
+
+	signedRaw, err := rlp.EncodeToBytes([]interface{}{
+		tx.Nonce(),
+		tx.GasPrice(),
+		tx.Gas(),
+		tx.To(),
+		tx.Value(),
+		tx.Data(),
+		V,
+		R,
+		S,
+		privateFromEncoded,
+		privateRecipientEncoded,
+		privateTxTypeRestricted,
+	})
+	if err != nil {
+		errMessage := "failed to RLP encode signed eea transaction"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.EncodingError(errMessage)
+	}
+
+	return signedRaw, nil
 }
 
-func (s *Store) SignPrivate(ctx context.Context, addr string, tx *types.Transaction) ([]byte, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
+	logger := s.logger.WithField("address", addr)
+
+	signer := quorumtypes.QuorumPrivateTxSigner{}
+	txData := signer.Hash(tx).Bytes()
+	signature, err := s.Sign(ctx, addr, txData)
+	if err != nil {
+		return nil, err
+	}
+
+	signedTx, err := tx.WithSignature(signer, signature)
+	if err != nil {
+		errMessage := "failed to set quorum private transaction signature"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.DependencyFailureError(errMessage)
+	}
+
+	signedRaw, err := rlp.EncodeToBytes(signedTx)
+	if err != nil {
+		errMessage := "failed to RLP encode signed quorum private transaction"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.EncodingError(errMessage)
+	}
+
+	return signedRaw, nil
 }
 
 func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
@@ -314,7 +410,7 @@ func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 
 // To understand this function, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
 func (s *Store) appendRecID(data, sig, pubKey []byte) ([]byte, error) {
-	for _, recID := range []byte{0, 1, 2, 3} {
+	for _, recID := range []byte{0, 1} {
 		appendedSignature := append(sig, recID)
 		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
 		if err != nil {
@@ -347,11 +443,36 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-func appendSignatureV(tx *types.Transaction, sig []byte, signer types.Signer) ([]byte, error) {
-	r, s, v, err := signer.SignatureValues(tx, sig)
-	if err != nil {
-		return nil, err
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
+func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (interface{}, error) {
+	var privateRecipientEncoded interface{}
+	var err error
+	if privacyGroupID != nil {
+		privateRecipientEncoded, err = base64.StdEncoding.DecodeString(*privacyGroupID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var privateForByteSlice [][]byte
+		for _, v := range *privateFor {
+			b, der := base64.StdEncoding.DecodeString(v)
+			if der != nil {
+				return nil, err
+			}
+			privateForByteSlice = append(privateForByteSlice, b)
+		}
+		privateRecipientEncoded = privateForByteSlice
 	}
 
-	return append(append(r.Bytes(), s.Bytes()...), v.Bytes()...), nil
+	return privateRecipientEncoded, nil
+}
+
+func eeaHash(object interface{}) (hash common.Hash, err error) {
+	hashAlgo := sha3.NewLegacyKeccak256()
+	err = rlp.Encode(hashAlgo, object)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	hashAlgo.Sum(hash[:0])
+	return hash, nil
 }

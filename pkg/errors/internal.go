@@ -14,7 +14,7 @@ const (
 
 //nolint
 var ErrNotImplemented = fmt.Errorf("not implemented")
-var ErrNotSupported = fmt.Errorf("not supported")
+var ErrNotSupported = NotSupportedError("this operation is not supported. Please contact your administrator")
 
 func isErrorClass(code, base uint64) bool {
 	// Error codes have a 5 hex representation (<=> 20 bits representation)

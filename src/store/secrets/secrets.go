@@ -22,7 +22,7 @@ type Store interface {
 	List(ctx context.Context) ([]string, error)
 
 	// Delete secret not permanently, by using Undelete the secret can be restored
-	Delete(ctx context.Context, id string) (*entities.Secret, error)
+	Delete(ctx context.Context, id string) error
 
 	// GetDeleted secrets
 	GetDeleted(ctx context.Context, id string) (*entities.Secret, error)

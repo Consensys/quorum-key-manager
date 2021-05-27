@@ -8,7 +8,8 @@ import (
 	context "context"
 	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	types "github.com/ethereum/go-ethereum/core/types"
+	types "github.com/consensys/quorum/core/types"
+	types0 "github.com/ethereum/go-ethereum/core/types"
 	core "github.com/ethereum/go-ethereum/signer/core"
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
@@ -246,7 +247,7 @@ func (mr *MockStoreMockRecorder) SignTypedData(ctx, addr, typedData interface{})
 }
 
 // SignTransaction mocks base method
-func (m *MockStore) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
+func (m *MockStore) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types0.Transaction) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTransaction", ctx, addr, chainID, tx)
 	ret0, _ := ret[0].([]byte)
@@ -261,7 +262,7 @@ func (mr *MockStoreMockRecorder) SignTransaction(ctx, addr, chainID, tx interfac
 }
 
 // SignEEA mocks base method
-func (m *MockStore) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) ([]byte, error) {
+func (m *MockStore) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types0.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignEEA", ctx, addr, chainID, tx, args)
 	ret0, _ := ret[0].([]byte)

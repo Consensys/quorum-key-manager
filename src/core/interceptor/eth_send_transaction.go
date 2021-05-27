@@ -74,9 +74,9 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 
 	var hash ethcommon.Hash
 	if msg.IsPrivate() {
-		hash, err = sess.EthCaller().Eth().SendRawPrivateTransaction(ctx, []byte(*raw), &msg.PrivateArgs)
+		hash, err = sess.EthCaller().Eth().SendRawPrivateTransaction(ctx, *raw, &msg.PrivateArgs)
 	} else {
-		hash, err = sess.EthCaller().Eth().SendRawTransaction(ctx, []byte(*raw))
+		hash, err = sess.EthCaller().Eth().SendRawTransaction(ctx, *raw)
 	}
 
 	if err != nil {

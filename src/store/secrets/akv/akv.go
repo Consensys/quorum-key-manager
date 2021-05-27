@@ -71,16 +71,17 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	return list, nil
 }
 
-func (s *Store) Delete(ctx context.Context, id string) (*entities.Secret, error) {
+func (s *Store) Delete(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
-	res, err := s.client.DeleteSecret(ctx, id)
+
+	_, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
 		logger.Error("failed to delete secret")
-		return nil, err
+		return err
 	}
 
 	logger.Info("secret was deleted successfully")
-	return parseDeleteSecretBundle(&res), nil
+	return nil
 }
 
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {

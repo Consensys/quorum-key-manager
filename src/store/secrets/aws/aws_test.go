@@ -229,8 +229,7 @@ func (s *awsSecretStoreTestSuite) TestDeleted() {
 	s.T().Run("should delete secret successfully", func(t *testing.T) {
 		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
 
-		_, err := s.secretStore.Delete(ctx, id)
-
+		err := s.secretStore.Delete(ctx, id)
 		assert.NoError(t, err)
 	})
 }

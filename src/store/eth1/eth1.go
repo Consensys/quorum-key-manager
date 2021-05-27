@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 
+	quorumtypes "github.com/consensys/quorum/core/types"
+
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/signer/core"
 
@@ -60,10 +62,10 @@ type Store interface {
 	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error)
 
 	// SignEEA signs an EEA transaction
-	SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *ethereum.EEATxData, args *ethereum.PrivateArgs) ([]byte, error)
+	SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error)
 
 	// SignPrivate signs a Quorum private transaction
-	SignPrivate(ctx context.Context, addr string, tx *types.Transaction) ([]byte, error)
+	SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error)
 
 	// ECRevocer returns the Ethereum address from a signature and data
 	ECRevocer(ctx context.Context, data, sig []byte) (string, error)

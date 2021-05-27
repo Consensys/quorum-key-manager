@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math/big"
 
+	quorumtypes "github.com/consensys/quorum/core/types"
+
 	"github.com/ethereum/go-ethereum/core/types"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -18,6 +20,7 @@ const (
 	StateValidationPrivacyFlag             = iota | PartyProtectionPrivacyFlag // 3 which includes PrivacyFlagPartyProtection
 )
 
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 // PrivateArgs arguments for private transactions
 type PrivateArgs struct {
 	PrivateFrom    *string      `json:"privateFrom,omitempty"`
@@ -52,6 +55,7 @@ func (args *PrivateArgs) WithPrivacyGroupID(id string) *PrivateArgs {
 	return args
 }
 
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type SendTxMsg struct {
 	From     ethcommon.Address
 	To       *ethcommon.Address
@@ -76,6 +80,16 @@ func (msg *SendTxMsg) TxData() *types.Transaction {
 	return types.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
 }
 
+// TODO: Remove this function and use only go-quorum types when
+func (msg *SendTxMsg) TxDataQuorum() *quorumtypes.Transaction {
+	if msg.To == nil {
+		return quorumtypes.NewContractCreation(*msg.Nonce, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
+	}
+
+	return quorumtypes.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
+}
+
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type jsonSendTxMsg struct {
 	From     ethcommon.Address  `json:"from,omitempty"`
 	To       *ethcommon.Address `json:"to,omitempty"`
@@ -127,12 +141,7 @@ func (msg *SendTxMsg) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type EEATxData struct {
-	Nonce uint64
-	To    *ethcommon.Address
-	Data  []byte
-}
-
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type SendEEATxMsg struct {
 	From  ethcommon.Address
 	To    *ethcommon.Address
@@ -142,22 +151,25 @@ type SendEEATxMsg struct {
 	PrivateArgs
 }
 
-func (msg *SendEEATxMsg) TxData() *EEATxData {
-	data := &EEATxData{
-		To: msg.To,
+func (msg *SendEEATxMsg) TxData() *types.Transaction {
+	var data []byte
+	var nonce uint64
+	if msg.Data != nil {
+		data = *msg.Data
 	}
 
 	if msg.Nonce != nil {
-		data.Nonce = *msg.Nonce
+		nonce = *msg.Nonce
 	}
 
-	if msg.Data != nil {
-		data.Data = *msg.Data
+	if msg.To == nil {
+		return types.NewContractCreation(nonce, nil, 0, nil, data)
 	}
 
-	return data
+	return types.NewTransaction(nonce, *msg.To, nil, 0, nil, data)
 }
 
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type jsonSendEEATxMsg struct {
 	From  ethcommon.Address  `json:"from,omitempty"`
 	To    *ethcommon.Address `json:"to,omitempty"`

@@ -39,12 +39,3 @@ func parseSecretBundle(secretBundle *keyvault.SecretBundle) *entities.Secret {
 
 	return secret
 }
-
-func parseDeleteSecretBundle(res *keyvault.DeletedSecretBundle) *entities.Secret {
-	return parseSecretBundle(&keyvault.SecretBundle{
-		ID:         res.ID,
-		Tags:       res.Tags,
-		Value:      res.Value,
-		Attributes: res.Attributes,
-	})
-}

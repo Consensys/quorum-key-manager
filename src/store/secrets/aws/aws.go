@@ -194,17 +194,17 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 }
 
 // Delete Deletes a secret
-func (s *SecretStore) Delete(ctx context.Context, id string) (*entities.Secret, error) {
+func (s *SecretStore) Delete(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
 	destroy := false
-	deleteOutput, err := s.client.DeleteSecret(ctx, id, destroy)
+	_, err := s.client.DeleteSecret(ctx, id, destroy)
 	if err != nil {
 		logger.Error("failed to delete secret")
-		return nil, translateAwsError(err)
+		return translateAwsError(err)
 	}
 
 	logger.Info("secret was deleted successfully")
-	return formatAwsSecret(*deleteOutput.Name, "", nil, nil), nil
+	return nil
 }
 
 // GetDeleted Gets a deleted secret
