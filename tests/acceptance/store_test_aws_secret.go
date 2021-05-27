@@ -200,7 +200,7 @@ func (s *awsSecretTestSuite) TestDeleteAndDestroy() {
 	})
 
 	s.T().Run("should raise a not found error when deleted", func(t *testing.T) {
-		_, err = s.store.Delete(ctx, id)
+		err = s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
 		_, err := s.store.Get(ctx, id, "")
 
