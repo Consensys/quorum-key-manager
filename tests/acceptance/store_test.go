@@ -81,10 +81,10 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 
 	// AWS
 	logger = log.DefaultLogger().SetComponent("Secrets-AWS")
-	hashicorpTestSuite := new(awsSecretTestSuite)
-	hashicorpTestSuite.env = s.env
-	hashicorpTestSuite.store = aws.New(s.env.awsVaultClient, logger)
-	suite.Run(s.T(), hashicorpTestSuite)
+	awsTestSuite := new(awsSecretTestSuite)
+	awsTestSuite.env = s.env
+	awsTestSuite.store = aws.New(s.env.awsVaultClient, logger)
+	suite.Run(s.T(), awsTestSuite)
 }
 
 func (s *storeTestSuite) TestKeyManagerStore_Keys() {
