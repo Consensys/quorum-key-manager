@@ -3,6 +3,8 @@ package aws
 import (
 	"context"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
@@ -13,7 +15,7 @@ type SecretsManagerClient interface {
 	CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error)
 	PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error)
 	TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error)
-	DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error)
+	DescribeSecret(ctx context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error)
 	ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error)
 	UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error)
 	RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error)

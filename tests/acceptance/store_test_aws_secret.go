@@ -4,7 +4,6 @@ package acceptancetests
 
 import (
 	"fmt"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
@@ -153,17 +152,18 @@ func (s *awsSecretTestSuite) TestGet() {
 		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 
-	s.Run("should get specific secret version", func() {
-		secret, err := s.store.Get(ctx, id, version1)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version1, secret.Metadata.Version)
+	s.Run("should get specific secret version", func(t *testing.T) {
+		readSec1, err := s.store.Get(ctx, id, version1)
+		require.NoError(t, err)
 
-		secret, err = s.store.Get(ctx, id, version2)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version2, secret.Metadata.Version)
+		readSec2, err := s.store.Get(ctx, id, version2)
+		require.NoError(t, err)
+		expectedVersion2 := readSec2.Metadata.Version
+		assert.Equal(t, version2, expectedVersion2)
+		assert.False(t, assert.ObjectsAreEqualValues(readSec2, readSec1))
 	})
 
-	s.Run("should fail with NotFound if secret is not found", func() {
+	s.Run("should fail with NotFound if secret is not found", func(t *testing.T) {
 		secret, err := s.store.Get(ctx, "inexistentID", "")
 
 		assert.Nil(s.T(), secret)

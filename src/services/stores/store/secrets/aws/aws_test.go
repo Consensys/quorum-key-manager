@@ -135,7 +135,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 
 	s.Run("should update secret if already exists", func() {
 
-		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, awserr.New(secretsmanager.ErrCodeResourceExistsException, "", nil))
+		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, errors.AlreadyExistsError("already exists"))
 		s.mockVault.EXPECT().PutSecretValue(gomock.Any(), id, value).Return(&secretsmanager.PutSecretValueOutput{}, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, nil)
@@ -180,7 +180,7 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 
 	s.Run("should get a secret successfully", func() {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, "").Return(getSecretOutput, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, nil)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), nil)
 		retValue, err := s.secretStore.Get(ctx, id, "")
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), retValue.Value, expectedSecret.Value)
@@ -199,7 +199,7 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 	s.Run("should fail with describe error", func() {
 		expectedErr := errors.NotFoundError("secret not found")
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, expectedErr)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), expectedErr)
 		retValue, err := s.secretStore.Get(ctx, id, version)
 		assert.Nil(s.T(), retValue)
 		assert.Equal(s.T(), err, expectedErr)
@@ -253,9 +253,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 	s.Run("should fail to destroy secret with internal error", func() {
 
-		awsError := awserr.New(secretsmanager.ErrCodeInternalServiceError, "", nil)
 		expectedError := errors.InternalError("internal error")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
 
 		err := s.secretStore.Destroy(ctx, id)
 
@@ -277,9 +276,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 	s.Run("should fail to destroy secret with not found error", func() {
 
-		awsError := awserr.New(secretsmanager.ErrCodeResourceNotFoundException, "", nil)
 		expectedError := errors.NotFoundError("resource was not found")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
 
 		err := s.secretStore.Destroy(ctx, id)
 
@@ -289,9 +287,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 	s.Run("should fail to destroy secret with not found error", func() {
 
-		awsError := awserr.New(secretsmanager.ErrCodeLimitExceededException, "", nil)
 		expectedError := errors.InternalError("internal error, limit exceeded")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
 
 		err := s.secretStore.Destroy(ctx, id)
 
