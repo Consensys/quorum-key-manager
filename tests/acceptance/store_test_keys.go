@@ -122,7 +122,7 @@ func (s *keysTestSuite) TestImport() {
 		assert.False(t, key.Metadata.Disabled)
 	})
 
-	s.T().Run("should fail to import a new key pair: EDDSA/BN254 (not implemented yet)", func(t *testing.T) {
+	s.T().Run("should import a new key pair successfully: EDDSA/BN254", func(t *testing.T) {
 		id := "my-key-eddsa-import"
 		privKey, _ := hex.DecodeString(privKeyEDDSA)
 
@@ -132,9 +132,24 @@ func (s *keysTestSuite) TestImport() {
 		}, &entities.Attributes{
 			Tags: tags,
 		})
+		// AKV and AWS does not support EDDSA
+		if err != nil && errors.IsNotSupportedError(err) {
+			assert.Nil(t, key)
+			return
+		}
 
-		require.Nil(t, key)
-		assert.Equal(t, err, errors.ErrNotSupported)
+		assert.Equal(t, id, key.ID)
+		assert.Equal(t, "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(t, tags, key.Tags)
+		assert.Equal(t, entities.Bn254, key.Algo.EllipticCurve)
+		assert.Equal(t, entities.Eddsa, key.Algo.Type)
+		assert.Equal(t, "1", key.Metadata.Version)
+		assert.NotNil(t, key.Metadata.CreatedAt)
+		assert.NotNil(t, key.Metadata.UpdatedAt)
+		assert.True(t, key.Metadata.DeletedAt.IsZero())
+		assert.True(t, key.Metadata.DestroyedAt.IsZero())
+		assert.True(t, key.Metadata.ExpireAt.IsZero())
+		assert.False(t, key.Metadata.Disabled)
 	})
 
 	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {

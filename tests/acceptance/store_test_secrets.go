@@ -25,8 +25,7 @@ func (s *secretsTestSuite) TearDownSuite() {
 
 	s.env.logger.WithField("secrets", s.secretIDs).Info("Deleting the following secrets")
 	for _, id := range s.secretIDs {
-		err := s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
+		_ = s.store.Delete(ctx, id)
 	}
 
 	for _, id := range s.secretIDs {
@@ -116,16 +115,15 @@ func (s *secretsTestSuite) TestGet() {
 	value := "my-secret-value"
 
 	// 2 with same ID
-	secret1, err := s.store.Set(ctx, id, value, &entities.Attributes{})
-	require.NoError(s.T(), err)
+	secret1, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
+	require.NoError(s.T(), setErr)
 	version1 := secret1.Metadata.Version
-	secret2, err := s.store.Set(ctx, id, value, &entities.Attributes{})
-	require.NoError(s.T(), err)
+	secret2, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
+	require.NoError(s.T(), setErr)
 	version2 := secret2.Metadata.Version
 
 	s.T().Run("should get latest secret successfully if no version is specified", func(t *testing.T) {
 		secret, err := s.store.Get(ctx, id, "")
-
 		require.NoError(t, err)
 
 		assert.Equal(t, id, secret.ID)
@@ -156,18 +154,11 @@ func (s *secretsTestSuite) TestGet() {
 		require.True(t, errors.IsNotFoundError(err))
 	})
 
-	s.T().Run("should fail with InvalidFormat if version is not formatted correctly", func(t *testing.T) {
-		secret, err := s.store.Get(ctx, id, "invalidVersion")
-
-		assert.Nil(t, secret)
-		require.True(t, errors.IsInvalidFormatError(err))
-	})
-
-	s.T().Run("should fail with NotFound if version does not exist", func(t *testing.T) {
+	s.T().Run("should fail if version does not exist", func(t *testing.T) {
 		secret, err := s.store.Get(ctx, id, "41579384e3014e849a2b140463509ea2")
 
 		assert.Nil(t, secret)
-		require.True(t, errors.IsNotFoundError(err))
+		require.Error(t, err)
 	})
 }
 
