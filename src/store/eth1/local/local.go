@@ -252,7 +252,7 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 	if err != nil {
 		errMessage := "failed to RLP encode signed transaction"
 		logger.WithError(err).Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
+		return nil, errors.EncodingError(errMessage)
 	}
 
 	return signedRaw, nil
@@ -325,7 +325,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 	if err != nil {
 		errMessage := "failed to RLP encode signed eea transaction"
 		logger.WithError(err).Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
+		return nil, errors.EncodingError(errMessage)
 	}
 
 	return signedRaw, nil
@@ -352,7 +352,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 	if err != nil {
 		errMessage := "failed to RLP encode signed quorum private transaction"
 		logger.WithError(err).Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
+		return nil, errors.EncodingError(errMessage)
 	}
 
 	return signedRaw, nil
