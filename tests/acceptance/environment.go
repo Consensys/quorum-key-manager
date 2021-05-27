@@ -23,6 +23,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/akv"
+	awsclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws/client"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
@@ -31,6 +32,7 @@ import (
 
 const (
 	hashicorpContainerID      = "hashicorp-vault"
+	localStackContainerID     = "localstack"
 	networkName               = "key-manager"
 	localhostPath             = "http://localhost"
 	HashicorpSecretStoreName  = "HashicorpSecrets"
@@ -45,6 +47,7 @@ type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            *log.Logger
 	hashicorpClient   hashicorp2.VaultClient
+	awsVaultClient    *awsclient.AwsVaultClient
 	akvClient         akv2.Client
 	dockerClient      *docker.Client
 	keyManager        *keymanager.App
@@ -91,11 +94,19 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	localstackContainer, err := utils.LocalstackContainer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	// Initialize environment container setup
 	composition := &dconfig.Composition{
 		Containers: map[string]*dconfig.Container{
 			hashicorpContainerID: {
 				HashicorpVault: hashicorpContainer,
+			},
+			localStackContainerID: {
+				LocalstackVault: localstackContainer,
 			},
 		},
 	}
@@ -181,12 +192,20 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	localstackAddr := fmt.Sprintf("http://%s:%s", localstackContainer.Host, localstackContainer.Port)
+	awsClient, err := awsclient.NewClientWithEndpoint(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize aws client")
+		return nil, err
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
 		ctx:               ctx,
 		logger:            logger,
 		hashicorpClient:   hashicorpClient,
 		akvClient:         akvClient,
+		awsVaultClient:    awsClient,
 		dockerClient:      dockerClient,
 		keyManager:        keyManager,
 		baseURL:           fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
@@ -201,6 +220,19 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	err := env.dockerClient.CreateNetwork(ctx, networkName)
 	if err != nil {
 		env.logger.WithError(err).Error("could not create network")
+		return err
+	}
+
+	// Start localstack container
+	err = env.dockerClient.Up(ctx, localStackContainerID, networkName)
+	if err != nil {
+		env.logger.WithError(err).Error("could not up localstack container")
+		return err
+	}
+
+	err = env.dockerClient.WaitTillIsReady(ctx, localStackContainerID, 120*time.Second)
+	if err != nil {
+		env.logger.WithError(err).Error("could not start localstack")
 		return err
 	}
 
@@ -246,6 +278,11 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	err := env.keyManager.Stop(ctx)
 	if err != nil {
 		env.logger.WithError(err).Error("failed to stop key manager")
+	}
+
+	err = env.dockerClient.Down(ctx, localStackContainerID)
+	if err != nil {
+		env.logger.WithError(err).Error("could not down localstack")
 	}
 
 	err = env.dockerClient.Down(ctx, hashicorpContainerID)

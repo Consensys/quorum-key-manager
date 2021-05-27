@@ -13,6 +13,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/aws"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
@@ -192,7 +193,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &hashicorp.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return err
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
@@ -204,7 +205,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return err
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
@@ -216,11 +217,21 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		spec := &akv.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
-			return err
+			return errors.InvalidFormatError(err.Error())
 		}
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
+			return err
+		}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.AWSSecrets:
+		spec := &aws.SecretSpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
+			return errors.InvalidFormatError(err.Error())
+		}
+		store, err := aws.NewSecretStore(spec, logger)
+		if err != nil {
 			return err
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}

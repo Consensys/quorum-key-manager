@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	dockerhashicorp "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
+	dockerhashicorp "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 )
 
 const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
@@ -33,12 +34,26 @@ func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 		SetHost(hashicorpHost).
 		SetPluginSourceDirectory(pluginPath)
 
-	pluginPath, err = vaultContainer.DownloadPlugin(HashicorpPluginFilename, HashicorpPluginVersion)
-	if err != nil {
-		logger.WithError(err).Error("cannot download hashicorp vault plugin")
-		return nil, err
+	//Deal with darwin compliant plugin
+	runtime := runtime.GOOS
+	switch runtime {
+	case "darwin":
+		pluginPath += "/darwin"
+		if _, err := os.Stat(pluginPath + "/" + HashicorpPluginFilename); os.IsNotExist(err) {
+			logger.WithError(err).Error("cannot find required " + HashicorpPluginFilename + " file in " + pluginPath)
+			return nil, err
+		}
+		vaultContainer.SetPluginSourceDirectory(pluginPath)
+		logger.WithField("path", pluginPath).Info("using local orchestrate plugin")
+
+	default:
+		pluginPath, err = vaultContainer.DownloadPlugin(HashicorpPluginFilename, HashicorpPluginVersion)
+		if err != nil {
+			logger.WithError(err).Error("cannot download hashicorp vault plugin")
+			return nil, err
+		}
+		logger.WithField("path", pluginPath).Info("orchestrate plugin downloaded")
 	}
-	logger.WithField("path", pluginPath).Info("orchestrate plugin downloaded")
 
 	return vaultContainer, nil
 }

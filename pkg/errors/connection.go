@@ -5,6 +5,7 @@ const (
 	Connection               uint64 = 8 << 12
 	AKVConnection                   = Connection + 7<<8 // Service Connection error (subclass 087XX)
 	HashicorpVaultConnection        = Connection + 8<<8 // Service Connection error (subclass 088XX)
+	AWSConnection                   = Connection + 9<<8 // Service Connection error (subclass 089XX)
 
 	// Invalid Request Errors (class 09XXX)
 	InvalidRequest uint64 = 9 << 12
@@ -30,6 +31,16 @@ func AKVConnectionError(format string, a ...interface{}) *Error {
 // IsAKVConnectionError indicate whether an error is a AKV client connection error
 func IsAKVConnectionError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), AKVConnection)
+}
+
+// AWSConnectionError is raised when failing to perform on AWS client
+func AWSConnectionError(format string, a ...interface{}) *Error {
+	return Errorf(AWSConnection, format, a...)
+}
+
+// IsAWSConnectionError indicate whether an error is a AWS client connection error
+func IsAWSConnectionError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), AWSConnection)
 }
 
 // UnauthorizedError is raised when authentication credentials are invalid
