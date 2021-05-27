@@ -192,6 +192,44 @@ func (mr *MockKeysClientMockRecorder) DestroyKey(ctx, storeName, id interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyKey", reflect.TypeOf((*MockKeysClient)(nil).DestroyKey), ctx, storeName, id)
 }
 
+// MockEth1Client is a mock of Eth1Client interface
+type MockEth1Client struct {
+	ctrl     *gomock.Controller
+	recorder *MockEth1ClientMockRecorder
+}
+
+// MockEth1ClientMockRecorder is the mock recorder for MockEth1Client
+type MockEth1ClientMockRecorder struct {
+	mock *MockEth1Client
+}
+
+// NewMockEth1Client creates a new mock instance
+func NewMockEth1Client(ctrl *gomock.Controller) *MockEth1Client {
+	mock := &MockEth1Client{ctrl: ctrl}
+	mock.recorder = &MockEth1ClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockEth1Client) EXPECT() *MockEth1ClientMockRecorder {
+	return m.recorder
+}
+
+// CreateAccount mocks base method
+func (m *MockEth1Client) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAccount", ctx, storeName, request)
+	ret0, _ := ret[0].(*types.Eth1Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAccount indicates an expected call of CreateAccount
+func (mr *MockEth1ClientMockRecorder) CreateAccount(ctx, storeName, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockEth1Client)(nil).CreateAccount), ctx, storeName, request)
+}
+
 // MockJSONRPC is a mock of JSONRPC interface
 type MockJSONRPC struct {
 	ctrl     *gomock.Controller
@@ -390,6 +428,21 @@ func (m *MockKeyManagerClient) DestroyKey(ctx context.Context, storeName, id str
 func (mr *MockKeyManagerClientMockRecorder) DestroyKey(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyKey", reflect.TypeOf((*MockKeyManagerClient)(nil).DestroyKey), ctx, storeName, id)
+}
+
+// CreateAccount mocks base method
+func (m *MockKeyManagerClient) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAccount", ctx, storeName, request)
+	ret0, _ := ret[0].(*types.Eth1Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAccount indicates an expected call of CreateAccount
+func (mr *MockKeyManagerClientMockRecorder) CreateAccount(ctx, storeName, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockKeyManagerClient)(nil).CreateAccount), ctx, storeName, request)
 }
 
 // Call mocks base method
