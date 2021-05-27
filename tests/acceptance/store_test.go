@@ -4,15 +4,17 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/database/memory"
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	eth1local "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/local"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
+	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/aws"
+	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -58,7 +60,6 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-/*
 func (s *storeTestSuite) TestKeyManagerStore_HashicorpSecret() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -89,6 +90,21 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVSecret() {
 	suite.Run(s.T(), testSuite)
 }
 
+func (s *storeTestSuite) TestKeyManagerStore_AWSSecret() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+
+	logger := log.DefaultLogger().SetComponent("AWSSecret")
+	store := aws.New(s.env.awsVaultClient, logger)
+
+	testSuite := new(awsSecretTestSuite)
+	testSuite.env = s.env
+	testSuite.store = store
+	suite.Run(s.T(), testSuite)
+}
+
 func (s *storeTestSuite) TestKeyManagerStore_HashicorpKey() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -114,35 +130,6 @@ func (s *storeTestSuite) TestKeyManagerStore_AKVKey() {
 	store := akvkey.New(s.env.akvClient, logger)
 
 	testSuite := new(akvKeyTestSuite)
-	testSuite.env = s.env
-	testSuite.store = store
-	suite.Run(s.T(), testSuite)
-}
-*/
-func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	// Hashicorp tests
-	logger := log.DefaultLogger().SetComponent("Eth1-Hashicorp")
-	testSuite := new(eth1TestSuite)
-	hashicorpKeyStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
-	eth1AccountsDB := memory.New(logger)
-	store := eth1local.New(hashicorpKeyStore, eth1AccountsDB, logger)
-
-	testSuite.env = s.env
-	testSuite.store = store
-	suite.Run(s.T(), testSuite)
-
-	// AKV test suite
-	logger = log.DefaultLogger().SetComponent("Eth1-AKV")
-	testSuite = new(eth1TestSuite)
-	akvKeyStore := akvkey.New(s.env.akvClient, logger)
-	eth1AccountsDB = memory.New(logger)
-	store = eth1local.New(akvKeyStore, eth1AccountsDB, logger)
-
 	testSuite.env = s.env
 	testSuite.store = store
 	suite.Run(s.T(), testSuite)
