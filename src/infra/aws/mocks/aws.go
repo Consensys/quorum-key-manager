@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	secretsmanager "github.com/aws/aws-sdk-go/service/secretsmanager"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -66,12 +67,13 @@ func (mr *MockSecretsManagerClientMockRecorder) DeleteSecret(ctx, id, force inte
 }
 
 // DescribeSecret mocks base method.
-func (m *MockSecretsManagerClient) DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error) {
+func (m *MockSecretsManagerClient) DescribeSecret(ctx context.Context, id string) (map[string]string, *entities.Metadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DescribeSecret", ctx, id)
-	ret0, _ := ret[0].(*secretsmanager.DescribeSecretOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*entities.Metadata)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // DescribeSecret indicates an expected call of DescribeSecret.

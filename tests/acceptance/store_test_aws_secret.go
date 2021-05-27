@@ -154,17 +154,18 @@ func (s *awsSecretTestSuite) TestGet() {
 	})
 
 	s.T().Run("should get specific secret version", func(t *testing.T) {
-		secret, err := s.store.Get(ctx, id, version1)
+		readSec1, err := s.store.Get(ctx, id, version1)
 		require.NoError(t, err)
-		assert.Equal(t, version1, secret.Metadata.Version)
 
-		secret, err = s.store.Get(ctx, id, version2)
+		readSec2, err := s.store.Get(ctx, id, version2)
 		require.NoError(t, err)
-		assert.Equal(t, version2, secret.Metadata.Version)
+		expectedVersion2 := readSec2.Metadata.Version
+		assert.Equal(t, version2, expectedVersion2)
+		assert.False(t, assert.ObjectsAreEqualValues(readSec2, readSec1))
 	})
 
 	s.T().Run("should fail with NotFound if secret is not found", func(t *testing.T) {
-		secret, err := s.store.Get(ctx, "inexistentID", "")
+		secret, err := s.store.Get(ctx, "nonexistentID", "")
 
 		assert.Nil(t, secret)
 		require.True(t, errors.IsNotFoundError(err))
