@@ -84,6 +84,18 @@ func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) err
 	d.mux.Lock()
 	defer d.mux.Unlock()
 
+	if _, ok := d.addrToAccounts[account.Address]; ok {
+		errMessage := "account already exists"
+		d.logger.WithField("account", account.Address).Error(errMessage)
+		return errors.AlreadyExistsError(errMessage)
+	}
+
+	if _, ok := d.deletedAddrToAccounts[account.Address]; ok {
+		errMessage := "account is currently deleted. Please restore it instead"
+		d.logger.WithField("account", account.Address).Error(errMessage)
+		return errors.AlreadyExistsError(errMessage)
+	}
+
 	d.addrToAccounts[account.Address] = account
 
 	return nil
@@ -92,6 +104,7 @@ func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) err
 func (d *ETH1Accounts) AddDeleted(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()
+
 	d.deletedAddrToAccounts[account.Address] = account
 
 	return nil
