@@ -39,8 +39,6 @@ func (s *eth1TestSuite) TearDownSuite() {
 		if err != nil && errors.IsNotSupportedError(err) {
 			return
 		}
-
-		require.NoError(s.T(), err)
 	}
 
 	for _, address := range accounts {
