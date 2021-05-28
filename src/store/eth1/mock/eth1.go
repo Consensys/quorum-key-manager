@@ -321,17 +321,17 @@ func (mr *MockStoreMockRecorder) Verify(ctx, addr, data, sig interface{}) *gomoc
 }
 
 // VerifyTypedData mocks base method
-func (m *MockStore) VerifyTypedData(ctx context.Context, addr string, sig []byte, typedData *core.TypedData) error {
+func (m *MockStore) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, addr, sig, typedData)
+	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, addr, typedData, sig)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyTypedData indicates an expected call of VerifyTypedData
-func (mr *MockStoreMockRecorder) VerifyTypedData(ctx, addr, sig, typedData interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) VerifyTypedData(ctx, addr, typedData, sig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockStore)(nil).VerifyTypedData), ctx, addr, sig, typedData)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockStore)(nil).VerifyTypedData), ctx, addr, typedData, sig)
 }
 
 // Encrypt mocks base method

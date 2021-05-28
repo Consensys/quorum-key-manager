@@ -134,7 +134,7 @@ func (mr *MockKeysClientMockRecorder) ImportKey(ctx, storeName, request interfac
 }
 
 // Sign mocks base method
-func (m *MockKeysClient) Sign(ctx context.Context, storeName, id string, request *types.SignPayloadRequest) (string, error) {
+func (m *MockKeysClient) Sign(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", ctx, storeName, id, request)
 	ret0, _ := ret[0].(string)
@@ -216,10 +216,10 @@ func (m *MockEth1Client) EXPECT() *MockEth1ClientMockRecorder {
 }
 
 // CreateAccount mocks base method
-func (m *MockEth1Client) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1Response, error) {
+func (m *MockEth1Client) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.Eth1Response)
+	ret0, _ := ret[0].(*types.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -372,7 +372,7 @@ func (mr *MockKeyManagerClientMockRecorder) ImportKey(ctx, storeName, request in
 }
 
 // Sign mocks base method
-func (m *MockKeyManagerClient) Sign(ctx context.Context, storeName, id string, request *types.SignPayloadRequest) (string, error) {
+func (m *MockKeyManagerClient) Sign(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", ctx, storeName, id, request)
 	ret0, _ := ret[0].(string)
@@ -431,10 +431,10 @@ func (mr *MockKeyManagerClientMockRecorder) DestroyKey(ctx, storeName, id interf
 }
 
 // CreateAccount mocks base method
-func (m *MockKeyManagerClient) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1Response, error) {
+func (m *MockKeyManagerClient) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.Eth1Response)
+	ret0, _ := ret[0].(*types.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

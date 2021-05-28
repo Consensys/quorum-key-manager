@@ -118,7 +118,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	signPayloadRequest := &types.SignPayloadRequest{}
+	signPayloadRequest := &types.SignBase64PayloadRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signPayloadRequest)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))

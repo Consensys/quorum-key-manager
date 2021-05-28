@@ -34,8 +34,8 @@ func FakeImportKeyRequest() *types.ImportKeyRequest {
 	}
 }
 
-func FakeSignPayloadRequest() *types.SignPayloadRequest {
-	return &types.SignPayloadRequest{
+func FakeSignPayloadRequest() *types.SignBase64PayloadRequest {
+	return &types.SignBase64PayloadRequest{
 		Data: base64.URLEncoding.EncodeToString([]byte("my data to sign")),
 	}
 }
