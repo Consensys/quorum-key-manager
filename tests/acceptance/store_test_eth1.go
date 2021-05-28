@@ -79,7 +79,6 @@ func (s *eth1TestSuite) TestImport() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
-	privKey2, _ := hex.DecodeString(privKeyECDSA2)
 
 	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
 		id := s.newID("my-account-import")
@@ -106,25 +105,6 @@ func (s *eth1TestSuite) TestImport() {
 
 	s.T().Run("should fail with AlreadyExistsError if the account already exists (same address)", func(t *testing.T) {
 		account, err := s.store.Import(ctx, "my-account", privKey, &entities.Attributes{
-			Tags: tags,
-		})
-
-		require.Nil(t, account)
-		assert.True(t, errors.IsAlreadyExistsError(err))
-	})
-
-	s.T().Run("should fail with AlreadyExistsError if account is deleted", func(t *testing.T) {
-		id := s.newID("my-account-import")
-
-		account, err := s.store.Import(ctx, id, privKey2, &entities.Attributes{
-			Tags: tags,
-		})
-		require.NoError(t, err)
-
-		err = s.store.Delete(ctx, account.Address)
-		require.NoError(t, err)
-
-		account, err = s.store.Import(ctx, id, privKey2, &entities.Attributes{
 			Tags: tags,
 		})
 
@@ -207,7 +187,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 	ctx := s.env.ctx
 	payload := crypto.Keccak256([]byte("my data to sign"))
 	id := s.newID("my-account-sign")
-	privKey, _ := hex.DecodeString(privKeyECDSA3)
+	privKey, _ := hex.DecodeString(privKeyECDSA2)
 
 	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
 		Tags: testutils.FakeTags(),
