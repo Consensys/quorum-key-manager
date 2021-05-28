@@ -25,7 +25,10 @@ func (s *secretsTestSuite) TearDownSuite() {
 
 	s.env.logger.WithField("secrets", s.secretIDs).Info("Deleting the following secrets")
 	for _, id := range s.secretIDs {
-		_ = s.store.Delete(ctx, id)
+		err := s.store.Delete(ctx, id)
+		if err != nil && errors.IsNotSupportedError(err) {
+			return
+		}
 	}
 
 	for _, id := range s.secretIDs {

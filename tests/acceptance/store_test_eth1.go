@@ -23,36 +23,40 @@ import (
 
 type eth1TestSuite struct {
 	suite.Suite
-	env        *IntegrationEnvironment
-	store      eth1.Store
-	accountIDs []string
+	env   *IntegrationEnvironment
+	store eth1.Store
 }
 
 func (s *eth1TestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	// TODO: Check error when Hashicorp implements Delete and Destroy
-	s.env.logger.WithField("addresses", s.accountIDs).Info("Deleting the following accounts")
-	for _, address := range s.accountIDs {
-		_ = s.store.Delete(ctx, address)
+	accounts, err := s.store.List(ctx)
+	require.NoError(s.T(), err)
+
+	s.env.logger.WithField("addresses", accounts).Info("Deleting the following accounts")
+	for _, address := range accounts {
+		err = s.store.Delete(ctx, address)
+		if err != nil && errors.IsNotSupportedError(err) {
+			return
+		}
 	}
 
-	for _, address := range s.accountIDs {
+	for _, address := range accounts {
 		_ = s.store.Destroy(ctx, address)
 	}
 }
 
 func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
-	id := s.newID("my-account-create")
 	tags := testutils.FakeTags()
 
 	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
+		id := s.newID("my-account-create")
 		account, err := s.store.Create(ctx, id, &entities.Attributes{
 			Tags: tags,
 		})
-
 		require.NoError(t, err)
+
 		assert.Equal(t, account.ID, id)
 		assert.NotEmpty(t, account.Address)
 		assert.NotEmpty(t, account.PublicKey)
@@ -72,16 +76,16 @@ func (s *eth1TestSuite) TestCreate() {
 func (s *eth1TestSuite) TestImport() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
+	privKey, _ := hex.DecodeString(privKeyECDSA)
 
 	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
 		id := s.newID("my-account-import")
-		privKey, _ := hex.DecodeString(privKeyECDSA)
 
 		account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
 			Tags: tags,
 		})
-
 		require.NoError(t, err)
+
 		assert.Equal(t, account.ID, id)
 		assert.Equal(t, "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address)
 		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
@@ -97,10 +101,17 @@ func (s *eth1TestSuite) TestImport() {
 		assert.Equal(t, account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
 	})
 
-	s.T().Run("should fail with InvalidParameterError if private key is invalid", func(t *testing.T) {
-		id := "my-account"
+	s.T().Run("should fail with AlreadyExistsError if the account already exists (same address)", func(t *testing.T) {
+		account, err := s.store.Import(ctx, "my-account", privKey, &entities.Attributes{
+			Tags: tags,
+		})
 
-		account, err := s.store.Import(ctx, id, []byte("invalidPrivKey"), &entities.Attributes{
+		require.Nil(t, account)
+		assert.True(t, errors.IsAlreadyExistsError(err))
+	})
+
+	s.T().Run("should fail with InvalidParameterError if private key is invalid", func(t *testing.T) {
+		account, err := s.store.Import(ctx, "my-account", []byte("invalidPrivKey"), &entities.Attributes{
 			Tags: tags,
 		})
 
@@ -113,9 +124,8 @@ func (s *eth1TestSuite) TestGet() {
 	ctx := s.env.ctx
 	id := s.newID("my-account-get")
 	tags := testutils.FakeTags()
-	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+	account, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
@@ -125,9 +135,9 @@ func (s *eth1TestSuite) TestGet() {
 		require.NoError(t, err)
 
 		assert.Equal(t, retrievedAccount.ID, id)
-		assert.Equal(t, "0x83a0254be47813BBff771F4562744676C4e793F0", retrievedAccount.Address)
-		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(retrievedAccount.PublicKey))
-		assert.Equal(t, "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(retrievedAccount.CompressedPublicKey))
+		assert.NotEmpty(t, retrievedAccount.Address)
+		assert.NotEmpty(t, hexutil.Encode(retrievedAccount.PublicKey))
+		assert.NotEmpty(t, hexutil.Encode(retrievedAccount.CompressedPublicKey))
 		assert.Equal(t, retrievedAccount.Tags, tags)
 		assert.NotEmpty(t, retrievedAccount.Metadata.Version)
 		assert.False(t, retrievedAccount.Metadata.Disabled)
@@ -175,7 +185,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 	ctx := s.env.ctx
 	payload := crypto.Keccak256([]byte("my data to sign"))
 	id := s.newID("my-account-sign")
-	privKey, _ := hex.DecodeString(privKeyECDSA)
+	privKey, _ := hex.DecodeString(privKeyECDSA2)
 
 	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
 		Tags: testutils.FakeTags(),
@@ -224,9 +234,8 @@ func (s *eth1TestSuite) TestSignTransaction() {
 		big.NewInt(0),
 		nil,
 	)
-	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+	account, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), err)
@@ -255,9 +264,8 @@ func (s *eth1TestSuite) TestSignPrivate() {
 		big.NewInt(0),
 		nil,
 	)
-	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+	account, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), err)
@@ -293,9 +301,8 @@ func (s *eth1TestSuite) TestSignEEA() {
 		PrivateFrom: &privateFrom,
 		PrivateFor:  &privateFor,
 	}
-	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+	account, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), err)
@@ -314,8 +321,5 @@ func (s *eth1TestSuite) TestSignEEA() {
 }
 
 func (s *eth1TestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%d", name, common.RandInt(1000))
-	s.accountIDs = append(s.accountIDs, id)
-
-	return id
+	return fmt.Sprintf("%s-%d", name, common.RandInt(1000))
 }
