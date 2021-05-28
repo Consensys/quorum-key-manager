@@ -15,6 +15,10 @@ type ImportEth1AccountRequest struct {
 	Tags       map[string]string `json:"tags,omitempty"`
 }
 
+type UpdateEth1AccountRequest struct {
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
 type SignHexPayloadRequest struct {
 	Data string `json:"data" validate:"required,isHex" example:"0xfeee"`
 }

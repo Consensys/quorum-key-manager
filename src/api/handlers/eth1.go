@@ -37,6 +37,8 @@ func NewAccountsHandler(backend core.Backend) *mux.Router {
 	router.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 	router.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
 
+	router.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
+
 	router.Methods(http.MethodGet).Path("/").HandlerFunc(h.list)
 	router.Methods(http.MethodGet).Path("/{address}").HandlerFunc(h.getOne)
 
@@ -96,6 +98,32 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 	}
 
 	eth1Acc, err := eth1Store.Import(ctx, importReq.ID, privKey, &entities.Attributes{Tags: importReq.Tags})
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1AccResponse(eth1Acc))
+}
+
+func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	updateReq := &types.UpdateEth1AccountRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, updateReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	eth1Acc, err := eth1Store.Update(ctx, getAddress(request), &entities.Attributes{Tags: updateReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -173,7 +201,13 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	eth1Acc, err := eth1Store.Get(ctx, getAddress(request))
+	getDeleted := request.URL.Query().Get("deleted")
+	var eth1Acc *entities.ETH1Account
+	if getDeleted == "" {
+		eth1Acc, err = eth1Store.Get(ctx, getAddress(request))
+	} else {
+		eth1Acc, err = eth1Store.GetDeleted(ctx, getAddress(request))
+	}
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -192,7 +226,13 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	addresses, err := eth1Store.List(ctx)
+	getDeleted := request.URL.Query().Get("deleted")
+	var addresses []string
+	if getDeleted == "" {
+		addresses, err = eth1Store.List(ctx)
+	} else {
+		addresses, err = eth1Store.ListDeleted(ctx)
+	}
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
