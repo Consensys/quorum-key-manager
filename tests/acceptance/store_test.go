@@ -8,8 +8,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
+	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/aws"
+	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/local"
 	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
 	"github.com/stretchr/testify/suite"
@@ -57,7 +62,6 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-/*
 func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -106,7 +110,6 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite.store = akvkey.New(s.env.akvClient, logger)
 	suite.Run(s.T(), testSuite)
 }
-*/
 
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
@@ -114,22 +117,17 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 		return
 	}
 
-	/*
-		// Hashicorp
-		logger := log.DefaultLogger().SetComponent("Eth1-Hashicorp")
-		testSuite := new(eth1TestSuite)
-		testSuite.env = s.env
-		testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), memory.New(logger), logger)
-		suite.Run(s.T(), testSuite)
-
-	*/
-
-	// AKV
-	logger := log.DefaultLogger().SetComponent("Eth1-AKV")
-	akvStore := akvkey.New(s.env.akvClient, logger)
-
+	// Hashicorp
+	logger := log.DefaultLogger().SetComponent("Eth1-Hashicorp")
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(akvStore, memory.New(logger), logger)
+	testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), memory.New(logger), logger)
+	suite.Run(s.T(), testSuite)
+
+	// AKV
+	logger = log.DefaultLogger().SetComponent("Eth1-AKV")
+	testSuite = new(eth1TestSuite)
+	testSuite.env = s.env
+	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), memory.New(logger), logger)
 	suite.Run(s.T(), testSuite)
 }
