@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 )
 
 var manifestWithTessera = &manifest.Manifest{
@@ -70,14 +70,12 @@ var manifestRPCOnly = &manifest.Manifest{
 }
 
 func TestManager(t *testing.T) {
-	mngr := New(nil)
+	mngr := New(nil, nil)
 
-	mnfsts := []*manifest.Manifest{
-		manifestWithTessera,
-		manifestRPCOnly,
-	}
+	err := mngr.load(context.Background(), manifestWithTessera)
+	require.NoError(t, err, "Load must not error")
 
-	err := mngr.Load(context.Background(), mnfsts...)
+	err = mngr.load(context.Background(), manifestRPCOnly)
 	require.NoError(t, err, "Load must not error")
 
 	n, err := mngr.Node(context.Background(), "node-test1")

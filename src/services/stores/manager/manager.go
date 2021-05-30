@@ -3,7 +3,7 @@ package storemanager
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys"
@@ -13,12 +13,8 @@ import (
 
 //go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
 
-// StoreManager allows to manage multiple stores
-type StoreManager interface {
-	// Load manifests and performs associated actions (such as creating stores)
-	// If any error occurs it is attached to the corresponding Message
-	Load(ctx context.Context, mnfsts ...*manifest.Manifest) error
-
+// Manager allows to manage multiple stores
+type Manager interface {
 	// GetSecretStore by name
 	GetSecretStore(ctx context.Context, name string) (secrets.Store, error)
 

@@ -7,7 +7,8 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/manager"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/hashicorp"
@@ -20,11 +21,16 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-type manager struct {
+type BaseManager struct {
+	manifests manifestsmanager.Manager
+
 	mux          sync.RWMutex
 	secrets      map[string]*storeBundle
 	keys         map[string]*storeBundle
 	eth1Accounts map[string]*storeBundle
+
+	sub    manifestsmanager.Subscription
+	mnfsts chan []manifestsmanager.Message
 }
 
 type storeBundle struct {
@@ -32,8 +38,9 @@ type storeBundle struct {
 	store    interface{}
 }
 
-func New() StoreManager {
-	return &manager{
+func New(manifests manifestsmanager.Manager) *BaseManager {
+	return &BaseManager{
+		manifests:    manifests,
 		mux:          sync.RWMutex{},
 		secrets:      make(map[string]*storeBundle),
 		keys:         make(map[string]*storeBundle),
@@ -41,19 +48,57 @@ func New() StoreManager {
 	}
 }
 
-func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error {
+var storeKinds = []manifest.Kind{
+	types.HashicorpSecrets,
+	types.AKVSecrets,
+	types.KMSSecrets,
+	types.AKVKeys,
+	types.HashicorpKeys,
+	types.KMSKeys,
+}
+
+func (m *BaseManager) Start(ctx context.Context) error {
 	m.mux.Lock()
-	defer m.mux.Unlock()
-	for _, mnf := range mnfsts {
-		if err := m.load(ctx, mnf); err != nil {
-			return err
-		}
+	// Subscribe to manifest of Kind node
+	sub, err := m.manifests.Subscribe(storeKinds, m.mnfsts)
+	if err != nil {
+		return err
 	}
+	m.sub = sub
+	m.mux.Unlock()
+
+	// Start loading manifest
+	go m.loadAll(ctx)
 
 	return nil
 }
 
-func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store, error) {
+func (m *BaseManager) Stop(context.Context) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	if m.sub != nil {
+		_ = m.sub.Unsubscribe()
+	}
+	return nil
+}
+
+func (m *BaseManager) Error() error {
+	return nil
+}
+
+func (m *BaseManager) Close() error {
+	return nil
+}
+
+func (m *BaseManager) loadAll(ctx context.Context) {
+	for mnfsts := range m.mnfsts {
+		for _, mnf := range mnfsts {
+			_ = m.load(ctx, mnf.Manifest)
+		}
+	}
+}
+
+func (m *BaseManager) GetSecretStore(_ context.Context, name string) (secrets.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -66,7 +111,7 @@ func (m *manager) GetSecretStore(_ context.Context, name string) (secrets.Store,
 	return nil, errors.NotFoundError("secret store %s was not found", name)
 }
 
-func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
+func (m *BaseManager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[name]; ok {
@@ -78,13 +123,13 @@ func (m *manager) GetKeyStore(_ context.Context, name string) (keys.Store, error
 	return nil, errors.NotFoundError("key store %s was not found", name)
 }
 
-func (m *manager) GetEth1Store(ctx context.Context, name string) (eth1.Store, error) {
+func (m *BaseManager) GetEth1Store(ctx context.Context, name string) (eth1.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	return m.getEth1Store(ctx, name)
 }
 
-func (m *manager) getEth1Store(_ context.Context, name string) (eth1.Store, error) {
+func (m *BaseManager) getEth1Store(_ context.Context, name string) (eth1.Store, error) {
 	if storeBundle, ok := m.eth1Accounts[name]; ok {
 		if store, ok := storeBundle.store.(eth1.Store); ok {
 			return store, nil
@@ -94,7 +139,7 @@ func (m *manager) getEth1Store(_ context.Context, name string) (eth1.Store, erro
 	return nil, errors.NotFoundError("account store %s was not found", name)
 }
 
-func (m *manager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1.Store, error) {
+func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	storeNames, err := m.list(ctx, "")
@@ -121,14 +166,14 @@ func (m *manager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address
 	return nil, fmt.Errorf("account store not found")
 }
 
-func (m *manager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {
+func (m *BaseManager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
 	return m.list(ctx, kind)
 }
 
-func (m *manager) list(_ context.Context, kind manifest.Kind) ([]string, error) {
+func (m *BaseManager) list(_ context.Context, kind manifest.Kind) ([]string, error) {
 	storeNames := []string{}
 	switch kind {
 	case "":
@@ -143,7 +188,7 @@ func (m *manager) list(_ context.Context, kind manifest.Kind) ([]string, error) 
 	return storeNames, nil
 }
 
-func (m *manager) ListAllAccounts(ctx context.Context) ([]*entities.ETH1Account, error) {
+func (m *BaseManager) ListAllAccounts(ctx context.Context) ([]*entities.ETH1Account, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -166,7 +211,10 @@ func (m *manager) ListAllAccounts(ctx context.Context) ([]*entities.ETH1Account,
 	return accs, nil
 }
 
-func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
+func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+
 	logger := log.FromContext(ctx).
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
@@ -257,7 +305,7 @@ func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	return nil
 }
 
-func (m *manager) storeNames(list map[string]*storeBundle, kind manifest.Kind) []string {
+func (m *BaseManager) storeNames(list map[string]*storeBundle, kind manifest.Kind) []string {
 	var storeNames []string
 	for k, store := range list {
 		if kind == "" || store.manifest.Kind == kind {

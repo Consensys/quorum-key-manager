@@ -6,7 +6,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/cmd/flags"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	app "github.com/ConsenSysQuorum/quorum-key-manager/src/app"
+	app "github.com/ConsenSysQuorum/quorum-key-manager/src"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -53,24 +53,28 @@ func run(cmd *cobra.Command, _ []string) error {
 	ctx := log.With(cmd.Context(), logger)
 	appli, err := app.New(cfg, logger)
 	if err != nil {
-		logger.WithError(err).Error("application failed to start")
+		logger.WithError(err).Error("could not create app")
 		return err
 	}
 
+	done := make(chan struct{})
 	sig := common.NewSignalListener(func(sig os.Signal) {
 		logger.WithField("sig", sig.String()).Warn("signal intercepted")
 		if err = appli.Stop(ctx); err != nil {
 			logger.WithError(err).Error("application stopped with errors")
 		}
+		close(done)
 	})
 
 	defer sig.Close()
 
 	err = appli.Start(ctx)
 	if err != nil {
-		logger.WithError(err).Error("application exited with errors")
+		logger.WithError(err).Error("application failed to start")
 		return err
 	}
+
+	<-done
 
 	return nil
 }

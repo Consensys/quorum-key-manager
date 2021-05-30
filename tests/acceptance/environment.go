@@ -7,25 +7,26 @@ import (
 	"os"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
-	"gopkg.in/yaml.v2"
-
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/app"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src/app"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/manager"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv"
 	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv/client"
 	awsclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws/client"
 	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/hashicorp"
 	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/hashicorp/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/utils"
 	"github.com/hashicorp/vault/api"
+	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -49,7 +50,7 @@ type IntegrationEnvironment struct {
 	awsVaultClient    *awsclient.AwsVaultClient
 	akvClient         akv2.Client
 	dockerClient      *docker.Client
-	keyManager        *keymanager.App
+	keyManager        *app.App
 	baseURL           string
 	Cancel            context.CancelFunc
 	tmpManifestYaml   string
@@ -163,8 +164,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	httpConfig := server.NewDefaultConfig()
 	httpConfig.Port = uint32(envHTTPPort)
 	keyManager, err := newKeyManager(&keymanager.Config{
-		HTTP:         httpConfig,
-		ManifestPath: tmpYml,
+		HTTP:      httpConfig,
+		Manifests: &manifestsmanager.Config{Path: tmpYml},
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
@@ -345,6 +346,6 @@ func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
 	return file.Name(), nil
 }
 
-func newKeyManager(cfg *keymanager.Config, logger *log.Logger) (*keymanager.App, error) {
+func newKeyManager(cfg *keymanager.Config, logger *log.Logger) (*app.App, error) {
 	return keymanager.New(cfg, logger)
 }

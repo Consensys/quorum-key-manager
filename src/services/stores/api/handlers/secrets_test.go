@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,9 +9,8 @@ import (
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types/testutils"
 	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/mock"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
@@ -30,8 +28,11 @@ const (
 
 type secretsHandlerTestSuite struct {
 	suite.Suite
-	secretStore *mocksecrets.MockStore
-	router      *mux.Router
+
+	ctrl         *gomock.Controller
+	storeManager *mockstoremanager.MockManager
+	secretStore  *mocksecrets.MockStore
+	router       *mux.Router
 }
 
 func TestSecretsHandler(t *testing.T) {
@@ -40,30 +41,30 @@ func TestSecretsHandler(t *testing.T) {
 }
 
 func (s *secretsHandlerTestSuite) SetupTest() {
-	ctrl := gomock.NewController(s.T())
-	defer ctrl.Finish()
+	s.ctrl = gomock.NewController(s.T())
 
-	backend := mocks.NewMockBackend(ctrl)
-	storeManager := mockstoremanager.NewMockStoreManager(ctrl)
-	s.secretStore = mocksecrets.NewMockStore(ctrl)
+	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
+	s.secretStore = mocksecrets.NewMockStore(s.ctrl)
 
-	backend.EXPECT().StoreManager().Return(storeManager).AnyTimes()
-	storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil).AnyTimes()
+	s.router = mux.NewRouter()
+	NewStoresHandler(s.storeManager).Register(s.router)
+}
 
-	s.router = NewSecretsHandler(backend)
+func (s *secretsHandlerTestSuite) TearDownTest() {
+	s.ctrl.Finish()
 }
 
 func (s *secretsHandlerTestSuite) TestSet() {
-	s.T().Run("should execute request successfully", func(t *testing.T) {
+	s.Run("should execute request successfully", func() {
 		setSecretRequest := testutils.FakeSetSecretRequest()
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets", bytes.NewReader(requestBytes))
 
 		secret := testutils2.FakeSecret()
 
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), setSecretRequest.ID, setSecretRequest.Value, &entities.Attributes{
 			Tags: setSecretRequest.Tags,
 		}).Return(secret, nil)
@@ -72,102 +73,100 @@ func (s *secretsHandlerTestSuite) TestSet() {
 
 		response := formatters.FormatSecretResponse(secret)
 		expectedBody, _ := json.Marshal(response)
-		assert.Equal(t, string(expectedBody)+"\n", rw.Body.String())
-		assert.Equal(t, http.StatusOK, rw.Code)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
+	s.Run("should fail with correct error code if use case fails", func() {
 		setSecretRequest := testutils.FakeSetSecretRequest()
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(requestBytes))
-		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets", bytes.NewReader(requestBytes))
 
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(t, http.StatusFailedDependency, rw.Code)
+		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
 	})
 }
 
 func (s *secretsHandlerTestSuite) TestGet() {
-	s.T().Run("should execute request successfully with version", func(t *testing.T) {
+	s.Run("should execute request successfully with version", func() {
 		version := "1"
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s?version=%s", secretID, version), nil)
-		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s", secretID, version), nil)
 
 		secret := testutils2.FakeSecret()
-
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), secretID, version).Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
 		response := formatters.FormatSecretResponse(secret)
 		expectedBody, _ := json.Marshal(response)
-		assert.Equal(t, string(expectedBody)+"\n", rw.Body.String())
-		assert.Equal(t, http.StatusOK, rw.Code)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
-	s.T().Run("should execute request successfully without version", func(t *testing.T) {
+	s.Run("should execute request successfully without version", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", secretID), nil)
-		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil)
 
 		secret := testutils2.FakeSecret()
-
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), secretID, "").Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
 		response := formatters.FormatSecretResponse(secret)
 		expectedBody, _ := json.Marshal(response)
-		assert.Equal(t, string(expectedBody)+"\n", rw.Body.String())
-		assert.Equal(t, http.StatusOK, rw.Code)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
+	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", secretID), nil)
-		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil)
 
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(t, http.StatusNotFound, rw.Code)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
 	})
 }
 
 func (s *secretsHandlerTestSuite) TestList() {
-	s.T().Run("should execute request successfully", func(t *testing.T) {
+	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil)
 
 		ids := []string{"secret1", "secret2"}
 
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any()).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
 		expectedBody, _ := json.Marshal(ids)
-		assert.Equal(t, string(expectedBody)+"\n", rw.Body.String())
-		assert.Equal(t, http.StatusOK, rw.Code)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.T().Run("should fail with correct error code if use case fails", func(t *testing.T) {
+	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-		httpRequest = httpRequest.WithContext(context.WithValue(httpRequest.Context(), StoreContextID, secretStoreName))
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil)
 
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(t, http.StatusNotFound, rw.Code)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
 	})
 }

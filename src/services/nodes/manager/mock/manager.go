@@ -8,7 +8,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
 	node "github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/node"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -49,25 +48,6 @@ func (m *MockManager) List(ctx context.Context) ([]string, error) {
 func (mr *MockManagerMockRecorder) List(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List), ctx)
-}
-
-// Load mocks base method.
-func (m *MockManager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range mnfsts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Load", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Load indicates an expected call of Load.
-func (mr *MockManagerMockRecorder) Load(ctx interface{}, mnfsts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, mnfsts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockManager)(nil).Load), varargs...)
 }
 
 // Node mocks base method.

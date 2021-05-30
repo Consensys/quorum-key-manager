@@ -8,11 +8,12 @@ import (
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/manager"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/interceptor"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
-	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/node"
 	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/node/proxy"
+	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager"
 )
 
 var NodeKind manifest.Kind = "Node"
@@ -21,10 +22,6 @@ var NodeKind manifest.Kind = "Node"
 
 // Manager allows to manage multiple stores
 type Manager interface {
-	// Load manifest
-	// If any error occurs it is attached to the corresponding Message
-	Load(ctx context.Context, mnfsts ...*manifest.Manifest) error
-
 	// Node return by name
 	Node(ctx context.Context, name string) (node.Node, error)
 
@@ -32,11 +29,15 @@ type Manager interface {
 	List(ctx context.Context) ([]string, error)
 }
 
-type manager struct {
+type BaseManager struct {
+	stores    storemanager.Manager
+	manifests manifestsmanager.Manager
+
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
 
-	stores storemanager.StoreManager
+	sub    manifestsmanager.Subscription
+	mnfsts chan []manifestsmanager.Message
 }
 
 type nodeBundle struct {
@@ -46,21 +47,42 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(stores storemanager.StoreManager) Manager {
-	return &manager{
-		mux:    sync.RWMutex{},
-		nodes:  make(map[string]*nodeBundle),
-		stores: stores,
+func New(stores storemanager.Manager, manifests manifestsmanager.Manager) *BaseManager {
+	return &BaseManager{
+		stores:    stores,
+		manifests: manifests,
+		mnfsts:    make(chan []manifestsmanager.Message),
+		mux:       sync.RWMutex{},
+		nodes:     make(map[string]*nodeBundle),
 	}
 }
 
-func (m *manager) Start(ctx context.Context) error {
+func (m *BaseManager) Start(ctx context.Context) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+
+	// Subscribe to manifest of Kind node
+	sub, err := m.manifests.Subscribe([]manifest.Kind{NodeKind}, m.mnfsts)
+	if err != nil {
+		return err
+	}
+	m.sub = sub
+
+	// Start loading manifest
+	go m.loadAll(ctx)
+
 	return nil
 }
 
-func (m *manager) Stop(ctx context.Context) error {
+func (m *BaseManager) Stop(ctx context.Context) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
+
+	// Unsubscribe
+	if m.sub != nil {
+		_ = m.sub.Unsubscribe()
+	}
+
 	wg := &sync.WaitGroup{}
 	for name, n := range m.nodes {
 		wg.Add(1)
@@ -71,22 +93,27 @@ func (m *manager) Stop(ctx context.Context) error {
 		}(name, n)
 	}
 	wg.Wait()
+
 	return nil
 }
 
-func (m *manager) Load(ctx context.Context, mnfsts ...*manifest.Manifest) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
-	for _, mnf := range mnfsts {
-		if err := m.load(ctx, mnf); err != nil {
-			return err
+func (m *BaseManager) Close() error {
+	return nil
+}
+
+func (m *BaseManager) Error() error {
+	return nil
+}
+
+func (m *BaseManager) loadAll(ctx context.Context) {
+	for mnfsts := range m.mnfsts {
+		for _, mnf := range mnfsts {
+			_ = m.load(ctx, mnf.Manifest)
 		}
 	}
-
-	return nil
 }
 
-func (m *manager) Node(_ context.Context, name string) (node.Node, error) {
+func (m *BaseManager) Node(_ context.Context, name string) (node.Node, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if nodeBundle, ok := m.nodes[name]; ok {
@@ -101,7 +128,7 @@ func (m *manager) Node(_ context.Context, name string) (node.Node, error) {
 	return nil, fmt.Errorf("node not found")
 }
 
-func (m *manager) List(_ context.Context) ([]string, error) {
+func (m *BaseManager) List(_ context.Context) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -115,7 +142,10 @@ func (m *manager) List(_ context.Context) ([]string, error) {
 	return nodeNames, nil
 }
 
-func (m *manager) load(ctx context.Context, mnf *manifest.Manifest) error {
+func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+
 	logger := log.FromContext(ctx).
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)

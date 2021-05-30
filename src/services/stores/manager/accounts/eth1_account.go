@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/manifest"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/database"
 	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1/local"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/types"
 )
 
 type Eth1Specs struct {

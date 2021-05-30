@@ -8,25 +8,26 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/gorilla/mux"
 )
 
 type Eth1Handler struct {
-	backend core.Backend
+	stores storesmanager.Manager
 }
 
 // New creates a http.Handler to be served on /accounts
-func NewAccountsHandler(backend core.Backend) *mux.Router {
-	h := &Eth1Handler{
-		backend: backend,
+func NewAccountsHandler(s storesmanager.Manager) *Eth1Handler {
+	return &Eth1Handler{
+		stores: s,
 	}
+}
 
-	router := mux.NewRouter()
-	router.Methods(http.MethodPost).Path("/").HandlerFunc(h.create)
+func (h *Eth1Handler) Register(r *mux.Router) {
+	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
 	router.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
 	router.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
 	router.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
@@ -40,13 +41,11 @@ func NewAccountsHandler(backend core.Backend) *mux.Router {
 
 	router.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
 
-	router.Methods(http.MethodGet).Path("/").HandlerFunc(h.list)
+	router.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	router.Methods(http.MethodGet).Path("/{address}").HandlerFunc(h.getOne)
 
 	router.Methods(http.MethodDelete).Path("/{address}").HandlerFunc(h.delete)
 	router.Methods(http.MethodDelete).Path("/{address}/destroy").HandlerFunc(h.destroy)
-
-	return router
 }
 
 func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
@@ -60,7 +59,7 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(request.Context()))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

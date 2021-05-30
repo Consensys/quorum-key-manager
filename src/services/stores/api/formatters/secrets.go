@@ -1,7 +1,7 @@
 package formatters
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 )
 

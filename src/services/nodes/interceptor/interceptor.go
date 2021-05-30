@@ -2,12 +2,12 @@ package interceptor
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager"
 	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/node/proxy"
+	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager"
 )
 
 type Interceptor struct {
-	stores storemanager.StoreManager
+	stores storemanager.Manager
 
 	handler jsonrpc.Handler
 }
@@ -34,7 +34,7 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router))
 }
 
-func New(stores storemanager.StoreManager) *Interceptor {
+func New(stores storemanager.Manager) *Interceptor {
 	i := &Interceptor{
 		stores: stores,
 	}

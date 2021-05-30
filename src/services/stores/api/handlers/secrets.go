@@ -2,36 +2,32 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
-
-	"net/http"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core"
 	"github.com/gorilla/mux"
 )
 
 type SecretsHandler struct {
-	backend core.Backend
+	stores storesmanager.Manager
 }
 
 // New creates a http.Handler to be served on /secrets
-func NewSecretsHandler(backend core.Backend) *mux.Router {
-	h := &SecretsHandler{
-		backend: backend,
+func NewSecretsHandler(s storesmanager.Manager) *SecretsHandler {
+	return &SecretsHandler{
+		stores: s,
 	}
+}
 
-	router := mux.NewRouter()
-	router.Methods(http.MethodPost).Path("/").HandlerFunc(h.set)
-	router.Methods(http.MethodGet).Path("/").HandlerFunc(h.list)
-	router.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
-
-	return router
+func (h *SecretsHandler) Register(r *mux.Router) {
+	r.Methods(http.MethodPost).Path("").HandlerFunc(h.set)
+	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
+	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 }
 
 func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
@@ -45,7 +41,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getStoreName(request))
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -69,7 +65,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	id := mux.Vars(request)["id"]
 	version := request.URL.Query().Get("version")
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getStoreName(request))
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -88,7 +84,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	secretStore, err := h.backend.StoreManager().GetSecretStore(ctx, getStoreName(request))
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
