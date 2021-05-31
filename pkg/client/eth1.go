@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 )
 
 const eth1Path = "eth1"

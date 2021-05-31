@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 )
 
 //go:generate mockgen -source=client.go -destination=mock/mock.go -package=mock

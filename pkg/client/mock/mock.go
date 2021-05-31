@@ -7,7 +7,7 @@ package mock
 import (
 	context "context"
 	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	types "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	types "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

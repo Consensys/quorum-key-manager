@@ -9,10 +9,10 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/database/memory"
-	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1/local"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/akv"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
+	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/local"
+	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/akv"
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"github.com/stretchr/testify/suite"
 )
 

@@ -5,10 +5,10 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/middleware"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests"
-	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/manager"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests"
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/nodes"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores"
 )
 
 type Config struct {
