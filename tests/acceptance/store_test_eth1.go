@@ -6,6 +6,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
@@ -13,7 +14,6 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -183,7 +183,7 @@ func (s *eth1TestSuite) TestList() {
 
 func (s *eth1TestSuite) TestSignVerify() {
 	ctx := s.env.ctx
-	payload := crypto.Keccak256([]byte("my data to sign"))
+	payload := []byte("my data to sign")
 	id := s.newID("my-account-sign")
 	privKey, _ := hex.DecodeString(privKeyECDSA2)
 
@@ -297,9 +297,11 @@ func (s *eth1TestSuite) TestSignEEA() {
 	)
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
+	privateType := formatters.PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom: &privateFrom,
 		PrivateFor:  &privateFor,
+		PrivateType: &privateType,
 	}
 
 	account, err := s.store.Create(ctx, id, &entities.Attributes{

@@ -271,7 +271,7 @@ func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
 	}
 
 	if len(signature) == EthSignatureLength {
-		retrievedPubkey, err := crypto.SigToPub(msg, signature)
+		retrievedPubkey, err := crypto.SigToPub(crypto.Keccak256(msg), signature)
 		if err != nil {
 			return false, err
 		}
