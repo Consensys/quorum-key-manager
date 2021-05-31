@@ -63,7 +63,7 @@ func FormatSignTypedDataRequest(request *types.SignTypedDataRequest) *signer.Typ
 
 func FormatTransaction(tx *types.SignETHTransactionRequest) *ethtypes.Transaction {
 	var data []byte
-	amount, _ := new(big.Int).SetString(tx.Amount, 10)
+	amount, _ := new(big.Int).SetString(tx.Value, 10)
 	gasPrice, _ := new(big.Int).SetString(tx.GasPrice, 10)
 
 	if tx.Data != "" {
@@ -79,7 +79,7 @@ func FormatTransaction(tx *types.SignETHTransactionRequest) *ethtypes.Transactio
 
 func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *quorumtypes.Transaction {
 	var data []byte
-	amount, _ := new(big.Int).SetString(tx.Amount, 10)
+	amount, _ := new(big.Int).SetString(tx.Value, 10)
 	gasPrice, _ := new(big.Int).SetString(tx.GasPrice, 10)
 
 	if tx.Data != "" {
