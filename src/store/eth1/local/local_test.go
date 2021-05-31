@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
-	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 	"testing"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
