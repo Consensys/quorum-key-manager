@@ -5,8 +5,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
 	"math/big"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"

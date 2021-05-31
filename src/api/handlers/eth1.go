@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"math/big"
 	"net/http"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
@@ -28,9 +30,9 @@ func NewAccountsHandler(backend core.Backend) *mux.Router {
 	router.Methods(http.MethodPost).Path("/").HandlerFunc(h.create)
 	router.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
 	router.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
-	router.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.sign)
-	router.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.sign)
-	router.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.sign)
+	router.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
+	router.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
+	router.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	router.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
 	router.Methods(http.MethodPost).Path("/{address}/restore").HandlerFunc(h.restore)
 	router.Methods(http.MethodPost).Path("/ec-revocer").HandlerFunc(h.ecRecover)
@@ -183,6 +185,87 @@ func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Reques
 
 	typedData := formatters.FormatSignTypedDataRequest(signTypedDataReq)
 	signature, err := eth1Store.SignTypedData(ctx, getAddress(request), typedData)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
+}
+
+func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	signTransactionReq := &types.SignETHTransactionRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, signTransactionReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	chainID, _ := new(big.Int).SetString(signTransactionReq.ChainID, 10)
+	signature, err := eth1Store.SignTransaction(ctx, getAddress(request), chainID, formatters.FormatTransaction(signTransactionReq))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
+}
+
+func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	signEEAReq := &types.SignEEATransactionRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, signEEAReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	chainID, _ := new(big.Int).SetString(signEEAReq.ChainID, 10)
+	tx, privateArgs := formatters.FormatEEATransaction(signEEAReq)
+	signature, err := eth1Store.SignEEA(ctx, getAddress(request), chainID, tx, privateArgs)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
+}
+
+func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	signPrivateReq := &types.SignQuorumPrivateTransactionRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, signPrivateReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	signature, err := eth1Store.SignPrivate(ctx, getAddress(request), formatters.FormatPrivateTransaction(signPrivateReq))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

@@ -14,7 +14,6 @@ func FormatKeyResponse(key *entities.Key) *types.KeyResponse {
 		Curve:            string(key.Algo.EllipticCurve),
 		SigningAlgorithm: string(key.Algo.Type),
 		Tags:             key.Tags,
-		Version:          key.Metadata.Version,
 		Disabled:         key.Metadata.Disabled,
 		CreatedAt:        key.Metadata.CreatedAt,
 		UpdatedAt:        key.Metadata.UpdatedAt,
