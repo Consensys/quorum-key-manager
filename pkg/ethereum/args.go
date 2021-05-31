@@ -5,11 +5,9 @@ import (
 	"math/big"
 
 	quorumtypes "github.com/consensys/quorum/core/types"
-
-	"github.com/ethereum/go-ethereum/core/types"
-
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type PrivacyFlag uint64

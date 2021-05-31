@@ -18,7 +18,7 @@ func init() {
 
 const (
 	httpPortFlag     = "http-port"
-	httpPortViperKey = "server.port"
+	httpPortViperKey = "http.port"
 	httpPortDefault  = 8080
 	httpPortEnv      = "HTTP_PORT"
 )
@@ -32,7 +32,7 @@ Environment variable: %q`, httpPortEnv)
 
 const (
 	httpHostFlag     = "http-host"
-	httpHostViperKey = "server.host"
+	httpHostViperKey = "http.host"
 	httpHostDefault  = ""
 	httpHostEnv      = "HTTP_HOST"
 )
