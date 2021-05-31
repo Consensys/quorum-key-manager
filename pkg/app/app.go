@@ -11,8 +11,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-
-	// "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/middleware"
 	gorillamux "github.com/gorilla/mux"
 )
 
