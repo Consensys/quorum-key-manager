@@ -1,9 +1,11 @@
 package acceptancetests
 
 import (
+	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -259,6 +261,26 @@ func (s *keysTestSuite) TestSign() {
 		require.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsNotFoundError(signErr))
 	})
+}
+
+func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
+	privKey, err := crypto.ToECDSA(privKeyB)
+	if err != nil {
+		return false, err
+	}
+
+	if len(signature) == EthSignatureLength {
+		retrievedPubkey, err := crypto.SigToPub(crypto.Keccak256(msg), signature)
+		if err != nil {
+			return false, err
+		}
+
+		return privKey.PublicKey.Equal(retrievedPubkey), nil
+	}
+
+	r := new(big.Int).SetBytes(signature[0:32])
+	s := new(big.Int).SetBytes(signature[32:64])
+	return ecdsa.Verify(&privKey.PublicKey, msg, r, s), nil
 }
 
 func (s *keysTestSuite) newID(name string) string {

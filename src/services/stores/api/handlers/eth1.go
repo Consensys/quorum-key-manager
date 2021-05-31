@@ -28,24 +28,24 @@ func NewAccountsHandler(s storesmanager.Manager) *Eth1Handler {
 
 func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
-	router.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
-	router.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
-	router.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
-	router.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
-	router.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
-	router.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
-	router.Methods(http.MethodPost).Path("/{address}/restore").HandlerFunc(h.restore)
-	router.Methods(http.MethodPost).Path("/ec-revocer").HandlerFunc(h.ecRecover)
-	router.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
-	router.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
+	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
+	r.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
+	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
+	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
+	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
+	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
+	r.Methods(http.MethodPost).Path("/{address}/restore").HandlerFunc(h.restore)
+	r.Methods(http.MethodPost).Path("/ec-revocer").HandlerFunc(h.ecRecover)
+	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
+	r.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
 
-	router.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
+	r.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
 
-	router.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
-	router.Methods(http.MethodGet).Path("/{address}").HandlerFunc(h.getOne)
+	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
+	r.Methods(http.MethodGet).Path("/{address}").HandlerFunc(h.getOne)
 
-	router.Methods(http.MethodDelete).Path("/{address}").HandlerFunc(h.delete)
-	router.Methods(http.MethodDelete).Path("/{address}/destroy").HandlerFunc(h.destroy)
+	r.Methods(http.MethodDelete).Path("/{address}").HandlerFunc(h.delete)
+	r.Methods(http.MethodDelete).Path("/{address}/destroy").HandlerFunc(h.destroy)
 }
 
 func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
@@ -85,7 +85,7 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -111,7 +111,7 @@ func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -137,7 +137,7 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -163,7 +163,7 @@ func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -190,7 +190,7 @@ func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -216,7 +216,7 @@ func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.R
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -243,7 +243,7 @@ func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *ht
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -262,7 +262,7 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -287,7 +287,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -311,7 +311,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -329,7 +329,7 @@ func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -347,7 +347,7 @@ func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -373,7 +373,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -399,7 +399,7 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -425,7 +425,7 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 		return
 	}
 
-	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

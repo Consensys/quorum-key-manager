@@ -8,7 +8,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/formatters"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1"
