@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"time"
 )
 
@@ -11,7 +12,7 @@ type CreateEth1AccountRequest struct {
 
 type ImportEth1AccountRequest struct {
 	ID         string            `json:"id" validate:"required" example:"my-account"`
-	PrivateKey string            `json:"privateKey" validate:"required,isHex" example:"0xfeee"`
+	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required,isHex" example:"0xfeee"`
 	Tags       map[string]string `json:"tags,omitempty"`
 }
 
@@ -20,7 +21,7 @@ type UpdateEth1AccountRequest struct {
 }
 
 type SignHexPayloadRequest struct {
-	Data string `json:"data" validate:"required,isHex" example:"0xfeee"`
+	Data hexutil.Bytes `json:"data" validate:"required,isHex" example:"0xfeee"`
 }
 
 type SignTypedDataRequest struct {
@@ -45,22 +46,22 @@ type Type struct {
 }
 
 type SignETHTransactionRequest struct {
-	Nonce    uint64 `json:"nonce" example:"1"`
-	To       string `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
-	Value    string `json:"value,omitempty" validate:"isBig" example:"100000000000"`
-	GasPrice string `json:"gasPrice" validate:"required,isBig" example:"100000000000"`
-	GasLimit uint64 `json:"gasLimit" validate:"required" example:"21000"`
-	Data     string `json:"data,omitempty" validate:"isHex" example:"0xfeaeee..."`
-	ChainID  string `json:"chainID" validate:"required,isBig" example:"1 (mainnet)"`
+	Nonce    uint64        `json:"nonce" example:"1"`
+	To       string        `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
+	Value    hexutil.Big   `json:"value,omitempty" validate:"isBig" example:"100000000000"`
+	GasPrice hexutil.Big   `json:"gasPrice" validate:"required,isBig" example:"100000000000"`
+	GasLimit uint64        `json:"gasLimit" validate:"required" example:"21000"`
+	Data     hexutil.Bytes `json:"data,omitempty" validate:"isHex" example:"0xfeaeee..."`
+	ChainID  hexutil.Big   `json:"chainID" validate:"required,isBig" example:"1 (mainnet)"`
 }
 
 type SignQuorumPrivateTransactionRequest struct {
-	Nonce    uint64 `json:"nonce" example:"1"`
-	To       string `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
-	Value    string `json:"value,omitempty" validate:"isBig" example:"100000000000"`
-	GasPrice string `json:"gasPrice" validate:"required,isBig" example:"100000000000"`
-	GasLimit uint64 `json:"gasLimit" validate:"required" example:"21000"`
-	Data     string `json:"data,omitempty" validate:"isHex" example:"0xfeaeee..."`
+	Nonce    uint64        `json:"nonce" example:"1"`
+	To       string        `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
+	Value    hexutil.Big   `json:"value,omitempty" validate:"isBig" example:"100000000000"`
+	GasPrice hexutil.Big   `json:"gasPrice" validate:"required,isBig" example:"100000000000"`
+	GasLimit uint64        `json:"gasLimit" validate:"required" example:"21000"`
+	Data     hexutil.Bytes `json:"data,omitempty" validate:"isHex" example:"0xfeaeee..."`
 }
 
 type SignEEATransactionRequest struct {
@@ -74,19 +75,19 @@ type SignEEATransactionRequest struct {
 }
 
 type ECRecoverRequest struct {
-	Data      string `json:"data" validate:"required,isHex" example:"my data to sign"`
-	Signature string `json:"signature" validate:"required,isHex" example:"0x6019a3c8..."`
+	Data      hexutil.Bytes `json:"data" validate:"required,isHex" example:"my data to sign"`
+	Signature hexutil.Bytes `json:"signature" validate:"required,isHex" example:"0x6019a3c8..."`
 }
 
 type VerifyEth1SignatureRequest struct {
-	Data      string `json:"data" validate:"required,isHex" example:"my data to sign"`
-	Signature string `json:"signature" validate:"required,isHex" example:"0x6019a3c8..."`
-	Address   string `json:"address" validate:"required,isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
+	Data      hexutil.Bytes `json:"data" validate:"required,isHex" example:"my data to sign"`
+	Signature hexutil.Bytes `json:"signature" validate:"required,isHex" example:"0x6019a3c8..."`
+	Address   string        `json:"address" validate:"required,isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
 }
 
 type VerifyTypedDataRequest struct {
 	TypedData SignTypedDataRequest `json:"data" validate:"required"`
-	Signature string               `json:"signature" validate:"required,isHex" example:"0x6019a3c8..."`
+	Signature hexutil.Bytes        `json:"signature" validate:"required,isHex" example:"0x6019a3c8..."`
 	Address   string               `json:"address" validate:"required,isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
 }
 

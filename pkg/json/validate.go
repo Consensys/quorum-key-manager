@@ -2,7 +2,6 @@ package json
 
 import (
 	"encoding/base64"
-	"math/big"
 	"reflect"
 	"time"
 
@@ -46,8 +45,8 @@ func isHexAddress(fl validator.FieldLevel) bool {
 
 func isBig(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
-		_, ok := new(big.Int).SetString(fl.Field().String(), 10)
-		return ok
+		_, err := hexutil.DecodeBig(fl.Field().String())
+		return err == nil
 	}
 
 	return true

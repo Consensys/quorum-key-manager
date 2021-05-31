@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 	"net/http"
 
@@ -88,19 +87,13 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	privKey, err := hexutil.Decode(importReq.PrivateKey)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	eth1Acc, err := eth1Store.Import(ctx, importReq.ID, privKey, &entities.Attributes{Tags: importReq.Tags})
+	eth1Acc, err := eth1Store.Import(ctx, importReq.ID, importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -146,19 +139,13 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	data, err := hexutil.Decode(signPayloadReq.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	eth1Store, err := h.backend.StoreManager().GetEth1Store(ctx, getStoreName(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	signature, err := eth1Store.Sign(ctx, getAddress(request), crypto.Keccak256(data))
+	signature, err := eth1Store.Sign(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -211,8 +198,7 @@ func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	chainID, _ := new(big.Int).SetString(signTransactionReq.ChainID, 10)
-	signature, err := eth1Store.SignTransaction(ctx, getAddress(request), chainID, formatters.FormatTransaction(signTransactionReq))
+	signature, err := eth1Store.SignTransaction(ctx, getAddress(request), signTransactionReq.ChainID.ToInt(), formatters.FormatTransaction(signTransactionReq))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -396,19 +382,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	data, err := hexutil.Decode(ecRecoverReq.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	signature, err := hexutil.Decode(ecRecoverReq.Signature)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	address, err := eth1Store.ECRevocer(ctx, data, signature)
+	address, err := eth1Store.ECRevocer(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -434,19 +408,7 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	data, err := hexutil.Decode(verifyReq.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	signature, err := hexutil.Decode(verifyReq.Signature)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	err = eth1Store.Verify(ctx, verifyReq.Address, data, signature)
+	err = eth1Store.Verify(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -472,14 +434,8 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 		return
 	}
 
-	signature, err := hexutil.Decode(verifyReq.Signature)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
-	err = eth1Store.VerifyTypedData(ctx, getAddress(request), typedData, signature)
+	err = eth1Store.VerifyTypedData(ctx, getAddress(request), typedData, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

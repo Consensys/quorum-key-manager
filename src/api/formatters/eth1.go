@@ -62,35 +62,17 @@ func FormatSignTypedDataRequest(request *types.SignTypedDataRequest) *signer.Typ
 }
 
 func FormatTransaction(tx *types.SignETHTransactionRequest) *ethtypes.Transaction {
-	var data []byte
-	amount, _ := new(big.Int).SetString(tx.Value, 10)
-	gasPrice, _ := new(big.Int).SetString(tx.GasPrice, 10)
-
-	if tx.Data != "" {
-		// Has already been validated as either empty or as a hex string
-		data, _ = hexutil.Decode(tx.Data)
-	}
-
 	if tx.To == "" {
-		return ethtypes.NewContractCreation(tx.Nonce, amount, tx.GasLimit, gasPrice, data)
+		return ethtypes.NewContractCreation(tx.Nonce, tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
 	}
-	return ethtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), amount, tx.GasLimit, gasPrice, data)
+	return ethtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
 }
 
 func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *quorumtypes.Transaction {
-	var data []byte
-	amount, _ := new(big.Int).SetString(tx.Value, 10)
-	gasPrice, _ := new(big.Int).SetString(tx.GasPrice, 10)
-
-	if tx.Data != "" {
-		// Has already been validated as either empty or as a hex string
-		data, _ = hexutil.Decode(tx.Data)
-	}
-
 	if tx.To == "" {
-		return quorumtypes.NewContractCreation(tx.Nonce, amount, tx.GasLimit, gasPrice, data)
+		return quorumtypes.NewContractCreation(tx.Nonce, tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
 	}
-	return quorumtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), amount, tx.GasLimit, gasPrice, data)
+	return quorumtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
 }
 
 func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transaction, *ethereum.PrivateArgs) {
