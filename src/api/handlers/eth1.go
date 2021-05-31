@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"math/big"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -224,9 +223,8 @@ func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.R
 		return
 	}
 
-	chainID, _ := new(big.Int).SetString(signEEAReq.ChainID, 10)
 	tx, privateArgs := formatters.FormatEEATransaction(signEEAReq)
-	signature, err := eth1Store.SignEEA(ctx, getAddress(request), chainID, tx, privateArgs)
+	signature, err := eth1Store.SignEEA(ctx, getAddress(request), signEEAReq.ChainID.ToInt(), tx, privateArgs)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

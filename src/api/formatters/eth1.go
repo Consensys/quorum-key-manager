@@ -76,12 +76,6 @@ func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *qu
 }
 
 func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transaction, *ethereum.PrivateArgs) {
-	var data []byte
-	if tx.Data != "" {
-		// Has already been validated as either empty or as a hex string
-		data, _ = hexutil.Decode(tx.Data)
-	}
-
 	privateType := PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom:    &tx.PrivateFrom,
@@ -91,9 +85,9 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 	}
 
 	if tx.To == "" {
-		return ethtypes.NewContractCreation(tx.Nonce, big.NewInt(0), uint64(0), big.NewInt(0), data), privateArgs
+		return ethtypes.NewContractCreation(tx.Nonce, big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
 	}
-	return ethtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), big.NewInt(0), uint64(0), big.NewInt(0), data), privateArgs
+	return ethtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
 }
 
 func FormatEth1AccResponse(key *entities.ETH1Account) *types.Eth1AccountResponse {
