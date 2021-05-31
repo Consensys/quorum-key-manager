@@ -63,29 +63,29 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 		Tags: common.Tomapstrptr(attributes.Tags),
 	}
 
-	s.T().Run("should set a new secret successfully", func(t *testing.T) {
+	s.Run("should set a new secret successfully", func() {
 		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(res, nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
-		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
-		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, version, secret.Metadata.Version)
-		assert.False(t, secret.Metadata.Disabled)
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), expectedCreatedAt, secret.Metadata.CreatedAt)
+		assert.Equal(s.T(), attributes.Tags, secret.Tags)
+		assert.Equal(s.T(), version, secret.Metadata.Version)
+		assert.False(s.T(), secret.Metadata.Disabled)
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+	s.Run("should fail with same error if write fails", func() {
 		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), secret)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -111,31 +111,31 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 		Tags: common.Tomapstrptr(attributes.Tags),
 	}
 
-	s.T().Run("should get a secret successfully with empty version", func(t *testing.T) {
+	s.Run("should get a secret successfully with empty version", func() {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(res, nil)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
-		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
-		assert.Equal(t, expectedUpdatedAt, secret.Metadata.UpdatedAt)
-		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, version, secret.Metadata.Version)
-		assert.False(t, secret.Metadata.Disabled)
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), expectedCreatedAt, secret.Metadata.CreatedAt)
+		assert.Equal(s.T(), expectedUpdatedAt, secret.Metadata.UpdatedAt)
+		assert.Equal(s.T(), attributes.Tags, secret.Tags)
+		assert.Equal(s.T(), version, secret.Metadata.Version)
+		assert.False(s.T(), secret.Metadata.Disabled)
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with error if bad request in response", func(t *testing.T) {
+	s.Run("should fail with error if bad request in response", func() {
 		expectedErr := errors.AKVConnectionError("conn err")
 
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), secret)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -143,7 +143,7 @@ func (s *akvSecretStoreTestSuite) TestList() {
 	ctx := context.Background()
 	secretsList := []string{"my-secret3", "my-secret4"}
 
-	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
+	s.Run("should list all secret ids successfully", func() {
 		items := []keyvault.SecretItem{
 			{
 				ID: &(&struct{ x string }{"https://test.dns/secrets/my-secret3"}).x,
@@ -160,26 +160,26 @@ func (s *akvSecretStoreTestSuite) TestList() {
 		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return(list, nil)
 		ids, err := s.secretStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, secretsList, ids)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), secretsList, ids)
 	})
 
-	s.T().Run("should return empty list if result is nil", func(t *testing.T) {
+	s.Run("should return empty list if result is nil", func() {
 		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.SecretItem{}, nil)
 		ids, err := s.secretStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Empty(t, ids)
+		assert.NoError(s.T(), err)
+		assert.Empty(s.T(), ids)
 	})
 
-	s.T().Run("should fail if list fails", func(t *testing.T) {
+	s.Run("should fail if list fails", func() {
 		expectedErr := fmt.Errorf("error")
 
 		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.SecretItem{}, expectedErr)
 		ids, err := s.secretStore.List(ctx)
 
-		assert.Nil(t, ids)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), ids)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -187,18 +187,18 @@ func (s *akvSecretStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 	id := "my-secret6"
 
-	s.T().Run("should delete a secret successfully", func(t *testing.T) {
+	s.Run("should delete a secret successfully", func() {
 		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(true, nil)
 		err := s.secretStore.Destroy(ctx, id)
-		assert.NoError(t, err)
+		assert.NoError(s.T(), err)
 	})
 
-	s.T().Run("should fail with NotFoundError if DeleteSecret fails with 404", func(t *testing.T) {
+	s.Run("should fail with NotFoundError if DeleteSecret fails with 404", func() {
 		expectedErr := errors.NotFoundError("not found")
 
 		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(false, expectedErr)
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Equal(t, expectedErr, err)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }

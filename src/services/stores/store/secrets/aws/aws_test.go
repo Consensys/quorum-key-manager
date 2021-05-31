@@ -61,24 +61,24 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		Tags:               ToSecretmanagerTags(attributes.Tags),
 	}
 
-	s.T().Run("should set a new secret successfully", func(t *testing.T) {
+	s.Run("should set a new secret successfully", func() {
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), value, secret.Value)
 
 		assert.ObjectsAreEqual(attributes.Tags, secret.Tags)
-		assert.Equal(t, version, secret.Metadata.Version)
-		assert.False(t, secret.Metadata.Disabled)
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
+		assert.Equal(s.T(), version, secret.Metadata.Version)
+		assert.False(s.T(), secret.Metadata.Disabled)
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail when too many tags", func(t *testing.T) {
+	s.Run("should fail when too many tags", func() {
 		tooManyTags := map[string]string{}
 
 		for i := 0; i <= maxTagsAllowed; i++ {
@@ -91,12 +91,12 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		// tags back to normal
 		attributes.Tags = testutils.FakeTags()
 
-		assert.NotNil(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
-		assert.Nil(t, secret)
+		assert.NotNil(s.T(), err)
+		assert.True(s.T(), errors.IsInvalidParameterError(err))
+		assert.Nil(s.T(), secret)
 	})
 
-	s.T().Run("should fail with describe error", func(t *testing.T) {
+	s.Run("should fail with describe error", func() {
 		expectedErr := fmt.Errorf("any error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
@@ -104,24 +104,24 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Equal(t, err, expectedErr)
-		assert.Nil(t, secret)
+		assert.Equal(s.T(), err, expectedErr)
+		assert.Nil(s.T(), secret)
 
 	})
 
-	s.T().Run("should fail with tag error", func(t *testing.T) {
+	s.Run("should fail with tag error", func() {
 		expectedErr := fmt.Errorf("any error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Equal(t, err, expectedErr)
-		assert.Nil(t, secret)
+		assert.Equal(s.T(), err, expectedErr)
+		assert.Nil(s.T(), secret)
 
 	})
 
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+	s.Run("should fail with same error if write fails", func() {
 		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, expectedErr)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
@@ -129,11 +129,11 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), secret)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 
-	s.T().Run("should update secret if already exists", func(t *testing.T) {
+	s.Run("should update secret if already exists", func() {
 
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, awserr.New(secretsmanager.ErrCodeResourceExistsException, "", nil))
 		s.mockVault.EXPECT().PutSecretValue(gomock.Any(), id, value).Return(&secretsmanager.PutSecretValueOutput{}, nil)
@@ -142,11 +142,11 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), value, secret.Value)
 
 		assert.ObjectsAreEqual(attributes.Tags, secret.Tags)
-		assert.Equal(t, version, secret.Metadata.Version)
+		assert.Equal(s.T(), version, secret.Metadata.Version)
 	})
 
 }
@@ -178,42 +178,42 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 		VersionIdsToStages: versionID2stages,
 	}
 
-	s.T().Run("should get a secret successfully", func(t *testing.T) {
+	s.Run("should get a secret successfully", func() {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, "").Return(getSecretOutput, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, nil)
 		retValue, err := s.secretStore.Get(ctx, id, "")
-		assert.NoError(t, err)
-		assert.Equal(t, retValue.Value, expectedSecret.Value)
-		assert.Equal(t, retValue.ID, expectedSecret.ID)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), retValue.Value, expectedSecret.Value)
+		assert.Equal(s.T(), retValue.ID, expectedSecret.ID)
 	})
 
-	s.T().Run("should fail with get error", func(t *testing.T) {
+	s.Run("should fail with get error", func() {
 		expectedErr := errors.NotFoundError("secret not found")
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, expectedErr)
 
 		retValue, err := s.secretStore.Get(ctx, id, version)
-		assert.Nil(t, retValue)
-		assert.Equal(t, err, expectedErr)
+		assert.Nil(s.T(), retValue)
+		assert.Equal(s.T(), err, expectedErr)
 	})
 
-	s.T().Run("should fail with describe error", func(t *testing.T) {
+	s.Run("should fail with describe error", func() {
 		expectedErr := errors.NotFoundError("secret not found")
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, expectedErr)
 		retValue, err := s.secretStore.Get(ctx, id, version)
-		assert.Nil(t, retValue)
-		assert.Equal(t, err, expectedErr)
+		assert.Nil(s.T(), retValue)
+		assert.Equal(s.T(), err, expectedErr)
 	})
 }
 
 func (s *awsSecretStoreTestSuite) TestGetDeleted() {
-	s.T().Run("should fail with not implemented error", func(t *testing.T) {
+	s.Run("should fail with not implemented error", func() {
 		ctx := context.Background()
 		id := "some-id"
 		expectedError := errors.ErrNotImplemented
 		_, err := s.secretStore.GetDeleted(ctx, id)
 
-		assert.Equal(t, err, expectedError)
+		assert.Equal(s.T(), err, expectedError)
 	})
 }
 
@@ -226,11 +226,11 @@ func (s *awsSecretStoreTestSuite) TestDeleted() {
 		Name: &id,
 	}
 
-	s.T().Run("should delete secret successfully", func(t *testing.T) {
+	s.Run("should delete secret successfully", func() {
 		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
 
 		err := s.secretStore.Delete(ctx, id)
-		assert.NoError(t, err)
+		assert.NoError(s.T(), err)
 	})
 }
 
@@ -243,15 +243,15 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 		Name: &id,
 	}
 
-	s.T().Run("should destroy secret successfully", func(t *testing.T) {
+	s.Run("should destroy secret successfully", func() {
 		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
 
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.NoError(t, err)
+		assert.NoError(s.T(), err)
 	})
 
-	s.T().Run("should fail to destroy secret with internal error", func(t *testing.T) {
+	s.Run("should fail to destroy secret with internal error", func() {
 
 		awsError := awserr.New(secretsmanager.ErrCodeInternalServiceError, "", nil)
 		expectedError := errors.InternalError("internal error")
@@ -259,11 +259,11 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedError)
+		assert.Error(s.T(), err)
+		assert.Equal(s.T(), err, expectedError)
 	})
 
-	s.T().Run("should fail to destroy secret with internal error", func(t *testing.T) {
+	s.Run("should fail to destroy secret with internal error", func() {
 
 		awsError := awserr.New(secretsmanager.ErrCodeInternalServiceError, "", nil)
 		expectedError := errors.InternalError("internal error")
@@ -271,11 +271,11 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedError)
+		assert.Error(s.T(), err)
+		assert.Equal(s.T(), err, expectedError)
 	})
 
-	s.T().Run("should fail to destroy secret with not found error", func(t *testing.T) {
+	s.Run("should fail to destroy secret with not found error", func() {
 
 		awsError := awserr.New(secretsmanager.ErrCodeResourceNotFoundException, "", nil)
 		expectedError := errors.NotFoundError("resource was not found")
@@ -283,11 +283,11 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedError)
+		assert.Error(s.T(), err)
+		assert.Equal(s.T(), err, expectedError)
 	})
 
-	s.T().Run("should fail to destroy secret with not found error", func(t *testing.T) {
+	s.Run("should fail to destroy secret with not found error", func() {
 
 		awsError := awserr.New(secretsmanager.ErrCodeLimitExceededException, "", nil)
 		expectedError := errors.InternalError("internal error, limit exceeded")
@@ -295,11 +295,11 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedError)
+		assert.Error(s.T(), err)
+		assert.Equal(s.T(), err, expectedError)
 	})
 
-	s.T().Run("should fail to destroy secret with invalid parameter error", func(t *testing.T) {
+	s.Run("should fail to destroy secret with invalid parameter error", func() {
 
 		awsError := awserr.New(secretsmanager.ErrCodeInvalidParameterException, "", nil)
 		expectedError := errors.InvalidParameterError("invalid parameter")
@@ -307,11 +307,11 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedError)
+		assert.Error(s.T(), err)
+		assert.Equal(s.T(), err, expectedError)
 	})
 
-	s.T().Run("should fail to destroy secret with invalid request error", func(t *testing.T) {
+	s.Run("should fail to destroy secret with invalid request error", func() {
 
 		awsError := awserr.New(secretsmanager.ErrCodeInvalidRequestException, "", nil)
 		expectedError := errors.InvalidRequestError("invalid request")
@@ -319,8 +319,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedError)
+		assert.Error(s.T(), err)
+		assert.Equal(s.T(), err, expectedError)
 	})
 }
 
@@ -330,7 +330,7 @@ func (s *awsSecretStoreTestSuite) TestList() {
 	expected := []string{sec3, sec4}
 	secretsList := []*secretsmanager.SecretListEntry{{Name: &sec3}, {Name: &sec4}}
 
-	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
+	s.Run("should list all secret ids successfully", func() {
 
 		listOutput := &secretsmanager.ListSecretsOutput{
 			SecretList: secretsList,
@@ -339,11 +339,11 @@ func (s *awsSecretStoreTestSuite) TestList() {
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(listOutput, nil)
 		ids, err := s.secretStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, expected, ids)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), expected, ids)
 	})
 
-	s.T().Run("should list all secret ids successfully with a nextToken", func(t *testing.T) {
+	s.Run("should list all secret ids successfully with a nextToken", func() {
 
 		nextToken := "next"
 		listOutput := &secretsmanager.ListSecretsOutput{
@@ -356,36 +356,36 @@ func (s *awsSecretStoreTestSuite) TestList() {
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), nextToken).Return(listOutput, nil)
 		ids, err := s.secretStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, expected, ids)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), expected, ids)
 	})
 
-	s.T().Run("should return empty list if result is nil", func(t *testing.T) {
+	s.Run("should return empty list if result is nil", func() {
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(&secretsmanager.ListSecretsOutput{}, nil)
 		ids, err := s.secretStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Empty(t, ids)
+		assert.NoError(s.T(), err)
+		assert.Empty(s.T(), ids)
 	})
 
-	s.T().Run("should fail if list fails", func(t *testing.T) {
+	s.Run("should fail if list fails", func() {
 		expectedErr := fmt.Errorf("error")
 
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(&secretsmanager.ListSecretsOutput{}, expectedErr)
 		ids, err := s.secretStore.List(ctx)
 
-		assert.Nil(t, ids)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), ids)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
 func (s *awsSecretStoreTestSuite) TestListDeleted() {
-	s.T().Run("should fail with not implemented error", func(t *testing.T) {
+	s.Run("should fail with not implemented error", func() {
 		ctx := context.Background()
 		expectedError := errors.ErrNotImplemented
 		_, err := s.secretStore.ListDeleted(ctx)
 
-		assert.Equal(t, err, expectedError)
+		assert.Equal(s.T(), err, expectedError)
 	})
 }
 

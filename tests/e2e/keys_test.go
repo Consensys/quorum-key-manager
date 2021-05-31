@@ -6,18 +6,17 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -65,7 +64,7 @@ func TestKeyManagerKeys(t *testing.T) {
 }
 
 func (s *keysTestSuite) TestCreate() {
-	s.T().Run("should create a new key successfully: Secp256k1/ECDSA", func(t *testing.T) {
+	s.Run("should create a new key successfully: Secp256k1/ECDSA", func() {
 		request := &types.CreateKeyRequest{
 			ID:               "my-key-ecdsa",
 			Curve:            "secp256k1",
@@ -77,23 +76,23 @@ func (s *keysTestSuite) TestCreate() {
 		}
 
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.NotEmpty(t, key.PublicKey)
-		assert.Equal(t, request.SigningAlgorithm, key.SigningAlgorithm)
-		assert.Equal(t, request.Curve, key.Curve)
-		assert.Equal(t, request.ID, key.ID)
-		assert.Equal(t, request.Tags, key.Tags)
-		assert.Equal(t, "1", key.Version)
-		assert.False(t, key.Disabled)
-		assert.NotEmpty(t, key.CreatedAt)
-		assert.NotEmpty(t, key.UpdatedAt)
-		assert.True(t, key.ExpireAt.IsZero())
-		assert.True(t, key.DeletedAt.IsZero())
-		assert.True(t, key.DestroyedAt.IsZero())
+		assert.NotEmpty(s.T(), key.PublicKey)
+		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
+		assert.Equal(s.T(), request.Curve, key.Curve)
+		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), request.Tags, key.Tags)
+		assert.Equal(s.T(), "1", key.Version)
+		assert.False(s.T(), key.Disabled)
+		assert.NotEmpty(s.T(), key.CreatedAt)
+		assert.NotEmpty(s.T(), key.UpdatedAt)
+		assert.True(s.T(), key.ExpireAt.IsZero())
+		assert.True(s.T(), key.DeletedAt.IsZero())
+		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
-	s.T().Run("should create a new key successfully: BN254/EDDSA", func(t *testing.T) {
+	s.Run("should create a new key successfully: BN254/EDDSA", func() {
 		request := &types.CreateKeyRequest{
 			ID:               "my-key-eddsa",
 			Curve:            "bn254",
@@ -105,23 +104,23 @@ func (s *keysTestSuite) TestCreate() {
 		}
 
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.NotEmpty(t, key.PublicKey)
-		assert.Equal(t, request.SigningAlgorithm, key.SigningAlgorithm)
-		assert.Equal(t, request.Curve, key.Curve)
-		assert.Equal(t, request.ID, key.ID)
-		assert.Equal(t, request.Tags, key.Tags)
-		assert.Equal(t, "1", key.Version)
-		assert.False(t, key.Disabled)
-		assert.NotEmpty(t, key.CreatedAt)
-		assert.NotEmpty(t, key.UpdatedAt)
-		assert.True(t, key.ExpireAt.IsZero())
-		assert.True(t, key.DeletedAt.IsZero())
-		assert.True(t, key.DestroyedAt.IsZero())
+		assert.NotEmpty(s.T(), key.PublicKey)
+		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
+		assert.Equal(s.T(), request.Curve, key.Curve)
+		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), request.Tags, key.Tags)
+		assert.Equal(s.T(), "1", key.Version)
+		assert.False(s.T(), key.Disabled)
+		assert.NotEmpty(s.T(), key.CreatedAt)
+		assert.NotEmpty(s.T(), key.UpdatedAt)
+		assert.True(s.T(), key.ExpireAt.IsZero())
+		assert.True(s.T(), key.DeletedAt.IsZero())
+		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
-	s.T().Run("should parse errors successfully", func(t *testing.T) {
+	s.Run("should parse errors successfully", func() {
 		request := &types.CreateKeyRequest{
 			ID:               "my-key",
 			Curve:            "bn254",
@@ -133,13 +132,13 @@ func (s *keysTestSuite) TestCreate() {
 		}
 
 		key, err := s.keyManagerClient.CreateKey(s.ctx, "inexistentStoreName", request)
-		require.Nil(t, key)
+		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 404, httpError.StatusCode)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
 	})
 
-	s.T().Run("should fail with bad request if curve is not supported", func(t *testing.T) {
+	s.Run("should fail with bad request if curve is not supported", func() {
 		request := &types.CreateKeyRequest{
 			ID:               "my-key",
 			Curve:            "invalidCurve",
@@ -151,13 +150,13 @@ func (s *keysTestSuite) TestCreate() {
 		}
 
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.Nil(t, key)
+		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 400, httpError.StatusCode)
+		assert.Equal(s.T(), 400, httpError.StatusCode)
 	})
 
-	s.T().Run("should fail with bad request if signing algorithm is not supported", func(t *testing.T) {
+	s.Run("should fail with bad request if signing algorithm is not supported", func() {
 		request := &types.CreateKeyRequest{
 			ID:               "my-key",
 			Curve:            "secp256k1",
@@ -169,15 +168,15 @@ func (s *keysTestSuite) TestCreate() {
 		}
 
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.Nil(t, key)
+		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 400, httpError.StatusCode)
+		assert.Equal(s.T(), 400, httpError.StatusCode)
 	})
 }
 
 func (s *keysTestSuite) TestImport() {
-	s.T().Run("should create a new key successfully: Secp256k1/ECDSA", func(t *testing.T) {
+	s.Run("should create a new key successfully: Secp256k1/ECDSA", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-import-ecdsa",
 			Curve:            "secp256k1",
@@ -190,23 +189,23 @@ func (s *keysTestSuite) TestImport() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", key.PublicKey)
-		assert.Equal(t, request.SigningAlgorithm, key.SigningAlgorithm)
-		assert.Equal(t, request.Curve, key.Curve)
-		assert.Equal(t, request.ID, key.ID)
-		assert.Equal(t, request.Tags, key.Tags)
-		assert.Equal(t, "1", key.Version)
-		assert.False(t, key.Disabled)
-		assert.NotEmpty(t, key.CreatedAt)
-		assert.NotEmpty(t, key.UpdatedAt)
-		assert.True(t, key.ExpireAt.IsZero())
-		assert.True(t, key.DeletedAt.IsZero())
-		assert.True(t, key.DestroyedAt.IsZero())
+		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", key.PublicKey)
+		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
+		assert.Equal(s.T(), request.Curve, key.Curve)
+		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), request.Tags, key.Tags)
+		assert.Equal(s.T(), "1", key.Version)
+		assert.False(s.T(), key.Disabled)
+		assert.NotEmpty(s.T(), key.CreatedAt)
+		assert.NotEmpty(s.T(), key.UpdatedAt)
+		assert.True(s.T(), key.ExpireAt.IsZero())
+		assert.True(s.T(), key.DeletedAt.IsZero())
+		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
-	s.T().Run("should create a new key successfully: BN254/EDDSA", func(t *testing.T) {
+	s.Run("should create a new key successfully: BN254/EDDSA", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-import-eddsa",
 			Curve:            "bn254",
@@ -219,23 +218,23 @@ func (s *keysTestSuite) TestImport() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", key.PublicKey)
-		assert.Equal(t, request.SigningAlgorithm, key.SigningAlgorithm)
-		assert.Equal(t, request.Curve, key.Curve)
-		assert.Equal(t, request.ID, key.ID)
-		assert.Equal(t, request.Tags, key.Tags)
-		assert.Equal(t, "1", key.Version)
-		assert.False(t, key.Disabled)
-		assert.NotEmpty(t, key.CreatedAt)
-		assert.NotEmpty(t, key.UpdatedAt)
-		assert.True(t, key.ExpireAt.IsZero())
-		assert.True(t, key.DeletedAt.IsZero())
-		assert.True(t, key.DestroyedAt.IsZero())
+		assert.Equal(s.T(), "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", key.PublicKey)
+		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
+		assert.Equal(s.T(), request.Curve, key.Curve)
+		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), request.Tags, key.Tags)
+		assert.Equal(s.T(), "1", key.Version)
+		assert.False(s.T(), key.Disabled)
+		assert.NotEmpty(s.T(), key.CreatedAt)
+		assert.NotEmpty(s.T(), key.UpdatedAt)
+		assert.True(s.T(), key.ExpireAt.IsZero())
+		assert.True(s.T(), key.DeletedAt.IsZero())
+		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
-	s.T().Run("should fail with bad request if curve is not supported", func(t *testing.T) {
+	s.Run("should fail with bad request if curve is not supported", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-import",
 			Curve:            "invalidCurve",
@@ -248,13 +247,13 @@ func (s *keysTestSuite) TestImport() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.Nil(t, key)
+		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 400, httpError.StatusCode)
+		assert.Equal(s.T(), 400, httpError.StatusCode)
 	})
 
-	s.T().Run("should fail with bad request if signing algorithm is not supported", func(t *testing.T) {
+	s.Run("should fail with bad request if signing algorithm is not supported", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-import",
 			Curve:            "secp256k1",
@@ -267,10 +266,10 @@ func (s *keysTestSuite) TestImport() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.Nil(t, key)
+		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 400, httpError.StatusCode)
+		assert.Equal(s.T(), 400, httpError.StatusCode)
 	})
 }
 
@@ -289,20 +288,20 @@ func (s *keysTestSuite) TestGet() {
 	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 	require.NoError(s.T(), err)
 
-	s.T().Run("should get a key successfully", func(t *testing.T) {
+	s.Run("should get a key successfully", func() {
 		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", keyRetrieved.PublicKey)
-		assert.Equal(t, request.ID, keyRetrieved.ID)
-		assert.Equal(t, request.Tags, keyRetrieved.Tags)
-		assert.Equal(t, "1", keyRetrieved.Version)
-		assert.False(t, keyRetrieved.Disabled)
-		assert.NotEmpty(t, keyRetrieved.CreatedAt)
-		assert.NotEmpty(t, keyRetrieved.UpdatedAt)
-		assert.True(t, keyRetrieved.ExpireAt.IsZero())
-		assert.True(t, keyRetrieved.DeletedAt.IsZero())
-		assert.True(t, keyRetrieved.DestroyedAt.IsZero())
+		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", keyRetrieved.PublicKey)
+		assert.Equal(s.T(), request.ID, keyRetrieved.ID)
+		assert.Equal(s.T(), request.Tags, keyRetrieved.Tags)
+		assert.Equal(s.T(), "1", keyRetrieved.Version)
+		assert.False(s.T(), keyRetrieved.Disabled)
+		assert.NotEmpty(s.T(), keyRetrieved.CreatedAt)
+		assert.NotEmpty(s.T(), keyRetrieved.UpdatedAt)
+		assert.True(s.T(), keyRetrieved.ExpireAt.IsZero())
+		assert.True(s.T(), keyRetrieved.DeletedAt.IsZero())
+		assert.True(s.T(), keyRetrieved.DestroyedAt.IsZero())
 	})
 }
 
@@ -321,20 +320,20 @@ func (s *keysTestSuite) TestList() {
 	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 	require.NoError(s.T(), err)
 
-	s.T().Run("should get all key ids successfully", func(t *testing.T) {
+	s.Run("should get all key ids successfully", func() {
 		ids, err := s.keyManagerClient.ListKeys(s.ctx, s.cfg.HashicorpKeyStore)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.GreaterOrEqual(t, len(ids), 1)
-		assert.Contains(t, ids, key.ID)
+		assert.GreaterOrEqual(s.T(), len(ids), 1)
+		assert.Contains(s.T(), ids, key.ID)
 	})
 
-	s.T().Run("should parse errors successfully", func(t *testing.T) {
+	s.Run("should parse errors successfully", func() {
 		ids, err := s.keyManagerClient.ListSecrets(s.ctx, "inexistentStoreName")
-		require.Empty(t, ids)
+		require.Empty(s.T(), ids)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 404, httpError.StatusCode)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
 	})
 }
 
@@ -343,7 +342,7 @@ func (s *keysTestSuite) TestSign() {
 	hashedPayload := base64.URLEncoding.EncodeToString(crypto.Keccak256(data))
 	payload := base64.URLEncoding.EncodeToString(data)
 
-	s.T().Run("should sign a new payload successfully: Secp256k1/ECDSA", func(t *testing.T) {
+	s.Run("should sign a new payload successfully: Secp256k1/ECDSA", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-ecdsa",
 			Curve:            "secp256k1",
@@ -352,19 +351,19 @@ func (s *keysTestSuite) TestSign() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
 		requestSign := &types.SignBase64PayloadRequest{
 			Data: hashedPayload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
+		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
 
 	})
 
-	s.T().Run("should sign a new payload successfully: BN254/EDDSA", func(t *testing.T) {
+	s.Run("should sign a new payload successfully: BN254/EDDSA", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
@@ -372,18 +371,18 @@ func (s *keysTestSuite) TestSign() {
 			PrivateKey:       eddsaPrivKey,
 		}
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
 		requestSign := &types.SignBase64PayloadRequest{
 			Data: payload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
+		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
 	})
 
-	s.T().Run("should fail if payload is not base64 string", func(t *testing.T) {
+	s.Run("should fail if payload is not base64 string", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
@@ -391,15 +390,15 @@ func (s *keysTestSuite) TestSign() {
 			PrivateKey:       eddsaPrivKey,
 		}
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
 		requestSign := &types.SignBase64PayloadRequest{
 			Data: "my data to sign not in base64 format",
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
-		require.Empty(t, signature)
+		require.Empty(s.T(), signature)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(t, 400, httpError.StatusCode)
+		assert.Equal(s.T(), 400, httpError.StatusCode)
 	})
 }

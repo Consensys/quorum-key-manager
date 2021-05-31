@@ -63,34 +63,34 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 		},
 	}
 
-	s.T().Run("should set a new secret successfully", func(t *testing.T) {
+	s.Run("should set a new secret successfully", func() {
 		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
 
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
-		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
-		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, "2", secret.Metadata.Version)
-		assert.False(t, secret.Metadata.Disabled)
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), expectedCreatedAt, secret.Metadata.CreatedAt)
+		assert.Equal(s.T(), attributes.Tags, secret.Tags)
+		assert.Equal(s.T(), "2", secret.Metadata.Version)
+		assert.False(s.T(), secret.Metadata.Disabled)
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+	s.Run("should fail with same error if write fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), secret)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 
-	s.T().Run("should fail with error if it fails to extract metadata", func(t *testing.T) {
+	s.Run("should fail with error if it fails to extract metadata", func() {
 		hashSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
 				"created_time": "invalidTime",
@@ -102,8 +102,8 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Nil(t, secret)
-		assert.True(t, errors.IsHashicorpVaultConnectionError(err))
+		assert.Nil(s.T(), secret)
+		assert.True(s.T(), errors.IsHashicorpVaultConnectionError(err))
 	})
 }
 
@@ -154,7 +154,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		Data: expectedMetadata,
 	}
 
-	s.T().Run("should get a secret successfully with empty version", func(t *testing.T) {
+	s.Run("should get a secret successfully with empty version", func() {
 		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:36:43.986212308Z")
 
 		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(hashicorpSecretData, nil)
@@ -162,17 +162,17 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
-		assert.NoError(t, err)
-		assert.Equal(t, value, secret.Value)
-		assert.Equal(t, expectedCreatedAt, secret.Metadata.CreatedAt)
-		assert.Equal(t, attributes.Tags, secret.Tags)
-		assert.Equal(t, "3", secret.Metadata.Version)
-		assert.False(t, secret.Metadata.Disabled)
-		assert.Equal(t, secret.Metadata.CreatedAt.Add(time.Second*30), secret.Metadata.ExpireAt)
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), expectedCreatedAt, secret.Metadata.CreatedAt)
+		assert.Equal(s.T(), attributes.Tags, secret.Tags)
+		assert.Equal(s.T(), "3", secret.Metadata.Version)
+		assert.False(s.T(), secret.Metadata.Disabled)
+		assert.Equal(s.T(), secret.Metadata.CreatedAt.Add(time.Second*30), secret.Metadata.ExpireAt)
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should get a secret successfully with version", func(t *testing.T) {
+	s.Run("should get a secret successfully with version", func() {
 		version := "2"
 
 		s.mockVault.EXPECT().Read(expectedPathData, map[string][]string{
@@ -182,11 +182,11 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
-		assert.NoError(t, err)
-		assert.Equal(t, secret.Metadata.Version, version)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), secret.Metadata.Version, version)
 	})
 
-	s.T().Run("should get a secret successfully with deletion time and destroyed", func(t *testing.T) {
+	s.Run("should get a secret successfully with deletion time and destroyed", func() {
 		version := "1"
 
 		s.mockVault.EXPECT().Read(expectedPathData, map[string][]string{
@@ -196,31 +196,31 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
-		assert.NoError(t, err)
-		assert.Equal(t, secret.Metadata.Version, version)
-		assert.NotEmpty(t, secret.Metadata.DeletedAt)
-		assert.Equal(t, secret.Metadata.DestroyedAt, secret.Metadata.DeletedAt)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), secret.Metadata.Version, version)
+		assert.NotEmpty(s.T(), secret.Metadata.DeletedAt)
+		assert.Equal(s.T(), secret.Metadata.DestroyedAt, secret.Metadata.DeletedAt)
 	})
 
-	s.T().Run("should fail with same error if read data fails", func(t *testing.T) {
+	s.Run("should fail with same error if read data fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), secret)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 
-	s.T().Run("should fail with same error if read metadata fails", func(t *testing.T) {
+	s.Run("should fail with same error if read metadata fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(hashicorpSecretData, nil)
 		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
-		assert.Nil(t, secret)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), secret)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -230,7 +230,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 	keys := []interface{}{"my-secret1", "my-secret2"}
 	keysStr := []string{"my-secret1", "my-secret2"}
 
-	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
+	s.Run("should list all secret ids successfully", func() {
 		hashicorpSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
 				"keys": keys,
@@ -241,26 +241,26 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 
 		ids, err := s.secretStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, keysStr, ids)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), keysStr, ids)
 	})
 
-	s.T().Run("should return empty list if result is nil", func(t *testing.T) {
+	s.Run("should return empty list if result is nil", func() {
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, nil)
 
 		ids, err := s.secretStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Empty(t, ids)
+		assert.NoError(s.T(), err)
+		assert.Empty(s.T(), ids)
 	})
 
-	s.T().Run("should fail with same error if read data fails", func(t *testing.T) {
+	s.Run("should fail with same error if read data fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
 		ids, err := s.secretStore.List(ctx)
 
-		assert.Empty(t, ids)
-		assert.Equal(t, expectedErr, err)
+		assert.Empty(s.T(), ids)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }

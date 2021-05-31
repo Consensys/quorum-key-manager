@@ -1,12 +1,9 @@
 package acceptancetests
 
 import (
-	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"math/big"
-	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -52,7 +49,7 @@ func (s *keysTestSuite) TearDownSuite() {
 func (s *keysTestSuite) TestCreate() {
 	ctx := s.env.ctx
 
-	s.T().Run("should create a new key pair successfully", func(t *testing.T) {
+	s.Run("should create a new key pair successfully", func() {
 		id := s.newID("my-key-create")
 		tags := testutils.FakeTags()
 
@@ -63,23 +60,23 @@ func (s *keysTestSuite) TestCreate() {
 			Tags: tags,
 		})
 
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, id, key.ID)
-		assert.NotNil(t, key.PublicKey)
-		assert.Equal(t, tags, key.Tags)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.NotEmpty(t, key.Metadata.Version)
-		assert.NotNil(t, key.Metadata.CreatedAt)
-		assert.NotNil(t, key.Metadata.UpdatedAt)
-		assert.True(t, key.Metadata.DeletedAt.IsZero())
-		assert.True(t, key.Metadata.DestroyedAt.IsZero())
-		assert.True(t, key.Metadata.ExpireAt.IsZero())
-		assert.False(t, key.Metadata.Disabled)
+		assert.Equal(s.T(), id, key.ID)
+		assert.NotNil(s.T(), key.PublicKey)
+		assert.Equal(s.T(), tags, key.Tags)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.NotEmpty(s.T(), key.Metadata.Version)
+		assert.NotNil(s.T(), key.Metadata.CreatedAt)
+		assert.NotNil(s.T(), key.Metadata.UpdatedAt)
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), key.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), key.Metadata.Disabled)
 	})
 
-	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
+	s.Run("should fail and parse the error code correctly", func() {
 		id := "my-key"
 		tags := testutils.FakeTags()
 
@@ -90,8 +87,8 @@ func (s *keysTestSuite) TestCreate() {
 			Tags: tags,
 		})
 
-		require.Nil(t, key)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		require.Nil(s.T(), key)
+		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
 }
 
@@ -99,7 +96,7 @@ func (s *keysTestSuite) TestImport() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 
-	s.T().Run("should import a new key pair successfully: ECDSA/Secp256k1", func(t *testing.T) {
+	s.Run("should import a new key pair successfully: ECDSA/Secp256k1", func() {
 		id := s.newID("my-key-ecdsa-import")
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
@@ -110,23 +107,23 @@ func (s *keysTestSuite) TestImport() {
 			Tags: tags,
 		})
 
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
-		assert.Equal(t, tags, key.Tags)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.NotEmpty(t, key.Metadata.Version)
-		assert.NotNil(t, key.Metadata.CreatedAt)
-		assert.NotNil(t, key.Metadata.UpdatedAt)
-		assert.True(t, key.Metadata.DeletedAt.IsZero())
-		assert.True(t, key.Metadata.DestroyedAt.IsZero())
-		assert.True(t, key.Metadata.ExpireAt.IsZero())
-		assert.False(t, key.Metadata.Disabled)
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(s.T(), tags, key.Tags)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.NotEmpty(s.T(), key.Metadata.Version)
+		assert.NotNil(s.T(), key.Metadata.CreatedAt)
+		assert.NotNil(s.T(), key.Metadata.UpdatedAt)
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), key.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), key.Metadata.Disabled)
 	})
 
-	s.T().Run("should import a new key pair successfully: EDDSA/BN254", func(t *testing.T) {
+	s.Run("should import a new key pair successfully: EDDSA/BN254", func() {
 		id := "my-key-eddsa-import"
 		privKey, _ := hex.DecodeString(privKeyEDDSA)
 
@@ -138,25 +135,25 @@ func (s *keysTestSuite) TestImport() {
 		})
 		// AKV and AWS does not support EDDSA
 		if err != nil && errors.IsNotSupportedError(err) {
-			assert.Nil(t, key)
+			assert.Nil(s.T(), key)
 			return
 		}
 
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", base64.URLEncoding.EncodeToString(key.PublicKey))
-		assert.Equal(t, tags, key.Tags)
-		assert.Equal(t, entities.Bn254, key.Algo.EllipticCurve)
-		assert.Equal(t, entities.Eddsa, key.Algo.Type)
-		assert.Equal(t, "1", key.Metadata.Version)
-		assert.NotNil(t, key.Metadata.CreatedAt)
-		assert.NotNil(t, key.Metadata.UpdatedAt)
-		assert.True(t, key.Metadata.DeletedAt.IsZero())
-		assert.True(t, key.Metadata.DestroyedAt.IsZero())
-		assert.True(t, key.Metadata.ExpireAt.IsZero())
-		assert.False(t, key.Metadata.Disabled)
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(s.T(), tags, key.Tags)
+		assert.Equal(s.T(), entities.Bn254, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
+		assert.Equal(s.T(), "1", key.Metadata.Version)
+		assert.NotNil(s.T(), key.Metadata.CreatedAt)
+		assert.NotNil(s.T(), key.Metadata.UpdatedAt)
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), key.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), key.Metadata.Disabled)
 	})
 
-	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
+	s.Run("should fail and parse the error code correctly", func() {
 		id := "my-key"
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
@@ -167,8 +164,8 @@ func (s *keysTestSuite) TestImport() {
 			Tags: tags,
 		})
 
-		require.Nil(t, key)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		require.Nil(s.T(), key)
+		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
 }
 
@@ -186,29 +183,29 @@ func (s *keysTestSuite) TestGet() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should get a key pair successfully", func(t *testing.T) {
+	s.Run("should get a key pair successfully", func() {
 		keyRetrieved, err := s.store.Get(ctx, id)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, id, keyRetrieved.ID)
-		assert.Equal(t, "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
-		assert.Equal(t, tags, keyRetrieved.Tags)
-		assert.Equal(t, entities.Secp256k1, keyRetrieved.Algo.EllipticCurve)
-		assert.Equal(t, entities.Ecdsa, keyRetrieved.Algo.Type)
-		assert.NotEmpty(t, keyRetrieved.Metadata.Version)
-		assert.NotNil(t, keyRetrieved.Metadata.CreatedAt)
-		assert.NotNil(t, keyRetrieved.Metadata.UpdatedAt)
-		assert.True(t, keyRetrieved.Metadata.DeletedAt.IsZero())
-		assert.True(t, keyRetrieved.Metadata.DestroyedAt.IsZero())
-		assert.True(t, keyRetrieved.Metadata.ExpireAt.IsZero())
-		assert.False(t, keyRetrieved.Metadata.Disabled)
+		assert.Equal(s.T(), id, keyRetrieved.ID)
+		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(s.T(), tags, keyRetrieved.Tags)
+		assert.Equal(s.T(), entities.Secp256k1, keyRetrieved.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, keyRetrieved.Algo.Type)
+		assert.NotEmpty(s.T(), keyRetrieved.Metadata.Version)
+		assert.NotNil(s.T(), keyRetrieved.Metadata.CreatedAt)
+		assert.NotNil(s.T(), keyRetrieved.Metadata.UpdatedAt)
+		assert.True(s.T(), keyRetrieved.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), keyRetrieved.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), keyRetrieved.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), keyRetrieved.Metadata.Disabled)
 	})
 
-	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
+	s.Run("should fail and parse the error code correctly", func() {
 		keyRetrieved, getErr := s.store.Get(ctx, "invalidID")
 
-		require.Nil(t, keyRetrieved)
-		assert.True(t, errors.IsNotFoundError(getErr))
+		require.Nil(s.T(), keyRetrieved)
+		assert.True(s.T(), errors.IsNotFoundError(getErr))
 	})
 }
 
@@ -225,10 +222,10 @@ func (s *keysTestSuite) TestList() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should list all key pairs", func(t *testing.T) {
+	s.Run("should list all key pairs", func() {
 		ids, err := s.store.List(ctx)
-		require.NoError(t, err)
-		assert.Contains(t, ids, id)
+		require.NoError(s.T(), err)
+		assert.Contains(s.T(), ids, id)
 	})
 }
 
@@ -247,41 +244,21 @@ func (s *keysTestSuite) TestSign() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should sign a message successfully: ECDSA/Secp256k1", func(t *testing.T) {
+	s.Run("should sign a message successfully: ECDSA/Secp256k1", func() {
 		signature, err := s.store.Sign(ctx, id, payload)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
 		verified, err := verifySignature(signature, payload, privKey)
-		require.NoError(t, err)
-		require.True(t, verified)
+		require.NoError(s.T(), err)
+		require.True(s.T(), verified)
 	})
 
-	s.T().Run("should fail and parse the error code correctly", func(t *testing.T) {
+	s.Run("should fail and parse the error code correctly", func() {
 		signature, signErr := s.store.Sign(ctx, "invalidID", payload)
 
-		require.Empty(t, signature)
-		assert.True(t, errors.IsNotFoundError(signErr))
+		require.Empty(s.T(), signature)
+		assert.True(s.T(), errors.IsNotFoundError(signErr))
 	})
-}
-
-func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
-	privKey, err := crypto.ToECDSA(privKeyB)
-	if err != nil {
-		return false, err
-	}
-
-	if len(signature) == EthSignatureLength {
-		retrievedPubkey, err := crypto.SigToPub(crypto.Keccak256(msg), signature)
-		if err != nil {
-			return false, err
-		}
-
-		return privKey.PublicKey.Equal(retrievedPubkey), nil
-	}
-
-	r := new(big.Int).SetBytes(signature[0:32])
-	s := new(big.Int).SetBytes(signature[32:64])
-	return ecdsa.Verify(&privKey.PublicKey, msg, r, s), nil
 }
 
 func (s *keysTestSuite) newID(name string) string {

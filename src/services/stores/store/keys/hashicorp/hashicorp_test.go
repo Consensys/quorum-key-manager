@@ -74,31 +74,31 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		},
 	}
 
-	s.T().Run("should create a new key successfully", func(t *testing.T) {
+	s.Run("should create a new key successfully", func() {
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, "1", key.Metadata.Version)
-		assert.Equal(t, attributes.Tags, key.Tags)
-		assert.True(t, key.Metadata.ExpireAt.IsZero())
-		assert.True(t, key.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), "1", key.Metadata.Version)
+		assert.Equal(s.T(), attributes.Tags, key.Tags)
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+	s.Run("should fail with same error if write fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
-		assert.Nil(t, key)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), key)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -132,31 +132,31 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		},
 	}
 
-	s.T().Run("should import a new key successfully", func(t *testing.T) {
+	s.Run("should import a new key successfully", func() {
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
 
 		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, "1", key.Metadata.Version)
-		assert.Equal(t, attributes.Tags, key.Tags)
-		assert.True(t, key.Metadata.ExpireAt.IsZero())
-		assert.True(t, key.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), "1", key.Metadata.Version)
+		assert.Equal(s.T(), attributes.Tags, key.Tags)
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+	s.Run("should fail with same error if write fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
-		assert.Nil(t, key)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), key)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -180,31 +180,31 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		},
 	}
 
-	s.T().Run("should get a key successfully without version", func(t *testing.T) {
+	s.Run("should get a key successfully without version", func() {
 		s.mockVault.EXPECT().Read(expectedPath, nil).Return(hashicorpSecret, nil)
 
 		key, err := s.keyStore.Get(ctx, id)
 
-		assert.NoError(t, err)
-		assert.Equal(t, publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, "1", key.Metadata.Version)
-		assert.Equal(t, attributes.Tags, key.Tags)
-		assert.True(t, key.Metadata.ExpireAt.IsZero())
-		assert.True(t, key.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), "1", key.Metadata.Version)
+		assert.Equal(s.T(), attributes.Tags, key.Tags)
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
+	s.Run("should fail with same error if read fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Get(ctx, id)
 
-		assert.Nil(t, key)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), key)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -213,7 +213,7 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 	expectedPath := s.mountPoint + "/keys"
 	expectedIds := []interface{}{"my-key1", "my-key2"}
 
-	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
+	s.Run("should list all secret ids successfully", func() {
 		hashicorpSecret := &hashicorp.Secret{
 			Data: map[string]interface{}{
 				"keys": expectedIds,
@@ -224,18 +224,18 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 
 		ids, err := s.keyStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, []string{"my-key1", "my-key2"}, ids)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), []string{"my-key1", "my-key2"}, ids)
 	})
 
-	s.T().Run("should fail with same error if read fails", func(t *testing.T) {
+	s.Run("should fail with same error if read fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
 		key, err := s.keyStore.List(ctx)
 
-		assert.Nil(t, key)
-		assert.Equal(t, expectedErr, err)
+		assert.Nil(s.T(), key)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -251,18 +251,18 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 		},
 	}
 
-	s.T().Run("should sign a payload successfully", func(t *testing.T) {
+	s.Run("should sign a payload successfully", func() {
 		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
 			dataLabel: expectedData,
 		}).Return(hashicorpSecret, nil)
 
 		signature, err := s.keyStore.Sign(ctx, id, data)
 
-		assert.NoError(t, err)
-		assert.Equal(t, expectedSignature, base64.URLEncoding.EncodeToString(signature))
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), expectedSignature, base64.URLEncoding.EncodeToString(signature))
 	})
 
-	s.T().Run("should fail with same error if write fails", func(t *testing.T) {
+	s.Run("should fail with same error if write fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
 			dataLabel: expectedData,
@@ -270,7 +270,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 
 		signature, err := s.keyStore.Sign(ctx, id, data)
 
-		assert.Empty(t, signature)
-		assert.Equal(t, expectedErr, err)
+		assert.Empty(s.T(), signature)
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }

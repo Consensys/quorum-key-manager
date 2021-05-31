@@ -76,19 +76,19 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 		},
 	}
 
-	s.T().Run("should create a new key successfully", func(t *testing.T) {
+	s.Run("should create a new key successfully", func() {
 		s.mockVault.EXPECT().CreateKey(gomock.Any(), id, akv.EC, akv.P256K, gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(akvKey, nil)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, publicKey, hexutil.Encode(key.PublicKey))
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, version, key.Metadata.Version)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
 	})
 }
 
@@ -114,27 +114,27 @@ func (s *akvKeyStoreTestSuite) TestImport() {
 		},
 	}
 
-	s.T().Run("should create a new key successfully", func(t *testing.T) {
+	s.Run("should create a new key successfully", func() {
 		s.mockVault.EXPECT().ImportKey(gomock.Any(), id, gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, keyName string, k *akv.JSONWebKey, attr *akv.KeyAttributes, tags map[string]string) (akv.KeyBundle, error) {
-				require.Equal(t, k.Crv, akv.P256K)
-				require.Equal(t, k.Kty, akv.EC)
-				require.Equal(t, *k.D, base64PrivKey)
-				require.Equal(t, *k.X, base64PubKeyX)
-				require.Equal(t, *k.Y, base64PubKeyY)
+				require.Equal(s.T(), k.Crv, akv.P256K)
+				require.Equal(s.T(), k.Kty, akv.EC)
+				require.Equal(s.T(), *k.D, base64PrivKey)
+				require.Equal(s.T(), *k.X, base64PubKeyX)
+				require.Equal(s.T(), *k.Y, base64PubKeyY)
 				return akvKey, nil
 			})
 
 		privKeyB, _ := hex.DecodeString(privKey)
 		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
-		assert.NoError(t, err)
-		assert.Equal(t, publicKey, hexutil.Encode(key.PublicKey))
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, version, key.Metadata.Version)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
 	})
 }
 
@@ -160,21 +160,21 @@ func (s *akvKeyStoreTestSuite) TestGet() {
 		},
 	}
 
-	s.T().Run("should get a key successfully", func(t *testing.T) {
+	s.Run("should get a key successfully", func() {
 		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
 
 		key, err := s.keyStore.Get(ctx, id)
 
-		assert.NoError(t, err)
-		assert.Equal(t, publicKey, hexutil.Encode(key.PublicKey))
-		assert.Equal(t, id, key.ID)
-		assert.Equal(t, entities.Ecdsa, key.Algo.Type)
-		assert.Equal(t, entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.False(t, key.Metadata.Disabled)
-		assert.Equal(t, version, key.Metadata.Version)
-		assert.Equal(t, attributes.Tags, key.Tags)
-		assert.True(t, key.Metadata.ExpireAt.IsZero())
-		assert.True(t, key.Metadata.DeletedAt.IsZero())
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
+		assert.Equal(s.T(), attributes.Tags, key.Tags)
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 }
 
@@ -183,15 +183,15 @@ func (s *akvKeyStoreTestSuite) TestList() {
 	expectedIds := []interface{}{"my-key1", "my-key2"}
 	kIds := []string{"myvault.com/keys/" + expectedIds[0].(string), "myvault.com/keys/" + expectedIds[1].(string)}
 
-	s.T().Run("should list all secret ids successfully", func(t *testing.T) {
+	s.Run("should list all secret ids successfully", func() {
 		keyList := []akv.KeyItem{{Kid: &kIds[0]}, {Kid: &kIds[1]}}
 
 		s.mockVault.EXPECT().GetKeys(gomock.Any(), gomock.Any()).Return(keyList, nil)
 
 		ids, err := s.keyStore.List(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, []string{"my-key1", "my-key2"}, ids)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), []string{"my-key1", "my-key2"}, ids)
 	})
 }
 
@@ -223,13 +223,13 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 	b64Sig := base64.RawURLEncoding.EncodeToString(bSig)
 	b64Payload := base64.RawURLEncoding.EncodeToString(payload)
 
-	s.T().Run("should sign payload successfully", func(t *testing.T) {
+	s.Run("should sign payload successfully", func() {
 		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
 		s.mockVault.EXPECT().Sign(gomock.Any(), id, "", akv.ES256K, b64Payload).Return(b64Sig, nil)
 
 		signature, err := s.keyStore.Sign(ctx, id, payload)
 
-		assert.NoError(t, err)
-		assert.Equal(t, hexutil.Encode(signature), expectedSignature)
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
 	})
 }

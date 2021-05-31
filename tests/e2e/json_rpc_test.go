@@ -59,30 +59,29 @@ func TestJSONRpcHTTP(t *testing.T) {
 }
 
 func (s *jsonRPCTestSuite) TestCallForwarding() {
-	s.T().Run("should forward call eth_blockNumber and retrieve block number successfully", func(t *testing.T) {
+	s.Run("should forward call eth_blockNumber and retrieve block number successfully", func() {
 		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.NodeID, "eth_blockNumber")
-		require.NoError(t, err)
-		require.Nil(t, resp.Error)
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
-		assert.NoError(t, err)
+		assert.NoError(s.T(), err)
 		_, err = strconv.ParseUint(result[2:], 16, 64)
-		assert.NoError(t, err)
+		assert.NoError(s.T(), err)
 	})
 }
 
-
 func (s *jsonRPCTestSuite) TestEthSign() {
-	s.T().Run("should call eth_sign and sign transaction using eth1 store", func(t *testing.T) {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.NodeID, "eth_sign",)
-		require.NoError(t, err)
-		require.Nil(t, resp.Error)
+	s.Run("should call eth_sign and sign transaction using eth1 store", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.NodeID, "eth_sign")
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
-		assert.NoError(t, err)
+		assert.NoError(s.T(), err)
 		_, err = strconv.ParseUint(result[2:], 16, 64)
-		assert.NoError(t, err)
+		assert.NoError(s.T(), err)
 	})
 }

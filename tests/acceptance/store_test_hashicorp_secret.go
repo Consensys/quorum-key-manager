@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 // TODO: Destroy secrets when done with the tests to avoid conflicts between tests
@@ -22,7 +21,7 @@ type hashicorpSecretTestSuite struct {
 func (s *hashicorpSecretTestSuite) TestSet() {
 	ctx := s.env.ctx
 
-	s.T().Run("should create a new secret successfully", func(t *testing.T) {
+	s.Run("should create a new secret successfully", func() {
 		id := "my-secret"
 		value := "my-secret-value"
 		tags := testutils.FakeTags()
@@ -31,21 +30,21 @@ func (s *hashicorpSecretTestSuite) TestSet() {
 			Tags: tags,
 		})
 
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, id, secret.ID)
-		assert.Equal(t, value, secret.Value)
-		assert.Equal(t, tags, secret.Tags)
-		assert.Equal(t, "1", secret.Metadata.Version)
-		assert.NotNil(t, secret.Metadata.CreatedAt)
-		assert.NotNil(t, secret.Metadata.UpdatedAt)
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.True(t, secret.Metadata.DestroyedAt.IsZero())
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.False(t, secret.Metadata.Disabled)
+		assert.Equal(s.T(), id, secret.ID)
+		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), tags, secret.Tags)
+		assert.Equal(s.T(), "1", secret.Metadata.Version)
+		assert.NotNil(s.T(), secret.Metadata.CreatedAt)
+		assert.NotNil(s.T(), secret.Metadata.UpdatedAt)
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 
-	s.T().Run("should increase version at each set", func(t *testing.T) {
+	s.Run("should increase version at each set", func() {
 		id := "my-secret-versioned"
 		value1 := "my-secret-value1"
 		value2 := "my-secret-value2"
@@ -63,14 +62,14 @@ func (s *hashicorpSecretTestSuite) TestSet() {
 			Tags: tags2,
 		})
 
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, "1", secret1.Metadata.Version)
-		assert.Equal(t, tags1, secret1.Tags)
-		assert.Equal(t, value1, secret1.Value)
-		assert.Equal(t, "2", secret2.Metadata.Version)
-		assert.Equal(t, tags2, secret2.Tags)
-		assert.Equal(t, value2, secret2.Value)
+		assert.Equal(s.T(), "1", secret1.Metadata.Version)
+		assert.Equal(s.T(), tags1, secret1.Tags)
+		assert.Equal(s.T(), value1, secret1.Value)
+		assert.Equal(s.T(), "2", secret2.Metadata.Version)
+		assert.Equal(s.T(), tags2, secret2.Tags)
+		assert.Equal(s.T(), value2, secret2.Value)
 	})
 }
 
@@ -88,13 +87,13 @@ func (s *hashicorpSecretTestSuite) TestList() {
 	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should list all secrets ids successfully", func(t *testing.T) {
+	s.Run("should list all secrets ids successfully", func() {
 		ids, err := s.store.List(ctx)
 
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 		// TODO: Do exact check when Destroy is implemented
-		// assert.Equal(t, []string{id, id2}, ids)
-		assert.True(t, len(ids) >= 2)
+		// assert.Equal(s.T(),[]string{id, id2}, ids)
+		assert.True(s.T(), len(ids) >= 2)
 	})
 }
 
@@ -109,44 +108,44 @@ func (s *hashicorpSecretTestSuite) TestGet() {
 	_, err = s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should get latest secret successfully if no version is specified", func(t *testing.T) {
+	s.Run("should get latest secret successfully if no version is specified", func() {
 		secret, err := s.store.Get(ctx, id, "")
 
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, id, secret.ID)
-		assert.Equal(t, value, secret.Value)
-		assert.Equal(t, "2", secret.Metadata.Version)
-		assert.NotNil(t, secret.Metadata.CreatedAt)
-		assert.NotNil(t, secret.Metadata.UpdatedAt)
-		assert.True(t, secret.Metadata.DeletedAt.IsZero())
-		assert.True(t, secret.Metadata.DestroyedAt.IsZero())
-		assert.True(t, secret.Metadata.ExpireAt.IsZero())
-		assert.False(t, secret.Metadata.Disabled)
+		assert.Equal(s.T(), id, secret.ID)
+		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), "2", secret.Metadata.Version)
+		assert.NotNil(s.T(), secret.Metadata.CreatedAt)
+		assert.NotNil(s.T(), secret.Metadata.UpdatedAt)
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 
-	s.T().Run("should get specific secret version", func(t *testing.T) {
+	s.Run("should get specific secret version", func() {
 		secret1, err := s.store.Get(ctx, id, "1")
-		require.NoError(t, err)
-		assert.Equal(t, "1", secret1.Metadata.Version)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), "1", secret1.Metadata.Version)
 
 		secret2, err := s.store.Get(ctx, id, "2")
-		require.NoError(t, err)
-		assert.Equal(t, "2", secret2.Metadata.Version)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), "2", secret2.Metadata.Version)
 
 	})
 
-	s.T().Run("should fail with NotFound if secret is not found", func(t *testing.T) {
+	s.Run("should fail with NotFound if secret is not found", func() {
 		secret, err := s.store.Get(ctx, "inexistentID", "")
 
-		assert.Nil(t, secret)
-		require.True(t, errors.IsNotFoundError(err))
+		assert.Nil(s.T(), secret)
+		require.True(s.T(), errors.IsNotFoundError(err))
 	})
 
-	s.T().Run("should fail with NotFound if version does not exist", func(t *testing.T) {
+	s.Run("should fail with NotFound if version does not exist", func() {
 		secret, err := s.store.Get(ctx, id, "3")
 
-		assert.Nil(t, secret)
-		require.True(t, errors.IsNotFoundError(err))
+		assert.Nil(s.T(), secret)
+		require.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
