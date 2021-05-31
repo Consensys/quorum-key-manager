@@ -7,11 +7,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
 	mock2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/mock"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
@@ -20,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

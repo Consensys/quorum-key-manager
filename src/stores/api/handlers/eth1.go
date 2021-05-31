@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gorilla/mux"
 )
 

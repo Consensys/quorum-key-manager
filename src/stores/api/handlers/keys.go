@@ -11,7 +11,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-
 	"github.com/gorilla/mux"
 )
 

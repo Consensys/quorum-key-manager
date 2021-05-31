@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-
 	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"

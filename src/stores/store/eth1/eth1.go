@@ -6,11 +6,10 @@ import (
 
 	quorumtypes "github.com/consensys/quorum/core/types"
 
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/signer/core"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/signer/core"
 )
 
 //go:generate mockgen -source=eth1.go -destination=mock/eth1.go -package=mock

@@ -1,9 +1,8 @@
 package aws
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/aws"
 )
