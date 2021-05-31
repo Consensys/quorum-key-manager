@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 type CreateEth1AccountRequest struct {
