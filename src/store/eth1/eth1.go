@@ -74,7 +74,7 @@ type Store interface {
 	Verify(ctx context.Context, addr string, data, sig []byte) error
 
 	// Verify verifies that a typed data signature belongs to a given address
-	VerifyTypedData(ctx context.Context, addr string, sig []byte, typedData *core.TypedData) error
+	VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error
 
 	// Encrypt encrypts any arbitrary data using a specified account
 	Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error)

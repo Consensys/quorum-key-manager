@@ -7,6 +7,9 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
+	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	mock2 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/database/mock"
@@ -17,7 +20,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -474,12 +476,12 @@ func (s *eth1StoreTestSuite) TestDestroy() {
 func (s *eth1StoreTestSuite) TestSignVerify() {
 	ctx := context.Background()
 	fakeAccount := testutils.FakeETH1Account()
-	data := crypto.Keccak256([]byte("my data to sign"))
+	data := []byte("my data to sign")
 	ecdsaSignature := hexutil.MustDecode("0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed")
 
 	s.T().Run("should sign a payload successfully with appended V value and verify it", func(t *testing.T) {
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, data).Return(ecdsaSignature, nil)
+		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, crypto.Keccak256(data)).Return(ecdsaSignature, nil)
 
 		signature, err := s.eth1Store.Sign(ctx, address, data)
 		assert.NoError(t, err)
@@ -504,7 +506,7 @@ func (s *eth1StoreTestSuite) TestSignVerify() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, data).Return(nil, expectedErr)
+		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, crypto.Keccak256(data)).Return(nil, expectedErr)
 
 		signature, err := s.eth1Store.Sign(ctx, address, data)
 		assert.Equal(t, expectedErr, err)
@@ -615,9 +617,11 @@ func (s *eth1StoreTestSuite) TestSignEEA() {
 	)
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
+	privateType := formatters.PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom: &privateFrom,
 		PrivateFor:  &privateFor,
+		PrivateType: &privateType,
 	}
 	ecdsaSignature := hexutil.MustDecode("0x6854034c21ebb5a6d4aa9a9c1462862b1e4af355383413a0dcfbba309f56ed0220c0ebc19f159ce83c24dde6f1b2d424025e45bc8b00be3e2fd4367949d4f0b3")
 

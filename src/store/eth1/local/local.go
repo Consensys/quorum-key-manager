@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
@@ -23,11 +25,6 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-)
-
-const (
-	eip712DomainLabel       = "EIP712Domain"
-	privateTxTypeRestricted = "restricted"
 )
 
 var eth1KeyAlgo = &entities.Algorithm{
@@ -198,17 +195,7 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 }
 
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	account, err := s.Get(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	signature, err := s.keyStore.Sign(ctx, account.ID, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.appendRecID(data, signature, account.PublicKey)
+	return s.sign(ctx, addr, crypto.Keccak256(data))
 }
 
 func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
@@ -217,18 +204,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 		return nil, err
 	}
 
-	account, err := s.Get(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	data := crypto.Keccak256([]byte(encodedData))
-	signature, err := s.Sign(ctx, addr, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.appendRecID(data, signature, account.PublicKey)
+	return s.Sign(ctx, addr, []byte(encodedData))
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
@@ -236,7 +212,7 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
-	signature, err := s.Sign(ctx, addr, txData)
+	signature, err := s.sign(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +263,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		uint(0),
 		privateFromEncoded,
 		privateRecipientEncoded,
-		privateTxTypeRestricted,
+		*args.PrivateType,
 	})
 	if err != nil {
 		errMessage := "failed to hash EEA transaction"
@@ -295,7 +271,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	signature, err := s.Sign(ctx, addr, hash[:])
+	signature, err := s.sign(ctx, addr, hash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +296,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		S,
 		privateFromEncoded,
 		privateRecipientEncoded,
-		privateTxTypeRestricted,
+		*args.PrivateType,
 	})
 	if err != nil {
 		errMessage := "failed to RLP encode signed eea transaction"
@@ -336,7 +312,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
-	signature, err := s.Sign(ctx, addr, txData)
+	signature, err := s.sign(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +335,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 }
 
 func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
-	pubKey, err := crypto.SigToPub(data, sig)
+	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
 	if err != nil {
 		s.logger.WithError(err).Error("failed to recover public key")
 		return "", errors.InvalidParameterError("failed to recover public key, please verify your signature and payload")
@@ -381,7 +357,7 @@ func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error
 	return nil
 }
 
-func (s *Store) VerifyTypedData(ctx context.Context, addr string, sig []byte, typedData *core.TypedData) error {
+func (s *Store) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
 		return err
@@ -435,7 +411,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 		return "", errors.InvalidParameterError("invalid typed data message")
 	}
 
-	domainSeparatorHash, err := typedData.HashStruct(eip712DomainLabel, typedData.Domain.Map())
+	domainSeparatorHash, err := typedData.HashStruct(formatters.EIP712DomainLabel, typedData.Domain.Map())
 	if err != nil {
 		return "", errors.InvalidParameterError("invalid domain separator")
 	}
@@ -475,4 +451,18 @@ func eeaHash(object interface{}) (hash common.Hash, err error) {
 	}
 	hashAlgo.Sum(hash[:0])
 	return hash, nil
+}
+
+func (s *Store) sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
+	account, err := s.Get(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	signature, err := s.keyStore.Sign(ctx, account.ID, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.appendRecID(data, signature, account.PublicKey)
 }

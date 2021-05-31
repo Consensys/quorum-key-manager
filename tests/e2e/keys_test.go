@@ -354,7 +354,7 @@ func (s *keysTestSuite) TestSign() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
-		requestSign := &types.SignPayloadRequest{
+		requestSign := &types.SignBase64PayloadRequest{
 			Data: hashedPayload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
@@ -374,7 +374,7 @@ func (s *keysTestSuite) TestSign() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
-		requestSign := &types.SignPayloadRequest{
+		requestSign := &types.SignBase64PayloadRequest{
 			Data: payload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
@@ -393,7 +393,7 @@ func (s *keysTestSuite) TestSign() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(t, err)
 
-		requestSign := &types.SignPayloadRequest{
+		requestSign := &types.SignBase64PayloadRequest{
 			Data: "my data to sign not in base64 format",
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)

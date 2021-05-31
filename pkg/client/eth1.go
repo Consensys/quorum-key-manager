@@ -9,8 +9,8 @@ import (
 
 const eth1Path = "eth1"
 
-func (c *HTTPClient) CreateEth1Account(ctx context.Context, storeName string, req *types.CreateEth1AccountRequest) (*types.Eth1Response, error) {
-	eth1Acc := &types.Eth1Response{}
+func (c *HTTPClient) CreateEth1Account(ctx context.Context, storeName string, req *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+	eth1Acc := &types.Eth1AccountResponse{}
 	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), eth1Path)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
