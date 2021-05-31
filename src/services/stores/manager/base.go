@@ -11,6 +11,7 @@ import (
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/aws"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/database/memory"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"

@@ -6,8 +6,8 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	sdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"

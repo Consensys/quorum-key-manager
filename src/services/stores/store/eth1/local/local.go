@@ -7,24 +7,21 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
-
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/formatters"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/database"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys"
 	quorumtypes "github.com/consensys/quorum/core/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/signer/core"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
+	"golang.org/x/crypto/sha3"
 )
 
 var eth1KeyAlgo = &entities.Algorithm{
