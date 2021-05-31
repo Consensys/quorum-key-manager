@@ -1,4 +1,4 @@
-package auth
+package authenticator
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 )
 
 type Auth interface {
-	Load(context.Context)
+	Policies()
 
 	// Authenticate request
 	Authenticate(req *http.Request) error

@@ -1,4 +1,4 @@
-package auth
+package types
 
 type Policy struct {
 	// Name of the policy
@@ -10,14 +10,14 @@ type Policy struct {
 
 type Statement struct {
 	// Name of the statement
-	Name string
+	Name string `json:"name"`
 
 	// Effect of the statement ('Allow' or 'Deny')
-	Effect string
+	Effect string `json:"effect"`
 
 	// Actions the statement covers
-	Actions []string
+	Actions []string `json:"actions"`
 
 	// Resource the statement covers
-	Resource []string
+	Resource []string `json:"resource"`
 }
