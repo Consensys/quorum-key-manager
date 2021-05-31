@@ -4,15 +4,15 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/database/memory"
 	"os"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/local"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/database/memory"
+	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1/local"
+	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/akv"
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/hashicorp"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -57,6 +57,7 @@ func TestKeyManagerStore(t *testing.T) {
 
 	suite.Run(t, s)
 }
+
 /*
 func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	if s.err != nil {

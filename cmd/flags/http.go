@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/http"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -51,8 +51,8 @@ func HTTPFlags(f *pflag.FlagSet) {
 	httpPort(f)
 }
 
-func newHTTPConfig(vipr *viper.Viper) *http.Config {
-	cfg := http.NewDefaultConfig()
+func newHTTPConfig(vipr *viper.Viper) *server.Config {
+	cfg := server.NewDefaultConfig()
 	cfg.Port = vipr.GetUint32(httpPortViperKey)
 	cfg.Host = vipr.GetString(httpHostViperKey)
 	return cfg

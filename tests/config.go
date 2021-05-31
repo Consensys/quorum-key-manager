@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/core/store-manager/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/akv"
 )
 
 const envVar = "TEST_DATA"

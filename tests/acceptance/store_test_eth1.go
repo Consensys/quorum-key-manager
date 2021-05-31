@@ -3,13 +3,15 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -17,8 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"math/big"
-	"testing"
 )
 
 type eth1TestSuite struct {
@@ -50,26 +50,26 @@ func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 
-	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
+	s.Run("should create a new ethereum account successfully", func() {
 		id := s.newID("my-account-create")
 		account, err := s.store.Create(ctx, id, &entities.Attributes{
 			Tags: tags,
 		})
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, account.ID, id)
-		assert.NotEmpty(t, account.Address)
-		assert.NotEmpty(t, account.PublicKey)
-		assert.NotEmpty(t, account.CompressedPublicKey)
-		assert.Equal(t, account.Tags, tags)
-		assert.NotEmpty(t, account.Metadata.Version)
-		assert.False(t, account.Metadata.Disabled)
-		assert.True(t, account.Metadata.DestroyedAt.IsZero())
-		assert.True(t, account.Metadata.DeletedAt.IsZero())
-		assert.True(t, account.Metadata.ExpireAt.IsZero())
-		assert.NotEmpty(t, account.Metadata.CreatedAt)
-		assert.NotEmpty(t, account.Metadata.UpdatedAt)
-		assert.Equal(t, account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
+		assert.Equal(s.T(), account.ID, id)
+		assert.NotEmpty(s.T(), account.Address)
+		assert.NotEmpty(s.T(), account.PublicKey)
+		assert.NotEmpty(s.T(), account.CompressedPublicKey)
+		assert.Equal(s.T(), account.Tags, tags)
+		assert.NotEmpty(s.T(), account.Metadata.Version)
+		assert.False(s.T(), account.Metadata.Disabled)
+		assert.True(s.T(), account.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), account.Metadata.ExpireAt.IsZero())
+		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
+		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
 	})
 }
 
@@ -78,45 +78,45 @@ func (s *eth1TestSuite) TestImport() {
 	tags := testutils.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	s.T().Run("should create a new ethereum account successfully", func(t *testing.T) {
+	s.Run("should create a new ethereum account successfully", func() {
 		id := s.newID("my-account-import")
 
 		account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
 			Tags: tags,
 		})
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, account.ID, id)
-		assert.Equal(t, "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address)
-		assert.Equal(t, "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
-		assert.Equal(t, "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
-		assert.Equal(t, account.Tags, tags)
-		assert.NotEmpty(t, account.Metadata.Version)
-		assert.False(t, account.Metadata.Disabled)
-		assert.True(t, account.Metadata.DestroyedAt.IsZero())
-		assert.True(t, account.Metadata.DeletedAt.IsZero())
-		assert.True(t, account.Metadata.ExpireAt.IsZero())
-		assert.NotEmpty(t, account.Metadata.CreatedAt)
-		assert.NotEmpty(t, account.Metadata.UpdatedAt)
-		assert.Equal(t, account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
+		assert.Equal(s.T(), account.ID, id)
+		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address)
+		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
+		assert.Equal(s.T(), "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
+		assert.Equal(s.T(), account.Tags, tags)
+		assert.NotEmpty(s.T(), account.Metadata.Version)
+		assert.False(s.T(), account.Metadata.Disabled)
+		assert.True(s.T(), account.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), account.Metadata.ExpireAt.IsZero())
+		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
+		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
 	})
 
-	s.T().Run("should fail with AlreadyExistsError if the account already exists (same address)", func(t *testing.T) {
+	s.Run("should fail with AlreadyExistsError if the account already exists (same address)", func() {
 		account, err := s.store.Import(ctx, "my-account", privKey, &entities.Attributes{
 			Tags: tags,
 		})
 
-		require.Nil(t, account)
-		assert.True(t, errors.IsAlreadyExistsError(err))
+		require.Nil(s.T(), account)
+		assert.True(s.T(), errors.IsAlreadyExistsError(err))
 	})
 
-	s.T().Run("should fail with InvalidParameterError if private key is invalid", func(t *testing.T) {
+	s.Run("should fail with InvalidParameterError if private key is invalid", func() {
 		account, err := s.store.Import(ctx, "my-account", []byte("invalidPrivKey"), &entities.Attributes{
 			Tags: tags,
 		})
 
-		require.Nil(t, account)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		require.Nil(s.T(), account)
+		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
 }
 
@@ -130,29 +130,29 @@ func (s *eth1TestSuite) TestGet() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should get an ethereum account successfully", func(t *testing.T) {
+	s.Run("should get an ethereum account successfully", func() {
 		retrievedAccount, err := s.store.Get(ctx, account.Address)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Equal(t, retrievedAccount.ID, id)
-		assert.NotEmpty(t, retrievedAccount.Address)
-		assert.NotEmpty(t, hexutil.Encode(retrievedAccount.PublicKey))
-		assert.NotEmpty(t, hexutil.Encode(retrievedAccount.CompressedPublicKey))
-		assert.Equal(t, retrievedAccount.Tags, tags)
-		assert.NotEmpty(t, retrievedAccount.Metadata.Version)
-		assert.False(t, retrievedAccount.Metadata.Disabled)
-		assert.True(t, retrievedAccount.Metadata.DestroyedAt.IsZero())
-		assert.True(t, retrievedAccount.Metadata.DeletedAt.IsZero())
-		assert.True(t, retrievedAccount.Metadata.ExpireAt.IsZero())
-		assert.NotEmpty(t, retrievedAccount.Metadata.CreatedAt)
-		assert.NotEmpty(t, retrievedAccount.Metadata.UpdatedAt)
-		assert.Equal(t, retrievedAccount.Metadata.UpdatedAt, retrievedAccount.Metadata.CreatedAt)
+		assert.Equal(s.T(), retrievedAccount.ID, id)
+		assert.NotEmpty(s.T(), retrievedAccount.Address)
+		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.PublicKey))
+		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.CompressedPublicKey))
+		assert.Equal(s.T(), retrievedAccount.Tags, tags)
+		assert.NotEmpty(s.T(), retrievedAccount.Metadata.Version)
+		assert.False(s.T(), retrievedAccount.Metadata.Disabled)
+		assert.True(s.T(), retrievedAccount.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), retrievedAccount.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), retrievedAccount.Metadata.ExpireAt.IsZero())
+		assert.NotEmpty(s.T(), retrievedAccount.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), retrievedAccount.Metadata.UpdatedAt)
+		assert.Equal(s.T(), retrievedAccount.Metadata.UpdatedAt, retrievedAccount.Metadata.CreatedAt)
 	})
 
-	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+	s.Run("should fail with NotFoundError if account is not found", func() {
 		retrievedAccount, err := s.store.Get(ctx, "invalidAccount")
-		require.Nil(t, retrievedAccount)
-		assert.True(t, errors.IsNotFoundError(err))
+		require.Nil(s.T(), retrievedAccount)
+		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
 
@@ -172,12 +172,12 @@ func (s *eth1TestSuite) TestList() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should get all account addresses", func(t *testing.T) {
+	s.Run("should get all account addresses", func() {
 		addresses, err := s.store.List(ctx)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
-		assert.Contains(t, addresses, account1.Address)
-		assert.Contains(t, addresses, account2.Address)
+		assert.Contains(s.T(), addresses, account1.Address)
+		assert.Contains(s.T(), addresses, account2.Address)
 	})
 }
 
@@ -192,33 +192,33 @@ func (s *eth1TestSuite) TestSignVerify() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should sign a payload successfully", func(t *testing.T) {
+	s.Run("should sign a payload successfully", func() {
 		signature, err := s.store.Sign(ctx, account.Address, payload)
-		require.NoError(t, err)
-		assert.NotEmpty(t, signature)
+		require.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signature)
 
 		verified, err := verifySignature(signature, payload, privKey)
-		require.NoError(t, err)
-		assert.True(t, verified)
+		require.NoError(s.T(), err)
+		assert.True(s.T(), verified)
 	})
 
-	s.T().Run("should sign, recover an address and verify the signature successfully", func(t *testing.T) {
+	s.Run("should sign, recover an address and verify the signature successfully", func() {
 		signature, err := s.store.Sign(ctx, account.Address, payload)
-		require.NoError(t, err)
-		assert.NotEmpty(t, signature)
+		require.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signature)
 
 		address, err := s.store.ECRevocer(ctx, payload, signature)
-		require.NoError(t, err)
-		assert.Equal(t, account.Address, address)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), account.Address, address)
 
 		err = s.store.Verify(ctx, address, payload, signature)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 	})
 
-	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+	s.Run("should fail with NotFoundError if account is not found", func() {
 		signature, err := s.store.Sign(ctx, "invalidAccount", payload)
-		require.Empty(t, signature)
-		assert.True(t, errors.IsNotFoundError(err))
+		require.Empty(s.T(), signature)
+		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
 
@@ -240,16 +240,16 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
+	s.Run("should sign a transaction successfully", func() {
 		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
-		require.NoError(t, err)
-		assert.NotEmpty(t, signedRaw)
+		require.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signedRaw)
 	})
 
-	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+	s.Run("should fail with NotFoundError if account is not found", func() {
 		signedRaw, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, tx)
-		require.Empty(t, signedRaw)
-		assert.True(t, errors.IsNotFoundError(err))
+		require.Empty(s.T(), signedRaw)
+		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
 
@@ -270,16 +270,16 @@ func (s *eth1TestSuite) TestSignPrivate() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
+	s.Run("should sign a transaction successfully", func() {
 		signedRaw, err := s.store.SignPrivate(ctx, account.Address, tx)
-		require.NoError(t, err)
-		assert.NotEmpty(t, signedRaw)
+		require.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signedRaw)
 	})
 
-	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+	s.Run("should fail with NotFoundError if account is not found", func() {
 		signedRaw, err := s.store.SignPrivate(ctx, "invalidAccount", tx)
-		require.Empty(t, signedRaw)
-		assert.True(t, errors.IsNotFoundError(err))
+		require.Empty(s.T(), signedRaw)
+		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
 
@@ -309,16 +309,16 @@ func (s *eth1TestSuite) TestSignEEA() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should sign a transaction successfully", func(t *testing.T) {
+	s.Run("should sign a transaction successfully", func() {
 		signedRaw, err := s.store.SignEEA(ctx, account.Address, chainID, tx, privateArgs)
-		require.NoError(t, err)
-		assert.NotEmpty(t, signedRaw)
+		require.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signedRaw)
 	})
 
-	s.T().Run("should fail with NotFoundError if account is not found", func(t *testing.T) {
+	s.Run("should fail with NotFoundError if account is not found", func() {
 		signedRaw, err := s.store.SignEEA(ctx, "invalidAccount", chainID, tx, privateArgs)
-		require.Empty(t, signedRaw)
-		assert.True(t, errors.IsNotFoundError(err))
+		require.Empty(s.T(), signedRaw)
+		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
 
