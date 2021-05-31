@@ -2,6 +2,7 @@ package json
 
 import (
 	"encoding/base64"
+	"math/big"
 	"reflect"
 	"time"
 
@@ -38,6 +39,15 @@ func isBase64(fl validator.FieldLevel) bool {
 func isHexAddress(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		return ethcommon.IsHexAddress(fl.Field().String())
+	}
+
+	return true
+}
+
+func isBig(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		_, ok := new(big.Int).SetString(fl.Field().String(), 10)
+		return ok
 	}
 
 	return true
@@ -99,6 +109,7 @@ func init() {
 
 	validate = validator.New()
 	_ = validate.RegisterValidation("isHex", isHex)
+	_ = validate.RegisterValidation("isBig", isBig)
 	_ = validate.RegisterValidation("isHexAddress", isHexAddress)
 	_ = validate.RegisterValidation("isDuration", isDuration)
 	_ = validate.RegisterValidation("isCurve", isCurve)

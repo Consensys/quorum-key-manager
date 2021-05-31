@@ -195,17 +195,7 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 }
 
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	account, err := s.Get(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	signature, err := s.keyStore.Sign(ctx, account.ID, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.appendRecID(data, signature, account.PublicKey)
+	return s.sign(ctx, addr, crypto.Keccak256(data))
 }
 
 func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
@@ -214,7 +204,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 		return nil, err
 	}
 
-	return s.Sign(ctx, addr, crypto.Keccak256([]byte(encodedData)))
+	return s.Sign(ctx, addr, []byte(encodedData))
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
@@ -222,7 +212,7 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
-	signature, err := s.Sign(ctx, addr, txData)
+	signature, err := s.sign(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +271,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	signature, err := s.Sign(ctx, addr, hash[:])
+	signature, err := s.sign(ctx, addr, hash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +312,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
-	signature, err := s.Sign(ctx, addr, txData)
+	signature, err := s.sign(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +335,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 }
 
 func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
-	pubKey, err := crypto.SigToPub(data, sig)
+	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
 	if err != nil {
 		s.logger.WithError(err).Error("failed to recover public key")
 		return "", errors.InvalidParameterError("failed to recover public key, please verify your signature and payload")
@@ -461,4 +451,18 @@ func eeaHash(object interface{}) (hash common.Hash, err error) {
 	}
 	hashAlgo.Sum(hash[:0])
 	return hash, nil
+}
+
+func (s *Store) sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
+	account, err := s.Get(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	signature, err := s.keyStore.Sign(ctx, account.ID, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.appendRecID(data, signature, account.PublicKey)
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 	"net/http"
 
@@ -157,7 +158,7 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := eth1Store.Sign(ctx, getAddress(request), data)
+	signature, err := eth1Store.Sign(ctx, getAddress(request), crypto.Keccak256(data))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
