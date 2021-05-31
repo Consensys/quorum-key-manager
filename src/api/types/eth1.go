@@ -37,7 +37,7 @@ type DomainSeparator struct {
 	Name              string `json:"name" validate:"required" example:"MyDApp"`
 	Version           string `json:"version" validate:"required" example:"v1.0.0"`
 	ChainID           int64  `json:"chainID" validate:"required" example:"1"`
-	VerifyingContract string `json:"verifyingContract,omitempty" validate:"omitempty,isHex" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
+	VerifyingContract string `json:"verifyingContract,omitempty" validate:"omitempty,isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
 	Salt              string `json:"salt,omitempty" validate:"omitempty" example:"some-random-string"`
 }
 
@@ -49,18 +49,18 @@ type Type struct {
 type SignETHTransactionRequest struct {
 	Nonce    uint64        `json:"nonce" example:"1"`
 	To       string        `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
-	Value    hexutil.Big   `json:"value,omitempty" example:"100000000000"`
-	GasPrice hexutil.Big   `json:"gasPrice" validate:"required" example:"100000000000"`
+	Value    hexutil.Big   `json:"value,omitempty" example:"0xfeaeae"`
+	GasPrice hexutil.Big   `json:"gasPrice" validate:"required" example:"0x0"`
 	GasLimit uint64        `json:"gasLimit" validate:"required" example:"21000"`
 	Data     hexutil.Bytes `json:"data,omitempty" example:"0xfeaeee..."`
-	ChainID  hexutil.Big   `json:"chainID" validate:"required" example:"1 (mainnet)"`
+	ChainID  hexutil.Big   `json:"chainID" validate:"required" example:"0x1 (mainnet)"`
 }
 
 type SignQuorumPrivateTransactionRequest struct {
 	Nonce    uint64        `json:"nonce" example:"1"`
 	To       string        `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
-	Value    hexutil.Big   `json:"value,omitempty" example:"100000000000"`
-	GasPrice hexutil.Big   `json:"gasPrice" validate:"required" example:"100000000000"`
+	Value    hexutil.Big   `json:"value,omitempty" example:"0x1"`
+	GasPrice hexutil.Big   `json:"gasPrice" validate:"required" example:"0x0"`
 	GasLimit uint64        `json:"gasLimit" validate:"required" example:"21000"`
 	Data     hexutil.Bytes `json:"data,omitempty" example:"0xfeaeee..."`
 }
@@ -69,19 +69,19 @@ type SignEEATransactionRequest struct {
 	Nonce          uint64        `json:"nonce" example:"1"`
 	To             string        `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
 	Data           hexutil.Bytes `json:"data,omitempty" example:"0xfeaeee..."`
-	ChainID        hexutil.Big   `json:"chainID" validate:"required" example:"1 (mainnet)"`
+	ChainID        hexutil.Big   `json:"chainID" validate:"required" example:"0x1 (mainnet)"`
 	PrivateFrom    string        `json:"privateFrom" validate:"required,base64,required_with=PrivateFor PrivacyGroupID" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 	PrivateFor     []string      `json:"privateFor,omitempty" validate:"omitempty,min=1,unique,dive,base64" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 	PrivacyGroupID string        `json:"privacyGroupId,omitempty" validate:"omitempty,base64" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 }
 
 type ECRecoverRequest struct {
-	Data      hexutil.Bytes `json:"data" validate:"required" example:"my data to sign"`
+	Data      hexutil.Bytes `json:"data" validate:"required" example:"0xfeaeee..."`
 	Signature hexutil.Bytes `json:"signature" validate:"required" example:"0x6019a3c8..."`
 }
 
 type VerifyEth1SignatureRequest struct {
-	Data      hexutil.Bytes `json:"data" validate:"required" example:"my data to sign"`
+	Data      hexutil.Bytes `json:"data" validate:"required" example:"0xfeaeee..."`
 	Signature hexutil.Bytes `json:"signature" validate:"required" example:"0x6019a3c8..."`
 	Address   string        `json:"address" validate:"required,isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
 }
