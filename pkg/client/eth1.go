@@ -133,7 +133,7 @@ func (c *HTTPClient) GetEth1Account(ctx context.Context, storeName, account stri
 	return acc, nil
 }
 
-func (c *HTTPClient) ListEth1Account(ctx context.Context, storeName string) ([]string, error) {
+func (c *HTTPClient) ListEth1Accounts(ctx context.Context, storeName string) ([]string, error) {
 	var accs []string
 	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), eth1Path)
 	response, err := getRequest(ctx, c.client, reqURL)

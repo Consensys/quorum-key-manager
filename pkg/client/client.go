@@ -34,7 +34,7 @@ type Eth1Client interface {
 	SignQuorumPrivateTransaction(ctx context.Context, storeName, account string, request *types.SignQuorumPrivateTransactionRequest) (string, error)
 	SignEEATransaction(ctx context.Context, storeName, account string, request *types.SignEEATransactionRequest) (string, error)
 	GetEth1Account(ctx context.Context, storeName, account string) (*types.Eth1AccountResponse, error)
-	ListEth1Account(ctx context.Context, storeName string) ([]string, error)
+	ListEth1Accounts(ctx context.Context, storeName string) ([]string, error)
 	DeleteEth1Account(ctx context.Context, storeName, account string, ) error
 	DestroyEth1Account(ctx context.Context, storeName, account string) error
 	RestoreEth1Account(ctx context.Context, storeName, account string) error
