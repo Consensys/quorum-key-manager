@@ -58,6 +58,7 @@ var storeKinds = []manifest.Kind{
 	types.AKVKeys,
 	types.HashicorpKeys,
 	types.KMSKeys,
+	types.Eth1Account,
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
