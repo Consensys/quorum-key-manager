@@ -42,8 +42,7 @@ func (s *eth1TestSuite) SetupSuite() {
 		URL: s.cfg.KeyManagerURL,
 	})
 
-	importReq := testutils.FakeImportEth1AccountRequest()
-	s.mainAccount, err = s.keyManagerClient.ImportEth1Account(s.ctx, s.cfg.Eth1Store, importReq)
+	s.mainAccount, err = s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, testutils.FakeCreateEth1AccountRequest())
 	require.NoError(s.T(), err)
 }
 
