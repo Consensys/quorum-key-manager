@@ -48,6 +48,7 @@ type IntegrationEnvironment struct {
 	logger            *log.Logger
 	hashicorpClient   hashicorp2.VaultClient
 	awsVaultClient    *awsclient.AwsVaultClient
+	awsKmsClient      *awsclient.AwsKmsClient
 	akvClient         akv2.Client
 	dockerClient      *docker.Client
 	keyManager        *app.App

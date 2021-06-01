@@ -4,15 +4,20 @@ package acceptancetests
 
 import (
 	"context"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/database/memory"
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/database/memory"
-	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1/local"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/akv"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/hashicorp"
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/hashicorp"
+	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/aws"
+	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets/hashicorp"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/store/eth1/local"
+	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/akv"
+	awskey "github.com/ConsenSysQuorum/quorum-key-manager/src/store/keys/aws"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -58,7 +63,6 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-/*
 func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -106,8 +110,15 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite.env = s.env
 	testSuite.store = akvkey.New(s.env.akvClient, logger)
 	suite.Run(s.T(), testSuite)
+
+	// AWS
+	logger = log.DefaultLogger().SetComponent("Keys-AWS")
+	testSuite = new(keysTestSuite)
+	testSuite.env = s.env
+	testSuite.store = awskey.New(s.env.awsKmsClient, logger)
+	suite.Run(s.T(), testSuite)
 }
-*/
+
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
