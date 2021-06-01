@@ -150,7 +150,7 @@ func (c *HTTPClient) ListEth1Accounts(ctx context.Context, storeName string) ([]
 	return accs, nil
 }
 
-func (c *HTTPClient) DeleteEth1Account(ctx context.Context, storeName, account string, ) error {
+func (c *HTTPClient) DeleteEth1Account(ctx context.Context, storeName, account string) error {
 	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), eth1Path, account)
 	response, err := deleteRequest(ctx, c.client, reqURL)
 	if err != nil {

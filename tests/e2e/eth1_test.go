@@ -20,8 +20,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// const ecdsaPrivKeyHex = ""
-
 type eth1TestSuite struct {
 	suite.Suite
 	err              error
