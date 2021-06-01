@@ -12,6 +12,11 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/secrets"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	_ "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +46,7 @@ func (s *awsSecretStoreTestSuite) SetupTest() {
 func (s *awsSecretStoreTestSuite) TestSet() {
 	ctx := context.Background()
 	id := "my-secret1"
-	version := "2"
+	version := "50.0.1"
 	value := "my-value1"
 	attributes := testutils.FakeAttributes()
 
@@ -50,21 +55,14 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		VersionId: &version,
 	}
 
-	currentMark := CurrentVersionMark
-	versionID2stages := map[string][]*string{
-		version: {&currentMark},
-	}
-
-	descSecretOutput := &secretsmanager.DescribeSecretOutput{
-		Name:               &id,
-		VersionIdsToStages: versionID2stages,
-		Tags:               ToSecretmanagerTags(attributes.Tags),
+	metadata := &entities.Metadata{
+		Version: version,
 	}
 
 	s.Run("should set a new secret successfully", func() {
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, nil)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(attributes.Tags, metadata, nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -100,7 +98,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		expectedErr := fmt.Errorf("any error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, expectedErr)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -125,7 +123,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, expectedErr)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, nil)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -138,7 +136,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, errors.AlreadyExistsError("already exists"))
 		s.mockVault.EXPECT().PutSecretValue(gomock.Any(), id, value).Return(&secretsmanager.PutSecretValueOutput{}, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
-		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(descSecretOutput, nil)
+		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -169,16 +167,8 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 	}
 
 	currentMark := CurrentVersionMark
-	versionID2stages := map[string][]*string{
-		version: {&currentMark},
-	}
 
-	descSecretOutput := &secretsmanager.DescribeSecretOutput{
-		Name:               &id,
-		VersionIdsToStages: versionID2stages,
-	}
-
-	s.Run("should get a secret successfully", func() {
+	s.T().Run("should get a secret successfully", func(t *testing.T) {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, "").Return(getSecretOutput, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), nil)
 		retValue, err := s.secretStore.Get(ctx, id, "")
@@ -263,10 +253,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 	})
 
 	s.Run("should fail to destroy secret with internal error", func() {
-
-		awsError := awserr.New(secretsmanager.ErrCodeInternalServiceError, "", nil)
 		expectedError := errors.InternalError("internal error")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
 
 		err := s.secretStore.Destroy(ctx, id)
 
@@ -298,9 +286,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 	s.Run("should fail to destroy secret with invalid parameter error", func() {
 
-		awsError := awserr.New(secretsmanager.ErrCodeInvalidParameterException, "", nil)
 		expectedError := errors.InvalidParameterError("invalid parameter")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
 
 		err := s.secretStore.Destroy(ctx, id)
 
@@ -310,9 +297,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 
 	s.Run("should fail to destroy secret with invalid request error", func() {
 
-		awsError := awserr.New(secretsmanager.ErrCodeInvalidRequestException, "", nil)
 		expectedError := errors.InvalidRequestError("invalid request")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, awsError)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
 
 		err := s.secretStore.Destroy(ctx, id)
 
