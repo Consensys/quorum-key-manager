@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -35,7 +36,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
 	r.Methods(http.MethodPost).Path("/{address}/restore").HandlerFunc(h.restore)
-	r.Methods(http.MethodPost).Path("/ec-revocer").HandlerFunc(h.ecRecover)
+	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 	r.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
 
@@ -81,6 +82,7 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 	importReq := &types.ImportEth1AccountRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, importReq)
 	if err != nil {
+		fmt.Println(err)
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
@@ -432,7 +434,7 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
-	err = eth1Store.VerifyTypedData(ctx, getAddress(request), typedData, verifyReq.Signature)
+	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address, typedData, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
