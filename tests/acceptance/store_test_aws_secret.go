@@ -152,18 +152,18 @@ func (s *awsSecretTestSuite) TestGet() {
 		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 
-	s.Run("should get specific secret version", func(t *testing.T) {
+	s.Run("should get specific secret version", func() {
 		readSec1, err := s.store.Get(ctx, id, version1)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
 		readSec2, err := s.store.Get(ctx, id, version2)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 		expectedVersion2 := readSec2.Metadata.Version
-		assert.Equal(t, version2, expectedVersion2)
-		assert.False(t, assert.ObjectsAreEqualValues(readSec2, readSec1))
+		assert.Equal(s.T(), version2, expectedVersion2)
+		assert.False(s.T(), assert.ObjectsAreEqualValues(readSec2, readSec1))
 	})
 
-	s.Run("should fail with NotFound if secret is not found", func(t *testing.T) {
+	s.Run("should fail with NotFound if secret is not found", func() {
 		secret, err := s.store.Get(ctx, "inexistentID", "")
 
 		assert.Nil(s.T(), secret)
