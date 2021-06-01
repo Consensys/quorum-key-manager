@@ -8,6 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	kms "github.com/aws/aws-sdk-go/service/kms"
 	secretsmanager "github.com/aws/aws-sdk-go/service/secretsmanager"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -168,4 +170,72 @@ func (m *MockSecretsManagerClient) UpdateSecret(ctx context.Context, id, value, 
 func (mr *MockSecretsManagerClientMockRecorder) UpdateSecret(ctx, id, value, keyID, desc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).UpdateSecret), ctx, id, value, keyID, desc)
+}
+
+// MockKmsClient is a mock of KmsClient interface.
+type MockKmsClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockKmsClientMockRecorder
+}
+
+// MockKmsClientMockRecorder is the mock recorder for MockKmsClient.
+type MockKmsClientMockRecorder struct {
+	mock *MockKmsClient
+}
+
+// NewMockKmsClient creates a new mock instance.
+func NewMockKmsClient(ctrl *gomock.Controller) *MockKmsClient {
+	mock := &MockKmsClient{ctrl: ctrl}
+	mock.recorder = &MockKmsClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockKmsClient) EXPECT() *MockKmsClientMockRecorder {
+	return m.recorder
+}
+
+// CreateKey mocks base method.
+func (m *MockKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateKey", ctx, id, alg, attr)
+	ret0, _ := ret[0].(*kms.CreateKeyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateKey indicates an expected call of CreateKey.
+func (mr *MockKmsClientMockRecorder) CreateKey(ctx, id, alg, attr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockKmsClient)(nil).CreateKey), ctx, id, alg, attr)
+}
+
+// GetPublicKey mocks base method.
+func (m *MockKmsClient) GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPublicKey", ctx, name)
+	ret0, _ := ret[0].(*kms.GetPublicKeyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPublicKey indicates an expected call of GetPublicKey.
+func (mr *MockKmsClientMockRecorder) GetPublicKey(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockKmsClient)(nil).GetPublicKey), ctx, name)
+}
+
+// Sign mocks base method.
+func (m *MockKmsClient) Sign(ctx context.Context, id string, msg []byte) (*kms.SignOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sign", ctx, id, msg)
+	ret0, _ := ret[0].(*kms.SignOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Sign indicates an expected call of Sign.
+func (mr *MockKmsClientMockRecorder) Sign(ctx, id, msg interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockKmsClient)(nil).Sign), ctx, id, msg)
 }
