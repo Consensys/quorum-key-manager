@@ -28,7 +28,7 @@ func (c *HTTPClient) CreateEth1Account(ctx context.Context, storeName string, re
 
 func (c *HTTPClient) ImportEth1Account(ctx context.Context, storeName string, req *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	eth1Acc := &types.Eth1AccountResponse{}
-	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), eth1Path)
+	reqURL := fmt.Sprintf("%s/%s/import", withURLStore(c.config.URL, storeName), eth1Path)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (c *HTTPClient) ImportEth1Account(ctx context.Context, storeName string, re
 func (c *HTTPClient) UpdateEth1Account(ctx context.Context, storeName string, req *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	eth1Acc := &types.Eth1AccountResponse{}
 	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), eth1Path)
-	response, err := postRequest(ctx, c.client, reqURL, req)
+	response, err := patchRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
 	}

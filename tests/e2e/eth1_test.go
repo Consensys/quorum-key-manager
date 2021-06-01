@@ -43,7 +43,6 @@ func (s *eth1TestSuite) SetupSuite() {
 	})
 
 	importReq := testutils.FakeImportEth1AccountRequest()
-	importReq.ID = "my-account-get"
 	s.mainAccount, err = s.keyManagerClient.ImportEth1Account(s.ctx, s.cfg.Eth1Store, importReq)
 	require.NoError(s.T(), err)
 }
@@ -71,6 +70,7 @@ func TestKeyManagerEth1(t *testing.T) {
 func (s *eth1TestSuite) TestCreate() {
 	s.Run("should create a new account successfully", func() {
 		request := testutils.FakeCreateEth1AccountRequest()
+		request.ID = "my-account-create"
 
 		acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, request)
 		require.NoError(s.T(), err)
@@ -151,8 +151,8 @@ func (s *eth1TestSuite) TestSign() {
 	s.Run("should parse errors successfully", func() {
 		request := testutils.FakeSignHexPayloadRequest()
 
-		key, err := s.keyManagerClient.SignEth1(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
-		require.Nil(s.T(), key)
+		signature, err := s.keyManagerClient.SignEth1(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
+		require.Empty(s.T(), signature)
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -179,8 +179,8 @@ func (s *eth1TestSuite) TestSignTypedData() {
 	s.Run("should parse errors successfully", func() {
 		request := testutils.FakeSignTypedDataRequest()
 
-		key, err := s.keyManagerClient.SignTypedData(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
-		require.Nil(s.T(), key)
+		signature, err := s.keyManagerClient.SignTypedData(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
+		require.Empty(s.T(), signature)
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -200,8 +200,8 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	s.Run("should parse errors successfully", func() {
 		request := testutils.FakeSignETHTransactionRequest()
 
-		key, err := s.keyManagerClient.SignTransaction(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
-		require.Nil(s.T(), key)
+		signature, err := s.keyManagerClient.SignTransaction(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
+		require.Empty(s.T(), signature)
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -209,15 +209,10 @@ func (s *eth1TestSuite) TestSignTransaction() {
 }
 
 func (s *eth1TestSuite) TestSignPrivateTransaction() {
-	importReq := testutils.FakeImportEth1AccountRequest()
-	importReq.ID = "my-sign-private-transaction-account"
-	acc, err := s.keyManagerClient.ImportEth1Account(s.ctx, s.cfg.Eth1Store, importReq)
-	require.NoError(s.T(), err)
-
 	s.Run("should sign private transaction successfully", func() {
 		request := testutils.FakeSignQuorumPrivateTransactionRequest()
 
-		signature, err := s.keyManagerClient.SignQuorumPrivateTransaction(s.ctx, s.cfg.Eth1Store, acc.Address, request)
+		signature, err := s.keyManagerClient.SignQuorumPrivateTransaction(s.ctx, s.cfg.Eth1Store, s.mainAccount.Address, request)
 		require.NoError(s.T(), err)
 
 		assert.NotNil(s.T(), signature)
@@ -226,8 +221,8 @@ func (s *eth1TestSuite) TestSignPrivateTransaction() {
 	s.Run("should parse errors successfully", func() {
 		request := testutils.FakeSignQuorumPrivateTransactionRequest()
 
-		key, err := s.keyManagerClient.SignQuorumPrivateTransaction(s.ctx, "inexistentStoreName", acc.Address, request)
-		require.Nil(s.T(), key)
+		signature, err := s.keyManagerClient.SignQuorumPrivateTransaction(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
+		require.Empty(s.T(), signature)
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -247,8 +242,8 @@ func (s *eth1TestSuite) TestSignEEATransaction() {
 	s.Run("should parse errors successfully", func() {
 		request := testutils.FakeSignEEATransactionRequest()
 
-		key, err := s.keyManagerClient.SignEEATransaction(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
-		require.Nil(s.T(), key)
+		signature, err := s.keyManagerClient.SignEEATransaction(s.ctx, "inexistentStoreName", s.mainAccount.Address, request)
+		require.Empty(s.T(), signature)
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -268,9 +263,9 @@ func (s *eth1TestSuite) TestGet() {
 		assert.Equal(s.T(), s.mainAccount.Disabled, retrievedAcc.Disabled)
 		assert.Equal(s.T(), s.mainAccount.CreatedAt, retrievedAcc.CreatedAt)
 		assert.Equal(s.T(), s.mainAccount.UpdatedAt, retrievedAcc.UpdatedAt)
-		assert.Equal(s.T(), s.mainAccount.ExpireAt, retrievedAcc.ExpireAt.IsZero())
-		assert.Equal(s.T(), s.mainAccount.DeletedAt, retrievedAcc.DeletedAt.IsZero())
-		assert.Equal(s.T(), s.mainAccount.DestroyedAt, retrievedAcc.DestroyedAt.IsZero())
+		assert.Equal(s.T(), s.mainAccount.ExpireAt, retrievedAcc.ExpireAt)
+		assert.Equal(s.T(), s.mainAccount.DeletedAt, retrievedAcc.DeletedAt)
+		assert.Equal(s.T(), s.mainAccount.DestroyedAt, retrievedAcc.DestroyedAt)
 	})
 
 	s.Run("should fail if account does not exist", func() {
@@ -295,7 +290,7 @@ func (s *eth1TestSuite) TestList() {
 		accounts, err := s.keyManagerClient.ListEth1Accounts(s.ctx, s.cfg.Eth1Store)
 		require.NoError(s.T(), err)
 
-		assert.Contains(s.T(), s.mainAccount.Address, accounts)
+		assert.Contains(s.T(), accounts, s.mainAccount.Address)
 	})
 
 	s.Run("should parse errors successfully", func() {
