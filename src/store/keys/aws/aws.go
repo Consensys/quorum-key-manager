@@ -62,7 +62,7 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorit
 
 // Import an externally created key and stores it
 func (ks *KeyStore) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+	return nil, errors.ErrNotSupported
 }
 
 // Get the public part of a stored key.
