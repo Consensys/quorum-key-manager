@@ -193,7 +193,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	localstackAddr := fmt.Sprintf("http://%s:%s", localstackContainer.Host, localstackContainer.Port)
-	awsClient, err := awsclient.NewClientWithEndpoint(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
+	awsClient, err := awsclient.NewSecretsClientWithEndpoint(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize aws client")
 		return nil, err

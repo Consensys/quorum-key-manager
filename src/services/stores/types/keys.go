@@ -7,5 +7,6 @@ import (
 const (
 	HashicorpKeys manifest.Kind = "HashicorpKeys"
 	AKVKeys       manifest.Kind = "AKVKeys"
+	AWSKeys       manifest.Kind = "AWSKeys"
 	KMSKeys       manifest.Kind = "KMSKeys"
 )
