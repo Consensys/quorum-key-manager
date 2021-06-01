@@ -50,19 +50,19 @@ func (mr *MockPrivCallerMockRecorder) DistributeRawTransaction(arg0, arg1 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DistributeRawTransaction", reflect.TypeOf((*MockPrivCaller)(nil).DistributeRawTransaction), arg0, arg1)
 }
 
-// GetEEATransactionCount mocks base method.
-func (m *MockPrivCaller) GetEEATransactionCount(ctx context.Context, addr common.Address, privateFrom string, privateFor []string) (uint64, error) {
+// GetEeaTransactionCount mocks base method.
+func (m *MockPrivCaller) GetEeaTransactionCount(ctx context.Context, addr common.Address, privateFrom string, privateFor []string) (uint64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEEATransactionCount", ctx, addr, privateFrom, privateFor)
+	ret := m.ctrl.Call(m, "GetEeaTransactionCount", ctx, addr, privateFrom, privateFor)
 	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetEEATransactionCount indicates an expected call of GetEEATransactionCount.
-func (mr *MockPrivCallerMockRecorder) GetEEATransactionCount(ctx, addr, privateFrom, privateFor interface{}) *gomock.Call {
+// GetEeaTransactionCount indicates an expected call of GetEeaTransactionCount.
+func (mr *MockPrivCallerMockRecorder) GetEeaTransactionCount(ctx, addr, privateFrom, privateFor interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEEATransactionCount", reflect.TypeOf((*MockPrivCaller)(nil).GetEEATransactionCount), ctx, addr, privateFrom, privateFor)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEeaTransactionCount", reflect.TypeOf((*MockPrivCaller)(nil).GetEeaTransactionCount), ctx, addr, privateFrom, privateFor)
 }
 
 // GetTransactionCount mocks base method.

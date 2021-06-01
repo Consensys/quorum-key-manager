@@ -3,10 +3,13 @@ package interceptor
 import (
 	"context"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/services/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
@@ -23,11 +26,15 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		if msg.PrivacyGroupID != nil {
 			n, err = sess.EthCaller().Priv().GetTransactionCount(ctx, msg.From, *msg.PrivacyGroupID)
 		} else {
+			if msg.PrivateFor == nil {
+				return nil, errors.InvalidParameterError("missing private args")
+			}
+
 			var privateFrom string
 			if msg.PrivateFrom != nil {
 				privateFrom = *msg.PrivateFrom
 			}
-			n, err = sess.EthCaller().Priv().GetEEATransactionCount(ctx, msg.From, privateFrom, *msg.PrivateFor)
+			n, err = sess.EthCaller().Priv().GetEeaTransactionCount(ctx, msg.From, privateFrom, *msg.PrivateFor)
 		}
 
 		if err != nil {
@@ -35,6 +42,33 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		}
 
 		msg.Nonce = &n
+	}
+
+	if msg.GasPrice == nil {
+		gasPrice, err2 := sess.EthCaller().Eth().GasPrice(ctx)
+		if err2 != nil {
+			return nil, err2
+		}
+
+		msg.GasPrice = gasPrice
+	}
+
+	if msg.Gas == nil {
+		// We update the data to an arbitrary hash
+		// to avoid errors raised on eth_estimateGas on Besu 1.5.4 & 1.5.5
+		callMsg := &ethereum.CallMsg{
+			From:     &msg.From,
+			To:       msg.To,
+			GasPrice: msg.GasPrice,
+			Data:     common.ToPtr(hexutil.MustDecode("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")).(*[]byte),
+		}
+
+		gas, err2 := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
+		if err2 != nil {
+			return nil, err2
+		}
+
+		msg.Gas = &gas
 	}
 
 	// Get ChainID from Node

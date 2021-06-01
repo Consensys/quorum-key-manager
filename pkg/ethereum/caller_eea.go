@@ -19,7 +19,7 @@ func init() {
 
 var eeaSrv = new(eeaService)
 
-// eeaService is a jsonrpc.Caller which methods are meant to be automatically populed using jsonrpc.ProvideCaller
+// eeaService is a jsonrpc.Caller which methods are meant to be automatically populated using json-rpc.ProvideCaller
 type eeaService struct {
 	SendRawTransaction func(jsonrpc.Client) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error) `namespace:"eea"`
 }

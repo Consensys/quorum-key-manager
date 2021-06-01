@@ -164,7 +164,7 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 		}
 	}
 
-	return nil, fmt.Errorf("account store not found")
+	return nil, errors.InvalidParameterError("account %s was not found", addr.String())
 }
 
 func (m *BaseManager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {

@@ -165,6 +165,23 @@ func TestProvideCaller(t *testing.T) {
 	require.NoError(t, err, "NoInput_IntErrorOutput must not error")
 	assert.Equal(t, 38, res, "NoInput_IntErrorOutput result should match")
 
+	// NoInput_IntErrorOutput (error output)
+	m = testutils.RequestMatcher(
+		t,
+		"",
+		[]byte(`{"jsonrpc":"2.0","method":"NoInput_IntErrorOutput","params":[],"id":null}`),
+	)
+	respBody = []byte(`{"jsonrpc": "1.0", "error": {"code":-32601,"message":"Method not found"},"id": "1"}`)
+	transport.EXPECT().RoundTrip(m).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewReader(respBody)),
+		Header:     header,
+	}, nil)
+
+	_, err = srv.NoInput_IntErrorOutput(client)()
+	require.Error(t, err)
+	require.Equal(t, err.Error(), "Method not found")
+
 	// StructInput_StructOutput
 	m = testutils.RequestMatcher(
 		t,

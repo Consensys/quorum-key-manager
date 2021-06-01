@@ -207,10 +207,10 @@ func (fn *rpcCallerFunc) processResponse(resp *ResponseMsg) []reflect.Value {
 
 	if fn.valOut != -1 {
 		val := reflect.New(fn.ftyp.Out(fn.valOut))
-		if err := resp.UnmarshalResult(val.Interface()); err != nil {
+		if err := resp.UnmarshalResult(val.Interface()); err != nil && resp.Err() == nil {
+			// We exit only if there is not json-rpc error to parse
 			return fn.processError(err)
 		}
-
 		out[fn.valOut] = val.Elem()
 	}
 

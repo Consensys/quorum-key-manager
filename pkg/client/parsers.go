@@ -13,7 +13,6 @@ func parseResponse(response *http.Response, resp interface{}) error {
 		if err := json.NewDecoder(response.Body).Decode(resp); err != nil {
 			return err
 		}
-
 		return nil
 	}
 	

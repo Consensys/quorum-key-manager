@@ -23,6 +23,10 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 		return nil, jsonrpc.InvalidParamsError(fmt.Errorf("nonce not specified"))
 	}
 
+	if msg.Data == nil {
+		msg.Data = &[]byte{}
+	}
+
 	// Get store for from
 	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
 	if err != nil {

@@ -488,7 +488,9 @@ func TestWebSocketRequestWithEncodedChar(t *testing.T) {
 			return
 		}
 		defer conn.Close()
-		assert.Equal(t, "/%3A%2F%2F", r.URL.EscapedPath())
+
+		expectedURL, _ := url.ParseRequestURI("/%3A%2F%2F")
+		assert.Equal(t, expectedURL.Path, r.URL.EscapedPath())
 		for {
 			mt, message, err := conn.ReadMessage()
 			if err != nil {

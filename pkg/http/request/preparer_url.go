@@ -10,6 +10,9 @@ func URL(u *url.URL) Preparer {
 	return PrepareFunc(func(req *http.Request) (*http.Request, error) {
 		newReq := *req
 		newReq.URL = CopyURL(u)
+		if req.RequestURI == "" {
+			newReq.RequestURI = req.URL.RequestURI()
+		}
 		return &newReq, nil
 	})
 }

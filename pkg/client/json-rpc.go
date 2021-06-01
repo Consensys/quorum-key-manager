@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
 )
@@ -20,6 +21,7 @@ type JSONRPCMessage struct {
 func (c *HTTPClient) Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error) {
 	reqURL := fmt.Sprintf("%s/%s/%s", c.config.URL, jsonRPCPath, nodeID)
 	req := &JSONRPCMessage{
+		ID:      strconv.AppendUint(nil, uint64(10), 10),
 		Method:  method,
 		Version: "2.0",
 	}
