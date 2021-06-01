@@ -17,7 +17,7 @@ type SecretSpecs struct {
 
 func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*aws.SecretStore, error) {
 	cfg := client.NewBaseConfig(specs.Region, specs.AccessID, specs.SecretKey)
-	cli, err := client.NewClient(cfg)
+	cli, err := client.NewSecretsClient(cfg)
 	if err != nil {
 		return nil, errors.AWSConnectionError(err.Error())
 	}
