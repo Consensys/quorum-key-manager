@@ -4,15 +4,18 @@ package acceptancetests
 
 import (
 	"context"
-	"os"
-	"testing"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/database/memory"
 	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1/local"
 	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/akv"
 	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/hashicorp"
+	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/secrets/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/secrets/aws"
+	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/secrets/hashicorp"
+	"os"
+	"testing"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -58,7 +61,7 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-/*
+
 func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -107,7 +110,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite.store = akvkey.New(s.env.akvClient, logger)
 	suite.Run(s.T(), testSuite)
 }
-*/
+
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -127,4 +130,31 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite.env = s.env
 	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), memory.New(logger), logger)
 	suite.Run(s.T(), testSuite)
+
 }
+
+// Please keep this function to clean the keys
+/*
+func cleanKeys(ctx context.Context, store keys.Store) error {
+	keyIDs, err := store.List(ctx)
+	if err != nil {
+		return err
+	}
+
+	for len(keyIDs) != 0 {
+		for _, id := range keyIDs {
+			err = store.Delete(ctx, id)
+			if err != nil {
+				return err
+			}
+		}
+
+		keyIDs, err = store.List(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+*/
