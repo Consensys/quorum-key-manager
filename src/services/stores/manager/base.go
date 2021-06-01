@@ -36,7 +36,8 @@ type BaseManager struct {
 
 type storeBundle struct {
 	manifest *manifest.Manifest
-	store    interface{}
+
+	store interface{}
 }
 
 func New(manifests manifestsmanager.Manager) *BaseManager {
@@ -46,6 +47,7 @@ func New(manifests manifestsmanager.Manager) *BaseManager {
 		secrets:      make(map[string]*storeBundle),
 		keys:         make(map[string]*storeBundle),
 		eth1Accounts: make(map[string]*storeBundle),
+		mnfsts:       make(chan []manifestsmanager.Message),
 	}
 }
 
@@ -80,6 +82,7 @@ func (m *BaseManager) Stop(context.Context) error {
 	if m.sub != nil {
 		_ = m.sub.Unsubscribe()
 	}
+	close(m.mnfsts)
 	return nil
 }
 

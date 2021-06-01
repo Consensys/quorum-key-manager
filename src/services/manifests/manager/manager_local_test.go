@@ -60,6 +60,9 @@ func TestLocalManager(t *testing.T) {
 	require.NoError(t, err, "Subscribe AB must not error")
 	defer func() { _ = subAB.Unsubscribe() }()
 
+	err = mngr.Start(context.TODO())
+	require.NoError(t, err, "Start must not error")
+
 	chanBC := make(chan []Message)
 	subBC, err := mngr.Subscribe([]manifest.Kind{"KindC", "KindB"}, chanBC)
 	require.NoError(t, err, "Subscribe BC must not error")
@@ -74,9 +77,6 @@ func TestLocalManager(t *testing.T) {
 	subNone, err := mngr.Subscribe([]manifest.Kind{}, chanNone)
 	require.NoError(t, err, "Subscribe None must not error")
 	defer func() { _ = subNone.Unsubscribe() }()
-
-	err = mngr.Start(context.TODO())
-	require.NoError(t, err, "Start must not error")
 
 	assertMessage(t, []Message{
 		Message{
