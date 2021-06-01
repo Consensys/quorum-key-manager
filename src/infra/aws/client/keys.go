@@ -35,11 +35,22 @@ func (c *AwsKmsClient) GetPublicKey(ctx context.Context, id string) (*kms.GetPub
 	})
 }
 
+func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
+	input := &kms.ListKeysInput{}
+	if limit > 0 {
+		input.Limit = &limit
+	}
+	if len(marker) > 0 {
+		input.Marker = &marker
+	}
+	return c.client.ListKeys(input)
+}
+
 //ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 //ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 
 // GetKey(ctx context.Context, name string, version string) (keyvault.KeyBundle, error)
-/*ListKeys(ctx context.Context, input *kms.ListKeysInput) (*kms.ListKeysOutput, error)
+/*
 UpdateKey(ctx context.Context, input *kms.UpdateCustomKeyStoreInput, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
 DeleteKey(ctx context.Context, keyName string) (*kms.DeleteCustomKeyStoreOutput, error)
 GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
