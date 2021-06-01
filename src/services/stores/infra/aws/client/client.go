@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
-type AwsVaultClient struct {
+type AwsSecretsClient struct {
 	client secretsmanager.SecretsManager
 }
 
@@ -15,17 +15,17 @@ type AwsKmsClient struct {
 	client kms.KMS
 }
 
-func NewSecretsClient(cfg *Config) (*AwsVaultClient, error) {
+func NewSecretsClient(cfg *Config) (*AwsSecretsClient, error) {
 	// Create a new newSession
 	newSession, _ := session.NewSession()
 	// Create a Secrets Manager client
 	client := secretsmanager.New(newSession,
 		aws.NewConfig().WithRegion(cfg.Region).WithLogLevel(aws.LogDebug))
 
-	return &AwsVaultClient{*client}, nil
+	return &AwsSecretsClient{*client}, nil
 }
 
-func NewSecretsClientWithEndpoint(cfg *Config) (*AwsVaultClient, error) {
+func NewSecretsClientWithEndpoint(cfg *Config) (*AwsSecretsClient, error) {
 	// Create a new newSession
 	newSession, _ := session.NewSession()
 	// Create a Secrets Manager client
@@ -38,7 +38,7 @@ func NewSecretsClientWithEndpoint(cfg *Config) (*AwsVaultClient, error) {
 	}
 	client := secretsmanager.New(newSession, config)
 
-	return &AwsVaultClient{*client}, nil
+	return &AwsSecretsClient{*client}, nil
 
 }
 

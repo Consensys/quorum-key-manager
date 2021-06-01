@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (c *AwsVaultClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
+func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
 	getSecretInput := &secretsmanager.GetSecretValueInput{
 		SecretId:  &id,
 		VersionId: &version,
@@ -22,21 +22,21 @@ func (c *AwsVaultClient) GetSecret(ctx context.Context, id, version string) (*se
 	}
 	return c.client.GetSecretValue(getSecretInput)
 }
-func (c *AwsVaultClient) CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
+func (c *AwsSecretsClient) CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
 	return c.client.CreateSecret(&secretsmanager.CreateSecretInput{
 		Name:         &id,
 		SecretString: &value,
 	})
 }
 
-func (c *AwsVaultClient) PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
+func (c *AwsSecretsClient) PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
 	return c.client.PutSecretValue(&secretsmanager.PutSecretValueInput{
 		SecretId:     &id,
 		SecretString: &value,
 	})
 }
 
-func (c *AwsVaultClient) TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
+func (c *AwsSecretsClient) TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
 
 	var inputTags []*secretsmanager.Tag
 
@@ -54,13 +54,13 @@ func (c *AwsVaultClient) TagSecretResource(ctx context.Context, id string, tags 
 	})
 }
 
-func (c *AwsVaultClient) DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error) {
+func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error) {
 	return c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
 		SecretId: &id,
 	})
 }
 
-func (c *AwsVaultClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
+func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
 	listInput := &secretsmanager.ListSecretsInput{}
 	if len(nextToken) > 0 {
 		listInput.NextToken = &nextToken
@@ -71,7 +71,7 @@ func (c *AwsVaultClient) ListSecrets(ctx context.Context, maxResults int64, next
 	return c.client.ListSecrets(listInput)
 
 }
-func (c *AwsVaultClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
+func (c *AwsSecretsClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
 	return c.client.UpdateSecret(&secretsmanager.UpdateSecretInput{
 		SecretId:     &id,
 		SecretString: &value,
@@ -80,12 +80,12 @@ func (c *AwsVaultClient) UpdateSecret(ctx context.Context, id, value, keyID, des
 	})
 }
 
-func (c *AwsVaultClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
+func (c *AwsSecretsClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
 	return c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
 		SecretId: &id,
 	})
 }
-func (c *AwsVaultClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
+func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
 
 	return c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
 		SecretId:                   &id,
