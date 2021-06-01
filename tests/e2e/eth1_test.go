@@ -62,7 +62,7 @@ func (s *eth1TestSuite) TestCreate() {
 	s.Run("should create a new account successfully", func() {
 		request := testutils.FakeCreateEth1AccountRequest()
 
-		acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.HashicorpKeyStore, request)
+		acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, request)
 		require.NoError(s.T(), err)
 
 		assert.NotEmpty(s.T(), acc.Address)

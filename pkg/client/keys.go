@@ -43,7 +43,7 @@ func (c *HTTPClient) ImportKey(ctx context.Context, storeName string, req *types
 	return key, nil
 }
 
-func (c *HTTPClient) Sign(ctx context.Context, storeName, id string, req *types.SignBase64PayloadRequest) (string, error) {
+func (c *HTTPClient) SignKey(ctx context.Context, storeName, id string, req *types.SignBase64PayloadRequest) (string, error) {
 	reqURL := fmt.Sprintf("%s/%s/%s/sign", withURLStore(c.config.URL, storeName), keysPath, id)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
