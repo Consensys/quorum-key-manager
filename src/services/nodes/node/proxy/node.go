@@ -185,21 +185,21 @@ func newEthCaller(jsonrpcClient jsonrpc.Client, msg *jsonrpc.RequestMsg) ethereu
 }
 
 func (n *Node) newPrivTxMngrClient() tessera.Client {
-	if n.privTxMngr != nil {
-		httpClient := httpclient.CombineDecorators(
-			httpclient.WithModifier(n.privTxMngr.respModifier),
-			httpclient.WithPreparer(n.privTxMngr.reqPreparer),
-			httpclient.WithPreparer(
-				request.CombinePreparer(
-					request.RemoveConnectionHeaders(),
-					request.ForwardedFor(),
-				),
-			),
-		)(n.privTxMngr.client)
-		return tessera.NewHTTPClient(httpClient)
+	if n.privTxMngr == nil {
+		return &tessera.NotConfiguredClient{}
 	}
 
-	return &tessera.NotConfiguredClient{}
+	httpClient := httpclient.CombineDecorators(
+		httpclient.WithModifier(n.privTxMngr.respModifier),
+		httpclient.WithPreparer(n.privTxMngr.reqPreparer),
+		httpclient.WithPreparer(
+			request.CombinePreparer(
+				request.RemoveConnectionHeaders(),
+				request.ForwardedFor(),
+			),
+		),
+	)(n.privTxMngr.client)
+	return tessera.NewHTTPClient(httpClient)
 }
 
 type httpDownstream struct {

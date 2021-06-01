@@ -21,7 +21,7 @@ var privSrv = new(privService)
 
 type privService struct {
 	DistributeRawTransaction func(jsonrpc.Client) func(context.Context, hexutil.Bytes) (*hexutil.Bytes, error)                        `namespace:"priv"`
-	GetEEATransactionCount   func(jsonrpc.Client) func(context.Context, ethcommon.Address, string, []string) (*hexutil.Uint64, error) `namespace:"priv"`
+	GetEeaTransactionCount   func(jsonrpc.Client) func(context.Context, ethcommon.Address, string, []string) (*hexutil.Uint64, error) `namespace:"priv"`
 	GetTransactionCount      func(jsonrpc.Client) func(context.Context, ethcommon.Address, string) (*hexutil.Uint64, error)           `namespace:"priv"`
 }
 
@@ -30,7 +30,7 @@ type privService struct {
 type PrivCaller interface {
 	DistributeRawTransaction(context.Context, []byte) ([]byte, error)
 	GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (uint64, error)
-	GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error)
+	GetEeaTransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error)
 }
 
 type privCaller struct {
@@ -55,8 +55,8 @@ func (c *privCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Add
 	return uint64(*n), nil
 }
 
-func (c *privCaller) GetEEATransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error) {
-	n, err := privSrv.GetEEATransactionCount(c.client)(ctx, addr, privateFrom, privateFor)
+func (c *privCaller) GetEeaTransactionCount(ctx context.Context, addr ethcommon.Address, privateFrom string, privateFor []string) (uint64, error) {
+	n, err := privSrv.GetEeaTransactionCount(c.client)(ctx, addr, privateFrom, privateFor)
 	if err != nil {
 		return 0, err
 	}

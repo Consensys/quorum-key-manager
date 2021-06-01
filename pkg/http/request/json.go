@@ -14,6 +14,7 @@ func WriteJSON(req *http.Request, msg interface{}) error {
 		req.Header = make(http.Header)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	// Write message into buffer
 	b, err := json.Marshal(msg)

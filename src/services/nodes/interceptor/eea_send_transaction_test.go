@@ -47,6 +47,11 @@ func TestEEASendTransaction(t *testing.T) {
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
+				// Get Gas price
+				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)
+
+				ethCaller.EXPECT().EstimateGas(gomock.Any(), gomock.Any()).Return(uint64(21000), nil)
+
 				// Get Nonc
 				privCaller.EXPECT().GetTransactionCount(gomock.Any(), expectedFrom, "kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M=").Return(uint64(5), nil)
 
@@ -72,8 +77,13 @@ func TestEEASendTransaction(t *testing.T) {
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
+				// Get Gas price
+				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)
+
+				ethCaller.EXPECT().EstimateGas(gomock.Any(), gomock.Any()).Return(uint64(21000), nil)
+
 				// Get Nonc
-				privCaller.EXPECT().GetEEATransactionCount(gomock.Any(), expectedFrom, "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}).Return(uint64(5), nil)
+				privCaller.EXPECT().GetEeaTransactionCount(gomock.Any(), expectedFrom, "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}).Return(uint64(5), nil)
 
 				// Sign
 				expectedPrivateArgs := (&ethereum.PrivateArgs{}).WithPrivateFrom("GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=").WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})

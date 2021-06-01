@@ -7,7 +7,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/header"
 )
 
-func OverideURL(dst, src *url.URL) {
+func OverrideURL(dst, src *url.URL) {
 	if src.Scheme != "" {
 		dst.Scheme = src.Scheme
 	}
@@ -58,20 +58,20 @@ func Request(baseReq *http.Request) Preparer {
 		// Set Method
 		outReq.Method = req.Method
 
-		// Overide Header
+		// Override Header
 		err := header.Overide(req.Header)(outReq.Header)
 		if err != nil {
 			return nil, err
 		}
 
-		// Overide URL
+		// Override URL
 		if outReq.URL == nil {
 			outReq.URL = CopyURL(req.URL)
 		} else {
-			OverideURL(outReq.URL, req.URL)
+			OverrideURL(outReq.URL, req.URL)
 		}
 
-		// Overide URI
+		// Override URI
 		if req.RequestURI != "" {
 			outReq.RequestURI = req.RequestURI
 		}

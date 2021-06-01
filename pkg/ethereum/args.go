@@ -141,10 +141,12 @@ func (msg *SendTxMsg) MarshalJSON() ([]byte, error) {
 
 // TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
 type SendEEATxMsg struct {
-	From  ethcommon.Address
-	To    *ethcommon.Address
-	Nonce *uint64
-	Data  *[]byte
+	From     ethcommon.Address
+	To       *ethcommon.Address
+	Nonce    *uint64
+	Data     *[]byte
+	Gas      *uint64
+	GasPrice *big.Int
 
 	PrivateArgs
 }
@@ -164,7 +166,7 @@ func (msg *SendEEATxMsg) TxData() *types.Transaction {
 		return types.NewContractCreation(nonce, nil, 0, nil, data)
 	}
 
-	return types.NewTransaction(nonce, *msg.To, nil, 0, nil, data)
+	return types.NewTransaction(nonce, *msg.To, nil, *msg.Gas, msg.GasPrice, data)
 }
 
 // TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96

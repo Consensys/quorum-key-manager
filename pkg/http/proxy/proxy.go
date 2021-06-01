@@ -7,6 +7,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/oxtoacart/bpool"
 )
 
@@ -48,6 +49,9 @@ func New(
 
 	return &httputil.ReverseProxy{
 		Director: func(outReq *http.Request) {
+			u := outReq.URL
+			log.FromContext(outReq.Context()).
+				Errorf("proxy call - outReq.URL: %s - u.EscapedPath(): %s, outReq.RequestURI: %s", outReq.URL, u.EscapedPath(), outReq.RequestURI)
 			newReq, _ := preparer.Prepare(outReq)
 			*outReq = *newReq
 		},

@@ -15,7 +15,9 @@ type Config struct {
 	KeyManagerURL        string     `json:"key_manager_url"`
 	HashicorpSecretStore string     `json:"hashicorp_secret_store"`
 	HashicorpKeyStore    string     `json:"hashicorp_key_store"`
-	NodeID               string     `json:"node_id"`
+	Eth1Store            string     `json:"eth1_store"`
+	QuorumNodeID         string     `json:"quorum_node_id"`
+	BesuNodeID           string     `json:"besu_node_id"`
 }
 
 type akvClient struct {

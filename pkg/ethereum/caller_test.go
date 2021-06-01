@@ -201,11 +201,11 @@ func TestCaller(t *testing.T) {
 		assert.Equal(t, ethcommon.FromHex("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331a"), enclaveKey, "Result should be valid")
 	})
 
-	t.Run("priv_getEEATransactionCount", func(t *testing.T) {
+	t.Run("priv_getEeaTransactionCount", func(t *testing.T) {
 		m := testutils.RequestMatcher(
 			t,
 			"",
-			[]byte(`{"jsonrpc":"2.0","method":"priv_getEEATransactionCount","params":["0xc94770007dda54cf92009bff0de90c06f603a09f","GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=",["KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=","eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="]],"id":null}`),
+			[]byte(`{"jsonrpc":"2.0","method":"priv_getEeaTransactionCount","params":["0xc94770007dda54cf92009bff0de90c06f603a09f","GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=",["KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=","eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="]],"id":null}`),
 		)
 		respBody := []byte(`{"jsonrpc": "2.0","result":"0xf"}`)
 		transport.EXPECT().RoundTrip(m).Return(&http.Response{
@@ -214,7 +214,7 @@ func TestCaller(t *testing.T) {
 			Header:     header,
 		}, nil)
 
-		count, err := cllr.Priv().GetEEATransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
+		count, err := cllr.Priv().GetEeaTransactionCount(context.Background(), ethcommon.HexToAddress("0xc94770007dda54cF92009BFF0dE90c06F603a09f"), "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
 		require.NoError(t, err, "Must not error")
 		assert.Equal(t, uint64(15), count, "Result should be valid")
 	})
