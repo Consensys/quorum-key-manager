@@ -19,6 +19,7 @@ type KeysClient interface {
 	CreateKey(ctx context.Context, storeName string, request *types.CreateKeyRequest) (*types.KeyResponse, error)
 	ImportKey(ctx context.Context, storeName string, request *types.ImportKeyRequest) (*types.KeyResponse, error)
 	SignKey(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error)
+	VerifyKeySignature(ctx context.Context, storeName string, request *types.VerifyKeySignatureRequest) error
 	GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error)
 	ListKeys(ctx context.Context, storeName string) ([]string, error)
 	DestroyKey(ctx context.Context, storeName, id string) error
@@ -39,7 +40,7 @@ type Eth1Client interface {
 	DestroyEth1Account(ctx context.Context, storeName, account string) error
 	RestoreEth1Account(ctx context.Context, storeName, account string) error
 	ECRecover(ctx context.Context, storeName string, request *types.ECRecoverRequest) (string, error)
-	VerifySignature(ctx context.Context, storeName string, request *types.VerifyEth1SignatureRequest) error
+	VerifyEth1Signature(ctx context.Context, storeName string, request *types.VerifyEth1SignatureRequest) error
 	VerifyTypedDataSignature(ctx context.Context, storeName string, request *types.VerifyTypedDataRequest) error
 }
 

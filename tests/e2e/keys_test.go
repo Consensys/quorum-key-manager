@@ -332,7 +332,7 @@ func (s *keysTestSuite) TestList() {
 	})
 }
 
-func (s *keysTestSuite) TestSign() {
+func (s *keysTestSuite) TestSignVerify() {
 	data := []byte("my data to sign")
 	hashedPayload := base64.URLEncoding.EncodeToString(crypto.Keccak256(data))
 	payload := base64.URLEncoding.EncodeToString(data)
@@ -356,9 +356,18 @@ func (s *keysTestSuite) TestSign() {
 
 		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
 
+		verifyRequest := &types.VerifyKeySignatureRequest{
+			Data:             hashedPayload,
+			Signature:        signature,
+			Curve:            key.Curve,
+			SigningAlgorithm: key.SigningAlgorithm,
+			PublicKey:        key.PublicKey,
+		}
+		err = s.keyManagerClient.VerifyKeySignature(s.ctx, s.cfg.HashicorpKeyStore, verifyRequest)
+		require.NoError(s.T(), err)
 	})
 
-	s.Run("should sign a new payload successfully: BN254/EDDSA", func() {
+	s.Run("should sign and verify a new payload successfully: BN254/EDDSA", func() {
 		request := &types.ImportKeyRequest{
 			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
@@ -375,6 +384,16 @@ func (s *keysTestSuite) TestSign() {
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
+
+		verifyRequest := &types.VerifyKeySignatureRequest{
+			Data:             payload,
+			Signature:        signature,
+			Curve:            key.Curve,
+			SigningAlgorithm: key.SigningAlgorithm,
+			PublicKey:        key.PublicKey,
+		}
+		err = s.keyManagerClient.VerifyKeySignature(s.ctx, s.cfg.HashicorpKeyStore, verifyRequest)
+		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail if payload is not base64 string", func() {

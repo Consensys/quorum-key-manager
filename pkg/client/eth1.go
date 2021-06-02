@@ -194,7 +194,7 @@ func (c *HTTPClient) ECRecover(ctx context.Context, storeName string, req *types
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) VerifySignature(ctx context.Context, storeName string, req *types.VerifyEth1SignatureRequest) error {
+func (c *HTTPClient) VerifyEth1Signature(ctx context.Context, storeName string, req *types.VerifyEth1SignatureRequest) error {
 	reqURL := fmt.Sprintf("%s/%s/verify-signature", withURLStore(c.config.URL, storeName), eth1Path)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {

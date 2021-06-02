@@ -137,7 +137,7 @@ func (s *eth1TestSuite) TestSign() {
 
 		assert.NotNil(s.T(), signature)
 
-		err = s.keyManagerClient.VerifySignature(s.ctx, s.cfg.Eth1Store, &types.VerifyEth1SignatureRequest{
+		err = s.keyManagerClient.VerifyEth1Signature(s.ctx, s.cfg.Eth1Store, &types.VerifyEth1SignatureRequest{
 			Data:      request.Data,
 			Signature: hexutil.MustDecode(signature),
 			Address:   s.mainAccount.Address,
