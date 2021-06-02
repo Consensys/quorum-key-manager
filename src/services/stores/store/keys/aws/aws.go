@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 )
 
 // Store is an implementation of key store relying on AWS kms
@@ -72,7 +72,27 @@ func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 
 // List keys
 func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+	var keys []string
+	nextMarker := ""
+
+	// Loop until the entire list is constituted
+	for {
+		ret, err := ks.client.ListKeys(ctx, 0, nextMarker)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, key := range ret.Keys {
+			keys = append(keys, *key.KeyId)
+		}
+
+		if ret.NextMarker == nil {
+			break
+		}
+		nextMarker = *ret.NextMarker
+
+	}
+	return keys, nil
 }
 
 // Update key tags
