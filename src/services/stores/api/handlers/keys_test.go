@@ -200,7 +200,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 func (s *keysHandlerTestSuite) TestSign() {
 	s.Run("should execute request successfully", func() {
-		signPayloadRequest := testutils.FakeSignPayloadRequest()
+		signPayloadRequest := testutils.FakeSignBase64PayloadRequest()
 		requestBytes, _ := json.Marshal(signPayloadRequest)
 
 		rw := httptest.NewRecorder()
@@ -218,8 +218,8 @@ func (s *keysHandlerTestSuite) TestSign() {
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
-	s.Run("should fail with 400 if payload is not hexadecimal", func() {
-		signPayloadRequest := testutils.FakeSignPayloadRequest()
+	s.Run("should fail with 400 if payload is not base64", func() {
+		signPayloadRequest := testutils.FakeSignBase64PayloadRequest()
 		signPayloadRequest.Data = "invalidData"
 		requestBytes, _ := json.Marshal(signPayloadRequest)
 
@@ -232,7 +232,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
-		signPayloadRequest := testutils.FakeSignPayloadRequest()
+		signPayloadRequest := testutils.FakeSignBase64PayloadRequest()
 		requestBytes, _ := json.Marshal(signPayloadRequest)
 
 		rw := httptest.NewRecorder()

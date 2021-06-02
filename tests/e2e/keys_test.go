@@ -83,7 +83,6 @@ func (s *keysTestSuite) TestCreate() {
 		assert.Equal(s.T(), request.Curve, key.Curve)
 		assert.Equal(s.T(), request.ID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
-		assert.Equal(s.T(), "1", key.Version)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
@@ -111,7 +110,6 @@ func (s *keysTestSuite) TestCreate() {
 		assert.Equal(s.T(), request.Curve, key.Curve)
 		assert.Equal(s.T(), request.ID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
-		assert.Equal(s.T(), "1", key.Version)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
@@ -196,7 +194,6 @@ func (s *keysTestSuite) TestImport() {
 		assert.Equal(s.T(), request.Curve, key.Curve)
 		assert.Equal(s.T(), request.ID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
-		assert.Equal(s.T(), "1", key.Version)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
@@ -225,7 +222,6 @@ func (s *keysTestSuite) TestImport() {
 		assert.Equal(s.T(), request.Curve, key.Curve)
 		assert.Equal(s.T(), request.ID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
-		assert.Equal(s.T(), "1", key.Version)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
@@ -295,7 +291,6 @@ func (s *keysTestSuite) TestGet() {
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", keyRetrieved.PublicKey)
 		assert.Equal(s.T(), request.ID, keyRetrieved.ID)
 		assert.Equal(s.T(), request.Tags, keyRetrieved.Tags)
-		assert.Equal(s.T(), "1", keyRetrieved.Version)
 		assert.False(s.T(), keyRetrieved.Disabled)
 		assert.NotEmpty(s.T(), keyRetrieved.CreatedAt)
 		assert.NotEmpty(s.T(), keyRetrieved.UpdatedAt)
@@ -356,7 +351,7 @@ func (s *keysTestSuite) TestSign() {
 		requestSign := &types.SignBase64PayloadRequest{
 			Data: hashedPayload,
 		}
-		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
+		signature, err := s.keyManagerClient.SignKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
@@ -376,7 +371,7 @@ func (s *keysTestSuite) TestSign() {
 		requestSign := &types.SignBase64PayloadRequest{
 			Data: payload,
 		}
-		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
+		signature, err := s.keyManagerClient.SignKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
@@ -395,7 +390,7 @@ func (s *keysTestSuite) TestSign() {
 		requestSign := &types.SignBase64PayloadRequest{
 			Data: "my data to sign not in base64 format",
 		}
-		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
+		signature, err := s.keyManagerClient.SignKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.Empty(s.T(), signature)
 
 		httpError := err.(*client.ResponseError)

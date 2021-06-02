@@ -360,7 +360,7 @@ func (s *Store) VerifyTypedData(ctx context.Context, addr string, typedData *cor
 		return err
 	}
 
-	return s.Verify(ctx, addr, sig, []byte(encodedData))
+	return s.Verify(ctx, addr, []byte(encodedData), sig)
 }
 
 func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {

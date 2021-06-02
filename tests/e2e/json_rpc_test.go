@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/assert"

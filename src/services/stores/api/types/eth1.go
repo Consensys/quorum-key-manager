@@ -26,7 +26,6 @@ type SignHexPayloadRequest struct {
 }
 
 type SignTypedDataRequest struct {
-	Namespace       string                 `json:"namespace,omitempty" example:"tenant_id"`
 	DomainSeparator DomainSeparator        `json:"domainSeparator" validate:"required"`
 	Types           map[string][]Type      `json:"types" validate:"required"`
 	Message         map[string]interface{} `json:"message" validate:"required"`
