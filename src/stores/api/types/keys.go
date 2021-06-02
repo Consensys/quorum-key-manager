@@ -13,25 +13,25 @@ type ImportKeyRequest struct {
 	ID               string            `json:"id" validate:"required" example:"my-key"`
 	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa"`
-	PrivateKey       string            `json:"privateKey" validate:"required,base64url" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	PrivateKey       []byte            `json:"privateKey" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
 	Tags             map[string]string `json:"tags,omitempty"`
 }
 
 type SignBase64PayloadRequest struct {
-	Data string `json:"data" validate:"required,base64url" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	Data []byte `json:"data" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
 }
 
 type VerifyKeySignatureRequest struct {
-	Data             string `json:"data" validate:"required,base64url" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
-	Signature        string `json:"signature" validate:"required,base64url" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	Data             []byte `json:"data" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	Signature        []byte `json:"signature" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
 	Curve            string `json:"curve" validate:"required,isCurve" example:"secp256k1"`
 	SigningAlgorithm string `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa"`
-	PublicKey        string `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	PublicKey        []byte `json:"publicKey" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
 }
 
 type KeyResponse struct {
 	ID               string            `json:"id" example:"my-key"`
-	PublicKey        string            `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	PublicKey        []byte            `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
 	Curve            string            `json:"curve" example:"secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" example:"ecdsa"`
 	Tags             map[string]string `json:"tags,omitempty"`
