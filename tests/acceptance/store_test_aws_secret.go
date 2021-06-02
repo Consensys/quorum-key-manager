@@ -4,7 +4,6 @@ package acceptancetests
 
 import (
 	"fmt"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
@@ -154,13 +153,14 @@ func (s *awsSecretTestSuite) TestGet() {
 	})
 
 	s.Run("should get specific secret version", func() {
-		secret, err := s.store.Get(ctx, id, version1)
+		readSec1, err := s.store.Get(ctx, id, version1)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version1, secret.Metadata.Version)
 
-		secret, err = s.store.Get(ctx, id, version2)
+		readSec2, err := s.store.Get(ctx, id, version2)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version2, secret.Metadata.Version)
+		expectedVersion2 := readSec2.Metadata.Version
+		assert.Equal(s.T(), version2, expectedVersion2)
+		assert.False(s.T(), assert.ObjectsAreEqualValues(readSec2, readSec1))
 	})
 
 	s.Run("should fail with NotFound if secret is not found", func() {

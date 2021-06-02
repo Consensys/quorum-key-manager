@@ -6,15 +6,15 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
 )
 
 const (
 	maxTagsAllowed = 50
 )
 
-// Store is an implementation of secret store relying on AWS secretsmanager
+// SecretStore is an implementation of secret store relying on AWS secretsmanager
 type SecretStore struct {
 	client aws.SecretsManagerClient
 	logger *log.Logger
