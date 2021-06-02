@@ -5,8 +5,8 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"net/http"
 	"os"

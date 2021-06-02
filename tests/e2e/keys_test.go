@@ -12,7 +12,7 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
