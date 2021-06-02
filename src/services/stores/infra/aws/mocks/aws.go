@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	kms "github.com/aws/aws-sdk-go/service/kms"
 	secretsmanager "github.com/aws/aws-sdk-go/service/secretsmanager"
 	gomock "github.com/golang/mock/gomock"
@@ -223,6 +223,21 @@ func (m *MockKmsClient) GetPublicKey(ctx context.Context, name string) (*kms.Get
 func (mr *MockKmsClientMockRecorder) GetPublicKey(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockKmsClient)(nil).GetPublicKey), ctx, name)
+}
+
+// ListKeys mocks base method.
+func (m *MockKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListKeys", ctx, limit, marker)
+	ret0, _ := ret[0].(*kms.ListKeysOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListKeys indicates an expected call of ListKeys.
+func (mr *MockKmsClientMockRecorder) ListKeys(ctx, limit, marker interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKmsClient)(nil).ListKeys), ctx, limit, marker)
 }
 
 // Sign mocks base method.
