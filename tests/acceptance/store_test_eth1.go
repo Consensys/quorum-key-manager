@@ -192,16 +192,6 @@ func (s *eth1TestSuite) TestSignVerify() {
 	})
 	require.NoError(s.T(), err)
 
-	s.Run("should sign a payload successfully", func() {
-		signature, err := s.store.Sign(ctx, account.Address, payload)
-		require.NoError(s.T(), err)
-		assert.NotEmpty(s.T(), signature)
-
-		verified, err := verifySignature(signature, payload, privKey)
-		require.NoError(s.T(), err)
-		assert.True(s.T(), verified)
-	})
-
 	s.Run("should sign, recover an address and verify the signature successfully", func() {
 		signature, err := s.store.Sign(ctx, account.Address, payload)
 		require.NoError(s.T(), err)

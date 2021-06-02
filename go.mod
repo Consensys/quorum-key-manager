@@ -12,6 +12,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/aws/aws-sdk-go v1.38.41
+	github.com/consensys/gnark-crypto v0.4.0
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/containerd/containerd v1.4.4 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -39,7 +40,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
-	golang.org/x/sys v0.0.0-20210324051608-47abb6519492 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.0

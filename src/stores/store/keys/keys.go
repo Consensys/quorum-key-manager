@@ -2,7 +2,11 @@ package keys
 
 import (
 	"context"
+	"encoding/base64"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/crypto"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -45,9 +49,45 @@ type Store interface {
 	// Sign from any arbitrary data using the specified key
 	Sign(ctx context.Context, id string, data []byte) ([]byte, error)
 
+	// Verify verifies the signature belongs to the corresponding key
+	Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error
+
 	// Encrypt any arbitrary data using a specified key
 	Encrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 
 	// Decrypt a single block of encrypted data.
 	Decrypt(ctx context.Context, id string, data []byte) ([]byte, error)
+}
+
+func VerifySignature(logger *log.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	logger = logger.
+		WithField("pub_key", base64.URLEncoding.EncodeToString(pubKey)).
+		WithField("curve", algo.EllipticCurve).
+		WithField("signing_algorithm", algo.Type)
+
+	var err error
+	var verified bool
+	switch {
+	case algo.EllipticCurve == entities.Secp256k1 && algo.Type == entities.Ecdsa:
+		verified, err = crypto.VerifyECDSASignature(pubKey, data, sig)
+	case algo.EllipticCurve == entities.Bn254 && algo.Type == entities.Eddsa:
+		verified, err = crypto.VerifyEDDSASignature(pubKey, data, sig)
+	default:
+		errMessage := "unsupported algorithm"
+		logger.Error(errMessage)
+		return errors.NotSupportedError(errMessage)
+	}
+	if err != nil {
+		errMessage := "failed to verify signature"
+		logger.WithError(err).Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
+	}
+
+	if !verified {
+		errMessage := "signature does not belong to the specified public key"
+		logger.WithField("pub_key", pubKey).Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
+	}
+
+	return nil
 }

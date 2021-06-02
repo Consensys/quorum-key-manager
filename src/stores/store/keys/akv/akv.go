@@ -214,6 +214,10 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 	return signature, nil
 }
 
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
+}
+
 func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
