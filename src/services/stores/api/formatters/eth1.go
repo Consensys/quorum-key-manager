@@ -3,6 +3,7 @@ package formatters
 import (
 	"math/big"
 
+	common2 "github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
@@ -76,11 +77,10 @@ func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *qu
 }
 
 func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transaction, *ethereum.PrivateArgs) {
-	privateType := PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom:    &tx.PrivateFrom,
 		PrivateFor:     &tx.PrivateFor,
-		PrivateType:    &privateType,
+		PrivateType:    common2.ToPtr(PrivateTxTypeRestricted).(*string),
 		PrivacyGroupID: &tx.PrivacyGroupID,
 	}
 

@@ -12,6 +12,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+const (
+	privateTxTypeRestricted = "restricted"
+)
+
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
 	// Get store for from
 	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
@@ -69,6 +73,10 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		}
 
 		msg.Gas = &gas
+	}
+
+	if msg.PrivateType == nil {
+		msg.PrivateType = common.ToPtr(privateTxTypeRestricted).(*string)
 	}
 
 	// Get ChainID from Node

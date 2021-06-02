@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/big"
 
-	common2 "github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
@@ -35,10 +34,6 @@ type Store struct {
 	eth1Accounts database.ETH1Accounts
 	logger       *log.Logger
 }
-
-const (
-	privateTxTypeRestricted = "restricted"
-)
 
 var _ eth1.Store = &Store{}
 
@@ -251,10 +246,6 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		errMessage := "invalid privacyGroupID or privateFor params"
 		logger.WithError(err).WithField("privateFor", *args.PrivateFor).WithField("privacyGroupID", *args.PrivacyGroupID).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
-	}
-
-	if args.PrivateType == nil {
-		args.PrivateType = common2.ToPtr(privateTxTypeRestricted).(*string)
 	}
 
 	hash, err := eeaHash([]interface{}{
