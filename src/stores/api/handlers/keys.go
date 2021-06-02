@@ -82,11 +82,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	privKey, err := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
+	privKey, _ := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
 
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
@@ -123,11 +119,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	data, err := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
+	data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
 
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
@@ -211,21 +203,9 @@ func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	pubKey, err := base64.URLEncoding.DecodeString(verifyReq.PublicKey)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-	signature, err := base64.URLEncoding.DecodeString(verifyReq.Signature)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-	data, err := base64.URLEncoding.DecodeString(verifyReq.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
+	pubKey, _ := base64.URLEncoding.DecodeString(verifyReq.PublicKey)
+	signature, _ := base64.URLEncoding.DecodeString(verifyReq.Signature)
+	data, _ := base64.URLEncoding.DecodeString(verifyReq.Data)
 
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
