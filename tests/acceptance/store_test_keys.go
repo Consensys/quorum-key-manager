@@ -1,12 +1,9 @@
 package acceptancetests
 
 import (
-	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"math/big"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
@@ -19,10 +16,9 @@ import (
 )
 
 const (
-	privKeyECDSA       = "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
-	privKeyECDSA2      = "5a1e076fd6b1a0daf31fd1cc0b525ea230f9e50d06f002daff271315262f06fa"
-	privKeyEDDSA       = "5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
-	EthSignatureLength = 65
+	privKeyECDSA  = "db337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
+	privKeyECDSA2 = "5a1e076fd6b1a0daf31fd1cc0b525ea230f9e50d06f002daff271315262f06fa"
+	privKeyEDDSA  = "5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
 )
 
 type keysTestSuite struct {
@@ -232,56 +228,63 @@ func (s *keysTestSuite) TestGet() {
 // 	})
 // }
 
-func (s *keysTestSuite) TestSign() {
+func (s *keysTestSuite) TestSignVerify() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
-	payload := crypto.Keccak256([]byte("my data to sign"))
-	privKey, _ := hex.DecodeString(privKeyECDSA)
-	id := s.newID("mykey-sign-ecdsa")
 
-	_, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
-	}, &entities.Attributes{
-		Tags: tags,
-	})
-	require.NoError(s.T(), err)
+	s.Run("should sign and verify a message successfully: ECDSA/Secp256k1", func() {
+		id := s.newID("mykey-sign-ecdsa")
+		payload := crypto.Keccak256([]byte("my data to sign"))
+		privKey, _ := hex.DecodeString(privKeyECDSA)
+		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		}, &entities.Attributes{
+			Tags: tags,
+		})
+		require.NoError(s.T(), err)
 
-	s.Run("should sign a message successfully: ECDSA/Secp256k1", func() {
 		signature, err := s.store.Sign(ctx, id, payload)
 		require.NoError(s.T(), err)
 
-		verified, err := verifySignature(signature, payload, privKey)
+		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
 		require.NoError(s.T(), err)
-		require.True(s.T(), verified)
+	})
+
+	s.Run("should sign and verify a message successfully: EDDSA/BN254", func() {
+		id := s.newID("mykey-sign-eddsa")
+		payload := []byte("my data to sign")
+		privKey, _ := hex.DecodeString(privKeyEDDSA)
+		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.Bn254,
+		}, &entities.Attributes{
+			Tags: tags,
+		})
+		if err != nil && errors.IsNotSupportedError(err) {
+			return
+		}
+		require.NoError(s.T(), err)
+
+		signature, err := s.store.Sign(ctx, id, payload)
+		require.NoError(s.T(), err)
+
+		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
+			Type:          key.Algo.Type,
+			EllipticCurve: key.Algo.EllipticCurve,
+		})
+		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail and parse the error code correctly", func() {
-		signature, signErr := s.store.Sign(ctx, "invalidID", payload)
+		signature, signErr := s.store.Sign(ctx, "invalidID", crypto.Keccak256([]byte("my data to sign")))
 
 		require.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsNotFoundError(signErr))
 	})
-}
-
-func verifySignature(signature, msg, privKeyB []byte) (bool, error) {
-	privKey, err := crypto.ToECDSA(privKeyB)
-	if err != nil {
-		return false, err
-	}
-
-	if len(signature) == EthSignatureLength {
-		retrievedPubkey, err := crypto.SigToPub(crypto.Keccak256(msg), signature)
-		if err != nil {
-			return false, err
-		}
-
-		return privKey.PublicKey.Equal(retrievedPubkey), nil
-	}
-
-	r := new(big.Int).SetBytes(signature[0:32])
-	s := new(big.Int).SetBytes(signature[32:64])
-	return ecdsa.Verify(&privKey.PublicKey, msg, r, s), nil
 }
 
 func (s *keysTestSuite) newID(name string) string {

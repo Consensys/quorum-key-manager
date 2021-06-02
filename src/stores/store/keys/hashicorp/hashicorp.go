@@ -27,7 +27,6 @@ const (
 	updatedAtLabel  = "updated_at"
 )
 
-// Store is an implementation of key store relying on Hashicorp Vault ConsenSys secret engine
 type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
@@ -36,7 +35,6 @@ type Store struct {
 
 var _ keys.Store = &Store{}
 
-// New creates an Hashicorp key store
 func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
 	return &Store{
 		client:     client,
@@ -49,7 +47,6 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Create a key
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
@@ -67,7 +64,6 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 	return parseResponse(res)
 }
 
-// Import a key
 func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
 
@@ -87,7 +83,6 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 	return parseResponse(res)
 }
 
-// Get a key
 func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
 
@@ -105,7 +100,6 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	return parseResponse(res)
 }
 
-// Get all key ids
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
@@ -131,37 +125,30 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 	return ids, nil
 }
 
-// Update key tags
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Delete a key
 func (s *Store) Delete(_ context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// Gets a deleted key
 func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Lists all deleted keys
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Undelete a previously deleted key
 func (s *Store) Undelete(ctx context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// Destroy a key permanently
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// Sign any arbitrary data
 func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) {
 	logger := s.logger.WithField("id", id)
 
@@ -184,13 +171,14 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 	return signature, nil
 }
 
-// Encrypt any arbitrary data using a specified key
-func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
-	return nil, errors.ErrNotImplemented
-
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
 }
 
-// Decrypt a single block of encrypted data.
+func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+	return nil, errors.ErrNotImplemented
+}
+
 func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }

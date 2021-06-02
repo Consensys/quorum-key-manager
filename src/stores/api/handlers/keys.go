@@ -33,6 +33,7 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.destroy)
+	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 }
 
 func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
@@ -81,11 +82,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	privKey, err := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
+	privKey, _ := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
 
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
@@ -122,11 +119,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	data, err := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
+	data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
 
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
@@ -191,6 +184,39 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	err = keyStore.Destroy(ctx, mux.Vars(request)["id"])
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	rw.WriteHeader(http.StatusNoContent)
+}
+
+func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	verifyReq := &types.VerifyKeySignatureRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	pubKey, _ := base64.URLEncoding.DecodeString(verifyReq.PublicKey)
+	signature, _ := base64.URLEncoding.DecodeString(verifyReq.Signature)
+	data, _ := base64.URLEncoding.DecodeString(verifyReq.Data)
+
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	err = keyStore.Verify(ctx, pubKey, data, signature, &entities.Algorithm{
+		Type:          entities.KeyType(verifyReq.SigningAlgorithm),
+		EllipticCurve: entities.Curve(verifyReq.Curve),
+	})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
