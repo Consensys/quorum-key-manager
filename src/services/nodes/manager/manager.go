@@ -88,7 +88,7 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 		wg.Add(1)
 		go func(name string, n *nodeBundle) {
 			err := n.stop(ctx)
-			log.FromContext(ctx).WithError(err).WithField("name", name).Errorf("error closing node")
+			log.FromContext(ctx).WithError(err).WithField("name", name).Error("error closing node")
 			wg.Done()
 		}(name, n)
 	}

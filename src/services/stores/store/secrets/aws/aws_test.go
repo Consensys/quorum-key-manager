@@ -11,12 +11,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/secrets"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	_ "github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/infra/aws/mocks"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/store/secrets"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -144,7 +138,6 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		assert.Equal(s.T(), value, secret.Value)
 
 		assert.ObjectsAreEqual(attributes.Tags, secret.Tags)
-		assert.Equal(s.T(), version, secret.Metadata.Version)
 	})
 
 }
@@ -165,8 +158,6 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 		SecretString: &secretValue,
 		VersionId:    &version,
 	}
-
-	currentMark := CurrentVersionMark
 
 	s.T().Run("should get a secret successfully", func(t *testing.T) {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, "").Return(getSecretOutput, nil)
@@ -370,18 +361,4 @@ func (s *awsSecretStoreTestSuite) TestListDeleted() {
 
 		assert.Equal(s.T(), err, expectedError)
 	})
-}
-
-func ToSecretmanagerTags(tags map[string]string) []*secretsmanager.Tag {
-	var fakeSecretsTags []*secretsmanager.Tag
-
-	for key, value := range tags {
-		k, v := key, value
-		var in = secretsmanager.Tag{
-			Key:   &k,
-			Value: &v,
-		}
-		fakeSecretsTags = append(fakeSecretsTags, &in)
-	}
-	return fakeSecretsTags
 }

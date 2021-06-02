@@ -14,7 +14,7 @@ const (
 	maxTagsAllowed = 50
 )
 
-// Store is an implementation of secret store relying on AWS secretsmanager
+// SecretStore is an implementation of secret store relying on AWS secretsmanager
 type SecretStore struct {
 	client aws.SecretsManagerClient
 	logger *log.Logger
