@@ -15,7 +15,7 @@ func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, err
 
 	addresses := []ethcommon.Address{}
 	for _, storeAccount := range storeAccounts {
-		addresses = append(addresses, ethcommon.HexToAddress(storeAccount.Address))
+		addresses = append(addresses, storeAccount.Address)
 	}
 
 	return addresses, nil

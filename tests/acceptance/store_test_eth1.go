@@ -131,7 +131,7 @@ func (s *eth1TestSuite) TestGet() {
 	require.NoError(s.T(), err)
 
 	s.Run("should get an ethereum account successfully", func() {
-		retrievedAccount, err := s.store.Get(ctx, account.Address)
+		retrievedAccount, err := s.store.Get(ctx, account.Address.Hex())
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), retrievedAccount.ID, id)
@@ -193,7 +193,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign, recover an address and verify the signature successfully", func() {
-		signature, err := s.store.Sign(ctx, account.Address, payload)
+		signature, err := s.store.Sign(ctx, account.Address.Hex(), payload)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
@@ -231,7 +231,7 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
+		signedRaw, err := s.store.SignTransaction(ctx, account.Address.Hex(), chainID, tx)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
@@ -261,7 +261,7 @@ func (s *eth1TestSuite) TestSignPrivate() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignPrivate(ctx, account.Address, tx)
+		signedRaw, err := s.store.SignPrivate(ctx, account.Address.Hex(), tx)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
@@ -300,7 +300,7 @@ func (s *eth1TestSuite) TestSignEEA() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignEEA(ctx, account.Address, chainID, tx, privateArgs)
+		signedRaw, err := s.store.SignEEA(ctx, account.Address.Hex(), chainID, tx, privateArgs)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})

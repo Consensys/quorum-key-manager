@@ -3,6 +3,8 @@ package testutils
 import (
 	"encoding/base64"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
@@ -27,18 +29,19 @@ func FakeCreateKeyRequest() *types.CreateKeyRequest {
 }
 
 func FakeImportKeyRequest() *types.ImportKeyRequest {
+	privKey, _ := base64.StdEncoding.DecodeString("2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw=")
 	return &types.ImportKeyRequest{
 		ID:               "my-key",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
 		Tags:             testutils.FakeTags(),
-		PrivateKey:       "2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw=",
+		PrivateKey:       privKey,
 	}
 }
 
 func FakeSignBase64PayloadRequest() *types.SignBase64PayloadRequest {
 	return &types.SignBase64PayloadRequest{
-		Data: base64.URLEncoding.EncodeToString([]byte("my data to sign")),
+		Data: []byte("my data to sign"),
 	}
 }
 
@@ -95,9 +98,11 @@ func FakeSignTypedDataRequest() *types.SignTypedDataRequest {
 }
 
 func FakeSignETHTransactionRequest() *types.SignETHTransactionRequest {
+	toAddress := common.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
+
 	return &types.SignETHTransactionRequest{
 		Nonce:    0,
-		To:       "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18",
+		To:       &toAddress,
 		Value:    hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
 		GasPrice: hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
 		GasLimit: 21000,
@@ -107,9 +112,11 @@ func FakeSignETHTransactionRequest() *types.SignETHTransactionRequest {
 }
 
 func FakeSignQuorumPrivateTransactionRequest() *types.SignQuorumPrivateTransactionRequest {
+	toAddress := common.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
+
 	return &types.SignQuorumPrivateTransactionRequest{
 		Nonce:    0,
-		To:       "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18",
+		To:       &toAddress,
 		Value:    hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
 		GasPrice: hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
 		GasLimit: 21000,
@@ -118,9 +125,11 @@ func FakeSignQuorumPrivateTransactionRequest() *types.SignQuorumPrivateTransacti
 }
 
 func FakeSignEEATransactionRequest() *types.SignEEATransactionRequest {
+	toAddress := common.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
+
 	return &types.SignEEATransactionRequest{
 		Nonce:       0,
-		To:          "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18",
+		To:          &toAddress,
 		ChainID:     hexutil.Big(*hexutil.MustDecodeBig("0x1")),
 		PrivateFrom: "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
 		PrivateFor:  []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="},
@@ -139,7 +148,7 @@ func FakeVerifyTypedDataPayloadRequest() *types.VerifyTypedDataRequest {
 	return &types.VerifyTypedDataRequest{
 		TypedData: *FakeSignTypedDataRequest(),
 		Signature: hexutil.MustDecode("0x3399aeb23d6564b3a0b220447e9f1bb2057ffb82cfb766147620aa6bc84938e26941e7583d6460fea405d99da897e88cab07a7fd0991c6c2163645c45d25e4b201"),
-		Address:   "0x5Cc634233E4a454d47aACd9fC68801482Fb02610",
+		Address:   common.HexToAddress("0x5Cc634233E4a454d47aACd9fC68801482Fb02610"),
 	}
 }
 
@@ -147,6 +156,6 @@ func FakeVerifyEth1SignatureRequest() *types.VerifyEth1SignatureRequest {
 	return &types.VerifyEth1SignatureRequest{
 		Data:      hexutil.MustDecode("0xfeee"),
 		Signature: hexutil.MustDecode("0x3399aeb23d6564b3a0b220447e9f1bb2057ffb82cfb766147620aa6bc84938e26941e7583d6460fea405d99da897e88cab07a7fd0991c6c2163645c45d25e4b201"),
-		Address:   "0x5Cc634233E4a454d47aACd9fC68801482Fb02610",
+		Address:   common.HexToAddress("0x5Cc634233E4a454d47aACd9fC68801482Fb02610"),
 	}
 }

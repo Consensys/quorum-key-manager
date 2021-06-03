@@ -82,8 +82,6 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	privKey, _ := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
-
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
@@ -93,7 +91,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	key, err := keyStore.Import(
 		ctx,
 		importKeyRequest.ID,
-		privKey,
+		importKeyRequest.PrivateKey,
 		&entities.Algorithm{
 			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
 			EllipticCurve: entities.Curve(importKeyRequest.Curve),
@@ -119,15 +117,13 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
-
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	signature, err := keyStore.Sign(ctx, mux.Vars(request)["id"], data)
+	signature, err := keyStore.Sign(ctx, mux.Vars(request)["id"], signPayloadRequest.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -203,17 +199,13 @@ func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	pubKey, _ := base64.URLEncoding.DecodeString(verifyReq.PublicKey)
-	signature, _ := base64.URLEncoding.DecodeString(verifyReq.Signature)
-	data, _ := base64.URLEncoding.DecodeString(verifyReq.Data)
-
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	err = keyStore.Verify(ctx, pubKey, data, signature, &entities.Algorithm{
+	err = keyStore.Verify(ctx, verifyReq.PublicKey, verifyReq.Data, verifyReq.Signature, &entities.Algorithm{
 		Type:          entities.KeyType(verifyReq.SigningAlgorithm),
 		EllipticCurve: entities.Curve(verifyReq.Curve),
 	})

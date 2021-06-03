@@ -306,7 +306,7 @@ func (s *jsonRPCTestSuite) TestEthAccounts() {
 		accs := []string{}
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &accs)
 		require.NoError(s.T(), err)
-		assert.Contains(s.T(), accs, strings.ToLower(s.acc.Address))
+		assert.Contains(s.T(), accs, strings.ToLower(s.acc.Address.Hex()))
 	})
 }
 

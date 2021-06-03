@@ -20,10 +20,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const (
-	ecdsaPrivKey = "2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw="
-	eddsaPrivKey = "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZGGbioek5qYuzJzTNZpTHrVjjFk7iFe3FYwfpxZyNPxtIaFB5gb9VP9IcHZewwNZly821re7RkmB8pGdjywygPH"
-)
+var ecdsaPrivKey, _ = base64.StdEncoding.DecodeString("2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw=")
+var eddsaPrivKey, _ = base64.StdEncoding.DecodeString("X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZGGbioek5qYuzJzTNZpTHrVjjFk7iFe3FYwfpxZyNPxtIaFB5gb9VP9IcHZewwNZly821re7RkmB8pGdjywygPH")
 
 type keysTestSuite struct {
 	suite.Suite
@@ -334,8 +332,7 @@ func (s *keysTestSuite) TestList() {
 
 func (s *keysTestSuite) TestSignVerify() {
 	data := []byte("my data to sign")
-	hashedPayload := base64.URLEncoding.EncodeToString(crypto.Keccak256(data))
-	payload := base64.URLEncoding.EncodeToString(data)
+	hashedPayload := crypto.Keccak256(data)
 
 	s.Run("should sign a new payload successfully: Secp256k1/ECDSA", func() {
 		request := &types.ImportKeyRequest{
@@ -356,9 +353,10 @@ func (s *keysTestSuite) TestSignVerify() {
 
 		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
 
+		sigB, _ := base64.StdEncoding.DecodeString(signature)
 		verifyRequest := &types.VerifyKeySignatureRequest{
 			Data:             hashedPayload,
-			Signature:        signature,
+			Signature:        sigB,
 			Curve:            key.Curve,
 			SigningAlgorithm: key.SigningAlgorithm,
 			PublicKey:        key.PublicKey,
@@ -378,41 +376,22 @@ func (s *keysTestSuite) TestSignVerify() {
 		require.NoError(s.T(), err)
 
 		requestSign := &types.SignBase64PayloadRequest{
-			Data: payload,
+			Data: data,
 		}
 		signature, err := s.keyManagerClient.SignKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
 
+		sigB, _ := base64.StdEncoding.DecodeString(signature)
 		verifyRequest := &types.VerifyKeySignatureRequest{
-			Data:             payload,
-			Signature:        signature,
+			Data:             data,
+			Signature:        sigB,
 			Curve:            key.Curve,
 			SigningAlgorithm: key.SigningAlgorithm,
 			PublicKey:        key.PublicKey,
 		}
 		err = s.keyManagerClient.VerifyKeySignature(s.ctx, s.cfg.HashicorpKeyStore, verifyRequest)
 		require.NoError(s.T(), err)
-	})
-
-	s.Run("should fail if payload is not base64 string", func() {
-		request := &types.ImportKeyRequest{
-			ID:               "my-key-sign-eddsa",
-			Curve:            "bn254",
-			SigningAlgorithm: "eddsa",
-			PrivateKey:       eddsaPrivKey,
-		}
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
-		require.NoError(s.T(), err)
-
-		requestSign := &types.SignBase64PayloadRequest{
-			Data: "my data to sign not in base64 format",
-		}
-		signature, err := s.keyManagerClient.SignKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
-		require.Empty(s.T(), signature)
-
-		httpError := err.(*client.ResponseError)
-		assert.Equal(s.T(), 400, httpError.StatusCode)
 	})
 }
