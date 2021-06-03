@@ -354,12 +354,13 @@ func (s *keysTestSuite) TestSignVerify() {
 		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
 
 		sigB, _ := base64.StdEncoding.DecodeString(signature)
+		pubKeyB, _ := base64.StdEncoding.DecodeString(key.PublicKey)
 		verifyRequest := &types.VerifyKeySignatureRequest{
 			Data:             hashedPayload,
 			Signature:        sigB,
 			Curve:            key.Curve,
 			SigningAlgorithm: key.SigningAlgorithm,
-			PublicKey:        key.PublicKey,
+			PublicKey:        pubKeyB,
 		}
 		err = s.keyManagerClient.VerifyKeySignature(s.ctx, s.cfg.HashicorpKeyStore, verifyRequest)
 		require.NoError(s.T(), err)
@@ -384,12 +385,13 @@ func (s *keysTestSuite) TestSignVerify() {
 		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
 
 		sigB, _ := base64.StdEncoding.DecodeString(signature)
+		pubKeyB, _ := base64.StdEncoding.DecodeString(key.PublicKey)
 		verifyRequest := &types.VerifyKeySignatureRequest{
 			Data:             data,
 			Signature:        sigB,
 			Curve:            key.Curve,
 			SigningAlgorithm: key.SigningAlgorithm,
-			PublicKey:        key.PublicKey,
+			PublicKey:        pubKeyB,
 		}
 		err = s.keyManagerClient.VerifyKeySignature(s.ctx, s.cfg.HashicorpKeyStore, verifyRequest)
 		require.NoError(s.T(), err)

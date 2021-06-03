@@ -287,7 +287,7 @@ func (s *eth1TestSuite) TestList() {
 		accounts, err := s.keyManagerClient.ListEth1Accounts(s.ctx, s.cfg.Eth1Store)
 		require.NoError(s.T(), err)
 
-		assert.Contains(s.T(), accounts, s.mainAccount.Address)
+		assert.Contains(s.T(), accounts, s.mainAccount.Address.Hex())
 	})
 
 	s.Run("should parse errors successfully", func() {

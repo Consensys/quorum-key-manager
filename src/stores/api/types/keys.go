@@ -31,7 +31,7 @@ type VerifyKeySignatureRequest struct {
 
 type KeyResponse struct {
 	ID               string            `json:"id" example:"my-key"`
-	PublicKey        []byte            `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	PublicKey        string            `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
 	Curve            string            `json:"curve" example:"secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" example:"ecdsa"`
 	Tags             map[string]string `json:"tags,omitempty"`
