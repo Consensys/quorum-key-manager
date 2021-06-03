@@ -2,9 +2,10 @@ package client
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"os"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
 func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {

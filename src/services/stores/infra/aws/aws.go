@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -23,7 +24,7 @@ type SecretsManagerClient interface {
 
 type KmsClient interface {
 	CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, error)
-	//ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
+	// ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 	GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error)
 	ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error)
 	/*UpdateKey(ctx context.Context, input *kms.UpdateCustomKeyStoreInput, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
@@ -33,6 +34,7 @@ type KmsClient interface {
 	PurgeDeletedKey(ctx context.Context, keyName string) (bool, error)
 	RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error)*/
 	Sign(ctx context.Context, id string, msg []byte) (*kms.SignOutput, error)
+	Verify(ctx context.Context, id string, msg, signature []byte) (*kms.VerifyOutput, error)
 	/*Encrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error)
 	Decrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error)
 	*/

@@ -254,3 +254,18 @@ func (mr *MockKmsClientMockRecorder) Sign(ctx, id, msg interface{}) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockKmsClient)(nil).Sign), ctx, id, msg)
 }
+
+// Verify mocks base method.
+func (m *MockKmsClient) Verify(ctx context.Context, id string, msg, signature []byte) (*kms.VerifyOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", ctx, id, msg, signature)
+	ret0, _ := ret[0].(*kms.VerifyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Verify indicates an expected call of Verify.
+func (mr *MockKmsClientMockRecorder) Verify(ctx, id, msg, signature interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockKmsClient)(nil).Verify), ctx, id, msg, signature)
+}

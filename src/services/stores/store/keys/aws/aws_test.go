@@ -3,6 +3,9 @@ package aws
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
@@ -12,8 +15,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
 
 const (
@@ -58,7 +59,7 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 
 	retGetPub := kms.GetPublicKeyOutput{}
 
-	s.T().Run("should create a new key successfully", func(t *testing.T) {
+	s.Run("should create a new key successfully", func() {
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
 			Return(&retCreateKey, nil)
 		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), id).
@@ -66,10 +67,36 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
-		assert.NoError(t, err)
-		assert.NotEmpty(t, key.Metadata.CreatedAt)
-		assert.NotEmpty(t, key.Metadata.DeletedAt)
-		assert.False(t, key.Metadata.Disabled)
+		assert.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), key.Metadata.DeletedAt)
+		assert.False(s.T(), key.Metadata.Disabled)
+
+	})
+
+	s.Run("should fail on CreateKey error", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
+			Return(nil, expectedErr)
+
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
+
+		assert.Error(s.T(), err)
+		assert.Nil(s.T(), key)
+
+	})
+
+	s.Run("should fail om GetPublicKey error", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
+			Return(&retCreateKey, nil)
+		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), id).
+			Return(nil, expectedErr)
+
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
+
+		assert.Error(s.T(), err)
+		assert.Nil(s.T(), key)
 
 	})
 }
@@ -78,21 +105,70 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 func (s *awsKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
 	msg := []byte("some sample message")
-	myKeyId := "the_id"
+	myKeyID := "the_ID"
 
 	retSign := kms.SignOutput{
-		KeyId:     &myKeyId,
+		KeyId:     &myKeyID,
 		Signature: []byte("signature"),
 	}
 
-	s.T().Run("should sign a sample message", func(t *testing.T) {
+	s.Run("should sign a sample message", func() {
 		s.mockKmsClient.EXPECT().Sign(gomock.Any(), id, msg).
 			Return(&retSign, nil)
 
 		signature, err := s.keyStore.Sign(ctx, id, msg)
 
-		assert.NoError(t, err)
-		assert.NotEmpty(t, signature)
+		assert.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signature)
+
+	})
+
+	s.Run("should fail to sign on error", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), id, msg).
+			Return(nil, expectedErr)
+
+		signature, err := s.keyStore.Sign(ctx, id, msg)
+
+		assert.Error(s.T(), err)
+		assert.Empty(s.T(), signature)
+
+	})
+}
+
+// TestVerify Signature verification test cases
+func (s *awsKeyStoreTestSuite) TestVerify() {
+	ctx := context.Background()
+	msg := []byte("some sample message")
+	sig := []byte("signature")
+	valid := true
+	myKeyID := "the_id"
+
+	retVerify := kms.VerifyOutput{
+		KeyId:          &myKeyID,
+		SignatureValid: &valid,
+	}
+
+	s.Run("should verify a sample message", func() {
+		s.mockKmsClient.EXPECT().Verify(gomock.Any(), id, msg, sig).
+			Return(&retVerify, nil)
+
+		signature, err := s.keyStore.Sign(ctx, id, msg)
+
+		assert.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signature)
+
+	})
+
+	s.Run("should fail to verify on error", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), id, msg).
+			Return(nil, expectedErr)
+
+		signature, err := s.keyStore.Sign(ctx, id, msg)
+
+		assert.Error(s.T(), err)
+		assert.Empty(s.T(), signature)
 
 	})
 }

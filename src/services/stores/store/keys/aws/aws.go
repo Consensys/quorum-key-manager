@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws"

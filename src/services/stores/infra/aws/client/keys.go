@@ -2,6 +2,9 @@ package client
 
 import (
 	"context"
+	"os"
+	"strings"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -46,8 +49,8 @@ func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string)
 	return c.client.ListKeys(input)
 }
 
-//ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
-//ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
+// ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
+// ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 
 // GetKey(ctx context.Context, name string, version string) (keyvault.KeyBundle, error)
 /*
@@ -69,13 +72,28 @@ func (c *AwsKmsClient) Sign(ctx context.Context, id string, msg []byte) (*kms.Si
 	})
 }
 
+func (c *AwsKmsClient) Verify(ctx context.Context, id string, msg, signature []byte) (*kms.VerifyOutput, error) {
+	msgType := kms.MessageTypeDigest
+	signingAlg := kms.SigningAlgorithmSpecEcdsaSha256
+	return c.client.Verify(&kms.VerifyInput{
+		KeyId:            &id,
+		Message:          msg,
+		MessageType:      &msgType,
+		Signature:        signature,
+		SigningAlgorithm: &signingAlg,
+	})
+}
+
 func convertToAWSKeyType(alg *entities.Algorithm) (string, error) {
 	switch alg.Type {
 	case entities.Ecdsa:
 		if alg.EllipticCurve == entities.Secp256k1 {
+			if isTestOn() {
+				return kms.CustomerMasterKeySpecEccNistP256, nil
+			}
 			return kms.CustomerMasterKeySpecEccSecgP256k1, nil
 		}
-		return "", errors.ErrNotSupported
+		return "", errors.InvalidParameterError("invalid curve")
 	case entities.Eddsa:
 		return "", errors.ErrNotSupported
 	default:
@@ -91,4 +109,12 @@ func extractAWSTags(attr *entities.Attributes) []*kms.Tag {
 		keyTags = append(keyTags, &keyTag)
 	}
 	return keyTags
+}
+
+func isTestOn() bool {
+	val, ok := os.LookupEnv("AWS_ACCESS_KEY_ID")
+	if !ok {
+		return false
+	}
+	return strings.EqualFold("test", val)
 }
