@@ -87,7 +87,7 @@ func (s *eth1TestSuite) TestImport() {
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), account.ID, id)
-		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address)
+		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address.Hex())
 		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
 		assert.Equal(s.T(), "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
 		assert.Equal(s.T(), account.Tags, tags)
@@ -176,8 +176,8 @@ func (s *eth1TestSuite) TestList() {
 		addresses, err := s.store.List(ctx)
 		require.NoError(s.T(), err)
 
-		assert.Contains(s.T(), addresses, account1.Address)
-		assert.Contains(s.T(), addresses, account2.Address)
+		assert.Contains(s.T(), addresses, account1.Address.Hex())
+		assert.Contains(s.T(), addresses, account2.Address.Hex())
 	})
 }
 
@@ -199,7 +199,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 
 		address, err := s.store.ECRevocer(ctx, payload, signature)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), account.Address, address)
+		assert.Equal(s.T(), account.Address.Hex(), address)
 
 		err = s.store.Verify(ctx, address, payload, signature)
 		require.NoError(s.T(), err)
