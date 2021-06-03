@@ -2,6 +2,7 @@ package formatters
 
 import (
 	"encoding/base64"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
