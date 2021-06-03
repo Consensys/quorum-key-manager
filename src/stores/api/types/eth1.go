@@ -49,7 +49,7 @@ type Type struct {
 
 type SignETHTransactionRequest struct {
 	Nonce    hexutil.Uint64  `json:"nonce" example:"0x1"`
-	To       *common.Address `json:"to,omitempty" validate:"isHexAddress" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
+	To       *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
 	Value    hexutil.Big     `json:"value,omitempty" example:"0xfeaeae"`
 	GasPrice hexutil.Big     `json:"gasPrice" validate:"required" example:"0x0"`
 	GasLimit hexutil.Uint64  `json:"gasLimit" validate:"required" example:"0x5208"`

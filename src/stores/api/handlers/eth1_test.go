@@ -536,7 +536,7 @@ func (s *eth1HandlerTestSuite) TestVerifySignature() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().Verify(gomock.Any(), verifyRequest.Address, verifyRequest.Data, verifyRequest.Signature).Return(nil)
+		s.eth1Store.EXPECT().Verify(gomock.Any(), verifyRequest.Address.Hex(), verifyRequest.Data, verifyRequest.Signature).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -568,7 +568,7 @@ func (s *eth1HandlerTestSuite) TestVerifyTypedDataSignature() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), verifyRequest.Address, expectedTypedData, verifyRequest.Signature).Return(nil)
+		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), verifyRequest.Address.Hex(), expectedTypedData, verifyRequest.Signature).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
