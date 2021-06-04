@@ -49,6 +49,14 @@ func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string)
 	return c.client.ListKeys(input)
 }
 
+func (c *AwsKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
+	input := &kms.ListResourceTagsInput{KeyId: &id}
+	if len(marker) > 0 {
+		input.Marker = &marker
+	}
+	return c.client.ListResourceTags(input)
+}
+
 // ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 // ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 
@@ -81,6 +89,12 @@ func (c *AwsKmsClient) Verify(ctx context.Context, id string, msg, signature []b
 		MessageType:      &msgType,
 		Signature:        signature,
 		SigningAlgorithm: &signingAlg,
+	})
+}
+
+func (c *AwsKmsClient) DeleteKey(ctx context.Context, id string) (*kms.DisableKeyOutput, error) {
+	return c.client.DisableKey(&kms.DisableKeyInput{
+		KeyId: &id,
 	})
 }
 

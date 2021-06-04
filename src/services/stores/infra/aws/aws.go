@@ -27,14 +27,15 @@ type KmsClient interface {
 	// ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 	GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error)
 	ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error)
+	ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error)
 	/*UpdateKey(ctx context.Context, input *kms.UpdateCustomKeyStoreInput, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
-	DeleteKey(ctx context.Context, keyName string) (*kms.DeleteCustomKeyStoreOutput, error)
 	GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
 	GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error)
 	PurgeDeletedKey(ctx context.Context, keyName string) (bool, error)
 	RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error)*/
 	Sign(ctx context.Context, id string, msg []byte) (*kms.SignOutput, error)
 	Verify(ctx context.Context, id string, msg, signature []byte) (*kms.VerifyOutput, error)
+	DeleteKey(ctx context.Context, id string) (*kms.DisableKeyOutput, error)
 	/*Encrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, payload string) (string, error)
 	Decrypt(ctx context.Context, keyName string, version string, alg keyvault.JSONWebKeyEncryptionAlgorithm, value string) (string, error)
 	*/

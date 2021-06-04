@@ -210,6 +210,21 @@ func (mr *MockKmsClientMockRecorder) CreateKey(ctx, id, alg, attr interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockKmsClient)(nil).CreateKey), ctx, id, alg, attr)
 }
 
+// DeleteKey mocks base method.
+func (m *MockKmsClient) DeleteKey(ctx context.Context, id string) (*kms.DisableKeyOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteKey", ctx, id)
+	ret0, _ := ret[0].(*kms.DisableKeyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteKey indicates an expected call of DeleteKey.
+func (mr *MockKmsClientMockRecorder) DeleteKey(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKey", reflect.TypeOf((*MockKmsClient)(nil).DeleteKey), ctx, id)
+}
+
 // GetPublicKey mocks base method.
 func (m *MockKmsClient) GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error) {
 	m.ctrl.T.Helper()
@@ -238,6 +253,21 @@ func (m *MockKmsClient) ListKeys(ctx context.Context, limit int64, marker string
 func (mr *MockKmsClientMockRecorder) ListKeys(ctx, limit, marker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKmsClient)(nil).ListKeys), ctx, limit, marker)
+}
+
+// ListTags mocks base method.
+func (m *MockKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTags", ctx, id, marker)
+	ret0, _ := ret[0].(*kms.ListResourceTagsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTags indicates an expected call of ListTags.
+func (mr *MockKmsClientMockRecorder) ListTags(ctx, id, marker interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*MockKmsClient)(nil).ListTags), ctx, id, marker)
 }
 
 // Sign mocks base method.

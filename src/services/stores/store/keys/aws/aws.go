@@ -62,13 +62,44 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorit
 }
 
 // Import an externally created key and stores it
+// this feature is not supported by AWS kms
+// always returns errors.ErrNotSupported
 func (ks *KeyStore) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	return nil, errors.ErrNotSupported
 }
 
 // Get the public part of a stored key.
 func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+	logger := ks.logger.WithField("id", id)
+	outGetKey, err := ks.client.GetPublicKey(ctx, id)
+	if err != nil {
+		logger.WithError(err).Error("failed to get public key")
+		return nil, err
+	}
+
+	retKey := &entities.Key{ID: *outGetKey.KeyId,
+		PublicKey: outGetKey.PublicKey}
+
+	// List associated tags
+	tags := make(map[string]string)
+	nextMarker := ""
+	for {
+		ret, err := ks.client.ListTags(ctx, id, nextMarker)
+		if err != nil {
+			logger.WithError(err).Error("failed to list key tags")
+			return nil, err
+		}
+
+		for _, tag := range ret.Tags {
+			tags[*tag.TagKey] = *tag.TagValue
+		}
+		if !*ret.Truncated {
+			break
+		}
+		nextMarker = *ret.NextMarker
+	}
+	logger.Info("successfully got key info")
+	return retKey, nil
 }
 
 // List keys
@@ -101,9 +132,11 @@ func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attrib
 	return nil, errors.ErrNotImplemented
 }
 
-// Delete secret not permanently, by using Undelete() the secret can be retrieve
+// Delete key not permanently, by using Undelete() the key can be enabled again
 func (ks *KeyStore) Delete(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+	_, err := ks.client.DeleteKey(ctx, id)
+
+	return err
 }
 
 // GetDeleted keys

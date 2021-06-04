@@ -101,6 +101,55 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	})
 }
 
+// TestGet Get key test cases
+func (s *awsKeyStoreTestSuite) TestGet() {
+	ctx := context.Background()
+	myKeyID := "get_key_ID"
+	expectedPubKey := []byte("any value")
+	truncatedTagList := false
+
+	retGetPubKey := &kms.GetPublicKeyOutput{KeyId: &myKeyID,
+		PublicKey: expectedPubKey}
+
+	retListTags := &kms.ListResourceTagsOutput{
+		Truncated: &truncatedTagList,
+		Tags:      ToKmsTags(testutils.FakeTags()),
+	}
+
+	s.Run("should get a key successfully", func() {
+		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
+		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(retListTags, nil)
+
+		key, err := s.keyStore.Get(ctx, myKeyID)
+
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), key.PublicKey, expectedPubKey)
+		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
+
+	})
+
+	s.Run("should fail when listTags failed", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
+		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(nil, expectedErr)
+
+		key, err := s.keyStore.Get(ctx, myKeyID)
+
+		assert.Error(s.T(), err)
+		assert.Nil(s.T(), key)
+	})
+
+	s.Run("should fail when getPublicKey failed", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(nil, expectedErr)
+
+		key, err := s.keyStore.Get(ctx, myKeyID)
+
+		assert.Error(s.T(), err)
+		assert.Nil(s.T(), key)
+	})
+}
+
 // TestSign Signature test cases
 func (s *awsKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
@@ -124,43 +173,6 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 	})
 
 	s.Run("should fail to sign on error", func() {
-		expectedErr := fmt.Errorf("error")
-		s.mockKmsClient.EXPECT().Sign(gomock.Any(), id, msg).
-			Return(nil, expectedErr)
-
-		signature, err := s.keyStore.Sign(ctx, id, msg)
-
-		assert.Error(s.T(), err)
-		assert.Empty(s.T(), signature)
-
-	})
-}
-
-// TestVerify Signature verification test cases
-func (s *awsKeyStoreTestSuite) TestVerify() {
-	ctx := context.Background()
-	msg := []byte("some sample message")
-	sig := []byte("signature")
-	valid := true
-	myKeyID := "the_id"
-
-	retVerify := kms.VerifyOutput{
-		KeyId:          &myKeyID,
-		SignatureValid: &valid,
-	}
-
-	s.Run("should verify a sample message", func() {
-		s.mockKmsClient.EXPECT().Verify(gomock.Any(), id, msg, sig).
-			Return(&retVerify, nil)
-
-		signature, err := s.keyStore.Sign(ctx, id, msg)
-
-		assert.NoError(s.T(), err)
-		assert.NotEmpty(s.T(), signature)
-
-	})
-
-	s.Run("should fail to verify on error", func() {
 		expectedErr := fmt.Errorf("error")
 		s.mockKmsClient.EXPECT().Sign(gomock.Any(), id, msg).
 			Return(nil, expectedErr)
@@ -226,4 +238,45 @@ func (s *awsKeyStoreTestSuite) TestList() {
 		assert.Nil(s.T(), ids)
 		assert.Equal(s.T(), expectedErr, err)
 	})
+}
+
+// TestDelete Deletion / Disable key test cases
+func (s *awsKeyStoreTestSuite) TestDelete() {
+	ctx := context.Background()
+	myDeletedKeyID := "deleteMe"
+
+	outDeletedKey := &kms.DisableKeyOutput{}
+
+	s.Run("should delete/disable one key successfully", func() {
+		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), myDeletedKeyID).Return(outDeletedKey, nil)
+
+		err := s.keyStore.Delete(ctx, myDeletedKeyID)
+
+		assert.NoError(s.T(), err)
+	})
+
+	s.Run("should fail to delete/disable when error", func() {
+		expectedErr := fmt.Errorf("error")
+
+		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), myDeletedKeyID).Return(nil, expectedErr)
+
+		err := s.keyStore.Delete(ctx, myDeletedKeyID)
+
+		assert.Error(s.T(), err)
+	})
+
+}
+
+func ToKmsTags(tags map[string]string) []*kms.Tag {
+	var fakeSecretsTags []*kms.Tag
+
+	for key, value := range tags {
+		k, v := key, value
+		var in = kms.Tag{
+			TagKey:   &k,
+			TagValue: &v,
+		}
+		fakeSecretsTags = append(fakeSecretsTags, &in)
+	}
+	return fakeSecretsTags
 }
