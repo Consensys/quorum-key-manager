@@ -10,7 +10,7 @@ import (
 func FormatKeyResponse(key *entities.Key) *types.KeyResponse {
 	return &types.KeyResponse{
 		ID:               key.ID,
-		PublicKey:        base64.URLEncoding.EncodeToString(key.PublicKey),
+		PublicKey:        base64.StdEncoding.EncodeToString(key.PublicKey),
 		Curve:            string(key.Algo.EllipticCurve),
 		SigningAlgorithm: string(key.Algo.Type),
 		Tags:             key.Tags,

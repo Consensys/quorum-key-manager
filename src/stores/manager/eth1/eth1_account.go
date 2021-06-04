@@ -1,4 +1,4 @@
-package accounts
+package eth1
 
 import (
 	"fmt"
@@ -12,12 +12,12 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/types"
 )
 
-type Eth1Specs struct {
+type Specs struct {
 	Keystore manifest.Kind
 	Specs    interface{}
 }
 
-func NewEth1(specs *Eth1Specs, eth1Accounts database.ETH1Accounts, logger *log.Logger) (*eth1.Store, error) {
+func NewEth1(specs *Specs, eth1Accounts database.ETH1Accounts, logger *log.Logger) (*eth1.Store, error) {
 	switch specs.Keystore {
 	case types.HashicorpKeys:
 		spec := &hashicorp.KeySpecs{}

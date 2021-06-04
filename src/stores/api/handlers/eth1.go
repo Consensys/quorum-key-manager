@@ -407,7 +407,7 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	err = eth1Store.Verify(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
+	err = eth1Store.Verify(ctx, verifyReq.Address.Hex(), verifyReq.Data, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -434,7 +434,7 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
-	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address, typedData, verifyReq.Signature)
+	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address.Hex(), typedData, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

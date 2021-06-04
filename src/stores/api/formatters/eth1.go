@@ -8,8 +8,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	quorumtypes "github.com/consensys/quorum/core/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	signer "github.com/ethereum/go-ethereum/signer/core"
@@ -63,17 +61,17 @@ func FormatSignTypedDataRequest(request *types.SignTypedDataRequest) *signer.Typ
 }
 
 func FormatTransaction(tx *types.SignETHTransactionRequest) *ethtypes.Transaction {
-	if tx.To == "" {
-		return ethtypes.NewContractCreation(tx.Nonce, tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
+	if tx.To == nil {
+		return ethtypes.NewContractCreation(uint64(tx.Nonce), tx.Value.ToInt(), uint64(tx.GasLimit), tx.GasPrice.ToInt(), tx.Data)
 	}
-	return ethtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
+	return ethtypes.NewTransaction(uint64(tx.Nonce), *tx.To, tx.Value.ToInt(), uint64(tx.GasLimit), tx.GasPrice.ToInt(), tx.Data)
 }
 
 func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *quorumtypes.Transaction {
-	if tx.To == "" {
-		return quorumtypes.NewContractCreation(tx.Nonce, tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
+	if tx.To == nil {
+		return quorumtypes.NewContractCreation(uint64(tx.Nonce), tx.Value.ToInt(), uint64(tx.GasLimit), tx.GasPrice.ToInt(), tx.Data)
 	}
-	return quorumtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), tx.Value.ToInt(), tx.GasLimit, tx.GasPrice.ToInt(), tx.Data)
+	return quorumtypes.NewTransaction(uint64(tx.Nonce), *tx.To, tx.Value.ToInt(), uint64(tx.GasLimit), tx.GasPrice.ToInt(), tx.Data)
 }
 
 func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transaction, *ethereum.PrivateArgs) {
@@ -84,18 +82,18 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 		PrivacyGroupID: &tx.PrivacyGroupID,
 	}
 
-	if tx.To == "" {
-		return ethtypes.NewContractCreation(tx.Nonce, big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
+	if tx.To == nil {
+		return ethtypes.NewContractCreation(uint64(tx.Nonce), big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
 	}
-	return ethtypes.NewTransaction(tx.Nonce, common.HexToAddress(tx.To), big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
+	return ethtypes.NewTransaction(uint64(tx.Nonce), *tx.To, big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
 }
 
 func FormatEth1AccResponse(key *entities.ETH1Account) *types.Eth1AccountResponse {
 	return &types.Eth1AccountResponse{
 		ID:                  key.ID,
 		Address:             key.Address,
-		PublicKey:           hexutil.Encode(key.PublicKey),
-		CompressedPublicKey: hexutil.Encode(key.CompressedPublicKey),
+		PublicKey:           key.PublicKey,
+		CompressedPublicKey: key.CompressedPublicKey,
 		Tags:                key.Tags,
 		Disabled:            key.Metadata.Disabled,
 		CreatedAt:           key.Metadata.CreatedAt,

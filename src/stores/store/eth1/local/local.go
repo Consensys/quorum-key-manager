@@ -95,7 +95,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	}
 
 	for _, account := range accounts {
-		addresses = append(addresses, account.Address)
+		addresses = append(addresses, account.Address.Hex())
 	}
 
 	return addresses, nil
@@ -152,7 +152,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	}
 
 	for _, account := range accounts {
-		addresses = append(addresses, account.Address)
+		addresses = append(addresses, account.Address.Hex())
 	}
 
 	return addresses, nil

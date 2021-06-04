@@ -62,7 +62,7 @@ func (s *eth1StoreTestSuite) TestCreate() {
 	s.Run("should create a new ethereum account successfully", func() {
 		expectedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -105,7 +105,7 @@ func (s *eth1StoreTestSuite) Testimport() {
 	s.Run("should import a new ethereum account successfully", func() {
 		expectedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -192,7 +192,7 @@ func (s *eth1StoreTestSuite) TestList() {
 
 		addresses, err := s.eth1Store.List(ctx)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), []string{expectedAccounts[0].Address, expectedAccounts[1].Address}, addresses)
+		assert.Equal(s.T(), []string{expectedAccounts[0].Address.Hex(), expectedAccounts[1].Address.Hex()}, addresses)
 	})
 
 	s.Run("should fail with same error if GetAll account fails", func() {
@@ -214,7 +214,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 	s.Run("should update an ethereum account successfully", func() {
 		expectedUpdatedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -253,7 +253,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 	s.Run("should fail with same error if Add account fails", func() {
 		expectedUpdatedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -359,7 +359,7 @@ func (s *eth1StoreTestSuite) TestListDeleted() {
 
 		addresses, err := s.eth1Store.ListDeleted(ctx)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), []string{expectedAccounts[0].Address, expectedAccounts[1].Address}, addresses)
+		assert.Equal(s.T(), []string{expectedAccounts[0].Address.Hex(), expectedAccounts[1].Address.Hex()}, addresses)
 	})
 
 	s.Run("should fail with same error if GetAll account fails", func() {

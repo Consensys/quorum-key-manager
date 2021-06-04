@@ -9,7 +9,7 @@ func parseKey(key *entities.Key) *entities.ETH1Account {
 	pubKey, _ := crypto.UnmarshalPubkey(key.PublicKey)
 	return &entities.ETH1Account{
 		ID:                  key.ID,
-		Address:             crypto.PubkeyToAddress(*pubKey).Hex(),
+		Address:             crypto.PubkeyToAddress(*pubKey),
 		Metadata:            key.Metadata,
 		Tags:                key.Tags,
 		PublicKey:           crypto.FromECDSAPub(pubKey),

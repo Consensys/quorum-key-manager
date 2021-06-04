@@ -9,13 +9,13 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/accounts"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/akv"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/aws"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/hashicorp"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
+	eth1store "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/types"
@@ -128,15 +128,15 @@ func (m *BaseManager) GetKeyStore(_ context.Context, name string) (keys.Store, e
 	return nil, errors.NotFoundError("key store %s was not found", name)
 }
 
-func (m *BaseManager) GetEth1Store(ctx context.Context, name string) (eth1.Store, error) {
+func (m *BaseManager) GetEth1Store(ctx context.Context, name string) (eth1store.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	return m.getEth1Store(ctx, name)
 }
 
-func (m *BaseManager) getEth1Store(_ context.Context, name string) (eth1.Store, error) {
+func (m *BaseManager) getEth1Store(_ context.Context, name string) (eth1store.Store, error) {
 	if storeBundle, ok := m.eth1Accounts[name]; ok {
-		if store, ok := storeBundle.store.(eth1.Store); ok {
+		if store, ok := storeBundle.store.(eth1store.Store); ok {
 			return store, nil
 		}
 	}
@@ -144,7 +144,7 @@ func (m *BaseManager) getEth1Store(_ context.Context, name string) (eth1.Store, 
 	return nil, errors.NotFoundError("account store %s was not found", name)
 }
 
-func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1.Store, error) {
+func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1store.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	storeNames, err := m.list(ctx, "")
@@ -287,14 +287,14 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.Eth1Account:
-		spec := &accounts.Eth1Specs{}
+		spec := &eth1.Specs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			logger.WithError(err).Error(errMsg)
 			return err
 		}
 
 		memdb := memory.New(logger)
-		store, err := accounts.NewEth1(spec, memdb, logger)
+		store, err := eth1.NewEth1(spec, memdb, logger)
 		if err != nil {
 			logger.WithError(err).Error(errMsg)
 			return err

@@ -137,11 +137,10 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 		key := testutils2.FakeKey()
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
-		privKey, _ := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
 		s.keyStore.EXPECT().Import(
 			gomock.Any(),
 			importKeyRequest.ID,
-			privKey,
+			importKeyRequest.PrivateKey,
 			&entities.Algorithm{
 				Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
 				EllipticCurve: entities.Curve(importKeyRequest.Curve),
@@ -209,25 +208,12 @@ func (s *keysHandlerTestSuite) TestSign() {
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 
 		signature := []byte("signature")
-		data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
-		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, data).Return(signature, nil)
+		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, signPayloadRequest.Data).Return(signature, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
 		assert.Equal(s.T(), base64.URLEncoding.EncodeToString(signature), rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
-	})
-
-	s.Run("should fail with 400 if payload is not base64", func() {
-		signPayloadRequest := testutils.FakeSignBase64PayloadRequest()
-		signPayloadRequest.Data = "invalidData"
-		requestBytes, _ := json.Marshal(signPayloadRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes))
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
 	})
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
