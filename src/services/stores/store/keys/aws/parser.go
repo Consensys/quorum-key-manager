@@ -14,7 +14,7 @@ func algoFromAWSPublicKeyInfo(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algo
 
 		if *pubKeyInfo.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1 {
 			algo.Type = kms.CustomerMasterKeySpecEccSecgP256k1
-			algo.Type = kms.CustomerMasterKeySpecEccSecgP256k1
+			algo.EllipticCurve = entities.Secp256k1
 		}
 
 	}
