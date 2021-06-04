@@ -93,6 +93,8 @@ type VerifyTypedDataRequest struct {
 	Address   common.Address       `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
 }
 
+// Represents the ethereum accounts 
+// swagger:model Eth1AccountResponse
 type Eth1AccountResponse struct {
 	PublicKey           hexutil.Bytes     `json:"publicKey" example:"0xfeee"`
 	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0xfeee"`

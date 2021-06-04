@@ -1,0 +1,59 @@
+definitions:
+  Eth1AccountResponse:
+    description: 'Represents the ethereum accounts '
+    properties:
+      address:
+        x-go-name: Address
+      compressedPublicKey:
+        x-go-name: CompressedPublicKey
+      createdAt:
+        x-go-name: CreatedAt
+      deletedAt:
+        x-go-name: DeletedAt
+      destroyedAt:
+        x-go-name: DestroyedAt
+      disabled:
+        type: boolean
+        x-go-name: Disabled
+      expireAt:
+        x-go-name: ExpireAt
+      id:
+        type: string
+        x-go-name: ID
+      publicKey:
+        x-go-name: PublicKey
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+        x-go-name: Tags
+      updatedAt:
+        x-go-name: UpdatedAt
+    type: object
+    x-go-package: github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types
+info: {}
+paths:
+  /stores/{storeName}/eth1:
+    post:
+      consumes:
+      - application/json
+      - application/x-protobuf
+      description: This will create a new ECDSA Secp256k1 key represented by an ethereum
+        account
+      operationId: account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Eth1AccountResponse
+          schema:
+            $ref: '#/definitions/Eth1AccountResponse'
+      security:
+      - api_key: []
+      - oauth:
+        - read
+        - write
+      summary: Create ethereum account
+      tags:
+      - ethereum
+swagger: "2.0"

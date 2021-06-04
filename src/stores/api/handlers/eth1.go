@@ -49,6 +49,22 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodDelete).Path("/{address}/destroy").HandlerFunc(h.destroy)
 }
 
+// swagger:route POST /stores/{storeName}/eth1 ethereum account
+// Create ethereum account
+//
+// This will create a new ECDSA Secp256k1 key represented by an ethereum account
+// 
+// Consumes:
+//	- application/json
+//	- application/x-protobuf
+//	
+//	Produces:
+//	- application/json
+//  Security:
+//    api_key:
+//	  oauth: read, write
+// responses:
+//   200: Eth1AccountResponse
 func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()

@@ -16,20 +16,8 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-.PHONY: all lint lint-ci integration-tests
-
-lint: ## Run linter to fix issues
-	@misspell -w $(GOFILES)
-	@golangci-lint run --fix
-
-lint-ci: ## Check linting
-	@misspell -error $(GOFILES)
-	@golangci-lint run
-
-lint-tools: ## Install linting tools
-	@GO111MODULE=on go get github.com/client9/misspell/cmd/misspell@v0.3.4
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
-
+.PHONY: all lint lint-ci integration-tests swagger-tool
+  	
 hashicorp:
 	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_HASHICORP)
 	@sleep 2 # Sleep couple seconds to wait token to be created
@@ -104,3 +92,30 @@ stop-besu:
 
 down-besu:
 	@docker-compose -f deps/besu/docker-compose.yml down --volumes --timeout 0
+
+
+lint: ## Run linter to fix issues
+	@misspell -w $(GOFILES)
+	@golangci-lint run --fix
+
+lint-ci: ## Check linting
+	@misspell -error $(GOFILES)
+	@golangci-lint run
+
+lint-tools: ## Install linting tools
+	@GO111MODULE=on go get github.com/client9/misspell/cmd/misspell@v0.3.4
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
+
+install-swagger: #Install go-swagger globally
+	@bash ./scripts/install_swagger.sh
+
+check-swagger:
+	@which swagger || make install-swagger
+
+gen-swagger: check-swagger
+	@GO111MODULE=off swagger generate spec -w ./src -o ./swagger.yaml --scan-models  --exclude-deps
+
+serve-swagger: gen-swagger
+	@swagger serve -F=swagger ./swagger.yaml
+
+tools: lint-tools install-swagger
