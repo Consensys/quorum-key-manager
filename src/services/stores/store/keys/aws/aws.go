@@ -58,6 +58,7 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorit
 		},
 		Tags: nil,
 	}
+	logger.Info("key created successfully")
 	return outKey, nil
 }
 
@@ -111,6 +112,7 @@ func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
 	for {
 		ret, err := ks.client.ListKeys(ctx, 0, nextMarker)
 		if err != nil {
+			ks.logger.WithError(err).Error("failed to list keys")
 			return nil, err
 		}
 
@@ -124,6 +126,7 @@ func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
 		nextMarker = *ret.NextMarker
 
 	}
+	ks.logger.Info("keys listed successfully")
 	return keys, nil
 }
 
@@ -134,8 +137,13 @@ func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attrib
 
 // Delete key not permanently, by using Undelete() the key can be enabled again
 func (ks *KeyStore) Delete(ctx context.Context, id string) error {
+	logger := ks.logger.WithField("id", id)
 	_, err := ks.client.DeleteKey(ctx, id)
-
+	if err != nil {
+		logger.WithError(err).Error("failed to delete key")
+		return err
+	}
+	logger.Info("deleted key successfully")
 	return err
 }
 
@@ -161,10 +169,13 @@ func (ks *KeyStore) Destroy(ctx context.Context, id string) error {
 
 // Sign from any arbitrary data using the specified key
 func (ks *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
+	logger := ks.logger.WithField("id", id)
 	outSignature, err := ks.client.Sign(ctx, id, data)
 	if err != nil {
+		logger.WithError(err).Error("failed to sign")
 		return nil, err
 	}
+	logger.Info("data signed successfully")
 	return outSignature.Signature, nil
 }
 
