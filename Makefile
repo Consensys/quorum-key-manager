@@ -106,16 +106,17 @@ lint-tools: ## Install linting tools
 	@GO111MODULE=on go get github.com/client9/misspell/cmd/misspell@v0.3.4
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 
-install-swagger: #Install go-swagger globally
+install-swagger:
+	@GO111MODULE=off go get -u github.com/swaggo/swag/cmd/swag
 	@bash ./scripts/install_swagger.sh
 
 check-swagger:
 	@which swagger || make install-swagger
 
 gen-swagger: check-swagger
-	@GO111MODULE=off swagger generate spec -w ./src -o ./swagger.yaml --scan-models  --exclude-deps
+	@GO111MODULE=off swag init -d ./src -o ./docs  -g ../docs/api.go 
 
 serve-swagger: gen-swagger
-	@swagger serve -F=swagger ./swagger.yaml
+	@swagger serve -F=swagger ./docs/swagger.json
 
 tools: lint-tools install-swagger
