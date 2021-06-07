@@ -893,6 +893,122 @@
                     }
                 }
             }
+        },
+        "/stores/{storeName}/secrets": {
+            "get": {
+                "description": "List secret ids stored in the selected secret storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Secrets"
+                ],
+                "summary": "List secret ids",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of secret ids",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/types.SecretResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new secret on selected store",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Secrets"
+                ],
+                "summary": "Create new secret",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create secret request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.SetSecretRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Secret object",
+                        "schema": {
+                            "$ref": "#/definitions/types.SecretResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/secrets/{id}": {
+            "get": {
+                "description": "Retrieve secret information by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Secrets"
+                ],
+                "summary": "Get secret by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Secret ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Secret object",
+                        "schema": {
+                            "$ref": "#/definitions/types.SecretResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1144,6 +1260,76 @@
                 "updatedAt": {
                     "type": "string",
                     "example": "2020-07-09T12:35:42.115395Z"
+                }
+            }
+        },
+        "types.SecretResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "deletedAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "destroyedAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "disabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "expireAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "my-secret"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "value": {
+                    "type": "string",
+                    "example": "my-value"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "types.SetSecretRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "value"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "my-secret"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "value": {
+                    "type": "string",
+                    "example": "my-value"
                 }
             }
         },

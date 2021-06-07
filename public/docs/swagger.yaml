@@ -180,6 +180,56 @@ definitions:
         example: "2020-07-09T12:35:42.115395Z"
         type: string
     type: object
+  types.SecretResponse:
+    properties:
+      createdAt:
+        example: "2020-07-09T12:35:42.115395Z"
+        type: string
+      deletedAt:
+        example: "2020-07-09T12:35:42.115395Z"
+        type: string
+      destroyedAt:
+        example: "2020-07-09T12:35:42.115395Z"
+        type: string
+      disabled:
+        example: false
+        type: boolean
+      expireAt:
+        example: "2020-07-09T12:35:42.115395Z"
+        type: string
+      id:
+        example: my-secret
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      updatedAt:
+        example: "2020-07-09T12:35:42.115395Z"
+        type: string
+      value:
+        example: my-value
+        type: string
+      version:
+        example: "1"
+        type: string
+    type: object
+  types.SetSecretRequest:
+    properties:
+      id:
+        example: my-secret
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      value:
+        example: my-value
+        type: string
+    required:
+    - id
+    - value
+    type: object
   types.SignEEATransactionRequest:
     properties:
       chainID:
@@ -941,6 +991,83 @@ paths:
       summary: Verify key signature
       tags:
       - Keys
+  /stores/{storeName}/secrets:
+    get:
+      consumes:
+      - application/json
+      description: List secret ids stored in the selected secret storage
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Array of secret ids
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/types.SecretResponse'
+              type: array
+            type: array
+      summary: List secret ids
+      tags:
+      - Secrets
+    post:
+      consumes:
+      - application/json
+      description: Create new secret on selected store
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Create secret request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.SetSecretRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Secret object
+          schema:
+            $ref: '#/definitions/types.SecretResponse'
+      summary: Create new secret
+      tags:
+      - Secrets
+  /stores/{storeName}/secrets/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve secret information by ID
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Secret ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Secret object
+          schema:
+            $ref: '#/definitions/types.SecretResponse'
+      summary: Get secret by id
+      tags:
+      - Secrets
 securityDefinitions:
   ApiKeyAuth:
     in: header
