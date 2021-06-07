@@ -678,6 +678,236 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/stores/{storeName}/keys": {
+            "get": {
+                "description": "List store key ids",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "List key ids",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of key ids",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/types.KeyResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create key pair by selected curve and signing algorithm",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Create key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create key request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Key object",
+                        "schema": {
+                            "$ref": "#/definitions/types.KeyResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/keys/import": {
+            "post": {
+                "description": "Import key pair by selected curve and signing algorithm",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Import key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create key request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ImportKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Key object",
+                        "schema": {
+                            "$ref": "#/definitions/types.KeyResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/keys/verify-signature": {
+            "post": {
+                "description": "Verify whether a signature corresponds to an specific key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Verify key signature",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Retrieve keyID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful verification"
+                    },
+                    "422": {
+                        "description": "Invalid verification"
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/keys/{id}": {
+            "get": {
+                "description": "Retrieve key object by identifier",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Get key by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Retrieve keyID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Key object",
+                        "schema": {
+                            "$ref": "#/definitions/types.KeyResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Hard delete selected key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Destroy key by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "KeyID to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -690,6 +920,34 @@ var doc = `{
                 "id": {
                     "type": "string",
                     "example": "my-account"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "types.CreateKeyRequest": {
+            "type": "object",
+            "required": [
+                "curve",
+                "id",
+                "signingAlgorithm"
+            ],
+            "properties": {
+                "curve": {
+                    "type": "string",
+                    "example": "secp256k1"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "my-key"
+                },
+                "signingAlgorithm": {
+                    "type": "string",
+                    "example": "ecdsa"
                 },
                 "tags": {
                     "type": "object",
@@ -817,6 +1075,90 @@ var doc = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "types.ImportKeyRequest": {
+            "type": "object",
+            "required": [
+                "curve",
+                "id",
+                "privateKey",
+                "signingAlgorithm"
+            ],
+            "properties": {
+                "curve": {
+                    "type": "string",
+                    "example": "secp256k1"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "my-key"
+                },
+                "privateKey": {
+                    "type": "string",
+                    "example": "BFVSFJhqUh9DQJwcayNtsWdD2..."
+                },
+                "signingAlgorithm": {
+                    "type": "string",
+                    "example": "ecdsa"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "types.KeyResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "curve": {
+                    "type": "string",
+                    "example": "secp256k1"
+                },
+                "deletedAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "destroyedAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "disabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "expireAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "my-key"
+                },
+                "publicKey": {
+                    "type": "string",
+                    "example": "BFVSFJhqUh9DQJwcayNtsWdD2..."
+                },
+                "signingAlgorithm": {
+                    "type": "string",
+                    "example": "ecdsa"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
                 }
             }
         },

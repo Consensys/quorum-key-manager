@@ -36,6 +36,16 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 }
 
+
+// @Summary Create key
+// @Description Create key pair by selected curve and signing algorithm  
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Param request body types.CreateKeyRequest true "Create key request"
+// @Success 200 {object} types.KeyResponse "Key object"
+// @Router /stores/{storeName}/keys [post]
 func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -71,6 +81,15 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
+// @Summary Import key
+// @Description Import key pair by selected curve and signing algorithm
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Param request body types.ImportKeyRequest true "Create key request"
+// @Success 200 {object} types.KeyResponse "Key object"
+// @Router /stores/{storeName}/keys/import [post]
 func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -107,6 +126,15 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
+// @Summary Import key
+// @Description Import key pair by selected curve and signing algorithm
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Param request body types.ImportKeyRequest true "Create key request"
+// @Success 200 {object} types.KeyResponse "Key object"
+// @Router /stores/{storeName}/keys/import [post]
 func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -132,6 +160,15 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	_, _ = rw.Write([]byte(base64.URLEncoding.EncodeToString(signature)))
 }
 
+// @Summary Get key by ID
+// @Description Retrieve key object by identifier
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Param id path string true "Retrieve keyID"
+// @Success 200 {object} types.KeyResponse "Key object"
+// @Router /stores/{storeName}/keys/{id} [get]
 func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -151,6 +188,14 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
+// @Summary List key ids
+// @Description List store key ids
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Success 200 {array} []types.KeyResponse "List of key ids"
+// @Router /stores/{storeName}/keys [get]
 func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -170,6 +215,15 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(ids)
 }
 
+// @Summary Destroy key by ID
+// @Description Hard delete selected key
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Param id path string true "KeyID to delete"
+// @Success 200
+// @Router /stores/{storeName}/keys/{id} [delete]
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -188,6 +242,16 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Verify key signature
+// @Description Verify whether a signature corresponds to an specific key
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Param id path string true "Retrieve keyID"
+// @Success 200 "Successful verification"
+// @Success 422 "Invalid verification"
+// @Router /stores/{storeName}/keys/verify-signature [post]
 func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()

@@ -13,7 +13,7 @@ type ImportKeyRequest struct {
 	ID               string            `json:"id" validate:"required" example:"my-key"`
 	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa"`
-	PrivateKey       []byte            `json:"privateKey" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	PrivateKey       []byte            `json:"privateKey" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..." swaggertype:"string"`
 	Tags             map[string]string `json:"tags,omitempty"`
 }
 
