@@ -19,7 +19,7 @@ inputs:
   spec-target-prefix:
     description: 'target spec file prefix'
     required: true
-    default: 'orchestrate'
+    default: 'keymanager-api'
 runs:
   using: 'node12'
   main: 'index.js'
