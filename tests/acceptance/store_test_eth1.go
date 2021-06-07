@@ -50,7 +50,7 @@ func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 
-	s.Run("should create a new ethereum account successfully", func() {
+	s.Run("should create a new Ethereum Account successfully", func() {
 		id := s.newID("my-account-create")
 		account, err := s.store.Create(ctx, id, &entities.Attributes{
 			Tags: tags,
@@ -78,7 +78,7 @@ func (s *eth1TestSuite) TestImport() {
 	tags := testutils.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	s.Run("should create a new ethereum account successfully", func() {
+	s.Run("should create a new Ethereum Account successfully", func() {
 		id := s.newID("my-account-import")
 
 		account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
@@ -130,7 +130,7 @@ func (s *eth1TestSuite) TestGet() {
 	})
 	require.NoError(s.T(), err)
 
-	s.Run("should get an ethereum account successfully", func() {
+	s.Run("should get an Ethereum Account successfully", func() {
 		retrievedAccount, err := s.store.Get(ctx, account.Address.Hex())
 		require.NoError(s.T(), err)
 

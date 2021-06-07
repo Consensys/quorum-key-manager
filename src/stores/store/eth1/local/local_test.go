@@ -59,7 +59,7 @@ func (s *eth1StoreTestSuite) TestCreate() {
 	attributes := testutils.FakeAttributes()
 	key := testutils.FakeKey()
 
-	s.Run("should create a new ethereum account successfully", func() {
+	s.Run("should create a new Ethereum Account successfully", func() {
 		expectedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
 			Address:             common.HexToAddress(address),
@@ -102,7 +102,7 @@ func (s *eth1StoreTestSuite) Testimport() {
 	key := testutils.FakeKey()
 	privKeyB, _ := hex.DecodeString(privKey)
 
-	s.Run("should import a new ethereum account successfully", func() {
+	s.Run("should import a new Ethereum Account successfully", func() {
 		expectedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
 			Address:             common.HexToAddress(address),
@@ -142,7 +142,7 @@ func (s *eth1StoreTestSuite) Testimport() {
 func (s *eth1StoreTestSuite) TestGet() {
 	ctx := context.Background()
 
-	s.Run("should get an ethereum account successfully", func() {
+	s.Run("should get an Ethereum Account successfully", func() {
 		fakeETH1Account := testutils.FakeETH1Account()
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeETH1Account, nil)
 
@@ -164,7 +164,7 @@ func (s *eth1StoreTestSuite) TestGet() {
 func (s *eth1StoreTestSuite) TestGetAll() {
 	ctx := context.Background()
 
-	s.Run("should get all ethereum accounts successfully", func() {
+	s.Run("should get all Ethereum Accounts successfully", func() {
 		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1AccountsDB.EXPECT().GetAll(ctx).Return(expectedAccounts, nil)
 
@@ -186,7 +186,7 @@ func (s *eth1StoreTestSuite) TestGetAll() {
 func (s *eth1StoreTestSuite) TestList() {
 	ctx := context.Background()
 
-	s.Run("should list all ethereum accounts successfully", func() {
+	s.Run("should list all Ethereum Accounts successfully", func() {
 		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1AccountsDB.EXPECT().GetAll(ctx).Return(expectedAccounts, nil)
 
@@ -211,7 +211,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 	key := testutils.FakeKey()
 	fakeAccount := testutils.FakeETH1Account()
 
-	s.Run("should update an ethereum account successfully", func() {
+	s.Run("should update an Ethereum Account successfully", func() {
 		expectedUpdatedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
 			Address:             common.HexToAddress(address),
@@ -275,7 +275,7 @@ func (s *eth1StoreTestSuite) TestDelete() {
 	ctx := context.Background()
 	fakeAccount := testutils.FakeETH1Account()
 
-	s.Run("should delete an ethereum account successfully", func() {
+	s.Run("should delete an Ethereum Account successfully", func() {
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
 		s.mockKeyStore.EXPECT().Delete(ctx, fakeAccount.ID).Return(nil)
 		s.mockEth1AccountsDB.EXPECT().Remove(ctx, address).Return(nil)
@@ -331,7 +331,7 @@ func (s *eth1StoreTestSuite) TestDelete() {
 func (s *eth1StoreTestSuite) TestGetDeleted() {
 	ctx := context.Background()
 
-	s.Run("should get a deleted ethereum account successfully", func() {
+	s.Run("should get a deleted Ethereum Account successfully", func() {
 		fakeETH1Account := testutils.FakeETH1Account()
 		s.mockEth1AccountsDB.EXPECT().GetDeleted(ctx, address).Return(fakeETH1Account, nil)
 
@@ -353,7 +353,7 @@ func (s *eth1StoreTestSuite) TestGetDeleted() {
 func (s *eth1StoreTestSuite) TestListDeleted() {
 	ctx := context.Background()
 
-	s.Run("should list all ethereum accounts successfully", func() {
+	s.Run("should list all Ethereum Accounts successfully", func() {
 		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1AccountsDB.EXPECT().GetAllDeleted(ctx).Return(expectedAccounts, nil)
 
@@ -376,7 +376,7 @@ func (s *eth1StoreTestSuite) TestUndelete() {
 	ctx := context.Background()
 	fakeAccount := testutils.FakeETH1Account()
 
-	s.Run("should undelete an ethereum account successfully", func() {
+	s.Run("should undelete an Ethereum Account successfully", func() {
 		s.mockEth1AccountsDB.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
 		s.mockKeyStore.EXPECT().Undelete(ctx, fakeAccount.ID).Return(nil)
 		s.mockEth1AccountsDB.EXPECT().RemoveDeleted(ctx, address).Return(nil)
@@ -433,7 +433,7 @@ func (s *eth1StoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 	fakeAccount := testutils.FakeETH1Account()
 
-	s.Run("should undelete an ethereum account successfully", func() {
+	s.Run("should undelete an Ethereum Account successfully", func() {
 		s.mockEth1AccountsDB.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
 		s.mockKeyStore.EXPECT().Destroy(ctx, fakeAccount.ID).Return(nil)
 		s.mockEth1AccountsDB.EXPECT().RemoveDeleted(ctx, address).Return(nil)

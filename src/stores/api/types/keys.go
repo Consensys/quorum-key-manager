@@ -18,7 +18,7 @@ type ImportKeyRequest struct {
 }
 
 type SignBase64PayloadRequest struct {
-	Data []byte `json:"data" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	Data []byte `json:"data" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..." swaggertype:"string"`
 }
 
 type VerifyKeySignatureRequest struct {

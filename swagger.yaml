@@ -1,6 +1,6 @@
 definitions:
   Eth1AccountResponse:
-    description: 'Represents the ethereum accounts '
+    description: 'Represents the Ethereum Accounts '
     properties:
       address:
         x-go-name: Address
@@ -53,7 +53,7 @@ paths:
       - oauth:
         - read
         - write
-      summary: Create ethereum account
+      summary: Create Ethereum Account
       tags:
       - ethereum
 swagger: "2.0"

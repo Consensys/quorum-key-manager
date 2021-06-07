@@ -38,13 +38,16 @@ func (h *KeysHandler) Register(r *mux.Router) {
 
 
 // @Summary Create key
-// @Description Create key pair by selected curve and signing algorithm  
+// @Description Create Key with a specific Curve and Signing algorithm
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Selected StoreID"
+// @Param storeName path string true "Store Identifier"
 // @Param request body types.CreateKeyRequest true "Create key request"
-// @Success 200 {object} types.KeyResponse "Key object"
+// @Success 200 {object} types.KeyResponse "Key data"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 404 {object} ErrorResponse "Store not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys [post]
 func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -81,14 +84,17 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
-// @Summary Import key
-// @Description Import key pair by selected curve and signing algorithm
+// @Summary Import Key
+// @Description Import Key with a specific Curve and Signing algorithm
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Selected StoreID"
+// @Param storeName path string true "Store Identifier"
 // @Param request body types.ImportKeyRequest true "Create key request"
-// @Success 200 {object} types.KeyResponse "Key object"
+// @Success 200 {object} types.KeyResponse "Key data"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 404 {object} ErrorResponse "Store not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys/import [post]
 func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -126,15 +132,19 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
-// @Summary Import key
-// @Description Import key pair by selected curve and signing algorithm
+// @Summary Sign random payload
+// @Description Sign random payload using a selected key
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Selected StoreID"
-// @Param request body types.ImportKeyRequest true "Create key request"
-// @Success 200 {object} types.KeyResponse "Key object"
-// @Router /stores/{storeName}/keys/import [post]
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Key identifier"
+// @Param request body types.SignBase64PayloadRequest true "Signing request"
+// @Success 200 {string} {string}"signature in base64"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 404 {object} ErrorResponse "Store/Key not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/keys/{id}/sign [post]
 func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -165,9 +175,11 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Selected StoreID"
-// @Param id path string true "Retrieve keyID"
-// @Success 200 {object} types.KeyResponse "Key object"
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Key identifier"
+// @Success 200 {object} types.KeyResponse "Key data"
+// @Failure 404 {object} ErrorResponse "Store/Key not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys/{id} [get]
 func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -188,13 +200,14 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
-// @Summary List key ids
-// @Description List store key ids
+// @Summary List Key ids
+// @Description List identifiers of keys store on selected Store
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Selected StoreID"
+// @Param storeName path string true "Store Identifier"
 // @Success 200 {array} []types.KeyResponse "List of key ids"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys [get]
 func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -215,14 +228,16 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(ids)
 }
 
-// @Summary Destroy key by ID
-// @Description Hard delete selected key
+// @Summary Destroy Key
+// @Description Hard delete Key by ID
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Selected StoreID"
-// @Param id path string true "KeyID to delete"
-// @Success 200
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Key identifier"
+// @Success 200 "Deleted successfully"
+// @Failure 404 {object} ErrorResponse "Store/Key not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys/{id} [delete]
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
@@ -243,14 +258,15 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Verify key signature
-// @Description Verify whether a signature corresponds to an specific key
+// @Description Verify if signature data was signed by a specific key
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Selected StoreID"
-// @Param id path string true "Retrieve keyID"
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Key identifier"
 // @Success 200 "Successful verification"
-// @Success 422 "Invalid verification"
+// @Failure 422 {object} ErrorResponse "Cannot verify signature"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys/verify-signature [post]
 func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
