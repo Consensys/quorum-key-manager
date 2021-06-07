@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 endif
 
 .PHONY: all lint lint-ci integration-tests swagger-tool
-  	
+
 hashicorp:
 	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_HASHICORP)
 	@sleep 2 # Sleep couple seconds to wait token to be created
@@ -93,7 +93,6 @@ stop-besu:
 down-besu:
 	@docker-compose -f deps/besu/docker-compose.yml down --volumes --timeout 0
 
-
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)
 	@golangci-lint run --fix
@@ -116,9 +115,12 @@ check-swagger:
 	@which swagger || make install-swagger
 
 gen-swagger:
-	@GO111MODULE=off swag init -d ./src -o ./public/docs  -g docs.go 
+	@GO111MODULE=off swag init -d ./src -o ./public/docs  -g docs.go
 
 serve-swagger: gen-swagger
 	@swagger serve -F=swagger ./public/docs/swagger.json
 
 tools: lint-tools install-swag install-swagger
+
+docker-build:
+	@DOCKER_BUILDKIT=1 docker build -t quorum-key-manager .
