@@ -29,6 +29,39 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/stores/{storeName}/eth1": {
+            "get": {
+                "description": "List addresses of ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "List ethereum accounts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ethereum account list",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/types.Eth1AccountResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Creates a new ECDSA Secp256k1 key representing an ethereum account",
                 "consumes": [
@@ -41,7 +74,7 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target Store Name",
+                        "description": "Selected StoreID",
                         "name": "storeName",
                         "in": "path",
                         "required": true
@@ -66,6 +99,51 @@ var doc = `{
                 }
             }
         },
+        "/stores/{storeName}/eth1/ec-recover": {
+            "post": {
+                "description": "Recover ethereum transaction sender",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "EC Recover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ethereum recover request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ECRecoverRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Signed EEA transaction data",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/stores/{storeName}/eth1/import": {
             "post": {
                 "description": "Import an ECDSA Secp256k1 key representing an ethereum account",
@@ -79,7 +157,7 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target Store Name",
+                        "description": "Selected StoreID",
                         "name": "storeName",
                         "in": "path",
                         "required": true
@@ -104,7 +182,120 @@ var doc = `{
                 }
             }
         },
+        "/stores/{storeName}/eth1/verify-signature": {
+            "post": {
+                "description": "Verify signature of an ethereum type data signing",
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "Verify typed data signature",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ethereum signature verify request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.VerifyTypedDataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification confirmed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid verification",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/stores/{storeName}/eth1/{address}": {
+            "get": {
+                "description": "Fetch ethereum account information by address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get ethereum account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ethereum account object",
+                        "schema": {
+                            "$ref": "#/definitions/types.Eth1AccountResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Soft delete ethereum account, can be recovered",
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "Delete ethereum account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "bool"
+                        }
+                    }
+                }
+            },
             "patch": {
                 "description": "Update ethereum account metadata",
                 "consumes": [
@@ -117,14 +308,14 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target Store Name",
+                        "description": "Selected StoreID",
                         "name": "storeName",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Ethereum address to update",
+                        "description": "Ethereum address",
                         "name": "address",
                         "in": "path",
                         "required": true
@@ -149,9 +340,75 @@ var doc = `{
                 }
             }
         },
+        "/stores/{storeName}/eth1/{address}/destroy": {
+            "delete": {
+                "description": "Hard delete ethereum account, cannot be recovered",
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "Destroy ethereum account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "bool"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{address}/restore": {
+            "post": {
+                "description": "Recover a soft-deleted ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "Restore ethereum account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "bool"
+                        }
+                    }
+                }
+            }
+        },
         "/stores/{storeName}/eth1/{address}/sign": {
-            "patch": {
-                "description": "Sign random hex payload with stored ethereum account",
+            "post": {
+                "description": "Sign random hex payload using selected ethereum account",
                 "consumes": [
                     "application/json"
                 ],
@@ -162,14 +419,14 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target Store Name",
+                        "description": "Selected StoreID",
                         "name": "storeName",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Ethereum address to update",
+                        "description": "Ethereum address",
                         "name": "address",
                         "in": "path",
                         "required": true
@@ -187,6 +444,141 @@ var doc = `{
                 "responses": {
                     "200": {
                         "description": "Signed payload data",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{address}/sign-eea-transaction": {
+            "post": {
+                "description": "Sign EEA transaction using selected ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Sign EEA transaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sign EEA transaction request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.SignEEATransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Signed EEA transaction data",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{address}/sign-quorum-private-transaction": {
+            "post": {
+                "description": "Sign Quorum private transaction using selected ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Sign Quorum private transaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sign Quorum transaction request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.SignQuorumPrivateTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Signed EEA transaction data",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{address}/sign-typed-data": {
+            "post": {
+                "description": "Sign ethereum transaction using selected ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Sign ethereum transaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Selected StoreID",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sign ETH transaction request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.SignETHTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Signed transaction data",
                         "schema": {
                             "type": "string"
                         }
@@ -211,6 +603,53 @@ var doc = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "types.DomainSeparator": {
+            "type": "object",
+            "required": [
+                "chainID",
+                "name",
+                "version"
+            ],
+            "properties": {
+                "chainID": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "MyDApp"
+                },
+                "salt": {
+                    "type": "string",
+                    "example": "some-random-string"
+                },
+                "verifyingContract": {
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "v1.0.0"
+                }
+            }
+        },
+        "types.ECRecoverRequest": {
+            "type": "object",
+            "required": [
+                "data",
+                "signature"
+            ],
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "0xfeaeee..."
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "0x6019a3c8..."
                 }
             }
         },
@@ -288,6 +727,87 @@ var doc = `{
                 }
             }
         },
+        "types.SignEEATransactionRequest": {
+            "type": "object",
+            "required": [
+                "chainID",
+                "privateFrom"
+            ],
+            "properties": {
+                "chainID": {
+                    "type": "string",
+                    "example": "0x1 (mainnet)"
+                },
+                "data": {
+                    "type": "string",
+                    "example": "0xfeaeee..."
+                },
+                "nonce": {
+                    "type": "string",
+                    "example": "0x1"
+                },
+                "privacyGroupId": {
+                    "type": "string",
+                    "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
+                },
+                "privateFor": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
+                        "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
+                    ]
+                },
+                "privateFrom": {
+                    "type": "string",
+                    "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
+                },
+                "to": {
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                }
+            }
+        },
+        "types.SignETHTransactionRequest": {
+            "type": "object",
+            "required": [
+                "chainID",
+                "gasLimit",
+                "gasPrice"
+            ],
+            "properties": {
+                "chainID": {
+                    "type": "string",
+                    "example": "0x1 (mainnet)"
+                },
+                "data": {
+                    "type": "string",
+                    "example": "0xfeaeee..."
+                },
+                "gasLimit": {
+                    "type": "string",
+                    "example": "0x5208"
+                },
+                "gasPrice": {
+                    "type": "string",
+                    "example": "0x0"
+                },
+                "nonce": {
+                    "type": "string",
+                    "example": "0x1"
+                },
+                "to": {
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "value": {
+                    "type": "string",
+                    "example": "0xfeaeae"
+                }
+            }
+        },
         "types.SignHexPayloadRequest": {
             "type": "object",
             "required": [
@@ -301,6 +821,87 @@ var doc = `{
                 }
             }
         },
+        "types.SignQuorumPrivateTransactionRequest": {
+            "type": "object",
+            "required": [
+                "gasLimit",
+                "gasPrice"
+            ],
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "0xfeaeee..."
+                },
+                "gasLimit": {
+                    "type": "string",
+                    "example": "0x5208"
+                },
+                "gasPrice": {
+                    "type": "string",
+                    "example": "0x0"
+                },
+                "nonce": {
+                    "type": "string",
+                    "example": "0x1"
+                },
+                "to": {
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "value": {
+                    "type": "string",
+                    "example": "0x1"
+                }
+            }
+        },
+        "types.SignTypedDataRequest": {
+            "type": "object",
+            "required": [
+                "domainSeparator",
+                "message",
+                "messageType",
+                "types"
+            ],
+            "properties": {
+                "domainSeparator": {
+                    "$ref": "#/definitions/types.DomainSeparator"
+                },
+                "message": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "messageType": {
+                    "type": "string",
+                    "example": "Mail"
+                },
+                "types": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/types.Type"
+                        }
+                    }
+                }
+            }
+        },
+        "types.Type": {
+            "type": "object",
+            "required": [
+                "name",
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "fieldName"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "string"
+                }
+            }
+        },
         "types.UpdateEth1AccountRequest": {
             "type": "object",
             "properties": {
@@ -309,6 +910,49 @@ var doc = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "types.VerifyEth1SignatureRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "data",
+                "signature"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "data": {
+                    "type": "string",
+                    "example": "0xfeaeee..."
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "0x6019a3c8..."
+                }
+            }
+        },
+        "types.VerifyTypedDataRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "data",
+                "signature"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "data": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "0x6019a3c8..."
                 }
             }
         }

@@ -53,7 +53,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 // @Description Creates a new ECDSA Secp256k1 key representing an ethereum account
 // @Accept  json
 // @Produce  json
-// @Param storeName path string true "Target Store Name"
+// @Param storeName path string true "Selected StoreID"
 // @Param request body types.CreateEth1AccountRequest true "Create ethereum account request"
 // @Success 200 {object} types.Eth1AccountResponse "Created ethereum account"
 // @Router /stores/{storeName}/eth1 [post]
@@ -87,7 +87,7 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 // @Description Import an ECDSA Secp256k1 key representing an ethereum account
 // @Accept  json
 // @Produce  json
-// @Param storeName path string true "Target Store Name"
+// @Param storeName path string true "Selected StoreID"
 // @Param request body types.ImportEth1AccountRequest true "Create ethereum account request"
 // @Success 200 {object} types.Eth1AccountResponse "Created ethereum account"
 // @Router /stores/{storeName}/eth1/import [post]
@@ -122,8 +122,8 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 // @Description Update ethereum account metadata
 // @Accept  json
 // @Produce  json
-// @Param storeName path string true "Target Store Name"
-// @Param address path string true "Ethereum address to update"
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
 // @Param request body types.UpdateEth1AccountRequest true "Update ethereum account metadata request"
 // @Success 200 {object} types.Eth1AccountResponse "Update ethereum account"
 // @Router /stores/{storeName}/eth1/{address} [patch]
@@ -154,14 +154,14 @@ func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Sign payload with ethereum account 
-// @Description Sign random hex payload with stored ethereum account 
+// @Description Sign random hex payload using selected ethereum account 
 // @Accept json
 // @Produce plain
-// @Param storeName path string true "Target Store Name"
-// @Param address path string true "Ethereum address to update"
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
 // @Param request body types.SignHexPayloadRequest true "Sign payload request"
 // @Success 200 {string} string "Signed payload data"
-// @Router /stores/{storeName}/eth1/{address}/sign [patch]
+// @Router /stores/{storeName}/eth1/{address}/sign [post]
 func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -188,6 +188,15 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
+// @Summary Sign typed data
+// @Description Sign typed data, following the EIP-712 standard, using selected ethereum account 
+// @Accept json
+// @Produce plain
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Param request body types.SignTypedDataRequest true "Sign typed data request"
+// @Success 200 {string} string "Signed payload data"
+// @Router /stores/{storeName}/eth1/{address}/sign-typed-data [post]
 func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -215,6 +224,15 @@ func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Reques
 	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
+// @Summary Sign ethereum transaction
+// @Description Sign ethereum transaction using selected ethereum account 
+// @Accept json
+// @Produce plain
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Param request body types.SignETHTransactionRequest true "Sign ETH transaction request"
+// @Success 200 {string} string "Signed transaction data"
+// @Router /stores/{storeName}/eth1/{address}/sign-typed-data [post]
 func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -241,6 +259,15 @@ func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Requ
 	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
+// @Summary Sign EEA transaction
+// @Description Sign EEA transaction using selected ethereum account 
+// @Accept json
+// @Produce plain
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Param request body types.SignEEATransactionRequest true "Sign EEA transaction request"
+// @Success 200 {string} string "Signed EEA transaction data"
+// @Router /stores/{storeName}/eth1/{address}/sign-eea-transaction [post]
 func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -268,6 +295,15 @@ func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.R
 	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
+// @Summary Sign Quorum private transaction
+// @Description Sign Quorum private transaction using selected ethereum account 
+// @Accept json
+// @Produce plain
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Param request body types.SignQuorumPrivateTransactionRequest true "Sign Quorum transaction request"
+// @Success 200 {string} string "Signed EEA transaction data"
+// @Router /stores/{storeName}/eth1/{address}/sign-quorum-private-transaction [post]
 func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -294,6 +330,14 @@ func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *ht
 	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
+// @Summary Get ethereum account
+// @Description Fetch ethereum account information by address
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Success 200 {object} types.Eth1AccountResponse "Ethereum account object"
+// @Router /stores/{storeName}/eth1/{address} [get]
 func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -319,6 +363,13 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1AccResponse(eth1Acc))
 }
 
+// @Summary List ethereum accounts
+// @Description List addresses of ethereum account
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Selected StoreID"
+// @Success 200 {array} []types.Eth1AccountResponse "Ethereum account list"
+// @Router /stores/{storeName}/eth1 [get]
 func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -344,6 +395,13 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(addresses)
 }
 
+// @Summary Delete ethereum account
+// @Description Soft delete ethereum account, can be recovered
+// @Accept json
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Success 200 {bool} bool
+// @Router /stores/{storeName}/eth1/{address} [delete]
 func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -362,6 +420,13 @@ func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Destroy ethereum account
+// @Description Hard delete ethereum account, cannot be recovered
+// @Accept json
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Success 200 {bool} bool
+// @Router /stores/{storeName}/eth1/{address}/destroy [delete]
 func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -380,6 +445,13 @@ func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Restore ethereum account
+// @Description Recover a soft-deleted ethereum account
+// @Accept json
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Success 200 {bool} bool
+// @Router /stores/{storeName}/eth1/{address}/restore [post]
 func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -398,6 +470,15 @@ func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary EC Recover
+// @Description Recover ethereum transaction sender
+// @Accept json
+// @Produce plain
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Param request body types.ECRecoverRequest true "Ethereum recover request"
+// @Success 200 {string} string "Signed EEA transaction data"
+// @Router /stores/{storeName}/eth1/ec-recover [post]
 func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -424,6 +505,15 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 	_, _ = rw.Write([]byte(address))
 }
 
+// @Summary Verify signature
+// @Description Verify signature of an ethereum signing
+// @Accept json
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Param request body types.VerifyEth1SignatureRequest true "Ethereum signature verify request"
+// @Success 200 {string} string "Verification confirmed"
+// @Failure 422 {string} string "Invalid verification"
+// @Router /stores/{storeName}/eth1/verify-signature [post]
 func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -450,6 +540,15 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 	rw.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Verify typed data signature
+// @Description Verify signature of an ethereum type data signing
+// @Accept json
+// @Param storeName path string true "Selected StoreID"
+// @Param address path string true "Ethereum address"
+// @Param request body types.VerifyTypedDataRequest true "Ethereum signature verify request"
+// @Success 200 {string} string "Verification confirmed"
+// @Failure 422 {string} string "Invalid verification"
+// @Router /stores/{storeName}/eth1/verify-signature [post]
 func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()

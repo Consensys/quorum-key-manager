@@ -12,6 +12,40 @@ definitions:
     required:
     - id
     type: object
+  types.DomainSeparator:
+    properties:
+      chainID:
+        example: 1
+        type: integer
+      name:
+        example: MyDApp
+        type: string
+      salt:
+        example: some-random-string
+        type: string
+      verifyingContract:
+        example: 0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18
+        type: string
+      version:
+        example: v1.0.0
+        type: string
+    required:
+    - chainID
+    - name
+    - version
+    type: object
+  types.ECRecoverRequest:
+    properties:
+      data:
+        example: 0xfeaeee...
+        type: string
+      signature:
+        example: 0x6019a3c8...
+        type: string
+    required:
+    - data
+    - signature
+    type: object
   types.Eth1AccountResponse:
     properties:
       address:
@@ -65,6 +99,65 @@ definitions:
     - id
     - privateKey
     type: object
+  types.SignEEATransactionRequest:
+    properties:
+      chainID:
+        example: 0x1 (mainnet)
+        type: string
+      data:
+        example: 0xfeaeee...
+        type: string
+      nonce:
+        example: "0x1"
+        type: string
+      privacyGroupId:
+        example: A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=
+        type: string
+      privateFor:
+        example:
+        - A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=
+        - B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=
+        items:
+          type: string
+        type: array
+      privateFrom:
+        example: A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=
+        type: string
+      to:
+        example: 0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18
+        type: string
+    required:
+    - chainID
+    - privateFrom
+    type: object
+  types.SignETHTransactionRequest:
+    properties:
+      chainID:
+        example: 0x1 (mainnet)
+        type: string
+      data:
+        example: 0xfeaeee...
+        type: string
+      gasLimit:
+        example: "0x5208"
+        type: string
+      gasPrice:
+        example: "0x0"
+        type: string
+      nonce:
+        example: "0x1"
+        type: string
+      to:
+        example: 0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18
+        type: string
+      value:
+        example: "0xfeaeae"
+        type: string
+    required:
+    - chainID
+    - gasLimit
+    - gasPrice
+    type: object
   types.SignHexPayloadRequest:
     properties:
       data:
@@ -74,12 +167,101 @@ definitions:
     required:
     - data
     type: object
+  types.SignQuorumPrivateTransactionRequest:
+    properties:
+      data:
+        example: 0xfeaeee...
+        type: string
+      gasLimit:
+        example: "0x5208"
+        type: string
+      gasPrice:
+        example: "0x0"
+        type: string
+      nonce:
+        example: "0x1"
+        type: string
+      to:
+        example: 0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18
+        type: string
+      value:
+        example: "0x1"
+        type: string
+    required:
+    - gasLimit
+    - gasPrice
+    type: object
+  types.SignTypedDataRequest:
+    properties:
+      domainSeparator:
+        $ref: '#/definitions/types.DomainSeparator'
+      message:
+        additionalProperties: true
+        type: object
+      messageType:
+        example: Mail
+        type: string
+      types:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/types.Type'
+          type: array
+        type: object
+    required:
+    - domainSeparator
+    - message
+    - messageType
+    - types
+    type: object
+  types.Type:
+    properties:
+      name:
+        example: fieldName
+        type: string
+      type:
+        example: string
+        type: string
+    required:
+    - name
+    - type
+    type: object
   types.UpdateEth1AccountRequest:
     properties:
       tags:
         additionalProperties:
           type: string
         type: object
+    type: object
+  types.VerifyEth1SignatureRequest:
+    properties:
+      address:
+        example: 0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18
+        type: string
+      data:
+        example: 0xfeaeee...
+        type: string
+      signature:
+        example: 0x6019a3c8...
+        type: string
+    required:
+    - address
+    - data
+    - signature
+    type: object
+  types.VerifyTypedDataRequest:
+    properties:
+      address:
+        example: 0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18
+        type: string
+      data:
+        type: string
+      signature:
+        example: 0x6019a3c8...
+        type: string
+    required:
+    - address
+    - data
+    - signature
     type: object
 host: localhost:8080
 info:
@@ -92,12 +274,34 @@ info:
   version: "0.1"
 paths:
   /stores/{storeName}/eth1:
+    get:
+      consumes:
+      - application/json
+      description: List addresses of ethereum account
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ethereum account list
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/types.Eth1AccountResponse'
+              type: array
+            type: array
+      summary: List ethereum accounts
     post:
       consumes:
       - application/json
       description: Creates a new ECDSA Secp256k1 key representing an ethereum account
       parameters:
-      - description: Target Store Name
+      - description: Selected StoreID
         in: path
         name: storeName
         required: true
@@ -117,17 +321,61 @@ paths:
             $ref: '#/definitions/types.Eth1AccountResponse'
       summary: Create ethereum account
   /stores/{storeName}/eth1/{address}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete ethereum account, can be recovered
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: bool
+      summary: Delete ethereum account
+    get:
+      consumes:
+      - application/json
+      description: Fetch ethereum account information by address
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ethereum account object
+          schema:
+            $ref: '#/definitions/types.Eth1AccountResponse'
+      summary: Get ethereum account
     patch:
       consumes:
       - application/json
       description: Update ethereum account metadata
       parameters:
-      - description: Target Store Name
+      - description: Selected StoreID
         in: path
         name: storeName
         required: true
         type: string
-      - description: Ethereum address to update
+      - description: Ethereum address
         in: path
         name: address
         required: true
@@ -146,18 +394,62 @@ paths:
           schema:
             $ref: '#/definitions/types.Eth1AccountResponse'
       summary: Update ethereum account
-  /stores/{storeName}/eth1/{address}/sign:
-    patch:
+  /stores/{storeName}/eth1/{address}/destroy:
+    delete:
       consumes:
       - application/json
-      description: Sign random hex payload with stored ethereum account
+      description: Hard delete ethereum account, cannot be recovered
       parameters:
-      - description: Target Store Name
+      - description: Selected StoreID
         in: path
         name: storeName
         required: true
         type: string
-      - description: Ethereum address to update
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: bool
+      summary: Destroy ethereum account
+  /stores/{storeName}/eth1/{address}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Recover a soft-deleted ethereum account
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: bool
+      summary: Restore ethereum account
+  /stores/{storeName}/eth1/{address}/sign:
+    post:
+      consumes:
+      - application/json
+      description: Sign random hex payload using selected ethereum account
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
         in: path
         name: address
         required: true
@@ -176,13 +468,133 @@ paths:
           schema:
             type: string
       summary: Sign payload with ethereum account
+  /stores/{storeName}/eth1/{address}/sign-eea-transaction:
+    post:
+      consumes:
+      - application/json
+      description: Sign EEA transaction using selected ethereum account
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Sign EEA transaction request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.SignEEATransactionRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Signed EEA transaction data
+          schema:
+            type: string
+      summary: Sign EEA transaction
+  /stores/{storeName}/eth1/{address}/sign-quorum-private-transaction:
+    post:
+      consumes:
+      - application/json
+      description: Sign Quorum private transaction using selected ethereum account
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Sign Quorum transaction request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.SignQuorumPrivateTransactionRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Signed EEA transaction data
+          schema:
+            type: string
+      summary: Sign Quorum private transaction
+  /stores/{storeName}/eth1/{address}/sign-typed-data:
+    post:
+      consumes:
+      - application/json
+      description: Sign ethereum transaction using selected ethereum account
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Sign ETH transaction request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.SignETHTransactionRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Signed transaction data
+          schema:
+            type: string
+      summary: Sign ethereum transaction
+  /stores/{storeName}/eth1/ec-recover:
+    post:
+      consumes:
+      - application/json
+      description: Recover ethereum transaction sender
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Ethereum recover request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.ECRecoverRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Signed EEA transaction data
+          schema:
+            type: string
+      summary: EC Recover
   /stores/{storeName}/eth1/import:
     post:
       consumes:
       - application/json
       description: Import an ECDSA Secp256k1 key representing an ethereum account
       parameters:
-      - description: Target Store Name
+      - description: Selected StoreID
         in: path
         name: storeName
         required: true
@@ -201,6 +613,38 @@ paths:
           schema:
             $ref: '#/definitions/types.Eth1AccountResponse'
       summary: Import ethereum account
+  /stores/{storeName}/eth1/verify-signature:
+    post:
+      consumes:
+      - application/json
+      description: Verify signature of an ethereum type data signing
+      parameters:
+      - description: Selected StoreID
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Ethereum signature verify request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.VerifyTypedDataRequest'
+      responses:
+        "200":
+          description: Verification confirmed
+          schema:
+            type: string
+        "422":
+          description: Invalid verification
+          schema:
+            type: string
+      summary: Verify typed data signature
 securityDefinitions:
   ApiKeyAuth:
     in: header
