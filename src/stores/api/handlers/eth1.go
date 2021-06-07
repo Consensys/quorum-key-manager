@@ -50,12 +50,10 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 }
 
 // @Summary Create ethereum account
-// @Description This will create a new ECDSA Secp256k1 key represented by an ethereum account
+// @Description Creates a new ECDSA Secp256k1 key representing an ethereum account
 // @Accept  json
 // @Produce  json
-// @Security ApiKeyAuth
-// @Security JWTAuth
-// @Param storeName path string true "Store name identifier"
+// @Param storeName path string true "Target Store Name"
 // @Param request body types.CreateEth1AccountRequest true "Create ethereum account request"
 // @Success 200 {object} types.Eth1AccountResponse "Created ethereum account"
 // @Router /stores/{storeName}/eth1 [post]
@@ -85,6 +83,14 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1AccResponse(eth1Acc))
 }
 
+// @Summary Import ethereum account
+// @Description Import an ECDSA Secp256k1 key representing an ethereum account
+// @Accept  json
+// @Produce  json
+// @Param storeName path string true "Target Store Name"
+// @Param request body types.ImportEth1AccountRequest true "Create ethereum account request"
+// @Success 200 {object} types.Eth1AccountResponse "Created ethereum account"
+// @Router /stores/{storeName}/eth1/import [post]
 func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -112,6 +118,15 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1AccResponse(eth1Acc))
 }
 
+// @Summary Update ethereum account
+// @Description Update ethereum account metadata
+// @Accept  json
+// @Produce  json
+// @Param storeName path string true "Target Store Name"
+// @Param address path string true "Ethereum address to update"
+// @Param request body types.UpdateEth1AccountRequest true "Update ethereum account metadata request"
+// @Success 200 {object} types.Eth1AccountResponse "Update ethereum account"
+// @Router /stores/{storeName}/eth1/{address} [patch]
 func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -138,6 +153,15 @@ func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1AccResponse(eth1Acc))
 }
 
+// @Summary Sign payload with ethereum account 
+// @Description Sign random hex payload with stored ethereum account 
+// @Accept json
+// @Produce plain
+// @Param storeName path string true "Target Store Name"
+// @Param address path string true "Ethereum address to update"
+// @Param request body types.SignHexPayloadRequest true "Sign payload request"
+// @Success 200 {string} string "Signed payload data"
+// @Router /stores/{storeName}/eth1/{address}/sign [patch]
 func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()

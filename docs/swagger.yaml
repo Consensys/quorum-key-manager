@@ -49,6 +49,38 @@ definitions:
         example: "2020-07-09T12:35:42.115395Z"
         type: string
     type: object
+  types.ImportEth1AccountRequest:
+    properties:
+      id:
+        example: my-imported-account
+        type: string
+      privateKey:
+        example: 56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+    required:
+    - id
+    - privateKey
+    type: object
+  types.SignHexPayloadRequest:
+    properties:
+      data:
+        description: required to be hex value
+        example: "0xfeee"
+        type: string
+    required:
+    - data
+    type: object
+  types.UpdateEth1AccountRequest:
+    properties:
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -63,10 +95,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: This will create a new ECDSA Secp256k1 key represented by an ethereum
-        account
+      description: Creates a new ECDSA Secp256k1 key representing an ethereum account
       parameters:
-      - description: Store name identifier
+      - description: Target Store Name
         in: path
         name: storeName
         required: true
@@ -85,6 +116,91 @@ paths:
           schema:
             $ref: '#/definitions/types.Eth1AccountResponse'
       summary: Create ethereum account
+  /stores/{storeName}/eth1/{address}:
+    patch:
+      consumes:
+      - application/json
+      description: Update ethereum account metadata
+      parameters:
+      - description: Target Store Name
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address to update
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Update ethereum account metadata request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateEth1AccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Update ethereum account
+          schema:
+            $ref: '#/definitions/types.Eth1AccountResponse'
+      summary: Update ethereum account
+  /stores/{storeName}/eth1/{address}/sign:
+    patch:
+      consumes:
+      - application/json
+      description: Sign random hex payload with stored ethereum account
+      parameters:
+      - description: Target Store Name
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address to update
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Sign payload request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.SignHexPayloadRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Signed payload data
+          schema:
+            type: string
+      summary: Sign payload with ethereum account
+  /stores/{storeName}/eth1/import:
+    post:
+      consumes:
+      - application/json
+      description: Import an ECDSA Secp256k1 key representing an ethereum account
+      parameters:
+      - description: Target Store Name
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Create ethereum account request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.ImportEth1AccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created ethereum account
+          schema:
+            $ref: '#/definitions/types.Eth1AccountResponse'
+      summary: Import ethereum account
 securityDefinitions:
   ApiKeyAuth:
     in: header

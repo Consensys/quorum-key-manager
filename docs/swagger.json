@@ -15,7 +15,7 @@
     "paths": {
         "/stores/{storeName}/eth1": {
             "post": {
-                "description": "This will create a new ECDSA Secp256k1 key represented by an ethereum account",
+                "description": "Creates a new ECDSA Secp256k1 key representing an ethereum account",
                 "consumes": [
                     "application/json"
                 ],
@@ -26,7 +26,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Store name identifier",
+                        "description": "Target Store Name",
                         "name": "storeName",
                         "in": "path",
                         "required": true
@@ -46,6 +46,134 @@
                         "description": "Created ethereum account",
                         "schema": {
                             "$ref": "#/definitions/types.Eth1AccountResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/import": {
+            "post": {
+                "description": "Import an ECDSA Secp256k1 key representing an ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Import ethereum account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target Store Name",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create ethereum account request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ImportEth1AccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created ethereum account",
+                        "schema": {
+                            "$ref": "#/definitions/types.Eth1AccountResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{address}": {
+            "patch": {
+                "description": "Update ethereum account metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update ethereum account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target Store Name",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address to update",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update ethereum account metadata request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateEth1AccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Update ethereum account",
+                        "schema": {
+                            "$ref": "#/definitions/types.Eth1AccountResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{address}/sign": {
+            "patch": {
+                "description": "Sign random hex payload with stored ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Sign payload with ethereum account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target Store Name",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address to update",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sign payload request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.SignHexPayloadRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Signed payload data",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -119,6 +247,53 @@
                 "updatedAt": {
                     "type": "string",
                     "example": "2020-07-09T12:35:42.115395Z"
+                }
+            }
+        },
+        "types.ImportEth1AccountRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "privateKey"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "my-imported-account"
+                },
+                "privateKey": {
+                    "type": "string",
+                    "example": "56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "types.SignHexPayloadRequest": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "description": "required to be hex value",
+                    "type": "string",
+                    "example": "0xfeee"
+                }
+            }
+        },
+        "types.UpdateEth1AccountRequest": {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         }
