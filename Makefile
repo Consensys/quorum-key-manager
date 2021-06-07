@@ -116,9 +116,9 @@ check-swagger:
 	@which swagger || make install-swagger
 
 gen-swagger:
-	@GO111MODULE=off swag init -d ./src -o ./docs  -g ../docs/api.go 
+	@GO111MODULE=off swag init -d ./src -o ./public/docs  -g docs.go 
 
 serve-swagger: gen-swagger
-	@swagger serve -F=swagger ./docs/swagger.json
+	@swagger serve -F=swagger ./public/docs/swagger.json
 
 tools: lint-tools install-swag install-swagger

@@ -11,28 +11,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores"
 )
 
-// Quorum Key manager
-//
-// Documentation of our HTTP API.
-//
-//     Schemes: http
-//     BasePath: /
-//     Version: 1.0.0
-//
-//     Consumes:
-//     - application/json
-//
-//     Produces:
-//     - application/json
-//
-//     Security:
-//     - basic
-//
-//    SecurityDefinitions:
-//    basic:
-//      type: basic
-//
-// swagger:meta
+
 type Config struct {
 	HTTP      *server.Config
 	Logger    *log.Config

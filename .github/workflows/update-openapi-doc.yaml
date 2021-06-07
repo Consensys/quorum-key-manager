@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - 70-openapi
     tags:
       - 'v*'
 
@@ -37,7 +36,7 @@ jobs:
       - name: Update version list and copy spec files
         uses: ./.github/actions/update-api-doc
         with:
-          specs-source: ./docs/swagger.json
+          specs-source: ./public/docs/swagger.json
           gh-pages-branch: ${{ env.GHPAGES_DIR }}
 
       - name: Log generated changes
@@ -49,7 +48,7 @@ jobs:
           cat ${{ env.GHPAGES_DIR }}/versions.json
           echo "::endgroup::"
           echo "::group::yaml-spec"
-          cat ${{ env.GHPAGES_DIR }}/keymanager-api.latest.json
+          cat ${{ env.GHPAGES_DIR }}/key-manager-api.latest.json
           echo "::endgroup::"
 
       - name: Deploy changes to gh-pages

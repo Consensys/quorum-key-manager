@@ -19,7 +19,7 @@ inputs:
   spec-target-prefix:
     description: 'target spec file prefix'
     required: true
-    default: 'keymanager-api'
+    default: 'key-manager-api'
 runs:
   using: 'node12'
   main: 'index.js'
