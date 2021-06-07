@@ -80,7 +80,7 @@
       // or a default version (first one in list) if no matching version.
       function getSpecPath(version){
         let spec = (version in versions) ? versions[version].spec : versions[Object.keys(versions)[0]].spec;
-        return `keymanager-api.${spec}.json`;
+        return `key-manager-api.${spec}.json`;
       }
 
       // is the version passed as param the one displayed according to the url
