@@ -28,6 +28,7 @@ type KmsClient interface {
 	GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error)
 	ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error)
 	ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error)
+	ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, error)
 	/*UpdateKey(ctx context.Context, input *kms.UpdateCustomKeyStoreInput, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
 	GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
 	GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error)

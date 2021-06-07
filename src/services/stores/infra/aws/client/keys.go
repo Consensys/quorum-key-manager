@@ -10,6 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 )
 
+const (
+	aliasPrefix = "alias/"
+)
+
 func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, error) {
 	// Always create with same usage for key now (sign & verify)
 	keyUsage := kms.KeyUsageTypeSignVerify
@@ -23,6 +27,16 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.A
 		CustomerMasterKeySpec: &keySpec,
 		KeyUsage:              &keyUsage,
 		Tags:                  extractAWSTags(attr),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	aliasName := aliasPrefix + id
+	_, err = c.client.CreateAlias(&kms.CreateAliasInput{
+		AliasName:   &aliasName,
+		TargetKeyId: outKey.KeyMetadata.KeyId,
 	})
 
 	if err != nil {
@@ -55,6 +69,14 @@ func (c *AwsKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.Li
 		input.Marker = &marker
 	}
 	return c.client.ListResourceTags(input)
+}
+
+func (c *AwsKmsClient) ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, error) {
+	input := &kms.ListAliasesInput{KeyId: &id}
+	if len(marker) > 0 {
+		input.Marker = &marker
+	}
+	return c.client.ListAliases(input)
 }
 
 // ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
@@ -118,7 +140,8 @@ func convertToAWSKeyType(alg *entities.Algorithm) (string, error) {
 func extractAWSTags(attr *entities.Attributes) []*kms.Tag {
 	// populate tags
 	var keyTags []*kms.Tag
-	for k, v := range attr.Tags {
+	for key, value := range attr.Tags {
+		k, v := key, value
 		keyTag := kms.Tag{TagKey: &k, TagValue: &v}
 		keyTags = append(keyTags, &keyTag)
 	}

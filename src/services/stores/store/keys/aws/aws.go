@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
@@ -38,7 +39,7 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorit
 		return nil, err
 	}
 
-	publicKeyOut, err := ks.client.GetPublicKey(ctx, id)
+	publicKeyOut, err := ks.client.GetPublicKey(ctx, *key.KeyMetadata.KeyId)
 	if err != nil {
 		logger.WithError(err).Error("failed to retrieve pub key info")
 		return nil, err
@@ -50,13 +51,8 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorit
 		ID:        *key.KeyMetadata.KeyId,
 		PublicKey: publicKeyOut.PublicKey,
 		Algo:      algo,
-		Metadata: &entities.Metadata{
-
-			Disabled:  !*key.KeyMetadata.Enabled,
-			CreatedAt: *key.KeyMetadata.CreationDate,
-			DeletedAt: *key.KeyMetadata.DeletionDate,
-		},
-		Tags: nil,
+		Metadata:  metadataFromAWSKey(key),
+		Tags:      nil,
 	}
 	logger.Info("key created successfully")
 	return outKey, nil
@@ -85,7 +81,7 @@ func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	tags := make(map[string]string)
 	nextMarker := ""
 	for {
-		ret, err := ks.client.ListTags(ctx, id, nextMarker)
+		ret, err := ks.client.ListTags(ctx, *outGetKey.KeyId, nextMarker)
 		if err != nil {
 			logger.WithError(err).Error("failed to list key tags")
 			return nil, err
@@ -99,6 +95,24 @@ func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 		}
 		nextMarker = *ret.NextMarker
 	}
+	// List aliases
+	aliasMarker := ""
+	for {
+		retAliases, err := ks.client.ListAliases(ctx, *outGetKey.KeyId, aliasMarker)
+		if err != nil {
+			logger.WithError(err).Error("failed to list key tags")
+			return nil, err
+		}
+
+		for idx, alias := range retAliases.Aliases {
+			tags[fmt.Sprintf("alias%d", idx)] = *alias.AliasName
+		}
+		if !*retAliases.Truncated {
+			break
+		}
+		aliasMarker = *retAliases.NextMarker
+	}
+
 	logger.Info("successfully got key info")
 	return retKey, nil
 }

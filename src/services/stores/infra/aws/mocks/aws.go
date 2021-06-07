@@ -240,6 +240,21 @@ func (mr *MockKmsClientMockRecorder) GetPublicKey(ctx, name interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockKmsClient)(nil).GetPublicKey), ctx, name)
 }
 
+// ListAliases mocks base method.
+func (m *MockKmsClient) ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAliases", ctx, id, marker)
+	ret0, _ := ret[0].(*kms.ListAliasesOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAliases indicates an expected call of ListAliases.
+func (mr *MockKmsClientMockRecorder) ListAliases(ctx, id, marker interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAliases", reflect.TypeOf((*MockKmsClient)(nil).ListAliases), ctx, id, marker)
+}
+
 // ListKeys mocks base method.
 func (m *MockKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
 	m.ctrl.T.Helper()
