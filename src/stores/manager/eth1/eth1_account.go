@@ -3,6 +3,7 @@ package eth1
 import (
 	"context"
 	"fmt"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
@@ -28,20 +29,20 @@ func NewEth1(ctx context.Context, specs *Specs, logger *log.Logger) (*eth1.Store
 	switch specs.Keystore {
 	case types.HashicorpKeys:
 		spec := &hashicorp.KeySpecs{}
-		if err := manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
+		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			logger.WithError(err).Error("failed to unmarshal Hashicorp keystore specs")
 			return nil, err
 		}
 		keyStore, err = hashicorp.NewKeyStore(spec, logger)
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
-		if err := manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
+		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			logger.WithError(err).Error("failed to unmarshal AKV keystore specs")
 			return nil, err
 		}
 		keyStore, err = akv.NewKeyStore(spec, logger)
 	default:
-		err := fmt.Errorf("invalid keystore kind %s", specs.Keystore)
+		err = fmt.Errorf("invalid keystore kind %s", specs.Keystore)
 		logger.WithError(err).Error()
 		return nil, err
 	}
