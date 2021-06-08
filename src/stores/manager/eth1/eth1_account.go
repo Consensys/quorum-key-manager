@@ -3,6 +3,7 @@ package eth1
 import (
 	"context"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
@@ -73,11 +74,15 @@ func InitDB(ctx context.Context, keyStore keys.Store, db database.ETH1Accounts) 
 		}
 
 		err = db.Add(ctx, eth1.ParseKey(key))
+		if err != nil && errors.IsAlreadyExistsError(err) {
+			continue
+		}
 		if err != nil {
 			return err
 		}
 	}
 
+	/* TODO: Uncomment when implemented in all stores
 	deletedIDs, err := keyStore.ListDeleted(ctx)
 	if err != nil {
 		return err
@@ -94,6 +99,8 @@ func InitDB(ctx context.Context, keyStore keys.Store, db database.ETH1Accounts) 
 			return err
 		}
 	}
+
+	*/
 
 	return nil
 }

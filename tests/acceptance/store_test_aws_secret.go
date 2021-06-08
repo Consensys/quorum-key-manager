@@ -98,9 +98,9 @@ func (s *awsSecretTestSuite) TestList() {
 	err = s.store.Destroy(ctx, id2)
 	require.NoError(s.T(), err)
 
-	// 100 with random IDs ID
-	randomIDs := make([]string, 100)
-	randomValues := make([]string, 100)
+	// 20 with random IDs ID
+	randomIDs := make([]string, 20)
+	randomValues := make([]string, 20)
 
 	for i := 0; i < len(randomIDs); i++ {
 		randomIDs[i] = fmt.Sprintf("randomID%d", common.RandInt(100000))
