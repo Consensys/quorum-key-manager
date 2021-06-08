@@ -25,23 +25,6 @@ func NewSecretsClient(cfg *Config) (*AwsSecretsClient, error) {
 	return &AwsSecretsClient{*client}, nil
 }
 
-func NewSecretsClientWithEndpoint(cfg *Config) (*AwsSecretsClient, error) {
-	// Create a new newSession
-	newSession, _ := session.NewSession()
-	// Create a Secrets Manager client
-	config := aws.NewConfig().
-		WithRegion(cfg.Region).
-		WithEndpoint(cfg.Endpoint)
-
-	if isDebugOn() {
-		config.WithLogLevel(aws.LogDebug)
-	}
-	client := secretsmanager.New(newSession, config)
-
-	return &AwsSecretsClient{*client}, nil
-
-}
-
 func NewKmsClient(cfg *Config) (*AwsKmsClient, error) {
 	// Create a new newSession
 	newSession, _ := session.NewSession()
@@ -50,21 +33,4 @@ func NewKmsClient(cfg *Config) (*AwsKmsClient, error) {
 		aws.NewConfig().WithRegion(cfg.Region).WithLogLevel(aws.LogDebug))
 
 	return &AwsKmsClient{*client}, nil
-}
-
-func NewKmsClientWithEndpoint(cfg *Config) (*AwsKmsClient, error) {
-	// Create a new newSession
-	newSession, _ := session.NewSession()
-	// Create a Secrets Manager client
-	config := aws.NewConfig().
-		WithRegion(cfg.Region).
-		WithEndpoint(cfg.Endpoint)
-
-	if isDebugOn() {
-		config.WithLogLevel(aws.LogDebug)
-	}
-	client := kms.New(newSession, config)
-
-	return &AwsKmsClient{*client}, nil
-
 }
