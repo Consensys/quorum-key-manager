@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
 )
 
@@ -25,6 +27,7 @@ type LocalManager struct {
 
 	loaded chan struct{}
 	err    error
+	logger *log.Logger
 }
 
 func NewLocalManager(cfg *Config) (*LocalManager, error) {
@@ -34,6 +37,7 @@ func NewLocalManager(cfg *Config) (*LocalManager, error) {
 			path:   cfg.Path,
 			loaded: make(chan struct{}),
 			isDir:  fs.IsDir(),
+			logger: log.DefaultLogger().SetComponent("manifest-loader"),
 		}, nil
 	}
 
@@ -50,6 +54,7 @@ type subscription struct {
 	errors   chan error
 	stop     chan struct{}
 	done     chan struct{}
+	logger   *log.Logger
 }
 
 func (sub *subscription) Unsubscribe() error {
@@ -64,6 +69,11 @@ func (sub *subscription) Error() <-chan error { return sub.errors }
 func (sub *subscription) inbox(msgs []Message) {
 	var submsgs []Message
 	for _, msg := range msgs {
+		if msg.Err != nil {
+			sub.logger.WithError(msg.Err).Error("failed to load manifest")
+			continue
+		}
+
 		if sub.kinds == nil {
 			submsgs = append(submsgs, msg)
 			continue
@@ -83,6 +93,7 @@ func (ll *LocalManager) Subscribe(kinds []manifest.Kind, messages chan<- []Messa
 		errors:   make(chan error, 1),
 		stop:     make(chan struct{}),
 		done:     make(chan struct{}),
+		logger:   ll.logger,
 	}
 
 	if kinds != nil {
@@ -112,27 +123,28 @@ func (ll *LocalManager) processSub(sub *subscription) {
 }
 
 func (ll *LocalManager) load() error {
-	if ll.isDir {
-		return filepath.Walk(ll.path, func(fp string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
+	ll.logger.WithField("path", ll.path).WithField("isDir", ll.isDir).Debug("reading manifest items")
 
-			if info.IsDir() {
-				return nil
-			}
-
-			if filepath.Ext(fp) == ".yml" || filepath.Ext(fp) == ".yaml" {
-				ll.msgs = append(ll.msgs, ll.buildMessages(fp)...)
-			}
-
-			return nil
-		})
+	if !ll.isDir {
+		ll.msgs = append(ll.msgs, ll.buildMessages(ll.path)...)
+		return nil
 	}
 
-	ll.msgs = append(ll.msgs, ll.buildMessages(ll.path)...)
+	return filepath.Walk(ll.path, func(fp string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	return nil
+		if info.IsDir() {
+			return nil
+		}
+
+		if filepath.Ext(fp) == ".yml" || filepath.Ext(fp) == ".yaml" {
+			ll.msgs = append(ll.msgs, ll.buildMessages(fp)...)
+		}
+
+		return nil
+	})
 }
 
 func (ll *LocalManager) Start(context.Context) error {
@@ -142,42 +154,45 @@ func (ll *LocalManager) Start(context.Context) error {
 }
 
 func (ll *LocalManager) buildMessages(fp string) []Message {
+	val := validator.New()
 	data, err := ioutil.ReadFile(fp)
 	if err != nil {
-		return []Message{{
-			Loader: ManagerID,
-			Action: CreateAction,
-			Err:    err,
-		}}
+		return []Message{newCreateActionMsg(nil, err)}
 	}
 
 	mnf := &manifest.Manifest{}
 	if err = yaml.Unmarshal(data, mnf); err == nil {
-		return []Message{{
-			Loader:   ManagerID,
-			Action:   CreateAction,
-			Manifest: mnf,
-		}}
+		if err2 := val.Struct(mnf); err2 != nil {
+			return []Message{newCreateActionMsg(nil, err2)}
+		}
+
+		return []Message{newCreateActionMsg(mnf, nil)}
 	}
 
 	mnfs := []*manifest.Manifest{}
-	if err = yaml.Unmarshal(data, &mnfs); err == nil {
-		msgs := []Message{}
-		for _, mnf := range mnfs {
-			msgs = append(msgs, Message{
-				Loader:   ManagerID,
-				Action:   CreateAction,
-				Manifest: mnf,
-			})
-		}
-		return msgs
+	if err = yaml.Unmarshal(data, &mnfs); err != nil {
+		return []Message{newCreateActionMsg(nil, err)}
 	}
 
-	return []Message{{
-		Loader: ManagerID,
-		Action: CreateAction,
-		Err:    err,
-	}}
+	msgs := []Message{}
+	for _, mnf := range mnfs {
+		if err := val.Struct(mnf); err != nil {
+			msgs = append(msgs, newCreateActionMsg(nil, err))
+		} else {
+			msgs = append(msgs, newCreateActionMsg(mnf, nil))
+		}
+	}
+
+	return msgs
+}
+
+func newCreateActionMsg(mnf *manifest.Manifest, err error) Message {
+	return Message{
+		Loader:   ManagerID,
+		Action:   CreateAction,
+		Manifest: mnf,
+		Err:      err,
+	}
 }
 
 func (ll *LocalManager) Stop(context.Context) error { return nil }
