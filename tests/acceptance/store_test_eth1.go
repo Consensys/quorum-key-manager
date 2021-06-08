@@ -3,15 +3,15 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
+	formatters2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
+	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	eth12 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
 	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/eth1"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -24,7 +24,7 @@ import (
 type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store eth1.Store
+	store eth12.Store
 }
 
 func (s *eth1TestSuite) TearDownSuite() {
@@ -48,11 +48,11 @@ func (s *eth1TestSuite) TearDownSuite() {
 
 func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
-	tags := testutils.FakeTags()
+	tags := testutils2.FakeTags()
 
 	s.Run("should create a new ethereum account successfully", func() {
 		id := s.newID("my-account-create")
-		account, err := s.store.Create(ctx, id, &entities.Attributes{
+		account, err := s.store.Create(ctx, id, &entities2.Attributes{
 			Tags: tags,
 		})
 		require.NoError(s.T(), err)
@@ -75,13 +75,13 @@ func (s *eth1TestSuite) TestCreate() {
 
 func (s *eth1TestSuite) TestImport() {
 	ctx := s.env.ctx
-	tags := testutils.FakeTags()
+	tags := testutils2.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
 	s.Run("should create a new ethereum account successfully", func() {
 		id := s.newID("my-account-import")
 
-		account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+		account, err := s.store.Import(ctx, id, privKey, &entities2.Attributes{
 			Tags: tags,
 		})
 		require.NoError(s.T(), err)
@@ -102,7 +102,7 @@ func (s *eth1TestSuite) TestImport() {
 	})
 
 	s.Run("should fail with AlreadyExistsError if the account already exists (same address)", func() {
-		account, err := s.store.Import(ctx, "my-account", privKey, &entities.Attributes{
+		account, err := s.store.Import(ctx, "my-account", privKey, &entities2.Attributes{
 			Tags: tags,
 		})
 
@@ -111,7 +111,7 @@ func (s *eth1TestSuite) TestImport() {
 	})
 
 	s.Run("should fail with InvalidParameterError if private key is invalid", func() {
-		account, err := s.store.Import(ctx, "my-account", []byte("invalidPrivKey"), &entities.Attributes{
+		account, err := s.store.Import(ctx, "my-account", []byte("invalidPrivKey"), &entities2.Attributes{
 			Tags: tags,
 		})
 
@@ -123,9 +123,9 @@ func (s *eth1TestSuite) TestImport() {
 func (s *eth1TestSuite) TestGet() {
 	ctx := s.env.ctx
 	id := s.newID("my-account-get")
-	tags := testutils.FakeTags()
+	tags := testutils2.FakeTags()
 
-	account, err := s.store.Create(ctx, id, &entities.Attributes{
+	account, err := s.store.Create(ctx, id, &entities2.Attributes{
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
@@ -158,16 +158,16 @@ func (s *eth1TestSuite) TestGet() {
 
 func (s *eth1TestSuite) TestList() {
 	ctx := s.env.ctx
-	tags := testutils.FakeTags()
+	tags := testutils2.FakeTags()
 	id := s.newID("my-account-list")
 	id2 := s.newID("my-account-list")
 
-	account1, err := s.store.Create(ctx, id, &entities.Attributes{
+	account1, err := s.store.Create(ctx, id, &entities2.Attributes{
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
 
-	account2, err := s.store.Create(ctx, id2, &entities.Attributes{
+	account2, err := s.store.Create(ctx, id2, &entities2.Attributes{
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
@@ -187,8 +187,8 @@ func (s *eth1TestSuite) TestSignVerify() {
 	id := s.newID("my-account-sign")
 	privKey, _ := hex.DecodeString(privKeyECDSA2)
 
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
-		Tags: testutils.FakeTags(),
+	account, err := s.store.Import(ctx, id, privKey, &entities2.Attributes{
+		Tags: testutils2.FakeTags(),
 	})
 	require.NoError(s.T(), err)
 
@@ -235,8 +235,8 @@ func (s *eth1TestSuite) TestSignTransaction() {
 		nil,
 	)
 
-	account, err := s.store.Create(ctx, id, &entities.Attributes{
-		Tags: testutils.FakeTags(),
+	account, err := s.store.Create(ctx, id, &entities2.Attributes{
+		Tags: testutils2.FakeTags(),
 	})
 	require.NoError(s.T(), err)
 
@@ -265,8 +265,8 @@ func (s *eth1TestSuite) TestSignPrivate() {
 		nil,
 	)
 
-	account, err := s.store.Create(ctx, id, &entities.Attributes{
-		Tags: testutils.FakeTags(),
+	account, err := s.store.Create(ctx, id, &entities2.Attributes{
+		Tags: testutils2.FakeTags(),
 	})
 	require.NoError(s.T(), err)
 
@@ -297,15 +297,15 @@ func (s *eth1TestSuite) TestSignEEA() {
 	)
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
-	privateType := formatters.PrivateTxTypeRestricted
+	privateType := formatters2.PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom: &privateFrom,
 		PrivateFor:  &privateFor,
 		PrivateType: &privateType,
 	}
 
-	account, err := s.store.Create(ctx, id, &entities.Attributes{
-		Tags: testutils.FakeTags(),
+	account, err := s.store.Create(ctx, id, &entities2.Attributes{
+		Tags: testutils2.FakeTags(),
 	})
 	require.NoError(s.T(), err)
 

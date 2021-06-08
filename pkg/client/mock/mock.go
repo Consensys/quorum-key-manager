@@ -7,7 +7,7 @@ package mock
 import (
 	context "context"
 	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	types "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -36,10 +36,10 @@ func (m *MockSecretsClient) EXPECT() *MockSecretsClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockSecretsClient) SetSecret(ctx context.Context, storeName string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) SetSecret(ctx context.Context, storeName string, request *types2.SetSecretRequest) (*types2.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types2.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +51,10 @@ func (mr *MockSecretsClientMockRecorder) SetSecret(ctx, storeName, request inter
 }
 
 // GetSecret mocks base method
-func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, version string) (*types2.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types2.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -104,10 +104,10 @@ func (m *MockKeysClient) EXPECT() *MockKeysClientMockRecorder {
 }
 
 // CreateKey mocks base method
-func (m *MockKeysClient) CreateKey(ctx context.Context, storeName string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeysClient) CreateKey(ctx context.Context, storeName string, request *types2.CreateKeyRequest) (*types2.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types2.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -119,10 +119,10 @@ func (mr *MockKeysClientMockRecorder) CreateKey(ctx, storeName, request interfac
 }
 
 // ImportKey mocks base method
-func (m *MockKeysClient) ImportKey(ctx context.Context, storeName string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeysClient) ImportKey(ctx context.Context, storeName string, request *types2.ImportKeyRequest) (*types2.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types2.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -134,7 +134,7 @@ func (mr *MockKeysClientMockRecorder) ImportKey(ctx, storeName, request interfac
 }
 
 // Sign mocks base method
-func (m *MockKeysClient) Sign(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error) {
+func (m *MockKeysClient) Sign(ctx context.Context, storeName, id string, request *types2.SignBase64PayloadRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", ctx, storeName, id, request)
 	ret0, _ := ret[0].(string)
@@ -149,10 +149,10 @@ func (mr *MockKeysClientMockRecorder) Sign(ctx, storeName, id, request interface
 }
 
 // GetKey mocks base method
-func (m *MockKeysClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+func (m *MockKeysClient) GetKey(ctx context.Context, storeName, id string) (*types2.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types2.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -216,10 +216,10 @@ func (m *MockEth1Client) EXPECT() *MockEth1ClientMockRecorder {
 }
 
 // CreateAccount mocks base method
-func (m *MockEth1Client) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+func (m *MockEth1Client) CreateAccount(ctx context.Context, storeName string, request *types2.CreateEth1AccountRequest) (*types2.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.Eth1AccountResponse)
+	ret0, _ := ret[0].(*types2.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -297,10 +297,10 @@ func (m *MockKeyManagerClient) EXPECT() *MockKeyManagerClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockKeyManagerClient) SetSecret(ctx context.Context, storeName string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) SetSecret(ctx context.Context, storeName string, request *types2.SetSecretRequest) (*types2.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types2.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -312,10 +312,10 @@ func (mr *MockKeyManagerClientMockRecorder) SetSecret(ctx, storeName, request in
 }
 
 // GetSecret mocks base method
-func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, version string) (*types2.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types2.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -342,10 +342,10 @@ func (mr *MockKeyManagerClientMockRecorder) ListSecrets(ctx, storeName interface
 }
 
 // CreateKey mocks base method
-func (m *MockKeyManagerClient) CreateKey(ctx context.Context, storeName string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) CreateKey(ctx context.Context, storeName string, request *types2.CreateKeyRequest) (*types2.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types2.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -357,10 +357,10 @@ func (mr *MockKeyManagerClientMockRecorder) CreateKey(ctx, storeName, request in
 }
 
 // ImportKey mocks base method
-func (m *MockKeyManagerClient) ImportKey(ctx context.Context, storeName string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) ImportKey(ctx context.Context, storeName string, request *types2.ImportKeyRequest) (*types2.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types2.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -372,7 +372,7 @@ func (mr *MockKeyManagerClientMockRecorder) ImportKey(ctx, storeName, request in
 }
 
 // Sign mocks base method
-func (m *MockKeyManagerClient) Sign(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error) {
+func (m *MockKeyManagerClient) Sign(ctx context.Context, storeName, id string, request *types2.SignBase64PayloadRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", ctx, storeName, id, request)
 	ret0, _ := ret[0].(string)
@@ -387,10 +387,10 @@ func (mr *MockKeyManagerClientMockRecorder) Sign(ctx, storeName, id, request int
 }
 
 // GetKey mocks base method
-func (m *MockKeyManagerClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) GetKey(ctx context.Context, storeName, id string) (*types2.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types2.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -431,10 +431,10 @@ func (mr *MockKeyManagerClientMockRecorder) DestroyKey(ctx, storeName, id interf
 }
 
 // CreateAccount mocks base method
-func (m *MockKeyManagerClient) CreateAccount(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+func (m *MockKeyManagerClient) CreateAccount(ctx context.Context, storeName string, request *types2.CreateEth1AccountRequest) (*types2.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.Eth1AccountResponse)
+	ret0, _ := ret[0].(*types2.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

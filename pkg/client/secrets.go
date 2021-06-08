@@ -3,14 +3,13 @@ package client
 import (
 	"context"
 	"fmt"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
+	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 )
 
 const secretsPath = "secrets"
 
-func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types.SetSecretRequest) (*types.SecretResponse, error) {
-	secret := &types.SecretResponse{}
+func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types2.SetSecretRequest) (*types2.SecretResponse, error) {
+	secret := &types2.SecretResponse{}
 	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), secretsPath)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
@@ -26,8 +25,8 @@ func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types
 	return secret, nil
 }
 
-func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
-	secret := &types.SecretResponse{}
+func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version string) (*types2.SecretResponse, error) {
+	secret := &types2.SecretResponse{}
 	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), secretsPath, id)
 
 	if version != "" {

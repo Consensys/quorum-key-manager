@@ -1,7 +1,7 @@
 package json
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
+	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
 )
@@ -21,7 +21,7 @@ func isHexAddress(fl validator.FieldLevel) bool {
 func isCurve(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case string(entities.Secp256k1), string(entities.Bn254):
+		case string(entities2.Secp256k1), string(entities2.Bn254):
 			return true
 		default:
 			return false
@@ -34,7 +34,7 @@ func isCurve(fl validator.FieldLevel) bool {
 func isSigningAlgorithm(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case string(entities.Ecdsa), string(entities.Eddsa):
+		case string(entities2.Ecdsa), string(entities2.Eddsa):
 			return true
 		default:
 			return false

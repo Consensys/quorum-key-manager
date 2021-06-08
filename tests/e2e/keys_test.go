@@ -6,13 +6,13 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
@@ -65,7 +65,7 @@ func TestKeyManagerKeys(t *testing.T) {
 
 func (s *keysTestSuite) TestCreate() {
 	s.Run("should create a new key successfully: Secp256k1/ECDSA", func() {
-		request := &types.CreateKeyRequest{
+		request := &types2.CreateKeyRequest{
 			ID:               "my-key-ecdsa",
 			Curve:            "secp256k1",
 			SigningAlgorithm: "ecdsa",
@@ -93,7 +93,7 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should create a new key successfully: BN254/EDDSA", func() {
-		request := &types.CreateKeyRequest{
+		request := &types2.CreateKeyRequest{
 			ID:               "my-key-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
@@ -121,7 +121,7 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should parse errors successfully", func() {
-		request := &types.CreateKeyRequest{
+		request := &types2.CreateKeyRequest{
 			ID:               "my-key",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
@@ -139,7 +139,7 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with bad request if curve is not supported", func() {
-		request := &types.CreateKeyRequest{
+		request := &types2.CreateKeyRequest{
 			ID:               "my-key",
 			Curve:            "invalidCurve",
 			SigningAlgorithm: "eddsa",
@@ -157,7 +157,7 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with bad request if signing algorithm is not supported", func() {
-		request := &types.CreateKeyRequest{
+		request := &types2.CreateKeyRequest{
 			ID:               "my-key",
 			Curve:            "secp256k1",
 			SigningAlgorithm: "invalidSigningAlgorithm",
@@ -177,7 +177,7 @@ func (s *keysTestSuite) TestCreate() {
 
 func (s *keysTestSuite) TestImport() {
 	s.Run("should create a new key successfully: Secp256k1/ECDSA", func() {
-		request := &types.ImportKeyRequest{
+		request := &types2.ImportKeyRequest{
 			ID:               "my-key-import-ecdsa",
 			Curve:            "secp256k1",
 			PrivateKey:       ecdsaPrivKey,
@@ -206,7 +206,7 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.Run("should create a new key successfully: BN254/EDDSA", func() {
-		request := &types.ImportKeyRequest{
+		request := &types2.ImportKeyRequest{
 			ID:               "my-key-import-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
@@ -235,7 +235,7 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.Run("should fail with bad request if curve is not supported", func() {
-		request := &types.ImportKeyRequest{
+		request := &types2.ImportKeyRequest{
 			ID:               "my-key-import",
 			Curve:            "invalidCurve",
 			SigningAlgorithm: "eddsa",
@@ -254,7 +254,7 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.Run("should fail with bad request if signing algorithm is not supported", func() {
-		request := &types.ImportKeyRequest{
+		request := &types2.ImportKeyRequest{
 			ID:               "my-key-import",
 			Curve:            "secp256k1",
 			SigningAlgorithm: "invalidSigningAlgorithm",
@@ -274,7 +274,7 @@ func (s *keysTestSuite) TestImport() {
 }
 
 func (s *keysTestSuite) TestGet() {
-	request := &types.ImportKeyRequest{
+	request := &types2.ImportKeyRequest{
 		ID:               "my-key-get",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -306,7 +306,7 @@ func (s *keysTestSuite) TestGet() {
 }
 
 func (s *keysTestSuite) TestList() {
-	request := &types.ImportKeyRequest{
+	request := &types2.ImportKeyRequest{
 		ID:               "my-key-list",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -343,7 +343,7 @@ func (s *keysTestSuite) TestSign() {
 	payload := base64.URLEncoding.EncodeToString(data)
 
 	s.Run("should sign a new payload successfully: Secp256k1/ECDSA", func() {
-		request := &types.ImportKeyRequest{
+		request := &types2.ImportKeyRequest{
 			ID:               "my-key-sign-ecdsa",
 			Curve:            "secp256k1",
 			PrivateKey:       ecdsaPrivKey,
@@ -353,7 +353,7 @@ func (s *keysTestSuite) TestSign() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(s.T(), err)
 
-		requestSign := &types.SignBase64PayloadRequest{
+		requestSign := &types2.SignBase64PayloadRequest{
 			Data: hashedPayload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
@@ -364,7 +364,7 @@ func (s *keysTestSuite) TestSign() {
 	})
 
 	s.Run("should sign a new payload successfully: BN254/EDDSA", func() {
-		request := &types.ImportKeyRequest{
+		request := &types2.ImportKeyRequest{
 			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
@@ -373,7 +373,7 @@ func (s *keysTestSuite) TestSign() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(s.T(), err)
 
-		requestSign := &types.SignBase64PayloadRequest{
+		requestSign := &types2.SignBase64PayloadRequest{
 			Data: payload,
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
@@ -383,7 +383,7 @@ func (s *keysTestSuite) TestSign() {
 	})
 
 	s.Run("should fail if payload is not base64 string", func() {
-		request := &types.ImportKeyRequest{
+		request := &types2.ImportKeyRequest{
 			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
@@ -392,7 +392,7 @@ func (s *keysTestSuite) TestSign() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(s.T(), err)
 
-		requestSign := &types.SignBase64PayloadRequest{
+		requestSign := &types2.SignBase64PayloadRequest{
 			Data: "my data to sign not in base64 format",
 		}
 		signature, err := s.keyManagerClient.Sign(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)

@@ -3,6 +3,15 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
+	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/client"
+	client2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/client"
+	hashicorp3 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
+	client3 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/client"
+	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/hashicorp"
+	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/types"
 	"io/ioutil"
 	"os"
 	"time"
@@ -12,15 +21,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
-	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/manager"
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
-	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv"
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/akv/client"
-	awsclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws/client"
-	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/hashicorp"
-	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/hashicorp/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
@@ -46,10 +46,10 @@ const (
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            *log.Logger
-	hashicorpClient   hashicorp2.VaultClient
-	awsSecretsClient  *awsclient.AwsSecretsClient
-	awsKmsClient      *awsclient.AwsKmsClient
-	akvClient         akv2.Client
+	hashicorpClient   hashicorp3.VaultClient
+	awsSecretsClient  *client2.AwsSecretsClient
+	awsKmsClient      *client2.AwsKmsClient
+	akvClient         akv.Client
 	dockerClient      *docker.Client
 	keyManager        *app.App
 	baseURL           string
@@ -127,30 +127,30 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	envHTTPPort := rand.IntnRange(20000, 28080)
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	tmpYml, err := newTmpManifestYml(&manifest.Manifest{
-		Kind: types.HashicorpSecrets,
+	tmpYml, err := newTmpManifestYml(&manifest2.Manifest{
+		Kind: types2.HashicorpSecrets,
 		Name: HashicorpSecretStoreName,
-		Specs: &hashicorp.SecretSpecs{
+		Specs: &hashicorp2.SecretSpecs{
 			Token:      hashicorpContainer.RootToken,
 			MountPoint: HashicorpSecretMountPoint,
 			Address:    hashicorpAddr,
 			Namespace:  "",
 		},
-	}, &manifest.Manifest{
-		Kind: types.HashicorpKeys,
+	}, &manifest2.Manifest{
+		Kind: types2.HashicorpKeys,
 		Name: HashicorpKeyStoreName,
-		Specs: &hashicorp.KeySpecs{
+		Specs: &hashicorp2.KeySpecs{
 			MountPoint: HashicorpKeyMountPoint,
 			Address:    hashicorpAddr,
 			TokenPath:  tmpTokenFile,
 			Namespace:  "",
 		},
-	}, &manifest.Manifest{
-		Kind:  types.AKVSecrets,
+	}, &manifest2.Manifest{
+		Kind:  types2.AKVSecrets,
 		Name:  AKVSecretStoreName,
 		Specs: testCfg.AkvSecretSpecs(),
-	}, &manifest.Manifest{
-		Kind:  types.AKVKeys,
+	}, &manifest2.Manifest{
+		Kind:  types2.AKVKeys,
 		Name:  AKVKeyStoreName,
 		Specs: testCfg.AkvKeySpecs(),
 	})
@@ -166,7 +166,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	httpConfig.Port = uint32(envHTTPPort)
 	keyManager, err := newKeyManager(&keymanager.Config{
 		HTTP:      httpConfig,
-		Manifests: &manifestsmanager.Config{Path: tmpYml},
+		Manifests: &manager.Config{Path: tmpYml},
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
@@ -174,15 +174,15 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	// Hashicorp client for direct integration tests
-	hashicorpCfg := hashicorpclient.NewConfig(hashicorpAddr, "")
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpCfg)
+	hashicorpCfg := client3.NewConfig(hashicorpAddr, "")
+	hashicorpClient, err := client3.NewClient(hashicorpCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
 	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 
-	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
+	akvClient, err := client.NewClient(client.NewConfig(
 		testCfg.AkvClient.VaultName,
 		testCfg.AkvClient.TenantID,
 		testCfg.AkvClient.ClientID,
@@ -194,8 +194,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	localstackAddr := fmt.Sprintf("http://%s:%s", localstackContainer.Host, localstackContainer.Port)
-	awsSecretsClient, err := awsclient.NewSecretsClient(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
-	awsKeysClient, err := awsclient.NewKmsClient(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
+	awsSecretsClient, err := client2.NewSecretsClient(client2.NewIntegrationConfig("eu-west-3", localstackAddr))
+	awsKeysClient, err := client2.NewKmsClient(client2.NewIntegrationConfig("eu-west-3", localstackAddr))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize aws client")
 		return nil, err
@@ -329,7 +329,7 @@ func newTmpFile(data interface{}) (string, error) {
 	return file.Name(), nil
 }
 
-func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
+func newTmpManifestYml(manifests ...*manifest2.Manifest) (string, error) {
 	file, err := ioutil.TempFile(os.TempDir(), "acceptanceTest_")
 	if err != nil {
 		return "", err

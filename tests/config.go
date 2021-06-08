@@ -3,9 +3,8 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/akv"
 	"os"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/manager/akv"
 )
 
 const envVar = "TEST_DATA"
@@ -40,8 +39,8 @@ func NewConfig() (*Config, error) {
 	return cfg, nil
 }
 
-func (c *Config) AkvSecretSpecs() *akv.SecretSpecs {
-	return &akv.SecretSpecs{
+func (c *Config) AkvSecretSpecs() *akv2.SecretSpecs {
+	return &akv2.SecretSpecs{
 		ClientID:     c.AkvClient.ClientID,
 		TenantID:     c.AkvClient.TenantID,
 		VaultName:    c.AkvClient.VaultName,
@@ -49,8 +48,8 @@ func (c *Config) AkvSecretSpecs() *akv.SecretSpecs {
 	}
 }
 
-func (c *Config) AkvKeySpecs() *akv.KeySpecs {
-	return &akv.KeySpecs{
+func (c *Config) AkvKeySpecs() *akv2.KeySpecs {
+	return &akv2.KeySpecs{
 		ClientID:     c.AkvClient.ClientID,
 		TenantID:     c.AkvClient.TenantID,
 		VaultName:    c.AkvClient.VaultName,

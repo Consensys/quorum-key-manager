@@ -3,9 +3,9 @@
 package acceptancetests
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
-	aws2 "github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/keys/aws"
+	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/aws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -17,7 +17,7 @@ import (
 type awsKeysTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store *aws2.KeyStore
+	store *aws.KeyStore
 }
 
 func (s *awsKeysTestSuite) TestSet() {
@@ -25,9 +25,9 @@ func (s *awsKeysTestSuite) TestSet() {
 
 	s.T().Run("should create a new key successfully", func(t *testing.T) {
 		name := "my-key"
-		tags := testutils.FakeTags()
+		tags := testutils2.FakeTags()
 
-		secret, err := s.store.Create(ctx, name, &entities.Algorithm{Type: entities.Ecdsa}, &entities.Attributes{
+		secret, err := s.store.Create(ctx, name, &entities2.Algorithm{Type: entities2.Ecdsa}, &entities2.Attributes{
 			Tags: tags,
 		})
 

@@ -2,12 +2,12 @@ package acceptancetests
 
 import (
 	"fmt"
+	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	secrets2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -16,7 +16,7 @@ import (
 type secretsTestSuite struct {
 	suite.Suite
 	env       *IntegrationEnvironment
-	store     secrets.Store
+	store     secrets2.Store
 	secretIDs []string
 }
 
@@ -42,9 +42,9 @@ func (s *secretsTestSuite) TestSet() {
 	s.Run("should create a new secret successfully", func() {
 		id := s.newID("my-secret")
 		value := "my-secret-value"
-		tags := testutils.FakeTags()
+		tags := testutils2.FakeTags()
 
-		secret, err := s.store.Set(ctx, id, value, &entities.Attributes{
+		secret, err := s.store.Set(ctx, id, value, &entities2.Attributes{
 			Tags: tags,
 		})
 
@@ -66,17 +66,17 @@ func (s *secretsTestSuite) TestSet() {
 		id := s.newID("my-secret-versioned")
 		value1 := "my-secret-value1"
 		value2 := "my-secret-value2"
-		tags1 := testutils.FakeTags()
+		tags1 := testutils2.FakeTags()
 		tags2 := map[string]string{
 			"tag1": "tagValue1",
 			"tag2": "tagValue2",
 		}
 
-		secret1, err := s.store.Set(ctx, id, value1, &entities.Attributes{
+		secret1, err := s.store.Set(ctx, id, value1, &entities2.Attributes{
 			Tags: tags1,
 		})
 
-		secret2, err := s.store.Set(ctx, id, value2, &entities.Attributes{
+		secret2, err := s.store.Set(ctx, id, value2, &entities2.Attributes{
 			Tags: tags2,
 		})
 
@@ -97,11 +97,11 @@ func (s *secretsTestSuite) TestList() {
 	value := "my-secret-value"
 
 	// 2 with same ID and 1 different
-	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
+	_, err := s.store.Set(ctx, id, value, &entities2.Attributes{})
 	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id, value, &entities.Attributes{})
+	_, err = s.store.Set(ctx, id, value, &entities2.Attributes{})
 	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
+	_, err = s.store.Set(ctx, id2, value, &entities2.Attributes{})
 	require.NoError(s.T(), err)
 
 	s.Run("should list all secrets ids successfully", func() {
@@ -118,10 +118,10 @@ func (s *secretsTestSuite) TestGet() {
 	value := "my-secret-value"
 
 	// 2 with same ID
-	secret1, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
+	secret1, setErr := s.store.Set(ctx, id, value, &entities2.Attributes{})
 	require.NoError(s.T(), setErr)
 	version1 := secret1.Metadata.Version
-	secret2, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
+	secret2, setErr := s.store.Set(ctx, id, value, &entities2.Attributes{})
 	require.NoError(s.T(), setErr)
 	version2 := secret2.Metadata.Version
 
