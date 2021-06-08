@@ -1,9 +1,10 @@
 package aws
 
 import (
+	"time"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"time"
 )
 
 func algoFromAWSPublicKeyInfo(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
@@ -42,5 +43,41 @@ func metadataFromAWSKey(createdKey *kms.CreateKeyOutput) *entities.Metadata {
 		CreatedAt: *createdAt,
 		DeletedAt: *deletedAt,
 	}
+}
 
+func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
+	// createdAt field always provided
+	createdAt := describedKey.KeyMetadata.CreationDate
+	deletedAt := &time.Time{}
+	if describedKey.KeyMetadata.DeletionDate != nil {
+		deletedAt = describedKey.KeyMetadata.DeletionDate
+	}
+	expireAt := &time.Time{}
+	if describedKey.KeyMetadata.ValidTo != nil {
+		expireAt = describedKey.KeyMetadata.ValidTo
+	}
+
+	return &entities.Metadata{
+		// Nothing equivalent to key version was found
+		Version:   "",
+		Disabled:  !*describedKey.KeyMetadata.Enabled,
+		ExpireAt:  *expireAt,
+		CreatedAt: *createdAt,
+		DeletedAt: *deletedAt,
+	}
+}
+
+func fillAwsTags(tags map[string]string, keyDesc *kms.DescribeKeyOutput) {
+	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
+		tags[awsCustomerKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
+	}
+	if keyDesc.KeyMetadata.CloudHsmClusterId != nil {
+		tags[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId
+	}
+	if keyDesc.KeyMetadata.AWSAccountId != nil {
+		tags[awsAccountID] = *keyDesc.KeyMetadata.AWSAccountId
+	}
+	if keyDesc.KeyMetadata.Arn != nil {
+		tags[awsARN] = *keyDesc.KeyMetadata.Arn
+	}
 }

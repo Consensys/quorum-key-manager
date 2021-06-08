@@ -196,12 +196,13 @@ func (m *MockKmsClient) EXPECT() *MockKmsClientMockRecorder {
 }
 
 // CreateKey mocks base method.
-func (m *MockKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, error) {
+func (m *MockKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, *string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, id, alg, attr)
 	ret0, _ := ret[0].(*kms.CreateKeyOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(*string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateKey indicates an expected call of CreateKey.
@@ -223,6 +224,21 @@ func (m *MockKmsClient) DeleteKey(ctx context.Context, id string) (*kms.DisableK
 func (mr *MockKmsClientMockRecorder) DeleteKey(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKey", reflect.TypeOf((*MockKmsClient)(nil).DeleteKey), ctx, id)
+}
+
+// DescribeKey mocks base method.
+func (m *MockKmsClient) DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeKey", ctx, id)
+	ret0, _ := ret[0].(*kms.DescribeKeyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeKey indicates an expected call of DescribeKey.
+func (mr *MockKmsClientMockRecorder) DescribeKey(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeKey", reflect.TypeOf((*MockKmsClient)(nil).DescribeKey), ctx, id)
 }
 
 // GetPublicKey mocks base method.

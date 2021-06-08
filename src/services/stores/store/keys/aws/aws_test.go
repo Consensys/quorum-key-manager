@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/infra/aws/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/services/stores/store/entities/testutils"
@@ -47,22 +50,31 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	algorithm := testutils.FakeAlgorithm()
 	creationDate := time.Now()
 	deletionDate := creationDate.AddDate(1, 0, 0)
+	expirationDate := deletionDate.AddDate(0, 1, 0)
+	randomID := common.RandHexString(32)
+	keyUsage := kms.KeyUsageTypeSignVerify
+	keysSpec := kms.CustomerMasterKeySpecEccSecgP256k1
 
 	retCreateKey := kms.CreateKeyOutput{
 		KeyMetadata: &kms.KeyMetadata{
 			CreationDate: &creationDate,
 			DeletionDate: &deletionDate,
 			Enabled:      aws.Bool(true),
-			KeyId:        aws.String("someId"),
+			KeyId:        aws.String(randomID),
+			ValidTo:      &expirationDate,
 		},
 	}
 
-	retGetPub := kms.GetPublicKeyOutput{}
+	retGetPub := kms.GetPublicKeyOutput{
+		KeyUsage:              &keyUsage,
+		CustomerMasterKeySpec: &keysSpec,
+	}
 
 	s.Run("should create a new key successfully", func() {
+		expectedID := id
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
-			Return(&retCreateKey, nil)
-		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), id).
+			Return(&retCreateKey, &expectedID, nil)
+		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), randomID).
 			Return(&retGetPub, nil)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
@@ -71,13 +83,15 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.DeletedAt)
 		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 
 	})
 
 	s.Run("should fail on CreateKey error", func() {
 		expectedErr := fmt.Errorf("error")
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
-			Return(nil, expectedErr)
+			Return(nil, nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
@@ -86,11 +100,11 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 
 	})
 
-	s.Run("should fail om GetPublicKey error", func() {
+	s.Run("should fail on GetPublicKey error", func() {
 		expectedErr := fmt.Errorf("error")
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
-			Return(&retCreateKey, nil)
-		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), id).
+			Return(&retCreateKey, &randomID, nil)
+		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), randomID).
 			Return(nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
@@ -105,6 +119,10 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 func (s *awsKeyStoreTestSuite) TestGet() {
 	ctx := context.Background()
 	myKeyID := "get_key_ID"
+	myArn := "my-key-arn"
+	myClusterHsmID := "my-cluster-hsm"
+	myAccountID := "my-account"
+	myCustomerKeyStoreID := "my-customer-KeyStore"
 	expectedPubKey := []byte("any value")
 	truncatedTagList := false
 
@@ -116,16 +134,54 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 		Tags:      ToKmsTags(testutils.FakeTags()),
 	}
 
+	retListAliases := &kms.ListAliasesOutput{
+		Aliases:   ToKmsAliasList("alias1"),
+		Truncated: aws.Bool(false),
+	}
+
+	retDescribeKey := &kms.DescribeKeyOutput{
+		KeyMetadata: &kms.KeyMetadata{
+			KeyId:             &myKeyID,
+			Arn:               &myArn,
+			Enabled:           aws.Bool(true),
+			CreationDate:      aws.Time(time.Now().AddDate(-1, 0, 0)),
+			DeletionDate:      aws.Time(time.Now().AddDate(1, 0, 0)),
+			ValidTo:           aws.Time(time.Now().AddDate(3, 0, 0)),
+			CloudHsmClusterId: &myClusterHsmID,
+			CustomKeyStoreId:  &myCustomerKeyStoreID,
+			AWSAccountId:      &myAccountID,
+		},
+	}
+
 	s.Run("should get a key successfully", func() {
 		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
 		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(retListTags, nil)
+		s.mockKmsClient.EXPECT().ListAliases(ctx, myKeyID, "").Return(retListAliases, nil)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, myKeyID).Return(retDescribeKey, nil)
 
 		key, err := s.keyStore.Get(ctx, myKeyID)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), key.PublicKey, expectedPubKey)
 		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
+		assert.Equal(s.T(), myArn, key.Tags[awsARN])
+		assert.Equal(s.T(), myAccountID, key.Tags[awsAccountID])
+		assert.Equal(s.T(), myCustomerKeyStoreID, key.Tags[awsCustomerKeyStoreID])
+		assert.Equal(s.T(), myClusterHsmID, key.Tags[awsCloudHsmClusterID])
 
+	})
+
+	s.Run("should fail when describeKey error", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
+		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(retListTags, nil)
+		s.mockKmsClient.EXPECT().ListAliases(ctx, myKeyID, "").Return(retListAliases, nil)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, myKeyID).Return(nil, expectedErr)
+
+		key, err := s.keyStore.Get(ctx, myKeyID)
+
+		assert.Error(s.T(), err)
+		assert.Nil(s.T(), key)
 	})
 
 	s.Run("should fail when listTags failed", func() {
@@ -279,4 +335,17 @@ func ToKmsTags(tags map[string]string) []*kms.Tag {
 		fakeSecretsTags = append(fakeSecretsTags, &in)
 	}
 	return fakeSecretsTags
+}
+
+func ToKmsAliasList(tags ...string) []*kms.AliasListEntry {
+	var fakeAliasList []*kms.AliasListEntry
+
+	for _, alias := range tags {
+
+		var in = kms.AliasListEntry{
+			AliasName: &alias,
+		}
+		fakeAliasList = append(fakeAliasList, &in)
+	}
+	return fakeAliasList
 }

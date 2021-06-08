@@ -14,13 +14,13 @@ const (
 	aliasPrefix = "alias/"
 )
 
-func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, error) {
+func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, *string, error) {
 	// Always create with same usage for key now (sign & verify)
 	keyUsage := kms.KeyUsageTypeSignVerify
 
 	keySpec, err := convertToAWSKeyType(alg)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	outKey, err := c.client.CreateKey(&kms.CreateKeyInput{
@@ -30,7 +30,7 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.A
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	aliasName := aliasPrefix + id
@@ -40,16 +40,44 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.A
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return outKey, nil
+	// Get confirmation alias was created
+	var aliasCreated bool
+	var retAlias *string
+	listAliasOutput, err := c.client.ListAliases(&kms.ListAliasesInput{
+		KeyId: outKey.KeyMetadata.KeyId,
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, listedAlias := range listAliasOutput.Aliases {
+		if strings.Contains(*listedAlias.AliasName, aliasName) {
+			aliasCreated = true
+			break
+		}
+	}
+
+	if aliasCreated {
+		retAlias = &aliasName
+	}
+
+	return outKey, retAlias, nil
 }
 
 func (c *AwsKmsClient) GetPublicKey(ctx context.Context, id string) (*kms.GetPublicKeyOutput, error) {
 	return c.client.GetPublicKey(&kms.GetPublicKeyInput{
 		KeyId: &id,
 	})
+}
+
+func (c *AwsKmsClient) DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error) {
+	input := &kms.DescribeKeyInput{KeyId: &id}
+
+	return c.client.DescribeKey(input)
 }
 
 func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
