@@ -13,7 +13,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/aws"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	eth1store "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
@@ -293,8 +292,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		memdb := memory.New(logger)
-		store, err := eth1.NewEth1(spec, memdb, logger)
+		store, err := eth1.NewEth1(ctx, spec, logger)
 		if err != nil {
 			logger.WithError(err).Error(errMsg)
 			return err
