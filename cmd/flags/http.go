@@ -12,8 +12,12 @@ func init() {
 	viper.SetDefault(httpPortViperKey, httpPortDefault)
 	_ = viper.BindEnv(httpPortViperKey, httpPortEnv)
 
+	viper.SetDefault(healthPortViperKey, healthPortDefault)
+	_ = viper.BindEnv(healthPortViperKey, healthPortEnv)
+
 	viper.SetDefault(httpHostViperKey, httpHostDefault)
 	_ = viper.BindEnv(httpHostViperKey, httpHostEnv)
+
 }
 
 const (
@@ -24,10 +28,24 @@ const (
 )
 
 func httpPort(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Port to expose HTTP service
+	desc := fmt.Sprintf(`Port to expose API HTTP service
 Environment variable: %q`, httpPortEnv)
 	f.Uint32(httpPortFlag, httpPortDefault, desc)
 	_ = viper.BindPFlag(httpPortViperKey, f.Lookup(httpPortFlag))
+}
+
+const (
+	healthPortFlag     = "health-port"
+	healthPortViperKey = "health.port"
+	healthPortDefault  = 8081
+	healthPortEnv      = "HEALTH_PORT"
+)
+
+func healthPort(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Port to expose Health HTTP service
+Environment variable: %q`, healthPortEnv)
+	f.Uint32(healthPortFlag, healthPortDefault, desc)
+	_ = viper.BindPFlag(healthPortViperKey, f.Lookup(healthPortFlag))
 }
 
 const (
@@ -49,11 +67,13 @@ Environment variable: %q`, httpHostEnv)
 func HTTPFlags(f *pflag.FlagSet) {
 	httpHost(f)
 	httpPort(f)
+	healthPort(f)
 }
 
 func newHTTPConfig(vipr *viper.Viper) *server.Config {
 	cfg := server.NewDefaultConfig()
 	cfg.Port = vipr.GetUint32(httpPortViperKey)
+	cfg.HealthzPort = vipr.GetUint32(healthPortViperKey)
 	cfg.Host = vipr.GetString(httpHostViperKey)
 	return cfg
 }
