@@ -214,5 +214,11 @@ func (ll *LocalManager) IsLive() error {
 }
 
 func (ll *LocalManager) IsReady() error {
+	for _, msg := range ll.msgs {
+		if msg.Err != nil {
+			return msg.Err 
+		}
+	}
+
 	return ll.Error()
 }
