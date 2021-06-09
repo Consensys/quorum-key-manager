@@ -21,16 +21,15 @@ type Config struct {
 }
 
 type LocalManager struct {
-	path  string
-	isDir bool
+	path   string
+	isDir  bool
+	isLive bool
 
 	msgs []Message
 
 	loaded chan struct{}
 	err    error
 	logger *log.Logger
-
-	isLive bool
 }
 
 func NewLocalManager(cfg *Config) (*LocalManager, error) {
@@ -211,7 +210,7 @@ func (ll *LocalManager) IsLive() error {
 	if ll.isLive {
 		return nil
 	}
-	return fmt.Errorf("Service %s is not live", ll.ID())
+	return fmt.Errorf("service %s is not live", ll.ID())
 }
 
 func (ll *LocalManager) IsReady() error {

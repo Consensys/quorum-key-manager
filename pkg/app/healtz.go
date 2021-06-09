@@ -6,48 +6,48 @@ import (
 	"sync"
 )
 
-type healthzHandler struct {
+type HealthzHandler struct {
 	http.ServeMux
-	checksMutex     sync.RWMutex
-	livenessChecks  map[string]Check
-	readinessChecks map[string]Check
+	mux       sync.RWMutex
+	liveness  map[string]CheckFunc
+	readiness map[string]CheckFunc
 }
 
-type Check func() error
+type CheckFunc func() error
 
-func NewHealthzHandler() *healthzHandler {
-	h := &healthzHandler{
-		livenessChecks:  make(map[string]Check),
-		readinessChecks: make(map[string]Check),
+func NewHealthzHandler() *HealthzHandler {
+	h := &HealthzHandler{
+		liveness:  make(map[string]CheckFunc),
+		readiness: make(map[string]CheckFunc),
 	}
 	h.Handle("/live", http.HandlerFunc(h.LiveEndpoint))
 	h.Handle("/ready", http.HandlerFunc(h.ReadyEndpoint))
 	return h
 }
 
-func (s *healthzHandler) LiveEndpoint(w http.ResponseWriter, r *http.Request) {
-	s.handle(w, r, s.livenessChecks)
+func (s *HealthzHandler) LiveEndpoint(w http.ResponseWriter, r *http.Request) {
+	s.handle(w, r, s.liveness)
 }
 
-func (s *healthzHandler) ReadyEndpoint(w http.ResponseWriter, r *http.Request) {
-	s.handle(w, r, s.readinessChecks, s.livenessChecks)
+func (s *HealthzHandler) ReadyEndpoint(w http.ResponseWriter, r *http.Request) {
+	s.handle(w, r, s.readiness, s.liveness)
 }
 
-func (s *healthzHandler) AddLivenessCheck(name string, check Check) {
-	s.checksMutex.Lock()
-	defer s.checksMutex.Unlock()
-	s.livenessChecks[name] = check
+func (s *HealthzHandler) AddLivenessCheck(name string, check CheckFunc) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.liveness[name] = check
 }
 
-func (s *healthzHandler) AddReadinessCheck(name string, check Check) {
-	s.checksMutex.Lock()
-	defer s.checksMutex.Unlock()
-	s.readinessChecks[name] = check
+func (s *HealthzHandler) AddReadinessCheck(name string, check CheckFunc) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.readiness[name] = check
 }
 
-func (s *healthzHandler) collectChecks(checks map[string]Check, resultsOut map[string]string, statusOut *int) {
-	s.checksMutex.RLock()
-	defer s.checksMutex.RUnlock()
+func (s *HealthzHandler) collectChecks(checks map[string]CheckFunc, resultsOut map[string]string, statusOut *int) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
 	for name, check := range checks {
 		if err := check(); err != nil {
 			*statusOut = http.StatusServiceUnavailable
@@ -58,9 +58,9 @@ func (s *healthzHandler) collectChecks(checks map[string]Check, resultsOut map[s
 	}
 }
 
-func (s *healthzHandler) handle(w http.ResponseWriter, r *http.Request, checks ...map[string]Check) {
+func (s *HealthzHandler) handle(w http.ResponseWriter, r *http.Request, checks ...map[string]CheckFunc) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -70,20 +70,10 @@ func (s *healthzHandler) handle(w http.ResponseWriter, r *http.Request, checks .
 		s.collectChecks(checks, checkResults, &status)
 	}
 
-	// write out the response code and content type header
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 
-	// unless ?full=1, return an empty body. Kubernetes only cares about the
-	// HTTP status code, so we won't waste bytes on the full body.
-	if r.URL.Query().Get("full") != "1" {
-		w.Write([]byte("{}\n"))
-		return
-	}
-
-	// otherwise, write the JSON body ignoring any encoding errors (which
-	// shouldn't really be possible since we're encoding a map[string]string).
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "    ")
-	encoder.Encode(checkResults)
+	_ = encoder.Encode(checkResults)
 }

@@ -157,7 +157,7 @@ func (app *App) RegisterService(srv interface{}) error {
 	}
 
 	if hlzSrv, ok := srv.(common.Checkable); ok {
-		if healthz, ok2 := app.healthz.Handler.(*healthzHandler); ok2 {
+		if healthz, ok2 := app.healthz.Handler.(*HealthzHandler); ok2 {
 			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.IsLive)
 			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.IsReady)
 		}
@@ -213,7 +213,7 @@ func (app *App) startServer() {
 		app.logger.WithField("addr", app.server.Addr).Info("started API server")
 		app.errors <- app.server.ListenAndServe()
 	}()
-	
+
 	go func() {
 		app.logger.WithField("addr", app.healthz.Addr).Info("started Health server")
 		app.errors <- app.healthz.ListenAndServe()

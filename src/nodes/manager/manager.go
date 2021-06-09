@@ -215,7 +215,7 @@ func (m *BaseManager) IsLive() error {
 	if m.isLive {
 		return nil
 	}
-	return fmt.Errorf("Service %s is not live", m.ID())
+	return fmt.Errorf("service %s is not live", m.ID())
 }
 
 func (m *BaseManager) IsReady() error {

@@ -12,8 +12,8 @@ import (
 )
 
 type Config struct {
-	HTTP      *server.Config
-	
+	HTTP *server.Config
+
 	Logger    *log.Config
 	Manifests *manifestsmanager.Config
 }
