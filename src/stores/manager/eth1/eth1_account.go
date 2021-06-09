@@ -3,10 +3,11 @@ package eth1
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
-	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
