@@ -152,7 +152,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 
 	if _, ok := m.nodes[mnf.Name]; ok {
 		err := fmt.Errorf("node %q already exist", mnf.Name)
-		logger.WithError(err).Errorf("error loading node manifest")
+		logger.WithError(err).Error("error loading node manifest")
 		return err
 	}
 
@@ -165,7 +165,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		cfg := new(proxynode.Config)
 		if err := mnf.UnmarshalSpecs(cfg); err != nil {
 			err = fmt.Errorf("invalid node specs: %v", err)
-			logger.WithError(err).Errorf("error loading node manifest")
+			logger.WithError(err).Error("error loading node manifest")
 			n.err = err
 			return err
 		}
