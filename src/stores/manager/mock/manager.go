@@ -6,13 +6,13 @@ package mock
 
 import (
 	context "context"
-	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	eth12 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
-	keys2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
-	secrets2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	reflect "reflect"
 
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
+	keys "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	secrets "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -41,10 +41,10 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // GetEth1Store mocks base method.
-func (m *MockManager) GetEth1Store(ctx context.Context, name string) (eth12.Store, error) {
+func (m *MockManager) GetEth1Store(ctx context.Context, name string) (eth1.Store, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEth1Store", ctx, name)
-	ret0, _ := ret[0].(eth12.Store)
+	ret0, _ := ret[0].(eth1.Store)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -56,10 +56,10 @@ func (mr *MockManagerMockRecorder) GetEth1Store(ctx, name interface{}) *gomock.C
 }
 
 // GetEth1StoreByAddr mocks base method.
-func (m *MockManager) GetEth1StoreByAddr(ctx context.Context, addr common.Address) (eth12.Store, error) {
+func (m *MockManager) GetEth1StoreByAddr(ctx context.Context, addr common.Address) (eth1.Store, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEth1StoreByAddr", ctx, addr)
-	ret0, _ := ret[0].(eth12.Store)
+	ret0, _ := ret[0].(eth1.Store)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -71,10 +71,10 @@ func (mr *MockManagerMockRecorder) GetEth1StoreByAddr(ctx, addr interface{}) *go
 }
 
 // GetKeyStore mocks base method.
-func (m *MockManager) GetKeyStore(ctx context.Context, name string) (keys2.Store, error) {
+func (m *MockManager) GetKeyStore(ctx context.Context, name string) (keys.Store, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKeyStore", ctx, name)
-	ret0, _ := ret[0].(keys2.Store)
+	ret0, _ := ret[0].(keys.Store)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -86,10 +86,10 @@ func (mr *MockManagerMockRecorder) GetKeyStore(ctx, name interface{}) *gomock.Ca
 }
 
 // GetSecretStore mocks base method.
-func (m *MockManager) GetSecretStore(ctx context.Context, name string) (secrets2.Store, error) {
+func (m *MockManager) GetSecretStore(ctx context.Context, name string) (secrets.Store, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecretStore", ctx, name)
-	ret0, _ := ret[0].(secrets2.Store)
+	ret0, _ := ret[0].(secrets.Store)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -101,7 +101,7 @@ func (mr *MockManagerMockRecorder) GetSecretStore(ctx, name interface{}) *gomock
 }
 
 // List mocks base method.
-func (m *MockManager) List(ctx context.Context, kind manifest2.Kind) ([]string, error) {
+func (m *MockManager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", ctx, kind)
 	ret0, _ := ret[0].([]string)
@@ -116,10 +116,10 @@ func (mr *MockManagerMockRecorder) List(ctx, kind interface{}) *gomock.Call {
 }
 
 // ListAllAccounts mocks base method.
-func (m *MockManager) ListAllAccounts(arg0 context.Context) ([]*entities2.ETH1Account, error) {
+func (m *MockManager) ListAllAccounts(arg0 context.Context) ([]*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAllAccounts", arg0)
-	ret0, _ := ret[0].([]*entities2.ETH1Account)
+	ret0, _ := ret[0].([]*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

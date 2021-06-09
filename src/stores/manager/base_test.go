@@ -3,11 +3,11 @@ package storemanager
 import (
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
 	"io/ioutil"
 	"testing"
 	"time"
 
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,7 +78,7 @@ func TestBaseManager(t *testing.T) {
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
 	require.NoError(t, err, "WriteFile manifest1 must not error")
 
-	manifests, err := manager.NewLocalManager(&manager.Config{Path: dir})
+	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir})
 	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
 
 	err = manifests.Start(context.TODO())

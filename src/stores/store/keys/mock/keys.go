@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,10 +35,10 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // Info mocks base method
-func (m *MockStore) Info(arg0 context.Context) (*entities2.StoreInfo, error) {
+func (m *MockStore) Info(arg0 context.Context) (*entities.StoreInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Info", arg0)
-	ret0, _ := ret[0].(*entities2.StoreInfo)
+	ret0, _ := ret[0].(*entities.StoreInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +50,10 @@ func (mr *MockStoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
 }
 
 // Create mocks base method
-func (m *MockStore) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error) {
+func (m *MockStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, id, alg, attr)
-	ret0, _ := ret[0].(*entities2.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockStoreMockRecorder) Create(ctx, id, alg, attr interface{}) *gomock.
 }
 
 // Import mocks base method
-func (m *MockStore) Import(ctx context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error) {
+func (m *MockStore) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Import", ctx, id, privKey, alg, attr)
-	ret0, _ := ret[0].(*entities2.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,10 +80,10 @@ func (mr *MockStoreMockRecorder) Import(ctx, id, privKey, alg, attr interface{})
 }
 
 // Get mocks base method
-func (m *MockStore) Get(ctx context.Context, id string) (*entities2.Key, error) {
+func (m *MockStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(*entities2.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -110,10 +110,10 @@ func (mr *MockStoreMockRecorder) List(ctx interface{}) *gomock.Call {
 }
 
 // Update mocks base method
-func (m *MockStore) Update(ctx context.Context, id string, attr *entities2.Attributes) (*entities2.Key, error) {
+func (m *MockStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, id, attr)
-	ret0, _ := ret[0].(*entities2.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -139,10 +139,10 @@ func (mr *MockStoreMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 }
 
 // GetDeleted mocks base method
-func (m *MockStore) GetDeleted(ctx context.Context, id string) (*entities2.Key, error) {
+func (m *MockStore) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeleted", ctx, id)
-	ret0, _ := ret[0].(*entities2.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -209,6 +209,20 @@ func (m *MockStore) Sign(ctx context.Context, id string, data []byte) ([]byte, e
 func (mr *MockStoreMockRecorder) Sign(ctx, id, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockStore)(nil).Sign), ctx, id, data)
+}
+
+// Verify mocks base method
+func (m *MockStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", ctx, pubKey, data, sig, algo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Verify indicates an expected call of Verify
+func (mr *MockStoreMockRecorder) Verify(ctx, pubKey, data, sig, algo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockStore)(nil).Verify), ctx, pubKey, data, sig, algo)
 }
 
 // Encrypt mocks base method

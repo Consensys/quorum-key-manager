@@ -1,12 +1,12 @@
 package formatters
 
 import (
-	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
-func FormatSecretResponse(secret *entities2.Secret) *types2.SecretResponse {
-	return &types2.SecretResponse{
+func FormatSecretResponse(secret *entities.Secret) *types.SecretResponse {
+	return &types.SecretResponse{
 		ID:          secret.ID,
 		Value:       secret.Value,
 		Tags:        secret.Tags,

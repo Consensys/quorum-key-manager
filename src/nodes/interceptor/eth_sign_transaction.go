@@ -3,10 +3,10 @@ package interceptor
 import (
 	"context"
 	"fmt"
-	proxynode2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -34,7 +34,7 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Get ChainID from Node
-	sess := proxynode2.SessionFromContext(ctx)
+	sess := proxynode.SessionFromContext(ctx)
 	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
 		return nil, err

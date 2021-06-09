@@ -2,23 +2,23 @@ package handlers
 
 import (
 	"encoding/json"
-	formatters2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
+	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/gorilla/mux"
 )
 
 type SecretsHandler struct {
-	stores storemanager.Manager
+	stores storesmanager.Manager
 }
 
 // New creates a http.Handler to be served on /secrets
-func NewSecretsHandler(s storemanager.Manager) *SecretsHandler {
+func NewSecretsHandler(s storesmanager.Manager) *SecretsHandler {
 	return &SecretsHandler{
 		stores: s,
 	}
@@ -34,7 +34,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	setSecretRequest := &types2.SetSecretRequest{}
+	setSecretRequest := &types.SetSecretRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, setSecretRequest)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
@@ -47,7 +47,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secret, err := secretStore.Set(ctx, setSecretRequest.ID, setSecretRequest.Value, &entities2.Attributes{
+	secret, err := secretStore.Set(ctx, setSecretRequest.ID, setSecretRequest.Value, &entities.Attributes{
 		Tags: setSecretRequest.Tags,
 	})
 	if err != nil {
@@ -55,7 +55,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters2.FormatSecretResponse(secret))
+	_ = json.NewEncoder(rw).Encode(formatters.FormatSecretResponse(secret))
 }
 
 func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
@@ -77,7 +77,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters2.FormatSecretResponse(secret))
+	_ = json.NewEncoder(rw).Encode(formatters.FormatSecretResponse(secret))
 }
 
 func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {

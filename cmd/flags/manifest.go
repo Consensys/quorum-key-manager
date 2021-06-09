@@ -2,8 +2,8 @@ package flags
 
 import (
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
 
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -32,8 +32,8 @@ func ManifestFlags(f *pflag.FlagSet) {
 	manifestPath(f)
 }
 
-func newManifestsConfig(vipr *viper.Viper) *manager.Config {
-	return &manager.Config{
+func newManifestsConfig(vipr *viper.Viper) *manifestsmanager.Config {
+	return &manifestsmanager.Config{
 		Path: vipr.GetString(manifestPathKey),
 	}
 }

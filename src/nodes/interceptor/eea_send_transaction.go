@@ -2,14 +2,18 @@ package interceptor
 
 import (
 	"context"
-	proxynode2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+)
+
+const (
+	privateTxTypeRestricted = "restricted"
 )
 
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
@@ -19,7 +23,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		return nil, err
 	}
 
-	sess := proxynode2.SessionFromContext(ctx)
+	sess := proxynode.SessionFromContext(ctx)
 
 	if msg.Nonce == nil {
 		var n uint64
@@ -69,6 +73,10 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		}
 
 		msg.Gas = &gas
+	}
+
+	if msg.PrivateType == nil {
+		msg.PrivateType = common.ToPtr(privateTxTypeRestricted).(*string)
 	}
 
 	// Get ChainID from Node

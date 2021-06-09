@@ -5,10 +5,10 @@
 package mock
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	reflect "reflect"
 
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
+	manifest0 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,10 +36,10 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // Subscribe mocks base method.
-func (m *MockManager) Subscribe(kinds []manifest.Kind, messages chan<- []manager.Message) (manager.Subscription, error) {
+func (m *MockManager) Subscribe(kinds []manifest0.Kind, messages chan<- []manifest.Message) (manifest.Subscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Subscribe", kinds, messages)
-	ret0, _ := ret[0].(manager.Subscription)
+	ret0, _ := ret[0].(manifest.Subscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ import (
 type storeHandlerTestSuite struct {
 	suite.Suite
 
-	storeManager *mock.MockManager
+	storeManager *mockstoremanager.MockManager
 	ctrl         *gomock.Controller
 	router       *mux.Router
 }
@@ -28,7 +28,7 @@ func TestStoresHandler(t *testing.T) {
 func (s *storeHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	s.storeManager = mock.NewMockManager(s.ctrl)
+	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(s.storeManager).Register(s.router)

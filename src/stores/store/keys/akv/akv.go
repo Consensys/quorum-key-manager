@@ -3,36 +3,36 @@ package akv
 import (
 	"context"
 	"encoding/base64"
-	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	keys2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 )
 
 type Store struct {
-	client akv2.KeysClient
+	client akv.KeysClient
 	logger *log.Logger
 }
 
-var _ keys2.Store = &Store{}
+var _ keys.Store = &Store{}
 
-func New(client akv2.KeysClient, logger *log.Logger) *Store {
+func New(client akv.KeysClient, logger *log.Logger) *Store {
 	return &Store{
 		client: client,
 		logger: logger,
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities2.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
 
 	kty, err := convertToAKVKeyType(alg)
@@ -57,7 +57,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities2.Algorithm,
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error) {
+func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
 
 	iWebKey, err := webImportKey(privKey, alg)
@@ -76,7 +76,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) Get(ctx context.Context, id string) (*entities2.Key, error) {
+func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
 	res, err := s.client.GetKey(ctx, id, "")
 	if err != nil {
@@ -105,7 +105,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	return kIDs, nil
 }
 
-func (s *Store) Update(ctx context.Context, id string, attr *entities2.Attributes) (*entities2.Key, error) {
+func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.WithField("id", id)
 	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
 	res, err := s.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
@@ -132,7 +132,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(ctx context.Context, id string) (*entities2.Key, error) {
+func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	res, err := s.client.GetDeletedKey(ctx, id)
 	if err != nil {
 		s.logger.WithField("id", id).Error("failed to get deleted keys")
@@ -212,6 +212,10 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 
 	logger.Debug("data was signed successfully")
 	return signature, nil
+}
+
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
 }
 
 func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {

@@ -2,16 +2,17 @@ package hashicorp
 
 import (
 	"encoding/json"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 
 	"github.com/hashicorp/vault/api"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
-func formatHashicorpSecret(id, value string, tags map[string]string, metadata *entities2.Metadata) *entities2.Secret {
-	return &entities2.Secret{
+func formatHashicorpSecret(id, value string, tags map[string]string, metadata *entities.Metadata) *entities.Secret {
+	return &entities.Secret{
 		ID:       id,
 		Value:    value,
 		Tags:     tags,
@@ -19,8 +20,8 @@ func formatHashicorpSecret(id, value string, tags map[string]string, metadata *e
 	}
 }
 
-func formatHashicorpSecretData(jsonData map[string]interface{}) (*entities2.Metadata, error) {
-	metadata := &entities2.Metadata{
+func formatHashicorpSecretData(jsonData map[string]interface{}) (*entities.Metadata, error) {
+	metadata := &entities.Metadata{
 		Version:  jsonData[versionLabel].(json.Number).String(),
 		Disabled: false,
 	}
@@ -37,14 +38,14 @@ func formatHashicorpSecretData(jsonData map[string]interface{}) (*entities2.Meta
 	return metadata, nil
 }
 
-func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entities2.Metadata, error) {
+func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entities.Metadata, error) {
 	jsonMetadata := secret.Data
 
 	if version == "" {
 		version = jsonMetadata["current_version"].(json.Number).String()
 	}
 
-	metadata := &entities2.Metadata{
+	metadata := &entities.Metadata{
 		Version: version,
 	}
 

@@ -2,34 +2,34 @@ package akv
 
 import (
 	"context"
-	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	secrets2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	"path"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 )
 
 type Store struct {
-	client akv2.SecretClient
+	client akv.SecretClient
 	logger *log.Logger
 }
 
-var _ secrets2.Store = &Store{}
+var _ secrets.Store = &Store{}
 
-func New(client akv2.SecretClient, logger *log.Logger) *Store {
+func New(client akv.SecretClient, logger *log.Logger) *Store {
 	return &Store{
 		client: client,
 		logger: logger,
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities2.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Set(ctx context.Context, id, value string, attr *entities2.Attributes) (*entities2.Secret, error) {
+func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
 	res, err := s.client.SetSecret(ctx, id, value, attr.Tags)
 	if err != nil {
@@ -41,7 +41,7 @@ func (s *Store) Set(ctx context.Context, id, value string, attr *entities2.Attri
 	return parseSecretBundle(&res), nil
 }
 
-func (s *Store) Get(ctx context.Context, id, version string) (*entities2.Secret, error) {
+func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
 	res, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(ctx context.Context, id string) (*entities2.Secret, error) {
+func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.ErrNotImplemented
 }
 

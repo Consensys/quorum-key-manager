@@ -31,6 +31,13 @@ func postRequest(ctx context.Context, client *http.Client, reqURL string, postRe
 	return request(ctx, client, reqURL, http.MethodPost, body)
 }
 
+func patchRequest(ctx context.Context, client *http.Client, reqURL string, postRequest interface{}) (*http.Response, error) {
+	body := new(bytes.Buffer)
+	_ = json.NewEncoder(body).Encode(postRequest)
+
+	return request(ctx, client, reqURL, http.MethodPatch, body)
+}
+
 func request(ctx context.Context, client *http.Client, reqURL, method string, body io.Reader) (*http.Response, error) {
 	req, _ := http.NewRequestWithContext(ctx, method, reqURL, body)
 	if ctx.Value(RequestHeaderKey) != nil {

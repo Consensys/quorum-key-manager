@@ -3,7 +3,6 @@ package akv
 import (
 	"crypto/ecdsa"
 	"encoding/base64"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"math/big"
 	"strings"
 	"time"
@@ -12,17 +11,18 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func convertToAKVOps(ops []entities2.CryptoOperation) []keyvault.JSONWebKeyOperation {
+func convertToAKVOps(ops []entities.CryptoOperation) []keyvault.JSONWebKeyOperation {
 	akvOps := []keyvault.JSONWebKeyOperation{}
 
 	for _, op := range ops {
 		switch op {
-		case entities2.Encryption:
+		case entities.Encryption:
 			akvOps = append(akvOps, keyvault.Encrypt, keyvault.Decrypt)
-		case entities2.Signing:
+		case entities.Signing:
 			akvOps = append(akvOps, keyvault.Sign, keyvault.Verify)
 		}
 	}
@@ -30,29 +30,29 @@ func convertToAKVOps(ops []entities2.CryptoOperation) []keyvault.JSONWebKeyOpera
 	return akvOps
 }
 
-func convertToAKVCurve(alg *entities2.Algorithm) (keyvault.JSONWebKeyCurveName, error) {
+func convertToAKVCurve(alg *entities.Algorithm) (keyvault.JSONWebKeyCurveName, error) {
 	switch alg.EllipticCurve {
-	case entities2.Secp256k1:
+	case entities.Secp256k1:
 		return keyvault.P256K, nil
-	case entities2.Bn254:
+	case entities.Bn254:
 		return "", errors.ErrNotSupported
 	default:
 		return "", errors.InvalidParameterError("invalid elliptic curve")
 	}
 }
 
-func convertToAKVKeyType(alg *entities2.Algorithm) (keyvault.JSONWebKeyType, error) {
+func convertToAKVKeyType(alg *entities.Algorithm) (keyvault.JSONWebKeyType, error) {
 	switch alg.Type {
-	case entities2.Ecdsa:
+	case entities.Ecdsa:
 		return keyvault.EC, nil
-	case entities2.Eddsa:
+	case entities.Eddsa:
 		return "", errors.ErrNotSupported
 	default:
 		return "", errors.InvalidParameterError("invalid key type")
 	}
 }
 
-func convertToAKVKeyAttr(attr *entities2.Attributes) *keyvault.KeyAttributes {
+func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	kAttr := &keyvault.KeyAttributes{}
 	if attr.TTL.Milliseconds() > 0 {
 		ttl := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
@@ -61,10 +61,10 @@ func convertToAKVKeyAttr(attr *entities2.Attributes) *keyvault.KeyAttributes {
 	return kAttr
 }
 
-func webImportKey(privKey []byte, alg *entities2.Algorithm) (*keyvault.JSONWebKey, error) {
+func webImportKey(privKey []byte, alg *entities.Algorithm) (*keyvault.JSONWebKey, error) {
 	var pKeyD, pKeyX, pKeyY string
 	switch alg.Type {
-	case entities2.Ecdsa:
+	case entities.Ecdsa:
 		pKey, err := crypto.ToECDSA(privKey)
 		if err != nil {
 			return nil, errors.InvalidParameterError("invalid private key. %s", err.Error())
@@ -73,7 +73,7 @@ func webImportKey(privKey []byte, alg *entities2.Algorithm) (*keyvault.JSONWebKe
 		pKeyD = base64.RawURLEncoding.EncodeToString(pKey.D.Bytes())
 		pKeyX = base64.RawURLEncoding.EncodeToString(pKey.X.Bytes())
 		pKeyY = base64.RawURLEncoding.EncodeToString(pKey.Y.Bytes())
-	case entities2.Eddsa:
+	case entities.Eddsa:
 		return nil, errors.ErrNotSupported
 	default:
 		return nil, errors.InvalidParameterError("invalid key type")
@@ -98,14 +98,14 @@ func webImportKey(privKey []byte, alg *entities2.Algorithm) (*keyvault.JSONWebKe
 	}, nil
 }
 
-func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities2.Algorithm {
-	algo := &entities2.Algorithm{}
+func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities.Algorithm {
+	algo := &entities.Algorithm{}
 	if kty == keyvault.EC {
-		algo.Type = entities2.Ecdsa
+		algo.Type = entities.Ecdsa
 	}
 
 	if crv == keyvault.P256K {
-		algo.EllipticCurve = entities2.Secp256k1
+		algo.EllipticCurve = entities.Secp256k1
 	}
 
 	return algo
@@ -124,29 +124,29 @@ func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 
 }
 
-func convertToSignatureAlgo(alg *entities2.Algorithm) (keyvault.JSONWebKeySignatureAlgorithm, error) {
+func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatureAlgorithm, error) {
 	switch alg.Type {
-	case entities2.Ecdsa:
+	case entities.Ecdsa:
 		switch alg.EllipticCurve {
-		case entities2.Secp256k1:
+		case entities.Secp256k1:
 			return keyvault.ES256K, nil
-		case entities2.Bn254:
+		case entities.Bn254:
 			return "", errors.ErrNotSupported
 		default:
 			return "", errors.InvalidParameterError("invalid elliptic curve")
 		}
-	case entities2.Eddsa:
+	case entities.Eddsa:
 		return "", errors.ErrNotSupported
 	default:
 		return "", errors.InvalidParameterError("invalid key type")
 	}
 }
 
-func parseKeyBundleRes(res *keyvault.KeyBundle) *entities2.Key {
-	key := &entities2.Key{
+func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
+	key := &entities.Key{
 		PublicKey: pubKeyBytes(res.Key),
 		Algo:      algoFromAKVKeyTypeCrv(res.Key.Kty, res.Key.Crv),
-		Metadata: &entities2.Metadata{
+		Metadata: &entities.Metadata{
 			Disabled:  !*res.Attributes.Enabled,
 			CreatedAt: time.Time(*res.Attributes.Created),
 			UpdatedAt: time.Time(*res.Attributes.Updated),
@@ -180,7 +180,7 @@ func parseKeyID(kid *string) (id, version string) {
 	return id, version
 }
 
-func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities2.Key {
+func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
 	return parseKeyBundleRes(&keyvault.KeyBundle{
 		Attributes: res.Attributes,
 		Key:        res.Key,

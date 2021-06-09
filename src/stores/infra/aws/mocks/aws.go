@@ -6,9 +6,9 @@ package mocks
 
 import (
 	context "context"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	reflect "reflect"
 
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	kms "github.com/aws/aws-sdk-go/service/kms"
 	secretsmanager "github.com/aws/aws-sdk-go/service/secretsmanager"
 	gomock "github.com/golang/mock/gomock"
@@ -68,12 +68,13 @@ func (mr *MockSecretsManagerClientMockRecorder) DeleteSecret(ctx, id, force inte
 }
 
 // DescribeSecret mocks base method.
-func (m *MockSecretsManagerClient) DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error) {
+func (m *MockSecretsManagerClient) DescribeSecret(ctx context.Context, id string) (map[string]string, *entities.Metadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DescribeSecret", ctx, id)
-	ret0, _ := ret[0].(*secretsmanager.DescribeSecretOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*entities.Metadata)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // DescribeSecret indicates an expected call of DescribeSecret.
@@ -196,7 +197,7 @@ func (m *MockKmsClient) EXPECT() *MockKmsClientMockRecorder {
 }
 
 // CreateKey mocks base method.
-func (m *MockKmsClient) CreateKey(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities2.Attributes) (*kms.CreateKeyOutput, *string, error) {
+func (m *MockKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, *string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, id, alg, attr)
 	ret0, _ := ret[0].(*kms.CreateKeyOutput)

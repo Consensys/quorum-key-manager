@@ -5,17 +5,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	formatters2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	testutils3 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types/testutils"
-	mock2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types/testutils"
+	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	mockkeys "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -33,8 +33,8 @@ type keysHandlerTestSuite struct {
 	suite.Suite
 
 	ctrl         *gomock.Controller
-	storeManager *mock2.MockManager
-	keyStore     *mock.MockStore
+	storeManager *mockstoremanager.MockManager
+	keyStore     *mockkeys.MockStore
 	router       *mux.Router
 }
 
@@ -46,8 +46,8 @@ func TestKeysHandler(t *testing.T) {
 func (s *keysHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	s.storeManager = mock2.NewMockManager(s.ctrl)
-	s.keyStore = mock.NewMockStore(s.ctrl)
+	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
+	s.keyStore = mockkeys.NewMockStore(s.ctrl)
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(s.storeManager).Register(s.router)
@@ -59,36 +59,36 @@ func (s *keysHandlerTestSuite) TearDownTest() {
 
 func (s *keysHandlerTestSuite) TestCreate() {
 	s.Run("should execute request successfully", func() {
-		createKeyRequest := testutils3.FakeCreateKeyRequest()
+		createKeyRequest := testutils.FakeCreateKeyRequest()
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys", bytes.NewReader(requestBytes))
 
-		key := testutils.FakeKey()
+		key := testutils2.FakeKey()
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			createKeyRequest.ID,
-			&entities2.Algorithm{
-				Type:          entities2.KeyType(createKeyRequest.SigningAlgorithm),
-				EllipticCurve: entities2.Curve(createKeyRequest.Curve),
+			&entities.Algorithm{
+				Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
+				EllipticCurve: entities.Curve(createKeyRequest.Curve),
 			},
-			&entities2.Attributes{
+			&entities.Attributes{
 				Tags: createKeyRequest.Tags,
 			}).Return(key, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		response := formatters2.FormatKeyResponse(key)
+		response := formatters.FormatKeyResponse(key)
 		expectedBody, _ := json.Marshal(response)
 		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
 	s.Run("should fail with 400 if signing algorithm is not supported", func() {
-		createKeyRequest := testutils3.FakeCreateKeyRequest()
+		createKeyRequest := testutils.FakeCreateKeyRequest()
 		createKeyRequest.SigningAlgorithm = invalidSigningAlgorithm
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
@@ -100,7 +100,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with 400 if curve is not supported", func() {
-		createKeyRequest := testutils3.FakeCreateKeyRequest()
+		createKeyRequest := testutils.FakeCreateKeyRequest()
 		createKeyRequest.Curve = invalidCurve
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
@@ -113,7 +113,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
-		createKeyRequest := testutils3.FakeCreateKeyRequest()
+		createKeyRequest := testutils.FakeCreateKeyRequest()
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
@@ -129,37 +129,36 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 func (s *keysHandlerTestSuite) TestImport() {
 	s.Run("should execute request successfully", func() {
-		importKeyRequest := testutils3.FakeImportKeyRequest()
+		importKeyRequest := testutils.FakeImportKeyRequest()
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/import", bytes.NewReader(requestBytes))
 
-		key := testutils.FakeKey()
+		key := testutils2.FakeKey()
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
-		privKey, _ := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
 		s.keyStore.EXPECT().Import(
 			gomock.Any(),
 			importKeyRequest.ID,
-			privKey,
-			&entities2.Algorithm{
-				Type:          entities2.KeyType(importKeyRequest.SigningAlgorithm),
-				EllipticCurve: entities2.Curve(importKeyRequest.Curve),
+			importKeyRequest.PrivateKey,
+			&entities.Algorithm{
+				Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
+				EllipticCurve: entities.Curve(importKeyRequest.Curve),
 			},
-			&entities2.Attributes{
+			&entities.Attributes{
 				Tags: importKeyRequest.Tags,
 			}).Return(key, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		response := formatters2.FormatKeyResponse(key)
+		response := formatters.FormatKeyResponse(key)
 		expectedBody, _ := json.Marshal(response)
 		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
 	s.Run("should fail with 400 if signing algorithm is not supported", func() {
-		importKeyRequest := testutils3.FakeImportKeyRequest()
+		importKeyRequest := testutils.FakeImportKeyRequest()
 		importKeyRequest.SigningAlgorithm = invalidSigningAlgorithm
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
@@ -171,7 +170,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 	})
 
 	s.Run("should fail with 400 if curve is not supported", func() {
-		importKeyRequest := testutils3.FakeImportKeyRequest()
+		importKeyRequest := testutils.FakeImportKeyRequest()
 		importKeyRequest.Curve = invalidCurve
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
@@ -184,7 +183,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
-		importKeyRequest := testutils3.FakeImportKeyRequest()
+		importKeyRequest := testutils.FakeImportKeyRequest()
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
@@ -200,7 +199,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 
 func (s *keysHandlerTestSuite) TestSign() {
 	s.Run("should execute request successfully", func() {
-		signPayloadRequest := testutils3.FakeSignPayloadRequest()
+		signPayloadRequest := testutils.FakeSignBase64PayloadRequest()
 		requestBytes, _ := json.Marshal(signPayloadRequest)
 
 		rw := httptest.NewRecorder()
@@ -209,8 +208,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 
 		signature := []byte("signature")
-		data, _ := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
-		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, data).Return(signature, nil)
+		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, signPayloadRequest.Data).Return(signature, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -218,21 +216,9 @@ func (s *keysHandlerTestSuite) TestSign() {
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
-	s.Run("should fail with 400 if payload is not hexadecimal", func() {
-		signPayloadRequest := testutils3.FakeSignPayloadRequest()
-		signPayloadRequest.Data = "invalidData"
-		requestBytes, _ := json.Marshal(signPayloadRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes))
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
-	})
-
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
-		signPayloadRequest := testutils3.FakeSignPayloadRequest()
+		signPayloadRequest := testutils.FakeSignBase64PayloadRequest()
 		requestBytes, _ := json.Marshal(signPayloadRequest)
 
 		rw := httptest.NewRecorder()
@@ -252,12 +238,12 @@ func (s *keysHandlerTestSuite) TestGet() {
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
-		key := testutils.FakeKey()
+		key := testutils2.FakeKey()
 		s.keyStore.EXPECT().Get(gomock.Any(), keyID).Return(key, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		response := formatters2.FormatKeyResponse(key)
+		response := formatters.FormatKeyResponse(key)
 		expectedBody, _ := json.Marshal(response)
 		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)

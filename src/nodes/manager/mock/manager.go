@@ -6,9 +6,9 @@ package mock
 
 import (
 	context "context"
-	node2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node"
 	reflect "reflect"
 
+	node "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -51,10 +51,10 @@ func (mr *MockManagerMockRecorder) List(ctx interface{}) *gomock.Call {
 }
 
 // Node mocks base method.
-func (m *MockManager) Node(ctx context.Context, name string) (node2.Node, error) {
+func (m *MockManager) Node(ctx context.Context, name string) (node.Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Node", ctx, name)
-	ret0, _ := ret[0].(node2.Node)
+	ret0, _ := ret[0].(node.Node)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

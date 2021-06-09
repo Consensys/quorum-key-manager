@@ -1,9 +1,9 @@
 package interceptor
 
 import (
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"testing"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )
@@ -18,9 +18,9 @@ func TestEthAccounts(t *testing.T) {
 			desc:    "Signature",
 			handler: i,
 			prepare: func() {
-				accts := []*entities2.ETH1Account{
-					{Address: ethcommon.HexToAddress("0xfe3b557e8fb62b89f4916b721be55ceb828dbd73").Hex()},
-					{Address: ethcommon.HexToAddress("0xea674fdde714fd979de3edf0f56aa9716b898ec8").Hex()},
+				accts := []*entities.ETH1Account{
+					{Address: ethcommon.HexToAddress("0xfe3b557e8fb62b89f4916b721be55ceb828dbd73")},
+					{Address: ethcommon.HexToAddress("0xea674fdde714fd979de3edf0f56aa9716b898ec8")},
 				}
 				stores.EXPECT().ListAllAccounts(gomock.Any()).Return(accts, nil)
 			},

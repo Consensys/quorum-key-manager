@@ -3,9 +3,6 @@ package akv
 import (
 	"context"
 	"fmt"
-	mocks2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/mocks"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	secrets2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	"testing"
 	"time"
 
@@ -14,6 +11,9 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -21,9 +21,9 @@ import (
 
 type akvSecretStoreTestSuite struct {
 	suite.Suite
-	mockVault   *mocks2.MockClient
+	mockVault   *mocks.MockClient
 	mountPoint  string
-	secretStore secrets2.Store
+	secretStore secrets.Store
 }
 
 func TestAkvSecretStore(t *testing.T) {
@@ -36,7 +36,7 @@ func (s *akvSecretStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mountPoint = "secret"
-	s.mockVault = mocks2.NewMockClient(ctrl)
+	s.mockVault = mocks.NewMockClient(ctrl)
 
 	s.secretStore = New(s.mockVault, log.DefaultLogger())
 }
@@ -47,7 +47,7 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 	version := "2"
 	secretBundleID := id + "/" + version
 	value := "my-value1"
-	attributes := testutils2.FakeAttributes()
+	attributes := testutils.FakeAttributes()
 
 	expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
 	expectedUpdatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
@@ -95,7 +95,7 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 	version := "2"
 	secretBundleID := id + "/" + version
 	value := "my-value2"
-	attributes := testutils2.FakeAttributes()
+	attributes := testutils.FakeAttributes()
 
 	expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
 	expectedUpdatedAt, _ := time.Parse(time.RFC3339, "2018-03-23T02:24:06.945319214Z")

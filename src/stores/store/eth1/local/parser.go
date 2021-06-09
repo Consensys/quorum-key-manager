@@ -1,15 +1,15 @@
 package local
 
 import (
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func parseKey(key *entities2.Key) *entities2.ETH1Account {
+func parseKey(key *entities.Key) *entities.ETH1Account {
 	pubKey, _ := crypto.UnmarshalPubkey(key.PublicKey)
-	return &entities2.ETH1Account{
+	return &entities.ETH1Account{
 		ID:                  key.ID,
-		Address:             crypto.PubkeyToAddress(*pubKey).Hex(),
+		Address:             crypto.PubkeyToAddress(*pubKey),
 		Metadata:            key.Metadata,
 		Tags:                key.Tags,
 		PublicKey:           crypto.FromECDSAPub(pubKey),

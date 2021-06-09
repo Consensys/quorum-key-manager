@@ -1,18 +1,18 @@
 package akv
 
 import (
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
-func parseSecretBundle(secretBundle *keyvault.SecretBundle) *entities2.Secret {
-	secret := &entities2.Secret{
+func parseSecretBundle(secretBundle *keyvault.SecretBundle) *entities.Secret {
+	secret := &entities.Secret{
 		Tags:     common.Tomapstr(secretBundle.Tags),
-		Metadata: &entities2.Metadata{},
+		Metadata: &entities.Metadata{},
 	}
 	if secretBundle.Value != nil {
 		secret.Value = *secretBundle.Value

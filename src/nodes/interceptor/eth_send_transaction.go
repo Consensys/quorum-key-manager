@@ -2,16 +2,16 @@ package interceptor
 
 import (
 	"context"
-	proxynode2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*ethcommon.Hash, error) {
 	// Get ChainID from Node
-	sess := proxynode2.SessionFromContext(ctx)
+	sess := proxynode.SessionFromContext(ctx)
 
 	if msg.GasPrice == nil {
 		gasPrice, err := sess.EthCaller().Eth().GasPrice(ctx)

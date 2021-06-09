@@ -2,12 +2,12 @@ package storemanager
 
 import (
 	"context"
-	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	eth12 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
-	keys2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
-	secrets2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -16,20 +16,20 @@ import (
 // Manager allows to manage multiple stores
 type Manager interface {
 	// GetSecretStore by name
-	GetSecretStore(ctx context.Context, name string) (secrets2.Store, error)
+	GetSecretStore(ctx context.Context, name string) (secrets.Store, error)
 
 	// GetKeyStore by name
-	GetKeyStore(ctx context.Context, name string) (keys2.Store, error)
+	GetKeyStore(ctx context.Context, name string) (keys.Store, error)
 
 	// GetEth1Store by name
-	GetEth1Store(ctx context.Context, name string) (eth12.Store, error)
+	GetEth1Store(ctx context.Context, name string) (eth1.Store, error)
 
 	// GetEth1StoreByAddr
-	GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth12.Store, error)
+	GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1.Store, error)
 
 	// List stores
-	List(ctx context.Context, kind manifest2.Kind) ([]string, error)
+	List(ctx context.Context, kind manifest.Kind) ([]string, error)
 
 	// ListAllAccounts list all accounts from all stores
-	ListAllAccounts(context.Context) ([]*entities2.ETH1Account, error)
+	ListAllAccounts(context.Context) ([]*entities.ETH1Account, error)
 }

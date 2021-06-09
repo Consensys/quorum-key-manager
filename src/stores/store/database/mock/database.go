@@ -6,8 +6,8 @@ package mock
 
 import (
 	context "context"
-	database2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	database "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -36,10 +36,10 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 }
 
 // ETH1Accounts mocks base method
-func (m *MockDatabase) ETH1Accounts() database2.ETH1Accounts {
+func (m *MockDatabase) ETH1Accounts() database.ETH1Accounts {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ETH1Accounts")
-	ret0, _ := ret[0].(database2.ETH1Accounts)
+	ret0, _ := ret[0].(database.ETH1Accounts)
 	return ret0
 }
 
@@ -73,10 +73,10 @@ func (m *MockETH1Accounts) EXPECT() *MockETH1AccountsMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockETH1Accounts) Get(ctx context.Context, addr string) (*entities2.ETH1Account, error) {
+func (m *MockETH1Accounts) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, addr)
-	ret0, _ := ret[0].(*entities2.ETH1Account)
+	ret0, _ := ret[0].(*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,10 +88,10 @@ func (mr *MockETH1AccountsMockRecorder) Get(ctx, addr interface{}) *gomock.Call 
 }
 
 // GetDeleted mocks base method
-func (m *MockETH1Accounts) GetDeleted(ctx context.Context, addr string) (*entities2.ETH1Account, error) {
+func (m *MockETH1Accounts) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeleted", ctx, addr)
-	ret0, _ := ret[0].(*entities2.ETH1Account)
+	ret0, _ := ret[0].(*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -103,10 +103,10 @@ func (mr *MockETH1AccountsMockRecorder) GetDeleted(ctx, addr interface{}) *gomoc
 }
 
 // GetAll mocks base method
-func (m *MockETH1Accounts) GetAll(ctx context.Context) ([]*entities2.ETH1Account, error) {
+func (m *MockETH1Accounts) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx)
-	ret0, _ := ret[0].([]*entities2.ETH1Account)
+	ret0, _ := ret[0].([]*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -118,10 +118,10 @@ func (mr *MockETH1AccountsMockRecorder) GetAll(ctx interface{}) *gomock.Call {
 }
 
 // GetAllDeleted mocks base method
-func (m *MockETH1Accounts) GetAllDeleted(ctx context.Context) ([]*entities2.ETH1Account, error) {
+func (m *MockETH1Accounts) GetAllDeleted(ctx context.Context) ([]*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllDeleted", ctx)
-	ret0, _ := ret[0].([]*entities2.ETH1Account)
+	ret0, _ := ret[0].([]*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -133,7 +133,7 @@ func (mr *MockETH1AccountsMockRecorder) GetAllDeleted(ctx interface{}) *gomock.C
 }
 
 // Add mocks base method
-func (m *MockETH1Accounts) Add(ctx context.Context, account *entities2.ETH1Account) error {
+func (m *MockETH1Accounts) Add(ctx context.Context, account *entities.ETH1Account) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", ctx, account)
 	ret0, _ := ret[0].(error)
@@ -147,7 +147,7 @@ func (mr *MockETH1AccountsMockRecorder) Add(ctx, account interface{}) *gomock.Ca
 }
 
 // AddDeleted mocks base method
-func (m *MockETH1Accounts) AddDeleted(ctx context.Context, account *entities2.ETH1Account) error {
+func (m *MockETH1Accounts) AddDeleted(ctx context.Context, account *entities.ETH1Account) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeleted", ctx, account)
 	ret0, _ := ret[0].(error)

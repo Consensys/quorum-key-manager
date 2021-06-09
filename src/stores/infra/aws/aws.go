@@ -2,9 +2,10 @@ package aws
 
 import (
 	"context"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-
 	"github.com/aws/aws-sdk-go/service/kms"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
@@ -15,7 +16,7 @@ type SecretsManagerClient interface {
 	CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error)
 	PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error)
 	TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error)
-	DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error)
+	DescribeSecret(ctx context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error)
 	ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error)
 	UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error)
 	RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error)
@@ -23,7 +24,7 @@ type SecretsManagerClient interface {
 }
 
 type KmsClient interface {
-	CreateKey(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities2.Attributes) (*kms.CreateKeyOutput, *string, error)
+	CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, *string, error)
 	// ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
 	GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error)
 	ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error)

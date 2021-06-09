@@ -3,11 +3,11 @@ package manager
 import (
 	"context"
 	"fmt"
-	manifest3 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	"io/ioutil"
 	"testing"
 	"time"
 
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -56,7 +56,7 @@ func TestLocalManager(t *testing.T) {
 	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
 
 	chanAB := make(chan []Message)
-	subAB, err := mngr.Subscribe([]manifest3.Kind{"KindA", "KindB"}, chanAB)
+	subAB, err := mngr.Subscribe([]manifest.Kind{"KindA", "KindB"}, chanAB)
 	require.NoError(t, err, "Subscribe AB must not error")
 	defer func() { _ = subAB.Unsubscribe() }()
 
@@ -64,7 +64,7 @@ func TestLocalManager(t *testing.T) {
 	require.NoError(t, err, "Start must not error")
 
 	chanBC := make(chan []Message)
-	subBC, err := mngr.Subscribe([]manifest3.Kind{"KindC", "KindB"}, chanBC)
+	subBC, err := mngr.Subscribe([]manifest.Kind{"KindC", "KindB"}, chanBC)
 	require.NoError(t, err, "Subscribe BC must not error")
 	defer func() { _ = subBC.Unsubscribe() }()
 
@@ -74,14 +74,14 @@ func TestLocalManager(t *testing.T) {
 	defer func() { _ = subAll.Unsubscribe() }()
 
 	chanNone := make(chan []Message)
-	subNone, err := mngr.Subscribe([]manifest3.Kind{}, chanNone)
+	subNone, err := mngr.Subscribe([]manifest.Kind{}, chanNone)
 	require.NoError(t, err, "Subscribe None must not error")
 	defer func() { _ = subNone.Unsubscribe() }()
 
 	assertMessage(t, []Message{
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindA",
 				Name:  "test-1.1",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -90,7 +90,7 @@ func TestLocalManager(t *testing.T) {
 		},
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-1.2",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -99,7 +99,7 @@ func TestLocalManager(t *testing.T) {
 		},
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-2.1",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -111,7 +111,7 @@ func TestLocalManager(t *testing.T) {
 	assertMessage(t, []Message{
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-1.2",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -120,7 +120,7 @@ func TestLocalManager(t *testing.T) {
 		},
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-2.1",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -129,7 +129,7 @@ func TestLocalManager(t *testing.T) {
 		},
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindC",
 				Name:  "test-2.2",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -141,7 +141,7 @@ func TestLocalManager(t *testing.T) {
 	assertMessage(t, []Message{
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindA",
 				Name:  "test-1.1",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -150,7 +150,7 @@ func TestLocalManager(t *testing.T) {
 		},
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-1.2",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -159,7 +159,7 @@ func TestLocalManager(t *testing.T) {
 		},
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-2.1",
 				Specs: map[interface{}]interface{}{"field": "value"},
@@ -168,7 +168,7 @@ func TestLocalManager(t *testing.T) {
 		},
 		Message{
 			Loader: "LocalManager",
-			Manifest: &manifest3.Manifest{
+			Manifest: &manifest.Manifest{
 				Kind:  "KindC",
 				Name:  "test-2.2",
 				Specs: map[interface{}]interface{}{"field": "value"},

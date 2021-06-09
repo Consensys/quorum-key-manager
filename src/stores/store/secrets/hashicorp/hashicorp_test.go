@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	mocks2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	secrets2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	"testing"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
@@ -21,9 +21,9 @@ import (
 
 type hashicorpSecretStoreTestSuite struct {
 	suite.Suite
-	mockVault   *mocks2.MockVaultClient
+	mockVault   *mocks.MockVaultClient
 	mountPoint  string
-	secretStore secrets2.Store
+	secretStore secrets.Store
 }
 
 func TestHashicorpSecretStore(t *testing.T) {
@@ -36,7 +36,7 @@ func (s *hashicorpSecretStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mountPoint = "secret"
-	s.mockVault = mocks2.NewMockVaultClient(ctrl)
+	s.mockVault = mocks.NewMockVaultClient(ctrl)
 
 	logger := log.DefaultLogger()
 	s.secretStore = New(s.mockVault, s.mountPoint, logger)
@@ -47,7 +47,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 	id := "my-secret2"
 	value := "my-value2"
 	expectedPath := s.mountPoint + "/data/" + id
-	attributes := testutils2.FakeAttributes()
+	attributes := testutils.FakeAttributes()
 	expectedData := map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
@@ -111,7 +111,7 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	ctx := context.Background()
 	id := "my-secret"
 	value := "my-value"
-	attributes := testutils2.FakeAttributes()
+	attributes := testutils.FakeAttributes()
 	expectedPathData := s.mountPoint + "/data/" + id
 	expectedPathMetadata := s.mountPoint + "/metadata/" + id
 

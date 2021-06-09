@@ -1,9 +1,9 @@
 package types
 
 import (
-	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 )
 
 const (
-	Eth1Account manifest2.Kind = "Eth1Account"
+	Eth1Account manifest.Kind = "Eth1Account"
 )

@@ -6,11 +6,11 @@ package mock
 
 import (
 	context "context"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	big "math/big"
 	reflect "reflect"
 
 	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	types "github.com/consensys/quorum/core/types"
 	types0 "github.com/ethereum/go-ethereum/core/types"
 	core "github.com/ethereum/go-ethereum/signer/core"
@@ -41,10 +41,10 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // Info mocks base method
-func (m *MockStore) Info(arg0 context.Context) (*entities2.StoreInfo, error) {
+func (m *MockStore) Info(arg0 context.Context) (*entities.StoreInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Info", arg0)
-	ret0, _ := ret[0].(*entities2.StoreInfo)
+	ret0, _ := ret[0].(*entities.StoreInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -56,10 +56,10 @@ func (mr *MockStoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
 }
 
 // Create mocks base method
-func (m *MockStore) Create(ctx context.Context, id string, attr *entities2.Attributes) (*entities2.ETH1Account, error) {
+func (m *MockStore) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, id, attr)
-	ret0, _ := ret[0].(*entities2.ETH1Account)
+	ret0, _ := ret[0].(*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -71,10 +71,10 @@ func (mr *MockStoreMockRecorder) Create(ctx, id, attr interface{}) *gomock.Call 
 }
 
 // Import mocks base method
-func (m *MockStore) Import(ctx context.Context, id string, privKey []byte, attr *entities2.Attributes) (*entities2.ETH1Account, error) {
+func (m *MockStore) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Import", ctx, id, privKey, attr)
-	ret0, _ := ret[0].(*entities2.ETH1Account)
+	ret0, _ := ret[0].(*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -86,10 +86,10 @@ func (mr *MockStoreMockRecorder) Import(ctx, id, privKey, attr interface{}) *gom
 }
 
 // Get mocks base method
-func (m *MockStore) Get(ctx context.Context, addr string) (*entities2.ETH1Account, error) {
+func (m *MockStore) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, addr)
-	ret0, _ := ret[0].(*entities2.ETH1Account)
+	ret0, _ := ret[0].(*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -101,10 +101,10 @@ func (mr *MockStoreMockRecorder) Get(ctx, addr interface{}) *gomock.Call {
 }
 
 // GetAll mocks base method
-func (m *MockStore) GetAll(ctx context.Context) ([]*entities2.ETH1Account, error) {
+func (m *MockStore) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx)
-	ret0, _ := ret[0].([]*entities2.ETH1Account)
+	ret0, _ := ret[0].([]*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -131,10 +131,10 @@ func (mr *MockStoreMockRecorder) List(ctx interface{}) *gomock.Call {
 }
 
 // Update mocks base method
-func (m *MockStore) Update(ctx context.Context, addr string, attr *entities2.Attributes) (*entities2.ETH1Account, error) {
+func (m *MockStore) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, addr, attr)
-	ret0, _ := ret[0].(*entities2.ETH1Account)
+	ret0, _ := ret[0].(*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -160,10 +160,10 @@ func (mr *MockStoreMockRecorder) Delete(ctx, addr interface{}) *gomock.Call {
 }
 
 // GetDeleted mocks base method
-func (m *MockStore) GetDeleted(ctx context.Context, addr string) (*entities2.ETH1Account, error) {
+func (m *MockStore) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeleted", ctx, addr)
-	ret0, _ := ret[0].(*entities2.ETH1Account)
+	ret0, _ := ret[0].(*entities.ETH1Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

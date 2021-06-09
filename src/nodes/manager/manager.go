@@ -4,54 +4,54 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
-	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	interceptor2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/interceptor"
-	node2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node"
-	proxynode2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
-	storemanager2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 	"sort"
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/interceptor"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
+	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 )
 
-var NodeKind manifest2.Kind = "Node"
+var NodeKind manifest.Kind = "Node"
 
 //go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
 
 // Manager allows to manage multiple stores
 type Manager interface {
 	// Node return by name
-	Node(ctx context.Context, name string) (node2.Node, error)
+	Node(ctx context.Context, name string) (node.Node, error)
 
 	// List stores
 	List(ctx context.Context) ([]string, error)
 }
 
 type BaseManager struct {
-	stores    storemanager2.Manager
-	manifests manager.Manager
+	stores    storemanager.Manager
+	manifests manifestsmanager.Manager
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
 
-	sub    manager.Subscription
-	mnfsts chan []manager.Message
+	sub    manifestsmanager.Subscription
+	mnfsts chan []manifestsmanager.Message
 }
 
 type nodeBundle struct {
-	manifest *manifest2.Manifest
-	node     node2.Node
+	manifest *manifest.Manifest
+	node     node.Node
 	err      error
 	stop     func(context.Context) error
 }
 
-func New(stores storemanager2.Manager, manifests manager.Manager) *BaseManager {
+func New(stores storemanager.Manager, manifests manifestsmanager.Manager) *BaseManager {
 	return &BaseManager{
 		stores:    stores,
 		manifests: manifests,
-		mnfsts:    make(chan []manager.Message),
+		mnfsts:    make(chan []manifestsmanager.Message),
 		mux:       sync.RWMutex{},
 		nodes:     make(map[string]*nodeBundle),
 	}
@@ -62,7 +62,7 @@ func (m *BaseManager) Start(ctx context.Context) error {
 	defer m.mux.Unlock()
 
 	// Subscribe to manifest of Kind node
-	sub, err := m.manifests.Subscribe([]manifest2.Kind{NodeKind}, m.mnfsts)
+	sub, err := m.manifests.Subscribe([]manifest.Kind{NodeKind}, m.mnfsts)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 		wg.Add(1)
 		go func(name string, n *nodeBundle) {
 			err := n.stop(ctx)
-			log.FromContext(ctx).WithError(err).WithField("name", name).Errorf("error closing node")
+			log.FromContext(ctx).WithError(err).WithField("name", name).Error("error closing node")
 			wg.Done()
 		}(name, n)
 	}
@@ -113,7 +113,7 @@ func (m *BaseManager) loadAll(ctx context.Context) {
 	}
 }
 
-func (m *BaseManager) Node(_ context.Context, name string) (node2.Node, error) {
+func (m *BaseManager) Node(_ context.Context, name string) (node.Node, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if nodeBundle, ok := m.nodes[name]; ok {
@@ -142,7 +142,7 @@ func (m *BaseManager) List(_ context.Context) ([]string, error) {
 	return nodeNames, nil
 }
 
-func (m *BaseManager) load(ctx context.Context, mnf *manifest2.Manifest) error {
+func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
@@ -162,7 +162,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest2.Manifest) error {
 		n.manifest = mnf
 		m.nodes[mnf.Name] = n
 
-		cfg := new(proxynode2.Config)
+		cfg := new(proxynode.Config)
 		if err := mnf.UnmarshalSpecs(cfg); err != nil {
 			err = fmt.Errorf("invalid node specs: %v", err)
 			logger.WithError(err).Errorf("error loading node manifest")
@@ -175,7 +175,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest2.Manifest) error {
 		logger.Infof("creating node with config %v", string(b))
 
 		// Create proxy node
-		prxNode, err := proxynode2.New(cfg)
+		prxNode, err := proxynode.New(cfg)
 		if err != nil {
 			logger.WithError(err).Errorf("error creating node")
 			n.err = err
@@ -183,7 +183,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest2.Manifest) error {
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler = interceptor2.New(m.stores)
+		prxNode.Handler = interceptor.New(m.stores)
 
 		// Start node
 		err = prxNode.Start(ctx)

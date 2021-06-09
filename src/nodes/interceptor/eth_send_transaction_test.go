@@ -2,14 +2,14 @@ package interceptor
 
 import (
 	"context"
-	proxynode2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/mock"
 	"math/big"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum/mock"
 	mocktessera "github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera/mock"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
+	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )
@@ -19,10 +19,10 @@ func TestEthSendTransaction(t *testing.T) {
 	defer ctrl.Finish()
 
 	i, stores := newInterceptor(ctrl)
-	accountsStore := mock.NewMockStore(ctrl)
+	accountsStore := mockaccounts.NewMockStore(ctrl)
 
-	session := proxynode2.NewMockSession(ctrl)
-	ctx := proxynode2.WithSession(context.TODO(), session)
+	session := proxynode.NewMockSession(ctrl)
+	ctx := proxynode.WithSession(context.TODO(), session)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	ethCaller := mockethereum.NewMockEthCaller(ctrl)

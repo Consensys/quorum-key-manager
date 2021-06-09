@@ -3,23 +3,24 @@ package handlers
 import (
 	"encoding/base64"
 	"encoding/json"
-	formatters2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
+	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+
 	"github.com/gorilla/mux"
 )
 
 type KeysHandler struct {
-	stores storemanager.Manager
+	stores storesmanager.Manager
 }
 
 // New creates a http.Handler to be served on /keys
-func NewKeysHandler(s storemanager.Manager) *KeysHandler {
+func NewKeysHandler(s storesmanager.Manager) *KeysHandler {
 	return &KeysHandler{
 		stores: s,
 	}
@@ -32,13 +33,14 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.destroy)
+	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 }
 
 func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	createKeyRequest := &types2.CreateKeyRequest{}
+	createKeyRequest := &types.CreateKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, createKeyRequest)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
@@ -54,11 +56,11 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	key, err := keyStore.Create(
 		ctx,
 		createKeyRequest.ID,
-		&entities2.Algorithm{
-			Type:          entities2.KeyType(createKeyRequest.SigningAlgorithm),
-			EllipticCurve: entities2.Curve(createKeyRequest.Curve),
+		&entities.Algorithm{
+			Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
+			EllipticCurve: entities.Curve(createKeyRequest.Curve),
 		},
-		&entities2.Attributes{
+		&entities.Attributes{
 			Tags: createKeyRequest.Tags,
 		})
 	if err != nil {
@@ -66,21 +68,15 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters2.FormatKeyResponse(key))
+	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
 func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	importKeyRequest := &types2.ImportKeyRequest{}
+	importKeyRequest := &types.ImportKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, importKeyRequest)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	privKey, err := base64.URLEncoding.DecodeString(importKeyRequest.PrivateKey)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
@@ -95,12 +91,12 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	key, err := keyStore.Import(
 		ctx,
 		importKeyRequest.ID,
-		privKey,
-		&entities2.Algorithm{
-			Type:          entities2.KeyType(importKeyRequest.SigningAlgorithm),
-			EllipticCurve: entities2.Curve(importKeyRequest.Curve),
+		importKeyRequest.PrivateKey,
+		&entities.Algorithm{
+			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
+			EllipticCurve: entities.Curve(importKeyRequest.Curve),
 		},
-		&entities2.Attributes{
+		&entities.Attributes{
 			Tags: importKeyRequest.Tags,
 		})
 	if err != nil {
@@ -108,20 +104,14 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters2.FormatKeyResponse(key))
+	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
 func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	signPayloadRequest := &types2.SignBase64PayloadRequest{}
+	signPayloadRequest := &types.SignBase64PayloadRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signPayloadRequest)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	data, err := base64.URLEncoding.DecodeString(signPayloadRequest.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
@@ -133,7 +123,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := keyStore.Sign(ctx, mux.Vars(request)["id"], data)
+	signature, err := keyStore.Sign(ctx, mux.Vars(request)["id"], signPayloadRequest.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -158,7 +148,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters2.FormatKeyResponse(key))
+	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
 func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
@@ -190,6 +180,35 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	err = keyStore.Destroy(ctx, mux.Vars(request)["id"])
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	rw.WriteHeader(http.StatusNoContent)
+}
+
+func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	verifyReq := &types.VerifyKeySignatureRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	err = keyStore.Verify(ctx, verifyReq.PublicKey, verifyReq.Data, verifyReq.Signature, &entities.Algorithm{
+		Type:          entities.KeyType(verifyReq.SigningAlgorithm),
+		EllipticCurve: entities.Curve(verifyReq.Curve),
+	})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

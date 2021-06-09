@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
 	"github.com/fsnotify/fsnotify"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -20,12 +20,12 @@ import (
 // renewTokenLoop handle the token tokenWatcher of the application
 type RenewTokenWatcher struct {
 	tokenPath string
-	client    hashicorp2.VaultClient
+	client    hashicorp.VaultClient
 	watcher   *fsnotify.Watcher
 	logger    *log.Logger
 }
 
-func NewRenewTokenWatcher(client hashicorp2.VaultClient, tokenPath string, logger *log.Logger) (*RenewTokenWatcher, error) {
+func NewRenewTokenWatcher(client hashicorp.VaultClient, tokenPath string, logger *log.Logger) (*RenewTokenWatcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err

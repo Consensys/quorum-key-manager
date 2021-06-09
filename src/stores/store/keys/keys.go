@@ -2,35 +2,40 @@ package keys
 
 import (
 	"context"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"encoding/base64"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/crypto"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
 //go:generate mockgen -source=keys.go -destination=mock/keys.go -package=mock
 
 type Store interface {
 	// Info returns store information
-	Info(context.Context) (*entities2.StoreInfo, error)
+	Info(context.Context) (*entities.StoreInfo, error)
 
 	// Create a new key and stores it
-	Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error)
+	Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Import an externally created key and stores it
-	Import(ctx context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error)
+	Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Get the public part of a stored key.
-	Get(ctx context.Context, id string) (*entities2.Key, error)
+	Get(ctx context.Context, id string) (*entities.Key, error)
 
 	// List keys
 	List(ctx context.Context) ([]string, error)
 
 	// Update key tags
-	Update(ctx context.Context, id string, attr *entities2.Attributes) (*entities2.Key, error)
+	Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error)
 
 	// Delete secret not permanently, by using Undelete() the secret can be retrieve
 	Delete(ctx context.Context, id string) error
 
 	// GetDeleted keys
-	GetDeleted(ctx context.Context, id string) (*entities2.Key, error)
+	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
 
 	// ListDeleted keys
 	ListDeleted(ctx context.Context) ([]string, error)
@@ -44,9 +49,45 @@ type Store interface {
 	// Sign from any arbitrary data using the specified key
 	Sign(ctx context.Context, id string, data []byte) ([]byte, error)
 
+	// Verify verifies the signature belongs to the corresponding key
+	Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error
+
 	// Encrypt any arbitrary data using a specified key
 	Encrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 
 	// Decrypt a single block of encrypted data.
 	Decrypt(ctx context.Context, id string, data []byte) ([]byte, error)
+}
+
+func VerifySignature(logger *log.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	logger = logger.
+		WithField("pub_key", base64.URLEncoding.EncodeToString(pubKey)).
+		WithField("curve", algo.EllipticCurve).
+		WithField("signing_algorithm", algo.Type)
+
+	var err error
+	var verified bool
+	switch {
+	case algo.EllipticCurve == entities.Secp256k1 && algo.Type == entities.Ecdsa:
+		verified, err = crypto.VerifyECDSASignature(pubKey, data, sig)
+	case algo.EllipticCurve == entities.Bn254 && algo.Type == entities.Eddsa:
+		verified, err = crypto.VerifyEDDSASignature(pubKey, data, sig)
+	default:
+		errMessage := "unsupported algorithm"
+		logger.Error(errMessage)
+		return errors.NotSupportedError(errMessage)
+	}
+	if err != nil {
+		errMessage := "failed to verify signature"
+		logger.WithError(err).Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
+	}
+
+	if !verified {
+		errMessage := "signature does not belong to the specified public key"
+		logger.WithField("pub_key", pubKey).Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
+	}
+
+	return nil
 }

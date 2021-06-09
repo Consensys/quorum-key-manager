@@ -2,14 +2,15 @@ package formatters
 
 import (
 	"encoding/base64"
-	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
-func FormatKeyResponse(key *entities2.Key) *types2.KeyResponse {
-	return &types2.KeyResponse{
+func FormatKeyResponse(key *entities.Key) *types.KeyResponse {
+	return &types.KeyResponse{
 		ID:               key.ID,
-		PublicKey:        base64.URLEncoding.EncodeToString(key.PublicKey),
+		PublicKey:        base64.StdEncoding.EncodeToString(key.PublicKey),
 		Curve:            string(key.Algo.EllipticCurve),
 		SigningAlgorithm: string(key.Algo.Type),
 		Tags:             key.Tags,

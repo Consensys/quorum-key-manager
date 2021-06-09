@@ -4,17 +4,17 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/app"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	manifests2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/manifests"
+	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/middleware"
-	nodes2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes"
-	stores2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/nodes"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores"
 )
 
 type Config struct {
 	HTTP      *server.Config
 	Logger    *log.Config
-	Manifests *manager.Config
+	Manifests *manifestsmanager.Config
 }
 
 func New(cfg *Config, logger *log.Logger) (*app.App, error) {
@@ -28,17 +28,17 @@ func New(cfg *Config, logger *log.Logger) (*app.App, error) {
 	}
 
 	// Register Services
-	err = manifests2.RegisterService(a)
+	err = manifests.RegisterService(a)
 	if err != nil {
 		return nil, err
 	}
 
-	err = stores2.RegisterService(a)
+	err = stores.RegisterService(a)
 	if err != nil {
 		return nil, err
 	}
 
-	err = nodes2.RegisterService(a)
+	err = nodes.RegisterService(a)
 	if err != nil {
 		return nil, err
 	}

@@ -2,11 +2,11 @@ package interceptor
 
 import (
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/mock"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 
+	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )
@@ -16,7 +16,7 @@ func TestEthSign(t *testing.T) {
 	defer ctrl.Finish()
 
 	i, stores := newInterceptor(ctrl)
-	accountsStore := mock.NewMockStore(ctrl)
+	accountsStore := mockaccounts.NewMockStore(ctrl)
 
 	tests := []*testHandlerCase{
 		{

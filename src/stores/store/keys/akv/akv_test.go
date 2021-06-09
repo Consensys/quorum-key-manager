@@ -5,10 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	mocks2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/mocks"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	keys2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"testing"
 	"time"
 
@@ -16,6 +12,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -37,8 +37,8 @@ var (
 
 type akvKeyStoreTestSuite struct {
 	suite.Suite
-	mockVault *mocks2.MockKeysClient
-	keyStore  keys2.Store
+	mockVault *mocks.MockKeysClient
+	keyStore  keys.Store
 }
 
 func TestHashicorpKeyStore(t *testing.T) {
@@ -50,14 +50,14 @@ func (s *akvKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockVault = mocks2.NewMockKeysClient(ctrl)
+	s.mockVault = mocks.NewMockKeysClient(ctrl)
 	s.keyStore = New(s.mockVault, log.DefaultLogger())
 }
 
 func (s *akvKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
-	attributes := testutils2.FakeAttributes()
-	algorithm := testutils2.FakeAlgorithm()
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
 	version := "1234"
 
 	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
@@ -85,8 +85,8 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), version, key.Metadata.Version)
 	})
@@ -94,8 +94,8 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 
 func (s *akvKeyStoreTestSuite) TestImport() {
 	ctx := context.Background()
-	attributes := testutils2.FakeAttributes()
-	algorithm := testutils2.FakeAlgorithm()
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
 	version := "1234"
 
 	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
@@ -131,8 +131,8 @@ func (s *akvKeyStoreTestSuite) TestImport() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), version, key.Metadata.Version)
 	})
@@ -140,7 +140,7 @@ func (s *akvKeyStoreTestSuite) TestImport() {
 
 func (s *akvKeyStoreTestSuite) TestGet() {
 	ctx := context.Background()
-	attributes := testutils2.FakeAttributes()
+	attributes := testutils.FakeAttributes()
 	version := "1234"
 
 	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
@@ -168,8 +168,8 @@ func (s *akvKeyStoreTestSuite) TestGet() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), version, key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
@@ -199,7 +199,7 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
 	version := "1234"
 	payload := []byte("my data")
-	attributes := testutils2.FakeAttributes()
+	attributes := testutils.FakeAttributes()
 	expectedSignature := "0x8b9679a75861e72fa6968dd5add3bf96e2747f0f124a2e728980f91e1958367e19c2486a40fdc65861824f247603bc18255fa497ca0b8b0a394aa7a6740fdc4601"
 	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
 

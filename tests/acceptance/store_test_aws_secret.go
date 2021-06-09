@@ -4,12 +4,11 @@ package acceptancetests
 
 import (
 	"fmt"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	aws2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/aws"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/aws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -20,7 +19,7 @@ import (
 type awsSecretTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store *aws2.SecretStore
+	store *aws.SecretStore
 }
 
 func (s *awsSecretTestSuite) TestSet() {
@@ -29,9 +28,9 @@ func (s *awsSecretTestSuite) TestSet() {
 	s.Run("should create a new secret successfully", func() {
 		name := "my-secret"
 		value := "my-secret-value"
-		tags := testutils2.FakeTags()
+		tags := testutils.FakeTags()
 
-		secret, err := s.store.Set(ctx, name, value, &entities2.Attributes{
+		secret, err := s.store.Set(ctx, name, value, &entities.Attributes{
 			Tags: tags,
 		})
 
@@ -46,17 +45,17 @@ func (s *awsSecretTestSuite) TestSet() {
 		id := "my-secret-versioned"
 		value1 := "my-secret-value1"
 		value2 := "my-secret-value2"
-		tags1 := testutils2.FakeTags()
+		tags1 := testutils.FakeTags()
 		tags2 := map[string]string{
 			"tag1": "tagValue1",
 			"tag2": "tagValue2",
 		}
 
-		secret1, err := s.store.Set(ctx, id, value1, &entities2.Attributes{
+		secret1, err := s.store.Set(ctx, id, value1, &entities.Attributes{
 			Tags: tags1,
 		})
 
-		secret2, err := s.store.Set(ctx, id, value2, &entities2.Attributes{
+		secret2, err := s.store.Set(ctx, id, value2, &entities.Attributes{
 			Tags: tags2,
 		})
 
@@ -80,9 +79,9 @@ func (s *awsSecretTestSuite) TestList() {
 	value := "my-secret-value"
 
 	// 2 with same ID and 1 different
-	_, err := s.store.Set(ctx, id1, value, &entities2.Attributes{})
+	_, err := s.store.Set(ctx, id1, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
-	_, err = s.store.Set(ctx, id2, value, &entities2.Attributes{})
+	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
 	s.Run("should list all secrets ids successfully", func() {
@@ -106,7 +105,7 @@ func (s *awsSecretTestSuite) TestList() {
 	for i := 0; i < len(randomIDs); i++ {
 		randomIDs[i] = fmt.Sprintf("randomID%d", common.RandInt(100000))
 		randomValues[i] = fmt.Sprintf("randomValues%d", common.RandInt(100000))
-		s.store.Set(ctx, randomIDs[i], randomValues[i], &entities2.Attributes{})
+		s.store.Set(ctx, randomIDs[i], randomValues[i], &entities.Attributes{})
 	}
 
 	s.Run("should list all secrets ids successfully", func() {
@@ -130,10 +129,10 @@ func (s *awsSecretTestSuite) TestGet() {
 	value2 := "my-secret-value2"
 
 	// 2 with same ID
-	secret1, err := s.store.Set(ctx, id, value1, &entities2.Attributes{})
+	secret1, err := s.store.Set(ctx, id, value1, &entities.Attributes{})
 	require.NoError(s.T(), err)
 	version1 := secret1.Metadata.Version
-	secret2, err := s.store.Set(ctx, id, value2, &entities2.Attributes{})
+	secret2, err := s.store.Set(ctx, id, value2, &entities.Attributes{})
 	require.NoError(s.T(), err)
 	version2 := secret2.Metadata.Version
 
@@ -154,13 +153,14 @@ func (s *awsSecretTestSuite) TestGet() {
 	})
 
 	s.Run("should get specific secret version", func() {
-		secret, err := s.store.Get(ctx, id, version1)
+		readSec1, err := s.store.Get(ctx, id, version1)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version1, secret.Metadata.Version)
 
-		secret, err = s.store.Get(ctx, id, version2)
+		readSec2, err := s.store.Get(ctx, id, version2)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version2, secret.Metadata.Version)
+		expectedVersion2 := readSec2.Metadata.Version
+		assert.Equal(s.T(), version2, expectedVersion2)
+		assert.False(s.T(), assert.ObjectsAreEqualValues(readSec2, readSec1))
 	})
 
 	s.Run("should fail with NotFound if secret is not found", func() {
@@ -187,7 +187,7 @@ func (s *awsSecretTestSuite) TestDeleteAndDestroy() {
 	id := "my-secret-destroy"
 	value := "my-secret-value"
 
-	_, err := s.store.Set(ctx, id, value, &entities2.Attributes{})
+	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
 	s.Run("should get secret successfully before destroyed", func() {

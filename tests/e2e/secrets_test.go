@@ -5,12 +5,12 @@ package e2e
 import (
 	"context"
 	"fmt"
-	types2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -60,7 +60,7 @@ func TestKeyManagerSecrets(t *testing.T) {
 func (s *secretsTestSuite) TestSet() {
 	id := fmt.Sprintf("my-secret-set-%d", common.RandInt(1000))
 	s.Run("should set a new secret successfully", func() {
-		request := &types2.SetSecretRequest{
+		request := &types.SetSecretRequest{
 			ID:    id,
 			Value: "my-secret-value",
 			Tags: map[string]string{
@@ -85,7 +85,7 @@ func (s *secretsTestSuite) TestSet() {
 	})
 
 	s.Run("should parse errors successfully", func() {
-		request := &types2.SetSecretRequest{
+		request := &types.SetSecretRequest{
 			ID:    "my-secret-set",
 			Value: "my-secret-value",
 			Tags: map[string]string{
@@ -104,7 +104,7 @@ func (s *secretsTestSuite) TestSet() {
 
 func (s *secretsTestSuite) TestGet() {
 	id := fmt.Sprintf("my-secret-get-%d", common.RandInt(1000))
-	request := &types2.SetSecretRequest{
+	request := &types.SetSecretRequest{
 		ID:    id,
 		Value: "my-secret-value",
 	}
@@ -150,7 +150,7 @@ func (s *secretsTestSuite) TestGet() {
 
 func (s *secretsTestSuite) TestList() {
 	id := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
-	request := &types2.SetSecretRequest{
+	request := &types.SetSecretRequest{
 		ID:    id,
 		Value: "my-secret-value",
 	}

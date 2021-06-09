@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,10 +35,10 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // Info mocks base method
-func (m *MockStore) Info(arg0 context.Context) (*entities2.StoreInfo, error) {
+func (m *MockStore) Info(arg0 context.Context) (*entities.StoreInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Info", arg0)
-	ret0, _ := ret[0].(*entities2.StoreInfo)
+	ret0, _ := ret[0].(*entities.StoreInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +50,10 @@ func (mr *MockStoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
 }
 
 // Set mocks base method
-func (m *MockStore) Set(ctx context.Context, id, value string, attr *entities2.Attributes) (*entities2.Secret, error) {
+func (m *MockStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Set", ctx, id, value, attr)
-	ret0, _ := ret[0].(*entities2.Secret)
+	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockStoreMockRecorder) Set(ctx, id, value, attr interface{}) *gomock.C
 }
 
 // Get mocks base method
-func (m *MockStore) Get(ctx context.Context, id, version string) (*entities2.Secret, error) {
+func (m *MockStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id, version)
-	ret0, _ := ret[0].(*entities2.Secret)
+	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -109,10 +109,10 @@ func (mr *MockStoreMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 }
 
 // GetDeleted mocks base method
-func (m *MockStore) GetDeleted(ctx context.Context, id string) (*entities2.Secret, error) {
+func (m *MockStore) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeleted", ctx, id)
-	ret0, _ := ret[0].(*entities2.Secret)
+	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

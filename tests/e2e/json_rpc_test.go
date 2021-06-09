@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/api/types"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/assert"
@@ -306,7 +306,7 @@ func (s *jsonRPCTestSuite) TestEthAccounts() {
 		accs := []string{}
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &accs)
 		require.NoError(s.T(), err)
-		assert.Contains(s.T(), accs, strings.ToLower(s.acc.Address))
+		assert.Contains(s.T(), accs, strings.ToLower(s.acc.Address.Hex()))
 	})
 }
 

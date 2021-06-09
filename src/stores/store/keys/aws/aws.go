@@ -3,11 +3,10 @@ package aws
 import (
 	"context"
 	"fmt"
-	aws2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
 const (
@@ -20,12 +19,12 @@ const (
 
 // Store is an implementation of key store relying on AWS kms
 type KeyStore struct {
-	client aws2.KmsClient
+	client aws.KmsClient
 	logger *log.Logger
 }
 
 // New creates an AWS secret store
-func New(client aws2.KmsClient, logger *log.Logger) *KeyStore {
+func New(client aws.KmsClient, logger *log.Logger) *KeyStore {
 	return &KeyStore{
 		client: client,
 		logger: logger,
@@ -33,12 +32,12 @@ func New(client aws2.KmsClient, logger *log.Logger) *KeyStore {
 }
 
 // Info returns store information
-func (ks *KeyStore) Info(context.Context) (*entities2.StoreInfo, error) {
+func (ks *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
 // Create a new key and stores it
-func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error) {
+func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := ks.logger.WithField("id", id)
 
 	key, alias, err := ks.client.CreateKey(ctx, id, alg, attr)
@@ -55,7 +54,7 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities2.Algori
 
 	algo := algoFromAWSPublicKeyInfo(publicKeyOut)
 
-	outKey := &entities2.Key{
+	outKey := &entities.Key{
 		ID:        *alias,
 		PublicKey: publicKeyOut.PublicKey,
 		Algo:      algo,
@@ -69,12 +68,12 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities2.Algori
 // Import an externally created key and stores it
 // this feature is not supported by AWS kms
 // always returns errors.ErrNotSupported
-func (ks *KeyStore) Import(ctx context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities2.Attributes) (*entities2.Key, error) {
+func (ks *KeyStore) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	return nil, errors.ErrNotSupported
 }
 
 // Get the public part of a stored key.
-func (ks *KeyStore) Get(ctx context.Context, id string) (*entities2.Key, error) {
+func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := ks.logger.WithField("id", id)
 	outGetKey, err := ks.client.GetPublicKey(ctx, id)
 	if err != nil {
@@ -82,7 +81,7 @@ func (ks *KeyStore) Get(ctx context.Context, id string) (*entities2.Key, error) 
 		return nil, err
 	}
 
-	retKey := &entities2.Key{
+	retKey := &entities.Key{
 		PublicKey: outGetKey.PublicKey,
 		Algo:      algoFromAWSPublicKeyInfo(outGetKey),
 	}
@@ -172,7 +171,7 @@ func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
 }
 
 // Update key tags
-func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities2.Attributes) (*entities2.Key, error) {
+func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	return nil, errors.ErrNotImplemented
 }
 
@@ -189,7 +188,7 @@ func (ks *KeyStore) Delete(ctx context.Context, id string) error {
 }
 
 // GetDeleted keys
-func (ks *KeyStore) GetDeleted(ctx context.Context, id string) (*entities2.Key, error) {
+func (ks *KeyStore) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	return nil, errors.ErrNotImplemented
 }
 
@@ -218,6 +217,10 @@ func (ks *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, e
 	}
 	logger.Info("data signed successfully")
 	return outSignature.Signature, nil
+}
+
+func (ks *KeyStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	return errors.ErrNotImplemented
 }
 
 // Encrypt any arbitrary data using a specified key

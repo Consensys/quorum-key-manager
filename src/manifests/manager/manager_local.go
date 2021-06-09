@@ -2,12 +2,12 @@ package manager
 
 import (
 	"context"
-	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -45,7 +45,7 @@ func NewLocalManager(cfg *Config) (*LocalManager, error) {
 }
 
 type subscription struct {
-	kinds    map[manifest2.Kind]struct{}
+	kinds    map[manifest.Kind]struct{}
 	messages chan<- []Message
 	errors   chan error
 	stop     chan struct{}
@@ -77,7 +77,7 @@ func (sub *subscription) inbox(msgs []Message) {
 	sub.messages <- submsgs
 }
 
-func (ll *LocalManager) Subscribe(kinds []manifest2.Kind, messages chan<- []Message) (Subscription, error) {
+func (ll *LocalManager) Subscribe(kinds []manifest.Kind, messages chan<- []Message) (Subscription, error) {
 	sub := &subscription{
 		messages: messages,
 		errors:   make(chan error, 1),
@@ -86,7 +86,7 @@ func (ll *LocalManager) Subscribe(kinds []manifest2.Kind, messages chan<- []Mess
 	}
 
 	if kinds != nil {
-		sub.kinds = make(map[manifest2.Kind]struct{})
+		sub.kinds = make(map[manifest.Kind]struct{})
 		for _, kind := range kinds {
 			sub.kinds[kind] = struct{}{}
 		}
@@ -151,7 +151,7 @@ func (ll *LocalManager) buildMessages(fp string) []Message {
 		}}
 	}
 
-	mnf := &manifest2.Manifest{}
+	mnf := &manifest.Manifest{}
 	if err = yaml.Unmarshal(data, mnf); err == nil {
 		return []Message{{
 			Loader:   ManagerID,
@@ -160,7 +160,7 @@ func (ll *LocalManager) buildMessages(fp string) []Message {
 		}}
 	}
 
-	mnfs := []*manifest2.Manifest{}
+	mnfs := []*manifest.Manifest{}
 	if err = yaml.Unmarshal(data, &mnfs); err == nil {
 		msgs := []Message{}
 		for _, mnf := range mnfs {

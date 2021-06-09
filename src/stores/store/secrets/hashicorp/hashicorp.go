@@ -2,14 +2,15 @@ package hashicorp
 
 import (
 	"context"
-	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	secrets2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
 	"path"
 	"strconv"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
+
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
 const (
@@ -22,15 +23,15 @@ const (
 
 // Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
 type Store struct {
-	client     hashicorp2.VaultClient
+	client     hashicorp.VaultClient
 	mountPoint string
 	logger     *log.Logger
 }
 
-var _ secrets2.Store = &Store{}
+var _ secrets.Store = &Store{}
 
 // New creates an Hashicorp secret store
-func New(client hashicorp2.VaultClient, mountPoint string, logger *log.Logger) *Store {
+func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
@@ -38,12 +39,12 @@ func New(client hashicorp2.VaultClient, mountPoint string, logger *log.Logger) *
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities2.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
 // Set a secret
-func (s *Store) Set(_ context.Context, id, value string, attr *entities2.Attributes) (*entities2.Secret, error) {
+func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
 	data := map[string]interface{}{
 		dataLabel: map[string]interface{}{
@@ -69,7 +70,7 @@ func (s *Store) Set(_ context.Context, id, value string, attr *entities2.Attribu
 }
 
 // Get a secret
-func (s *Store) Get(_ context.Context, id, version string) (*entities2.Secret, error) {
+func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {
 	logger := s.logger.WithField("id", id)
 	var callData map[string][]string
 	if version != "" {
@@ -143,7 +144,7 @@ func (s *Store) Delete(_ context.Context, id string) error {
 }
 
 // Gets a deleted secret
-func (s *Store) GetDeleted(_ context.Context, id string) (*entities2.Secret, error) {
+func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.ErrNotImplemented
 }
 

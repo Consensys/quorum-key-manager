@@ -5,16 +5,16 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	formatters2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	database2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	eth12 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
-	keys2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -24,20 +24,20 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-var eth1KeyAlgo = &entities2.Algorithm{
-	Type:          entities2.Ecdsa,
-	EllipticCurve: entities2.Secp256k1,
+var eth1KeyAlgo = &entities.Algorithm{
+	Type:          entities.Ecdsa,
+	EllipticCurve: entities.Secp256k1,
 }
 
 type Store struct {
-	keyStore     keys2.Store
-	eth1Accounts database2.ETH1Accounts
+	keyStore     keys.Store
+	eth1Accounts database.ETH1Accounts
 	logger       *log.Logger
 }
 
-var _ eth12.Store = &Store{}
+var _ eth1.Store = &Store{}
 
-func New(keyStore keys2.Store, eth1Accounts database2.ETH1Accounts, logger *log.Logger) *Store {
+func New(keyStore keys.Store, eth1Accounts database.ETH1Accounts, logger *log.Logger) *Store {
 	return &Store{
 		keyStore:     keyStore,
 		logger:       logger,
@@ -45,11 +45,11 @@ func New(keyStore keys2.Store, eth1Accounts database2.ETH1Accounts, logger *log.
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities2.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Create(ctx context.Context, id string, attr *entities2.Attributes) (*entities2.ETH1Account, error) {
+func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	key, err := s.keyStore.Create(ctx, id, eth1KeyAlgo, attr)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities2.Attribute
 	return acc, nil
 }
 
-func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *entities2.Attributes) (*entities2.ETH1Account, error) {
+func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	key, err := s.keyStore.Import(ctx, id, privKey, eth1KeyAlgo, attr)
 	if err != nil {
 		return nil, err
@@ -79,11 +79,11 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 	return acc, nil
 }
 
-func (s *Store) Get(ctx context.Context, addr string) (*entities2.ETH1Account, error) {
+func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	return s.eth1Accounts.Get(ctx, addr)
 }
 
-func (s *Store) GetAll(ctx context.Context) ([]*entities2.ETH1Account, error) {
+func (s *Store) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 	return s.eth1Accounts.GetAll(ctx)
 }
 
@@ -95,13 +95,13 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	}
 
 	for _, account := range accounts {
-		addresses = append(addresses, account.Address)
+		addresses = append(addresses, account.Address.Hex())
 	}
 
 	return addresses, nil
 }
 
-func (s *Store) Update(ctx context.Context, addr string, attr *entities2.Attributes) (*entities2.ETH1Account, error) {
+func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	account, err := s.eth1Accounts.Get(ctx, addr)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (s *Store) Delete(ctx context.Context, addr string) error {
 	return s.eth1Accounts.AddDeleted(ctx, account)
 }
 
-func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities2.ETH1Account, error) {
+func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	return s.eth1Accounts.GetDeleted(ctx, addr)
 }
 
@@ -152,7 +152,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	}
 
 	for _, account := range accounts {
-		addresses = append(addresses, account.Address)
+		addresses = append(addresses, account.Address.Hex())
 	}
 
 	return addresses, nil
@@ -360,7 +360,7 @@ func (s *Store) VerifyTypedData(ctx context.Context, addr string, typedData *cor
 		return err
 	}
 
-	return s.Verify(ctx, addr, sig, []byte(encodedData))
+	return s.Verify(ctx, addr, []byte(encodedData), sig)
 }
 
 func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
@@ -408,7 +408,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 		return "", errors.InvalidParameterError("invalid typed data message")
 	}
 
-	domainSeparatorHash, err := typedData.HashStruct(formatters2.EIP712DomainLabel, typedData.Domain.Map())
+	domainSeparatorHash, err := typedData.HashStruct(formatters.EIP712DomainLabel, typedData.Domain.Map())
 	if err != nil {
 		return "", errors.InvalidParameterError("invalid domain separator")
 	}

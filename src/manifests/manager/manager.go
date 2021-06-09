@@ -2,7 +2,8 @@ package manager
 
 import (
 	"fmt"
-	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 )
 
 type Action string
@@ -17,7 +18,7 @@ type Message struct {
 	Loader string
 
 	// Manifest loaded
-	Manifest *manifest2.Manifest
+	Manifest *manifest.Manifest
 
 	// Action to perform (e.g. create, update, delete...)
 	Action Action
@@ -41,7 +42,7 @@ type Manager interface {
 	// Manifests matching kinds on the given channel
 
 	// If kinds is nil then all manifest are written
-	Subscribe(kinds []manifest2.Kind, messages chan<- []Message) (Subscription, error)
+	Subscribe(kinds []manifest.Kind, messages chan<- []Message) (Subscription, error)
 }
 
 // Subscription

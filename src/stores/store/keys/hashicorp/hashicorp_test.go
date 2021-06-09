@@ -5,14 +5,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	mocks2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	keys2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"testing"
 	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
@@ -26,9 +26,9 @@ const (
 
 type hashicorpKeyStoreTestSuite struct {
 	suite.Suite
-	mockVault  *mocks2.MockVaultClient
+	mockVault  *mocks.MockVaultClient
 	mountPoint string
-	keyStore   keys2.Store
+	keyStore   keys.Store
 }
 
 func TestHashicorpKeyStore(t *testing.T) {
@@ -41,7 +41,7 @@ func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mountPoint = "hashicorp-plugin"
-	s.mockVault = mocks2.NewMockVaultClient(ctrl)
+	s.mockVault = mocks.NewMockVaultClient(ctrl)
 
 	logger := log.DefaultLogger()
 	s.keyStore = New(s.mockVault, s.mountPoint, logger)
@@ -50,8 +50,8 @@ func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
 	expectedPath := s.mountPoint + "/keys"
-	attributes := testutils2.FakeAttributes()
-	algorithm := testutils2.FakeAlgorithm()
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
 	expectedData := map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     algorithm.EllipticCurve,
@@ -62,8 +62,8 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		Data: map[string]interface{}{
 			"id":         id,
 			"public_key": publicKey,
-			"curve":      string(entities2.Secp256k1),
-			"algorithm":  string(entities2.Ecdsa),
+			"curve":      string(entities.Secp256k1),
+			"algorithm":  string(entities.Ecdsa),
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
@@ -82,8 +82,8 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
@@ -107,8 +107,8 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	privKey := "2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw="
 	privKeyB, _ := base64.URLEncoding.DecodeString(privKey)
 	expectedPath := s.mountPoint + "/keys/import"
-	attributes := testutils2.FakeAttributes()
-	algorithm := testutils2.FakeAlgorithm()
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
 	expectedData := map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      algorithm.EllipticCurve,
@@ -120,8 +120,8 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		Data: map[string]interface{}{
 			"id":         id,
 			"public_key": publicKey,
-			"curve":      string(entities2.Secp256k1),
-			"algorithm":  string(entities2.Ecdsa),
+			"curve":      string(entities.Secp256k1),
+			"algorithm":  string(entities.Ecdsa),
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
@@ -140,8 +140,8 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
@@ -163,13 +163,13 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	ctx := context.Background()
 	expectedPath := s.mountPoint + "/keys/" + id
-	attributes := testutils2.FakeAttributes()
+	attributes := testutils.FakeAttributes()
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
 			"id":         id,
 			"public_key": publicKey,
-			"curve":      string(entities2.Secp256k1),
-			"algorithm":  string(entities2.Ecdsa),
+			"curve":      string(entities.Secp256k1),
+			"algorithm":  string(entities.Ecdsa),
 			"tags": map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
@@ -188,8 +188,8 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)

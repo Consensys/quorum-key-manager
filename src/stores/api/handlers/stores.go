@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 	"net/http"
 
+	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 	"github.com/gorilla/mux"
 )
 
 type StoresHandler struct {
-	stores storemanager.Manager
+	stores storesmanager.Manager
 
 	secrets *SecretsHandler
 	keys    *KeysHandler
@@ -16,7 +16,7 @@ type StoresHandler struct {
 }
 
 // New creates a http.Handler to be served on /stores
-func NewStoresHandler(s storemanager.Manager) *StoresHandler {
+func NewStoresHandler(s storesmanager.Manager) *StoresHandler {
 	return &StoresHandler{
 		stores:  s,
 		secrets: NewSecretsHandler(s),

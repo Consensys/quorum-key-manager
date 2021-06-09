@@ -2,12 +2,12 @@ package interceptor
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode2 "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
-	storemanager2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
+	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 )
 
 type Interceptor struct {
-	stores storemanager2.Manager
+	stores storemanager.Manager
 
 	handler jsonrpc.Handler
 }
@@ -19,7 +19,7 @@ func (i *Interceptor) ServeRPC(rw jsonrpc.ResponseWriter, msg *jsonrpc.RequestMs
 func (i *Interceptor) newHandler() jsonrpc.Handler {
 	// Only JSON-RPC v2 is supported
 	router := jsonrpc.NewRouter().DefaultHandler(jsonrpc.NotSupportedVersionHandler())
-	v2Router := router.Version("2.0").Subrouter().DefaultHandler(proxynode2.ProxyHandler)
+	v2Router := router.Version("2.0").Subrouter().DefaultHandler(proxynode.ProxyHandler)
 
 	// Set JSON-RPC interceptors
 	v2Router.Method("eth_accounts").Handle(i.EthAccounts())
@@ -34,7 +34,7 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router))
 }
 
-func New(stores storemanager2.Manager) *Interceptor {
+func New(stores storemanager.Manager) *Interceptor {
 	i := &Interceptor{
 		stores: stores,
 	}

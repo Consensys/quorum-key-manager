@@ -3,19 +3,19 @@ package interceptor
 import (
 	"context"
 	"encoding/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func newInterceptor(ctrl *gomock.Controller) (i *Interceptor, stores *mock.MockManager) {
-	stores = mock.NewMockManager(ctrl)
+func newInterceptor(ctrl *gomock.Controller) (i *Interceptor, stores *mockstoremanager.MockManager) {
+	stores = mockstoremanager.NewMockManager(ctrl)
 	return New(stores), stores
 }
 

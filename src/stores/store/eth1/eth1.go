@@ -2,7 +2,6 @@ package eth1
 
 import (
 	"context"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"math/big"
 
 	quorumtypes "github.com/consensys/quorum/core/types"
@@ -11,37 +10,38 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
 //go:generate mockgen -source=eth1.go -destination=mock/eth1.go -package=mock
 
 type Store interface {
 	// Info returns store information
-	Info(context.Context) (*entities2.StoreInfo, error)
+	Info(context.Context) (*entities.StoreInfo, error)
 
 	// Create creates an Ethereum account
-	Create(ctx context.Context, id string, attr *entities2.Attributes) (*entities2.ETH1Account, error)
+	Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Import imports an externally created Ethereum account
-	Import(ctx context.Context, id string, privKey []byte, attr *entities2.Attributes) (*entities2.ETH1Account, error)
+	Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Get gets an Ethereum account
-	Get(ctx context.Context, addr string) (*entities2.ETH1Account, error)
+	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
 
 	// GetAll gets all Ethereum accounts
-	GetAll(ctx context.Context) ([]*entities2.ETH1Account, error)
+	GetAll(ctx context.Context) ([]*entities.ETH1Account, error)
 
 	// List lists all Ethereum account addresses
 	List(ctx context.Context) ([]string, error)
 
 	// Update updates Ethereum account attributes
-	Update(ctx context.Context, addr string, attr *entities2.Attributes) (*entities2.ETH1Account, error)
+	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Delete deletes an account temporarily, by using Undelete the account can be restored
 	Delete(ctx context.Context, addr string) error
 
 	// GetDeleted Gets a deleted Ethereum accounts
-	GetDeleted(ctx context.Context, addr string) (*entities2.ETH1Account, error)
+	GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error)
 
 	// ListDeleted lists all deleted Ethereum accounts
 	ListDeleted(ctx context.Context) ([]string, error)

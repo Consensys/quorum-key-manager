@@ -4,18 +4,18 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	formatters2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	mock3 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/mock"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	mock2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/mock"
 	"math/big"
 	"testing"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	mock2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/mock"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/mock"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -35,8 +35,8 @@ const (
 
 type eth1StoreTestSuite struct {
 	suite.Suite
-	mockKeyStore       *mock2.MockStore
-	mockEth1AccountsDB *mock3.MockETH1Accounts
+	mockKeyStore       *mock.MockStore
+	mockEth1AccountsDB *mock2.MockETH1Accounts
 	eth1Store          *Store
 }
 
@@ -49,20 +49,20 @@ func (s *eth1StoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockKeyStore = mock2.NewMockStore(ctrl)
-	s.mockEth1AccountsDB = mock3.NewMockETH1Accounts(ctrl)
+	s.mockKeyStore = mock.NewMockStore(ctrl)
+	s.mockEth1AccountsDB = mock2.NewMockETH1Accounts(ctrl)
 	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, log.DefaultLogger())
 }
 
 func (s *eth1StoreTestSuite) TestCreate() {
 	ctx := context.Background()
-	attributes := testutils2.FakeAttributes()
-	key := testutils2.FakeKey()
+	attributes := testutils.FakeAttributes()
+	key := testutils.FakeKey()
 
 	s.Run("should create a new ethereum account successfully", func() {
-		expectedAccount := &entities2.ETH1Account{
+		expectedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -98,14 +98,14 @@ func (s *eth1StoreTestSuite) TestCreate() {
 
 func (s *eth1StoreTestSuite) Testimport() {
 	ctx := context.Background()
-	attributes := testutils2.FakeAttributes()
-	key := testutils2.FakeKey()
+	attributes := testutils.FakeAttributes()
+	key := testutils.FakeKey()
 	privKeyB, _ := hex.DecodeString(privKey)
 
 	s.Run("should import a new ethereum account successfully", func() {
-		expectedAccount := &entities2.ETH1Account{
+		expectedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -143,7 +143,7 @@ func (s *eth1StoreTestSuite) TestGet() {
 	ctx := context.Background()
 
 	s.Run("should get an ethereum account successfully", func() {
-		fakeETH1Account := testutils2.FakeETH1Account()
+		fakeETH1Account := testutils.FakeETH1Account()
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeETH1Account, nil)
 
 		account, err := s.eth1Store.Get(ctx, address)
@@ -165,7 +165,7 @@ func (s *eth1StoreTestSuite) TestGetAll() {
 	ctx := context.Background()
 
 	s.Run("should get all ethereum accounts successfully", func() {
-		expectedAccounts := []*entities2.ETH1Account{testutils2.FakeETH1Account(), testutils2.FakeETH1Account()}
+		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1AccountsDB.EXPECT().GetAll(ctx).Return(expectedAccounts, nil)
 
 		accounts, err := s.eth1Store.GetAll(ctx)
@@ -187,12 +187,12 @@ func (s *eth1StoreTestSuite) TestList() {
 	ctx := context.Background()
 
 	s.Run("should list all ethereum accounts successfully", func() {
-		expectedAccounts := []*entities2.ETH1Account{testutils2.FakeETH1Account(), testutils2.FakeETH1Account()}
+		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1AccountsDB.EXPECT().GetAll(ctx).Return(expectedAccounts, nil)
 
 		addresses, err := s.eth1Store.List(ctx)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), []string{expectedAccounts[0].Address, expectedAccounts[1].Address}, addresses)
+		assert.Equal(s.T(), []string{expectedAccounts[0].Address.Hex(), expectedAccounts[1].Address.Hex()}, addresses)
 	})
 
 	s.Run("should fail with same error if GetAll account fails", func() {
@@ -207,14 +207,14 @@ func (s *eth1StoreTestSuite) TestList() {
 
 func (s *eth1StoreTestSuite) TestUpdate() {
 	ctx := context.Background()
-	attributes := testutils2.FakeAttributes()
-	key := testutils2.FakeKey()
-	fakeAccount := testutils2.FakeETH1Account()
+	attributes := testutils.FakeAttributes()
+	key := testutils.FakeKey()
+	fakeAccount := testutils.FakeETH1Account()
 
 	s.Run("should update an ethereum account successfully", func() {
-		expectedUpdatedAccount := &entities2.ETH1Account{
+		expectedUpdatedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -251,9 +251,9 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 	})
 
 	s.Run("should fail with same error if Add account fails", func() {
-		expectedUpdatedAccount := &entities2.ETH1Account{
+		expectedUpdatedAccount := &entities.ETH1Account{
 			ID:                  key.ID,
-			Address:             address,
+			Address:             common.HexToAddress(address),
 			Metadata:            key.Metadata,
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
@@ -273,7 +273,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 
 func (s *eth1StoreTestSuite) TestDelete() {
 	ctx := context.Background()
-	fakeAccount := testutils2.FakeETH1Account()
+	fakeAccount := testutils.FakeETH1Account()
 
 	s.Run("should delete an ethereum account successfully", func() {
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
@@ -332,7 +332,7 @@ func (s *eth1StoreTestSuite) TestGetDeleted() {
 	ctx := context.Background()
 
 	s.Run("should get a deleted ethereum account successfully", func() {
-		fakeETH1Account := testutils2.FakeETH1Account()
+		fakeETH1Account := testutils.FakeETH1Account()
 		s.mockEth1AccountsDB.EXPECT().GetDeleted(ctx, address).Return(fakeETH1Account, nil)
 
 		account, err := s.eth1Store.GetDeleted(ctx, address)
@@ -354,12 +354,12 @@ func (s *eth1StoreTestSuite) TestListDeleted() {
 	ctx := context.Background()
 
 	s.Run("should list all ethereum accounts successfully", func() {
-		expectedAccounts := []*entities2.ETH1Account{testutils2.FakeETH1Account(), testutils2.FakeETH1Account()}
+		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1AccountsDB.EXPECT().GetAllDeleted(ctx).Return(expectedAccounts, nil)
 
 		addresses, err := s.eth1Store.ListDeleted(ctx)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), []string{expectedAccounts[0].Address, expectedAccounts[1].Address}, addresses)
+		assert.Equal(s.T(), []string{expectedAccounts[0].Address.Hex(), expectedAccounts[1].Address.Hex()}, addresses)
 	})
 
 	s.Run("should fail with same error if GetAll account fails", func() {
@@ -374,7 +374,7 @@ func (s *eth1StoreTestSuite) TestListDeleted() {
 
 func (s *eth1StoreTestSuite) TestUndelete() {
 	ctx := context.Background()
-	fakeAccount := testutils2.FakeETH1Account()
+	fakeAccount := testutils.FakeETH1Account()
 
 	s.Run("should undelete an ethereum account successfully", func() {
 		s.mockEth1AccountsDB.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
@@ -431,7 +431,7 @@ func (s *eth1StoreTestSuite) TestUndelete() {
 
 func (s *eth1StoreTestSuite) TestDestroy() {
 	ctx := context.Background()
-	fakeAccount := testutils2.FakeETH1Account()
+	fakeAccount := testutils.FakeETH1Account()
 
 	s.Run("should undelete an ethereum account successfully", func() {
 		s.mockEth1AccountsDB.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
@@ -475,7 +475,7 @@ func (s *eth1StoreTestSuite) TestDestroy() {
 
 func (s *eth1StoreTestSuite) TestSignVerify() {
 	ctx := context.Background()
-	fakeAccount := testutils2.FakeETH1Account()
+	fakeAccount := testutils.FakeETH1Account()
 	data := []byte("my data to sign")
 	ecdsaSignature := hexutil.MustDecode("0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed")
 
@@ -516,7 +516,7 @@ func (s *eth1StoreTestSuite) TestSignVerify() {
 
 func (s *eth1StoreTestSuite) TestSignTransaction() {
 	ctx := context.Background()
-	fakeAccount := testutils2.FakeETH1Account()
+	fakeAccount := testutils.FakeETH1Account()
 	chainID := big.NewInt(1)
 	tx := types.NewTransaction(
 		0,
@@ -561,7 +561,7 @@ func (s *eth1StoreTestSuite) TestSignTransaction() {
 
 func (s *eth1StoreTestSuite) TestSignPrivate() {
 	ctx := context.Background()
-	fakeAccount := testutils2.FakeETH1Account()
+	fakeAccount := testutils.FakeETH1Account()
 	tx := quorumtypes.NewTransaction(
 		0,
 		common.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
@@ -605,7 +605,7 @@ func (s *eth1StoreTestSuite) TestSignPrivate() {
 
 func (s *eth1StoreTestSuite) TestSignEEA() {
 	ctx := context.Background()
-	fakeAccount := testutils2.FakeETH1Account()
+	fakeAccount := testutils.FakeETH1Account()
 	chainID := big.NewInt(1)
 	tx := types.NewTransaction(
 		0,
@@ -617,7 +617,7 @@ func (s *eth1StoreTestSuite) TestSignEEA() {
 	)
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
-	privateType := formatters2.PrivateTxTypeRestricted
+	privateType := formatters.PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom: &privateFrom,
 		PrivateFor:  &privateFor,

@@ -3,13 +3,14 @@ package nodemanager
 import (
 	"context"
 	"encoding/json"
-	manifest2 "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 )
 
-var manifestWithTessera = &manifest2.Manifest{
+var manifestWithTessera = &manifest.Manifest{
 	Kind:    "Node",
 	Version: "v1alpha",
 	Name:    "node-test1",
@@ -43,7 +44,7 @@ var manifestWithTessera = &manifest2.Manifest{
 }`),
 }
 
-var manifestRPCOnly = &manifest2.Manifest{
+var manifestRPCOnly = &manifest.Manifest{
 	Kind:    "Node",
 	Version: "v1alpha",
 	Name:    "node-test2",

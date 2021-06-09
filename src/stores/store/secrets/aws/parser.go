@@ -1,11 +1,11 @@
 package aws
 
 import (
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 )
 
-func formatAwsSecret(id, value string, tags map[string]string, metadata *entities2.Metadata) *entities2.Secret {
-	return &entities2.Secret{
+func formatAwsSecret(id, value string, tags map[string]string, metadata *entities.Metadata) *entities.Secret {
+	return &entities.Secret{
 		ID:       id,
 		Value:    value,
 		Tags:     tags,

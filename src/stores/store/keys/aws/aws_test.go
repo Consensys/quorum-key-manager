@@ -3,10 +3,10 @@ package aws
 import (
 	"context"
 	"fmt"
-	mocks2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/mocks"
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	keys2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/mocks"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 	"testing"
 	"time"
 
@@ -25,8 +25,8 @@ const (
 
 type awsKeyStoreTestSuite struct {
 	suite.Suite
-	mockKmsClient *mocks2.MockKmsClient
-	keyStore      keys2.Store
+	mockKmsClient *mocks.MockKmsClient
+	keyStore      keys.Store
 }
 
 func TestAWSKeyStore(t *testing.T) {
@@ -38,15 +38,15 @@ func (s *awsKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockKmsClient = mocks2.NewMockKmsClient(ctrl)
+	s.mockKmsClient = mocks.NewMockKmsClient(ctrl)
 	s.keyStore = New(s.mockKmsClient, log.DefaultLogger())
 }
 
 // TestCreate Key creation test cases
 func (s *awsKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
-	attributes := testutils2.FakeAttributes()
-	algorithm := testutils2.FakeAlgorithm()
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
 	creationDate := time.Now()
 	deletionDate := creationDate.AddDate(1, 0, 0)
 	expirationDate := deletionDate.AddDate(0, 1, 0)
@@ -82,8 +82,8 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.DeletedAt)
 		assert.False(s.T(), key.Metadata.Disabled)
-		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 
 	})
 
@@ -130,7 +130,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 
 	retListTags := &kms.ListResourceTagsOutput{
 		Truncated: &truncatedTagList,
-		Tags:      ToKmsTags(testutils2.FakeTags()),
+		Tags:      ToKmsTags(testutils.FakeTags()),
 	}
 
 	retListAliases := &kms.ListAliasesOutput{
@@ -162,7 +162,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), key.PublicKey, expectedPubKey)
-		assert.ObjectsAreEqualValues(testutils2.FakeTags(), key.Tags)
+		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
 		assert.Equal(s.T(), myArn, key.Tags[awsARN])
 		assert.Equal(s.T(), myAccountID, key.Tags[awsAccountID])
 		assert.Equal(s.T(), myCustomerKeyStoreID, key.Tags[awsCustomerKeyStoreID])

@@ -2,12 +2,12 @@ package hashicorp
 
 import (
 	"context"
-	client2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/client"
-	token2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/token"
-	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/token"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
 )
 
 // SecretSpecs is the specs format for an Hashicorp Vault secret store
@@ -19,9 +19,9 @@ type SecretSpecs struct {
 	Namespace  string `json:"namespace"`
 }
 
-func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*hashicorp2.Store, error) {
-	cfg := client2.NewConfig(specs.Address, specs.Namespace)
-	cli, err := client2.NewClient(cfg)
+func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*hashicorp.Store, error) {
+	cfg := client.NewConfig(specs.Address, specs.Namespace)
+	cli, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, errors.HashicorpVaultConnectionError(err.Error())
 	}
@@ -29,7 +29,7 @@ func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*hashicorp2.Store, 
 	if specs.Token != "" {
 		cli.SetToken(specs.Token)
 	} else if specs.TokenPath != "" {
-		tokenWatcher, err := token2.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
+		tokenWatcher, err := token.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -44,6 +44,6 @@ func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*hashicorp2.Store, 
 		}()
 	}
 
-	store := hashicorp2.New(cli, specs.MountPoint, logger)
+	store := hashicorp.New(cli, specs.MountPoint, logger)
 	return store, nil
 }

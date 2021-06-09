@@ -2,8 +2,8 @@ package akv
 
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	client2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/client"
-	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/akv"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/client"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/akv"
 )
 
 // Specs is the specs format for an Azure Key Vault key store
@@ -22,13 +22,13 @@ type KeySpecs struct {
 	Resource            string `json:"resource"`
 }
 
-func NewKeyStore(spec *KeySpecs, logger *log.Logger) (*akv2.Store, error) {
-	cfg := client2.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
-	cli, err := client2.NewClient(cfg)
+func NewKeyStore(spec *KeySpecs, logger *log.Logger) (*akv.Store, error) {
+	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
+	cli, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	store := akv2.New(cli, logger)
+	store := akv.New(cli, logger)
 	return store, nil
 }
