@@ -5,7 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func parseKey(key *entities.Key) *entities.ETH1Account {
+func ParseKey(key *entities.Key) *entities.ETH1Account {
 	pubKey, _ := crypto.UnmarshalPubkey(key.PublicKey)
 	return &entities.ETH1Account{
 		ID:                  key.ID,

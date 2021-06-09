@@ -55,7 +55,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	acc := parseKey(key)
+	acc := ParseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 		return nil, err
 	}
 
-	acc := parseKey(key)
+	acc := ParseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 		return nil, err
 	}
 
-	acc := parseKey(key)
+	acc := ParseKey(key)
 	err = s.eth1Accounts.Add(ctx, acc)
 	if err != nil {
 		return nil, err
