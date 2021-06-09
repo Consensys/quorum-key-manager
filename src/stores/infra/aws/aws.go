@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
@@ -29,7 +30,7 @@ type KmsClient interface {
 	GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error)
 	ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error)
 	ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error)
-	ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, error)
+	ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, []string, error)
 	DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error)
 	/*UpdateKey(ctx context.Context, input *kms.UpdateCustomKeyStoreInput, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
 	GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)

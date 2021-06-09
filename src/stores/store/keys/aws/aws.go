@@ -2,7 +2,7 @@ package aws
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws"
@@ -54,12 +54,18 @@ func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorit
 
 	algo := algoFromAWSPublicKeyInfo(publicKeyOut)
 
+	// List associated tags
+	tags, err2 := ks.doListTags(ctx, *key.KeyMetadata.KeyId, logger)
+	if err2 != nil {
+		return nil, err2
+	}
+
 	outKey := &entities.Key{
 		ID:        *alias,
 		PublicKey: publicKeyOut.PublicKey,
 		Algo:      algo,
 		Metadata:  metadataFromAWSKey(key),
-		Tags:      nil,
+		Tags:      tags,
 	}
 	logger.Info("key created successfully")
 	return outKey, nil
@@ -87,13 +93,54 @@ func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	}
 
 	// List associated tags
-	tags := make(map[string]string)
-	// First set aws ID
+	tags, err2 := ks.doListTags(ctx, *outGetKey.KeyId, logger)
+	if err2 != nil {
+		return nil, err2
+	}
+	// List aliases
 
-	tags[awskeyIDTag] = *outGetKey.KeyId
+	aliasMarker := ""
+	_, cleanAliases, errListAliases := ks.client.ListAliases(ctx, *outGetKey.KeyId, aliasMarker)
+	if errListAliases != nil {
+		logger.WithError(errListAliases).Error("failed to list key aliases")
+		return nil, errListAliases
+	}
+
+	for _, alias := range cleanAliases {
+		// KeyID will be first aliasName found
+		retKey.ID = alias
+		break
+	}
+	// Describe key
+	retDescribe, err := ks.client.DescribeKey(ctx, *outGetKey.KeyId)
+	if err != nil {
+		logger.WithError(err).Error("failed to describe key")
+		return nil, err
+	}
+
+	// Populate associated annotations
+	annotations := make(map[string]string)
+	// First set aws ID
+	annotations[awskeyIDTag] = *outGetKey.KeyId
+
+	fillAwsAnnotations(annotations, retDescribe)
+
+	retKey.Tags = tags
+	retKey.Annotations = annotations
+
+	// Populate metadata
+	retKey.Metadata = metadataFromAWSDescribeKey(retDescribe)
+
+	logger.Info("successfully got key info")
+	return retKey, nil
+}
+
+func (ks *KeyStore) doListTags(ctx context.Context, keyID string, logger *log.Logger) (map[string]string, error) {
+	tags := make(map[string]string)
+
 	nextMarker := ""
 	for {
-		ret, errListTags := ks.client.ListTags(ctx, *outGetKey.KeyId, nextMarker)
+		ret, errListTags := ks.client.ListTags(ctx, keyID, nextMarker)
 		if errListTags != nil {
 			logger.WithError(errListTags).Error("failed to list key tags")
 			return nil, errListTags
@@ -107,40 +154,7 @@ func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 		}
 		nextMarker = *ret.NextMarker
 	}
-	// List aliases
-	aliasMarker := ""
-	for {
-		retAliases, errListAliases := ks.client.ListAliases(ctx, *outGetKey.KeyId, aliasMarker)
-		if errListAliases != nil {
-			logger.WithError(errListAliases).Error("failed to list key aliases")
-			return nil, errListAliases
-		}
-
-		for idx, alias := range retAliases.Aliases {
-			tags[fmt.Sprintf("alias%d", idx)] = *alias.AliasName
-			// KeyID will be last aliasName found
-			retKey.ID = *alias.AliasName
-		}
-		if !*retAliases.Truncated {
-			break
-		}
-		aliasMarker = *retAliases.NextMarker
-	}
-
-	// Describe key
-	retDescribe, err := ks.client.DescribeKey(ctx, *outGetKey.KeyId)
-	if err != nil {
-		logger.WithError(err).Error("failed to describe key")
-		return nil, err
-	}
-
-	fillAwsTags(tags, retDescribe)
-
-	retKey.Tags = tags
-	retKey.Metadata = metadataFromAWSDescribeKey(retDescribe)
-
-	logger.Info("successfully got key info")
-	return retKey, nil
+	return tags, nil
 }
 
 // List keys

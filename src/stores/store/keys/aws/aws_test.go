@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/mocks"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
-	"testing"
-	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
@@ -53,6 +54,7 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	randomID := common.RandHexString(32)
 	keyUsage := kms.KeyUsageTypeSignVerify
 	keysSpec := kms.CustomerMasterKeySpecEccSecgP256k1
+	truncatedTagList := false
 
 	retCreateKey := kms.CreateKeyOutput{
 		KeyMetadata: &kms.KeyMetadata{
@@ -69,12 +71,18 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 		CustomerMasterKeySpec: &keysSpec,
 	}
 
+	retListTags := &kms.ListResourceTagsOutput{
+		Truncated: &truncatedTagList,
+		Tags:      ToKmsTags(testutils.FakeTags()),
+	}
+
 	s.Run("should create a new key successfully", func() {
 		expectedID := id
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
 			Return(&retCreateKey, &expectedID, nil)
 		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), randomID).
 			Return(&retGetPub, nil)
+		s.mockKmsClient.EXPECT().ListTags(ctx, randomID, "").Return(retListTags, nil)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
@@ -84,6 +92,7 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
 
 	})
 
@@ -138,6 +147,8 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 		Truncated: aws.Bool(false),
 	}
 
+	cleanAliases := []string{"alias1"}
+
 	retDescribeKey := &kms.DescribeKeyOutput{
 		KeyMetadata: &kms.KeyMetadata{
 			KeyId:             &myKeyID,
@@ -155,7 +166,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 	s.Run("should get a key successfully", func() {
 		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
 		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(retListTags, nil)
-		s.mockKmsClient.EXPECT().ListAliases(ctx, myKeyID, "").Return(retListAliases, nil)
+		s.mockKmsClient.EXPECT().ListAliases(ctx, myKeyID, "").Return(retListAliases, cleanAliases, nil)
 		s.mockKmsClient.EXPECT().DescribeKey(ctx, myKeyID).Return(retDescribeKey, nil)
 
 		key, err := s.keyStore.Get(ctx, myKeyID)
@@ -163,10 +174,10 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), key.PublicKey, expectedPubKey)
 		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
-		assert.Equal(s.T(), myArn, key.Tags[awsARN])
-		assert.Equal(s.T(), myAccountID, key.Tags[awsAccountID])
-		assert.Equal(s.T(), myCustomerKeyStoreID, key.Tags[awsCustomerKeyStoreID])
-		assert.Equal(s.T(), myClusterHsmID, key.Tags[awsCloudHsmClusterID])
+		assert.Equal(s.T(), myArn, key.Annotations[awsARN])
+		assert.Equal(s.T(), myAccountID, key.Annotations[awsAccountID])
+		assert.Equal(s.T(), myCustomerKeyStoreID, key.Annotations[awsCustomerKeyStoreID])
+		assert.Equal(s.T(), myClusterHsmID, key.Annotations[awsCloudHsmClusterID])
 
 	})
 
@@ -174,7 +185,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 		expectedErr := fmt.Errorf("error")
 		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
 		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(retListTags, nil)
-		s.mockKmsClient.EXPECT().ListAliases(ctx, myKeyID, "").Return(retListAliases, nil)
+		s.mockKmsClient.EXPECT().ListAliases(ctx, myKeyID, "").Return(retListAliases, cleanAliases, nil)
 		s.mockKmsClient.EXPECT().DescribeKey(ctx, myKeyID).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Get(ctx, myKeyID)
