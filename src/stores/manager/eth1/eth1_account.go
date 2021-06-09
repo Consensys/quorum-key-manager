@@ -6,7 +6,6 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
@@ -22,7 +21,7 @@ type Specs struct {
 	Specs    interface{}
 }
 
-func NewEth1(ctx context.Context, specs *Specs, logger *log.Logger) (*eth1.Store, error) {
+func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accounts, logger *log.Logger) (*eth1.Store, error) {
 	var keyStore keys.Store
 	var err error
 
@@ -50,8 +49,6 @@ func NewEth1(ctx context.Context, specs *Specs, logger *log.Logger) (*eth1.Store
 		logger.WithError(err).Error("failed to create Keystore")
 		return nil, err
 	}
-
-	eth1Accounts := memory.New(logger)
 
 	err = InitDB(ctx, keyStore, eth1Accounts)
 	if err != nil {

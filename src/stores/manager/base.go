@@ -3,6 +3,7 @@ package storemanager
 import (
 	"context"
 	"fmt"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
 	"sync"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -292,7 +293,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		store, err := eth1.NewEth1(ctx, spec, logger)
+		store, err := eth1.NewEth1(ctx, spec, memory.New(logger), logger)
 		if err != nil {
 			logger.WithError(err).Error(errMsg)
 			return err
