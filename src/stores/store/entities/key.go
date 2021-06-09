@@ -8,3 +8,7 @@ type Key struct {
 	Metadata  *Metadata
 	Tags      map[string]string
 }
+
+func (k *Key) IsETH1Account() bool {
+	return k.Algo.EllipticCurve == Secp256k1 && k.Algo.Type == Ecdsa
+}

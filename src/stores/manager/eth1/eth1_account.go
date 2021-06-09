@@ -74,12 +74,14 @@ func InitDB(ctx context.Context, keyStore keys.Store, db database.ETH1Accounts) 
 			return err
 		}
 
-		err = db.Add(ctx, eth1.ParseKey(key))
-		if err != nil && errors.IsAlreadyExistsError(err) {
-			continue
-		}
-		if err != nil {
-			return err
+		if key.IsETH1Account() {
+			err = db.Add(ctx, eth1.ParseKey(key))
+			if err != nil && errors.IsAlreadyExistsError(err) {
+				continue
+			}
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -95,12 +97,13 @@ func InitDB(ctx context.Context, keyStore keys.Store, db database.ETH1Accounts) 
 			return err
 		}
 
-		err = db.AddDeleted(ctx, eth1.ParseKey(key))
-		if err != nil {
-			return err
+		if key.IsETH1Account() {
+			err = db.AddDeleted(ctx, eth1.ParseKey(key))
+			if err != nil {
+				return err
+			}
 		}
 	}
-
 	*/
 
 	return nil
