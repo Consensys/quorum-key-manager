@@ -6,8 +6,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
@@ -160,15 +158,4 @@ func translateAwsError(err error) error {
 		}
 	}
 	return err
-}
-
-func isDebugOn() bool {
-	val, ok := os.LookupEnv("AWS_DEBUG")
-	if !ok {
-		return false
-	}
-	return strings.EqualFold("true", val) ||
-		strings.EqualFold("on", val) ||
-		strings.EqualFold("yes", val)
-
 }

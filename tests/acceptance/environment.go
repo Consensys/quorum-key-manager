@@ -47,7 +47,8 @@ type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            *log.Logger
 	hashicorpClient   hashicorp2.VaultClient
-	awsVaultClient    *awsclient.AwsVaultClient
+	awsSecretsClient  *awsclient.AwsSecretsClient
+	awsKmsClient      *awsclient.AwsKmsClient
 	akvClient         akv2.Client
 	dockerClient      *docker.Client
 	keyManager        *app.App
@@ -193,7 +194,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	localstackAddr := fmt.Sprintf("http://%s:%s", localstackContainer.Host, localstackContainer.Port)
-	awsClient, err := awsclient.NewClientWithEndpoint(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
+	awsSecretsClient, err := awsclient.NewSecretsClient(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
+	awsKeysClient, err := awsclient.NewKmsClient(awsclient.NewIntegrationConfig("eu-west-3", localstackAddr))
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize aws client")
 		return nil, err
@@ -205,7 +207,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		logger:            logger,
 		hashicorpClient:   hashicorpClient,
 		akvClient:         akvClient,
-		awsVaultClient:    awsClient,
+		awsSecretsClient:  awsSecretsClient,
+		awsKmsClient:      awsKeysClient,
 		dockerClient:      dockerClient,
 		keyManager:        keyManager,
 		baseURL:           fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),

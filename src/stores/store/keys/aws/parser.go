@@ -1,22 +1,21 @@
 package aws
 
 import (
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"time"
-
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"time"
 )
 
-func algoFromAWSPublicKeyInfo(pubKeyInfo *kms.GetPublicKeyOutput) *entities2.Algorithm {
-	algo := &entities2.Algorithm{}
+func algoFromAWSPublicKeyInfo(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
+	algo := &entities.Algorithm{}
 	if pubKeyInfo == nil {
 		return algo
 	}
 	if pubKeyInfo.KeyUsage != nil && *pubKeyInfo.KeyUsage == kms.KeyUsageTypeSignVerify {
 
 		if *pubKeyInfo.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1 {
-			algo.Type = entities2.Ecdsa
-			algo.EllipticCurve = entities2.Secp256k1
+			algo.Type = entities.Ecdsa
+			algo.EllipticCurve = entities.Secp256k1
 		}
 
 	}
@@ -24,7 +23,7 @@ func algoFromAWSPublicKeyInfo(pubKeyInfo *kms.GetPublicKeyOutput) *entities2.Alg
 	return algo
 }
 
-func metadataFromAWSKey(createdKey *kms.CreateKeyOutput) *entities2.Metadata {
+func metadataFromAWSKey(createdKey *kms.CreateKeyOutput) *entities.Metadata {
 
 	createdAt := createdKey.KeyMetadata.CreationDate
 	deletedAt := &time.Time{}
@@ -36,7 +35,7 @@ func metadataFromAWSKey(createdKey *kms.CreateKeyOutput) *entities2.Metadata {
 		expireAt = createdKey.KeyMetadata.ValidTo
 	}
 
-	return &entities2.Metadata{
+	return &entities.Metadata{
 		Version:   "",
 		Disabled:  !*createdKey.KeyMetadata.Enabled,
 		ExpireAt:  *expireAt,
@@ -45,7 +44,7 @@ func metadataFromAWSKey(createdKey *kms.CreateKeyOutput) *entities2.Metadata {
 	}
 }
 
-func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities2.Metadata {
+func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
 	// createdAt field always provided
 	createdAt := describedKey.KeyMetadata.CreationDate
 	deletedAt := &time.Time{}
@@ -57,7 +56,7 @@ func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities2.
 		expireAt = describedKey.KeyMetadata.ValidTo
 	}
 
-	return &entities2.Metadata{
+	return &entities.Metadata{
 		// Nothing equivalent to key version was found
 		Version:   "",
 		Disabled:  !*describedKey.KeyMetadata.Enabled,
@@ -67,17 +66,17 @@ func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities2.
 	}
 }
 
-func fillAwsTags(tags map[string]string, keyDesc *kms.DescribeKeyOutput) {
+func fillAwsAnnotations(annotations map[string]string, keyDesc *kms.DescribeKeyOutput) {
 	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
-		tags[awsCustomerKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
+		annotations[awsCustomerKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
 	}
 	if keyDesc.KeyMetadata.CloudHsmClusterId != nil {
-		tags[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId
+		annotations[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId
 	}
 	if keyDesc.KeyMetadata.AWSAccountId != nil {
-		tags[awsAccountID] = *keyDesc.KeyMetadata.AWSAccountId
+		annotations[awsAccountID] = *keyDesc.KeyMetadata.AWSAccountId
 	}
 	if keyDesc.KeyMetadata.Arn != nil {
-		tags[awsARN] = *keyDesc.KeyMetadata.Arn
+		annotations[awsARN] = *keyDesc.KeyMetadata.Arn
 	}
 }
