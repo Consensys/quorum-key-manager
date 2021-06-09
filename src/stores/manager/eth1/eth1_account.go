@@ -3,10 +3,10 @@ package eth1
 import (
 	"context"
 	"fmt"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
@@ -33,6 +33,10 @@ func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accoun
 			return nil, err
 		}
 		keyStore, err = hashicorp.NewKeyStore(spec, logger)
+
+		// We sleep to give some time for the token to be set
+		// TODO: this needs to be improved to not rely on time
+		time.Sleep(2 * time.Second)
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
