@@ -36,8 +36,9 @@ type App struct {
 	logger *log.Logger
 
 	// server processing entrying HTTP request
-	server *http.Server
-	router *gorillamux.Router
+	server  *http.Server
+	healthz *http.Server
+	router  *gorillamux.Router
 
 	// middleware applied before routing
 	middleware func(http.Handler) http.Handler
@@ -55,14 +56,19 @@ func New(cfg *Config, logger *log.Logger) *App {
 	// Create router and register APIs
 	router := gorillamux.NewRouter()
 
-	// Create server
-	httpServer := server.New(cfg.HTTP)
-	httpServer.Handler = router
+	// Create API server
+	apiServer := server.New(fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port), cfg.HTTP)
+	apiServer.Handler = router
+
+	// Create Healthz server
+	healthzServer := server.New(fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.HealthzPort), cfg.HTTP)
+	healthzServer.Handler = NewHealthzHandler()
 
 	return &App{
 		cfg:            cfg,
 		logger:         logger.SetComponent(Component),
-		server:         httpServer,
+		server:         apiServer,
+		healthz:        healthzServer,
 		errors:         make(chan error),
 		router:         router,
 		serviceConfigs: make(map[reflect.Type]reflect.Value),
@@ -136,7 +142,7 @@ func (app *App) ServiceConfig(cfg interface{}) error {
 	return ErrConfigUnknown
 }
 
-func (app *App) RegisterService(srv common.Runnable) error {
+func (app *App) RegisterService(srv interface{}) error {
 	app.mux.Lock()
 	defer app.mux.Unlock()
 
@@ -144,7 +150,18 @@ func (app *App) RegisterService(srv common.Runnable) error {
 		return fmt.Errorf("can't register service on running or stopped app")
 	}
 
-	app.services = append(app.services, reflect.ValueOf(srv))
+	if rSrv, ok := srv.(common.Runnable); ok {
+		app.services = append(app.services, reflect.ValueOf(rSrv))
+	} else {
+		return fmt.Errorf("register service is not a runnable")
+	}
+
+	if hlzSrv, ok := srv.(common.Checkable); ok {
+		if healthz, ok2 := app.healthz.Handler.(*healthzHandler); ok2 {
+			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.IsLive)
+			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.IsReady)
+		}
+	}
 
 	return nil
 }
@@ -193,8 +210,13 @@ func (app *App) startServer() {
 	}
 
 	go func() {
-		app.logger.WithField("addr", app.server.Addr).Info("started server")
+		app.logger.WithField("addr", app.server.Addr).Info("started API server")
 		app.errors <- app.server.ListenAndServe()
+	}()
+	
+	go func() {
+		app.logger.WithField("addr", app.healthz.Addr).Info("started Health server")
+		app.errors <- app.healthz.ListenAndServe()
 	}()
 }
 

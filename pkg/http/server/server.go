@@ -1,13 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 )
 
-func New(cfg *Config) *http.Server {
+func New(addr string, cfg *Config) *http.Server {
 	return &http.Server{
-		Addr:        fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Addr:        addr,
 		IdleTimeout: cfg.IdleConnTimeout,
 		ReadTimeout: cfg.Timeout,
 	}
