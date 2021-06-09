@@ -37,7 +37,7 @@ func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accoun
 
 		// We sleep to give some time for the token to be set
 		// TODO: this needs to be improved to not rely on time
-		time.Sleep(2 * time.Second)
+		time.Sleep(time.Second)
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
