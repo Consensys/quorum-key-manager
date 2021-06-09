@@ -14,8 +14,8 @@ type CreateEth1AccountRequest struct {
 }
 
 type ImportEth1AccountRequest struct {
-	ID         string            `json:"id" validate:"required" example:"my-account"`
-	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"0xfeee"`
+	ID         string            `json:"id" validate:"required" example:"my-imported-account"`
+	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E" swaggertype:"string"`
 	Tags       map[string]string `json:"tags,omitempty"`
 }
 
@@ -24,7 +24,8 @@ type UpdateEth1AccountRequest struct {
 }
 
 type SignHexPayloadRequest struct {
-	Data hexutil.Bytes `json:"data" validate:"required" example:"0xfeee"`
+	// required to be hex value
+	Data hexutil.Bytes `json:"data" validate:"required" example:"0xfeee" swaggertype:"string"`
 }
 
 type SignTypedDataRequest struct {
@@ -48,61 +49,61 @@ type Type struct {
 }
 
 type SignETHTransactionRequest struct {
-	Nonce    hexutil.Uint64  `json:"nonce" example:"0x1"`
-	To       *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
-	Value    hexutil.Big     `json:"value,omitempty" example:"0xfeaeae"`
-	GasPrice hexutil.Big     `json:"gasPrice" validate:"required" example:"0x0"`
-	GasLimit hexutil.Uint64  `json:"gasLimit" validate:"required" example:"0x5208"`
-	Data     hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..."`
-	ChainID  hexutil.Big     `json:"chainID" validate:"required" example:"0x1 (mainnet)"`
+	Nonce    hexutil.Uint64  `json:"nonce" example:"0x1" swaggertype:"string"`
+	To       *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
+	Value    hexutil.Big     `json:"value,omitempty" example:"0xfeaeae" swaggertype:"string"`
+	GasPrice hexutil.Big     `json:"gasPrice" validate:"required" example:"0x0" swaggertype:"string"`
+	GasLimit hexutil.Uint64  `json:"gasLimit" validate:"required" example:"0x5208" swaggertype:"string"`
+	Data     hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..." swaggertype:"string"`
+	ChainID  hexutil.Big     `json:"chainID" validate:"required" example:"0x1 (mainnet)" swaggertype:"string"`
 }
 
 type SignQuorumPrivateTransactionRequest struct {
-	Nonce    hexutil.Uint64  `json:"nonce" example:"0x1"`
-	To       *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
-	Value    hexutil.Big     `json:"value,omitempty" example:"0x1"`
-	GasPrice hexutil.Big     `json:"gasPrice" validate:"required" example:"0x0"`
-	GasLimit hexutil.Uint64  `json:"gasLimit" validate:"required" example:"0x5208"`
-	Data     hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..."`
+	Nonce    hexutil.Uint64  `json:"nonce" example:"0x1" swaggertype:"string"`
+	To       *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
+	Value    hexutil.Big     `json:"value,omitempty" example:"0x1" swaggertype:"string"`
+	GasPrice hexutil.Big     `json:"gasPrice" validate:"required" example:"0x0" swaggertype:"string"`
+	GasLimit hexutil.Uint64  `json:"gasLimit" validate:"required" example:"0x5208" swaggertype:"string"`
+	Data     hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..." swaggertype:"string"`
 }
 
 type SignEEATransactionRequest struct {
-	Nonce          hexutil.Uint64  `json:"nonce" example:"0x1"`
-	To             *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
-	Data           hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..."`
-	ChainID        hexutil.Big     `json:"chainID" validate:"required" example:"0x1 (mainnet)"`
+	Nonce          hexutil.Uint64  `json:"nonce" example:"0x1" swaggertype:"string"`
+	To             *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
+	Data           hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..." swaggertype:"string"`
+	ChainID        hexutil.Big     `json:"chainID" validate:"required" example:"0x1 (mainnet)" swaggertype:"string"`
 	PrivateFrom    string          `json:"privateFrom" validate:"required,base64,required_with=PrivateFor PrivacyGroupID" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 	PrivateFor     []string        `json:"privateFor,omitempty" validate:"omitempty,min=1,unique,dive,base64" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 	PrivacyGroupID string          `json:"privacyGroupId,omitempty" validate:"omitempty,base64" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 }
 
 type ECRecoverRequest struct {
-	Data      hexutil.Bytes `json:"data" validate:"required" example:"0xfeaeee..."`
-	Signature hexutil.Bytes `json:"signature" validate:"required" example:"0x6019a3c8..."`
+	Data      hexutil.Bytes `json:"data" validate:"required" example:"0xfeaeee..." swaggertype:"string"`
+	Signature hexutil.Bytes `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
 }
 
 type VerifyEth1SignatureRequest struct {
-	Data      hexutil.Bytes  `json:"data" validate:"required" example:"0xfeaeee..."`
-	Signature hexutil.Bytes  `json:"signature" validate:"required" example:"0x6019a3c8..."`
-	Address   common.Address `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
+	Data      hexutil.Bytes  `json:"data" validate:"required" example:"0xfeaeee..." swaggertype:"string"`
+	Signature hexutil.Bytes  `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
+	Address   common.Address `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
 }
 
 type VerifyTypedDataRequest struct {
-	TypedData SignTypedDataRequest `json:"data" validate:"required"`
-	Signature hexutil.Bytes        `json:"signature" validate:"required" example:"0x6019a3c8..."`
-	Address   common.Address       `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"`
+	TypedData SignTypedDataRequest `json:"data" validate:"required" swaggertype:"string"`
+	Signature hexutil.Bytes        `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
+	Address   common.Address       `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
 }
 
 type Eth1AccountResponse struct {
-	PublicKey           hexutil.Bytes     `json:"publicKey" example:"0xfeee"`
-	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0xfeee"`
+	PublicKey           hexutil.Bytes     `json:"publicKey" example:"048e66b3e549818ea2cb354fb70749f6c8de8fa484f7530fc447d5fe80a1c424e4f5ae648d648c980ae7095d1efad87161d83886ca4b6c498ac22a93da5099014a" swaggertype:"string"`
+	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
 	CreatedAt           time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
 	UpdatedAt           time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
 	ExpireAt            time.Time         `json:"expireAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
 	DeletedAt           time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
 	DestroyedAt         time.Time         `json:"destroyedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	ID                  string            `json:"id" example:"my-key"`
+	ID                  string            `json:"id" example:"my-key-id"`
 	Tags                map[string]string `json:"tags,omitempty"`
-	Address             common.Address    `json:"address" example:"0xfeee"`
+	Address             common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
 	Disabled            bool              `json:"disabled" example:"false"`
 }
