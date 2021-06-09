@@ -71,6 +71,12 @@ func (s *eth1TestSuite) TestInit() {
 	key2, err := keyStore.Create(ctx, "init-key-2", algo, attr)
 	require.NoError(s.T(), err)
 
+	_, err = keyStore.Create(ctx, "init-key-eddsa", &entities.Algorithm{
+		Type:          entities.Eddsa,
+		EllipticCurve: entities.Bn254,
+	}, attr)
+	require.NoError(s.T(), err)
+
 	err = ethlocal.InitDB(ctx, keyStore, db)
 	require.NoError(s.T(), err)
 
