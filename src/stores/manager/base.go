@@ -23,6 +23,8 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
+const StoreManagerID = "StoreManager"
+
 type BaseManager struct {
 	manifests manifestsmanager.Manager
 
@@ -33,6 +35,8 @@ type BaseManager struct {
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
+
+	isLive bool
 }
 
 type storeBundle struct {
@@ -64,13 +68,17 @@ var storeKinds = []manifest.Kind{
 
 func (m *BaseManager) Start(ctx context.Context) error {
 	m.mux.Lock()
+	defer m.mux.Unlock()
+	defer func() {
+		m.isLive = true
+	}()
+
 	// Subscribe to manifest of Kind node
 	sub, err := m.manifests.Subscribe(storeKinds, m.mnfsts)
 	if err != nil {
 		return err
 	}
 	m.sub = sub
-	m.mux.Unlock()
 
 	// Start loading manifest
 	go m.loadAll(ctx)
@@ -319,4 +327,16 @@ func (m *BaseManager) storeNames(list map[string]*storeBundle, kind manifest.Kin
 	}
 
 	return storeNames
+}
+
+func (m *BaseManager) ID() string { return StoreManagerID }
+func (m *BaseManager) IsLive() error {
+	if m.isLive {
+		return nil
+	}
+	return fmt.Errorf("Service %s is not live", m.ID())
+}
+
+func (m *BaseManager) IsReady() error {
+	return m.Error()
 }

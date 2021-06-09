@@ -30,8 +30,7 @@ type LocalManager struct {
 	err    error
 	logger *log.Logger
 
-	isLive  bool
-	isReady bool
+	isLive bool
 }
 
 func NewLocalManager(cfg *Config) (*LocalManager, error) {
@@ -207,12 +206,14 @@ func (ll *LocalManager) Stop(context.Context) error { return nil }
 func (ll *LocalManager) Error() error               { return ll.err }
 func (ll *LocalManager) Close() error               { return nil }
 
-func (ll *LocalManager) ID() string    { return ManagerID }
+func (ll *LocalManager) ID() string { return ManagerID }
 func (ll *LocalManager) IsLive() error {
-	if ll.isLive == false {
-		return fmt.Errorf("")
+	if ll.isLive {
+		return nil
 	}
+	return fmt.Errorf("Service %s is not live", ll.ID())
 }
+
 func (ll *LocalManager) IsReady() error {
 	return ll.Error()
 }
