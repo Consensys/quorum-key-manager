@@ -36,7 +36,6 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 }
 
-
 // @Summary Create key
 // @Description Create Key with a specific Curve and Signing algorithm
 // @Tags Keys

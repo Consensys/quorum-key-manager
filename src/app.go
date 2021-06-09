@@ -11,7 +11,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores"
 )
 
-
 type Config struct {
 	HTTP      *server.Config
 	Logger    *log.Config

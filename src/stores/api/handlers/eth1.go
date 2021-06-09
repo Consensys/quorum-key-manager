@@ -51,7 +51,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 
 // @Summary Create Ethereum Account
 // @Description Creates a new ECDSA Secp256k1 key representing an Ethereum Account
-// @Tags Ethereum Account 
+// @Tags Ethereum Account
 // @Accept  json
 // @Produce  json
 // @Param storeName path string true "Store Identifier"
@@ -165,8 +165,8 @@ func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1AccResponse(eth1Acc))
 }
 
-// @Summary Sign payload with Ethereum Account 
-// @Description Sign random hexadecimal payload using selected Ethereum Account 
+// @Summary Sign payload with Ethereum Account
+// @Description Sign random hexadecimal payload using selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
@@ -205,7 +205,7 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Sign Typed Data
-// @Description Sign Typed Data, following the EIP-712 Standard, using selected Ethereum Account 
+// @Description Sign Typed Data, following the EIP-712 Standard, using selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
@@ -245,7 +245,7 @@ func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Reques
 }
 
 // @Summary Sign Ethereum transaction
-// @Description Sign Ethereum transaction using selected Ethereum Account 
+// @Description Sign Ethereum transaction using selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
@@ -284,7 +284,7 @@ func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Requ
 }
 
 // @Summary Sign EEA transaction
-// @Description Sign EEA transaction using selected Ethereum Account 
+// @Description Sign EEA transaction using selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
@@ -324,7 +324,7 @@ func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.R
 }
 
 // @Summary Sign Quorum private transaction
-// @Description Sign Quorum private transaction using selected Ethereum Account 
+// @Description Sign Quorum private transaction using selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
