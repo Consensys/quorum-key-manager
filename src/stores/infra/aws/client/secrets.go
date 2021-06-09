@@ -2,10 +2,18 @@ package client
 
 import (
 	"context"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+)
+
+const (
+	CurrentVersionMark = "AWSCURRENT"
 )
 
 func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
@@ -55,10 +63,39 @@ func (c *AwsSecretsClient) TagSecretResource(ctx context.Context, id string, tag
 	})
 }
 
-func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (*secretsmanager.DescribeSecretOutput, error) {
-	return c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
+func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error) {
+	output, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
 		SecretId: &id,
 	})
+
+	outTags := make(map[string]string)
+	outMeta := &entities.Metadata{}
+
+	if output != nil {
+
+		// Trick to help us getting the actual current version as there is no versionID metadata
+		currentVersion := ""
+		for version, stages := range output.VersionIdsToStages {
+			for _, stage := range stages {
+				if *stage == CurrentVersionMark {
+					currentVersion = version
+				}
+			}
+		}
+
+		outMeta = &entities.Metadata{
+			Version:   currentVersion,
+			CreatedAt: aws.TimeValue(output.CreatedDate),
+			UpdatedAt: aws.TimeValue(output.LastChangedDate),
+			DeletedAt: aws.TimeValue(output.DeletedDate),
+		}
+
+		for _, outTag := range output.Tags {
+			outTags[*outTag.Key] = *outTag.Value
+		}
+
+	}
+	return outTags, outMeta, translateAwsError(err)
 }
 
 func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
@@ -92,6 +129,37 @@ func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bo
 		SecretId:                   &id,
 		ForceDeleteWithoutRecovery: &force,
 	})
+}
+
+func translateAwsError(err error) error {
+	if aerr, ok := err.(awserr.Error); ok {
+		switch aerr.Code() {
+		case secretsmanager.ErrCodeResourceExistsException:
+			return errors.AlreadyExistsError("resource already exists")
+		case secretsmanager.ErrCodeInternalServiceError:
+			return errors.InternalError("internal error")
+		case secretsmanager.ErrCodeInvalidParameterException:
+			return errors.InvalidParameterError("invalid parameter")
+		case secretsmanager.ErrCodeInvalidRequestException:
+			return errors.InvalidRequestError("invalid request")
+		case secretsmanager.ErrCodeResourceNotFoundException:
+			return errors.NotFoundError("resource was not found")
+		case secretsmanager.ErrCodeInvalidNextTokenException:
+			return errors.InvalidParameterError("invalid parameter, next token")
+		case secretsmanager.ErrCodeLimitExceededException:
+			return errors.InternalError("internal error, limit exceeded")
+		case secretsmanager.ErrCodePreconditionNotMetException:
+			return errors.InternalError("internal error, preconditions not met")
+		case secretsmanager.ErrCodeEncryptionFailure:
+			return errors.InternalError("internal error, encryption failed")
+		case secretsmanager.ErrCodeDecryptionFailure:
+			return errors.InternalError("internal error, decryption failed")
+		case secretsmanager.ErrCodeMalformedPolicyDocumentException:
+			return errors.InvalidParameterError("invalid policy documentation parameter")
+
+		}
+	}
+	return err
 }
 
 func isDebugOn() bool {
