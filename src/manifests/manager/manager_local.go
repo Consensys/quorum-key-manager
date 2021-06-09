@@ -1,12 +1,14 @@
 package manager
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
 	"gopkg.in/yaml.v2"
 )
@@ -69,8 +71,10 @@ func (sub *subscription) inbox(msgs []Message) {
 			continue
 		}
 
-		if _, ok := sub.kinds[msg.Manifest.Kind]; ok {
-			submsgs = append(submsgs, msg)
+		if msg.Manifest != nil {
+			if _, ok := sub.kinds[msg.Manifest.Kind]; ok {
+				submsgs = append(submsgs, msg)
+			}
 		}
 	}
 
@@ -111,7 +115,7 @@ func (ll *LocalManager) processSub(sub *subscription) {
 	}
 }
 
-func (ll *LocalManager) load() error {
+func (ll *LocalManager) load(ctx context.Context) error {
 	if ll.isDir {
 		return filepath.Walk(ll.path, func(fp string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -123,27 +127,29 @@ func (ll *LocalManager) load() error {
 			}
 
 			if filepath.Ext(fp) == ".yml" || filepath.Ext(fp) == ".yaml" {
-				ll.msgs = append(ll.msgs, ll.buildMessages(fp)...)
+				ll.msgs = append(ll.msgs, ll.buildMessages(ctx, fp)...)
 			}
 
 			return nil
 		})
 	}
 
-	ll.msgs = append(ll.msgs, ll.buildMessages(ll.path)...)
+	ll.msgs = append(ll.msgs, ll.buildMessages(ctx, ll.path)...)
 
 	return nil
 }
 
-func (ll *LocalManager) Start(context.Context) error {
+func (ll *LocalManager) Start(ctx context.Context) error {
 	defer close(ll.loaded)
-	ll.err = ll.load()
+	ll.err = ll.load(ctx)
 	return ll.err
 }
 
-func (ll *LocalManager) buildMessages(fp string) []Message {
+func (ll *LocalManager) buildMessages(ctx context.Context, fp string) []Message {
+	logger := log.FromContext(ctx).WithField("file", fp)
 	data, err := ioutil.ReadFile(fp)
 	if err != nil {
+		logger.WithError(err).Errorf("could not read manifest file")
 		return []Message{{
 			Loader: ManagerID,
 			Action: CreateAction,
@@ -151,33 +157,27 @@ func (ll *LocalManager) buildMessages(fp string) []Message {
 		}}
 	}
 
-	mnf := &manifest.Manifest{}
-	if err = yaml.Unmarshal(data, mnf); err == nil {
-		return []Message{{
-			Loader:   ManagerID,
-			Action:   CreateAction,
-			Manifest: mnf,
-		}}
-	}
-
-	mnfs := []*manifest.Manifest{}
-	if err = yaml.Unmarshal(data, &mnfs); err == nil {
-		msgs := []Message{}
-		for _, mnf := range mnfs {
+	msgs := []Message{}
+	rawMnfsts := bytes.Split(data, []byte("\n---\n"))
+	for i, rawMnfst := range rawMnfsts {
+		mnf := &manifest.Manifest{}
+		if err = yaml.Unmarshal(rawMnfst, mnf); err == nil {
 			msgs = append(msgs, Message{
 				Loader:   ManagerID,
 				Action:   CreateAction,
 				Manifest: mnf,
 			})
+		} else {
+			logger.WithField("manifest", i).WithError(err).Errorf("invalid manifest yaml")
+			msgs = append(msgs, Message{
+				Loader: ManagerID,
+				Action: CreateAction,
+				Err:    err,
+			})
 		}
-		return msgs
 	}
 
-	return []Message{{
-		Loader: ManagerID,
-		Action: CreateAction,
-		Err:    err,
-	}}
+	return msgs
 }
 
 func (ll *LocalManager) Stop(context.Context) error { return nil }

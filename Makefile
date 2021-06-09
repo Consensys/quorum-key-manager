@@ -59,7 +59,7 @@ coverage: run-coverage
 dev: networks gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)	
 
-up: deps go-quorum besu gobuild
+up: deps go-quorum  besu gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
 down: down-go-quorum down-besu

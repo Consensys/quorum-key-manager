@@ -14,24 +14,26 @@ import (
 
 var (
 	manifest1 = []byte(`
-- kind: KindA
-  name: test-1.1
-  specs:
-    field: value
-- kind: KindB
-  name: test-1.2
-  specs:
-    field: value
+kind: KindA
+name: test-1.1
+specs:
+  field: value
+---
+kind: KindB
+name: test-1.2
+specs:
+  field: value
 `)
 	manifest2 = []byte(`
-- kind: KindB
-  name: test-2.1
-  specs:
-    field: value
-- kind: KindC
-  name: test-2.2
-  specs:
-    field: value
+kind: KindB
+name: test-2.1
+specs:
+  field: value
+---
+kind: KindC
+name: test-2.2
+specs:
+  field: value
 `)
 )
 
