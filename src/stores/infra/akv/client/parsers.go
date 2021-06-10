@@ -26,6 +26,9 @@ func parseErrorResponse(err error) error {
 	case http.StatusUnprocessableEntity:
 		return errors.InvalidParameterError(aerr.Original.Error())
 	case http.StatusConflict:
+		if aerr.Method == "PurgeDeletedKey" {
+			return errors.StatusConflictError(aerr.Original.Error())
+		}
 		return errors.AlreadyExistsError(aerr.Original.Error())
 	default:
 		return errors.AKVError(aerr.Original.Error())
