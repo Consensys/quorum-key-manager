@@ -45,26 +45,12 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.A
 		return nil, nil, translateAwsKmsError(err)
 	}
 
-	// Get confirmation alias was created
-	var aliasCreated bool
+	// Retrieve first alias found and assign it to keyID
 	var retAlias *string
-	listAliasOutput, err := c.client.ListAliases(&kms.ListAliasesInput{
-		KeyId: outKey.KeyMetadata.KeyId,
-	})
+	_, aliasList, err := c.ListAliases(ctx, *outKey.KeyMetadata.KeyId, "")
 
-	if err != nil {
-		return nil, nil, translateAwsKmsError(err)
-	}
-
-	for _, listedAlias := range listAliasOutput.Aliases {
-		if strings.Contains(*listedAlias.AliasName, aliasName) {
-			aliasCreated = true
-			break
-		}
-	}
-
-	if aliasCreated {
-		retAlias = &aliasName
+	if len(aliasList) > 0 {
+		retAlias = &aliasList[0]
 	}
 
 	return outKey, retAlias, nil
@@ -127,17 +113,6 @@ func (c *AwsKmsClient) ListAliases(ctx context.Context, id, marker string) (*kms
 
 }
 
-// ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
-// ImportKey(ctx context.Context, input *kms.ImportKeyMaterialInput, tags map[string]string) (*kms.ImportKeyMaterialOutput, error)
-
-// GetKey(ctx context.Context, name string, version string) (keyvault.KeyBundle, error)
-/*
-UpdateKey(ctx context.Context, input *kms.UpdateCustomKeyStoreInput, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
-DeleteKey(ctx context.Context, keyName string) (*kms.DeleteCustomKeyStoreOutput, error)
-GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
-GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error)
-PurgeDeletedKey(ctx context.Context, keyName string) (bool, error)
-RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error)*/
 func (c *AwsKmsClient) Sign(ctx context.Context, id string, msg []byte) (*kms.SignOutput, error) {
 	// Message type is always digest
 	msgType := kms.MessageTypeDigest
