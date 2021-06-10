@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	Host                  string
+	HealthzPort           uint32
 	Port                  uint32
 	Timeout               time.Duration
 	KeepAlive             time.Duration
@@ -19,6 +20,7 @@ func NewDefaultConfig() *Config {
 	return &Config{
 		Host:                  "localhost",
 		Port:                  8080,
+		HealthzPort:           8081,
 		MaxIdleConnsPerHost:   200,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
