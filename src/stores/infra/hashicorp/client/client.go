@@ -77,7 +77,7 @@ func (c *HashicorpVaultClient) HealthCheck() error {
 
 	if !resp.Initialized {
 		errMessage := "client is not initialized"
-		return errors.HashicorpVaultConnectionError(errMessage)
+		return errors.HashicorpVaultError(errMessage)
 	}
 
 	return nil

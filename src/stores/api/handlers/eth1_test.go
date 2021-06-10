@@ -91,7 +91,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -132,7 +132,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -172,7 +172,7 @@ func (s *eth1HandlerTestSuite) TestUpdate() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -204,7 +204,7 @@ func (s *eth1HandlerTestSuite) TestSign() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -237,7 +237,7 @@ func (s *eth1HandlerTestSuite) TestSignTypedData() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-typed-data", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().SignTypedData(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().SignTypedData(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -269,7 +269,7 @@ func (s *eth1HandlerTestSuite) TestSignTransaction() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().SignTransaction(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().SignTransaction(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -301,7 +301,7 @@ func (s *eth1HandlerTestSuite) TestSignPrivateTransaction() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-quorum-private-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().SignPrivate(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().SignPrivate(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -333,7 +333,7 @@ func (s *eth1HandlerTestSuite) TestSignEEATransaction() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-eea-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().SignEEA(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().SignEEA(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -376,7 +376,7 @@ func (s *eth1HandlerTestSuite) TestGet() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil)
 
-		s.eth1Store.EXPECT().Get(gomock.Any(), accAddress).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Get(gomock.Any(), accAddress).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -415,7 +415,7 @@ func (s *eth1HandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1", eth1StoreName), nil)
 
-		s.eth1Store.EXPECT().List(gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().List(gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -440,7 +440,7 @@ func (s *eth1HandlerTestSuite) TestDelete() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil)
 
-		s.eth1Store.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -465,7 +465,7 @@ func (s *eth1HandlerTestSuite) TestDestroy() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s/destroy", eth1StoreName, accAddress), nil)
 
-		s.eth1Store.EXPECT().Destroy(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Destroy(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -490,7 +490,7 @@ func (s *eth1HandlerTestSuite) TestRestore() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil)
 
-		s.eth1Store.EXPECT().Undelete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Undelete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -521,7 +521,7 @@ func (s *eth1HandlerTestSuite) TestECRecover() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/ec-recover", eth1StoreName), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().ECRevocer(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().ECRevocer(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -552,7 +552,7 @@ func (s *eth1HandlerTestSuite) TestVerifySignature() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -584,7 +584,7 @@ func (s *eth1HandlerTestSuite) TestVerifyTypedDataSignature() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes))
 
-		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultConnectionError("error"))
+		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)

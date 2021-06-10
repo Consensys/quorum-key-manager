@@ -30,7 +30,7 @@ func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {
 		writeErrorResponse(rw, http.StatusBadRequest, err)
 	case errors.IsInvalidParameterError(err), errors.IsEncodingError(err):
 		writeErrorResponse(rw, http.StatusUnprocessableEntity, err)
-	case errors.IsHashicorpVaultConnectionError(err), errors.IsAKVConnectionError(err), errors.IsDependencyFailureError(err), errors.IsAWSConnectionError(err):
+	case errors.IsHashicorpVaultError(err), errors.IsAKVError(err), errors.IsDependencyFailureError(err), errors.IsAWSError(err):
 		writeErrorResponse(rw, http.StatusFailedDependency, errors.DependencyFailureError(internalDepErrMsg))
 	case errors.IsNotImplementedError(err):
 		writeErrorResponse(rw, http.StatusNotImplemented, err)

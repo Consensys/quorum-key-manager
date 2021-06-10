@@ -9,7 +9,7 @@ import (
 func parseErrorResponse(err error) error {
 	aerr, ok := err.(awserr.Error)
 	if !ok {
-		return errors.AWSConnectionError(err.Error())
+		return errors.AWSError(err.Error())
 	}
 
 	switch aerr.Code() {
@@ -26,6 +26,6 @@ func parseErrorResponse(err error) error {
 	case secretsmanager.ErrCodeMalformedPolicyDocumentException:
 		return errors.InvalidParameterError(aerr.Error())
 	default:
-		return errors.AWSConnectionError(aerr.Error())
+		return errors.AWSError(aerr.Error())
 	}
 }

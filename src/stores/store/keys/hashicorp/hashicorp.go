@@ -136,7 +136,7 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	logger.Info("key was imported successfully")
+	logger.Info("key was updated successfully")
 	return parseResponse(res)
 }
 
@@ -184,7 +184,7 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 	if err != nil {
 		errMessage := "failed to decode signature from Hashicorp Vault"
 		logger.WithError(err).Error(errMessage)
-		return nil, errors.HashicorpVaultConnectionError(errMessage)
+		return nil, errors.HashicorpVaultError(errMessage)
 	}
 
 	logger.Debug("data signed successfully")

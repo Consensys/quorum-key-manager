@@ -207,7 +207,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 	if err != nil {
 		errMessage := "failed to decode signature"
 		logger.WithError(err).Error(errMessage)
-		return nil, errors.AKVConnectionError(errMessage)
+		return nil, errors.AKVError(errMessage)
 	}
 
 	logger.Debug("data was signed successfully")

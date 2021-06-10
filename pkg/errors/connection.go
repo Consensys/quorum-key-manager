@@ -2,10 +2,10 @@ package errors
 
 const (
 	// Connection Errors (class 01XXX)
-	Connection               uint64 = 1 << 12
-	AKVConnection                   = Connection + 1<<8 // AKV Connection error (subclass 011XX)
-	HashicorpVaultConnection        = Connection + 2<<8 // Hashicorp Connection error (subclass 012XX)
-	AWSConnection                   = Connection + 3<<8 // AWS Connection error (subclass 013XX)
+	Connection     uint64 = 1 << 12
+	AKV                   = Connection + 1<<8 // AKV Connection error (subclass 011XX)
+	HashicorpVault        = Connection + 2<<8 // Hashicorp Connection error (subclass 012XX)
+	AWS                   = Connection + 3<<8 // AWS Connection error (subclass 013XX)
 
 	// Invalid Request Errors (class 02XXX)
 	InvalidRequest   uint64 = 2 << 12
@@ -16,34 +16,34 @@ const (
 	InvalidParameter        = InvalidRequest + 5<<8 // Invalid parameter provided (subclass 025XX)
 )
 
-// HashicorpVaultConnectionError is raised when failing to perform on Hashicorp Vault
-func HashicorpVaultConnectionError(format string, a ...interface{}) *Error {
-	return Errorf(HashicorpVaultConnection, format, a...)
+// HashicorpVaultError is raised when failing to perform on Hashicorp Vault
+func HashicorpVaultError(format string, a ...interface{}) *Error {
+	return Errorf(HashicorpVault, format, a...)
 }
 
-// IsHashicorpVaultConnectionError indicate whether an error is a Hashicorp Vault connection error
-func IsHashicorpVaultConnectionError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), HashicorpVaultConnection)
+// IsHashicorpVaultError indicate whether an error is a Hashicorp Vault connection error
+func IsHashicorpVaultError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), HashicorpVault)
 }
 
-// AKVConnectionError is raised when failing to perform on AKV client
-func AKVConnectionError(format string, a ...interface{}) *Error {
-	return Errorf(AKVConnection, format, a...)
+// AKVError is raised when failing to perform on AKV client
+func AKVError(format string, a ...interface{}) *Error {
+	return Errorf(AKV, format, a...)
 }
 
-// IsAKVConnectionError indicate whether an error is a AKV client connection error
-func IsAKVConnectionError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), AKVConnection)
+// IsAKVError indicate whether an error is a AKV client connection error
+func IsAKVError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), AKV)
 }
 
-// AWSConnectionError is raised when failing to perform on AWS client
-func AWSConnectionError(format string, a ...interface{}) *Error {
-	return Errorf(AWSConnection, format, a...)
+// AWSError is raised when failing to perform on AWS client
+func AWSError(format string, a ...interface{}) *Error {
+	return Errorf(AWS, format, a...)
 }
 
-// IsAWSConnectionError indicate whether an error is a AWS client connection error
-func IsAWSConnectionError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), AWSConnection)
+// IsAWSError indicate whether an error is a AWS client connection error
+func IsAWSError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), AWS)
 }
 
 // UnauthorizedError is raised when authentication credentials are invalid
