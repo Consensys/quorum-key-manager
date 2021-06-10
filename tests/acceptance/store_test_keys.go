@@ -285,8 +285,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	s.Run("should sign and verify a message successfully: ECDSA/Secp256k1", func() {
 		id := s.newID("mykey-sign-ecdsa")
 		payload := crypto.Keccak256([]byte("my data to sign"))
-		privKey, _ := hex.DecodeString(privKeyECDSA)
-		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+		key, err := s.store.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, &entities.Attributes{
@@ -307,8 +306,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	s.Run("should sign and verify a message successfully: EDDSA/BN254", func() {
 		id := fmt.Sprintf("mykey-sign-eddsa-%d", common.RandInt(1000))
 		payload := []byte("my data to sign")
-		privKey, _ := hex.DecodeString(privKeyEDDSA)
-		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+		key, err := s.store.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Bn254,
 		}, &entities.Attributes{
