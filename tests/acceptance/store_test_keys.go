@@ -34,9 +34,11 @@ func (s *keysTestSuite) TearDownSuite() {
 	s.env.logger.WithField("keys", s.keyIds).Info("Deleting the following keys")
 	for _, id := range s.keyIds {
 		err := s.store.Delete(ctx, id)
-		if err != nil && errors.IsNotSupportedError(err) {
+		if err != nil && errors.IsNotImplementedError(err) {
 			return
 		}
+
+		require.NoError(s.T(), err)
 	}
 
 	for _, id := range s.keyIds {
@@ -207,6 +209,54 @@ func (s *keysTestSuite) TestGet() {
 	})
 }
 
+func (s *keysTestSuite) TestUpdate() {
+	ctx := s.env.ctx
+	id := s.newID("my-key-update")
+	privKey, _ := hex.DecodeString(privKeyECDSA)
+	key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+		Type:          entities.Ecdsa,
+		EllipticCurve: entities.Secp256k1,
+	}, &entities.Attributes{
+		Tags: testutils.FakeTags(),
+	})
+	require.NoError(s.T(), err)
+
+	s.Run("should update a key pair successfully", func() {
+		newTags := map[string]string{
+			"newTag1": "tagValue1",
+			"newTag2": "tagValue2",
+		}
+
+		updatedKey, err := s.store.Update(ctx, id, &entities.Attributes{
+			Tags: newTags,
+		})
+
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), id, updatedKey.ID)
+		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
+		assert.Equal(s.T(), newTags, updatedKey.Tags)
+		assert.Equal(s.T(), entities.Secp256k1, updatedKey.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, updatedKey.Algo.Type)
+		assert.NotEmpty(s.T(), updatedKey.Metadata.Version)
+		assert.NotNil(s.T(), updatedKey.Metadata.CreatedAt)
+		assert.NotNil(s.T(), updatedKey.Metadata.UpdatedAt)
+		assert.True(s.T(), updatedKey.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), updatedKey.Metadata.DestroyedAt.IsZero())
+		assert.True(s.T(), updatedKey.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), updatedKey.Metadata.Disabled)
+	})
+
+	s.Run("should fail and parse the error code correctly", func() {
+		updatedKey, err := s.store.Update(ctx, "invalidID", &entities.Attributes{
+			Tags: testutils.FakeTags(),
+		})
+
+		require.Nil(s.T(), updatedKey)
+		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+}
+
 // @TODO Restore after this ticket https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/112 
 // func (s *keysTestSuite) TestList() {
 // 	ctx := s.env.ctx
@@ -255,7 +305,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	})
 
 	s.Run("should sign and verify a message successfully: EDDSA/BN254", func() {
-		id := s.newID("mykey-sign-eddsa")
+		id := fmt.Sprintf("mykey-sign-eddsa-%d", common.RandInt(1000))
 		payload := []byte("my data to sign")
 		privKey, _ := hex.DecodeString(privKeyEDDSA)
 		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
@@ -268,6 +318,7 @@ func (s *keysTestSuite) TestSignVerify() {
 			return
 		}
 		require.NoError(s.T(), err)
+		s.keyIds = append(s.keyIds, id)
 
 		signature, err := s.store.Sign(ctx, id, payload)
 		require.NoError(s.T(), err)

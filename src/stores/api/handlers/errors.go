@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 )
 
 const (
-	internalErrMsg    = "Internal server error. Please ask an admin for help or try again later"
-	internalDepErrMsg = "Failed dependency. Please ask an admin for help or try again later"
+	internalErrMsg    = "internal server error. Please ask an admin for help or try again later"
+	internalDepErrMsg = "failed dependency. Please ask an admin for help or try again later"
 )
 
 type ErrorResponse struct {
@@ -29,10 +30,10 @@ func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {
 		writeErrorResponse(rw, http.StatusBadRequest, err)
 	case errors.IsInvalidParameterError(err), errors.IsEncodingError(err):
 		writeErrorResponse(rw, http.StatusUnprocessableEntity, err)
-	case errors.IsHashicorpVaultConnectionError(err), errors.IsAKVConnectionError(err), errors.IsDependencyFailureError(err):
+	case errors.IsHashicorpVaultConnectionError(err), errors.IsAKVConnectionError(err), errors.IsDependencyFailureError(err), errors.IsAWSConnectionError(err):
 		writeErrorResponse(rw, http.StatusFailedDependency, errors.DependencyFailureError(internalDepErrMsg))
 	case err != nil:
-		writeErrorResponse(rw, http.StatusInternalServerError, errors.InternalError(internalErrMsg))
+		writeErrorResponse(rw, http.StatusInternalServerError, fmt.Errorf(internalErrMsg))
 	}
 }
 

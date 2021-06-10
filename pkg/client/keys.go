@@ -83,6 +83,24 @@ func (c *HTTPClient) GetKey(ctx context.Context, storeName, id string) (*types.K
 	return key, nil
 }
 
+func (c *HTTPClient) UpdateKey(ctx context.Context, storeName, id string, req *types.UpdateKeyRequest) (*types.KeyResponse, error) {
+	key := &types.KeyResponse{}
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), keysPath, id)
+
+	response, err := patchRequest(ctx, c.client, reqURL, req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer closeResponse(response)
+	err = parseResponse(response, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
+}
+
 func (c *HTTPClient) ListKeys(ctx context.Context, storeName string) ([]string, error) {
 	var ids []string
 	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), keysPath)
@@ -100,9 +118,31 @@ func (c *HTTPClient) ListKeys(ctx context.Context, storeName string) ([]string, 
 	return ids, nil
 }
 
-func (c *HTTPClient) DestroyKey(ctx context.Context, storeName, id string) error {
+func (c *HTTPClient) DeleteKey(ctx context.Context, storeName, id string) error {
 	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), keysPath, id)
 	response, err := deleteRequest(ctx, c.client, reqURL)
+	if err != nil {
+		return err
+	}
+
+	defer closeResponse(response)
+	return parseEmptyBodyResponse(response)
+}
+
+func (c *HTTPClient) DestroyKey(ctx context.Context, storeName, id string) error {
+	reqURL := fmt.Sprintf("%s/%s/%s/destroy", withURLStore(c.config.URL, storeName), keysPath, id)
+	response, err := deleteRequest(ctx, c.client, reqURL)
+	if err != nil {
+		return err
+	}
+
+	defer closeResponse(response)
+	return parseEmptyBodyResponse(response)
+}
+
+func (c *HTTPClient) RecoverKey(ctx context.Context, storeName, id string) error {
+	reqURL := fmt.Sprintf("%s/%s/%s/restore", withURLStore(c.config.URL, storeName), keysPath, id)
+	response, err := postRequest(ctx, c.client, reqURL, nil)
 	if err != nil {
 		return err
 	}

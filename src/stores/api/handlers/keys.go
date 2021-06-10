@@ -32,8 +32,12 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/{id}/sign").HandlerFunc(h.sign)
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
-	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.destroy)
+	r.Methods(http.MethodPatch).Path("/{id}").HandlerFunc(h.update)
+	r.Methods(http.MethodPost).Path("/{id}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
+
+	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
+	r.Methods(http.MethodDelete).Path("/{id}/destroy").HandlerFunc(h.destroy)
 }
 
 // @Summary Create key
@@ -160,7 +164,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := keyStore.Sign(ctx, mux.Vars(request)["id"], signPayloadRequest.Data)
+	signature, err := keyStore.Sign(ctx, getID(request), signPayloadRequest.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -190,13 +194,88 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	key, err := keyStore.Get(ctx, mux.Vars(request)["id"])
+	getDeleted := request.URL.Query().Get("deleted")
+	var key *entities.Key
+	if getDeleted == "" {
+		key, err = keyStore.Get(ctx, getID(request))
+	} else {
+		key, err = keyStore.GetDeleted(ctx, getID(request))
+	}
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
+}
+
+// @Summary Updates a key
+// @Description Updates the tags of a key by ID
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Key identifier"
+// @Success 200 {object} types.KeyResponse "Key data"
+// @Failure 404 {object} ErrorResponse "Store/Key not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/keys/{id} [patch]
+func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	updateRequest := &types.UpdateKeyRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, updateRequest)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	key, err := keyStore.Update(ctx, getID(request), &entities.Attributes{
+		Tags: updateRequest.Tags,
+	})
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
+}
+
+// @Summary Restores a soft-deleted key
+// @Description Restores a previously soft-deleted key by ID
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Key identifier"
+// @Success 204 "Restored successfully"
+// @Failure 404 {object} ErrorResponse "Store/Key not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/keys/{id}/restore [post]
+func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	err = keyStore.Undelete(ctx, getID(request))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	rw.WriteHeader(http.StatusNoContent)
 }
 
 // @Summary List Key ids
@@ -218,7 +297,13 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	ids, err := keyStore.List(ctx)
+	getDeleted := request.URL.Query().Get("deleted")
+	var ids []string
+	if getDeleted == "" {
+		ids, err = keyStore.List(ctx)
+	} else {
+		ids, err = keyStore.ListDeleted(ctx)
+	}
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -227,17 +312,46 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(ids)
 }
 
-// @Summary Destroy Key
-// @Description Hard delete Key by ID
+// @Summary Soft-deletes Key
+// @Description Deletes a Key by ID. The key can be recovered
 // @Tags Keys
 // @Accept json
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Key identifier"
-// @Success 200 "Deleted successfully"
+// @Success 204 "Deleted successfully"
 // @Failure 404 {object} ErrorResponse "Store/Key not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys/{id} [delete]
+func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	err = keyStore.Delete(ctx, getID(request))
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	rw.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary Destroys a Key
+// @Description Permanently deletes a Key by ID
+// @Tags Keys
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Key identifier"
+// @Success 204 "Destroyed successfully"
+// @Failure 404 {object} ErrorResponse "Store/Key not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/keys/{id}/destroy [delete]
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -247,7 +361,7 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = keyStore.Destroy(ctx, mux.Vars(request)["id"])
+	err = keyStore.Destroy(ctx, getID(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -294,4 +408,8 @@ func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Requ
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
+}
+
+func getID(request *http.Request) string {
+	return mux.Vars(request)["id"]
 }

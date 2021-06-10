@@ -126,7 +126,18 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 }
 
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+	logger := s.logger.WithField("id", id)
+
+	res, err := s.client.Write(s.pathKeys(id), map[string]interface{}{
+		tagsLabel: attr.Tags,
+	})
+	if err != nil {
+		s.logger.WithError(err).Error("failed to update key")
+		return nil, err
+	}
+
+	logger.Info("key was imported successfully")
+	return parseResponse(res)
 }
 
 func (s *Store) Delete(_ context.Context, id string) error {
@@ -146,7 +157,16 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+	logger := s.logger.WithField("id", id)
+
+	err := s.client.Delete(path.Join(s.pathKeys(id), "destroy"))
+	if err != nil {
+		s.logger.WithError(err).Error("failed to permanently delete key")
+		return err
+	}
+
+	logger.Info("key was permanently deleted")
+	return nil
 }
 
 func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) {

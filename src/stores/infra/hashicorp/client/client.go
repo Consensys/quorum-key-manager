@@ -47,6 +47,15 @@ func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (
 	return secret, nil
 }
 
+func (c *HashicorpVaultClient) Delete(path string) error {
+	_, err := c.client.Logical().Delete(path)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
 func (c *HashicorpVaultClient) List(path string) (*hashicorp.Secret, error) {
 	secret, err := c.client.Logical().List(path)
 	if err != nil {
