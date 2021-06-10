@@ -35,7 +35,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
-	r.Methods(http.MethodPost).Path("/{address}/restore").HandlerFunc(h.restore)
+	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 	r.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
@@ -438,7 +438,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Success 200 "Deleted successfully"
+// @Success 204 "Deleted successfully"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/eth1/{address} [delete]
@@ -466,7 +466,7 @@ func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Success 200 "Destroyed successfully"
+// @Success 204 "Destroyed successfully"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/eth1/{address}/destroy [delete]
@@ -494,10 +494,10 @@ func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Success 200 "Restored successfully"
+// @Success 204 "Restored successfully"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{address}/restore [post]
+// @Router /stores/{storeName}/eth1/{address}/restore [put]
 func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -561,7 +561,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
 // @Param request body types.VerifyEth1SignatureRequest true "Ethereum signature verify request"
-// @Success 200 "Successful verification"
+// @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -599,7 +599,7 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
 // @Param request body types.VerifyTypedDataRequest true "Ethereum signature verify request"
-// @Success 200 "Successful verification"
+// @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/eth1/verify-typed-data-signature [post]

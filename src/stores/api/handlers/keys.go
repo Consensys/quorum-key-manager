@@ -33,7 +33,7 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 	r.Methods(http.MethodPatch).Path("/{id}").HandlerFunc(h.update)
-	r.Methods(http.MethodPost).Path("/{id}/restore").HandlerFunc(h.restore)
+	r.Methods(http.MethodPut).Path("/{id}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 
 	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
@@ -258,7 +258,7 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 // @Success 204 "Restored successfully"
 // @Failure 404 {object} ErrorResponse "Store/Key not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id}/restore [post]
+// @Router /stores/{storeName}/keys/{id}/restore [put]
 func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -377,7 +377,7 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Key identifier"
-// @Success 200 "Successful verification"
+// @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/keys/verify-signature [post]
