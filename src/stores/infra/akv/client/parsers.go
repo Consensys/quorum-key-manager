@@ -8,6 +8,10 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 )
 
+const (
+	PurgeDeletedKeyMethod = "PurgeDeletedKey"
+)
+
 func parseErrorResponse(err error) error {
 	aerr, ok := err.(autorest.DetailedError)
 	if !ok {
@@ -26,6 +30,9 @@ func parseErrorResponse(err error) error {
 	case http.StatusUnprocessableEntity:
 		return errors.InvalidParameterError(aerr.Original.Error())
 	case http.StatusConflict:
+		if aerr.Method == PurgeDeletedKeyMethod {
+			return errors.StatusConflictError(aerr.Original.Error())
+		}
 		return errors.AlreadyExistsError(aerr.Original.Error())
 	default:
 		return errors.AKVError(aerr.Original.Error())

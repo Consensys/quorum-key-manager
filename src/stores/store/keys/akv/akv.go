@@ -172,6 +172,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
+	logger.Debug("key is being destroyed...")
 	_, err := s.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error("failed to destroy key")
