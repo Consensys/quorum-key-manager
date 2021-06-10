@@ -11,7 +11,7 @@ import (
 func parseErrorResponse(err error) error {
 	aerr, ok := err.(autorest.DetailedError)
 	if !ok {
-		return errors.AKVConnectionError("%v", err)
+		return errors.AKVError("%v", err)
 	}
 
 	if rerr, ok := aerr.Original.(*azure.RequestError); ok && rerr.ServiceError.Code == "NotSupported" {
@@ -28,6 +28,6 @@ func parseErrorResponse(err error) error {
 	case http.StatusConflict:
 		return errors.AlreadyExistsError(aerr.Original.Error())
 	default:
-		return errors.AKVConnectionError(aerr.Original.Error())
+		return errors.AKVError(aerr.Original.Error())
 	}
 }

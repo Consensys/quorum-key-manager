@@ -103,7 +103,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
 		assert.Nil(s.T(), secret)
-		assert.True(s.T(), errors.IsHashicorpVaultConnectionError(err))
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
 

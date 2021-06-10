@@ -17,6 +17,10 @@ type ImportKeyRequest struct {
 	Tags             map[string]string `json:"tags,omitempty"`
 }
 
+type UpdateKeyRequest struct {
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
 type SignBase64PayloadRequest struct {
 	Data []byte `json:"data" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..." swaggertype:"string"`
 }

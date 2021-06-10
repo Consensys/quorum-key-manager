@@ -93,7 +93,7 @@ func (c *Client) Up(ctx context.Context, name, networkName string) error {
 	} else if networkName != "" {
 		errMsg := fmt.Sprintf("container %v cannot connected to network", name)
 		logger.WithField("network_id", networkID).Errorf(errMsg)
-		return errors.InternalError(errMsg)
+		return errors.DependencyFailureError(errMsg)
 	}
 
 	// Start docker container

@@ -105,7 +105,7 @@ func (rtl *RenewTokenWatcher) refreshToken() error {
 		// Unwrap token
 		secret, err2 := rtl.client.Client().Logical().Unwrap(wrappedToken.Token)
 		if err2 != nil {
-			return errors.InternalError("could not unwrap token")
+			return errors.HashicorpVaultError("could not unwrap token")
 		}
 		token = fmt.Sprintf("%v", secret.Data["token"])
 	}

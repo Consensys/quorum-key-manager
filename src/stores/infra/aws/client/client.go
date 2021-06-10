@@ -7,8 +7,6 @@ import (
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -40,6 +38,7 @@ func NewClientWithEndpoint(cfg *Config) (*AwsVaultClient, error) {
 		WithRegion(cfg.Region).
 		WithEndpoint(cfg.Endpoint)
 
+	// TODO: Use field in config to get this param instead of checking the ENV var directly
 	if isDebugOn() {
 		config.WithLogLevel(aws.LogDebug)
 	}
@@ -63,14 +62,23 @@ func (c *AwsVaultClient) GetSecret(ctx context.Context, id, version string) (*se
 		}
 	}
 	output, err := c.client.GetSecretValue(getSecretInput)
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
+
 func (c *AwsVaultClient) CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
 	output, err := c.client.CreateSecret(&secretsmanager.CreateSecretInput{
 		Name:         &id,
 		SecretString: &value,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsVaultClient) PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
@@ -78,7 +86,11 @@ func (c *AwsVaultClient) PutSecretValue(ctx context.Context, id, value string) (
 		SecretId:     &id,
 		SecretString: &value,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsVaultClient) TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
@@ -97,19 +109,25 @@ func (c *AwsVaultClient) TagSecretResource(ctx context.Context, id string, tags 
 		SecretId: &id,
 		Tags:     inputTags,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsVaultClient) DescribeSecret(ctx context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error) {
 	output, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
 		SecretId: &id,
 	})
+	if err != nil {
+		return nil, nil, parseErrorResponse(err)
+	}
 
 	outTags := make(map[string]string)
 	outMeta := &entities.Metadata{}
 
 	if output != nil {
-
 		// Trick to help us getting the actual current version as there is no versionID metadata
 		currentVersion := ""
 		for version, stages := range output.VersionIdsToStages {
@@ -132,7 +150,8 @@ func (c *AwsVaultClient) DescribeSecret(ctx context.Context, id string) (tags ma
 		}
 
 	}
-	return outTags, outMeta, translateAwsError(err)
+
+	return outTags, outMeta, nil
 }
 
 func (c *AwsVaultClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
@@ -144,7 +163,11 @@ func (c *AwsVaultClient) ListSecrets(ctx context.Context, maxResults int64, next
 		listInput.MaxResults = &maxResults
 	}
 	output, err := c.client.ListSecrets(listInput)
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 
 }
 func (c *AwsVaultClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
@@ -154,74 +177,53 @@ func (c *AwsVaultClient) UpdateSecret(ctx context.Context, id, value, keyID, des
 		KmsKeyId:     &keyID,
 		Description:  &desc,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsVaultClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
 	output, err := c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
 		SecretId: &id,
 	})
-	return output, translateAwsError(err)
-}
-func (c *AwsVaultClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
 
+	return output, nil
+}
+
+func (c *AwsVaultClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
 	if force {
 		// check appropriate state with description
 		desc, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
 			SecretId: &id,
 		})
 		if err != nil {
-			return nil, translateAwsError(err)
+			return nil, parseErrorResponse(err)
 		}
-		if err == nil && desc.DeletedDate != nil {
-			return nil, errors.InvalidRequestError("failed to destroy, must be deleted first")
+		if desc.DeletedDate != nil {
+			return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
 		}
 	}
 	output, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
 		SecretId:                   &id,
 		ForceDeleteWithoutRecovery: &force,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
+// TODO: Use field in config to get this param instead of checking the ENV var directly
 func isDebugOn() bool {
 	val, ok := os.LookupEnv("AWS_DEBUG")
 	if !ok {
 		return false
 	}
-	return strings.EqualFold("true", val) ||
-		strings.EqualFold("on", val) ||
-		strings.EqualFold("yes", val)
-
-}
-
-func translateAwsError(err error) error {
-	if aerr, ok := err.(awserr.Error); ok {
-		switch aerr.Code() {
-		case secretsmanager.ErrCodeResourceExistsException:
-			return errors.AlreadyExistsError("resource already exists")
-		case secretsmanager.ErrCodeInternalServiceError:
-			return errors.InternalError("internal error")
-		case secretsmanager.ErrCodeInvalidParameterException:
-			return errors.InvalidParameterError("invalid parameter")
-		case secretsmanager.ErrCodeInvalidRequestException:
-			return errors.InvalidRequestError("invalid request")
-		case secretsmanager.ErrCodeResourceNotFoundException:
-			return errors.NotFoundError("resource was not found")
-		case secretsmanager.ErrCodeInvalidNextTokenException:
-			return errors.InvalidParameterError("invalid parameter, next token")
-		case secretsmanager.ErrCodeLimitExceededException:
-			return errors.InternalError("internal error, limit exceeded")
-		case secretsmanager.ErrCodePreconditionNotMetException:
-			return errors.InternalError("internal error, preconditions not met")
-		case secretsmanager.ErrCodeEncryptionFailure:
-			return errors.InternalError("internal error, encryption failed")
-		case secretsmanager.ErrCodeDecryptionFailure:
-			return errors.InternalError("internal error, decryption failed")
-		case secretsmanager.ErrCodeMalformedPolicyDocumentException:
-			return errors.InvalidParameterError("invalid policy documentation parameter")
-
-		}
-	}
-	return err
+	return strings.EqualFold("true", val) || strings.EqualFold("on", val) || strings.EqualFold("yes", val)
 }

@@ -1,46 +1,49 @@
 package errors
 
 const (
-	// Connection Errors (class 08XXX)
-	Connection               uint64 = 8 << 12
-	AKVConnection                   = Connection + 7<<8 // Service Connection error (subclass 087XX)
-	HashicorpVaultConnection        = Connection + 8<<8 // Service Connection error (subclass 088XX)
-	AWSConnection                   = Connection + 9<<8 // Service Connection error (subclass 089XX)
+	// Connection Errors (class 01XXX)
+	Connection     uint64 = 1 << 12
+	AKV                   = Connection + 1<<8 // AKV Connection error (subclass 011XX)
+	HashicorpVault        = Connection + 2<<8 // Hashicorp Connection error (subclass 012XX)
+	AWS                   = Connection + 3<<8 // AWS Connection error (subclass 013XX)
 
-	// Invalid Request Errors (class 09XXX)
-	InvalidRequest uint64 = 9 << 12
-	Unauthorized          = InvalidRequest + 1    // Invalid request credentials (code 09001)
-	NotSupported          = InvalidRequest + 7<<8 // Not supported request (code 097XX)
+	// Invalid Request Errors (class 02XXX)
+	InvalidRequest   uint64 = 2 << 12
+	Unauthorized            = InvalidRequest + 1<<8 // Unauthorized error (subclass 021XX)
+	NotSupported            = InvalidRequest + 2<<8 // NotSupported error (subclass 022XX)
+	NotImplemented          = InvalidRequest + 3<<8 // NotImplemented error (subclass 023XX)
+	InvalidFormat           = InvalidRequest + 4<<8 // Invalid format (subclass 024XX)
+	InvalidParameter        = InvalidRequest + 5<<8 // Invalid parameter provided (subclass 025XX)
 )
 
-// HashicorpVaultConnectionError is raised when failing to perform on Hashicorp Vault
-func HashicorpVaultConnectionError(format string, a ...interface{}) *Error {
-	return Errorf(HashicorpVaultConnection, format, a...)
+// HashicorpVaultError is raised when failing to perform on Hashicorp Vault
+func HashicorpVaultError(format string, a ...interface{}) *Error {
+	return Errorf(HashicorpVault, format, a...)
 }
 
-// IsHashicorpVaultConnectionError indicate whether an error is a Hashicorp Vault connection error
-func IsHashicorpVaultConnectionError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), HashicorpVaultConnection)
+// IsHashicorpVaultError indicate whether an error is a Hashicorp Vault connection error
+func IsHashicorpVaultError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), HashicorpVault)
 }
 
-// AKVConnectionError is raised when failing to perform on AKV client
-func AKVConnectionError(format string, a ...interface{}) *Error {
-	return Errorf(AKVConnection, format, a...)
+// AKVError is raised when failing to perform on AKV client
+func AKVError(format string, a ...interface{}) *Error {
+	return Errorf(AKV, format, a...)
 }
 
-// IsAKVConnectionError indicate whether an error is a AKV client connection error
-func IsAKVConnectionError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), AKVConnection)
+// IsAKVError indicate whether an error is a AKV client connection error
+func IsAKVError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), AKV)
 }
 
-// AWSConnectionError is raised when failing to perform on AWS client
-func AWSConnectionError(format string, a ...interface{}) *Error {
-	return Errorf(AWSConnection, format, a...)
+// AWSError is raised when failing to perform on AWS client
+func AWSError(format string, a ...interface{}) *Error {
+	return Errorf(AWS, format, a...)
 }
 
-// IsAWSConnectionError indicate whether an error is a AWS client connection error
-func IsAWSConnectionError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), AWSConnection)
+// IsAWSError indicate whether an error is a AWS client connection error
+func IsAWSError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), AWS)
 }
 
 // UnauthorizedError is raised when authentication credentials are invalid
@@ -59,4 +62,24 @@ func NotSupportedError(format string, a ...interface{}) *Error {
 
 func IsNotSupportedError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), NotSupported)
+}
+
+// InvalidFormatError is raised when a Data does not match an expected format
+func InvalidFormatError(format string, a ...interface{}) *Error {
+	return Errorf(InvalidFormat, format, a...)
+}
+
+// IsInvalidFormatError indicate whether an error is an invalid format error
+func IsInvalidFormatError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), InvalidFormat)
+}
+
+// InvalidParameterError is raised when a provided parameter invalid
+func InvalidParameterError(format string, a ...interface{}) *Error {
+	return Errorf(InvalidParameter, format, a...)
+}
+
+// IsInvalidParameterError indicate whether an error is an invalid parameter error
+func IsInvalidParameterError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), InvalidParameter)
 }

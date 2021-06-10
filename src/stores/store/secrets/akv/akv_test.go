@@ -128,7 +128,7 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 	})
 
 	s.Run("should fail with error if bad request in response", func() {
-		expectedErr := errors.AKVConnectionError("conn err")
+		expectedErr := errors.AKVError("conn err")
 
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(keyvault.SecretBundle{}, expectedErr)
 

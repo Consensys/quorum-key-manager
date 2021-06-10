@@ -10,7 +10,7 @@ import (
 func parseErrorResponse(err error) error {
 	httpError, ok := err.(*api.ResponseError)
 	if !ok {
-		return errors.HashicorpVaultConnectionError("failed to connect to Hashicorp store")
+		return errors.HashicorpVaultError("failed to connect to Hashicorp store")
 	}
 
 	switch httpError.StatusCode {
@@ -23,6 +23,6 @@ func parseErrorResponse(err error) error {
 	case http.StatusConflict:
 		return errors.AlreadyExistsError(httpError.Error())
 	default:
-		return errors.HashicorpVaultConnectionError(httpError.Error())
+		return errors.HashicorpVaultError(httpError.Error())
 	}
 }

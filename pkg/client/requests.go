@@ -31,6 +31,13 @@ func postRequest(ctx context.Context, client *http.Client, reqURL string, postRe
 	return request(ctx, client, reqURL, http.MethodPost, body)
 }
 
+func putRequest(ctx context.Context, client *http.Client, reqURL string, putRequest interface{}) (*http.Response, error) {
+	body := new(bytes.Buffer)
+	_ = json.NewEncoder(body).Encode(putRequest)
+
+	return request(ctx, client, reqURL, http.MethodPut, body)
+}
+
 func patchRequest(ctx context.Context, client *http.Client, reqURL string, postRequest interface{}) (*http.Response, error) {
 	body := new(bytes.Buffer)
 	_ = json.NewEncoder(body).Encode(postRequest)
