@@ -32,7 +32,9 @@ func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {
 		writeErrorResponse(rw, http.StatusUnprocessableEntity, err)
 	case errors.IsHashicorpVaultConnectionError(err), errors.IsAKVConnectionError(err), errors.IsDependencyFailureError(err), errors.IsAWSConnectionError(err):
 		writeErrorResponse(rw, http.StatusFailedDependency, errors.DependencyFailureError(internalDepErrMsg))
-	case err != nil:
+	case errors.IsNotImplementedError(err):
+		writeErrorResponse(rw, http.StatusNotImplemented, err)
+	default:
 		writeErrorResponse(rw, http.StatusInternalServerError, fmt.Errorf(internalErrMsg))
 	}
 }
