@@ -475,7 +475,7 @@ func (s *eth1HandlerTestSuite) TestDestroy() {
 func (s *eth1HandlerTestSuite) TestRestore() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil)
 
 		s.eth1Store.EXPECT().Undelete(gomock.Any(), accAddress).Return(nil)
 
@@ -488,7 +488,7 @@ func (s *eth1HandlerTestSuite) TestRestore() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil)
 
 		s.eth1Store.EXPECT().Undelete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
