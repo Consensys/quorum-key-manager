@@ -201,13 +201,13 @@ func newCreateActionMsg(mnf *manifest.Manifest, err error) Message {
 	}
 }
 
-func (ll *LocalManager) Stop(context.Context) error { 
+func (ll *LocalManager) Stop(context.Context) error {
 	ll.isLive = false
-	return nil 
+	return nil
 }
 
-func (ll *LocalManager) Error() error               { return ll.err }
-func (ll *LocalManager) Close() error               { return nil }
+func (ll *LocalManager) Error() error { return ll.err }
+func (ll *LocalManager) Close() error { return nil }
 
 func (ll *LocalManager) ID() string { return ManagerID }
 func (ll *LocalManager) CheckLiveness() error {
@@ -220,7 +220,7 @@ func (ll *LocalManager) CheckLiveness() error {
 func (ll *LocalManager) CheckReadiness() error {
 	for _, msg := range ll.msgs {
 		if msg.Err != nil {
-			return msg.Err 
+			return msg.Err
 		}
 	}
 

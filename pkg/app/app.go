@@ -57,12 +57,12 @@ func New(cfg *Config, logger *log.Logger) *App {
 	router := gorillamux.NewRouter()
 
 	// Create API server
-	apiServer := server.New(fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port), cfg.HTTP)
+	apiServer := server.New(cfg.HTTP)
 	apiServer.Handler = router
 
 	// Create Healthz server
-	healthzServer := server.New(fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.HealthzPort), cfg.HTTP)
-	healthzServer.Handler = NewHealthzHandler()
+	healthzServer := server.NewHealthz(cfg.HTTP)
+	healthzServer.Handler = server.NewHealthzHandler()
 
 	return &App{
 		cfg:            cfg,
@@ -157,7 +157,7 @@ func (app *App) RegisterService(srv interface{}) error {
 	}
 
 	if hlzSrv, ok := srv.(common.Checkable); ok {
-		if healthz, ok2 := app.healthz.Handler.(*HealthzHandler); ok2 {
+		if healthz, ok2 := app.healthz.Handler.(*server.HealthzHandler); ok2 {
 			healthz.AddLivenessCheck(hlzSrv.ID(), hlzSrv.CheckLiveness)
 			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.CheckReadiness)
 		}
@@ -218,7 +218,7 @@ func (app *App) startServer() {
 		app.logger.WithField("addr", app.healthz.Addr).Info("started Health server")
 		app.errors <- app.healthz.ListenAndServe()
 	}()
-	
+
 	app.logger.Debug("app server has been started")
 }
 

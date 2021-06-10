@@ -12,16 +12,18 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
 	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
 type healthzTestSuite struct {
 	suite.Suite
-	err          error
-	ctx          context.Context
-	healthClient *http.Client
-	cfg          *tests.Config
-	mainAccount  *types.Eth1AccountResponse
+	err         error
+	ctx         context.Context
+	client      *http.Client
+	cfg         *tests.Config
+	mainAccount *types.Eth1AccountResponse
 }
 
 func (s *healthzTestSuite) SetupSuite() {
@@ -29,7 +31,7 @@ func (s *healthzTestSuite) SetupSuite() {
 		s.T().Error(s.err)
 	}
 
-	s.healthClient = &http.Client{}
+	s.client = &http.Client{}
 }
 
 func (s *healthzTestSuite) TearDownSuite() {
@@ -54,20 +56,24 @@ func TestHealthz(t *testing.T) {
 
 func (s *healthzTestSuite) TestLiveness() {
 	s.Run("should validate liveness endpoint", func() {
-		
+		isLive, err := s.checkLiveness(s.ctx)
+		require.NoError(s.T(), err)
+		assert.True(s.T(), isLive)
 	})
 }
 
 func (s *healthzTestSuite) TestReadiness() {
 	s.Run("should validate readiness endpoint", func() {
-		
+		isReady, err := s.checkReadiness(s.ctx)
+		require.NoError(s.T(), err)
+		assert.True(s.T(), isReady)
 	})
 }
 
-func CheckLiveness(ctx context.Context, client *http.Client, healthURL string) (bool, error) {
-	req, _ := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/live", healthURL), nil)
+func (s *healthzTestSuite) checkLiveness(ctx context.Context) (bool, error) {
+	req, _ := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/live", s.cfg.HealthKeyManagerURL), nil)
 
-	res, err := client.Do(req)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -75,10 +81,10 @@ func CheckLiveness(ctx context.Context, client *http.Client, healthURL string) (
 	return res.StatusCode == http.StatusOK, nil
 }
 
-func CheckReadiness(ctx context.Context, client *http.Client, healthURL string) (bool, error) {
-	req, _ := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/ready", healthURL), nil)
+func (s *healthzTestSuite) checkReadiness(ctx context.Context) (bool, error) {
+	req, _ := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/ready", s.cfg.HealthKeyManagerURL), nil)
 
-	res, err := client.Do(req)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return false, err
 	}
