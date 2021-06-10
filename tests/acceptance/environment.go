@@ -230,7 +230,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.dockerClient.WaitTillIsReady(ctx, localStackContainerID, 120*time.Second)
+	err = env.dockerClient.WaitTillCheckReadiness(ctx, localStackContainerID, 120*time.Second)
 	if err != nil {
 		env.logger.WithError(err).Error("could not start localstack")
 		return err
@@ -243,7 +243,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.dockerClient.WaitTillIsReady(ctx, hashicorpContainerID, 10*time.Second)
+	err = env.dockerClient.WaitTillCheckReadiness(ctx, hashicorpContainerID, 10*time.Second)
 	if err != nil {
 		env.logger.WithError(err).Error("could not start vault")
 		return err

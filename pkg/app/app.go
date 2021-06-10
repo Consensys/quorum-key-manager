@@ -158,8 +158,8 @@ func (app *App) RegisterService(srv interface{}) error {
 
 	if hlzSrv, ok := srv.(common.Checkable); ok {
 		if healthz, ok2 := app.healthz.Handler.(*HealthzHandler); ok2 {
-			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.IsLive)
-			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.IsReady)
+			healthz.AddLivenessCheck(hlzSrv.ID(), hlzSrv.CheckLiveness)
+			healthz.AddReadinessCheck(hlzSrv.ID(), hlzSrv.CheckReadiness)
 		}
 	}
 
@@ -202,7 +202,7 @@ func (app *App) Router() *gorillamux.Router {
 }
 
 func (app *App) startServer() {
-	app.logger.Info("starting server...")
+	app.logger.Debug("starting app server...")
 
 	// Wrap handler into middleware
 	if app.middleware != nil {
@@ -218,16 +218,23 @@ func (app *App) startServer() {
 		app.logger.WithField("addr", app.healthz.Addr).Info("started Health server")
 		app.errors <- app.healthz.ListenAndServe()
 	}()
+	
+	app.logger.Debug("app server has been started")
 }
 
 func (app *App) stopServer(ctx context.Context) error {
-	app.logger.Info("shutting down server...")
-	err := app.server.Shutdown(ctx)
-	if err != nil {
-		app.logger.WithError(err).Errorf("server could not shut down")
+	app.logger.Debug("shutting down app server...")
+	if err := app.healthz.Shutdown(ctx); err != nil {
+		app.logger.WithError(err).Errorf("health server could not shut down")
 		return err
 	}
-	app.logger.Info("server gracefully shut down")
+
+	if err := app.server.Shutdown(ctx); err != nil {
+		app.logger.WithError(err).Errorf("http api server could not shut down")
+		return err
+	}
+
+	app.logger.Info("app server gracefully shut down")
 	return nil
 }
 
@@ -236,7 +243,7 @@ func (app *App) closeServer() error {
 }
 
 func (app *App) Start(ctx context.Context) error {
-	app.logger.Info("starting application...")
+	app.logger.Debug("starting application...")
 	app.state = runningState
 
 	app.startServer()
@@ -261,11 +268,12 @@ func (app *App) Start(ctx context.Context) error {
 		_ = app.stopServer(ctx)
 	}
 
+	app.logger.Info("application has been started")
 	return err
 }
 
 func (app *App) Stop(ctx context.Context) error {
-	app.logger.Info("stopping application...")
+	app.logger.Debug("stopping application...")
 	app.state = stoppingState
 
 	var err error
@@ -281,6 +289,7 @@ func (app *App) Stop(ctx context.Context) error {
 		err = httpErr
 	}
 
+	app.logger.Info("application has been stopped")
 	return err
 }
 

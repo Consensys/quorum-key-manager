@@ -85,6 +85,7 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
+	m.isLive = false
 	// Unsubscribe
 	if m.sub != nil {
 		_ = m.sub.Unsubscribe()
@@ -211,13 +212,13 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 }
 
 func (m *BaseManager) ID() string { return NodeManagerID }
-func (m *BaseManager) IsLive() error {
+func (m *BaseManager) CheckLiveness() error {
 	if m.isLive {
 		return nil
 	}
 	return fmt.Errorf("service %s is not live", m.ID())
 }
 
-func (m *BaseManager) IsReady() error {
+func (m *BaseManager) CheckReadiness() error {
 	return m.Error()
 }

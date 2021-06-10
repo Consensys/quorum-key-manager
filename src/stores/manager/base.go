@@ -89,6 +89,8 @@ func (m *BaseManager) Start(ctx context.Context) error {
 func (m *BaseManager) Stop(context.Context) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
+	m.isLive = false
+
 	if m.sub != nil {
 		_ = m.sub.Unsubscribe()
 	}
@@ -330,13 +332,13 @@ func (m *BaseManager) storeNames(list map[string]*storeBundle, kind manifest.Kin
 }
 
 func (m *BaseManager) ID() string { return StoreManagerID }
-func (m *BaseManager) IsLive() error {
+func (m *BaseManager) CheckLiveness() error {
 	if m.isLive {
 		return nil
 	}
 	return fmt.Errorf("service %s is not live", m.ID())
 }
 
-func (m *BaseManager) IsReady() error {
+func (m *BaseManager) CheckReadiness() error {
 	return m.Error()
 }

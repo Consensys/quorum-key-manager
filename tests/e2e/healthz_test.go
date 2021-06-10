@@ -64,7 +64,7 @@ func (s *healthzTestSuite) TestReadiness() {
 	})
 }
 
-func IsLive(ctx context.Context, client *http.Client, healthURL string) (bool, error) {
+func CheckLiveness(ctx context.Context, client *http.Client, healthURL string) (bool, error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/live", healthURL), nil)
 
 	res, err := client.Do(req)
@@ -75,7 +75,7 @@ func IsLive(ctx context.Context, client *http.Client, healthURL string) (bool, e
 	return res.StatusCode == http.StatusOK, nil
 }
 
-func IsReady(ctx context.Context, client *http.Client, healthURL string) (bool, error) {
+func CheckReadiness(ctx context.Context, client *http.Client, healthURL string) (bool, error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/ready", healthURL), nil)
 
 	res, err := client.Do(req)

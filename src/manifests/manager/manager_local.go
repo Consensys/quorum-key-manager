@@ -201,19 +201,23 @@ func newCreateActionMsg(mnf *manifest.Manifest, err error) Message {
 	}
 }
 
-func (ll *LocalManager) Stop(context.Context) error { return nil }
+func (ll *LocalManager) Stop(context.Context) error { 
+	ll.isLive = false
+	return nil 
+}
+
 func (ll *LocalManager) Error() error               { return ll.err }
 func (ll *LocalManager) Close() error               { return nil }
 
 func (ll *LocalManager) ID() string { return ManagerID }
-func (ll *LocalManager) IsLive() error {
+func (ll *LocalManager) CheckLiveness() error {
 	if ll.isLive {
 		return nil
 	}
 	return fmt.Errorf("service %s is not live", ll.ID())
 }
 
-func (ll *LocalManager) IsReady() error {
+func (ll *LocalManager) CheckReadiness() error {
 	for _, msg := range ll.msgs {
 		if msg.Err != nil {
 			return msg.Err 
