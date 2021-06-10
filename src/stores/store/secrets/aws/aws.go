@@ -63,7 +63,6 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 		}
 	}
 	tags, metadata, err := s.client.DescribeSecret(ctx, id)
-
 	if err != nil {
 		logger.WithError(err).Error("failed to describe secret")
 		return nil, err
@@ -79,12 +78,11 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 
 	getSecretOutput, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
-		logger.Error("secret not found")
-		return nil, errors.NotFoundError("secret not found")
+		logger.WithError(err).Error("failed to get secret")
+		return nil, err
 	}
 
 	tags, metadata, err := s.client.DescribeSecret(ctx, id)
-
 	if err != nil {
 		logger.WithError(err).Error("failed to describe secret")
 		return nil, err
@@ -96,7 +94,6 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 
 // List Gets all secret ids as a slice of names
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
-
 	secrets := []string{}
 	nextToken := ""
 
@@ -118,7 +115,6 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 
 // ListPaginated Gets all secret ids as a slice of names
 func (s *SecretStore) listPaginated(ctx context.Context, maxResults int64, nextToken string) (resList []string, resNextToken *string, err error) {
-
 	listOutput, err := s.client.ListSecrets(ctx, maxResults, nextToken)
 	if err != nil {
 		s.logger.WithError(err).Error("failed to list secrets")
@@ -130,6 +126,7 @@ func (s *SecretStore) listPaginated(ctx context.Context, maxResults int64, nextT
 	for _, secret := range listOutput.SecretList {
 		secretNamesList = append(secretNamesList, *secret.Name)
 	}
+
 	s.logger.Info("secrets were listed successfully")
 	return secretNamesList, listOutput.NextToken, nil
 }
@@ -142,8 +139,8 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 // Delete Deletes a secret
 func (s *SecretStore) Delete(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
-	destroy := false
-	_, err := s.client.DeleteSecret(ctx, id, destroy)
+
+	_, err := s.client.DeleteSecret(ctx, id, false)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete secret")
 		return err
@@ -172,6 +169,7 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 		logger.WithError(err).Error("failed to restore secret")
 		return err
 	}
+
 	logger.Info("secret has been restored successfully")
 	return nil
 }
@@ -179,13 +177,13 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 // Destroy Deletes a secret permanently (force deletion, secret will be unrecoverable)
 func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.WithField("id", id)
-	destroy := true
 
-	_, err := s.client.DeleteSecret(ctx, id, destroy)
+	_, err := s.client.DeleteSecret(ctx, id, true)
 	if err != nil {
 		logger.WithError(err).Error("failed to destroy secret")
 		return err
 	}
+
 	logger.Info("secret has been destroyed successfully")
 	return nil
 }

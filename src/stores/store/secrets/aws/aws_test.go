@@ -126,7 +126,6 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 	})
 
 	s.Run("should update secret if already exists", func() {
-
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, errors.AlreadyExistsError("already exists"))
 		s.mockVault.EXPECT().PutSecretValue(gomock.Any(), id, value).Return(&secretsmanager.PutSecretValueOutput{}, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
@@ -139,7 +138,6 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 
 		assert.ObjectsAreEqual(attributes.Tags, secret.Tags)
 	})
-
 }
 
 func (s *awsSecretStoreTestSuite) TestGet() {
@@ -168,8 +166,8 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 		assert.Equal(s.T(), retValue.ID, expectedSecret.ID)
 	})
 
-	s.Run("should fail with get error", func() {
-		expectedErr := errors.NotFoundError("secret not found")
+	s.Run("should fail with same error if GetSecret fails", func() {
+		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, expectedErr)
 
 		retValue, err := s.secretStore.Get(ctx, id, version)
@@ -177,10 +175,12 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 		assert.Equal(s.T(), err, expectedErr)
 	})
 
-	s.Run("should fail with describe error", func() {
-		expectedErr := errors.NotFoundError("secret not found")
+	s.Run("should fail with same eeror if DescribeSecret fails", func() {
+		expectedErr := fmt.Errorf("error")
+
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), expectedErr)
+
 		retValue, err := s.secretStore.Get(ctx, id, version)
 		assert.Nil(s.T(), retValue)
 		assert.Equal(s.T(), err, expectedErr)
@@ -232,63 +232,8 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 		assert.NoError(s.T(), err)
 	})
 
-	s.Run("should fail to destroy secret with internal error", func() {
-
-		expectedError := errors.InternalError("internal error")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
-
-		err := s.secretStore.Destroy(ctx, id)
-
-		assert.Error(s.T(), err)
-		assert.Equal(s.T(), err, expectedError)
-	})
-
-	s.Run("should fail to destroy secret with internal error", func() {
-		expectedError := errors.InternalError("internal error")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
-
-		err := s.secretStore.Destroy(ctx, id)
-
-		assert.Error(s.T(), err)
-		assert.Equal(s.T(), err, expectedError)
-	})
-
-	s.Run("should fail to destroy secret with not found error", func() {
-
-		expectedError := errors.NotFoundError("resource was not found")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
-
-		err := s.secretStore.Destroy(ctx, id)
-
-		assert.Error(s.T(), err)
-		assert.Equal(s.T(), err, expectedError)
-	})
-
-	s.Run("should fail to destroy secret with not found error", func() {
-
-		expectedError := errors.InternalError("internal error, limit exceeded")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
-
-		err := s.secretStore.Destroy(ctx, id)
-
-		assert.Error(s.T(), err)
-		assert.Equal(s.T(), err, expectedError)
-	})
-
-	s.Run("should fail to destroy secret with invalid parameter error", func() {
-
-		expectedError := errors.InvalidParameterError("invalid parameter")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
-
-		err := s.secretStore.Destroy(ctx, id)
-
-		assert.Error(s.T(), err)
-		assert.Equal(s.T(), err, expectedError)
-	})
-
-	s.Run("should fail to destroy secret with invalid request error", func() {
-
-		expectedError := errors.InvalidRequestError("invalid request")
+	s.Run("should fail with same error if DeleteSecret fails", func() {
+		expectedError := fmt.Errorf("error")
 		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
 
 		err := s.secretStore.Destroy(ctx, id)
