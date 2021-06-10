@@ -141,7 +141,7 @@ func (c *Client) Stop(ctx context.Context, name string) error {
 	return nil
 }
 
-func (c *Client) WaitTillCheckReadiness(ctx context.Context, name string, timeout time.Duration) error {
+func (c *Client) WaitTillIsReady(ctx context.Context, name string, timeout time.Duration) error {
 	logger := log.FromContext(ctx).WithField("container", name)
 
 	err := c.factory.WaitForService(ctx, c.composition.Containers[name], timeout)
@@ -159,7 +159,7 @@ func (c *Client) StartServiceAndWait(ctx context.Context, name string, timeout t
 		return err
 	}
 
-	err = c.WaitTillCheckReadiness(ctx, name, timeout)
+	err = c.WaitTillIsReady(ctx, name, timeout)
 	if err != nil {
 		return err
 	}
