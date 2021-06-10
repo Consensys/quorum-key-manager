@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -20,8 +21,9 @@ type Config struct {
 }
 
 type LocalManager struct {
-	path  string
-	isDir bool
+	path   string
+	isDir  bool
+	isLive bool
 
 	msgs []Message
 
@@ -37,7 +39,7 @@ func NewLocalManager(cfg *Config) (*LocalManager, error) {
 			path:   cfg.Path,
 			loaded: make(chan struct{}),
 			isDir:  fs.IsDir(),
-			logger: log.DefaultLogger().SetComponent("manifest-loader"),
+			logger: log.DefaultLogger().SetComponent(ManagerID),
 		}, nil
 	}
 
@@ -148,7 +150,11 @@ func (ll *LocalManager) load() error {
 }
 
 func (ll *LocalManager) Start(context.Context) error {
-	defer close(ll.loaded)
+	defer func() {
+		close(ll.loaded)
+		ll.isLive = true
+	}()
+
 	ll.err = ll.load()
 	return ll.err
 }
@@ -195,6 +201,28 @@ func newCreateActionMsg(mnf *manifest.Manifest, err error) Message {
 	}
 }
 
-func (ll *LocalManager) Stop(context.Context) error { return nil }
-func (ll *LocalManager) Error() error               { return ll.err }
-func (ll *LocalManager) Close() error               { return nil }
+func (ll *LocalManager) Stop(context.Context) error {
+	ll.isLive = false
+	return nil
+}
+
+func (ll *LocalManager) Error() error { return ll.err }
+func (ll *LocalManager) Close() error { return nil }
+
+func (ll *LocalManager) ID() string { return ManagerID }
+func (ll *LocalManager) CheckLiveness() error {
+	if ll.isLive {
+		return nil
+	}
+	return fmt.Errorf("service %s is not live", ll.ID())
+}
+
+func (ll *LocalManager) CheckReadiness() error {
+	for _, msg := range ll.msgs {
+		if msg.Err != nil {
+			return msg.Err
+		}
+	}
+
+	return ll.Error()
+}

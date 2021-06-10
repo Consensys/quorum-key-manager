@@ -12,14 +12,17 @@ import (
 )
 
 type Config struct {
-	HTTP      *server.Config
+	HTTP *server.Config
+
 	Logger    *log.Config
 	Manifests *manifestsmanager.Config
 }
 
 func New(cfg *Config, logger *log.Logger) (*app.App, error) {
 	// Create app
-	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger)
+	a := app.New(&app.Config{
+		HTTP: cfg.HTTP,
+	}, logger)
 
 	// Register Service Configuration
 	err := a.RegisterServiceConfig(cfg.Manifests)

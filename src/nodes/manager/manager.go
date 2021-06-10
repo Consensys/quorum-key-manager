@@ -16,6 +16,8 @@ import (
 	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
 )
 
+const NodeManagerID = "NodeManager"
+
 var NodeKind manifest.Kind = "Node"
 
 //go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
@@ -38,6 +40,8 @@ type BaseManager struct {
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
+
+	isLive bool
 }
 
 type nodeBundle struct {
@@ -60,6 +64,9 @@ func New(stores storemanager.Manager, manifests manifestsmanager.Manager) *BaseM
 func (m *BaseManager) Start(ctx context.Context) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
+	defer func() {
+		m.isLive = true
+	}()
 
 	// Subscribe to manifest of Kind node
 	sub, err := m.manifests.Subscribe([]manifest.Kind{NodeKind}, m.mnfsts)
@@ -78,6 +85,7 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
+	m.isLive = false
 	// Unsubscribe
 	if m.sub != nil {
 		_ = m.sub.Unsubscribe()
@@ -201,4 +209,16 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	}
 
 	return nil
+}
+
+func (m *BaseManager) ID() string { return NodeManagerID }
+func (m *BaseManager) CheckLiveness() error {
+	if m.isLive {
+		return nil
+	}
+	return fmt.Errorf("service %s is not live", m.ID())
+}
+
+func (m *BaseManager) CheckReadiness() error {
+	return m.Error()
 }
