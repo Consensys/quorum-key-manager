@@ -140,9 +140,9 @@ func (c *HTTPClient) DestroyKey(ctx context.Context, storeName, id string) error
 	return parseEmptyBodyResponse(response)
 }
 
-func (c *HTTPClient) RecoverKey(ctx context.Context, storeName, id string) error {
+func (c *HTTPClient) RestoreKey(ctx context.Context, storeName, id string) error {
 	reqURL := fmt.Sprintf("%s/%s/%s/restore", withURLStore(c.config.URL, storeName), keysPath, id)
-	response, err := postRequest(ctx, c.client, reqURL, nil)
+	response, err := putRequest(ctx, c.client, reqURL, nil)
 	if err != nil {
 		return err
 	}
