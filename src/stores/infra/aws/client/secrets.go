@@ -5,8 +5,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
@@ -28,14 +26,22 @@ func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*
 		}
 	}
 	output, err := c.client.GetSecretValue(getSecretInput)
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 func (c *AwsSecretsClient) CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
 	output, err := c.client.CreateSecret(&secretsmanager.CreateSecretInput{
 		Name:         &id,
 		SecretString: &value,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsSecretsClient) PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
@@ -43,7 +49,11 @@ func (c *AwsSecretsClient) PutSecretValue(ctx context.Context, id, value string)
 		SecretId:     &id,
 		SecretString: &value,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsSecretsClient) TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
@@ -62,7 +72,11 @@ func (c *AwsSecretsClient) TagSecretResource(ctx context.Context, id string, tag
 		SecretId: &id,
 		Tags:     inputTags,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error) {
@@ -97,7 +111,11 @@ func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (tags 
 		}
 
 	}
-	return outTags, outMeta, translateAwsError(err)
+	if err != nil {
+		return nil, nil, parseErrorResponse(err)
+	}
+
+	return outTags, outMeta, parseErrorResponse(err)
 }
 
 func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
@@ -109,7 +127,11 @@ func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, ne
 		listInput.MaxResults = &maxResults
 	}
 	output, err := c.client.ListSecrets(listInput)
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 
 }
 func (c *AwsSecretsClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
@@ -119,14 +141,22 @@ func (c *AwsSecretsClient) UpdateSecret(ctx context.Context, id, value, keyID, d
 		KmsKeyId:     &keyID,
 		Description:  &desc,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 
 func (c *AwsSecretsClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
 	output, err := c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
 		SecretId: &id,
 	})
-	return output, translateAwsError(err)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return output, nil
 }
 func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
 
@@ -136,7 +166,7 @@ func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bo
 			SecretId: &id,
 		})
 		if err != nil {
-			return nil, translateAwsError(err)
+			return nil, parseErrorResponse(err)
 		}
 		if err == nil && desc.DeletedDate != nil {
 			return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
@@ -146,36 +176,9 @@ func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bo
 		SecretId:                   &id,
 		ForceDeleteWithoutRecovery: &force,
 	})
-	return output, translateAwsError(err)
-}
-
-func translateAwsError(err error) error {
-	if aerr, ok := err.(awserr.Error); ok {
-		switch aerr.Code() {
-		case secretsmanager.ErrCodeResourceExistsException:
-			return errors.AlreadyExistsError("resource already exists")
-		case secretsmanager.ErrCodeInternalServiceError:
-			return errors.AWSError("internal error")
-		case secretsmanager.ErrCodeInvalidParameterException:
-			return errors.InvalidParameterError("invalid parameter")
-		case secretsmanager.ErrCodeInvalidRequestException:
-			return errors.NotFoundError("invalid request")
-		case secretsmanager.ErrCodeResourceNotFoundException:
-			return errors.NotFoundError("resource was not found")
-		case secretsmanager.ErrCodeInvalidNextTokenException:
-			return errors.InvalidParameterError("invalid parameter, next token")
-		case secretsmanager.ErrCodeLimitExceededException:
-			return errors.AWSError("internal error, limit exceeded")
-		case secretsmanager.ErrCodePreconditionNotMetException:
-			return errors.AWSError("preconditions not met")
-		case secretsmanager.ErrCodeEncryptionFailure:
-			return errors.AWSError("encryption failed")
-		case secretsmanager.ErrCodeDecryptionFailure:
-			return errors.AWSError("decryption failed")
-		case secretsmanager.ErrCodeMalformedPolicyDocumentException:
-			return errors.InvalidParameterError("invalid policy documentation parameter")
-
-		}
+	if err != nil {
+		return nil, parseErrorResponse(err)
 	}
-	return err
+
+	return output, nil
 }
