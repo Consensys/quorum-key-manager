@@ -2,6 +2,7 @@ package acceptancetests
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
@@ -32,7 +33,25 @@ func (s *secretsTestSuite) TearDownSuite() {
 	}
 
 	for _, id := range s.secretIDs {
-		_ = s.store.Destroy(ctx, id)
+		maxTries := MAX_RETRIES
+		for {
+			err := s.store.Destroy(ctx, id)
+			if err != nil && !errors.IsStatusConflictError(err) {
+				break
+			}
+			if maxTries <= 0 {
+				if err != nil {
+					s.env.logger.WithField("secretID", id).Info("failed to destroy secret")
+				}
+				break
+			}
+
+			maxTries -= 1
+			waitTime := time.Second * time.Duration(MAX_RETRIES-maxTries)
+			s.env.logger.WithField("keyID", id).WithField("waitFor", waitTime.Seconds()).
+				Debug("waiting for deletion to complete")
+			time.Sleep(waitTime)
+		}
 	}
 }
 
@@ -108,7 +127,8 @@ func (s *secretsTestSuite) TestList() {
 		ids, err := s.store.List(ctx)
 
 		require.NoError(s.T(), err)
-		assert.NotEmpty(s.T(), ids)
+		assert.Contains(s.T(), ids, id)
+		assert.Contains(s.T(), ids, id2)
 	})
 }
 
