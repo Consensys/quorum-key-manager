@@ -2,10 +2,8 @@ package client
 
 import (
 	"context"
-	"os"
 	"strings"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/aws/aws-sdk-go/service/kms"
 )
@@ -26,7 +24,7 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.A
 	outKey, err := c.client.CreateKey(&kms.CreateKeyInput{
 		CustomerMasterKeySpec: &keySpec,
 		KeyUsage:              &keyUsage,
-		Tags:                  toAWSTags(attr),
+		Tags:                  toAWSTags(attr.Tags),
 	})
 
 	if err != nil {
@@ -171,38 +169,13 @@ func (c *AwsKmsClient) DeleteKey(ctx context.Context, id string) (*kms.DisableKe
 	return outDisable, nil
 }
 
-func convertToAWSKeyType(alg *entities.Algorithm) (string, error) {
-	switch alg.Type {
-	case entities.Ecdsa:
-		if alg.EllipticCurve == entities.Secp256k1 {
-			if isTestOn() {
-				return kms.CustomerMasterKeySpecEccNistP256, nil
-			}
-			return kms.CustomerMasterKeySpecEccSecgP256k1, nil
-		}
-		return "", errors.InvalidParameterError("invalid curve")
-	case entities.Eddsa:
-		return "", errors.ErrNotSupported
-	default:
-		return "", errors.InvalidParameterError("invalid key type")
+func (c *AwsKmsClient) UpdateKey(ctx context.Context, id string, tags map[string]string) (*kms.TagResourceOutput, error) {
+	outTagResource, err := c.client.TagResource(&kms.TagResourceInput{
+		KeyId: &id,
+		Tags:  toAWSTags(tags),
+	})
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
 	}
-}
-
-func toAWSTags(attr *entities.Attributes) []*kms.Tag {
-	// populate tags
-	var keyTags []*kms.Tag
-	for key, value := range attr.Tags {
-		k, v := key, value
-		keyTag := kms.Tag{TagKey: &k, TagValue: &v}
-		keyTags = append(keyTags, &keyTag)
-	}
-	return keyTags
-}
-
-func isTestOn() bool {
-	val, ok := os.LookupEnv("AWS_ACCESS_KEY_ID")
-	if !ok {
-		return false
-	}
-	return strings.EqualFold("test", val)
+	return outTagResource, nil
 }
