@@ -139,7 +139,7 @@ func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bo
 			return nil, translateAwsError(err)
 		}
 		if err == nil && desc.DeletedDate != nil {
-			return nil, errors.InvalidRequestError("failed to destroy, must be deleted first")
+			return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
 		}
 	}
 	output, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
@@ -155,23 +155,23 @@ func translateAwsError(err error) error {
 		case secretsmanager.ErrCodeResourceExistsException:
 			return errors.AlreadyExistsError("resource already exists")
 		case secretsmanager.ErrCodeInternalServiceError:
-			return errors.InternalError("internal error")
+			return errors.AWSError("internal error")
 		case secretsmanager.ErrCodeInvalidParameterException:
 			return errors.InvalidParameterError("invalid parameter")
 		case secretsmanager.ErrCodeInvalidRequestException:
-			return errors.InvalidRequestError("invalid request")
+			return errors.NotFoundError("invalid request")
 		case secretsmanager.ErrCodeResourceNotFoundException:
 			return errors.NotFoundError("resource was not found")
 		case secretsmanager.ErrCodeInvalidNextTokenException:
 			return errors.InvalidParameterError("invalid parameter, next token")
 		case secretsmanager.ErrCodeLimitExceededException:
-			return errors.InternalError("internal error, limit exceeded")
+			return errors.AWSError("internal error, limit exceeded")
 		case secretsmanager.ErrCodePreconditionNotMetException:
-			return errors.InternalError("internal error, preconditions not met")
+			return errors.AWSError("preconditions not met")
 		case secretsmanager.ErrCodeEncryptionFailure:
-			return errors.InternalError("internal error, encryption failed")
+			return errors.AWSError("encryption failed")
 		case secretsmanager.ErrCodeDecryptionFailure:
-			return errors.InternalError("internal error, decryption failed")
+			return errors.AWSError("decryption failed")
 		case secretsmanager.ErrCodeMalformedPolicyDocumentException:
 			return errors.InvalidParameterError("invalid policy documentation parameter")
 

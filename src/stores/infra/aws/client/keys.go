@@ -189,8 +189,9 @@ func translateAwsKmsError(err error) error {
 		case kms.ErrCodeAlreadyExistsException:
 			return errors.AlreadyExistsError("resource already exists")
 		case kms.ErrCodeInternalException:
+			return errors.AWSError("internal error")
 		case kms.ErrCodeLimitExceededException:
-			return errors.InternalError("internal error")
+			return errors.AWSError("resource limit error")
 		case kms.ErrCodeIncorrectKeyException:
 		case kms.ErrCodeIncorrectKeyMaterialException:
 		case kms.ErrCodeInvalidAliasNameException:
