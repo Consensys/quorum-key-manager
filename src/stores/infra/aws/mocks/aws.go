@@ -318,6 +318,21 @@ func (mr *MockKmsClientMockRecorder) Sign(ctx, id, msg interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockKmsClient)(nil).Sign), ctx, id, msg)
 }
 
+// UpdateKey mocks base method.
+func (m *MockKmsClient) UpdateKey(ctx context.Context, id string, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateKey", ctx, id, tags)
+	ret0, _ := ret[0].(*kms.UpdateCustomKeyStoreOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateKey indicates an expected call of UpdateKey.
+func (mr *MockKmsClientMockRecorder) UpdateKey(ctx, id, tags interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKey", reflect.TypeOf((*MockKmsClient)(nil).UpdateKey), ctx, id, tags)
+}
+
 // Verify mocks base method.
 func (m *MockKmsClient) Verify(ctx context.Context, id string, msg, signature []byte) (*kms.VerifyOutput, error) {
 	m.ctrl.T.Helper()
