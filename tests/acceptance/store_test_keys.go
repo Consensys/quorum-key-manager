@@ -197,25 +197,20 @@ func (s *keysTestSuite) TestGet() {
 	ctx := s.env.ctx
 	id := s.newID("my-key-get")
 	tags := testutils.FakeTags()
-	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
 		Tags: tags,
 	})
-
-	if err != nil && errors.IsNotSupportedError(err) {
-		return
-	}
+	require.NoError(s.T(), err)
 
 	s.Run("should get a key pair successfully", func() {
 		keyRetrieved, err := s.store.Get(ctx, id)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, keyRetrieved.ID)
-		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), tags, keyRetrieved.Tags)
 		assert.Equal(s.T(), entities.Secp256k1, keyRetrieved.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Ecdsa, keyRetrieved.Algo.Type)
@@ -258,13 +253,14 @@ func (s *keysTestSuite) TestList() {
 func (s *keysTestSuite) TestUpdate() {
 	ctx := s.env.ctx
 	id := s.newID("my-key-update")
-	privKey, _ := hex.DecodeString(privKeyECDSA)
-	key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+	tags := testutils.FakeTags()
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
-		Tags: testutils.FakeTags(),
+		Tags: tags,
 	})
+	require.NoError(s.T(), err)
 	require.NoError(s.T(), err)
 
 	s.Run("should update a key pair successfully", func() {
@@ -280,7 +276,6 @@ func (s *keysTestSuite) TestUpdate() {
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, updatedKey.ID)
-		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), newTags, updatedKey.Tags)
 		assert.Equal(s.T(), entities.Secp256k1, updatedKey.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Ecdsa, updatedKey.Algo.Type)
@@ -308,7 +303,7 @@ func (s *keysTestSuite) TestUpdate() {
 // 	ctx := s.env.ctx
 // 	tags := testutils.FakeTags()
 // 	id := s.newID("my-key-list")
-// 
+//
 // 	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 // 		Type:          entities.Ecdsa,
 // 		EllipticCurve: entities.Secp256k1,
@@ -316,7 +311,7 @@ func (s *keysTestSuite) TestUpdate() {
 // 		Tags: tags,
 // 	})
 // 	require.NoError(s.T(), err)
-// 
+//
 // 	s.Run("should list all key pairs", func() {
 // 		ids, err := s.store.List(ctx)
 // 		require.NoError(s.T(), err)
