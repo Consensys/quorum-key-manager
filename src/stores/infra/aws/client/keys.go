@@ -5,10 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/aws/aws-sdk-go/service/kms"
 )
 
@@ -42,7 +40,7 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.A
 	})
 
 	if err != nil {
-		return nil, nil, translateAwsKmsError(err)
+		return nil, nil, parseKmsErrorResponse(err)
 	}
 
 	// Retrieve first alias found and assign it to keyID
@@ -52,7 +50,9 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.A
 	if len(aliasList) > 0 {
 		retAlias = &aliasList[0]
 	}
-
+	if err != nil {
+		return nil, nil, parseKmsErrorResponse(err)
+	}
 	return outKey, retAlias, nil
 }
 
@@ -60,7 +60,10 @@ func (c *AwsKmsClient) GetPublicKey(ctx context.Context, id string) (*kms.GetPub
 	outGetPubKey, err := c.client.GetPublicKey(&kms.GetPublicKeyInput{
 		KeyId: &id,
 	})
-	return outGetPubKey, translateAwsKmsError(err)
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+	return outGetPubKey, nil
 }
 
 func (c *AwsKmsClient) DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error) {
@@ -68,7 +71,10 @@ func (c *AwsKmsClient) DescribeKey(ctx context.Context, id string) (*kms.Describ
 
 	outDescribeKey, err := c.client.DescribeKey(input)
 
-	return outDescribeKey, translateAwsKmsError(err)
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+	return outDescribeKey, nil
 }
 
 func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
@@ -80,7 +86,10 @@ func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string)
 		input.Marker = &marker
 	}
 	outListKeys, err := c.client.ListKeys(input)
-	return outListKeys, translateAwsKmsError(err)
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+	return outListKeys, nil
 }
 
 func (c *AwsKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
@@ -90,7 +99,10 @@ func (c *AwsKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.Li
 	}
 	outListTags, err := c.client.ListResourceTags(input)
 
-	return outListTags, translateAwsKmsError(err)
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+	return outListTags, nil
 }
 
 func (c *AwsKmsClient) ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, []string, error) {
@@ -100,7 +112,7 @@ func (c *AwsKmsClient) ListAliases(ctx context.Context, id, marker string) (*kms
 	}
 	outListAliases, err := c.client.ListAliases(input)
 	if err != nil {
-		return nil, nil, translateAwsKmsError(err)
+		return nil, nil, parseKmsErrorResponse(err)
 	}
 
 	cleanList := []string{}
@@ -109,6 +121,9 @@ func (c *AwsKmsClient) ListAliases(ctx context.Context, id, marker string) (*kms
 		cleanList = append(cleanList, alias)
 	}
 
+	if err != nil {
+		return nil, nil, parseKmsErrorResponse(err)
+	}
 	return outListAliases, cleanList, nil
 
 }
@@ -123,7 +138,10 @@ func (c *AwsKmsClient) Sign(ctx context.Context, id string, msg []byte) (*kms.Si
 		MessageType:      &msgType,
 		SigningAlgorithm: &signingAlg,
 	})
-	return outSign, translateAwsKmsError(err)
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+	return outSign, nil
 }
 
 func (c *AwsKmsClient) Verify(ctx context.Context, id string, msg, signature []byte) (*kms.VerifyOutput, error) {
@@ -137,14 +155,20 @@ func (c *AwsKmsClient) Verify(ctx context.Context, id string, msg, signature []b
 		SigningAlgorithm: &signingAlg,
 	})
 
-	return outVerify, translateAwsKmsError(err)
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+	return outVerify, nil
 }
 
 func (c *AwsKmsClient) DeleteKey(ctx context.Context, id string) (*kms.DisableKeyOutput, error) {
 	outDisable, err := c.client.DisableKey(&kms.DisableKeyInput{
 		KeyId: &id,
 	})
-	return outDisable, translateAwsKmsError(err)
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+	return outDisable, nil
 }
 
 func convertToAWSKeyType(alg *entities.Algorithm) (string, error) {
@@ -181,28 +205,4 @@ func isTestOn() bool {
 		return false
 	}
 	return strings.EqualFold("test", val)
-}
-
-func translateAwsKmsError(err error) error {
-	if aerr, ok := err.(awserr.Error); ok {
-		switch aerr.Code() {
-		case kms.ErrCodeAlreadyExistsException:
-			return errors.AlreadyExistsError("resource already exists")
-		case kms.ErrCodeInternalException:
-			return errors.AWSError("internal error")
-		case kms.ErrCodeLimitExceededException:
-			return errors.AWSError("resource limit error")
-		case kms.ErrCodeIncorrectKeyException:
-		case kms.ErrCodeIncorrectKeyMaterialException:
-		case kms.ErrCodeInvalidAliasNameException:
-		case kms.ErrCodeInvalidCiphertextException:
-		case kms.ErrCodeInvalidArnException:
-		case kms.ErrCodeInvalidStateException:
-			return errors.InvalidParameterError("invalid parameter")
-		case kms.ErrCodeNotFoundException:
-			return errors.NotFoundError("resource was not found")
-
-		}
-	}
-	return err
 }

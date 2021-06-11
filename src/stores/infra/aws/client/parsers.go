@@ -3,10 +3,11 @@ package client
 import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
-func parseErrorResponse(err error) error {
+func parseSecretsManagerErrorResponse(err error) error {
 	aerr, ok := err.(awserr.Error)
 	if !ok {
 		return errors.AWSError(err.Error())
@@ -28,4 +29,28 @@ func parseErrorResponse(err error) error {
 	default:
 		return errors.AWSError(aerr.Error())
 	}
+}
+
+func parseKmsErrorResponse(err error) error {
+	if aerr, ok := err.(awserr.Error); ok {
+		switch aerr.Code() {
+		case kms.ErrCodeAlreadyExistsException:
+			return errors.AlreadyExistsError("resource already exists")
+		case kms.ErrCodeInternalException:
+			return errors.AWSError("internal error")
+		case kms.ErrCodeLimitExceededException:
+			return errors.AWSError("resource limit error")
+		case kms.ErrCodeIncorrectKeyException:
+		case kms.ErrCodeIncorrectKeyMaterialException:
+		case kms.ErrCodeInvalidAliasNameException:
+		case kms.ErrCodeInvalidCiphertextException:
+		case kms.ErrCodeInvalidArnException:
+		case kms.ErrCodeInvalidStateException:
+			return errors.InvalidParameterError("invalid parameter")
+		case kms.ErrCodeNotFoundException:
+			return errors.NotFoundError("resource was not found")
+
+		}
+	}
+	return err
 }

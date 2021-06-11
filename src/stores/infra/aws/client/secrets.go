@@ -27,7 +27,7 @@ func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*
 	}
 	output, err := c.client.GetSecretValue(getSecretInput)
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
@@ -38,7 +38,7 @@ func (c *AwsSecretsClient) CreateSecret(ctx context.Context, id, value string) (
 		SecretString: &value,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
@@ -50,7 +50,7 @@ func (c *AwsSecretsClient) PutSecretValue(ctx context.Context, id, value string)
 		SecretString: &value,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
@@ -73,7 +73,7 @@ func (c *AwsSecretsClient) TagSecretResource(ctx context.Context, id string, tag
 		Tags:     inputTags,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
@@ -112,10 +112,10 @@ func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (tags 
 
 	}
 	if err != nil {
-		return nil, nil, parseErrorResponse(err)
+		return nil, nil, parseSecretsManagerErrorResponse(err)
 	}
 
-	return outTags, outMeta, parseErrorResponse(err)
+	return outTags, outMeta, parseSecretsManagerErrorResponse(err)
 }
 
 func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
@@ -128,7 +128,7 @@ func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, ne
 	}
 	output, err := c.client.ListSecrets(listInput)
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
@@ -142,7 +142,7 @@ func (c *AwsSecretsClient) UpdateSecret(ctx context.Context, id, value, keyID, d
 		Description:  &desc,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
@@ -153,7 +153,7 @@ func (c *AwsSecretsClient) RestoreSecret(ctx context.Context, id string) (*secre
 		SecretId: &id,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
@@ -166,7 +166,7 @@ func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bo
 			SecretId: &id,
 		})
 		if err != nil {
-			return nil, parseErrorResponse(err)
+			return nil, parseSecretsManagerErrorResponse(err)
 		}
 		if err == nil && desc.DeletedDate != nil {
 			return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
@@ -177,7 +177,7 @@ func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bo
 		ForceDeleteWithoutRecovery: &force,
 	})
 	if err != nil {
-		return nil, parseErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
 	return output, nil
