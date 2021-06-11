@@ -186,7 +186,16 @@ func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
 
 // Update key tags
 func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+	logger := ks.logger.WithField("id", id)
+
+	_, err := ks.client.UpdateKey(ctx, id, attr.Tags)
+	if err != nil {
+		logger.WithError(err).Error("failed to update key")
+		return nil, err
+	}
+
+	logger.Info("updated key successfully")
+	return nil, err
 }
 
 // Delete key not permanently, by using Undelete() the key can be enabled again

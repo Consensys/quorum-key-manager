@@ -32,11 +32,12 @@ type KmsClient interface {
 	ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error)
 	ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, []string, error)
 	DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error)
-	/*UpdateKey(ctx context.Context, input *kms.UpdateCustomKeyStoreInput, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
-	GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
-	GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error)
-	PurgeDeletedKey(ctx context.Context, keyName string) (bool, error)
-	RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error)*/
+	UpdateKey(ctx context.Context, id string, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error)
+	/*
+		GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error)
+		GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error)
+		PurgeDeletedKey(ctx context.Context, keyName string) (bool, error)
+		RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error)*/
 	Sign(ctx context.Context, id string, msg []byte) (*kms.SignOutput, error)
 	Verify(ctx context.Context, id string, msg, signature []byte) (*kms.VerifyOutput, error)
 	DeleteKey(ctx context.Context, id string) (*kms.DisableKeyOutput, error)
