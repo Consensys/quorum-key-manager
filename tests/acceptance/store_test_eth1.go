@@ -3,6 +3,10 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
+	ethlocal "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/eth1"
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
+	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/hashicorp"
+	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
@@ -12,6 +16,7 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
+	eth1local "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/local"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -46,11 +51,55 @@ func (s *eth1TestSuite) TearDownSuite() {
 	}
 }
 
+func (s *eth1TestSuite) TestInit() {
+	logger := s.env.logger
+	ctx := s.env.ctx
+	attr := &entities.Attributes{
+		Tags: testutils.FakeTags(),
+	}
+	algo := &entities.Algorithm{
+		Type:          entities.Ecdsa,
+		EllipticCurve: entities.Secp256k1,
+	}
+
+	keyStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
+	db := memory.New(logger)
+
+	key1, err := keyStore.Create(ctx, "init-key-1", algo, attr)
+	require.NoError(s.T(), err)
+
+	key2, err := keyStore.Create(ctx, "init-key-2", algo, attr)
+	require.NoError(s.T(), err)
+
+	_, err = keyStore.Create(ctx, "init-key-eddsa", &entities.Algorithm{
+		Type:          entities.Eddsa,
+		EllipticCurve: entities.Bn254,
+	}, attr)
+	require.NoError(s.T(), err)
+
+	err = ethlocal.InitDB(ctx, keyStore, db)
+	require.NoError(s.T(), err)
+
+	ethStore := eth1local.New(keyStore, db, logger)
+
+	s.Run("should load ETH1 keys", func() {
+		pubKey1, _ := crypto.UnmarshalPubkey(key1.PublicKey)
+		account1, err := ethStore.Get(ctx, crypto.PubkeyToAddress(*pubKey1).Hex())
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), account1.ID, key1.ID)
+
+		pubKey2, _ := crypto.UnmarshalPubkey(key2.PublicKey)
+		account2, err := ethStore.Get(ctx, crypto.PubkeyToAddress(*pubKey2).Hex())
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), account2.ID, key2.ID)
+	})
+}
+
 func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 
-	s.Run("should create a new ethereum account successfully", func() {
+	s.Run("should create a new Ethereum Account successfully", func() {
 		id := s.newID("my-account-create")
 		account, err := s.store.Create(ctx, id, &entities.Attributes{
 			Tags: tags,
@@ -78,7 +127,7 @@ func (s *eth1TestSuite) TestImport() {
 	tags := testutils.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	s.Run("should create a new ethereum account successfully", func() {
+	s.Run("should create a new Ethereum Account successfully", func() {
 		id := s.newID("my-account-import")
 
 		account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
@@ -130,7 +179,7 @@ func (s *eth1TestSuite) TestGet() {
 	})
 	require.NoError(s.T(), err)
 
-	s.Run("should get an ethereum account successfully", func() {
+	s.Run("should get an Ethereum Account successfully", func() {
 		retrievedAccount, err := s.store.Get(ctx, account.Address.Hex())
 		require.NoError(s.T(), err)
 

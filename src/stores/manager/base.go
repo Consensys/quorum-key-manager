@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
+
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
@@ -13,7 +15,6 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/aws"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	eth1store "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
@@ -21,6 +22,8 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
+
+const StoreManagerID = "StoreManager"
 
 type BaseManager struct {
 	manifests manifestsmanager.Manager
@@ -32,6 +35,8 @@ type BaseManager struct {
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
+
+	isLive bool
 }
 
 type storeBundle struct {
@@ -63,13 +68,17 @@ var storeKinds = []manifest.Kind{
 
 func (m *BaseManager) Start(ctx context.Context) error {
 	m.mux.Lock()
+	defer m.mux.Unlock()
+	defer func() {
+		m.isLive = true
+	}()
+
 	// Subscribe to manifest of Kind node
 	sub, err := m.manifests.Subscribe(storeKinds, m.mnfsts)
 	if err != nil {
 		return err
 	}
 	m.sub = sub
-	m.mux.Unlock()
 
 	// Start loading manifest
 	go m.loadAll(ctx)
@@ -80,6 +89,8 @@ func (m *BaseManager) Start(ctx context.Context) error {
 func (m *BaseManager) Stop(context.Context) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
+	m.isLive = false
+
 	if m.sub != nil {
 		_ = m.sub.Unsubscribe()
 	}
@@ -293,8 +304,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		memdb := memory.New(logger)
-		store, err := eth1.NewEth1(spec, memdb, logger)
+		store, err := eth1.NewEth1(ctx, spec, memory.New(logger), logger)
 		if err != nil {
 			logger.WithError(err).Error(errMsg)
 			return err
@@ -319,4 +329,16 @@ func (m *BaseManager) storeNames(list map[string]*storeBundle, kind manifest.Kin
 	}
 
 	return storeNames
+}
+
+func (m *BaseManager) ID() string { return StoreManagerID }
+func (m *BaseManager) CheckLiveness() error {
+	if m.isLive {
+		return nil
+	}
+	return fmt.Errorf("service %s is not live", m.ID())
+}
+
+func (m *BaseManager) CheckReadiness() error {
+	return m.Error()
 }

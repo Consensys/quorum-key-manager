@@ -19,7 +19,7 @@ func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*aws.SecretStore, e
 	cfg := client.NewBaseConfig(specs.Region, specs.AccessID, specs.SecretKey)
 	cli, err := client.NewSecretsClient(cfg)
 	if err != nil {
-		return nil, errors.AWSConnectionError(err.Error())
+		return nil, errors.AWSError(err.Error())
 	}
 
 	store := aws.New(cli, logger)

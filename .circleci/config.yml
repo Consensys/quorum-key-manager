@@ -9,6 +9,30 @@ commands:
     steps:
       - checkout
       - go/mod-download-cached
+  prepare_docker:
+    description: "Docker login"
+    steps:
+      - run:
+          name: Docker login
+          command: |
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
+  docker_build:
+    description: "Build Quorum Key Manager"
+    steps:
+      - run:
+          name: Build Quorum Key Manager
+          command: >-
+            DOCKER_BUILDKIT=1 docker build
+            --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
+            --label org.opencontainers.image.url="https://consensys.net"
+            --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}"
+            --label org.opencontainers.image.version="branch"
+            --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}"
+            --label org.opencontainers.image.vendor="ConsenSys Software Inc."
+            --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
+            --label org.opencontainers.image.licenses="BUSL-1.1"
+            -q
+            -t ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} .
 
 jobs:
   lint:
@@ -76,6 +100,40 @@ jobs:
             sleep 10
             make run-e2e
 
+  push-image:
+    docker:
+      - image: cimg/base:2020.01
+    resource_class: large
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: true
+      - prepare_docker
+      - docker_build
+      - run:
+          name: Deploy image in  repository
+          command: |
+            docker push ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
+            docker tag ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
+            docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
+
+  release-tag:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: true
+      - prepare_docker
+      - run:
+          name: Release tagged version
+          command: |
+            docker pull ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
+            docker tag ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG}
+            docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG}
+
 workflows:
   version: 2
   default:
@@ -110,3 +168,28 @@ workflows:
               only: /^v.*/
             branches:
               only: master
+      - push-image:
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /^v.*/
+          requires:
+            - e2e
+      - wait-for-approval:
+          type: approval
+          requires:
+            - push-image
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - release-tag:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval

@@ -23,7 +23,7 @@ func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*hashicorp.Store, e
 	cfg := client.NewConfig(specs.Address, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, errors.HashicorpVaultConnectionError(err.Error())
+		return nil, errors.HashicorpVaultError(err.Error())
 	}
 
 	if specs.Token != "" {

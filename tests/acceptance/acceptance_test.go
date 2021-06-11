@@ -137,7 +137,6 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite.env = s.env
 	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), memory.New(logger), logger)
 	suite.Run(s.T(), testSuite)
-
 }
 
 // Please keep this function to clean the keys

@@ -322,7 +322,7 @@ func (s *keysTestSuite) TestList() {
 	})
 
 	s.Run("should parse errors successfully", func() {
-		ids, err := s.keyManagerClient.ListSecrets(s.ctx, "inexistentStoreName")
+		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
 		require.Empty(s.T(), ids)
 
 		httpError := err.(*client.ResponseError)

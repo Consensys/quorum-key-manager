@@ -174,7 +174,7 @@ func (c *HTTPClient) DestroyEth1Account(ctx context.Context, storeName, account 
 
 func (c *HTTPClient) RestoreEth1Account(ctx context.Context, storeName, account string) error {
 	reqURL := fmt.Sprintf("%s/%s/%s/restore", withURLStore(c.config.URL, storeName), eth1Path, account)
-	response, err := postRequest(ctx, c.client, reqURL, nil)
+	response, err := putRequest(ctx, c.client, reqURL, nil)
 	if err != nil {
 		return err
 	}

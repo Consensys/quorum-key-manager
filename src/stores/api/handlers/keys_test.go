@@ -120,7 +120,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys", bytes.NewReader(requestBytes))
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
-		s.keyStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultConnectionError("error"))
+		s.keyStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -292,10 +292,51 @@ func (s *keysHandlerTestSuite) TestList() {
 	})
 }
 
-func (s *keysHandlerTestSuite) TestDestroy() {
+func (s *keysHandlerTestSuite) TestDelete() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		assert.Equal(s.T(), "", rw.Body.String())
+		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
+	})
+
+	s.Run("should execute request successfully with version", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest = httpRequest.WithContext(WithStoreName(httpRequest.Context(), keyStoreName))
+
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		assert.Equal(s.T(), "", rw.Body.String())
+		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
+	})
+
+	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
+	s.Run("should fail with correct error code if use case fails", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(errors.NotFoundError("error"))
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
+	})
+}
+
+func (s *keysHandlerTestSuite) TestDestroy() {
+	s.Run("should execute request successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil)
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
@@ -308,7 +349,7 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 
 	s.Run("should execute request successfully with version", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil)
 		httpRequest = httpRequest.WithContext(WithStoreName(httpRequest.Context(), keyStoreName))
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
@@ -323,7 +364,7 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil)
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(errors.NotFoundError("error"))

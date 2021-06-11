@@ -55,11 +55,28 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 		return nil, parseErrorResponse(err)
 	}
 
-	if len(res.Values()) == 0 {
-		return []keyvault.KeyItem{}, nil
+	items := []keyvault.KeyItem{}
+	for {
+		items = append(items, res.Values()...)
+		if !res.NotDone() {
+			break
+		}
+
+		err := res.NextWithContext(ctx)
+		if err != nil {
+			return items, err
+		}
+
+		if maxResults != 0 && len(items) >= int(maxResults) {
+			break
+		}
 	}
 
-	return res.Values(), nil
+	if maxResults != 0 && len(items) > int(maxResults) {
+		return items[0:maxResults], nil
+	}
+
+	return items, nil
 }
 
 func (c *AKVClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes,

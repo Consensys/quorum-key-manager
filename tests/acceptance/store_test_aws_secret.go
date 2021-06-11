@@ -14,8 +14,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// TODO: Destroy secrets when done with the tests to avoid conflicts between tests
-
 type awsSecretTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
@@ -98,9 +96,9 @@ func (s *awsSecretTestSuite) TestList() {
 	err = s.store.Destroy(ctx, id2)
 	require.NoError(s.T(), err)
 
-	// 100 with random IDs ID
-	randomIDs := make([]string, 100)
-	randomValues := make([]string, 100)
+	// 20 with random IDs ID
+	randomIDs := make([]string, 20)
+	randomValues := make([]string, 20)
 
 	for i := 0; i < len(randomIDs); i++ {
 		randomIDs[i] = fmt.Sprintf("randomID%d", common.RandInt(100000))
@@ -182,7 +180,6 @@ func (s *awsSecretTestSuite) TestGet() {
 }
 
 func (s *awsSecretTestSuite) TestDeleteAndDestroy() {
-
 	ctx := s.env.ctx
 	id := "my-secret-destroy"
 	value := "my-secret-value"
@@ -190,21 +187,13 @@ func (s *awsSecretTestSuite) TestDeleteAndDestroy() {
 	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
-	s.Run("should get secret successfully before destroyed", func() {
-		secret, err := s.store.Get(ctx, id, "")
-
-		require.NoError(s.T(), err)
-
-		assert.Equal(s.T(), id, secret.ID)
-		assert.Equal(s.T(), value, secret.Value)
-	})
-
-	s.Run("should raise a not found error when deleted", func() {
+	// This returns invalidFormat and not NotFound because this is how AWS behaves
+	s.Run("should raise an invalid format error when deleted", func() {
 		err = s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
 		_, err := s.store.Get(ctx, id, "")
 
-		require.True(s.T(), errors.IsNotFoundError(err))
+		require.True(s.T(), errors.IsInvalidFormatError(err))
 	})
 
 	s.Run("should Undelete existing secret", func() {

@@ -30,6 +30,18 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 }
 
+// @Summary Create Secret
+// @Description Create new Secret on selected Store
+// @Tags Secrets
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Store Identifier"
+// @Param request body types.SetSecretRequest true "Create Secret request"
+// @Success 200 {object} types.SecretResponse "Secret data"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 404 {object} ErrorResponse "Store not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/secrets [post]
 func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -58,6 +70,17 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatSecretResponse(secret))
 }
 
+// @Summary Get secret by id
+// @Description Retrieve secret information by ID
+// @Tags Secrets
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Secret ID"
+// @Success 200 {object} types.SecretResponse "Secret object"
+// @Failure 404 {object} ErrorResponse "Store/Secret not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/secrets/{id} [get]
 func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -80,6 +103,16 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatSecretResponse(secret))
 }
 
+// @Summary List Secrets
+// @Description List of Secret IDs stored in the selected Store
+// @Tags Secrets
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Store Identifier"
+// @Success 200 {array} []types.SecretResponse "List of Secret IDs"
+// @Failure 404 {object} ErrorResponse "Store not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/secrets [get]
 func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()

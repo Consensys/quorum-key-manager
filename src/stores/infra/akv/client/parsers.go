@@ -8,10 +8,14 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 )
 
+const (
+	PurgeDeletedKeyMethod = "PurgeDeletedKey"
+)
+
 func parseErrorResponse(err error) error {
 	aerr, ok := err.(autorest.DetailedError)
 	if !ok {
-		return errors.AKVConnectionError("%v", err)
+		return errors.AKVError("%v", err)
 	}
 
 	if rerr, ok := aerr.Original.(*azure.RequestError); ok && rerr.ServiceError.Code == "NotSupported" {
@@ -26,8 +30,11 @@ func parseErrorResponse(err error) error {
 	case http.StatusUnprocessableEntity:
 		return errors.InvalidParameterError(aerr.Original.Error())
 	case http.StatusConflict:
+		if aerr.Method == PurgeDeletedKeyMethod {
+			return errors.StatusConflictError(aerr.Original.Error())
+		}
 		return errors.AlreadyExistsError(aerr.Original.Error())
 	default:
-		return errors.AKVConnectionError(aerr.Original.Error())
+		return errors.AKVError(aerr.Original.Error())
 	}
 }
