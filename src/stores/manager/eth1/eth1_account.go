@@ -3,6 +3,7 @@ package eth1
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
@@ -33,6 +34,7 @@ func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accoun
 			return nil, err
 		}
 		keyStore, err = hashicorp.NewKeyStore(spec, logger)
+		time.Sleep(time.Second)
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {

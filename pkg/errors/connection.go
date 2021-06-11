@@ -1,19 +1,17 @@
 package errors
 
 const (
-	// Connection Errors (class 01XXX)
-	Connection     uint64 = 1 << 12
-	AKV                   = Connection + 1<<8 // AKV Connection error (subclass 011XX)
-	HashicorpVault        = Connection + 2<<8 // Hashicorp Connection error (subclass 012XX)
-	AWS                   = Connection + 3<<8 // AWS Connection error (subclass 013XX)
+	Connection     string = "CN"
+	AKV                   = Connection + "1"
+	HashicorpVault        = Connection + "2"
+	AWS                   = Connection + "3"
 
-	// Invalid Request Errors (class 02XXX)
-	InvalidRequest   uint64 = 2 << 12
-	Unauthorized            = InvalidRequest + 1<<8 // Unauthorized error (subclass 021XX)
-	NotSupported            = InvalidRequest + 2<<8 // NotSupported error (subclass 022XX)
-	NotImplemented          = InvalidRequest + 3<<8 // NotImplemented error (subclass 023XX)
-	InvalidFormat           = InvalidRequest + 4<<8 // Invalid format (subclass 024XX)
-	InvalidParameter        = InvalidRequest + 5<<8 // Invalid parameter provided (subclass 025XX)
+	InvalidRequest   string = "IR"
+	Unauthorized            = InvalidRequest + "1"
+	NotSupported            = InvalidRequest + "2"
+	NotImplemented          = InvalidRequest + "3"
+	InvalidFormat           = InvalidRequest + "4"
+	InvalidParameter        = InvalidRequest + "5"
 )
 
 // HashicorpVaultError is raised when failing to perform on Hashicorp Vault

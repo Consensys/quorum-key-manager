@@ -7,10 +7,10 @@ import (
 
 type Error struct {
 	Message string
-	Code    uint64
+	Code    string
 }
 
-func (e *Error) GetCode() uint64 {
+func (e *Error) GetCode() string {
 	return e.Code
 }
 
@@ -22,7 +22,7 @@ func (e *Error) GetMessage() string {
 	return e.Message
 }
 
-func Errorf(code uint64, format string, a ...interface{}) *Error {
+func Errorf(code, format string, a ...interface{}) *Error {
 	return &Error{fmt.Sprintf(format, a...), code}
 }
 

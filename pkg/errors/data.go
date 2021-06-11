@@ -1,9 +1,8 @@
 package errors
 
 const (
-	// Invalid Request Errors (class 03XXX)
-	Data     uint64 = 3 << 12
-	Encoding        = Data + 1<<8 // Invalid Encoding (subclass 031XX)
+	Data     string = "DA"
+	Encoding        = Data + "1"
 )
 
 // EncodingError are raised when failing to decode a message
