@@ -58,6 +58,8 @@ type IntegrationEnvironment struct {
 	cfg               *tests.Config
 }
 
+const MAX_RETRIES = 10
+
 type TestSuiteEnv interface {
 	Start(ctx context.Context) error
 }
