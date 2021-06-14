@@ -12,7 +12,7 @@ type ResponseError struct {
 	StatusCode int `json:"statusCode,omitempty" example:"404"`
 
 	// ErrorCode is the key manager error code.
-	ErrorCode string `json:"code,omitempty" example:"IR1"`
+	ErrorCode string `json:"code,omitempty" example:"IR001"`
 
 	// Errors are the underlying errors returned by Vault.
 	Message string `json:"message" example:"error message"`
@@ -21,7 +21,7 @@ type ResponseError struct {
 // ErrorResponse is the raw error type returned from the key manager
 type ErrorResponse struct {
 	Message string `json:"message" example:"error message"`
-	Code    string `json:"code,omitempty" example:"IR1"`
+	Code    string `json:"code,omitempty" example:"IR001"`
 }
 
 // Error returns a human-readable error string for the response error.
