@@ -122,7 +122,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	testCfg, err := tests.NewConfig()
 	if err != nil {
-		logger.WithError(err).Error("cannot initialize new environment")
+		logger.WithError(err).Error("could not load config")
 		return nil, err
 	}
 

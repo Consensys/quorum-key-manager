@@ -10,6 +10,8 @@ import (
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 )
 
+const maxRetries = 5
+
 // KeySpecs is the specs format for an Hashicorp Vault key store
 type KeySpecs struct {
 	MountPoint string `json:"mountPoint"`
@@ -43,7 +45,7 @@ func NewKeyStore(specs *KeySpecs, logger *log.Logger) (*hashicorp.Store, error) 
 			}
 		}()
 
-		for {
+		for currRetries := 0; currRetries < maxRetries; currRetries++ {
 			if tokenWatcher.IsTokenLoaded() {
 				break
 			}
