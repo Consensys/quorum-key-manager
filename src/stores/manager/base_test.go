@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
+	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
 	"github.com/stretchr/testify/require"
 )
 

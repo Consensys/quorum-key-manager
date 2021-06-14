@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

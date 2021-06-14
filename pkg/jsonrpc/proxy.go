@@ -3,8 +3,8 @@ package jsonrpc
 import (
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/proxy"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 )
 
 // HandleProxyRoundTripError allows to transform a ProxiedRoundTrip Error

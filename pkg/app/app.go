@@ -8,9 +8,9 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	gorillamux "github.com/gorilla/mux"
 )
 

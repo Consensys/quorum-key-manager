@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	mockstoremanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

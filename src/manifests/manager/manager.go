@@ -3,7 +3,7 @@ package manager
 import (
 	"fmt"
 
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 )
 
 type Action string

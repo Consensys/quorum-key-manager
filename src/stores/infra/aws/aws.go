@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )

@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
 	"github.com/gorilla/mux"
 )
 

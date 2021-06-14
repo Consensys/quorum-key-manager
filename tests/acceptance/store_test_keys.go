@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -297,12 +297,12 @@ func (s *keysTestSuite) TestUpdate() {
 	})
 }
 
-// @TODO Restore after this ticket https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/112 
+// @TODO Restore after this ticket https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/112
 // func (s *keysTestSuite) TestList() {
 // 	ctx := s.env.ctx
 // 	tags := testutils.FakeTags()
 // 	id := s.newID("my-key-list")
-// 
+//
 // 	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 // 		Type:          entities.Ecdsa,
 // 		EllipticCurve: entities.Secp256k1,
@@ -310,7 +310,7 @@ func (s *keysTestSuite) TestUpdate() {
 // 		Tags: tags,
 // 	})
 // 	require.NoError(s.T(), err)
-// 
+//
 // 	s.Run("should list all key pairs", func() {
 // 		ids, err := s.store.List(ctx)
 // 		require.NoError(s.T(), err)

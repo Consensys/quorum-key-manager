@@ -3,11 +3,11 @@ package formatters
 import (
 	"math/big"
 
-	common2 "github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	quorumtypes "github.com/consensys/quorum/core/types"
+	common2 "github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	signer "github.com/ethereum/go-ethereum/signer/core"

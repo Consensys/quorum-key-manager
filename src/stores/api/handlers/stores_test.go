@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mockstoremanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/mock"
+	mockstoremanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"

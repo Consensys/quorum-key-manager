@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp"
 	"github.com/fsnotify/fsnotify"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/hashicorp/vault/api"
 )
 

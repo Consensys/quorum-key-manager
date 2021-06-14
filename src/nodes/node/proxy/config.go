@@ -1,12 +1,12 @@
 package proxynode
 
 import (
-	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/websocket"
+	httpclient "github.com/consensysquorum/quorum-key-manager/pkg/http/client"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/transport"
+	"github.com/consensysquorum/quorum-key-manager/pkg/json"
+	"github.com/consensysquorum/quorum-key-manager/pkg/websocket"
 )
 
 // ProxyConfig

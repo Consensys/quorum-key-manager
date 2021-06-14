@@ -6,12 +6,12 @@ import (
 	goreflect "reflect"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
-	hashConfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
-	lstackConfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
-	hashVault "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
-	lstackVault "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config"
+	hashConfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	lstackConfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
+	hashVault "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
+	lstackVault "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 )

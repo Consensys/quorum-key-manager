@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

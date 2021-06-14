@@ -7,13 +7,13 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/interceptor"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
-	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	"github.com/consensysquorum/quorum-key-manager/src/nodes/interceptor"
+	"github.com/consensysquorum/quorum-key-manager/src/nodes/node"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
+	storemanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
 )
 
 const NodeManagerID = "NodeManager"

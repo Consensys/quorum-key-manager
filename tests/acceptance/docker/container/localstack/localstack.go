@@ -10,7 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"

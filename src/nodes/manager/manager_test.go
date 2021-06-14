@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 )
 
 var manifestWithTessera = &manifest.Manifest{

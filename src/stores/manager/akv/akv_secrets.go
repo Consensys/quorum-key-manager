@@ -1,9 +1,9 @@
 package akv
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/akv"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv/client"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
 )
 
 // Specs is the specs format for an Azure Key Vault secret store

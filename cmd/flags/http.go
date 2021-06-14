@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

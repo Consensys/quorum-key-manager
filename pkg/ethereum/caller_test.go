@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/testutils"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

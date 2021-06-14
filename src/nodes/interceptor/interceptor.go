@@ -1,9 +1,9 @@
 package interceptor
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
-	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
+	storemanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
 )
 
 type Interceptor struct {

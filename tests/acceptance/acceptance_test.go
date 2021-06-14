@@ -4,18 +4,19 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
-	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/local"
-	akvkey "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/akv"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/hashicorp"
-	akvsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/akv"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/aws"
-	hashicorpsecret "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
+	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
+	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
+	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
+	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
+	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
 )
 

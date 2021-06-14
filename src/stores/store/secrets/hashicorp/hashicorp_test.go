@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"

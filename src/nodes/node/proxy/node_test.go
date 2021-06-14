@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

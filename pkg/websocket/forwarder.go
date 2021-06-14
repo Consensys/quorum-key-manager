@@ -3,7 +3,7 @@ package websocket
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/gorilla/websocket"
 )
 

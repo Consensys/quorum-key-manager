@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 const (
