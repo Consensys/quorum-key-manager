@@ -2,6 +2,7 @@ package hashicorp
 
 import (
 	"context"
+	"time"
 
 	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
 	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/client"
@@ -41,6 +42,14 @@ func NewKeyStore(specs *KeySpecs, logger *log.Logger) (*hashicorp.Store, error) 
 				logger.Warn("token watcher has exited gracefully")
 			}
 		}()
+
+		for {
+			if tokenWatcher.IsTokenLoaded() {
+				break
+			}
+
+			time.Sleep(time.Second)
+		}
 	}
 
 	store := hashicorp.New(cli, specs.MountPoint, logger)

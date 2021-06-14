@@ -1,5 +1,7 @@
 package errors
 
+import "strings"
+
 const (
 	Internal string = "IN"
 
@@ -12,7 +14,7 @@ var ErrNotImplemented = NotImplementedError("this operation is not yet implement
 var ErrNotSupported = NotSupportedError("this operation is not supported. Please contact your administrator")
 
 func isErrorClass(code, base string) bool {
-	return code == base
+	return code == base || strings.HasPrefix(code, base)
 }
 
 func ConfigError(format string, a ...interface{}) *Error {
