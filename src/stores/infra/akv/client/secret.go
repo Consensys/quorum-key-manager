@@ -34,16 +34,34 @@ func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvaul
 	if maxResults == 0 {
 		maxResultPtr = nil
 	}
+
 	res, err := c.client.GetSecrets(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
 		return nil, parseErrorResponse(err)
 	}
 
-	if len(res.Values()) == 0 {
-		return []keyvault.SecretItem{}, nil
+	items := []keyvault.SecretItem{}
+	for {
+		items = append(items, res.Values()...)
+		if !res.NotDone() {
+			break
+		}
+
+		err := res.NextWithContext(ctx)
+		if err != nil {
+			return items, err
+		}
+
+		if maxResults != 0 && len(items) >= int(maxResults) {
+			break
+		}
 	}
 
-	return res.Values(), nil
+	if maxResults != 0 && len(items) > int(maxResults) {
+		return items[0:maxResults], nil
+	}
+
+	return items, nil
 }
 
 func (c *AKVClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (keyvault.SecretBundle, error) {
