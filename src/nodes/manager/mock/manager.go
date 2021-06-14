@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	node "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node"
+	node "github.com/consensysquorum/quorum-key-manager/src/nodes/node"
 	gomock "github.com/golang/mock/gomock"
 )
 

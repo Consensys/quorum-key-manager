@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 

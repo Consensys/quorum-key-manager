@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 )
 
 type ResponseWriter interface {

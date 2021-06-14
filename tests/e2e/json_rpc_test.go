@@ -12,14 +12,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
+	"github.com/consensysquorum/quorum-key-manager/pkg/client"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	"github.com/consensysquorum/quorum-key-manager/tests"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -128,7 +128,7 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
 	})
-	
+
 	s.Run("should call eth_signTransaction and fail to sign with an invalid account", func() {
 		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sign", map[string]interface{}{
 			"data":     "0xa2",
@@ -212,7 +212,7 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		})
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
-	
+
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
@@ -220,7 +220,7 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})
-	
+
 	s.Run("should call eth_sendTransaction and fail if invalid account", func() {
 		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
@@ -230,7 +230,7 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"privateFrom": "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=",
 			"privateFor":  []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="},
 		})
-	
+
 		require.NoError(s.T(), err)
 		require.Error(s.T(), resp.Error)
 	})
@@ -247,7 +247,7 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		require.NoError(s.T(), err)
 		assert.Error(s.T(), resp.Error)
 	})
-	
+
 }
 
 func (s *jsonRPCTestSuite) TestSignEEATransaction() {

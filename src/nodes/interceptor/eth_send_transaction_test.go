@@ -5,11 +5,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	mockethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum/mock"
-	mocktessera "github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera/mock"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
-	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/mock"
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	mockethereum "github.com/consensysquorum/quorum-key-manager/pkg/ethereum/mock"
+	mocktessera "github.com/consensysquorum/quorum-key-manager/pkg/tessera/mock"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
+	mockaccounts "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )

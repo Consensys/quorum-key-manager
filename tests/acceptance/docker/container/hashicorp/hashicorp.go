@@ -9,7 +9,7 @@ import (
 
 	"github.com/docker/docker/api/types/mount"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"

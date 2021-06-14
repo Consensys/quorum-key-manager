@@ -3,8 +3,8 @@ package manifest
 import (
 	"encoding/json"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	json2 "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	json2 "github.com/consensysquorum/quorum-key-manager/pkg/json"
 )
 
 type Kind string

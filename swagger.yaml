@@ -30,7 +30,7 @@ definitions:
       updatedAt:
         x-go-name: UpdatedAt
     type: object
-    x-go-package: github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types
+    x-go-package: github.com/consensysquorum/quorum-key-manager/src/stores/api/types
 info: {}
 paths:
   /stores/{storeName}/eth1:

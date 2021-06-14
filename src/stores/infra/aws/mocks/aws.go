@@ -6,8 +6,8 @@ package mocks
 
 import (
 	context "context"
-	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	secretsmanager "github.com/aws/aws-sdk-go/service/secretsmanager"
+	entities "github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

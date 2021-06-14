@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
 )

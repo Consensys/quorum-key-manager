@@ -9,9 +9,9 @@ import (
 	big "math/big"
 	reflect "reflect"
 
-	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	types "github.com/consensys/quorum/core/types"
+	ethereum "github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	entities "github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	types0 "github.com/ethereum/go-ethereum/core/types"
 	core "github.com/ethereum/go-ethereum/signer/core"
 	gomock "github.com/golang/mock/gomock"

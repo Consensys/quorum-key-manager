@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	nodesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/manager"
+	nodesmanager "github.com/consensysquorum/quorum-key-manager/src/nodes/manager"
 	"github.com/gorilla/mux"
 )
 

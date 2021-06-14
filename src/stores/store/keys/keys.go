@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/crypto"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/pkg/crypto"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 //go:generate mockgen -source=keys.go -destination=mock/keys.go -package=mock

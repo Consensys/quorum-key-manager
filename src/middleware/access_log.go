@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/gorilla/handlers"
 )
 

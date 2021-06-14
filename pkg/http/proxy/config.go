@@ -3,10 +3,10 @@ package proxy
 import (
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/transport"
+	"github.com/consensysquorum/quorum-key-manager/pkg/json"
 )
 
 type Config struct {

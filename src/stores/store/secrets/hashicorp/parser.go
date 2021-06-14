@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 
 	"github.com/hashicorp/vault/api"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 func formatHashicorpSecret(id, value string, tags map[string]string, metadata *entities.Metadata) *entities.Secret {

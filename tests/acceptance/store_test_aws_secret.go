@@ -4,11 +4,12 @@ package acceptancetests
 
 import (
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/aws"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"

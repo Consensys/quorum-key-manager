@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/akv"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/hashicorp"
-	eth1 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/local"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/types"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/akv"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/hashicorp"
+	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/types"
 )
 
 type Specs struct {

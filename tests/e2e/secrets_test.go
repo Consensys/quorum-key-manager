@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
+	"github.com/consensysquorum/quorum-key-manager/pkg/client"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	"github.com/consensysquorum/quorum-key-manager/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
 )
 

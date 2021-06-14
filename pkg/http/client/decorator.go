@@ -3,8 +3,8 @@ package httpclient
 import (
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
 )
 
 // Decorator decorates a Client

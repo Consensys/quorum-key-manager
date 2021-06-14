@@ -1,11 +1,11 @@
 package nodes
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/app"
-	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
-	nodesapi "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/api"
-	nodesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/manager"
-	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensysquorum/quorum-key-manager/pkg/app"
+	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
+	nodesapi "github.com/consensysquorum/quorum-key-manager/src/nodes/api"
+	nodesmanager "github.com/consensysquorum/quorum-key-manager/src/nodes/manager"
+	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
 )
 
 func RegisterService(a *app.App) error {

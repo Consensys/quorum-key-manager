@@ -1,11 +1,11 @@
 package aws
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/aws"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/client"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
 )
 
 // SecretSpecs is the specs format for an aws secrets manager (aws secretsmanager service)

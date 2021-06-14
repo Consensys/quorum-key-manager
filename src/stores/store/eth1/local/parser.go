@@ -1,7 +1,7 @@
 package local
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 

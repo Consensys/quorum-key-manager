@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/header"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/header"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/proxy"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
+	"github.com/consensysquorum/quorum-key-manager/pkg/json"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/gorilla/websocket"
 )
 

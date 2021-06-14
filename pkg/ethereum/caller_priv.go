@@ -3,7 +3,7 @@ package ethereum
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
