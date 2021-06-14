@@ -1,17 +1,17 @@
 package errors
 
 const (
-	Connection     string = "CN"
-	AKV                   = Connection + "1"
-	HashicorpVault        = Connection + "2"
-	AWS                   = Connection + "3"
+	Connection     = "CN000"
+	AKV            = "CN100"
+	HashicorpVault = "CN200"
+	AWS            = "CN300"
 
-	InvalidRequest   string = "IR"
-	Unauthorized            = InvalidRequest + "1"
-	NotSupported            = InvalidRequest + "2"
-	NotImplemented          = InvalidRequest + "3"
-	InvalidFormat           = InvalidRequest + "4"
-	InvalidParameter        = InvalidRequest + "5"
+	InvalidRequest   = "IR000"
+	Unauthorized     = "IR100"
+	NotSupported     = "IR200"
+	NotImplemented   = "IR300"
+	InvalidFormat    = "IR400"
+	InvalidParameter = "IR500"
 )
 
 // HashicorpVaultError is raised when failing to perform on Hashicorp Vault

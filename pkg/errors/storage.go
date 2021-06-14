@@ -1,10 +1,10 @@
 package errors
 
 const (
-	Storage        string = "ST"
-	NotFound              = Storage + "1"
-	AlreadyExists         = Storage + "2"
-	StatusConflict        = Storage + "3"
+	Storage        = "ST000"
+	NotFound       = "ST100"
+	AlreadyExists  = "ST200"
+	StatusConflict = "ST300"
 )
 
 // NoDataFoundError is raised when accessing a missing Data

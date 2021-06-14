@@ -3,10 +3,9 @@ package errors
 import "strings"
 
 const (
-	Internal string = "IN"
-
-	Config            = Internal + "1"
-	DependencyFailure = Internal + "2"
+	Internal          = "IN000"
+	Config            = Internal + "IN100"
+	DependencyFailure = Internal + "IN200"
 )
 
 //nolint
@@ -14,7 +13,12 @@ var ErrNotImplemented = NotImplementedError("this operation is not yet implement
 var ErrNotSupported = NotSupportedError("this operation is not supported. Please contact your administrator")
 
 func isErrorClass(code, base string) bool {
-	return code == base || strings.HasPrefix(code, base)
+	// Remove tailing 0's of the base error code
+	for base[len(base)-1] == '0' {
+		base = base[:len(base)-1]
+	}
+
+	return strings.HasPrefix(code, base)
 }
 
 func ConfigError(format string, a ...interface{}) *Error {

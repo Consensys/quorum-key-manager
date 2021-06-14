@@ -1,8 +1,8 @@
 package errors
 
 const (
-	Data     string = "DA"
-	Encoding        = Data + "1"
+	Data     = "DA000"
+	Encoding = "DA100"
 )
 
 // EncodingError are raised when failing to decode a message
