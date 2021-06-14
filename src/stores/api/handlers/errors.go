@@ -15,7 +15,7 @@ const (
 
 type ErrorResponse struct {
 	Message string `json:"message" example:"error message"`
-	Code    uint64 `json:"code,omitempty" example:"24000"`
+	Code    string `json:"code,omitempty" example:"IR001"`
 }
 
 func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {

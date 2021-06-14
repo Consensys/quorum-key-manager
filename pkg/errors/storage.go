@@ -1,11 +1,10 @@
 package errors
 
 const (
-	// Storage Error (class DBXXX)
-	Storage        uint64 = 13<<16 + 11<<12
-	NotFound              = Storage + 1<<8 // Not found (subclass DB1XX)
-	AlreadyExists         = Storage + 2<<8 // A resource with same index already exists (code DB201)
-	StatusConflict        = Storage + 3<<8 // A resource exists with invalid status (code DB301)
+	Storage        = "ST000"
+	NotFound       = "ST100"
+	AlreadyExists  = "ST200"
+	StatusConflict = "ST300"
 )
 
 // NoDataFoundError is raised when accessing a missing Data

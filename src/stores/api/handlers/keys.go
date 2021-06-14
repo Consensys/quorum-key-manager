@@ -170,7 +170,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_, _ = rw.Write([]byte(base64.URLEncoding.EncodeToString(signature)))
+	_, _ = rw.Write([]byte(base64.StdEncoding.EncodeToString(signature)))
 }
 
 // @Summary Get key by ID

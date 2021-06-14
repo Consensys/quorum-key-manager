@@ -19,10 +19,11 @@ import (
 
 // renewTokenLoop handle the token tokenWatcher of the application
 type RenewTokenWatcher struct {
-	tokenPath string
-	client    hashicorp.VaultClient
-	watcher   *fsnotify.Watcher
-	logger    *log.Logger
+	tokenPath     string
+	client        hashicorp.VaultClient
+	watcher       *fsnotify.Watcher
+	logger        *log.Logger
+	isTokenLoaded bool
 }
 
 func NewRenewTokenWatcher(client hashicorp.VaultClient, tokenPath string, logger *log.Logger) (*RenewTokenWatcher, error) {
@@ -48,9 +49,12 @@ func NewRenewTokenWatcher(client hashicorp.VaultClient, tokenPath string, logger
 func (rtl *RenewTokenWatcher) Start(ctx context.Context) error {
 	defer rtl.watcher.Close()
 
+	// First token refresh
 	if err := rtl.refreshToken(); err != nil {
 		return err
 	}
+
+	rtl.isTokenLoaded = true
 
 	for {
 		select {
@@ -85,6 +89,10 @@ func (rtl *RenewTokenWatcher) Start(ctx context.Context) error {
 			return err
 		}
 	}
+}
+
+func (rtl *RenewTokenWatcher) IsTokenLoaded() bool {
+	return rtl.isTokenLoaded
 }
 
 // Refresh the token
