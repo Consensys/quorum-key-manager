@@ -6,7 +6,7 @@ import (
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/client"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/token"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
@@ -23,7 +23,7 @@ type KeySpecs struct {
 	Namespace  string `json:"namespace"`
 }
 
-func NewKeyStore(specs *KeySpecs, logger *log.Logger) (*hashicorp.Store, error) {
+func NewKeyStore(specs *KeySpecs, logger *log_old.Logger) (*hashicorp.Store, error) {
 	cfg := client.NewConfig(specs.Address, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {

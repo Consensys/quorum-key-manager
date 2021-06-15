@@ -10,7 +10,7 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/pkg/app"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	keymanager "github.com/consensysquorum/quorum-key-manager/src"
 	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
@@ -45,7 +45,7 @@ const (
 
 type IntegrationEnvironment struct {
 	ctx               context.Context
-	logger            *log.Logger
+	logger            *log_old.Logger
 	hashicorpClient   hashicorp2.VaultClient
 	awsVaultClient    *awsclient.AwsVaultClient
 	akvClient         akv2.Client
@@ -84,7 +84,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger := log.DefaultLogger().WithContext(ctx)
+	logger := log_old.DefaultLogger().WithContext(ctx)
 
 	hashicorpContainer, err := utils.HashicorpContainer(ctx)
 	if err != nil {
@@ -348,6 +348,6 @@ func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
 	return file.Name(), nil
 }
 
-func newKeyManager(cfg *keymanager.Config, logger *log.Logger) (*app.App, error) {
+func newKeyManager(cfg *keymanager.Config, logger *log_old.Logger) (*app.App, error) {
 	return keymanager.New(cfg, logger)
 }

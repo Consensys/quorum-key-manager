@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"net/http"
 	"reflect"
 	"sync"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	gorillamux "github.com/gorilla/mux"
 )
 
@@ -33,7 +33,7 @@ type App struct {
 	cfg *Config
 
 	// logger logger object
-	logger *log.Logger
+	logger log.Logger
 
 	// server processing entrying HTTP request
 	server  *http.Server
@@ -52,7 +52,7 @@ type App struct {
 	errors chan error
 }
 
-func New(cfg *Config, logger *log.Logger) *App {
+func New(cfg *Config, logger log.Logger) *App {
 	// Create router and register APIs
 	router := gorillamux.NewRouter()
 

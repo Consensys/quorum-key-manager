@@ -12,7 +12,7 @@ import (
 
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	mock2 "github.com/consensysquorum/quorum-key-manager/src/stores/store/database/mock"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
@@ -51,7 +51,7 @@ func (s *eth1StoreTestSuite) SetupTest() {
 
 	s.mockKeyStore = mock.NewMockStore(ctrl)
 	s.mockEth1AccountsDB = mock2.NewMockETH1Accounts(ctrl)
-	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, log.DefaultLogger())
+	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, log_old.DefaultLogger())
 }
 
 func (s *eth1StoreTestSuite) TestCreate() {

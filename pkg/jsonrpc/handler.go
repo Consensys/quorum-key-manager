@@ -3,7 +3,7 @@ package jsonrpc
 import (
 	"fmt"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 )
 
 //go:generate mockgen -source=handler.go -destination=mock/handler.go -package=mock
@@ -74,7 +74,7 @@ func InvalidParamsHandler(err error) Handler {
 // LoggedHandler
 func LoggedHandler(h Handler) Handler {
 	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
-		log.FromContext(msg.Context()).
+		log_old.FromContext(msg.Context()).
 			WithField("version", msg.Version).
 			WithField("id", fmt.Sprintf("%v", msg.ID)).
 			WithField("method", msg.Method).

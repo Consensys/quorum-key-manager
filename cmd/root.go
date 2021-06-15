@@ -5,7 +5,7 @@ import (
 
 	"github.com/consensysquorum/quorum-key-manager/cmd/flags"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	app "github.com/consensysquorum/quorum-key-manager/src"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -47,10 +47,10 @@ func newRunCommand() *cobra.Command {
 func run(cmd *cobra.Command, _ []string) error {
 	vipr := viper.GetViper()
 	cfg := flags.NewAppConfig(vipr)
-	logger := log.NewLogger(cfg.Logger)
-	log.SetDefaultLogger(logger)
+	logger := log_old.NewLogger(cfg.Logger)
+	log_old.SetDefaultLogger(logger)
 
-	ctx := log.With(cmd.Context(), logger)
+	ctx := log_old.With(cmd.Context(), logger)
 	appli, err := app.New(cfg, logger)
 	if err != nil {
 		logger.WithError(err).Error("could not create app")

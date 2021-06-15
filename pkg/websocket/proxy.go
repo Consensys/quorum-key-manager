@@ -11,7 +11,7 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
 	"github.com/consensysquorum/quorum-key-manager/pkg/json"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/gorilla/websocket"
 )
 
@@ -142,7 +142,7 @@ func (prx *Proxy) serveWS(rw http.ResponseWriter, req *http.Request) {
 	op := &operation{
 		prx:                 prx,
 		req:                 req,
-		logger:              log.FromContext(req.Context()),
+		logger:              log_old.FromContext(req.Context()),
 		clientConn:          clientConn,
 		serverConn:          serverConn,
 		done:                make(chan struct{}),
@@ -248,7 +248,7 @@ type operation struct {
 	prx *Proxy
 
 	req    *http.Request
-	logger *log.Logger
+	logger *log_old.Logger
 
 	clientConn, serverConn *websocket.Conn
 

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/consensysquorum/quorum-key-manager/src/nodes/interceptor"
@@ -96,7 +96,7 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 		wg.Add(1)
 		go func(name string, n *nodeBundle) {
 			err := n.stop(ctx)
-			log.FromContext(ctx).WithError(err).WithField("name", name).Error("error closing node")
+			log_old.FromContext(ctx).WithError(err).WithField("name", name).Error("error closing node")
 			wg.Done()
 		}(name, n)
 	}
@@ -154,7 +154,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
-	logger := log.FromContext(ctx).
+	logger := log_old.FromContext(ctx).
 		WithField("kind", mnf.Kind).
 		WithField("name", mnf.Name)
 

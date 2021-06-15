@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
@@ -29,7 +29,7 @@ type LocalManager struct {
 
 	loaded chan struct{}
 	err    error
-	logger *log.Logger
+	logger *log_old.Logger
 }
 
 func NewLocalManager(cfg *Config) (*LocalManager, error) {
@@ -39,7 +39,7 @@ func NewLocalManager(cfg *Config) (*LocalManager, error) {
 			path:   cfg.Path,
 			loaded: make(chan struct{}),
 			isDir:  fs.IsDir(),
-			logger: log.DefaultLogger().SetComponent(ManagerID),
+			logger: log_old.DefaultLogger().SetComponent(ManagerID),
 		}, nil
 	}
 
@@ -56,7 +56,7 @@ type subscription struct {
 	errors   chan error
 	stop     chan struct{}
 	done     chan struct{}
-	logger   *log.Logger
+	logger   *log_old.Logger
 }
 
 func (sub *subscription) Unsubscribe() error {

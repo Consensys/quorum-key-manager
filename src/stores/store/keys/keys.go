@@ -6,7 +6,7 @@ import (
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/crypto"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -59,7 +59,7 @@ type Store interface {
 	Decrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 }
 
-func VerifySignature(logger *log.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+func VerifySignature(logger *log_old.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
 	logger = logger.
 		WithField("pub_key", base64.URLEncoding.EncodeToString(pubKey)).
 		WithField("curve", algo.EllipticCurve).

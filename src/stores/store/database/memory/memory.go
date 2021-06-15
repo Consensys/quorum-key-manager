@@ -9,19 +9,19 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 )
 
 type ETH1Accounts struct {
 	addrToAccounts        map[string]*entities.ETH1Account
 	deletedAddrToAccounts map[string]*entities.ETH1Account
 	mux                   sync.RWMutex
-	logger                *log.Logger
+	logger                *log_old.Logger
 }
 
 var _ database.ETH1Accounts = &ETH1Accounts{}
 
-func New(logger *log.Logger) *ETH1Accounts {
+func New(logger *log_old.Logger) *ETH1Accounts {
 	return &ETH1Accounts{
 		mux:                   sync.RWMutex{},
 		addrToAccounts:        make(map[string]*entities.ETH1Account),

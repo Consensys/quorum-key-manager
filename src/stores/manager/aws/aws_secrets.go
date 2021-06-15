@@ -1,7 +1,7 @@
 package aws
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/client"
@@ -15,7 +15,7 @@ type SecretSpecs struct {
 	SecretKey string `json:"secretKey"`
 }
 
-func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*aws.SecretStore, error) {
+func NewSecretStore(specs *SecretSpecs, logger *log_old.Logger) (*aws.SecretStore, error) {
 	cfg := client.NewBaseConfig(specs.Region, specs.AccessID, specs.SecretKey)
 	cli, err := client.NewClient(cfg)
 	if err != nil {

@@ -6,7 +6,7 @@ import (
 	"path"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
@@ -30,12 +30,12 @@ const (
 type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
-	logger     *log.Logger
+	logger     *log_old.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
+func New(client hashicorp.VaultClient, mountPoint string, logger *log_old.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,

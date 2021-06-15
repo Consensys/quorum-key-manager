@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
 	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
 	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
@@ -70,21 +70,21 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	}
 
 	// Hashicorp
-	logger := log.DefaultLogger().SetComponent("Secrets-Hashicorp")
+	logger := log_old.DefaultLogger().SetComponent("Secrets-Hashicorp")
 	testSuite := new(secretsTestSuite)
 	testSuite.env = s.env
 	testSuite.store = hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
 	suite.Run(s.T(), testSuite)
 
 	// AKV
-	logger = log.DefaultLogger().SetComponent("Secrets-AKV")
+	logger = log_old.DefaultLogger().SetComponent("Secrets-AKV")
 	testSuite = new(secretsTestSuite)
 	testSuite.env = s.env
 	testSuite.store = akvsecret.New(s.env.akvClient, logger)
 	suite.Run(s.T(), testSuite)
 
 	// AWS
-	logger = log.DefaultLogger().SetComponent("Secrets-AWS")
+	logger = log_old.DefaultLogger().SetComponent("Secrets-AWS")
 	awsTestSuite := new(awsSecretTestSuite)
 	awsTestSuite.env = s.env
 	awsTestSuite.store = aws.New(s.env.awsVaultClient, logger)
@@ -98,14 +98,14 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	}
 
 	// Hashicorp
-	logger := log.DefaultLogger().SetComponent("Keys-Hashicorp")
+	logger := log_old.DefaultLogger().SetComponent("Keys-Hashicorp")
 	testSuite := new(keysTestSuite)
 	testSuite.env = s.env
 	testSuite.store = hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
 	suite.Run(s.T(), testSuite)
 
 	// AKV
-	logger = log.DefaultLogger().SetComponent("Keys-AKV")
+	logger = log_old.DefaultLogger().SetComponent("Keys-AKV")
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
 	testSuite.store = akvkey.New(s.env.akvClient, logger)
@@ -119,14 +119,14 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	}
 
 	// Hashicorp
-	logger := log.DefaultLogger().SetComponent("Eth1-Hashicorp")
+	logger := log_old.DefaultLogger().SetComponent("Eth1-Hashicorp")
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), memory.New(logger), logger)
 	suite.Run(s.T(), testSuite)
 
 	// AKV
-	logger = log.DefaultLogger().SetComponent("Eth1-AKV")
+	logger = log_old.DefaultLogger().SetComponent("Eth1-AKV")
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), memory.New(logger), logger)

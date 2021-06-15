@@ -8,7 +8,7 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/akv"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/hashicorp"
@@ -21,7 +21,7 @@ type Specs struct {
 	Specs    interface{}
 }
 
-func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accounts, logger *log.Logger) (*eth1.Store, error) {
+func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accounts, logger *log_old.Logger) (*eth1.Store, error) {
 	var keyStore keys.Store
 	var err error
 

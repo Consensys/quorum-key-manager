@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
@@ -17,11 +17,11 @@ const (
 // SecretStore is an implementation of secret store relying on AWS secretsmanager
 type SecretStore struct {
 	client aws.SecretsManagerClient
-	logger *log.Logger
+	logger *log_old.Logger
 }
 
 // New creates an AWS secret store
-func New(client aws.SecretsManagerClient, logger *log.Logger) *SecretStore {
+func New(client aws.SecretsManagerClient, logger *log_old.Logger) *SecretStore {
 	return &SecretStore{
 		client: client,
 		logger: logger,

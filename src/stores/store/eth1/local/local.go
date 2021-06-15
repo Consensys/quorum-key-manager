@@ -10,7 +10,7 @@ import (
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
@@ -32,12 +32,12 @@ var eth1KeyAlgo = &entities.Algorithm{
 type Store struct {
 	keyStore     keys.Store
 	eth1Accounts database.ETH1Accounts
-	logger       *log.Logger
+	logger       *log_old.Logger
 }
 
 var _ eth1.Store = &Store{}
 
-func New(keyStore keys.Store, eth1Accounts database.ETH1Accounts, logger *log.Logger) *Store {
+func New(keyStore keys.Store, eth1Accounts database.ETH1Accounts, logger *log_old.Logger) *Store {
 	return &Store{
 		keyStore:     keyStore,
 		logger:       logger,

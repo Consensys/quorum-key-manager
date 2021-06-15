@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config"
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container"
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/compose"
@@ -58,7 +58,7 @@ func NewClient(composition *config.Composition) (*Client, error) {
 }
 
 func (c *Client) Up(ctx context.Context, name, networkName string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := log_old.FromContext(ctx).WithField("container", name)
 
 	containerCfg, hostCfg, networkCfg, err := c.factory.GenerateContainerConfig(ctx, c.composition.Containers[name])
 	if err != nil {
@@ -107,7 +107,7 @@ func (c *Client) Up(ctx context.Context, name, networkName string) error {
 }
 
 func (c *Client) Start(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := log_old.FromContext(ctx).WithField("container", name)
 
 	containerBody, err := c.getContainer(name)
 	if err != nil {
@@ -125,7 +125,7 @@ func (c *Client) Start(ctx context.Context, name string) error {
 }
 
 func (c *Client) Stop(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := log_old.FromContext(ctx).WithField("container", name)
 
 	containerBody, err := c.getContainer(name)
 	if err != nil {
@@ -142,7 +142,7 @@ func (c *Client) Stop(ctx context.Context, name string) error {
 }
 
 func (c *Client) WaitTillIsReady(ctx context.Context, name string, timeout time.Duration) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := log_old.FromContext(ctx).WithField("container", name)
 
 	err := c.factory.WaitForService(ctx, c.composition.Containers[name], timeout)
 	if err != nil {
@@ -168,7 +168,7 @@ func (c *Client) StartServiceAndWait(ctx context.Context, name string, timeout t
 }
 
 func (c *Client) Down(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := log_old.FromContext(ctx).WithField("container", name)
 
 	containerBody, err := c.getContainer(name)
 	if err != nil {
@@ -194,7 +194,7 @@ func (c *Client) Down(ctx context.Context, name string) error {
 }
 
 func (c *Client) CreateNetwork(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("network_name", name)
+	logger := log_old.FromContext(ctx).WithField("network_name", name)
 
 	createResponse, err := c.cli.NetworkCreate(ctx, name, types.NetworkCreate{Driver: "bridge"})
 	if err != nil {
@@ -207,7 +207,7 @@ func (c *Client) CreateNetwork(ctx context.Context, name string) error {
 }
 
 func (c *Client) RemoveNetwork(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("network_name", name)
+	logger := log_old.FromContext(ctx).WithField("network_name", name)
 
 	if networkID, ok := c.networks[name]; !ok {
 		err := c.cli.NetworkRemove(ctx, networkID)
@@ -238,7 +238,7 @@ func (c *Client) getContainer(name string) (dockercontainer.ContainerCreateCreat
 }
 
 func (c *Client) pullImage(ctx context.Context, imageName string) error {
-	logger := log.FromContext(ctx).WithField("image_name", imageName)
+	logger := log_old.FromContext(ctx).WithField("image_name", imageName)
 
 	cfg := types.ImagePullOptions{}
 	dockerAthCfg := &dockerAuth{}

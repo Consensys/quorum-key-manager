@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -19,22 +19,22 @@ func init() {
 }
 
 const (
-	levelFlag     = "log-level"
-	LevelViperKey = "log.level"
+	levelFlag     = "log-old-level"
+	LevelViperKey = "log-old.level"
 	levelDefault  = "info"
 	levelEnv      = "LOG_LEVEL"
 )
 
 const (
-	formatFlag     = "log-format"
-	FormatViperKey = "log.format"
+	formatFlag     = "log-old-format"
+	FormatViperKey = "log-old.format"
 	formatDefault  = "text"
 	formatEnv      = "LOG_FORMAT"
 )
 
 const (
-	timestampFlag     = "log-timestamp"
-	TimestampViperKey = "log.timestamp"
+	timestampFlag     = "log-old-timestamp"
+	TimestampViperKey = "log-old.timestamp"
 	timestampDefault  = true
 	timestampEnv      = "LOG_TIMESTAMP"
 )
@@ -42,7 +42,7 @@ const (
 var ECSJsonFormatter = &logrus.JSONFormatter{
 	FieldMap: logrus.FieldMap{
 		logrus.FieldKeyTime:  "@timestamp",
-		logrus.FieldKeyLevel: "log.level",
+		logrus.FieldKeyLevel: "log-old.level",
 		logrus.FieldKeyMsg:   "message",
 	},
 }
@@ -76,9 +76,9 @@ Environment variable: %q`, timestampEnv)
 	_ = viper.BindPFlag(TimestampViperKey, f.Lookup(timestampFlag))
 }
 
-func newLoggerConfig(vipr *viper.Viper) *log.Config {
-	return &log.Config{
-		Level:     log.LoggerLevel(vipr.GetString(LevelViperKey)),
+func newLoggerConfig(vipr *viper.Viper) *log_old.Config {
+	return &log_old.Config{
+		Level:     log_old.LoggerLevel(vipr.GetString(LevelViperKey)),
 		Timestamp: vipr.GetBool(TimestampViperKey),
 	}
 }

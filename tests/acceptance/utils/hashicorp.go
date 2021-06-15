@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	dockerhashicorp "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 )
 
@@ -16,7 +16,7 @@ const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
 const HashicorpPluginVersion = "v0.0.11-alpha.3"
 
 func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
-	logger := log.FromContext(ctx)
+	logger := log_old.FromContext(ctx)
 
 	hashicorpHost := "localhost"
 	hashicorpPort := strconv.Itoa(10000 + rand.Intn(10000))
@@ -58,7 +58,7 @@ func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 	return vaultContainer, nil
 }
 
-func getPluginPath(logger *log.Logger) (string, error) {
+func getPluginPath(logger *log_old.Logger) (string, error) {
 	currDir, err := os.Getwd()
 	if err != nil {
 		logger.WithError(err).Error("failed to get the current directory path")
