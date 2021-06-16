@@ -2,20 +2,18 @@ package manager
 
 import (
 	"context"
-	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
-type Auth interface {
-	Policies(ctx context.Context, name string) (*types.Policy, error)
+//go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
 
-	ListPolicies(context.Context) ([]*types.Policy, error)
+type Manager interface {
+	Policy(ctx context.Context, name string) (*types.Policy, error)
+
+	Policies(context.Context) ([]string, error)
 
 	Group(ctx context.Context, name string) (*types.Group, error)
 
-	ListGroups(context.Context) ([]*types.Group, error)
-
-	// Authenticate request
-	Authenticate(req *http.Request) error
+	Groups(context.Context) ([]string, error)
 }

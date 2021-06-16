@@ -1,8 +1,8 @@
 package manager
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/auth/types"
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/services/manifests/types"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
 var GroupKind manifest.Kind = "Group"

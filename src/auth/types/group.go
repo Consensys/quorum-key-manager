@@ -1,5 +1,6 @@
 package types
 
 type Group struct {
-	Policies []*Policy
+	Name     string
+	Policies []string
 }

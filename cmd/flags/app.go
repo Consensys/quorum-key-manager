@@ -10,5 +10,6 @@ func NewAppConfig(vipr *viper.Viper) *app.Config {
 		Logger:    newLoggerConfig(vipr),
 		HTTP:      newHTTPConfig(vipr),
 		Manifests: newManifestsConfig(vipr),
+		Auth:      newAuthConfig(vipr),
 	}
 }
