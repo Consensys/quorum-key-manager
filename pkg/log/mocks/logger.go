@@ -192,3 +192,18 @@ func (mr *MockLoggerMockRecorder) With(args ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockLogger)(nil).With), args...)
 }
+
+// Write mocks base method
+func (m *MockLogger) Write(p []byte) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Write", p)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Write indicates an expected call of Write
+func (mr *MockLoggerMockRecorder) Write(p interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockLogger)(nil).Write), p)
+}

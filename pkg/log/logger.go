@@ -12,4 +12,5 @@ type Logger interface {
 	Fatal(msg string, keysAndValues ...interface{}) Logger
 	WithError(err error) Logger
 	With(args ...interface{}) Logger
+	Write(p []byte) (n int, err error)
 }

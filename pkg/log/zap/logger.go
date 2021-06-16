@@ -14,9 +14,12 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 	var logger *zap.Logger
 	var err error
 
-	if cfg.Mode == log.DevelopmentMode {
+	switch cfg.Mode {
+	case log.DevelopmentMode:
 		logger, err = zap.NewDevelopment()
-	} else {
+	case log.ProductionMode:
+		logger, err = zap.NewProduction()
+	default:
 		logger, err = zap.NewProduction()
 	}
 	if err != nil {
@@ -69,4 +72,27 @@ func (l Logger) WithError(err error) *Logger {
 func (l Logger) With(args ...interface{}) *Logger {
 	l.logger = l.logger.With(args)
 	return &l
+}
+
+func (l *Logger) Write(p []byte) (n int, err error) {
+	switch l.cfg.Level {
+	case log.DebugLevel:
+		l.Debug(string(p))
+	case log.InfoLevel:
+		l.Info(string(p))
+	case log.WarnLevel:
+		l.Warn(string(p))
+	case log.ErrorLevel:
+		l.Error(string(p))
+	case log.PanicLevel:
+		l.Panic(string(p))
+	default:
+		l.Info(string(p))
+	}
+
+	return 0, nil
+}
+
+func (l Logger) Sync() error {
+	return l.logger.Sync()
 }

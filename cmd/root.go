@@ -5,7 +5,7 @@ import (
 
 	"github.com/consensysquorum/quorum-key-manager/cmd/flags"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/zap"
 	app "github.com/consensysquorum/quorum-key-manager/src"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -45,12 +45,17 @@ func newRunCommand() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, _ []string) error {
+	ctx := cmd.Context()
+
 	vipr := viper.GetViper()
 	cfg := flags.NewAppConfig(vipr)
-	logger := log_old.NewLogger(cfg.Logger)
-	log_old.SetDefaultLogger(logger)
 
-	ctx := log_old.With(cmd.Context(), logger)
+	logger, err := zap.NewLogger(cfg.Logger)
+	if err != nil {
+		return err
+	}
+	defer logger.Sync()
+
 	appli, err := app.New(cfg, logger)
 	if err != nil {
 		logger.WithError(err).Error("could not create app")
@@ -59,7 +64,7 @@ func run(cmd *cobra.Command, _ []string) error {
 
 	done := make(chan struct{})
 	sig := common.NewSignalListener(func(sig os.Signal) {
-		logger.WithField("sig", sig.String()).Warn("signal intercepted")
+		logger.With("sig", sig.String()).Warn("signal intercepted")
 		if err = appli.Stop(ctx); err != nil {
 			logger.WithError(err).Error("application stopped with errors")
 		}

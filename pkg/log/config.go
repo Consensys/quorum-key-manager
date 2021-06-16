@@ -8,7 +8,7 @@ const (
 	ErrorLevel LoggerLevel = "error"
 	DebugLevel LoggerLevel = "debug"
 	WarnLevel  LoggerLevel = "warn"
-	TraceLevel LoggerLevel = "trace"
+	PanicLevel LoggerLevel = "panic"
 )
 
 const (

@@ -2,9 +2,8 @@ package flags
 
 import (
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -16,47 +15,49 @@ func init() {
 	_ = viper.BindEnv(FormatViperKey, formatEnv)
 	viper.SetDefault(TimestampViperKey, timestampDefault)
 	_ = viper.BindEnv(TimestampViperKey, timestampEnv)
+	viper.SetDefault(logModeViperKey, logModeDefault)
+	_ = viper.BindEnv(logModeViperKey, logModeEnv)
 }
 
 const (
-	levelFlag     = "log-old-level"
-	LevelViperKey = "log-old.level"
+	levelFlag     = "log-level"
+	LevelViperKey = "log.level"
 	levelDefault  = "info"
 	levelEnv      = "LOG_LEVEL"
 )
 
 const (
-	formatFlag     = "log-old-format"
-	FormatViperKey = "log-old.format"
+	formatFlag     = "log-format"
+	FormatViperKey = "log.format"
 	formatDefault  = "text"
 	formatEnv      = "LOG_FORMAT"
 )
 
 const (
-	timestampFlag     = "log-old-timestamp"
-	TimestampViperKey = "log-old.timestamp"
+	timestampFlag     = "log-timestamp"
+	TimestampViperKey = "log.timestamp"
 	timestampDefault  = true
 	timestampEnv      = "LOG_TIMESTAMP"
 )
 
-var ECSJsonFormatter = &logrus.JSONFormatter{
-	FieldMap: logrus.FieldMap{
-		logrus.FieldKeyTime:  "@timestamp",
-		logrus.FieldKeyLevel: "log-old.level",
-		logrus.FieldKeyMsg:   "message",
-	},
-}
+const (
+	logModeFlag     = "log-mode"
+	logModeViperKey = "log.timestamp"
+	logModeDefault  = "production"
+	logModeEnv      = "LOG_MODE"
+)
 
 func LoggerFlags(f *pflag.FlagSet) {
 	level(f)
 	format(f)
 	timestamp(f)
+	mode(f)
 }
 
 // Level register flag for Level
 func level(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Log level (one of %q).
-Environment variable: %q`, []string{"panic", "fatal", "error", "warn", "info", "debug", "trace"}, levelEnv)
+Environment variable: %q`, []string{"panic", "error", "warn", "info", "debug"}, levelEnv)
 	f.String(levelFlag, levelDefault, desc)
 	_ = viper.BindPFlag(LevelViperKey, f.Lookup(levelFlag))
 }
@@ -76,9 +77,17 @@ Environment variable: %q`, timestampEnv)
 	_ = viper.BindPFlag(TimestampViperKey, f.Lookup(timestampFlag))
 }
 
-func newLoggerConfig(vipr *viper.Viper) *log_old.Config {
-	return &log_old.Config{
-		Level:     log_old.LoggerLevel(vipr.GetString(LevelViperKey)),
-		Timestamp: vipr.GetBool(TimestampViperKey),
-	}
+func mode(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Log mode (one of %q).
+Environment variable: %q`, []log.LoggerMode{log.DevelopmentMode, log.ProductionMode}, logModeEnv)
+	f.String(logModeFlag, logModeDefault, desc)
+	_ = viper.BindPFlag(logModeViperKey, f.Lookup(logModeFlag))
+}
+
+func newLoggerConfig(vipr *viper.Viper) *log.Config {
+	return log.NewConfig(
+		log.LoggerLevel(vipr.GetString(LevelViperKey)),
+		vipr.GetBool(TimestampViperKey),
+		log.LoggerMode(vipr.GetString(logModeViperKey)),
+	)
 }
