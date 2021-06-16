@@ -2,8 +2,7 @@ package app
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"net/http"
 	"reflect"
@@ -21,11 +20,6 @@ const (
 	runningState
 	stoppingState
 	closedState
-)
-
-var (
-	ErrServiceUnknown = errors.New("unknown service")
-	ErrConfigUnknown  = errors.New("unknown config")
 )
 
 // App is the main Key Manager application object
@@ -80,7 +74,9 @@ func (app *App) SetMiddleware(mid func(http.Handler) http.Handler) error {
 	defer app.mux.Unlock()
 
 	if app.state != initializingState {
-		return fmt.Errorf("can't register middleware on running or stopped app")
+		errMessage := "can't register middleware on running or stopped app"
+		app.logger.Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	app.middleware = mid
@@ -95,17 +91,23 @@ func (app *App) RegisterServiceConfig(cfg interface{}) error {
 	defer app.mux.Unlock()
 
 	if app.state != initializingState {
-		return fmt.Errorf("can't register config on running or stopped app")
+		errMessage := "can't register config on running or stopped app"
+		app.logger.Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	if app.hasConfig(cfg) {
-		return fmt.Errorf("attempt to register config %T more than once", cfg)
+		errMessage := "attempt to register config %T more than once"
+		app.logger.Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	cfgV := reflect.ValueOf(cfg)
 
 	if !(cfgV.IsValid() && cfgV.Type().Kind() == reflect.Ptr && cfgV.Type().Elem().Kind() == reflect.Struct) {
-		return fmt.Errorf("attempt to register config %T which is not a pointer to struct", cfg)
+		errMessage := "failed to extract config"
+		app.logger.Error(errMessage, "config", cfg)
+		return errors.ConfigError(errMessage)
 	}
 
 	app.serviceConfigs[cfgV.Type()] = cfgV
@@ -129,7 +131,9 @@ func (app *App) ServiceConfig(cfg interface{}) error {
 
 	cfgV := reflect.ValueOf(cfg)
 	if cfgV.Type().Kind() != reflect.Ptr {
-		return fmt.Errorf("can not attach service to a non pointer")
+		errMessage := "cannot attach service to a non pointer"
+		app.logger.Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	for typ, config := range app.serviceConfigs {
@@ -139,7 +143,7 @@ func (app *App) ServiceConfig(cfg interface{}) error {
 		}
 	}
 
-	return ErrConfigUnknown
+	return errors.ConfigError("unknown config")
 }
 
 func (app *App) RegisterService(srv interface{}) error {
@@ -147,13 +151,17 @@ func (app *App) RegisterService(srv interface{}) error {
 	defer app.mux.Unlock()
 
 	if app.state != initializingState {
-		return fmt.Errorf("can't register service on running or stopped app")
+		errMessage := "cannot register service on running or stopped app"
+		app.logger.Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	if rSrv, ok := srv.(common.Runnable); ok {
 		app.services = append(app.services, reflect.ValueOf(rSrv))
 	} else {
-		return fmt.Errorf("register service is not a runnable")
+		errMessage := "registered service is not a runnable"
+		app.logger.Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	if hlzSrv, ok := srv.(common.Checkable); ok {
@@ -176,7 +184,9 @@ func (app *App) Service(srv interface{}) error {
 	srvV := reflect.ValueOf(srv)
 
 	if srvV.Type().Kind() != reflect.Ptr {
-		return fmt.Errorf("can not attach service to a non pointer")
+		errMessage := "cannot attach service to a non pointer"
+		app.logger.Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	for _, regSrv := range app.services {
@@ -194,7 +204,7 @@ func (app *App) Service(srv interface{}) error {
 		}
 	}
 
-	return ErrServiceUnknown
+	return errors.ConfigError("unknown service")
 }
 
 func (app *App) Router() *gorillamux.Router {
@@ -210,31 +220,31 @@ func (app *App) startServer() {
 	}
 
 	go func() {
-		app.logger.WithField("addr", app.server.Addr).Info("started API server")
+		app.logger.Info("started API server", "addr", app.server.Addr)
 		app.errors <- app.server.ListenAndServe()
 	}()
 
 	go func() {
-		app.logger.WithField("addr", app.healthz.Addr).Info("started Health server")
+		app.logger.Info("started Health server", "addr", app.healthz.Addr)
 		app.errors <- app.healthz.ListenAndServe()
 	}()
 
-	app.logger.Debug("app server has been started")
+	app.logger.Debug("servers (API and Health) have started")
 }
 
 func (app *App) stopServer(ctx context.Context) error {
 	app.logger.Debug("shutting down app server...")
 	if err := app.healthz.Shutdown(ctx); err != nil {
-		app.logger.WithError(err).Errorf("health server could not shut down")
+		app.logger.WithError(err).Error("health server could not shut down")
 		return err
 	}
 
 	if err := app.server.Shutdown(ctx); err != nil {
-		app.logger.WithError(err).Errorf("http api server could not shut down")
+		app.logger.WithError(err).Error("http api server could not shut down")
 		return err
 	}
 
-	app.logger.Info("app server gracefully shut down")
+	app.logger.Info("servers (API and Health) gracefully shut down")
 	return nil
 }
 
@@ -268,7 +278,7 @@ func (app *App) Start(ctx context.Context) error {
 		_ = app.stopServer(ctx)
 	}
 
-	app.logger.Info("application has been started")
+	app.logger.Info("application started")
 	return err
 }
 
@@ -289,7 +299,7 @@ func (app *App) Stop(ctx context.Context) error {
 		err = httpErr
 	}
 
-	app.logger.Info("application has been stopped")
+	app.logger.Info("application stopped")
 	return err
 }
 

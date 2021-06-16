@@ -36,17 +36,22 @@ func (l *Logger) Info(msg string, keysAndValues ...interface{}) *Logger {
 	return l
 }
 
-func (l *Logger) Error(msg string, err error, keysAndValues ...interface{}) *Logger {
-	l.logger.With("error", err).Errorw(msg, keysAndValues)
+func (l *Logger) Error(msg string, keysAndValues ...interface{}) *Logger {
+	l.logger.Errorw(msg, keysAndValues)
 	return l
 }
 
-func (l *Logger) Panic(msg string, err error, keysAndValues ...interface{}) *Logger {
-	l.logger.With("error", err).Panicw(msg, keysAndValues)
+func (l *Logger) Panic(msg string, keysAndValues ...interface{}) *Logger {
+	l.logger.Panicw(msg, keysAndValues)
 	return l
 }
 
-func (l *Logger) Fatal(msg string, err error, keysAndValues ...interface{}) *Logger {
-	l.logger.With("error", err).Fatalw(msg, keysAndValues)
+func (l *Logger) Fatal(msg string, keysAndValues ...interface{}) *Logger {
+	l.logger.Fatalw(msg, keysAndValues)
 	return l
+}
+
+func (l Logger) WithError(err error) *Logger {
+	l.logger = l.logger.With("error", err)
+	return &l
 }

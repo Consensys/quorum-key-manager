@@ -7,7 +7,8 @@ type Logger interface {
 	Debug(msg string, keysAndValues ...interface{}) Logger
 	Warn(msg string, keysAndValues ...interface{}) Logger
 	Info(msg string, keysAndValues ...interface{}) Logger
-	Error(msg string, err error, keysAndValues ...interface{}) Logger
-	Panic(msg string, err error, keysAndValues ...interface{}) Logger
-	Fatal(msg string, err error, keysAndValues ...interface{}) Logger
+	Error(msg string, keysAndValues ...interface{}) Logger
+	Panic(msg string, keysAndValues ...interface{}) Logger
+	Fatal(msg string, keysAndValues ...interface{}) Logger
+	WithError(err error) Logger
 }
