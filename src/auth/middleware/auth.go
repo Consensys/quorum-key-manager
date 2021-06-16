@@ -51,7 +51,7 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 		info = types.AnonymousUser
 	}
 
-	// Create policy resolver for user info
+	// Create policy resolver for UserInfo and attaches it to context
 	resolver, err := mid.authorizationResolver(ctx, info)
 	if err != nil {
 		logger.WithError(err).Errorf("could not create policy resolver")
@@ -60,7 +60,7 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 	}
 	ctx = authorization.WithResolver(ctx, resolver)
 
-	// Create request context and sets user info
+	// Create request context and sets UserInfo and attached it to context
 	reqCtx := types.NewRequestContext(req)
 	reqCtx.UserInfo = info
 
