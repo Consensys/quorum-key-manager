@@ -33,18 +33,18 @@ func (m *MockLogger) EXPECT() *MockLoggerMockRecorder {
 	return m.recorder
 }
 
-// SetComponent mocks base method
-func (m *MockLogger) SetComponent(component string) log.Logger {
+// WithComponent mocks base method
+func (m *MockLogger) WithComponent(component string) log.Logger {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetComponent", component)
+	ret := m.ctrl.Call(m, "WithComponent", component)
 	ret0, _ := ret[0].(log.Logger)
 	return ret0
 }
 
-// SetComponent indicates an expected call of SetComponent
-func (mr *MockLoggerMockRecorder) SetComponent(component interface{}) *gomock.Call {
+// WithComponent indicates an expected call of WithComponent
+func (mr *MockLoggerMockRecorder) WithComponent(component interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetComponent", reflect.TypeOf((*MockLogger)(nil).SetComponent), component)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithComponent", reflect.TypeOf((*MockLogger)(nil).WithComponent), component)
 }
 
 // Debug mocks base method

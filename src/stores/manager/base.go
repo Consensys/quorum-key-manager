@@ -3,6 +3,7 @@ package storemanager
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"sync"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
@@ -37,15 +38,16 @@ type BaseManager struct {
 	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
+
+	logger log.Logger
 }
 
 type storeBundle struct {
 	manifest *manifest.Manifest
-
-	store interface{}
+	store    interface{}
 }
 
-func New(manifests manifestsmanager.Manager) *BaseManager {
+func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests:    manifests,
 		mux:          sync.RWMutex{},
@@ -53,6 +55,7 @@ func New(manifests manifestsmanager.Manager) *BaseManager {
 		keys:         make(map[string]*storeBundle),
 		eth1Accounts: make(map[string]*storeBundle),
 		mnfsts:       make(chan []manifestsmanager.Message),
+		logger:       logger,
 	}
 }
 

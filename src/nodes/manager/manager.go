@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"sort"
 	"sync"
 
@@ -42,6 +43,8 @@ type BaseManager struct {
 	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
+
+	logger log.Logger
 }
 
 type nodeBundle struct {
@@ -51,13 +54,14 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(stores storemanager.Manager, manifests manifestsmanager.Manager) *BaseManager {
+func New(stores storemanager.Manager, manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:    stores,
 		manifests: manifests,
 		mnfsts:    make(chan []manifestsmanager.Message),
 		mux:       sync.RWMutex{},
 		nodes:     make(map[string]*nodeBundle),
+		logger:    logger,
 	}
 }
 

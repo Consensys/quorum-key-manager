@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -29,17 +30,17 @@ type LocalManager struct {
 
 	loaded chan struct{}
 	err    error
-	logger *log_old.Logger
+	logger log.Logger
 }
 
-func NewLocalManager(cfg *Config) (*LocalManager, error) {
+func NewLocalManager(cfg *Config, logger log.Logger) (*LocalManager, error) {
 	fs, err := os.Stat(cfg.Path)
 	if err == nil {
 		return &LocalManager{
 			path:   cfg.Path,
 			loaded: make(chan struct{}),
 			isDir:  fs.IsDir(),
-			logger: log_old.DefaultLogger().SetComponent(ManagerID),
+			logger: logger,
 		}, nil
 	}
 

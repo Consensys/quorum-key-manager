@@ -13,8 +13,6 @@ import (
 	gorillamux "github.com/gorilla/mux"
 )
 
-const Component = "app"
-
 const (
 	initializingState = iota
 	runningState
@@ -60,7 +58,7 @@ func New(cfg *Config, logger log.Logger) *App {
 
 	return &App{
 		cfg:            cfg,
-		logger:         logger.SetComponent(Component),
+		logger:         logger,
 		server:         apiServer,
 		healthz:        healthzServer,
 		errors:         make(chan error),

@@ -21,7 +21,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	// Create app
 	a := app.New(&app.Config{
 		HTTP: cfg.HTTP,
-	}, logger)
+	}, logger.WithComponent("app"))
 
 	// Register Service Configuration
 	err := a.RegisterServiceConfig(cfg.Manifests)
@@ -30,23 +30,23 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	}
 
 	// Register Services
-	err = manifests.RegisterService(a)
+	err = manifests.RegisterService(a, logger.WithComponent("manifests"))
 	if err != nil {
 		return nil, err
 	}
 
-	err = stores.RegisterService(a)
+	err = stores.RegisterService(a, logger.WithComponent("stores"))
 	if err != nil {
 		return nil, err
 	}
 
-	err = nodes.RegisterService(a)
+	err = nodes.RegisterService(a, logger.WithComponent("nodes"))
 	if err != nil {
 		return nil, err
 	}
 
 	// Set Middleware
-	err = a.SetMiddleware(middleware.AccessLog(cfg.Logger))
+	err = a.SetMiddleware(middleware.AccessLog(logger.WithComponent("accesslog")))
 	if err != nil {
 		return nil, err
 	}

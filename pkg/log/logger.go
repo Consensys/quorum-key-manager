@@ -3,7 +3,7 @@ package log
 //go:generate mockgen -source=logger.go -destination=mocks/logger.go -package=mocks
 
 type Logger interface {
-	SetComponent(component string) Logger
+	WithComponent(component string) Logger
 	Debug(msg string, keysAndValues ...interface{}) Logger
 	Warn(msg string, keysAndValues ...interface{}) Logger
 	Info(msg string, keysAndValues ...interface{}) Logger
