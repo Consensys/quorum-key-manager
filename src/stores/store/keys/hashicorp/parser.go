@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/hashicorp/vault/api"
@@ -29,6 +30,12 @@ func parseResponse(hashicorpSecret *api.Secret) (*entities.Key, error) {
 			Disabled: false,
 		},
 		Tags: make(map[string]string),
+	}
+
+	if key.IsETH1Account() {
+		if _, err := crypto.UnmarshalPubkey(key.PublicKey); err != nil {
+			return nil, errors.HashicorpVaultError("failed to decode ethereum public key")
+		}
 	}
 
 	if hashicorpSecret.Data[tagsLabel] != nil {

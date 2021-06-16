@@ -54,7 +54,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 	}
 
 	logger.Info("key was created successfully")
-	return parseKeyBundleRes(&res), nil
+	return parseKeyBundleRes(&res)
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
@@ -73,7 +73,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 	}
 
 	logger.Info("key was imported successfully")
-	return parseKeyBundleRes(&res), nil
+	return parseKeyBundleRes(&res)
 }
 
 func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
@@ -85,7 +85,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	}
 
 	logger.Debug("key was retrieved successfully")
-	return parseKeyBundleRes(&res), nil
+	return parseKeyBundleRes(&res)
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
@@ -117,7 +117,7 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 	}
 
 	logger.Info("key was updated successfully")
-	return parseKeyBundleRes(&res), nil
+	return parseKeyBundleRes(&res)
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
@@ -139,7 +139,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 		return nil, err
 	}
 
-	return parseKeyDeleteBundleRes(&res), nil
+	return parseKeyDeleteBundleRes(&res)
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {

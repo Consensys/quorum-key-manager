@@ -142,7 +142,7 @@ func convertToSignatureAlgo(alg *entities.Algorithm) (keyvault.JSONWebKeySignatu
 	}
 }
 
-func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
+func parseKeyBundleRes(res *keyvault.KeyBundle) (*entities.Key, error) {
 	key := &entities.Key{
 		PublicKey: pubKeyBytes(res.Key),
 		Algo:      algoFromAKVKeyTypeCrv(res.Key.Kty, res.Key.Crv),
@@ -154,8 +154,14 @@ func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 		Tags: common.Tomapstr(res.Tags),
 	}
 
+	if key.IsETH1Account() {
+		if _, err := crypto.UnmarshalPubkey(key.PublicKey); err != nil {
+			return nil, errors.AKVError("failed to decode ethereum public key")
+		}
+	}
+
 	key.ID, key.Metadata.Version = parseKeyID(res.Key.Kid)
-	return key
+	return key, nil
 }
 
 func parseKeyID(kid *string) (id, version string) {
@@ -180,7 +186,7 @@ func parseKeyID(kid *string) (id, version string) {
 	return id, version
 }
 
-func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
+func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) (*entities.Key, error) {
 	return parseKeyBundleRes(&keyvault.KeyBundle{
 		Attributes: res.Attributes,
 		Key:        res.Key,
