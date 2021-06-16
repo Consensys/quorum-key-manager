@@ -1,15 +1,17 @@
 package middleware
 
 import (
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/zap"
 	"net/http"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/gorilla/handlers"
 )
 
-func AccessLog(cfg *log_old.Config) func(handlers http.Handler) http.Handler {
+func AccessLog(cfg *log.Config) func(handlers http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
-		logger := log_old.NewLogger(cfg).SetComponent("accesslog")
+		logger, _ := zap.NewLogger(cfg)
+		logger.SetComponent("accesslog")
 		return handlers.LoggingHandler(logger, h)
 	}
 }

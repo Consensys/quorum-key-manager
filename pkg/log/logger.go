@@ -11,4 +11,5 @@ type Logger interface {
 	Panic(msg string, keysAndValues ...interface{}) Logger
 	Fatal(msg string, keysAndValues ...interface{}) Logger
 	WithError(err error) Logger
+	With(args ...interface{}) Logger
 }

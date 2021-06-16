@@ -30,7 +30,7 @@ func New(cfg *Config) (*app.App, error) {
 	}, logger)
 
 	// Register Service Configuration
-	err := a.RegisterServiceConfig(cfg.Manifests)
+	err = a.RegisterServiceConfig(cfg.Manifests)
 	if err != nil {
 		return nil, err
 	}
