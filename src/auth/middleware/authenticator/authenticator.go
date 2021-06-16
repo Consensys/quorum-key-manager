@@ -11,10 +11,10 @@ import (
 type Authenticator interface {
 	// Authenticate request
 
-	// In case
-	// - request credentials are invalid then it returns an error
-	// - request credentials are valid then it returns a non UserInfo and nil error
-	// - request credentials have not been passed then it returns nil, nil
+	// It MUST
+	// - return an error, if request credentials are present but invalid
+	// - returns a non nil UserInfo and nil error, if request credentials are valid
+	// - returns nil, nil, if request credentials are missing
 	Authenticate(req *http.Request) (*types.UserInfo, error)
 }
 
@@ -24,6 +24,10 @@ func (f Func) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	return f(req)
 }
 
+// First combines authenticators
+
+// It executes authenticators in sequence until one authenticator accepts
+// or rejects the request
 func First(authenticators ...Authenticator) Authenticator {
 	return Func(func(req *http.Request) (*types.UserInfo, error) {
 		for _, auth := range authenticators {

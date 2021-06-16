@@ -13,6 +13,7 @@ import (
 
 var authenticatedGroup = "system:authenticated"
 
+// Middleware synchonize authentication
 type Middleware struct {
 	authenticator authenticator.Authenticator
 	policyMngr    manager.Manager

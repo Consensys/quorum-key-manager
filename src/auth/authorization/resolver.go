@@ -26,14 +26,19 @@ func (res *Result) Error() error {
 	return res.err
 }
 
+// Resolver is responsible to control wether an operation is authorized or not
+// depending on the set of policies attached to the resolver
 type Resolver struct {
+	// TODO: to be implemented
 }
 
 func NewResolver(policies []*types.Policy) (*Resolver, error) {
 	return &Resolver{}, nil
 }
 
+// IsAuthorized controls whether an operation is authorized or not
 func (r *Resolver) IsAuthorized(op *Operation) *Result {
+	// TODO: to be implemented
 	return &Result{
 		isAllowed: true,
 	}

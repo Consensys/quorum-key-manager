@@ -36,12 +36,14 @@ func Middleware(a *app.App) (func(http.Handler) http.Handler, error) {
 		return nil, err
 	}
 
+	// Load policy manager service
 	policyMngr := new(authmanager.Manager)
 	err = a.Service(policyMngr)
 	if err != nil {
 		return nil, err
 	}
 
+	// Create middleware
 	mid := authmiddleware.New(
 		authenticator.First(
 		// TODO: pass each authenticator implementation based on config

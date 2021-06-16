@@ -41,7 +41,7 @@ func (mngr *BaseManager) Start(ctx context.Context) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
-	// Subscribe to manifest of Kind node
+	// Subscribe to manifest of Kind Group and Policy
 	sub, err := mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
 	if err != nil {
 		return err
