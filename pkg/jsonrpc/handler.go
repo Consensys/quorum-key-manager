@@ -2,6 +2,7 @@ package jsonrpc
 
 import (
 	"fmt"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 )
 

@@ -54,7 +54,7 @@ func run(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	defer logger.Sync()
+	defer syncZapLogger(logger)
 
 	appli, err := app.New(cfg, logger)
 	if err != nil {
@@ -82,4 +82,8 @@ func run(cmd *cobra.Command, _ []string) error {
 	<-done
 
 	return nil
+}
+
+func syncZapLogger(logger *zap.Logger) {
+	_ = logger.Sync()
 }

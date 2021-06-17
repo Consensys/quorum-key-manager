@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp"
 	"github.com/fsnotify/fsnotify"

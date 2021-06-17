@@ -5,9 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"testing"
 	"time"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 
 	akv "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"

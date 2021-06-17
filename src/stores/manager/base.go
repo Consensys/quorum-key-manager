@@ -3,8 +3,9 @@ package storemanager
 import (
 	"context"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"sync"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
 

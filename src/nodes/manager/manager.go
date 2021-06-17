@@ -3,10 +3,11 @@ package nodemanager
 import (
 	"context"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"sort"
 	"sync"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"

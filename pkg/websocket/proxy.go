@@ -2,10 +2,11 @@ package websocket
 
 import (
 	"context"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/header"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/proxy"

@@ -2,8 +2,9 @@ package akv
 
 import (
 	"context"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"path"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv"

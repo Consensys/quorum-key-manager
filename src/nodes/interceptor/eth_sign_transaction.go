@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"

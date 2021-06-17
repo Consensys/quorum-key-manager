@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"testing"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"

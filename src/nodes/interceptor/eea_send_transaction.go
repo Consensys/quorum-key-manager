@@ -55,7 +55,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.GasPrice == nil {
 		gasPrice, err2 := sess.EthCaller().Eth().GasPrice(ctx)
 		if err2 != nil {
-			errMessage := "failed to fetch gas price"
+			errMessage := "failed to fetch gas price (EEA transaction)"
 			i.logger.WithError(err2).Error(errMessage)
 			return nil, errors.BlockchainNodeError(errMessage)
 		}
@@ -75,7 +75,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 
 		gas, err2 := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
 		if err2 != nil {
-			errMessage := "failed to estimate gas"
+			errMessage := "failed to estimate gas (EEA transaction)"
 			i.logger.WithError(err2).Error(errMessage)
 			return nil, errors.BlockchainNodeError(errMessage)
 		}
@@ -90,7 +90,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	// Get ChainID from Node
 	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
-		errMessage := "failed to fetch chainID"
+		errMessage := "failed to fetch chainID (EEA transaction)"
 		i.logger.WithError(err).Error(errMessage)
 		return nil, errors.BlockchainNodeError(errMessage)
 	}

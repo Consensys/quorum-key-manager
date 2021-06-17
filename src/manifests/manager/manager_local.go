@@ -2,10 +2,11 @@ package manager
 
 import (
 	"context"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"

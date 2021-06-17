@@ -2,9 +2,10 @@ package hashicorp
 
 import (
 	"context"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"path"
 	"strconv"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
 

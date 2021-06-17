@@ -5,8 +5,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"math/big"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"

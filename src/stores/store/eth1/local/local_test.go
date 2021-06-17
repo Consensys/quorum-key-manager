@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	mock3 "github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"math/big"
 	"testing"
+
+	mock3 "github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/crypto"

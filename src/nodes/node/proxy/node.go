@@ -3,8 +3,9 @@ package proxynode
 import (
 	"context"
 	"encoding/json"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"net/http"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
 	httpclient "github.com/consensysquorum/quorum-key-manager/pkg/http/client"

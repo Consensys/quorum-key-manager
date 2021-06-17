@@ -5,9 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"testing"
 	"time"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"

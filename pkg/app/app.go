@@ -2,11 +2,12 @@ package app
 
 import (
 	"context"
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"net/http"
 	"reflect"
 	"sync"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
@@ -18,6 +19,8 @@ const (
 	runningState
 	stoppingState
 	closedState
+
+	pointerErrMessage = "cannot attach service to a non pointer"
 )
 
 // App is the main Key Manager application object
@@ -129,9 +132,8 @@ func (app *App) ServiceConfig(cfg interface{}) error {
 
 	cfgV := reflect.ValueOf(cfg)
 	if cfgV.Type().Kind() != reflect.Ptr {
-		errMessage := "cannot attach service to a non pointer"
-		app.logger.Error(errMessage)
-		return errors.ConfigError(errMessage)
+		app.logger.Error(pointerErrMessage)
+		return errors.ConfigError(pointerErrMessage)
 	}
 
 	for typ, config := range app.serviceConfigs {
@@ -182,9 +184,8 @@ func (app *App) Service(srv interface{}) error {
 	srvV := reflect.ValueOf(srv)
 
 	if srvV.Type().Kind() != reflect.Ptr {
-		errMessage := "cannot attach service to a non pointer"
-		app.logger.Error(errMessage)
-		return errors.ConfigError(errMessage)
+		app.logger.Error(pointerErrMessage)
+		return errors.ConfigError(pointerErrMessage)
 	}
 
 	for _, regSrv := range app.services {

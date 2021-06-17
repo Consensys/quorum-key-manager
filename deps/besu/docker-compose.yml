@@ -2,7 +2,7 @@
 version: '3.7'
 
 x-default-variables: &default-variables
-  LOG4J_CONFIGURATION_FILE: /config/log-old-config.xml
+  LOG4J_CONFIGURATION_FILE: /config/log-config.xml
   JAVA_OPTS: -Xms512m -Xmx512m -XX:MaxMetaspaceSize=256m
   
 x-besu-bootnode-def:
@@ -64,7 +64,7 @@ services:
       - public-keys:/tmp/
       - ./config/besu/config.toml:/config/config.toml
       - ./config/besu/permissions_config.toml:/config/permissions_config.toml
-      - ./config/besu/log-old-config.xml:/config/log-old-config.xml
+      - ./config/besu/log-config.xml:/config/log-config.xml
       - ./config/besu/ibft2Genesis.json:/config/genesis.json
       - ./config/besu/networkFiles/validator1/keys:/opt/besu/keys
       - ./config/orion/networkFiles/orion1/nodeKey.pub:/config/orion/orion.pub
@@ -87,7 +87,7 @@ services:
     volumes:
       - ./config/orion/orion.conf:/config/orion.conf
       - ./config/orion/networkFiles/orion1:/keys/
-      - ./config/orion/log-old-config.xml:/config/log-old-config.xml
+      - ./config/orion/log-config.xml:/config/log-config.xml
     networks:
       besu:
         ipv4_address: 172.16.237.21
@@ -101,7 +101,7 @@ services:
       - public-keys:/opt/besu/public-keys/
       - ./config/besu/config.toml:/config/config.toml
       - ./config/besu/permissions_config.toml:/config/permissions_config.toml
-      - ./config/besu/log-old-config.xml:/config/log-old-config.xml
+      - ./config/besu/log-config.xml:/config/log-config.xml
       - ./config/besu/ibft2Genesis.json:/config/genesis.json
       - ./config/besu/networkFiles/validator2/keys:/opt/besu/keys
       - ./config/orion/networkFiles/orion2/nodeKey.pub:/config/orion/orion.pub
@@ -125,7 +125,7 @@ services:
     volumes:
       - ./config/orion/orion.conf:/config/orion.conf
       - ./config/orion/networkFiles/orion2:/keys/
-      - ./config/orion/log-old-config.xml:/config/log-old-config.xml
+      - ./config/orion/log-config.xml:/config/log-config.xml
     networks:
       besu:
         ipv4_address: 172.16.237.22
@@ -139,7 +139,7 @@ services:
       - public-keys:/opt/besu/public-keys/
       - ./config/besu/config.toml:/config/config.toml
       - ./config/besu/permissions_config.toml:/config/permissions_config.toml
-      - ./config/besu/log-old-config.xml:/config/log-old-config.xml
+      - ./config/besu/log-config.xml:/config/log-config.xml
       - ./config/besu/ibft2Genesis.json:/config/genesis.json
       - ./config/besu/networkFiles/validator3/keys:/opt/besu/keys
       - ./config/orion/networkFiles/orion3/nodeKey.pub:/config/orion/orion.pub
@@ -163,7 +163,7 @@ services:
     volumes:
       - ./config/orion/orion.conf:/config/orion.conf
       - ./config/orion/networkFiles/orion3:/keys/
-      - ./config/orion/log-old-config.xml:/config/log-old-config.xml
+      - ./config/orion/log-config.xml:/config/log-config.xml
     networks:
       besu:
         ipv4_address: 172.16.237.23
@@ -177,7 +177,7 @@ services:
       - public-keys:/opt/besu/public-keys/
       - ./config/besu/config.toml:/config/config.toml
       - ./config/besu/permissions_config.toml:/config/permissions_config.toml
-      - ./config/besu/log-old-config.xml:/config/log-old-config.xml
+      - ./config/besu/log-config.xml:/config/log-config.xml
       - ./config/besu/ibft2Genesis.json:/config/genesis.json
       - ./config/besu/networkFiles/validator4/keys:/opt/besu/keys
       - ./config/orion/networkFiles/orion4/nodeKey.pub:/config/orion/orion.pub
@@ -201,7 +201,7 @@ services:
     volumes:
       - ./config/orion/orion.conf:/config/orion.conf
       - ./config/orion/networkFiles/orion4:/keys/
-      - ./config/orion/log-old-config.xml:/config/log-old-config.xml
+      - ./config/orion/log-config.xml:/config/log-config.xml
     networks:
       besu:
         ipv4_address: 172.16.237.24

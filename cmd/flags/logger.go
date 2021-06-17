@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/spf13/pflag"
