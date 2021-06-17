@@ -34,7 +34,7 @@ func (m *MockPreparer) EXPECT() *MockPreparerMockRecorder {
 	return m.recorder
 }
 
-// Prepare mocks base method.
+// Prepare mock base method.
 func (m *MockPreparer) Prepare(arg0 *http.Request) (*http.Request, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Prepare", arg0)

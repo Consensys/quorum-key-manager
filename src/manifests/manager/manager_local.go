@@ -2,13 +2,13 @@ package manager
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
@@ -29,22 +29,24 @@ type LocalManager struct {
 
 	loaded chan struct{}
 	err    error
-	logger *log.Logger
+	logger log.Logger
 }
 
-func NewLocalManager(cfg *Config) (*LocalManager, error) {
+func NewLocalManager(cfg *Config, logger log.Logger) (*LocalManager, error) {
 	fs, err := os.Stat(cfg.Path)
 	if err == nil {
 		return &LocalManager{
 			path:   cfg.Path,
 			loaded: make(chan struct{}),
 			isDir:  fs.IsDir(),
-			logger: log.DefaultLogger().SetComponent(ManagerID),
+			logger: logger,
 		}, nil
 	}
 
 	if os.IsNotExist(err) {
-		return nil, errors.InvalidParameterError("folder or file does not exists. %s", cfg.Path)
+		errMessage := "folder or file does not exists"
+		logger.WithError(err).Error(errMessage, "path", cfg.Path)
+		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	return nil, err
@@ -56,7 +58,7 @@ type subscription struct {
 	errors   chan error
 	stop     chan struct{}
 	done     chan struct{}
-	logger   *log.Logger
+	logger   log.Logger
 }
 
 func (sub *subscription) Unsubscribe() error {
@@ -89,7 +91,7 @@ func (sub *subscription) inbox(msgs []Message) {
 	sub.messages <- submsgs
 }
 
-func (ll *LocalManager) Subscribe(kinds []manifest.Kind, messages chan<- []Message) (Subscription, error) {
+func (ll *LocalManager) Subscribe(kinds []manifest.Kind, messages chan<- []Message) Subscription {
 	sub := &subscription{
 		messages: messages,
 		errors:   make(chan error, 1),
@@ -107,7 +109,7 @@ func (ll *LocalManager) Subscribe(kinds []manifest.Kind, messages chan<- []Messa
 
 	go ll.processSub(sub)
 
-	return sub, nil
+	return sub
 }
 
 func (ll *LocalManager) processSub(sub *subscription) {
@@ -125,7 +127,8 @@ func (ll *LocalManager) processSub(sub *subscription) {
 }
 
 func (ll *LocalManager) load() error {
-	ll.logger.WithField("path", ll.path).WithField("isDir", ll.isDir).Debug("reading manifest items")
+	logger := ll.logger.With("path", ll.path, "isDir", ll.isDir)
+	logger.Debug("reading manifest items")
 
 	if !ll.isDir {
 		ll.msgs = append(ll.msgs, ll.buildMessages(ll.path)...)
@@ -134,7 +137,9 @@ func (ll *LocalManager) load() error {
 
 	return filepath.Walk(ll.path, func(fp string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			errMessage := "failed to walk the file tree"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
 		}
 
 		if info.IsDir() {
@@ -214,7 +219,8 @@ func (ll *LocalManager) CheckLiveness() error {
 	if ll.isLive {
 		return nil
 	}
-	return fmt.Errorf("service %s is not live", ll.ID())
+
+	return errors.ConfigError("service %s is not live", ll.ID())
 }
 
 func (ll *LocalManager) CheckReadiness() error {

@@ -37,7 +37,7 @@ func (m *MockEthCaller) EXPECT() *MockEthCallerMockRecorder {
 	return m.recorder
 }
 
-// ChainID mocks base method.
+// ChainID mock base method.
 func (m *MockEthCaller) ChainID(arg0 context.Context) (*big.Int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChainID", arg0)
@@ -52,7 +52,7 @@ func (mr *MockEthCallerMockRecorder) ChainID(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainID", reflect.TypeOf((*MockEthCaller)(nil).ChainID), arg0)
 }
 
-// EstimateGas mocks base method.
+// EstimateGas mock base method.
 func (m *MockEthCaller) EstimateGas(arg0 context.Context, arg1 *ethereum.CallMsg) (uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateGas", arg0, arg1)
@@ -67,7 +67,7 @@ func (mr *MockEthCallerMockRecorder) EstimateGas(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstimateGas", reflect.TypeOf((*MockEthCaller)(nil).EstimateGas), arg0, arg1)
 }
 
-// GasPrice mocks base method.
+// GasPrice mock base method.
 func (m *MockEthCaller) GasPrice(arg0 context.Context) (*big.Int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GasPrice", arg0)
@@ -82,7 +82,7 @@ func (mr *MockEthCallerMockRecorder) GasPrice(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GasPrice", reflect.TypeOf((*MockEthCaller)(nil).GasPrice), arg0)
 }
 
-// GetTransactionCount mocks base method.
+// GetTransactionCount mock base method.
 func (m *MockEthCaller) GetTransactionCount(arg0 context.Context, arg1 common.Address, arg2 ethereum.BlockNumber) (uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionCount", arg0, arg1, arg2)
@@ -97,7 +97,7 @@ func (mr *MockEthCallerMockRecorder) GetTransactionCount(arg0, arg1, arg2 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionCount", reflect.TypeOf((*MockEthCaller)(nil).GetTransactionCount), arg0, arg1, arg2)
 }
 
-// SendRawPrivateTransaction mocks base method.
+// SendRawPrivateTransaction mock base method.
 func (m *MockEthCaller) SendRawPrivateTransaction(arg0 context.Context, arg1 []byte, arg2 *ethereum.PrivateArgs) (common.Hash, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendRawPrivateTransaction", arg0, arg1, arg2)
@@ -112,7 +112,7 @@ func (mr *MockEthCallerMockRecorder) SendRawPrivateTransaction(arg0, arg1, arg2 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRawPrivateTransaction", reflect.TypeOf((*MockEthCaller)(nil).SendRawPrivateTransaction), arg0, arg1, arg2)
 }
 
-// SendRawTransaction mocks base method.
+// SendRawTransaction mock base method.
 func (m *MockEthCaller) SendRawTransaction(arg0 context.Context, arg1 []byte) (common.Hash, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendRawTransaction", arg0, arg1)

@@ -3,26 +3,19 @@ package websocket
 import (
 	"context"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/gorilla/websocket"
 )
 
 var GoingAway = websocket.FormatCloseMessage(websocket.CloseGoingAway, "")
 
-func Forward(ctx context.Context, from, to *websocket.Conn) error {
-	logger := log.FromContext(ctx)
-
+func Forward(_ context.Context, from, to *websocket.Conn) error {
 	for {
 		typ, msg, err := from.ReadMessage()
 		if err != nil {
-			logger.WithError(err).Debugf("error reading message")
 			return err
 		}
 
-		err = to.WriteMessage(typ, msg)
-		if err != nil {
-			logger.WithError(err).Debugf("error writing message")
-		}
+		_ = to.WriteMessage(typ, msg)
 	}
 }
 

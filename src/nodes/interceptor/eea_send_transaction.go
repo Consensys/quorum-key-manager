@@ -17,6 +17,8 @@ const (
 )
 
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
+	i.logger.Debug("sending EEA transaction")
+
 	// Get store for from
 	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
 	if err != nil {
@@ -31,7 +33,9 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 			n, err = sess.EthCaller().Priv().GetTransactionCount(ctx, msg.From, *msg.PrivacyGroupID)
 		} else {
 			if msg.PrivateFor == nil {
-				return nil, errors.InvalidParameterError("missing private args")
+				errMessage := "missing privateFor"
+				i.logger.Error(errMessage)
+				return nil, errors.InvalidFormatError(errMessage)
 			}
 
 			var privateFrom string
@@ -51,7 +55,9 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.GasPrice == nil {
 		gasPrice, err2 := sess.EthCaller().Eth().GasPrice(ctx)
 		if err2 != nil {
-			return nil, err2
+			errMessage := "failed to fetch gas price (EEA transaction)"
+			i.logger.WithError(err2).Error(errMessage)
+			return nil, errors.BlockchainNodeError(errMessage)
 		}
 
 		msg.GasPrice = gasPrice
@@ -69,7 +75,9 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 
 		gas, err2 := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
 		if err2 != nil {
-			return nil, err2
+			errMessage := "failed to estimate gas (EEA transaction)"
+			i.logger.WithError(err2).Error(errMessage)
+			return nil, errors.BlockchainNodeError(errMessage)
 		}
 
 		msg.Gas = &gas
@@ -82,7 +90,9 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	// Get ChainID from Node
 	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to fetch chainID (EEA transaction)"
+		i.logger.WithError(err).Error(errMessage)
+		return nil, errors.BlockchainNodeError(errMessage)
 	}
 
 	// Sign
@@ -94,9 +104,12 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	// Submit transaction to downstream node
 	hash, err := sess.EthCaller().EEA().SendRawTransaction(ctx, sig)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to send raw EEA transaction"
+		i.logger.WithError(err).Error(errMessage)
+		return nil, errors.BlockchainNodeError(errMessage)
 	}
 
+	i.logger.Info("EEA transaction sent successfully", "tx_hash", hash)
 	return &hash, nil
 }
 

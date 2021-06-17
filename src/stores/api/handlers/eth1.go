@@ -20,7 +20,7 @@ type Eth1Handler struct {
 	stores storesmanager.Manager
 }
 
-// New creates a http.Handler to be served on /accounts
+// NewAccountsHandler creates a http.Handler to be served on /accounts
 func NewAccountsHandler(s storesmanager.Manager) *Eth1Handler {
 	return &Eth1Handler{
 		stores: s,

@@ -34,7 +34,7 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// StoreRaw mocks base method.
+// StoreRaw mock base method.
 func (m *MockClient) StoreRaw(ctx context.Context, payload []byte, privateFrom string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StoreRaw", ctx, payload, privateFrom)

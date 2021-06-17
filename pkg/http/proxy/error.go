@@ -6,8 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 )
 
 type HandleRoundTripErrorFunc func(rw http.ResponseWriter, req *http.Request, err error)
@@ -19,16 +17,10 @@ const StatusClientClosedRequest = 499
 const StatusClientClosedRequestText = "Client Closed Connection"
 
 func HandleRoundTripError(rw http.ResponseWriter, req *http.Request, err error) {
-	logger := log.FromContext(req.Context())
-
 	statusCode := StatusCodeFromRoundTripError(err)
-	logger.Debugf("'%d %s' caused by: %v", statusCode, StatusText(statusCode), err)
 
 	rw.WriteHeader(statusCode)
-	_, werr := rw.Write([]byte(StatusText(statusCode)))
-	if werr != nil {
-		logger.Debugf("Error while writing status code", werr)
-	}
+	_, _ = rw.Write([]byte(StatusText(statusCode)))
 }
 
 func StatusCodeFromRoundTripError(err error) int {

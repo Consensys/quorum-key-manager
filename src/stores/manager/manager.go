@@ -24,7 +24,7 @@ type Manager interface {
 	// GetEth1Store by name
 	GetEth1Store(ctx context.Context, name string) (eth1.Store, error)
 
-	// GetEth1StoreByAddr
+	// GetEth1StoreByAddr gets a eth1 store by address
 	GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1.Store, error)
 
 	// List stores

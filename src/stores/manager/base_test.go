@@ -7,6 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/golang/mock/gomock"
+
 	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
 	"github.com/stretchr/testify/require"
 )
@@ -74,17 +78,22 @@ var testManifest = []byte(`
 // Still this test can not ensure stores are properly created since we do not have access to dependencies
 // (should be responsibility of e2e and ATs)
 func TestBaseManager(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockLogger := testutils.NewMockLogger(ctrl)
+
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
 	require.NoError(t, err, "WriteFile manifest1 must not error")
 
-	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir})
+	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir}, mockLogger)
 	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
 
 	err = manifests.Start(context.TODO())
 	require.NoError(t, err, "Start manifests manager must not error")
 
-	mngr := New(manifests)
+	mngr := New(manifests, mockLogger)
 	err = mngr.Start(context.TODO())
 	require.NoError(t, err, "Start manager manager must not error")
 

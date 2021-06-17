@@ -17,7 +17,7 @@ type SecretsHandler struct {
 	stores storesmanager.Manager
 }
 
-// New creates a http.Handler to be served on /secrets
+// NewSecretsHandler creates a http.Handler to be served on /secrets
 func NewSecretsHandler(s storesmanager.Manager) *SecretsHandler {
 	return &SecretsHandler{
 		stores: s,

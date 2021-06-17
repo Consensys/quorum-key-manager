@@ -1,29 +1,27 @@
 package utils
 
 import (
-	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"math/rand"
 	"os"
 	"runtime"
 	"strconv"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	dockerhashicorp "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 )
 
 const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
 const HashicorpPluginVersion = "v0.0.11-alpha.3"
 
-func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
-	logger := log.FromContext(ctx)
-
+func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 	hashicorpHost := "localhost"
 	hashicorpPort := strconv.Itoa(10000 + rand.Intn(10000))
 	hashicorpToken := fmt.Sprintf("root_token_%v", strconv.Itoa(rand.Intn(10000)))
 
-	pluginPath, err := getPluginPath(logger)
+	pluginPath, err := getPluginPath()
 	if err != nil {
+		logger.WithError(err).Error("failed to get the current directory path")
 		return nil, err
 	}
 
@@ -44,7 +42,7 @@ func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 			return nil, err
 		}
 		vaultContainer.SetPluginSourceDirectory(pluginPath)
-		logger.WithField("path", pluginPath).Info("using local orchestrate plugin")
+		logger.Info("using local orchestrate plugin", "path", pluginPath)
 
 	default:
 		pluginPath, err = vaultContainer.DownloadPlugin(HashicorpPluginFilename, HashicorpPluginVersion)
@@ -52,16 +50,15 @@ func HashicorpContainer(ctx context.Context) (*dockerhashicorp.Config, error) {
 			logger.WithError(err).Error("cannot download hashicorp vault plugin")
 			return nil, err
 		}
-		logger.WithField("path", pluginPath).Info("orchestrate plugin downloaded")
+		logger.Info("orchestrate plugin downloaded", "path", pluginPath)
 	}
 
 	return vaultContainer, nil
 }
 
-func getPluginPath(logger *log.Logger) (string, error) {
+func getPluginPath() (string, error) {
 	currDir, err := os.Getwd()
 	if err != nil {
-		logger.WithError(err).Error("failed to get the current directory path")
 		return "", err
 	}
 

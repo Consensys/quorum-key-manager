@@ -19,7 +19,7 @@ type KeysHandler struct {
 	stores storesmanager.Manager
 }
 
-// New creates a http.Handler to be served on /keys
+// NewKeysHandler creates a http.Handler to be served on /keys
 func NewKeysHandler(s storesmanager.Manager) *KeysHandler {
 	return &KeysHandler{
 		stores: s,

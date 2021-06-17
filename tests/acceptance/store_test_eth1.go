@@ -39,7 +39,7 @@ func (s *eth1TestSuite) TearDownSuite() {
 	accounts, err := s.store.List(ctx)
 	require.NoError(s.T(), err)
 
-	s.env.logger.WithField("addresses", accounts).Info("Deleting the following accounts")
+	s.env.logger.Info("Deleting the following accounts", "addresses", accounts)
 	for _, address := range accounts {
 		err = s.store.Delete(ctx, address)
 		if err != nil && errors.IsNotSupportedError(err) {

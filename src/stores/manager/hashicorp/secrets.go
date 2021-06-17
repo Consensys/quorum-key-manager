@@ -19,11 +19,13 @@ type SecretSpecs struct {
 	Namespace  string `json:"namespace"`
 }
 
-func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*hashicorp.Store, error) {
+func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*hashicorp.Store, error) {
 	cfg := client.NewConfig(specs.Address, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, errors.HashicorpVaultError(err.Error())
+		errMessage := "failed to instantiate Hashicorp client (secrets)"
+		logger.WithError(err).Error(errMessage, "specs", specs)
+		return nil, errors.ConfigError(errMessage)
 	}
 
 	if specs.Token != "" {

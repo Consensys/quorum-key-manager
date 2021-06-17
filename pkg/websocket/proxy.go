@@ -6,12 +6,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/header"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/proxy"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
 	"github.com/consensysquorum/quorum-key-manager/pkg/json"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/gorilla/websocket"
 )
 
@@ -65,12 +66,14 @@ type Proxy struct {
 	stop chan struct{}
 	done chan struct{}
 
+	logger log.Logger
+
 	PingPongTimeout        time.Duration
 	WriteControlMsgTimeout time.Duration
 	CloseGracePeriod       time.Duration
 }
 
-func NewProxy(cfg *ProxyConfig) *Proxy {
+func NewProxy(cfg *ProxyConfig, logger log.Logger) *Proxy {
 	return &Proxy{
 		Upgrader:               NewUpgrader(cfg.Upgrader),
 		Dialer:                 NewDialer(cfg.Dialer),
@@ -80,6 +83,7 @@ func NewProxy(cfg *ProxyConfig) *Proxy {
 		stop:                   make(chan struct{}),
 		done:                   make(chan struct{}),
 		ops:                    make(chan *operation),
+		logger:                 logger,
 	}
 }
 
@@ -142,7 +146,7 @@ func (prx *Proxy) serveWS(rw http.ResponseWriter, req *http.Request) {
 	op := &operation{
 		prx:                 prx,
 		req:                 req,
-		logger:              log.FromContext(req.Context()),
+		logger:              prx.logger,
 		clientConn:          clientConn,
 		serverConn:          serverConn,
 		done:                make(chan struct{}),
@@ -248,7 +252,7 @@ type operation struct {
 	prx *Proxy
 
 	req    *http.Request
-	logger *log.Logger
+	logger log.Logger
 
 	clientConn, serverConn *websocket.Conn
 
@@ -320,7 +324,7 @@ func (op *operation) writeClientClose(msg []byte, waitCloseBack bool) {
 	op.writeClientCloseOnce.Do(func() {
 		err := op.prx.writeControl(op.clientConn, websocket.CloseMessage, msg)
 		if err != nil {
-			op.logger.WithError(err).Debugf("error writing Close client connection")
+			op.logger.WithError(err).Debug("error writing Close client connection")
 			return
 		}
 
@@ -338,7 +342,7 @@ func (op *operation) writeServerClose(msg []byte, waitCloseBack bool) {
 	op.writeServerCloseOnce.Do(func() {
 		err := op.prx.writeControl(op.serverConn, websocket.CloseMessage, msg)
 		if err != nil {
-			op.logger.WithError(err).Debugf("error writing Close to server connection")
+			op.logger.WithError(err).Debug("error writing Close to server connection")
 			return
 		}
 
@@ -354,68 +358,58 @@ func (op *operation) writeServerClose(msg []byte, waitCloseBack bool) {
 
 func (op *operation) pipeControlMessages() {
 	op.clientConn.SetPingHandler(func(data string) error {
-		op.logger.WithField("data", data).Trace("received client Ping")
-
 		// We received a message from client so we refresh read timeline
 		_ = op.clientConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward Ping to server
 		err := op.prx.writeControl(op.serverConn, websocket.PingMessage, []byte(data))
 		if err != nil {
-			op.logger.WithError(err).Debugf("error writing Ping message on server connection")
+			op.logger.WithError(err).Debug("error writing Ping message on server connection")
 		}
 
 		return nil
 	})
 
 	op.clientConn.SetPongHandler(func(data string) error {
-		op.logger.WithField("data", data).Trace("received client Pong")
-
 		// We received a message from client so we refresh read timeline
 		_ = op.clientConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward Pong to server
 		err := op.prx.writeControl(op.serverConn, websocket.PongMessage, []byte(data))
 		if err != nil {
-			op.logger.WithError(err).Debugf("error writing Pong message on server connection")
+			op.logger.WithError(err).Debug("error writing Pong message on server connection")
 		}
 
 		return nil
 	})
 
 	op.serverConn.SetPingHandler(func(data string) error {
-		op.logger.WithField("data", data).Trace("received server Ping")
-
 		// We received a message from server so we refresh read timeline
 		_ = op.serverConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward Ping to client
 		err := op.prx.writeControl(op.clientConn, websocket.PingMessage, []byte(data))
 		if err != nil {
-			op.logger.WithError(err).Debugf("error writing Ping message on cient connection")
+			op.logger.WithError(err).Debug("error writing Ping message on cient connection")
 		}
 
 		return nil
 	})
 
 	op.serverConn.SetPongHandler(func(data string) error {
-		op.logger.WithField("data", data).Trace("received server Pong")
-
 		// We received a message from server so we refresh read timeline
 		_ = op.serverConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward pong to client
 		err := op.prx.writeControl(op.clientConn, websocket.PongMessage, []byte(data))
 		if err != nil {
-			op.logger.WithError(err).Debugf("error writing Pong message on cient connection")
+			op.logger.WithError(err).Debug("error writing Pong message on cient connection")
 		}
 
 		return nil
 	})
 
 	op.clientConn.SetCloseHandler(func(code int, text string) error {
-		op.logger.WithField("text", text).WithField("code", code).Trace("received client Close")
-
 		select {
 		case <-op.receivedClientClose:
 			return nil
@@ -434,8 +428,6 @@ func (op *operation) pipeControlMessages() {
 	})
 
 	op.serverConn.SetCloseHandler(func(code int, text string) error {
-		op.logger.WithField("text", text).WithField("code", code).Trace("received server Close")
-
 		select {
 		case <-op.receivedServerClose:
 			return nil

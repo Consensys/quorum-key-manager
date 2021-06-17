@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"io"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config"
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container"
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/compose"
@@ -27,6 +27,7 @@ type Client struct {
 	factory     container.DockerContainerFactory
 	containers  map[string]dockercontainer.ContainerCreateCreatedBody
 	networks    map[string]string
+	logger      log.Logger
 }
 
 type dockerAuth struct {
@@ -39,7 +40,7 @@ type dockerAuthItem struct {
 
 var dockerRegistries = []string{"https://index.docker.io/v2/", "index.docker.io/v2/", "https://index.docker.io/v1/", "index.docker.io/v1/"}
 
-func NewClient(composition *config.Composition) (*Client, error) {
+func NewClient(composition *config.Composition, logger log.Logger) (*Client, error) {
 	cli, err := client.NewClientWithOpts(
 		client.FromEnv,
 		client.WithAPIVersionNegotiation(),
@@ -51,14 +52,15 @@ func NewClient(composition *config.Composition) (*Client, error) {
 	return &Client{
 		cli:         cli,
 		composition: composition,
-		factory:     compose.New(),
+		factory:     compose.New(logger),
 		containers:  make(map[string]dockercontainer.ContainerCreateCreatedBody),
 		networks:    make(map[string]string),
+		logger:      logger,
 	}, nil
 }
 
 func (c *Client) Up(ctx context.Context, name, networkName string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := c.logger.With("container", name)
 
 	containerCfg, hostCfg, networkCfg, err := c.factory.GenerateContainerConfig(ctx, c.composition.Containers[name])
 	if err != nil {
@@ -89,10 +91,10 @@ func (c *Client) Up(ctx context.Context, name, networkName string) error {
 			return err
 		}
 
-		logger.WithField("network_id", networkID).Info("container connected to network")
+		logger.Info("container connected to network", "network_id", networkID)
 	} else if networkName != "" {
 		errMsg := fmt.Sprintf("container %v cannot connected to network", name)
-		logger.WithField("network_id", networkID).Errorf(errMsg)
+		logger.Error(errMsg, "network_id", networkID)
 		return errors.DependencyFailureError(errMsg)
 	}
 
@@ -101,13 +103,13 @@ func (c *Client) Up(ctx context.Context, name, networkName string) error {
 		return err
 	}
 
-	logger.WithField("id", containerBody.ID).Info("started container")
+	logger.Info("started container", "id", containerBody.ID)
 
 	return nil
 }
 
 func (c *Client) Start(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := c.logger.With("container", name)
 
 	containerBody, err := c.getContainer(name)
 	if err != nil {
@@ -119,13 +121,13 @@ func (c *Client) Start(ctx context.Context, name string) error {
 		return err
 	}
 
-	logger.WithField("id", containerBody.ID).Infof("started container")
+	logger.Info("started container", "id", containerBody.ID)
 
 	return nil
 }
 
 func (c *Client) Stop(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := c.logger.With("container", name)
 
 	containerBody, err := c.getContainer(name)
 	if err != nil {
@@ -136,17 +138,17 @@ func (c *Client) Stop(ctx context.Context, name string) error {
 		return err
 	}
 
-	logger.WithField("id", containerBody.ID).Info("stopped container")
+	logger.With("id", containerBody.ID).Info("stopped container")
 
 	return nil
 }
 
 func (c *Client) WaitTillIsReady(ctx context.Context, name string, timeout time.Duration) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := c.logger.With("container", name)
 
 	err := c.factory.WaitForService(ctx, c.composition.Containers[name], timeout)
 	if err != nil {
-		logger.WithError(err).WithField("service", name).Error("cannot wait for service")
+		logger.WithError(err).Error("cannot wait for service", "service", name)
 		return err
 	}
 
@@ -168,11 +170,11 @@ func (c *Client) StartServiceAndWait(ctx context.Context, name string, timeout t
 }
 
 func (c *Client) Down(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("container", name)
+	logger := c.logger.With("container", name)
 
 	containerBody, err := c.getContainer(name)
 	if err != nil {
-		logger.WithError(err).Warnf("container %s cannot be found", name)
+		logger.WithError(err).Warn("container %s cannot be found", name)
 		if err := c.cli.ContainerStop(ctx, name, nil); err != nil {
 			return err
 		}
@@ -182,32 +184,32 @@ func (c *Client) Down(ctx context.Context, name string) error {
 		return err
 	}
 
-	logger.WithField("id", containerBody.ID).Info("stopped container")
+	logger.Info("stopped container", "id", containerBody.ID)
 
 	if err := c.cli.ContainerRemove(ctx, containerBody.ID, types.ContainerRemoveOptions{RemoveVolumes: true}); err != nil {
 		return err
 	}
 
-	logger.WithField("id", containerBody.ID).Info("removed container")
+	logger.Info("removed container", "id", containerBody.ID)
 
 	return nil
 }
 
 func (c *Client) CreateNetwork(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("network_name", name)
+	logger := c.logger.With("network_name", name)
 
 	createResponse, err := c.cli.NetworkCreate(ctx, name, types.NetworkCreate{Driver: "bridge"})
 	if err != nil {
 		return err
 	}
 
-	logger.WithField("id", createResponse.ID).Info("created network")
+	logger.Info("created network", "id", createResponse.ID)
 	c.networks[name] = createResponse.ID
 	return nil
 }
 
 func (c *Client) RemoveNetwork(ctx context.Context, name string) error {
-	logger := log.FromContext(ctx).WithField("network_name", name)
+	logger := c.logger.With("network_name", name)
 
 	if networkID, ok := c.networks[name]; !ok {
 		err := c.cli.NetworkRemove(ctx, networkID)
@@ -215,14 +217,14 @@ func (c *Client) RemoveNetwork(ctx context.Context, name string) error {
 			return err
 		}
 
-		logger.WithField("network_id", networkID).Info("removed network")
+		logger.Info("removed network", "network_id", networkID)
 	} else {
 		err := c.cli.NetworkRemove(ctx, name)
 		if err != nil {
 			return err
 		}
 
-		logger.WithField("network_name", name).Info("removed network")
+		logger.Info("removed network")
 	}
 
 	return nil
@@ -238,7 +240,7 @@ func (c *Client) getContainer(name string) (dockercontainer.ContainerCreateCreat
 }
 
 func (c *Client) pullImage(ctx context.Context, imageName string) error {
-	logger := log.FromContext(ctx).WithField("image_name", imageName)
+	logger := c.logger.With("image_name", imageName)
 
 	cfg := types.ImagePullOptions{}
 	dockerAthCfg := &dockerAuth{}
@@ -246,7 +248,7 @@ func (c *Client) pullImage(ctx context.Context, imageName string) error {
 		for _, reg := range dockerRegistries {
 			if crdt, ok := dockerAthCfg.Auths[reg]; ok {
 				cfg.RegistryAuth = crdt.Auth
-				logger.WithField("auth", crdt.Auth).WithField("reg", reg).Info("docker registry credential")
+				logger.Info("docker registry credential", "auth", crdt.Auth, "reg", reg)
 				break
 			}
 		}

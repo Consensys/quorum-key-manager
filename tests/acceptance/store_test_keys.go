@@ -33,7 +33,7 @@ type keysTestSuite struct {
 func (s *keysTestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	s.env.logger.WithField("keys", s.keyIds).Info("deleting the following keys")
+	s.env.logger.Info("deleting the following keys", "keys", s.keyIds)
 	for _, id := range s.keyIds {
 		err := s.store.Delete(ctx, id)
 		if err != nil && errors.IsNotImplementedError(err) {
@@ -52,15 +52,14 @@ func (s *keysTestSuite) TearDownSuite() {
 			}
 			if maxTries <= 0 {
 				if err != nil {
-					s.env.logger.WithField("keyID", id).Info("failed to destroy key")
+					s.env.logger.Info("failed to destroy key", "keyID", id)
 				}
 				break
 			}
 
 			maxTries -= 1
 			waitTime := time.Second * time.Duration(MAX_RETRIES-maxTries)
-			s.env.logger.WithField("keyID", id).WithField("waitFor", waitTime.Seconds()).
-				Debug("waiting for deletion to complete")
+			s.env.logger.Debug("waiting for deletion to complete", "keyID", id, "waitFor", waitTime.Seconds())
 			time.Sleep(waitTime)
 		}
 	}

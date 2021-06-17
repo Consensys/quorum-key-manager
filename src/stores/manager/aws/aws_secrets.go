@@ -1,9 +1,8 @@
 package aws
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/client"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
 )
@@ -15,11 +14,13 @@ type SecretSpecs struct {
 	SecretKey string `json:"secretKey"`
 }
 
-func NewSecretStore(specs *SecretSpecs, logger *log.Logger) (*aws.SecretStore, error) {
+func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*aws.SecretStore, error) {
 	cfg := client.NewBaseConfig(specs.Region, specs.AccessID, specs.SecretKey)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, errors.AWSError(err.Error())
+		errMessage := "failed to instantiate AWS client (secrets)"
+		logger.WithError(err).Error(errMessage, "specs", specs)
+		return nil, errors.ConfigError(errMessage)
 	}
 
 	store := aws.New(cli, logger)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	"github.com/sirupsen/logrus"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -16,6 +16,8 @@ func init() {
 	_ = viper.BindEnv(FormatViperKey, formatEnv)
 	viper.SetDefault(TimestampViperKey, timestampDefault)
 	_ = viper.BindEnv(TimestampViperKey, timestampEnv)
+	viper.SetDefault(logModeViperKey, logModeDefault)
+	_ = viper.BindEnv(logModeViperKey, logModeEnv)
 }
 
 const (
@@ -39,24 +41,24 @@ const (
 	timestampEnv      = "LOG_TIMESTAMP"
 )
 
-var ECSJsonFormatter = &logrus.JSONFormatter{
-	FieldMap: logrus.FieldMap{
-		logrus.FieldKeyTime:  "@timestamp",
-		logrus.FieldKeyLevel: "log.level",
-		logrus.FieldKeyMsg:   "message",
-	},
-}
+const (
+	logModeFlag     = "log-mode"
+	logModeViperKey = "log.timestamp"
+	logModeDefault  = "production"
+	logModeEnv      = "LOG_MODE"
+)
 
 func LoggerFlags(f *pflag.FlagSet) {
 	level(f)
 	format(f)
 	timestamp(f)
+	mode(f)
 }
 
 // Level register flag for Level
 func level(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Log level (one of %q).
-Environment variable: %q`, []string{"panic", "fatal", "error", "warn", "info", "debug", "trace"}, levelEnv)
+Environment variable: %q`, []string{"panic", "error", "warn", "info", "debug"}, levelEnv)
 	f.String(levelFlag, levelDefault, desc)
 	_ = viper.BindPFlag(LevelViperKey, f.Lookup(levelFlag))
 }
@@ -76,9 +78,17 @@ Environment variable: %q`, timestampEnv)
 	_ = viper.BindPFlag(TimestampViperKey, f.Lookup(timestampFlag))
 }
 
+func mode(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Log mode (one of %q).
+Environment variable: %q`, []log.LoggerMode{log.DevelopmentMode, log.ProductionMode}, logModeEnv)
+	f.String(logModeFlag, logModeDefault, desc)
+	_ = viper.BindPFlag(logModeViperKey, f.Lookup(logModeFlag))
+}
+
 func newLoggerConfig(vipr *viper.Viper) *log.Config {
-	return &log.Config{
-		Level:     log.LoggerLevel(vipr.GetString(LevelViperKey)),
-		Timestamp: vipr.GetBool(TimestampViperKey),
-	}
+	return log.NewConfig(
+		log.LoggerLevel(vipr.GetString(LevelViperKey)),
+		vipr.GetBool(TimestampViperKey),
+		log.LoggerMode(vipr.GetString(logModeViperKey)),
+	)
 }

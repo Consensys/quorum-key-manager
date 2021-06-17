@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
@@ -17,11 +18,11 @@ const (
 // SecretStore is an implementation of secret store relying on AWS secretsmanager
 type SecretStore struct {
 	client aws.SecretsManagerClient
-	logger *log.Logger
+	logger log.Logger
 }
 
 // New creates an AWS secret store
-func New(client aws.SecretsManagerClient, logger *log.Logger) *SecretStore {
+func New(client aws.SecretsManagerClient, logger log.Logger) *SecretStore {
 	return &SecretStore{
 		client: client,
 		logger: logger,
@@ -34,7 +35,8 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 
 // Set Set a secret and tag it when tags exist
 func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("creating secret")
 
 	_, err := s.client.CreateSecret(ctx, id, value)
 
@@ -74,7 +76,7 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 
 // Get Gets a secret and its description
 func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
 
 	getSecretOutput, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
@@ -88,7 +90,7 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 		return nil, err
 	}
 
-	logger.Info("secret was retrieved successfully")
+	logger.Debug("secret retrieved successfully")
 	return formatAwsSecret(id, *getSecretOutput.SecretString, tags, metadata), nil
 }
 
@@ -110,6 +112,8 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 		nextToken = *retToken
 
 	}
+
+	s.logger.Debug("secrets listed successfully")
 	return secrets, nil
 }
 
@@ -138,7 +142,8 @@ func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate ti
 
 // Delete Deletes a secret
 func (s *SecretStore) Delete(ctx context.Context, id string) error {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("deleting secret")
 
 	_, err := s.client.DeleteSecret(ctx, id, false)
 	if err != nil {
@@ -146,7 +151,7 @@ func (s *SecretStore) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	logger.Info("secret was deleted successfully")
+	logger.Info("secret deleted successfully")
 	return nil
 }
 
@@ -162,7 +167,7 @@ func (s *SecretStore) ListDeleted(ctx context.Context) ([]string, error) {
 
 // Undelete Restores a previously deleted secret
 func (s *SecretStore) Undelete(ctx context.Context, id string) error {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
 
 	_, err := s.client.RestoreSecret(ctx, id)
 	if err != nil {
@@ -176,14 +181,15 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 
 // Destroy Deletes a secret permanently (force deletion, secret will be unrecoverable)
 func (s *SecretStore) Destroy(ctx context.Context, id string) error {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("destroying key")
 
 	_, err := s.client.DeleteSecret(ctx, id, true)
 	if err != nil {
-		logger.WithError(err).Error("failed to destroy secret")
+		logger.Error("failed to permanently delete secret")
 		return err
 	}
 
-	logger.Info("secret has been destroyed successfully")
+	logger.Info("secret permanently deleted")
 	return nil
 }

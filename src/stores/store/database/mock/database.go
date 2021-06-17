@@ -35,7 +35,7 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 	return m.recorder
 }
 
-// ETH1Accounts mocks base method
+// ETH1Accounts mock base method
 func (m *MockDatabase) ETH1Accounts() database.ETH1Accounts {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ETH1Accounts")
@@ -72,7 +72,7 @@ func (m *MockETH1Accounts) EXPECT() *MockETH1AccountsMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method
+// Get mock base method
 func (m *MockETH1Accounts) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, addr)
@@ -87,7 +87,7 @@ func (mr *MockETH1AccountsMockRecorder) Get(ctx, addr interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockETH1Accounts)(nil).Get), ctx, addr)
 }
 
-// GetDeleted mocks base method
+// GetDeleted mock base method
 func (m *MockETH1Accounts) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeleted", ctx, addr)
@@ -102,7 +102,7 @@ func (mr *MockETH1AccountsMockRecorder) GetDeleted(ctx, addr interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeleted", reflect.TypeOf((*MockETH1Accounts)(nil).GetDeleted), ctx, addr)
 }
 
-// GetAll mocks base method
+// GetAll mock base method
 func (m *MockETH1Accounts) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx)
@@ -117,7 +117,7 @@ func (mr *MockETH1AccountsMockRecorder) GetAll(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockETH1Accounts)(nil).GetAll), ctx)
 }
 
-// GetAllDeleted mocks base method
+// GetAllDeleted mock base method
 func (m *MockETH1Accounts) GetAllDeleted(ctx context.Context) ([]*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllDeleted", ctx)
@@ -132,7 +132,7 @@ func (mr *MockETH1AccountsMockRecorder) GetAllDeleted(ctx interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDeleted", reflect.TypeOf((*MockETH1Accounts)(nil).GetAllDeleted), ctx)
 }
 
-// Add mocks base method
+// Add mock base method
 func (m *MockETH1Accounts) Add(ctx context.Context, account *entities.ETH1Account) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", ctx, account)
@@ -146,7 +146,7 @@ func (mr *MockETH1AccountsMockRecorder) Add(ctx, account interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockETH1Accounts)(nil).Add), ctx, account)
 }
 
-// AddDeleted mocks base method
+// AddDeleted mock base method
 func (m *MockETH1Accounts) AddDeleted(ctx context.Context, account *entities.ETH1Account) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeleted", ctx, account)
@@ -160,7 +160,7 @@ func (mr *MockETH1AccountsMockRecorder) AddDeleted(ctx, account interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddDeleted", reflect.TypeOf((*MockETH1Accounts)(nil).AddDeleted), ctx, account)
 }
 
-// Remove mocks base method
+// Remove mock base method
 func (m *MockETH1Accounts) Remove(ctx context.Context, addr string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove", ctx, addr)
@@ -174,7 +174,7 @@ func (mr *MockETH1AccountsMockRecorder) Remove(ctx, addr interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockETH1Accounts)(nil).Remove), ctx, addr)
 }
 
-// RemoveDeleted mocks base method
+// RemoveDeleted mock base method
 func (m *MockETH1Accounts) RemoveDeleted(ctx context.Context, addr string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDeleted", ctx, addr)

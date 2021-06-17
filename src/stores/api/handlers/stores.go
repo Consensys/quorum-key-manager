@@ -15,7 +15,7 @@ type StoresHandler struct {
 	eth1    *Eth1Handler
 }
 
-// New creates a http.Handler to be served on /stores
+// NewStoresHandler creates a http.Handler to be served on /stores
 func NewStoresHandler(s storesmanager.Manager) *StoresHandler {
 	return &StoresHandler{
 		stores:  s,
@@ -28,9 +28,6 @@ func NewStoresHandler(s storesmanager.Manager) *StoresHandler {
 func (h *StoresHandler) Register(router *mux.Router) {
 	// Create subrouter for /stores
 	storesSubrouter := router.PathPrefix("/stores").Subrouter()
-
-	// Register /stores/test route
-	storesSubrouter.Methods(http.MethodGet).Path("/test").HandlerFunc(h.testRoute)
 
 	// Create subrouter for /stores/{storeName}
 	storeSubrouter := storesSubrouter.PathPrefix("/{storeName}").Subrouter()
@@ -47,10 +44,6 @@ func (h *StoresHandler) Register(router *mux.Router) {
 	// Register eth1 handler on /stores/{storeName}/eth1
 	eth1Subrouter := storeSubrouter.PathPrefix("/eth1").Subrouter()
 	h.eth1.Register(eth1Subrouter)
-}
-
-func (h *StoresHandler) testRoute(rw http.ResponseWriter, _ *http.Request) {
-	_, _ = rw.Write([]byte("OK"))
 }
 
 func StoreSelector(h http.Handler) http.Handler {

@@ -36,7 +36,7 @@ func (m *MockSession) EXPECT() *MockSessionMockRecorder {
 	return m.recorder
 }
 
-// ClientPrivTxManager mocks base method.
+// ClientPrivTxManager mock base method.
 func (m *MockSession) ClientPrivTxManager() tessera.Client {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClientPrivTxManager")
@@ -50,7 +50,7 @@ func (mr *MockSessionMockRecorder) ClientPrivTxManager() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientPrivTxManager", reflect.TypeOf((*MockSession)(nil).ClientPrivTxManager))
 }
 
-// ClientRPC mocks base method.
+// ClientRPC mock base method.
 func (m *MockSession) ClientRPC() jsonrpc.Client {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClientRPC")
@@ -64,7 +64,7 @@ func (mr *MockSessionMockRecorder) ClientRPC() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientRPC", reflect.TypeOf((*MockSession)(nil).ClientRPC))
 }
 
-// EthCaller mocks base method.
+// EthCaller mock base method.
 func (m *MockSession) EthCaller() ethereum.Caller {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EthCaller")

@@ -8,6 +8,8 @@ import (
 )
 
 func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, error) {
+	i.logger.Debug("listing ETH accounts")
+
 	storeAccounts, err := i.stores.ListAllAccounts(ctx)
 	if err != nil {
 		return nil, err
@@ -18,6 +20,7 @@ func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, err
 		addresses = append(addresses, storeAccount.Address)
 	}
 
+	i.logger.Debug("ETH accounts fetched successfully")
 	return addresses, nil
 }
 

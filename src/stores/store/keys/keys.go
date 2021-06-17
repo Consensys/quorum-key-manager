@@ -59,11 +59,12 @@ type Store interface {
 	Decrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 }
 
-func VerifySignature(logger *log.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	logger = logger.
-		WithField("pub_key", base64.URLEncoding.EncodeToString(pubKey)).
-		WithField("curve", algo.EllipticCurve).
-		WithField("signing_algorithm", algo.Type)
+func VerifySignature(logger log.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	logger = logger.With(
+		"pub_key", base64.URLEncoding.EncodeToString(pubKey),
+		"curve", algo.EllipticCurve,
+		"signing_algorithm", algo.Type,
+	)
 
 	var err error
 	var verified bool
@@ -85,7 +86,7 @@ func VerifySignature(logger *log.Logger, pubKey, data, sig []byte, algo *entitie
 
 	if !verified {
 		errMessage := "signature does not belong to the specified public key"
-		logger.WithField("pub_key", pubKey).Error(errMessage)
+		logger.Error(errMessage, "pub_key", pubKey)
 		return errors.InvalidParameterError(errMessage)
 	}
 

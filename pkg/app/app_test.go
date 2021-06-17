@@ -4,9 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/golang/mock/gomock"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,7 +49,10 @@ type TestConfig struct {
 }
 
 func TestRegisterServiceConfig(t *testing.T) {
-	app := New(&Config{HTTP: &server.Config{}}, log.NewLogger(nil))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := New(&Config{HTTP: &server.Config{}}, testutils.NewMockLogger(ctrl))
 
 	cfg := &TestConfig{name: "test"}
 	err := app.RegisterServiceConfig(cfg)
@@ -71,7 +77,10 @@ func TestRegisterServiceConfig(t *testing.T) {
 }
 
 func TestRegisterService(t *testing.T) {
-	app := New(&Config{HTTP: &server.Config{}}, log.NewLogger(nil))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := New(&Config{HTTP: &server.Config{}}, testutils.NewMockLogger(ctrl))
 
 	srv1 := &ServiceStruct1{name: "test-srv1"}
 	err := app.RegisterService(srv1)
