@@ -4,11 +4,18 @@ package acceptancetests
 
 import (
 	"context"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
 	"os"
 	"testing"
 
+	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
+
+	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
 	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
+
+	awssecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
+
+	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
@@ -81,10 +88,10 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	logger = s.env.logger.WithComponent("Secrets-AWS")
 	awsTestSuite := new(awsSecretTestSuite)
 	awsTestSuite.env = s.env
-	awsTestSuite.store = aws.New(s.env.awsVaultClient, logger)
+	awsTestSuite.store = awssecret.New(s.env.awsVaultClient, logger)
 	suite.Run(s.T(), awsTestSuite)
 }
-/*
+
 func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
