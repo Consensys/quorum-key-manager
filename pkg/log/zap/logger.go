@@ -1,7 +1,6 @@
 package zap
 
 import (
-	"fmt"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"go.uber.org/zap"
 )
@@ -20,13 +19,10 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 	switch cfg.Mode {
 	case log.DevelopmentMode:
 		logger, err = zap.NewDevelopment()
-		fmt.Println("development logger !!")
 	case log.ProductionMode:
 		logger, err = zap.NewProduction()
-		fmt.Println("development logger !!")
 	default:
 		logger, err = zap.NewProduction()
-		fmt.Println("unknown so production logger !!")
 	}
 	if err != nil {
 		return nil, err
