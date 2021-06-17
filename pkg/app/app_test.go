@@ -2,11 +2,12 @@ package app
 
 import (
 	"context"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
+	"github.com/golang/mock/gomock"
 	"testing"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,7 +47,10 @@ type TestConfig struct {
 }
 
 func TestRegisterServiceConfig(t *testing.T) {
-	app := New(&Config{HTTP: &server.Config{}}, log_old.NewLogger(nil))
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+
+	app := New(&Config{HTTP: &server.Config{}}, mock.NewMockLogger(ctrl))
 
 	cfg := &TestConfig{name: "test"}
 	err := app.RegisterServiceConfig(cfg)

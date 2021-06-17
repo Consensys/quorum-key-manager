@@ -3,6 +3,8 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/zap"
 	"io/ioutil"
 	"os"
 	"time"
@@ -10,7 +12,6 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/pkg/app"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	keymanager "github.com/consensysquorum/quorum-key-manager/src"
 	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
@@ -45,7 +46,7 @@ const (
 
 type IntegrationEnvironment struct {
 	ctx               context.Context
-	logger            *log_old.Logger
+	logger            log.Logger
 	hashicorpClient   hashicorp2.VaultClient
 	awsVaultClient    *awsclient.AwsVaultClient
 	akvClient         akv2.Client
@@ -84,9 +85,12 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger := log_old.DefaultLogger().WithContext(ctx)
+	logger, err := zap.NewLogger(log.NewConfig(log.ErrorLevel, true, log.DevelopmentMode))
+	if err != nil {
+		return nil, err
+	}
 
-	hashicorpContainer, err := utils.HashicorpContainer(ctx)
+	hashicorpContainer, err := utils.HashicorpContainer(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +100,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	localstackContainer, err := utils.LocalstackContainer(ctx)
+	localstackContainer, err := utils.LocalstackContainer()
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +118,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	// Docker client
-	dockerClient, err := docker.NewClient(composition)
+	dockerClient, err := docker.NewClient(composition, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize new environment")
 		return nil, err
@@ -161,11 +165,11 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	logger.WithField("path", tmpYml).Info("new temporal manifest created")
+	logger.Info("new temporary manifest created", "path", tmpYml)
 
 	httpConfig := server.NewDefaultConfig()
 	httpConfig.Port = uint32(envHTTPPort)
-	keyManager, err := newKeyManager(&keymanager.Config{
+	keyManager, err := keymanager.New(&keymanager.Config{
 		HTTP:      httpConfig,
 		Manifests: &manifestsmanager.Config{Path: tmpYml},
 	}, logger)
@@ -346,8 +350,4 @@ func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
 	}
 
 	return file.Name(), nil
-}
-
-func newKeyManager(cfg *keymanager.Config, logger *log_old.Logger) (*app.App, error) {
-	return keymanager.New(cfg, logger)
 }

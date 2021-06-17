@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/mocks"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
@@ -34,7 +34,7 @@ func (s *awsSecretStoreTestSuite) SetupTest() {
 
 	s.mockVault = mocks.NewMockSecretsManagerClient(ctrl)
 
-	s.secretStore = New(s.mockVault, log_old.DefaultLogger())
+	s.secretStore = New(s.mockVault, mock.NewMockLogger(ctrl))
 }
 
 func (s *awsSecretStoreTestSuite) TestSet() {

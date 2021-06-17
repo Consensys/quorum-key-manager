@@ -2,9 +2,8 @@ package hashicorp
 
 import (
 	"context"
-
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/client"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/token"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
@@ -19,11 +18,13 @@ type SecretSpecs struct {
 	Namespace  string `json:"namespace"`
 }
 
-func NewSecretStore(specs *SecretSpecs, logger *log_old.Logger) (*hashicorp.Store, error) {
+func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*hashicorp.Store, error) {
 	cfg := client.NewConfig(specs.Address, specs.Namespace)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, errors.HashicorpVaultError(err.Error())
+		errMessage := "failed to instantiate Hashicorp client (secrets)"
+		logger.WithError(err).Error(errMessage, "specs", specs)
+		return nil, errors.ConfigError(errMessage)
 	}
 
 	if specs.Token != "" {

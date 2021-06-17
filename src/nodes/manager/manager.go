@@ -2,13 +2,12 @@ package nodemanager
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"sort"
 	"sync"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/consensysquorum/quorum-key-manager/src/nodes/interceptor"
@@ -73,11 +72,7 @@ func (m *BaseManager) Start(ctx context.Context) error {
 	}()
 
 	// Subscribe to manifest of Kind node
-	sub, err := m.manifests.Subscribe([]manifest.Kind{NodeKind}, m.mnfsts)
-	if err != nil {
-		return err
-	}
-	m.sub = sub
+	m.sub = m.manifests.Subscribe([]manifest.Kind{NodeKind}, m.mnfsts)
 
 	// Start loading manifest
 	go m.loadAll(ctx)
@@ -100,7 +95,7 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 		wg.Add(1)
 		go func(name string, n *nodeBundle) {
 			err := n.stop(ctx)
-			log_old.FromContext(ctx).WithError(err).WithField("name", name).Error("error closing node")
+			m.logger.WithError(err).Error("error closing node", "name", name)
 			wg.Done()
 		}(name, n)
 	}
@@ -137,7 +132,7 @@ func (m *BaseManager) Node(_ context.Context, name string) (node.Node, error) {
 		return nodeBundle.node, nodeBundle.err
 	}
 
-	return nil, fmt.Errorf("node not found")
+	return nil, errors.NotFoundError("node not found")
 }
 
 func (m *BaseManager) List(_ context.Context) ([]string, error) {
@@ -158,14 +153,12 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
-	logger := log_old.FromContext(ctx).
-		WithField("kind", mnf.Kind).
-		WithField("name", mnf.Name)
+	logger := m.logger.With("kind", mnf.Kind, "name", mnf.Name)
 
 	if _, ok := m.nodes[mnf.Name]; ok {
-		err := fmt.Errorf("node %q already exist", mnf.Name)
-		logger.WithError(err).Error("error loading node manifest")
-		return err
+		errMessage := "node already exists"
+		logger.Error(errMessage)
+		return errors.AlreadyExistsError(errMessage)
 	}
 
 	switch mnf.Kind {
@@ -176,40 +169,36 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 
 		cfg := new(proxynode.Config)
 		if err := mnf.UnmarshalSpecs(cfg); err != nil {
-			err = fmt.Errorf("invalid node specs: %v", err)
-			logger.WithError(err).Error("error loading node manifest")
+			logger.WithError(err).Error("invalid node specs")
 			n.err = err
 			return err
 		}
 		cfg.SetDefault()
 
-		b, _ := json.Marshal(cfg)
-		logger.Infof("creating node with config %v", string(b))
-
 		// Create proxy node
-		prxNode, err := proxynode.New(cfg)
+		prxNode, err := proxynode.New(cfg, m.logger)
 		if err != nil {
-			logger.WithError(err).Errorf("error creating node")
+			logger.WithError(err).Error("failed to create node")
 			n.err = err
 			return err
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler = interceptor.New(m.stores)
+		prxNode.Handler = interceptor.New(m.stores, m.logger)
 
 		// Start node
 		err = prxNode.Start(ctx)
 		if err != nil {
-			logger.WithError(err).Errorf("error starting node")
+			logger.WithError(err).Error("error starting node")
 			n.err = err
 			return err
 		}
 		n.node = prxNode
 		n.stop = prxNode.Stop
 	default:
-		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
-		logger.WithError(err).Errorf("error starting node")
-		return err
+		errMessage := "invalid manifest kind"
+		logger.Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
 	}
 
 	return nil
@@ -220,7 +209,10 @@ func (m *BaseManager) CheckLiveness() error {
 	if m.isLive {
 		return nil
 	}
-	return fmt.Errorf("service %s is not live", m.ID())
+
+	errMessage := fmt.Sprintf("service %s is not live", m.ID())
+	m.logger.With("id", m.ID()).Error(errMessage)
+	return errors.HealthcheckError(errMessage)
 }
 
 func (m *BaseManager) CheckReadiness() error {

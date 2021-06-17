@@ -34,7 +34,7 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// Node mocks base method
+// Node mock base method
 func (m *MockManager) Node(ctx context.Context, name string) (node.Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Node", ctx, name)
@@ -49,7 +49,7 @@ func (mr *MockManagerMockRecorder) Node(ctx, name interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Node", reflect.TypeOf((*MockManager)(nil).Node), ctx, name)
 }
 
-// List mocks base method
+// List mock base method
 func (m *MockManager) List(ctx context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", ctx)

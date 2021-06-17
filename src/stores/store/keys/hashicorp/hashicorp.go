@@ -3,10 +3,10 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"path"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
@@ -30,12 +30,12 @@ const (
 type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
-	logger     *log_old.Logger
+	logger     log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(client hashicorp.VaultClient, mountPoint string, logger *log_old.Logger) *Store {
+func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
@@ -48,7 +48,9 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("creating key")
+
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -60,12 +62,13 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 		return nil, err
 	}
 
-	logger.Info("key was created successfully")
+	logger.Info("key created successfully")
 	return parseResponse(res)
 }
 
 func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("importing key")
 
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
@@ -79,12 +82,12 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 		return nil, err
 	}
 
-	logger.Info("key was imported successfully")
+	logger.Info("key imported successfully")
 	return parseResponse(res)
 }
 
 func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
 
 	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
@@ -93,10 +96,12 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	}
 
 	if res.Data["error"] != nil {
-		return nil, errors.NotFoundError("could not find key pair")
+		errMessage := "could not find key pair"
+		logger.Error(errMessage)
+		return nil, errors.NotFoundError(errMessage)
 	}
 
-	logger.Debug("key was retrieved successfully")
+	logger.Debug("key retrieved successfully")
 	return parseResponse(res)
 }
 
@@ -121,12 +126,13 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 		ids = append(ids, id.(string))
 	}
 
-	s.logger.Debug("keys were listed successfully")
+	s.logger.Debug("keys listed successfully")
 	return ids, nil
 }
 
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("updating key")
 
 	res, err := s.client.Write(s.pathKeys(id), map[string]interface{}{
 		tagsLabel: attr.Tags,
@@ -136,7 +142,7 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	logger.Info("key was updated successfully")
+	logger.Info("key updated successfully")
 	return parseResponse(res)
 }
 
@@ -157,7 +163,8 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("destroying key")
 
 	err := s.client.Delete(path.Join(s.pathKeys(id), "destroy"))
 	if err != nil {
@@ -165,18 +172,19 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 		return err
 	}
 
-	logger.Info("key was permanently deleted")
+	logger.Info("key permanently deleted")
 	return nil
 }
 
 func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("signing payload")
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
 		dataLabel: base64.URLEncoding.EncodeToString(data),
 	})
 	if err != nil {
-		logger.WithError(err).Error("failed to sign data")
+		logger.WithError(err).Error("failed to sign payload")
 		return nil, err
 	}
 
@@ -187,7 +195,7 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 		return nil, errors.HashicorpVaultError(errMessage)
 	}
 
-	logger.Debug("data signed successfully")
+	logger.Debug("payload signed successfully")
 	return signature, nil
 }
 

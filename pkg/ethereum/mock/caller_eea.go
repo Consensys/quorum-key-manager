@@ -35,7 +35,7 @@ func (m *MockEEACaller) EXPECT() *MockEEACallerMockRecorder {
 	return m.recorder
 }
 
-// SendRawTransaction mocks base method.
+// SendRawTransaction mock base method.
 func (m *MockEEACaller) SendRawTransaction(arg0 context.Context, arg1 []byte) (common.Hash, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendRawTransaction", arg0, arg1)

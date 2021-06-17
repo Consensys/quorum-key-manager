@@ -33,7 +33,7 @@ func (vault *Vault) GenerateContainerConfig(_ context.Context, configuration int
 			"8200/tcp": struct{}{},
 		},
 		Tty: true,
-		Cmd: []string{"server", "-dev", "-dev-plugin-dir=/vault/plugins", "-log-old-level=trace"},
+		Cmd: []string{"server", "-dev", "-dev-plugin-dir=/vault/plugins", "-log-level=trace"},
 	}
 
 	hostConfig := &dockercontainer.HostConfig{

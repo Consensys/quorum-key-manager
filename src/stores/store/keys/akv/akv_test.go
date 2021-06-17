@@ -5,13 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"testing"
 	"time"
 
 	akv "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv/mocks"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
@@ -51,7 +51,7 @@ func (s *akvKeyStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mockVault = mocks.NewMockKeysClient(ctrl)
-	s.keyStore = New(s.mockVault, log_old.DefaultLogger())
+	s.keyStore = New(s.mockVault, mock.NewMockLogger(ctrl))
 }
 
 func (s *akvKeyStoreTestSuite) TestCreate() {

@@ -19,9 +19,7 @@ type Config struct {
 
 func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	// Create app
-	a := app.New(&app.Config{
-		HTTP: cfg.HTTP,
-	}, logger.WithComponent("app"))
+	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
 	// Register Service Configuration
 	err := a.RegisterServiceConfig(cfg.Manifests)

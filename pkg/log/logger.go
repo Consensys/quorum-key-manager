@@ -1,6 +1,6 @@
 package log
 
-//go:generate mockgen -source=logger.go -destination=mocks/logger.go -package=mocks
+//go:generate mockgen -source=logger.go -destination=mock/logger.go -package=mocks
 
 type Logger interface {
 	WithComponent(component string) Logger

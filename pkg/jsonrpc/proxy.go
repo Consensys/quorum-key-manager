@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/proxy"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 )
 
 // HandleProxyRoundTripError allows to transform a ProxiedRoundTrip Error
@@ -14,14 +13,5 @@ func HandleProxyRoundTripError(rw http.ResponseWriter, req *http.Request, err er
 		proxy.HandleRoundTripError(rw, req, err)
 	}
 
-	statusCode := proxy.StatusCodeFromRoundTripError(err)
-	statusText := proxy.StatusText(statusCode)
-
-	logger := log_old.FromContext(req.Context())
-	logger.Debugf("'%d %s' caused by: %v", statusCode, statusText, err)
-
-	werr := WriteError(rpcRw, DownstreamError(err))
-	if werr != nil {
-		logger.Debugf("Error while writing error message", werr)
-	}
+	_ = WriteError(rpcRw, DownstreamError(err))
 }

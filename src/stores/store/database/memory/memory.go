@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"sync"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
@@ -9,19 +10,18 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 )
 
 type ETH1Accounts struct {
 	addrToAccounts        map[string]*entities.ETH1Account
 	deletedAddrToAccounts map[string]*entities.ETH1Account
 	mux                   sync.RWMutex
-	logger                *log_old.Logger
+	logger                log.Logger
 }
 
 var _ database.ETH1Accounts = &ETH1Accounts{}
 
-func New(logger *log_old.Logger) *ETH1Accounts {
+func New(logger log.Logger) *ETH1Accounts {
 	return &ETH1Accounts{
 		mux:                   sync.RWMutex{},
 		addrToAccounts:        make(map[string]*entities.ETH1Account),
@@ -36,7 +36,9 @@ func (d *ETH1Accounts) Get(_ context.Context, addr string) (*entities.ETH1Accoun
 
 	account, ok := d.addrToAccounts[addr]
 	if !ok {
-		return nil, errors.NotFoundError("account %s was not found", addr)
+		errMessage := "account was not found"
+		d.logger.Error(errMessage, "account", addr)
+		return nil, errors.NotFoundError(errMessage)
 	}
 
 	return account, nil
@@ -48,7 +50,9 @@ func (d *ETH1Accounts) GetDeleted(_ context.Context, addr string) (*entities.ETH
 
 	id, ok := d.deletedAddrToAccounts[addr]
 	if !ok {
-		return nil, errors.NotFoundError("deleted account %s was not found", addr)
+		errMessage := "deleted account was not found"
+		d.logger.Error(errMessage, "account", addr)
+		return nil, errors.NotFoundError(errMessage)
 	}
 
 	return id, nil
@@ -86,13 +90,13 @@ func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) err
 
 	if _, ok := d.addrToAccounts[account.Address.Hex()]; ok {
 		errMessage := "account already exists"
-		d.logger.WithField("account", account.Address).Error(errMessage)
+		d.logger.Error(errMessage, "account", account.Address)
 		return errors.AlreadyExistsError(errMessage)
 	}
 
 	if _, ok := d.deletedAddrToAccounts[account.Address.Hex()]; ok {
 		errMessage := "account is currently deleted. Please restore it instead"
-		d.logger.WithField("account", account.Address).Error(errMessage)
+		d.logger.Error(errMessage, "account", account.Address)
 		return errors.AlreadyExistsError(errMessage)
 	}
 

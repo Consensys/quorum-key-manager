@@ -5,10 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"testing"
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
@@ -43,8 +43,7 @@ func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 	s.mountPoint = "hashicorp-plugin"
 	s.mockVault = mocks.NewMockVaultClient(ctrl)
 
-	logger := log_old.DefaultLogger()
-	s.keyStore = New(s.mockVault, s.mountPoint, logger)
+	s.keyStore = New(s.mockVault, s.mountPoint, mock.NewMockLogger(ctrl))
 }
 
 func (s *hashicorpKeyStoreTestSuite) TestCreate() {

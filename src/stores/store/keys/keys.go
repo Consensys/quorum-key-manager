@@ -3,10 +3,9 @@ package keys
 import (
 	"context"
 	"encoding/base64"
-
 	"github.com/consensysquorum/quorum-key-manager/pkg/crypto"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -59,11 +58,12 @@ type Store interface {
 	Decrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 }
 
-func VerifySignature(logger *log_old.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	logger = logger.
-		WithField("pub_key", base64.URLEncoding.EncodeToString(pubKey)).
-		WithField("curve", algo.EllipticCurve).
-		WithField("signing_algorithm", algo.Type)
+func VerifySignature(logger log.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	logger = logger.With(
+		"pub_key", base64.URLEncoding.EncodeToString(pubKey),
+		"curve", algo.EllipticCurve,
+		"signing_algorithm", algo.Type,
+	)
 
 	var err error
 	var verified bool
@@ -85,7 +85,7 @@ func VerifySignature(logger *log_old.Logger, pubKey, data, sig []byte, algo *ent
 
 	if !verified {
 		errMessage := "signature does not belong to the specified public key"
-		logger.WithField("pub_key", pubKey).Error(errMessage)
+		logger.Error(errMessage, "pub_key", pubKey)
 		return errors.InvalidParameterError(errMessage)
 	}
 

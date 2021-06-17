@@ -3,6 +3,7 @@ package akv
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"testing"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log-old"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv/mocks"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
@@ -38,7 +38,7 @@ func (s *akvSecretStoreTestSuite) SetupTest() {
 	s.mountPoint = "secret"
 	s.mockVault = mocks.NewMockClient(ctrl)
 
-	s.secretStore = New(s.mockVault, log_old.DefaultLogger())
+	s.secretStore = New(s.mockVault, mock.NewMockLogger(ctrl))
 }
 
 func (s *akvSecretStoreTestSuite) TestSet() {

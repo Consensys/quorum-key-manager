@@ -3,6 +3,7 @@ package proxynode
 import (
 	"context"
 	"encoding/json"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"net/http"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
@@ -32,7 +33,7 @@ type Node struct {
 }
 
 // New creates a Node
-func New(cfg *Config) (*Node, error) {
+func New(cfg *Config, logger log.Logger) (*Node, error) {
 	n := new(Node)
 	var err error
 	n.rpc, err = newhttpDownstream(cfg.RPC)
@@ -53,7 +54,7 @@ func New(cfg *Config) (*Node, error) {
 	n.httpHandler = router
 
 	// Set websocket proxy
-	websocketProxy := websocket.NewProxy(cfg.RPC.Proxy.WebSocket)
+	websocketProxy := websocket.NewProxy(cfg.RPC.Proxy.WebSocket, logger)
 	websocketProxy.ReqPreparer = n.rpc.reqPreparer
 	websocketProxy.RespModifier = n.rpc.respModifier
 	websocketProxy.Interceptor = n.interceptWS

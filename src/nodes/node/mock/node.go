@@ -34,7 +34,7 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 	return m.recorder
 }
 
-// ServeHTTP mocks base method.
+// ServeHTTP mock base method.
 func (m *MockNode) ServeHTTP(arg0 http.ResponseWriter, arg1 *http.Request) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ServeHTTP", arg0, arg1)

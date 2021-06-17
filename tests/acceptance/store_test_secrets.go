@@ -24,7 +24,7 @@ type secretsTestSuite struct {
 func (s *secretsTestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	s.env.logger.WithField("secrets", s.secretIDs).Info("Deleting the following secrets")
+	s.env.logger.Info("Deleting the following secrets", "secrets", s.secretIDs)
 	for _, id := range s.secretIDs {
 		err := s.store.Delete(ctx, id)
 		if err != nil && errors.IsNotSupportedError(err) {
@@ -41,15 +41,14 @@ func (s *secretsTestSuite) TearDownSuite() {
 			}
 			if maxTries <= 0 {
 				if err != nil {
-					s.env.logger.WithField("secretID", id).Info("failed to destroy secret")
+					s.env.logger.Info("failed to destroy secret", "secretID", id)
 				}
 				break
 			}
 
 			maxTries -= 1
 			waitTime := time.Second * time.Duration(MAX_RETRIES-maxTries)
-			s.env.logger.WithField("keyID", id).WithField("waitFor", waitTime.Seconds()).
-				Debug("waiting for deletion to complete")
+			s.env.logger.Debug("waiting for deletion to complete", "keyID", id, "waitFor", waitTime.Seconds())
 			time.Sleep(waitTime)
 		}
 	}

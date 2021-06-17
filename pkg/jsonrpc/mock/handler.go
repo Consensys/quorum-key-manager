@@ -34,7 +34,7 @@ func (m *MockHandler) EXPECT() *MockHandlerMockRecorder {
 	return m.recorder
 }
 
-// ServeRPC mocks base method.
+// ServeRPC mock base method.
 func (m *MockHandler) ServeRPC(arg0 jsonrpc.ResponseWriter, arg1 *jsonrpc.RequestMsg) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ServeRPC", arg0, arg1)
