@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	mock3 "github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
+	testutils2 "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
 
 	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -52,7 +52,7 @@ func (s *eth1StoreTestSuite) SetupTest() {
 
 	s.mockKeyStore = mock.NewMockStore(ctrl)
 	s.mockEth1AccountsDB = mock2.NewMockETH1Accounts(ctrl)
-	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, mock3.NewMockLogger(ctrl))
+	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *eth1StoreTestSuite) TestCreate() {

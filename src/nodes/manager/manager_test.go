@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
 	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
@@ -76,7 +77,7 @@ func TestManager(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mngr := New(nil, nil, mock.NewMockLogger(ctrl))
+	mngr := New(nil, nil, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)
 	require.NoError(t, err, "Load must not error")

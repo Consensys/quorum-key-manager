@@ -9,8 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
 	"github.com/golang/mock/gomock"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
@@ -134,7 +135,7 @@ func TestProxy(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL, mock.NewMockLogger(ctrl))
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -190,7 +191,7 @@ func TestCloseClientNormal(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL, mock.NewMockLogger(ctrl))
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -218,7 +219,7 @@ func TestCloseClient(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL, mock.NewMockLogger(ctrl))
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -244,7 +245,7 @@ func TestProxyCloseServer(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL, mock.NewMockLogger(ctrl))
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -282,7 +283,7 @@ func TestProxyStop(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, prx := createProxyServer(backSrv.URL, mock.NewMockLogger(ctrl))
+	proxySrv, prx := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 
 	proxyAddr := proxySrv.Listener.Addr().String()
 	clientConn, _, err := dialer.Dial(fmt.Sprintf("ws://%v", proxyAddr), nil)

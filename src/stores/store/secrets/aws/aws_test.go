@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
+	testutils2 "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
@@ -35,7 +35,7 @@ func (s *awsSecretStoreTestSuite) SetupTest() {
 
 	s.mockVault = mocks.NewMockSecretsManagerClient(ctrl)
 
-	s.secretStore = New(s.mockVault, mock.NewMockLogger(ctrl))
+	s.secretStore = New(s.mockVault, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *awsSecretStoreTestSuite) TestSet() {
