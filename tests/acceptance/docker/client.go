@@ -52,7 +52,7 @@ func NewClient(composition *config.Composition, logger log.Logger) (*Client, err
 	return &Client{
 		cli:         cli,
 		composition: composition,
-		factory:     compose.New(),
+		factory:     compose.New(logger),
 		containers:  make(map[string]dockercontainer.ContainerCreateCreatedBody),
 		networks:    make(map[string]string),
 		logger:      logger,

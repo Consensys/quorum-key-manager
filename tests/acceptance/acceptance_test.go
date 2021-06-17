@@ -7,10 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
-	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
-	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
-	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
 	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
@@ -88,7 +84,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	awsTestSuite.store = aws.New(s.env.awsVaultClient, logger)
 	suite.Run(s.T(), awsTestSuite)
 }
-
+/*
 func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")

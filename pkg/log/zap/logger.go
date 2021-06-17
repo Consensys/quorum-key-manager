@@ -1,6 +1,7 @@
 package zap
 
 import (
+	"fmt"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"go.uber.org/zap"
 )
@@ -19,10 +20,13 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 	switch cfg.Mode {
 	case log.DevelopmentMode:
 		logger, err = zap.NewDevelopment()
+		fmt.Println("development logger !!")
 	case log.ProductionMode:
 		logger, err = zap.NewProduction()
+		fmt.Println("development logger !!")
 	default:
 		logger, err = zap.NewProduction()
+		fmt.Println("unknown so production logger !!")
 	}
 	if err != nil {
 		return nil, err
@@ -32,32 +36,32 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 }
 
 func (l *Logger) Debug(msg string, keysAndValues ...interface{}) log.Logger {
-	l.logger.Debugw(msg, keysAndValues)
+	l.logger.Debugw(msg, keysAndValues...)
 	return l
 }
 
 func (l *Logger) Info(msg string, keysAndValues ...interface{}) log.Logger {
-	l.logger.Infow(msg, keysAndValues)
+	l.logger.Infow(msg, keysAndValues...)
 	return l
 }
 
 func (l *Logger) Warn(msg string, keysAndValues ...interface{}) log.Logger {
-	l.logger.Warnw(msg, keysAndValues)
+	l.logger.Warnw(msg, keysAndValues...)
 	return l
 }
 
 func (l *Logger) Error(msg string, keysAndValues ...interface{}) log.Logger {
-	l.logger.Errorw(msg, keysAndValues)
+	l.logger.Errorw(msg, keysAndValues...)
 	return l
 }
 
 func (l *Logger) Panic(msg string, keysAndValues ...interface{}) log.Logger {
-	l.logger.Panicw(msg, keysAndValues)
+	l.logger.Panicw(msg, keysAndValues...)
 	return l
 }
 
 func (l *Logger) Fatal(msg string, keysAndValues ...interface{}) log.Logger {
-	l.logger.Fatalw(msg, keysAndValues)
+	l.logger.Fatalw(msg, keysAndValues...)
 	return l
 }
 
@@ -67,7 +71,7 @@ func (l Logger) WithError(err error) log.Logger {
 }
 
 func (l Logger) With(args ...interface{}) log.Logger {
-	l.logger = l.logger.With(args)
+	l.logger = l.logger.With(args...)
 	return &l
 }
 

@@ -85,7 +85,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger, err := zap.NewLogger(log.NewConfig(log.ErrorLevel, true, log.DevelopmentMode))
+	logger, err := zap.NewLogger(log.NewConfig(log.ErrorLevel, true, log.ProductionMode))
 	if err != nil {
 		return nil, err
 	}

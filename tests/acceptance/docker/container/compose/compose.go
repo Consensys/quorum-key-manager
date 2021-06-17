@@ -3,6 +3,7 @@ package compose
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	goreflect "reflect"
 	"time"
 
@@ -20,13 +21,13 @@ type Compose struct {
 	reflect *reflect.Reflect
 }
 
-func New() *Compose {
+func New(logger log.Logger) *Compose {
 	factory := &Compose{
 		reflect: reflect.New(),
 	}
 
-	factory.reflect.AddGenerator(goreflect.TypeOf(&hashConfig.Config{}), &hashVault.Vault{})
-	factory.reflect.AddGenerator(goreflect.TypeOf(&lstackConfig.Config{}), &lstackVault.Vault{})
+	factory.reflect.AddGenerator(goreflect.TypeOf(&hashConfig.Config{}), hashVault.New(logger))
+	factory.reflect.AddGenerator(goreflect.TypeOf(&lstackConfig.Config{}), lstackVault.New(logger))
 
 	return factory
 }
