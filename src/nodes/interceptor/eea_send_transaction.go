@@ -56,7 +56,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 		gasPrice, err2 := sess.EthCaller().Eth().GasPrice(ctx)
 		if err2 != nil {
 			i.logger.WithError(err2).Error("failed to fetch gas price (EEA transaction)")
-			return nil, errors.BlockchainNodeError(err.Error())
+			return nil, errors.BlockchainNodeError(err2.Error())
 		}
 
 		msg.GasPrice = gasPrice
