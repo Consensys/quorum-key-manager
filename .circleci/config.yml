@@ -16,7 +16,7 @@ commands:
           name: Docker login
           command: |
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
-  docker_build:
+  docker_build_dev:
     description: "Build Quorum Key Manager"
     steps:
       - run:
@@ -32,7 +32,25 @@ commands:
             --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
             --label org.opencontainers.image.licenses="BUSL-1.1"
             -q
+            --build-arg VERSION=debug
             -t ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} .
+  docker_build_prod:
+    description: "Build Quorum Key Manager"
+    steps:
+      - run:
+          name: Build Quorum Key Manager
+          command: >-
+            DOCKER_BUILDKIT=1 docker build
+            --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
+            --label org.opencontainers.image.url="https://consensys.net"
+            --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}"
+            --label org.opencontainers.image.version="${CIRCLE_TAG}"
+            --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}"
+            --label org.opencontainers.image.vendor="ConsenSys Software Inc."
+            --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
+            --label org.opencontainers.image.licenses="BUSL-1.1"
+            -q
+            -t ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG} .
 
 jobs:
   lint:
@@ -100,7 +118,7 @@ jobs:
             sleep 10
             make run-e2e
 
-  push-image:
+  push-dev-image:
     docker:
       - image: cimg/base:2020.01
     resource_class: large
@@ -110,13 +128,13 @@ jobs:
           version: 19.03.13
           docker_layer_caching: true
       - prepare_docker
-      - docker_build
+      - docker_build_dev
       - run:
           name: Deploy image in  repository
           command: |
             docker push ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
-            docker tag ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
-            docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
+            docker tag ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:develop
+            docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:develop
 
   release-tag:
     docker:
@@ -127,12 +145,13 @@ jobs:
           version: 19.03.13
           docker_layer_caching: true
       - prepare_docker
+      - docker_build_prod
       - run:
           name: Release tagged version
           command: |
-            docker pull ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
-            docker tag ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG}
             docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG}
+            docker tag ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
+            docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
 
 workflows:
   version: 2
@@ -168,7 +187,7 @@ workflows:
               only: /^v.*/
             branches:
               only: master
-      - push-image:
+      - push-dev-image:
           filters:
             branches:
               only: master
@@ -179,7 +198,7 @@ workflows:
       - wait-for-approval:
           type: approval
           requires:
-            - push-image
+            - push-dev-image
           filters:
             tags:
               only: /^v.*/
