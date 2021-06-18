@@ -16,13 +16,20 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 	var logger *zap.Logger
 	var err error
 
+	level := getLevel(cfg.Level)
+
 	switch cfg.Mode {
 	case log.DevelopmentMode:
-		logger, err = zap.NewDevelopment()
-	case log.ProductionMode:
-		logger, err = zap.NewProduction()
+		zapCfg := zap.NewDevelopmentConfig()
+		zapCfg.DisableStacktrace = true
+		zapCfg.DisableCaller = true
+		zapCfg.Level = level
+		logger, err = zapCfg.Build()
 	default:
-		logger, err = zap.NewProduction()
+		zapCfg := zap.NewProductionConfig()
+		zapCfg.DisableCaller = true
+		zapCfg.Level = level
+		logger, err = zapCfg.Build()
 	}
 	if err != nil {
 		return nil, err
@@ -72,7 +79,7 @@ func (l Logger) With(args ...interface{}) log.Logger {
 }
 
 func (l Logger) WithComponent(component string) log.Logger {
-	l.logger.Desugar().Named(component).Sugar()
+	l.logger = l.logger.Desugar().Named(component).Sugar()
 	return &l
 }
 
@@ -97,4 +104,21 @@ func (l *Logger) Write(p []byte) (n int, err error) {
 
 func (l Logger) Sync() error {
 	return l.logger.Sync()
+}
+
+func getLevel(level log.LoggerLevel) zap.AtomicLevel {
+	switch level {
+	case log.DebugLevel:
+		return zap.NewAtomicLevelAt(zap.DebugLevel)
+	case log.InfoLevel:
+		return zap.NewAtomicLevelAt(zap.InfoLevel)
+	case log.WarnLevel:
+		return zap.NewAtomicLevelAt(zap.WarnLevel)
+	case log.ErrorLevel:
+		return zap.NewAtomicLevelAt(zap.ErrorLevel)
+	case log.PanicLevel:
+		return zap.NewAtomicLevelAt(zap.PanicLevel)
+	default:
+		return zap.NewAtomicLevelAt(zap.InfoLevel)
+	}
 }

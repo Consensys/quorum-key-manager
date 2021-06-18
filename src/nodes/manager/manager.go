@@ -170,9 +170,10 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 
 		cfg := new(proxynode.Config)
 		if err := mnf.UnmarshalSpecs(cfg); err != nil {
-			logger.WithError(err).Error("invalid node specs")
-			n.err = err
-			return err
+			errMessage := "invalid node specs"
+			logger.WithError(err).Error(errMessage)
+			n.err = errors.InvalidParameterError(errMessage)
+			return n.err
 		}
 		cfg.SetDefault()
 

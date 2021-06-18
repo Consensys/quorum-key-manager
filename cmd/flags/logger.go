@@ -43,7 +43,7 @@ const (
 
 const (
 	logModeFlag     = "log-mode"
-	logModeViperKey = "log.timestamp"
+	logModeViperKey = "log.mode"
 	logModeDefault  = "production"
 	logModeEnv      = "LOG_MODE"
 )

@@ -46,9 +46,8 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	sess := proxynode.SessionFromContext(ctx)
 	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
-		errMessage := "failed to fetch chainID"
-		i.logger.WithError(err).Error(errMessage)
-		return nil, errors.BlockchainNodeError(errMessage)
+		i.logger.WithError(err).Error("failed to fetch chainID")
+		return nil, errors.BlockchainNodeError(err.Error())
 	}
 
 	// Sign

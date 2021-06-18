@@ -20,9 +20,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.GasPrice == nil {
 		gasPrice, err := sess.EthCaller().Eth().GasPrice(ctx)
 		if err != nil {
-			errMessage := "failed to fetch gas price"
-			i.logger.WithError(err).Error(errMessage)
-			return nil, errors.BlockchainNodeError(errMessage)
+			i.logger.WithError(err).Error("failed to fetch gas price")
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		msg.GasPrice = gasPrice
@@ -38,9 +37,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 		}
 		gas, err := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
 		if err != nil {
-			errMessage := "failed to estimate gas"
-			i.logger.WithError(err).Error(errMessage)
-			return nil, errors.BlockchainNodeError(errMessage)
+			i.logger.WithError(err).Error("failed to estimate gas")
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		msg.Gas = &gas
@@ -49,9 +47,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.Nonce == nil {
 		n, err := sess.EthCaller().Eth().GetTransactionCount(ctx, msg.From, ethereum.PendingBlockNumber)
 		if err != nil {
-			errMessage := "failed to fetch nonce"
-			i.logger.WithError(err).Error(errMessage, "from_account", msg.From)
-			return nil, errors.BlockchainNodeError(errMessage)
+			i.logger.WithError(err).Error("failed to fetch nonce", "from_account", msg.From)
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		msg.Nonce = &n
@@ -70,9 +67,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 		// Store payload on Tessera
 		key, err := sess.ClientPrivTxManager().StoreRaw(ctx, *msg.Data, privateFrom)
 		if err != nil {
-			errMessage := "failed to store raw payload on Tessera"
-			i.logger.WithError(err).Error(errMessage, "private_from", privateFrom)
-			return nil, errors.BlockchainNodeError(errMessage)
+			i.logger.WithError(err).Error("failed to store raw payload on Tessera", "private_from", privateFrom)
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		// Switch message data
@@ -92,9 +88,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	if err != nil {
-		errMessage := "failed to store raw transaction"
-		i.logger.WithError(err).Error(errMessage)
-		return nil, errors.BlockchainNodeError(errMessage)
+		i.logger.WithError(err).Error("failed to store raw transaction")
+		return nil, errors.BlockchainNodeError(err.Error())
 	}
 
 	i.logger.Info("ETH transaction sent successfully", "tx_hash", hash)
