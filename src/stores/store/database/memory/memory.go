@@ -106,6 +106,21 @@ func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) err
 	return nil
 }
 
+func (d *ETH1Accounts) Update(_ context.Context, account *entities.ETH1Account) error {
+	d.mux.Lock()
+	defer d.mux.Unlock()
+
+	if _, ok := d.addrToAccounts[account.Address.Hex()]; !ok {
+		errMessage := "account does not exists"
+		d.logger.Error(errMessage, "account", account.Address)
+		return errors.NotFoundError(errMessage)
+	}
+
+	d.addrToAccounts[account.Address.Hex()] = account
+
+	return nil
+}
+
 func (d *ETH1Accounts) AddDeleted(_ context.Context, account *entities.ETH1Account) error {
 	d.mux.Lock()
 	defer d.mux.Unlock()

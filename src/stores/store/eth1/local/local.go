@@ -114,7 +114,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 	}
 
 	acc := ParseKey(key)
-	err = s.eth1Accounts.Add(ctx, acc)
+	err = s.eth1Accounts.Update(ctx, acc)
 	if err != nil {
 		return nil, err
 	}

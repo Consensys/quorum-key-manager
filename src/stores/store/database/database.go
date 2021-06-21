@@ -18,6 +18,7 @@ type ETH1Accounts interface {
 	GetAll(ctx context.Context) ([]*entities.ETH1Account, error)
 	GetAllDeleted(ctx context.Context) ([]*entities.ETH1Account, error)
 	Add(ctx context.Context, account *entities.ETH1Account) error
+	Update(ctx context.Context, account *entities.ETH1Account) error
 	AddDeleted(ctx context.Context, account *entities.ETH1Account) error
 	Remove(ctx context.Context, addr string) error
 	RemoveDeleted(ctx context.Context, addr string) error
