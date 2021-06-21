@@ -97,6 +97,26 @@ func (s *eth1TestSuite) TestCreate() {
 	})
 }
 
+func (s *eth1TestSuite) TestUpdate() {
+	request := testutils.FakeCreateEth1AccountRequest()
+	request.ID = "my-account-create"
+
+	acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, request)
+	require.NoError(s.T(), err)
+
+	s.Run("should update an existing account successfully", func() {
+		newTags := map[string]string{
+			"tagnew": "valuenew",
+		}
+		acc2, err := s.keyManagerClient.UpdateEth1Account(s.ctx, s.cfg.Eth1Store, acc.Address.String(), &types.UpdateEth1AccountRequest{
+			Tags: newTags,
+		})
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), newTags, acc2.Tags)
+	})
+}
+
 func (s *eth1TestSuite) TestImport() {
 	s.Run("should import an account successfully", func() {
 		request := testutils.FakeImportEth1AccountRequest()

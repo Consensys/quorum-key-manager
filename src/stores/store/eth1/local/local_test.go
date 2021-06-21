@@ -224,7 +224,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
 		s.mockKeyStore.EXPECT().Update(ctx, fakeAccount.ID, attributes).Return(key, nil)
-		s.mockEth1AccountsDB.EXPECT().Add(ctx, expectedUpdatedAccount).Return(nil)
+		s.mockEth1AccountsDB.EXPECT().Update(ctx, expectedUpdatedAccount).Return(nil)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.NoError(s.T(), err)
@@ -264,7 +264,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
 		s.mockKeyStore.EXPECT().Update(ctx, fakeAccount.ID, attributes).Return(key, nil)
-		s.mockEth1AccountsDB.EXPECT().Add(ctx, expectedUpdatedAccount).Return(expectedErr)
+		s.mockEth1AccountsDB.EXPECT().Update(ctx, expectedUpdatedAccount).Return(expectedErr)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.Equal(s.T(), expectedErr, err)
