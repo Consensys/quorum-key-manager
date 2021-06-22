@@ -289,6 +289,21 @@ func (mr *MockEth1ClientMockRecorder) SignEth1(ctx, storeName, account, request 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEth1", reflect.TypeOf((*MockEth1Client)(nil).SignEth1), ctx, storeName, account, request)
 }
 
+// SignEth1Data mocks base method
+func (m *MockEth1Client) SignEth1Data(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignEth1Data", ctx, storeName, account, request)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SignEth1Data indicates an expected call of SignEth1Data
+func (mr *MockEth1ClientMockRecorder) SignEth1Data(ctx, storeName, account, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEth1Data", reflect.TypeOf((*MockEth1Client)(nil).SignEth1Data), ctx, storeName, account, request)
+}
+
 // SignTypedData mocks base method
 func (m *MockEth1Client) SignTypedData(ctx context.Context, storeName, address string, request *types.SignTypedDataRequest) (string, error) {
 	m.ctrl.T.Helper()
@@ -736,6 +751,21 @@ func (m *MockKeyManagerClient) SignEth1(ctx context.Context, storeName, account 
 func (mr *MockKeyManagerClientMockRecorder) SignEth1(ctx, storeName, account, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEth1", reflect.TypeOf((*MockKeyManagerClient)(nil).SignEth1), ctx, storeName, account, request)
+}
+
+// SignEth1Data mocks base method
+func (m *MockKeyManagerClient) SignEth1Data(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignEth1Data", ctx, storeName, account, request)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SignEth1Data indicates an expected call of SignEth1Data
+func (mr *MockKeyManagerClientMockRecorder) SignEth1Data(ctx, storeName, account, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEth1Data", reflect.TypeOf((*MockKeyManagerClient)(nil).SignEth1Data), ctx, storeName, account, request)
 }
 
 // SignTypedData mocks base method
