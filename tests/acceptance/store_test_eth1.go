@@ -5,23 +5,22 @@ import (
 	"fmt"
 	"math/big"
 
-	ethlocal "github.com/consensysquorum/quorum-key-manager/src/stores/manager/eth1"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
-	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
+	ethlocal "github.com/consensysquorum/quorum-key-manager/src/stores/manager/eth1"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1"
 	eth1local "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
+	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -290,6 +289,35 @@ func (s *eth1TestSuite) TestSignTransaction() {
 		signedRaw, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, tx)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+}
+
+func (s *eth1TestSuite) TestSignData() {
+	ctx := s.env.ctx
+	id := s.newID("my-account-sign-tx")
+	chainID := big.NewInt(1)
+	tx := types.NewTransaction(
+		0,
+		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
+		big.NewInt(0),
+		0,
+		big.NewInt(0),
+		nil,
+	)
+
+	account, err := s.store.Create(ctx, id, &entities.Attributes{
+		Tags: testutils.FakeTags(),
+	})
+	require.NoError(s.T(), err)
+
+	s.Run("should sign a transaction data successfully", func() {
+		signer := types.NewEIP155Signer(chainID)
+		txData := signer.Hash(tx).Bytes()
+		signature, _ := s.store.SignData(ctx, account.Address.Hex(), txData)
+		signedTx, _ := tx.WithSignature(signer, signature)
+		sender, err := types.Sender(signer, signedTx)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), account.Address.Hex(), sender.Hex())
 	})
 }
 

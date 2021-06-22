@@ -25,7 +25,7 @@ import (
 
 const (
 	eth1StoreName = "Eth1Store"
-	accAddress    = "my-account"
+	accAddress    = "0x7E654d251Da770A068413677967F6d3Ea2FeA9E4"
 )
 
 type eth1HandlerTestSuite struct {
