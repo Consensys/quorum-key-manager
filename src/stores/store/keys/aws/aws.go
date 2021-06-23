@@ -3,10 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 const (
@@ -20,11 +20,11 @@ const (
 // Store is an implementation of key store relying on AWS kms
 type KeyStore struct {
 	client aws.KmsClient
-	logger *log.Logger
+	logger log.Logger
 }
 
 // New creates an AWS secret store
-func New(client aws.KmsClient, logger *log.Logger) *KeyStore {
+func New(client aws.KmsClient, logger log.Logger) *KeyStore {
 	return &KeyStore{
 		client: client,
 		logger: logger,
@@ -38,7 +38,7 @@ func (ks *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 
 // Create a new key and stores it
 func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := ks.logger.WithField("id", id)
+	logger := ks.logger
 
 	key, alias, err := ks.client.CreateKey(ctx, id, alg, attr)
 	if err != nil {
@@ -80,7 +80,7 @@ func (ks *KeyStore) Import(ctx context.Context, id string, privKey []byte, alg *
 
 // Get the public part of a stored key.
 func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
-	logger := ks.logger.WithField("id", id)
+	logger := ks.logger.With("id", id)
 	outGetKey, err := ks.client.GetPublicKey(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error("failed to get public key")
@@ -135,13 +135,14 @@ func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	return retKey, nil
 }
 
-func (ks *KeyStore) doListTags(ctx context.Context, keyID string, logger *log.Logger) (map[string]string, error) {
+func (ks *KeyStore) doListTags(ctx context.Context, keyID string, logger log.Logger) (map[string]string, error) {
 	tags := make(map[string]string)
 
 	nextMarker := ""
 	for {
 		ret, errListTags := ks.client.ListTags(ctx, keyID, nextMarker)
 		if errListTags != nil {
+
 			logger.WithError(errListTags).Error("failed to list key tags")
 			return nil, errListTags
 		}
@@ -186,7 +187,7 @@ func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
 
 // Update key tags
 func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	logger := ks.logger.WithField("id", id)
+	logger := ks.logger.With("id", id)
 
 	_, err := ks.client.UpdateKey(ctx, id, attr.Tags)
 	if err != nil {
@@ -195,12 +196,13 @@ func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attrib
 	}
 
 	logger.Info("updated key successfully")
-	return nil, err
+
+	return ks.Get(ctx, id)
 }
 
 // Delete key not permanently, by using Undelete() the key can be enabled again
 func (ks *KeyStore) Delete(ctx context.Context, id string) error {
-	logger := ks.logger.WithField("id", id)
+	logger := ks.logger.With("id", id)
 	_, err := ks.client.DeleteKey(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete key")
@@ -232,7 +234,7 @@ func (ks *KeyStore) Destroy(ctx context.Context, id string) error {
 
 // Sign from any arbitrary data using the specified key
 func (ks *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
-	logger := ks.logger.WithField("id", id)
+	logger := ks.logger.With("id", id)
 	outSignature, err := ks.client.Sign(ctx, id, data)
 	if err != nil {
 		logger.WithError(err).Error("failed to sign")
