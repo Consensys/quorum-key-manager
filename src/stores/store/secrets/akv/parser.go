@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 func parseSecretBundle(secretBundle *keyvault.SecretBundle) *entities.Secret {

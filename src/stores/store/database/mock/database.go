@@ -6,8 +6,8 @@ package mock
 
 import (
 	context "context"
-	database "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
-	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	database "github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
+	entities "github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -144,6 +144,20 @@ func (m *MockETH1Accounts) Add(ctx context.Context, account *entities.ETH1Accoun
 func (mr *MockETH1AccountsMockRecorder) Add(ctx, account interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockETH1Accounts)(nil).Add), ctx, account)
+}
+
+// Update mocks base method
+func (m *MockETH1Accounts) Update(ctx context.Context, account *entities.ETH1Account) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, account)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockETH1AccountsMockRecorder) Update(ctx, account interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockETH1Accounts)(nil).Update), ctx, account)
 }
 
 // AddDeleted mocks base method

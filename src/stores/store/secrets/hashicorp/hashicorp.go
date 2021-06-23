@@ -5,12 +5,13 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 const (
@@ -21,17 +22,15 @@ const (
 	versionLabel  = "version"
 )
 
-// Store is an implementation of secret store relying on Hashicorp Vault kv-v2 secret engine
 type Store struct {
 	client     hashicorp.VaultClient
 	mountPoint string
-	logger     *log.Logger
+	logger     log.Logger
 }
 
 var _ secrets.Store = &Store{}
 
-// New creates an Hashicorp secret store
-func New(client hashicorp.VaultClient, mountPoint string, logger *log.Logger) *Store {
+func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
@@ -43,9 +42,10 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Set a secret
 func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("creating secret")
+
 	data := map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
@@ -65,13 +65,13 @@ func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attribut
 		return nil, err
 	}
 
-	s.logger.Info("secret was set successfully")
+	logger.Info("secret set successfully")
 	return formatHashicorpSecret(id, value, attr.Tags, metadata), nil
 }
 
-// Get a secret
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+
 	var callData map[string][]string
 	if version != "" {
 		_, err := strconv.Atoi(version)
@@ -112,11 +112,10 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 		return nil, err
 	}
 
-	logger.Debug("secret was retrieved successfully")
+	logger.Debug("secret retrieved successfully")
 	return formatHashicorpSecret(id, value, tags, metadata), nil
 }
 
-// Get all secret ids
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
@@ -138,32 +137,26 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 	return keysStr, nil
 }
 
-// Delete a secret
 func (s *Store) Delete(_ context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// Gets a deleted secret
 func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Lists all deleted secrets
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Undelete a previously deleted secret
 func (s *Store) Undelete(ctx context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// Destroy a secret permanently
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// path compute path from hashicorp mount
 func (s *Store) pathData(id string) string {
 	return path.Join(s.mountPoint, dataLabel, id)
 }

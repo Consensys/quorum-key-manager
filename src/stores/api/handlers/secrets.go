@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	jsonutils "github.com/consensysquorum/quorum-key-manager/pkg/json"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +17,7 @@ type SecretsHandler struct {
 	stores storesmanager.Manager
 }
 
-// New creates a http.Handler to be served on /secrets
+// NewSecretsHandler creates a http.Handler to be served on /secrets
 func NewSecretsHandler(s storesmanager.Manager) *SecretsHandler {
 	return &SecretsHandler{
 		stores: s,

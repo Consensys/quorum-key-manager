@@ -1,7 +1,7 @@
 package ethereum
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
 )
 
 //go:generate mockgen -source=caller.go -destination=mock/caller.go -package=mock

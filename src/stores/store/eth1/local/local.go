@@ -7,15 +7,16 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+
 	quorumtypes "github.com/consensys/quorum/core/types"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -32,12 +33,12 @@ var eth1KeyAlgo = &entities.Algorithm{
 type Store struct {
 	keyStore     keys.Store
 	eth1Accounts database.ETH1Accounts
-	logger       *log.Logger
+	logger       log.Logger
 }
 
 var _ eth1.Store = &Store{}
 
-func New(keyStore keys.Store, eth1Accounts database.ETH1Accounts, logger *log.Logger) *Store {
+func New(keyStore keys.Store, eth1Accounts database.ETH1Accounts, logger log.Logger) *Store {
 	return &Store{
 		keyStore:     keyStore,
 		logger:       logger,
@@ -113,7 +114,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 	}
 
 	acc := ParseKey(key)
-	err = s.eth1Accounts.Add(ctx, acc)
+	err = s.eth1Accounts.Update(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +206,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
-	logger := s.logger.WithField("address", addr)
+	logger := s.logger.With("address", addr)
 
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
@@ -217,7 +218,7 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		errMessage := "failed to set transaction signature"
-		logger.WithError(err).WithField("signature", signature).Error(errMessage)
+		logger.WithError(err).Error(errMessage, "signature", signature)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
@@ -232,19 +233,19 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 }
 
 func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
-	logger := s.logger.WithField("address", addr)
+	logger := s.logger.With("address", addr)
 
 	privateFromEncoded, err := base64.StdEncoding.DecodeString(*args.PrivateFrom)
 	if err != nil {
 		errMessage := "invalid privateFrom param"
-		logger.WithError(err).WithField("privateFrom", *args.PrivateFrom).Error(errMessage)
+		logger.WithError(err).Error(errMessage, "privateFrom", *args.PrivateFrom)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	privateRecipientEncoded, err := getEncodedPrivateRecipient(args.PrivacyGroupID, args.PrivateFor)
 	if err != nil {
 		errMessage := "invalid privacyGroupID or privateFor params"
-		logger.WithError(err).WithField("privateFor", *args.PrivateFor).WithField("privacyGroupID", *args.PrivacyGroupID).Error(errMessage)
+		logger.WithError(err).Error(errMessage, "privateFor", *args.PrivateFor, "privacyGroupID", *args.PrivacyGroupID)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
@@ -276,7 +277,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 	signedTx, err := tx.WithSignature(types.NewEIP155Signer(chainID), signature)
 	if err != nil {
 		errMessage := "failed to set eea transaction signature"
-		logger.WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage, "signature", signature)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 	V, R, S := signedTx.RawSignatureValues()
@@ -305,7 +306,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 }
 
 func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
-	logger := s.logger.WithField("address", addr)
+	logger := s.logger.With("address", addr)
 
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
@@ -317,7 +318,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		errMessage := "failed to set quorum private transaction signature"
-		logger.WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage, "signature", signature)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
@@ -334,8 +335,9 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
 	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to recover public key")
-		return "", errors.InvalidParameterError("failed to recover public key, please verify your signature and payload")
+		errMessage := "failed to recover public key, please verify your signature and payload"
+		s.logger.WithError(err).Error(errMessage)
+		return "", errors.InvalidParameterError(errMessage)
 	}
 
 	return crypto.PubkeyToAddress(*pubKey).Hex(), nil
@@ -348,7 +350,9 @@ func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error
 	}
 
 	if addr != recoveredAddress {
-		return errors.InvalidParameterError("failed to verify signature: recovered address does not match the expected one or payload is malformed")
+		errMessage := "failed to verify signature: recovered address does not match the expected one or payload is malformed"
+		s.logger.Error(errMessage, "address", addr, "recovered_address", recoveredAddress)
+		return errors.InvalidParameterError(errMessage)
 	}
 
 	return nil
@@ -357,7 +361,9 @@ func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error
 func (s *Store) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
-		return err
+		errMessage := "failed to generate EIP-712 encoded data"
+		s.logger.WithError(err).Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
 	}
 
 	return s.Verify(ctx, addr, []byte(encodedData), sig)
@@ -381,36 +387,15 @@ func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 	return s.keyStore.Decrypt(ctx, account.ID, data)
 }
 
-// To understand this function, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
-func (s *Store) appendRecID(data, sig, pubKey []byte) ([]byte, error) {
-	for _, recID := range []byte{0, 1} {
-		appendedSignature := append(sig, recID)
-		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
-		if err != nil {
-			errMessage := "failed to recover public key candidate with appended recID"
-			s.logger.WithField("recID", recID).WithError(err).Error(errMessage)
-			return nil, errors.InvalidParameterError(errMessage)
-		}
-
-		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), pubKey) {
-			return appendedSignature, nil
-		}
-	}
-
-	errMessage := "failed to compute recovery ID"
-	s.logger.Error(errMessage)
-	return nil, errors.DependencyFailureError(errMessage)
-}
-
 func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
-		return "", errors.InvalidParameterError("invalid typed data message")
+		return "", err
 	}
 
 	domainSeparatorHash, err := typedData.HashStruct(formatters.EIP712DomainLabel, typedData.Domain.Map())
 	if err != nil {
-		return "", errors.InvalidParameterError("invalid domain separator")
+		return "", err
 	}
 
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
@@ -446,7 +431,9 @@ func eeaHash(object interface{}) (hash common.Hash, err error) {
 	if err != nil {
 		return common.Hash{}, err
 	}
+
 	hashAlgo.Sum(hash[:0])
+
 	return hash, nil
 }
 
@@ -461,5 +448,22 @@ func (s *Store) sign(ctx context.Context, addr string, data []byte) ([]byte, err
 		return nil, err
 	}
 
-	return s.appendRecID(data, signature, account.PublicKey)
+	// Recover the recID, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
+	for _, recID := range []byte{0, 1} {
+		appendedSignature := append(signature, recID)
+		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
+		if err != nil {
+			errMessage := "failed to recover public key candidate with appended recID"
+			s.logger.WithError(err).Error(errMessage, "recID", recID)
+			return nil, errors.InvalidParameterError(errMessage)
+		}
+
+		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), account.PublicKey) {
+			return appendedSignature, nil
+		}
+	}
+
+	errMessage := "failed to compute recovery ID"
+	s.logger.Error(errMessage)
+	return nil, errors.DependencyFailureError(errMessage)
 }

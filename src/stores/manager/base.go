@@ -5,21 +5,22 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/akv"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/aws"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/eth1"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	eth1store "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/types"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/akv"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/aws"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/eth1"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/hashicorp"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	eth1store "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -37,15 +38,16 @@ type BaseManager struct {
 	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
+
+	logger log.Logger
 }
 
 type storeBundle struct {
 	manifest *manifest.Manifest
-
-	store interface{}
+	store    interface{}
 }
 
-func New(manifests manifestsmanager.Manager) *BaseManager {
+func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests:    manifests,
 		mux:          sync.RWMutex{},
@@ -53,6 +55,7 @@ func New(manifests manifestsmanager.Manager) *BaseManager {
 		keys:         make(map[string]*storeBundle),
 		eth1Accounts: make(map[string]*storeBundle),
 		mnfsts:       make(chan []manifestsmanager.Message),
+		logger:       logger,
 	}
 }
 
@@ -74,11 +77,7 @@ func (m *BaseManager) Start(ctx context.Context) error {
 	}()
 
 	// Subscribe to manifest of Kind node
-	sub, err := m.manifests.Subscribe(storeKinds, m.mnfsts)
-	if err != nil {
-		return err
-	}
-	m.sub = sub
+	m.sub = m.manifests.Subscribe(storeKinds, m.mnfsts)
 
 	// Start loading manifest
 	go m.loadAll(ctx)
@@ -124,7 +123,9 @@ func (m *BaseManager) GetSecretStore(_ context.Context, name string) (secrets.St
 		}
 	}
 
-	return nil, errors.NotFoundError("secret store %s was not found", name)
+	errMessage := "secret store was not found"
+	m.logger.Error(errMessage, "store_name", name)
+	return nil, errors.NotFoundError(errMessage)
 }
 
 func (m *BaseManager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
@@ -136,7 +137,9 @@ func (m *BaseManager) GetKeyStore(_ context.Context, name string) (keys.Store, e
 		}
 	}
 
-	return nil, errors.NotFoundError("key store %s was not found", name)
+	errMessage := "key store was not found"
+	m.logger.Error(errMessage, "store_name", name)
+	return nil, errors.NotFoundError(errMessage)
 }
 
 func (m *BaseManager) GetEth1Store(ctx context.Context, name string) (eth1store.Store, error) {
@@ -152,18 +155,16 @@ func (m *BaseManager) getEth1Store(_ context.Context, name string) (eth1store.St
 		}
 	}
 
-	return nil, errors.NotFoundError("account store %s was not found", name)
+	errMessage := "account store was not found"
+	m.logger.Error(errMessage, "store_name", name)
+	return nil, errors.NotFoundError(errMessage)
 }
 
 func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1store.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
-	storeNames, err := m.list(ctx, "")
-	if err != nil {
-		return nil, err
-	}
 
-	for _, storeName := range storeNames {
+	for _, storeName := range m.list(ctx, "") {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -179,17 +180,19 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 		}
 	}
 
-	return nil, errors.InvalidParameterError("account %s was not found", addr.String())
+	errMessage := "account was not found"
+	m.logger.Error(errMessage, "account", addr.Hex())
+	return nil, errors.InvalidParameterError(errMessage)
 }
 
 func (m *BaseManager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	return m.list(ctx, kind)
+	return m.list(ctx, kind), nil
 }
 
-func (m *BaseManager) list(_ context.Context, kind manifest.Kind) ([]string, error) {
+func (m *BaseManager) list(_ context.Context, kind manifest.Kind) []string {
 	storeNames := []string{}
 	switch kind {
 	case "":
@@ -201,7 +204,7 @@ func (m *BaseManager) list(_ context.Context, kind manifest.Kind) ([]string, err
 		storeNames = m.storeNames(m.keys, kind)
 	}
 
-	return storeNames, nil
+	return storeNames
 }
 
 func (m *BaseManager) ListAllAccounts(ctx context.Context) ([]*entities.ETH1Account, error) {
@@ -209,12 +212,7 @@ func (m *BaseManager) ListAllAccounts(ctx context.Context) ([]*entities.ETH1Acco
 	defer m.mux.RUnlock()
 
 	accs := []*entities.ETH1Account{}
-	storeNames, err := m.list(ctx, "")
-	if err != nil {
-		return accs, err
-	}
-
-	for _, storeName := range storeNames {
+	for _, storeName := range m.list(ctx, "") {
 		store, err := m.getEth1Store(ctx, storeName)
 		if err == nil {
 			storeAccs, err := store.GetAll(ctx)
@@ -231,55 +229,52 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
-	logger := log.FromContext(ctx).
-		WithField("kind", mnf.Kind).
-		WithField("name", mnf.Name)
-
+	logger := m.logger.With("kind", mnf.Kind).With("name", mnf.Name)
 	logger.Debug("loading store manifest")
-	errMsg := "error creating new store store"
 
 	switch mnf.Kind {
 	case types.HashicorpSecrets:
 		spec := &hashicorp.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			errMessage := "failed to unmarshal Hashicorp secret store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
 		}
 		store, err := hashicorp.NewSecretStore(spec, logger)
 		if err != nil {
-			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.HashicorpKeys:
 		spec := &hashicorp.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			errMessage := "failed to unmarshal Hashicorp key store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
 		}
 		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
-			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVSecrets:
 		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			errMessage := "failed to unmarshal AKV secret store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
 		}
 		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
-			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			errMessage := "failed to unmarshal AKV key store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
 		}
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
@@ -289,8 +284,9 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.AWSSecrets:
 		spec := &aws.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			logger.WithError(err).Error(errMsg)
-			return errors.InvalidFormatError(err.Error())
+			errMessage := "failed to unmarshal AWS secret store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
 		}
 		store, err := aws.NewSecretStore(spec, logger)
 		if err != nil {
@@ -300,20 +296,20 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	case types.Eth1Account:
 		spec := &eth1.Specs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			logger.WithError(err).Error(errMsg)
-			return err
+			errMessage := "failed to unmarshal Eth1 store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
 		}
 
 		store, err := eth1.NewEth1(ctx, spec, memory.New(logger), logger)
 		if err != nil {
-			logger.WithError(err).Error(errMsg)
 			return err
 		}
 		m.eth1Accounts[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	default:
-		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
-		logger.WithError(err).Error()
-		return err
+		errMessage := "invalid manifest kind"
+		logger.Error(errMessage, "kind", mnf.Kind)
+		return errors.InvalidFormatError(errMessage)
 	}
 
 	logger.Info("store manifest loaded successfully")
@@ -336,7 +332,10 @@ func (m *BaseManager) CheckLiveness() error {
 	if m.isLive {
 		return nil
 	}
-	return fmt.Errorf("service %s is not live", m.ID())
+
+	errMessage := fmt.Sprintf("service %s is not live", m.ID())
+	m.logger.Error(errMessage, "id", m.ID())
+	return errors.HealthcheckError(errMessage)
 }
 
 func (m *BaseManager) CheckReadiness() error {

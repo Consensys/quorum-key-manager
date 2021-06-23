@@ -3,8 +3,8 @@ package formatters
 import (
 	"encoding/base64"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 func FormatKeyResponse(key *entities.Key) *types.KeyResponse {

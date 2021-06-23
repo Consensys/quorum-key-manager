@@ -3,28 +3,29 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/zap"
 	"io/ioutil"
 	"os"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/app"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/server"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	keymanager "github.com/ConsenSysQuorum/quorum-key-manager/src"
-	manifestsmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
-	akv2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv"
-	akvclient "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/client"
-	awsclient "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/client"
-	hashicorp2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp"
-	hashicorpclient "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker"
-	dconfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/utils"
+	"github.com/consensysquorum/quorum-key-manager/pkg/app"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
+	keymanager "github.com/consensysquorum/quorum-key-manager/src"
+	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	akv2 "github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv"
+	akvclient "github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv/client"
+	awsclient "github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/client"
+	hashicorp2 "github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp"
+	hashicorpclient "github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/client"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/hashicorp"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/types"
+	"github.com/consensysquorum/quorum-key-manager/tests"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker"
+	dconfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/utils"
 	"github.com/hashicorp/vault/api"
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -45,7 +46,7 @@ const (
 
 type IntegrationEnvironment struct {
 	ctx               context.Context
-	logger            *log.Logger
+	logger            log.Logger
 	hashicorpClient   hashicorp2.VaultClient
 	awsSecretsClient  *awsclient.AwsSecretsClient
 	awsKmsClient      *awsclient.AwsKmsClient
@@ -58,6 +59,8 @@ type IntegrationEnvironment struct {
 	tmpHashicorpToken string
 	cfg               *tests.Config
 }
+
+const MAX_RETRIES = 10
 
 type TestSuiteEnv interface {
 	Start(ctx context.Context) error
@@ -83,9 +86,12 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger := log.DefaultLogger().WithContext(ctx)
+	logger, err := zap.NewLogger(log.NewConfig(log.ErrorLevel, true, log.ProductionMode))
+	if err != nil {
+		return nil, err
+	}
 
-	hashicorpContainer, err := utils.HashicorpContainer(ctx)
+	hashicorpContainer, err := utils.HashicorpContainer(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +101,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	localstackContainer, err := utils.LocalstackContainer(ctx)
+	localstackContainer, err := utils.LocalstackContainer()
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +119,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	// Docker client
-	dockerClient, err := docker.NewClient(composition)
+	dockerClient, err := docker.NewClient(composition, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize new environment")
 		return nil, err
@@ -121,7 +127,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	testCfg, err := tests.NewConfig()
 	if err != nil {
-		logger.WithError(err).Error("cannot initialize new environment")
+		logger.WithError(err).Error("could not load config")
 		return nil, err
 	}
 
@@ -160,11 +166,11 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	logger.WithField("path", tmpYml).Info("new temporal manifest created")
+	logger.Info("new temporary manifest created", "path", tmpYml)
 
 	httpConfig := server.NewDefaultConfig()
 	httpConfig.Port = uint32(envHTTPPort)
-	keyManager, err := newKeyManager(&keymanager.Config{
+	keyManager, err := keymanager.New(&keymanager.Config{
 		HTTP:      httpConfig,
 		Manifests: &manifestsmanager.Config{Path: tmpYml},
 	}, logger)
@@ -347,8 +353,4 @@ func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
 	}
 
 	return file.Name(), nil
-}
-
-func newKeyManager(cfg *keymanager.Config, logger *log.Logger) (*app.App, error) {
-	return keymanager.New(cfg, logger)
 }

@@ -10,10 +10,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
+	"github.com/consensysquorum/quorum-key-manager/pkg/client"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	"github.com/consensysquorum/quorum-key-manager/tests"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +21,7 @@ import (
 )
 
 var ecdsaPrivKey, _ = base64.StdEncoding.DecodeString("2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw=")
-var eddsaPrivKey, _ = base64.StdEncoding.DecodeString("X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZGGbioek5qYuzJzTNZpTHrVjjFk7iFe3FYwfpxZyNPxtIaFB5gb9VP9IcHZewwNZly821re7RkmB8pGdjywygPH")
+var eddsaPrivKey, _ = base64.StdEncoding.DecodeString("X9Yz/5+O42+eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZGGbioek5qYuzJzTNZpTHrVjjFk7iFe3FYwfpxZyNPxtIaFB5gb9VP9IcHZewwNZly821re7RkmB8pGdjywygPH")
 
 type keysTestSuite struct {
 	suite.Suite
@@ -187,7 +187,7 @@ func (s *keysTestSuite) TestImport() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", key.PublicKey)
+		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R/EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a+S2RklJRFjjoLf+LI=", key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(s.T(), request.Curve, key.Curve)
 		assert.Equal(s.T(), request.ID, key.ID)
@@ -215,7 +215,7 @@ func (s *keysTestSuite) TestImport() {
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", key.PublicKey)
+		assert.Equal(s.T(), "X9Yz/5+O42+eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(s.T(), request.Curve, key.Curve)
 		assert.Equal(s.T(), request.ID, key.ID)
@@ -286,7 +286,7 @@ func (s *keysTestSuite) TestGet() {
 		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID)
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", keyRetrieved.PublicKey)
+		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R/EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a+S2RklJRFjjoLf+LI=", keyRetrieved.PublicKey)
 		assert.Equal(s.T(), request.ID, keyRetrieved.ID)
 		assert.Equal(s.T(), request.Tags, keyRetrieved.Tags)
 		assert.False(s.T(), keyRetrieved.Disabled)
@@ -351,10 +351,13 @@ func (s *keysTestSuite) TestSignVerify() {
 		signature, err := s.keyManagerClient.SignKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh-d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
+		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh+d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
 
-		sigB, _ := base64.StdEncoding.DecodeString(signature)
-		pubKeyB, _ := base64.StdEncoding.DecodeString(key.PublicKey)
+		sigB, err := base64.StdEncoding.DecodeString(signature)
+		require.NoError(s.T(), err)
+		pubKeyB, err := base64.StdEncoding.DecodeString(key.PublicKey)
+		require.NoError(s.T(), err)
+
 		verifyRequest := &types.VerifyKeySignatureRequest{
 			Data:             hashedPayload,
 			Signature:        sigB,
@@ -382,7 +385,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		signature, err := s.keyManagerClient.SignKey(s.ctx, s.cfg.HashicorpKeyStore, key.ID, requestSign)
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6_uQnCAmXG9v_FG26vS0AcBqg6eVakZQNYwfic_Ec3LWqzSbXg54TBteQq6grdw==", signature)
+		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6/uQnCAmXG9v/FG26vS0AcBqg6eVakZQNYwfic/Ec3LWqzSbXg54TBteQq6grdw==", signature)
 
 		sigB, _ := base64.StdEncoding.DecodeString(signature)
 		pubKeyB, _ := base64.StdEncoding.DecodeString(key.PublicKey)

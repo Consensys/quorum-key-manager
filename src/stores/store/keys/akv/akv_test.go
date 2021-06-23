@@ -8,14 +8,15 @@ import (
 	"testing"
 	"time"
 
+	testutils2 "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
 	akv "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/mocks"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv/mocks"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -51,7 +52,7 @@ func (s *akvKeyStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mockVault = mocks.NewMockKeysClient(ctrl)
-	s.keyStore = New(s.mockVault, log.DefaultLogger())
+	s.keyStore = New(s.mockVault, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *akvKeyStoreTestSuite) TestCreate() {

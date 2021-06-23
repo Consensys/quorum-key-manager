@@ -1,3 +1,5 @@
+ARG VERSION=nonroot
+
 # Build the manager binary
 FROM golang:1.15 as builder
 
@@ -22,7 +24,7 @@ RUN upx /bin/main
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:$VERSION
 WORKDIR /
 COPY --from=builder /bin/main .
 COPY LICENSE .

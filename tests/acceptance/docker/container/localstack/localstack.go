@@ -4,27 +4,32 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"net/http"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 )
 
-type Vault struct{}
+type Vault struct {
+	logger log.Logger
+}
+
+func New(logger log.Logger) *Vault {
+	return &Vault{
+		logger: logger,
+	}
+}
 
 func (vault *Vault) GenerateContainerConfig(_ context.Context, configuration interface{}) (*dockercontainer.Config, *dockercontainer.HostConfig, *network.NetworkingConfig, error) {
 	cfg, ok := configuration.(*localstack.Config)
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("invalid configuration type (expected %T but got %T)", cfg, configuration)
 	}
-
-	log.Printf("Configuration for localstack %v", cfg)
 
 	containerCfg := &dockercontainer.Config{
 		Image: cfg.Image,
@@ -72,12 +77,11 @@ waitForServiceLoop:
 			cerr = rctx.Err()
 			break waitForServiceLoop
 		case <-retryT.C:
-			log.Printf("LocalStack Health on %s", fmt.Sprintf("http://%v:%v", cfg.Host, cfg.Port))
 			resp, err := httpClient.Get(fmt.Sprintf("http://%v:%v", cfg.Host, cfg.Port))
 
 			switch {
 			case err != nil:
-				log.WithContext(rctx).WithError(err).Warnf("waiting for localstack service to start")
+				vault.logger.WithError(err).Debug("waiting for localstack service to start")
 			case resp.StatusCode == http.StatusNotFound:
 				//Ready status is encoded in resp Body
 				defer resp.Body.Close()
@@ -88,15 +92,15 @@ waitForServiceLoop:
 				localStackStatus := LocalStackStatus{}
 				_ = json.NewDecoder(resp.Body).Decode(&localStackStatus)
 				if localStackStatus.Status == "running" {
-					log.WithContext(rctx).Infof("localstack container service is ready, running")
+					vault.logger.Info("localstack container service is ready")
 					break waitForServiceLoop
 				} else {
-					log.WithContext(rctx).WithField("status_code", resp.StatusCode).Warnf("waiting for localstack service to be ready, status : %s", localStackStatus.Status)
+					vault.logger.Debug("waiting for localstack service to be ready", "status_code", resp.StatusCode, "status", localStackStatus)
 				}
 			case resp.StatusCode != http.StatusOK:
-				log.WithContext(rctx).WithField("status_code", resp.StatusCode).Warnf("waiting for localstack service to be ready")
+				vault.logger.Debug("waiting for localstack service to be ready", "status_code", resp.StatusCode)
 			default:
-				log.WithContext(rctx).Infof("localstack container service is ready")
+				vault.logger.Info("localstack container service is ready")
 				break waitForServiceLoop
 			}
 		}

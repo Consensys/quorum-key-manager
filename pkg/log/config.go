@@ -1,37 +1,31 @@
 package log
 
-import (
-	"github.com/sirupsen/logrus"
-)
-
 type LoggerLevel string
+type LoggerMode string
 
 const (
 	InfoLevel  LoggerLevel = "info"
 	ErrorLevel LoggerLevel = "error"
 	DebugLevel LoggerLevel = "debug"
 	WarnLevel  LoggerLevel = "warn"
-	TraceLevel LoggerLevel = "trace"
+	PanicLevel LoggerLevel = "panic"
+)
+
+const (
+	DevelopmentMode LoggerMode = "development"
+	ProductionMode  LoggerMode = "production"
 )
 
 type Config struct {
 	Level     LoggerLevel
 	Timestamp bool
+	Mode      LoggerMode
 }
 
-func (l LoggerLevel) logrusLvl() logrus.Level {
-	switch l {
-	case ErrorLevel:
-		return logrus.ErrorLevel
-	case WarnLevel:
-		return logrus.WarnLevel
-	case InfoLevel:
-		return logrus.InfoLevel
-	case DebugLevel:
-		return logrus.DebugLevel
-	case TraceLevel:
-		return logrus.TraceLevel
+func NewConfig(level LoggerLevel, timestamp bool, mode LoggerMode) *Config {
+	return &Config{
+		Level:     level,
+		Timestamp: timestamp,
+		Mode:      mode,
 	}
-
-	return logrus.InfoLevel
 }

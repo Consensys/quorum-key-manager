@@ -3,20 +3,25 @@ package interceptor
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*ethcommon.Hash, error) {
+	i.logger.Debug("sending ETH transaction")
+
 	// Get ChainID from Node
 	sess := proxynode.SessionFromContext(ctx)
 
 	if msg.GasPrice == nil {
 		gasPrice, err := sess.EthCaller().Eth().GasPrice(ctx)
 		if err != nil {
-			return nil, err
+			i.logger.WithError(err).Error("failed to fetch gas price")
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		msg.GasPrice = gasPrice
@@ -32,7 +37,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 		}
 		gas, err := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
 		if err != nil {
-			return nil, err
+			i.logger.WithError(err).Error("failed to estimate gas")
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		msg.Gas = &gas
@@ -41,7 +47,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.Nonce == nil {
 		n, err := sess.EthCaller().Eth().GetTransactionCount(ctx, msg.From, ethereum.PendingBlockNumber)
 		if err != nil {
-			return nil, err
+			i.logger.WithError(err).Error("failed to fetch nonce", "from_account", msg.From)
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		msg.Nonce = &n
@@ -60,7 +67,8 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 		// Store payload on Tessera
 		key, err := sess.ClientPrivTxManager().StoreRaw(ctx, *msg.Data, privateFrom)
 		if err != nil {
-			return nil, err
+			i.logger.WithError(err).Error("failed to store raw payload on Tessera", "private_from", privateFrom)
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		// Switch message data
@@ -80,9 +88,11 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	if err != nil {
-		return nil, err
+		i.logger.WithError(err).Error("failed to store raw transaction")
+		return nil, errors.BlockchainNodeError(err.Error())
 	}
 
+	i.logger.Info("ETH transaction sent successfully", "tx_hash", hash)
 	return &hash, nil
 }
 

@@ -1,16 +1,16 @@
 package manager
 
 import (
-	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 )
 
 type Action string
 
 const CreateAction = "Create"
 const UpdateAction = "Update"
-const DeleteAction = "Update"
+const DeleteAction = "Delete"
 
 // Message wraps a manifest with information related to the Loader that loaded it
 type Message struct {
@@ -30,7 +30,7 @@ type Message struct {
 func (msg *Message) UnmarshalSpecs(specs interface{}) {
 	err := msg.Manifest.UnmarshalSpecs(specs)
 	if err != nil {
-		msg.Err = fmt.Errorf("invalid specs format: %v", err)
+		msg.Err = errors.InvalidFormatError("invalid specs format: %v", err)
 	}
 }
 
@@ -41,11 +41,11 @@ type Manager interface {
 	// Subscribe creates a subscription that writes all
 	// Manifests matching kinds on the given channel
 
-	// If kinds is nil then all manifest are written
-	Subscribe(kinds []manifest.Kind, messages chan<- []Message) (Subscription, error)
+	// Subscribe If kinds is nil then all manifest are written
+	Subscribe(kinds []manifest.Kind, messages chan<- []Message) Subscription
 }
 
-// Subscription
+// Subscription subscription
 type Subscription interface {
 	Unsubscribe() error
 	Error() <-chan error

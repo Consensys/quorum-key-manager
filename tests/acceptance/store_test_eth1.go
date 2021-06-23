@@ -3,21 +3,22 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
-	ethlocal "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager/eth1"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/memory"
-	hashicorpkey "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/hashicorp"
-	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1"
-	eth1local "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/local"
+	ethlocal "github.com/consensysquorum/quorum-key-manager/src/stores/manager/eth1"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
+	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
+	"github.com/ethereum/go-ethereum/crypto"
+
 	quorumtypes "github.com/consensys/quorum/core/types"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1"
+	eth1local "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -38,7 +39,7 @@ func (s *eth1TestSuite) TearDownSuite() {
 	accounts, err := s.store.List(ctx)
 	require.NoError(s.T(), err)
 
-	s.env.logger.WithField("addresses", accounts).Info("Deleting the following accounts")
+	s.env.logger.Info("Deleting the following accounts", "addresses", accounts)
 	for _, address := range accounts {
 		err = s.store.Delete(ctx, address)
 		if err != nil && errors.IsNotSupportedError(err) {

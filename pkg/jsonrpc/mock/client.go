@@ -7,7 +7,7 @@ package mock
 import (
 	reflect "reflect"
 
-	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	jsonrpc "github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -34,7 +34,7 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// Do mocks base method.
+// Do mock base method.
 func (m *MockClient) Do(arg0 *jsonrpc.RequestMsg) (*jsonrpc.ResponseMsg, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Do", arg0)

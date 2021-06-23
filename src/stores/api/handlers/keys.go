@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	jsonutils "github.com/ConsenSysQuorum/quorum-key-manager/pkg/json"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	storesmanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	jsonutils "github.com/consensysquorum/quorum-key-manager/pkg/json"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 
 	"github.com/gorilla/mux"
 )
@@ -19,7 +19,7 @@ type KeysHandler struct {
 	stores storesmanager.Manager
 }
 
-// New creates a http.Handler to be served on /keys
+// NewKeysHandler creates a http.Handler to be served on /keys
 func NewKeysHandler(s storesmanager.Manager) *KeysHandler {
 	return &KeysHandler{
 		stores: s,
@@ -170,7 +170,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_, _ = rw.Write([]byte(base64.URLEncoding.EncodeToString(signature)))
+	_, _ = rw.Write([]byte(base64.StdEncoding.EncodeToString(signature)))
 }
 
 // @Summary Get key by ID

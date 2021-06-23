@@ -1,7 +1,7 @@
 package json
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
 )

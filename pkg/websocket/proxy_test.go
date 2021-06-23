@@ -9,8 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/golang/mock/gomock"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -96,12 +101,12 @@ func (h bckndHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-func createProxyServer(uri string) (*httptest.Server, *Proxy) {
+func createProxyServer(uri string, logger log.Logger) (*httptest.Server, *Proxy) {
 	prep, _ := request.Proxy(&request.ProxyConfig{Addr: uri})
 	modif := response.Proxy(&response.ProxyConfig{})
 	cfg := (&ProxyConfig{}).SetDefault()
 
-	prx := NewProxy(cfg)
+	prx := NewProxy(cfg, logger)
 	prx.Upgrader = upgrader
 	prx.Dialer = dialer
 	prx.ReqPreparer = prep
@@ -119,6 +124,9 @@ func createProxyServer(uri string) (*httptest.Server, *Proxy) {
 }
 
 func TestProxy(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	h := bckndHandler{
 		in:  make(chan *nextMsg, 3),
 		out: make(chan interface{}),
@@ -127,7 +135,7 @@ func TestProxy(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -172,6 +180,9 @@ func TestProxy(t *testing.T) {
 }
 
 func TestCloseClientNormal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	h := bckndHandler{
 		in:  make(chan *nextMsg, 3),
 		out: make(chan interface{}),
@@ -180,7 +191,7 @@ func TestCloseClientNormal(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -197,6 +208,9 @@ func TestCloseClientNormal(t *testing.T) {
 }
 
 func TestCloseClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	h := bckndHandler{
 		in:  make(chan *nextMsg, 3),
 		out: make(chan interface{}),
@@ -205,7 +219,7 @@ func TestCloseClient(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -219,6 +233,9 @@ func TestCloseClient(t *testing.T) {
 }
 
 func TestProxyCloseServer(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	h := bckndHandler{
 		in:   make(chan *nextMsg, 3),
 		out:  make(chan interface{}),
@@ -228,7 +245,7 @@ func TestProxyCloseServer(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, _ := createProxyServer(backSrv.URL)
+	proxySrv, _ := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 	defer proxySrv.Close()
 
 	proxyAddr := proxySrv.Listener.Addr().String()
@@ -254,6 +271,9 @@ func TestProxyCloseServer(t *testing.T) {
 }
 
 func TestProxyStop(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	h := bckndHandler{
 		in:   make(chan *nextMsg, 3),
 		out:  make(chan interface{}),
@@ -263,7 +283,7 @@ func TestProxyStop(t *testing.T) {
 	backSrv := httptest.NewServer(h)
 	defer backSrv.Close()
 
-	proxySrv, prx := createProxyServer(backSrv.URL)
+	proxySrv, prx := createProxyServer(backSrv.URL, testutils.NewMockLogger(ctrl))
 
 	proxyAddr := proxySrv.Listener.Addr().String()
 	clientConn, _, err := dialer.Dial(fmt.Sprintf("ws://%v", proxyAddr), nil)

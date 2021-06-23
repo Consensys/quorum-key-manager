@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 
-	mockaccounts "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/eth1/mock"
+	mockaccounts "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )

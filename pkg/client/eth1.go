@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
 )
 
 const eth1Path = "eth1"
@@ -43,9 +43,9 @@ func (c *HTTPClient) ImportEth1Account(ctx context.Context, storeName string, re
 	return eth1Acc, nil
 }
 
-func (c *HTTPClient) UpdateEth1Account(ctx context.Context, storeName string, req *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+func (c *HTTPClient) UpdateEth1Account(ctx context.Context, storeName, address string, req *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	eth1Acc := &types.Eth1AccountResponse{}
-	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), eth1Path)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := patchRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
@@ -60,8 +60,8 @@ func (c *HTTPClient) UpdateEth1Account(ctx context.Context, storeName string, re
 	return eth1Acc, nil
 }
 
-func (c *HTTPClient) SignEth1(ctx context.Context, storeName, account string, req *types.SignHexPayloadRequest) (string, error) {
-	reqURL := fmt.Sprintf("%s/%s/%s/sign", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) SignEth1(ctx context.Context, storeName, address string, req *types.SignHexPayloadRequest) (string, error) {
+	reqURL := fmt.Sprintf("%s/%s/%s/sign", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return "", err
@@ -71,8 +71,8 @@ func (c *HTTPClient) SignEth1(ctx context.Context, storeName, account string, re
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) SignTypedData(ctx context.Context, storeName, account string, req *types.SignTypedDataRequest) (string, error) {
-	reqURL := fmt.Sprintf("%s/%s/%s/sign-typed-data", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) SignTypedData(ctx context.Context, storeName, address string, req *types.SignTypedDataRequest) (string, error) {
+	reqURL := fmt.Sprintf("%s/%s/%s/sign-typed-data", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return "", err
@@ -82,8 +82,8 @@ func (c *HTTPClient) SignTypedData(ctx context.Context, storeName, account strin
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) SignTransaction(ctx context.Context, storeName, account string, req *types.SignETHTransactionRequest) (string, error) {
-	reqURL := fmt.Sprintf("%s/%s/%s/sign-transaction", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) SignTransaction(ctx context.Context, storeName, address string, req *types.SignETHTransactionRequest) (string, error) {
+	reqURL := fmt.Sprintf("%s/%s/%s/sign-transaction", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return "", err
@@ -93,8 +93,8 @@ func (c *HTTPClient) SignTransaction(ctx context.Context, storeName, account str
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, account string, req *types.SignQuorumPrivateTransactionRequest) (string, error) {
-	reqURL := fmt.Sprintf("%s/%s/%s/sign-quorum-private-transaction", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, req *types.SignQuorumPrivateTransactionRequest) (string, error) {
+	reqURL := fmt.Sprintf("%s/%s/%s/sign-quorum-private-transaction", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return "", err
@@ -104,8 +104,8 @@ func (c *HTTPClient) SignQuorumPrivateTransaction(ctx context.Context, storeName
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) SignEEATransaction(ctx context.Context, storeName, account string, req *types.SignEEATransactionRequest) (string, error) {
-	reqURL := fmt.Sprintf("%s/%s/%s/sign-eea-transaction", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) SignEEATransaction(ctx context.Context, storeName, address string, req *types.SignEEATransactionRequest) (string, error) {
+	reqURL := fmt.Sprintf("%s/%s/%s/sign-eea-transaction", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return "", err
@@ -115,9 +115,9 @@ func (c *HTTPClient) SignEEATransaction(ctx context.Context, storeName, account 
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) GetEth1Account(ctx context.Context, storeName, account string) (*types.Eth1AccountResponse, error) {
+func (c *HTTPClient) GetEth1Account(ctx context.Context, storeName, address string) (*types.Eth1AccountResponse, error) {
 	acc := &types.Eth1AccountResponse{}
-	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), eth1Path, account)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), eth1Path, address)
 
 	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
@@ -150,8 +150,8 @@ func (c *HTTPClient) ListEth1Accounts(ctx context.Context, storeName string) ([]
 	return accs, nil
 }
 
-func (c *HTTPClient) DeleteEth1Account(ctx context.Context, storeName, account string) error {
-	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) DeleteEth1Account(ctx context.Context, storeName, address string) error {
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := deleteRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return err
@@ -161,8 +161,8 @@ func (c *HTTPClient) DeleteEth1Account(ctx context.Context, storeName, account s
 	return parseEmptyBodyResponse(response)
 }
 
-func (c *HTTPClient) DestroyEth1Account(ctx context.Context, storeName, account string) error {
-	reqURL := fmt.Sprintf("%s/%s/%s/destroy", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) DestroyEth1Account(ctx context.Context, storeName, address string) error {
+	reqURL := fmt.Sprintf("%s/%s/%s/destroy", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := deleteRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return err
@@ -172,8 +172,8 @@ func (c *HTTPClient) DestroyEth1Account(ctx context.Context, storeName, account 
 	return parseEmptyBodyResponse(response)
 }
 
-func (c *HTTPClient) RestoreEth1Account(ctx context.Context, storeName, account string) error {
-	reqURL := fmt.Sprintf("%s/%s/%s/restore", withURLStore(c.config.URL, storeName), eth1Path, account)
+func (c *HTTPClient) RestoreEth1Account(ctx context.Context, storeName, address string) error {
+	reqURL := fmt.Sprintf("%s/%s/%s/restore", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := putRequest(ctx, c.client, reqURL, nil)
 	if err != nil {
 		return err

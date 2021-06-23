@@ -2,12 +2,13 @@ package acceptancetests
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +24,7 @@ type secretsTestSuite struct {
 func (s *secretsTestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	s.env.logger.WithField("secrets", s.secretIDs).Info("Deleting the following secrets")
+	s.env.logger.Info("Deleting the following secrets", "secrets", s.secretIDs)
 	for _, id := range s.secretIDs {
 		err := s.store.Delete(ctx, id)
 		if err != nil && errors.IsNotSupportedError(err) {
@@ -32,7 +33,24 @@ func (s *secretsTestSuite) TearDownSuite() {
 	}
 
 	for _, id := range s.secretIDs {
-		_ = s.store.Destroy(ctx, id)
+		maxTries := MAX_RETRIES
+		for {
+			err := s.store.Destroy(ctx, id)
+			if err != nil && !errors.IsStatusConflictError(err) {
+				break
+			}
+			if maxTries <= 0 {
+				if err != nil {
+					s.env.logger.Info("failed to destroy secret", "secretID", id)
+				}
+				break
+			}
+
+			maxTries -= 1
+			waitTime := time.Second * time.Duration(MAX_RETRIES-maxTries)
+			s.env.logger.Debug("waiting for deletion to complete", "keyID", id, "waitFor", waitTime.Seconds())
+			time.Sleep(waitTime)
+		}
 	}
 }
 
@@ -108,7 +126,8 @@ func (s *secretsTestSuite) TestList() {
 		ids, err := s.store.List(ctx)
 
 		require.NoError(s.T(), err)
-		assert.NotEmpty(s.T(), ids)
+		assert.Contains(s.T(), ids, id)
+		assert.Contains(s.T(), ids, id2)
 	})
 }
 

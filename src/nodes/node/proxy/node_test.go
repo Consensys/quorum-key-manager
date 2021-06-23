@@ -10,8 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,6 +36,9 @@ func assertResponse(t *testing.T, resp *jsonrpc.ResponseMsg, expectedVersion str
 }
 
 func TestRPCNodeHTTP(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	rpcServer := httptest.NewServer(
 		http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			// Create ResponseWriter
@@ -60,7 +67,7 @@ func TestRPCNodeHTTP(t *testing.T) {
 		},
 	}).SetDefault()
 
-	n, err := New(cfg)
+	n, err := New(cfg, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "New must not error")
 
 	err = n.Start(context.Background())
@@ -96,6 +103,9 @@ var dialer = &websocket.Dialer{
 }
 
 func TestNodeWebSocket(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	rpcServer := httptest.NewServer(
 		http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			conn, err := upgrader.Upgrade(rw, req, nil)
@@ -140,7 +150,7 @@ func TestNodeWebSocket(t *testing.T) {
 		},
 	}).SetDefault()
 
-	n, err := New(cfg)
+	n, err := New(cfg, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "New must not error")
 
 	err = n.Start(context.Background())
@@ -174,6 +184,9 @@ func TestNodeWebSocket(t *testing.T) {
 }
 
 func TestCustomTesseraHandler(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	privTxMngrServer := httptest.NewServer(
 		http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			rw.Header().Set("Content-Type", "application/json")
@@ -190,7 +203,7 @@ func TestCustomTesseraHandler(t *testing.T) {
 	b, _ := json.Marshal(cfg)
 	t.Logf(string(b))
 
-	n, err := New(cfg)
+	n, err := New(cfg, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "New must not error")
 
 	n.Handler = jsonrpc.DefaultRWHandler(

@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	httpclient "github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/proxy"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/request"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/response"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/http/transport"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/tessera"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/websocket"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	httpclient "github.com/consensysquorum/quorum-key-manager/pkg/http/client"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/proxy"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/response"
+	"github.com/consensysquorum/quorum-key-manager/pkg/http/transport"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/tessera"
+	"github.com/consensysquorum/quorum-key-manager/pkg/websocket"
 	gorillamux "github.com/gorilla/mux"
 	gorillawebsocket "github.com/gorilla/websocket"
 )
@@ -32,7 +34,7 @@ type Node struct {
 }
 
 // New creates a Node
-func New(cfg *Config) (*Node, error) {
+func New(cfg *Config, logger log.Logger) (*Node, error) {
 	n := new(Node)
 	var err error
 	n.rpc, err = newhttpDownstream(cfg.RPC)
@@ -53,7 +55,7 @@ func New(cfg *Config) (*Node, error) {
 	n.httpHandler = router
 
 	// Set websocket proxy
-	websocketProxy := websocket.NewProxy(cfg.RPC.Proxy.WebSocket)
+	websocketProxy := websocket.NewProxy(cfg.RPC.Proxy.WebSocket, logger)
 	websocketProxy.ReqPreparer = n.rpc.reqPreparer
 	websocketProxy.RespModifier = n.rpc.respModifier
 	websocketProxy.Interceptor = n.interceptWS

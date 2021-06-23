@@ -8,11 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	testutils2 "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
@@ -43,8 +44,7 @@ func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 	s.mountPoint = "hashicorp-plugin"
 	s.mockVault = mocks.NewMockVaultClient(ctrl)
 
-	logger := log.DefaultLogger()
-	s.keyStore = New(s.mockVault, s.mountPoint, logger)
+	s.keyStore = New(s.mockVault, s.mountPoint, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *hashicorpKeyStoreTestSuite) TestCreate() {

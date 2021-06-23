@@ -3,11 +3,11 @@ package interceptor
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -17,6 +17,8 @@ const (
 )
 
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
+	i.logger.Debug("sending EEA transaction")
+
 	// Get store for from
 	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
 	if err != nil {
@@ -31,7 +33,9 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 			n, err = sess.EthCaller().Priv().GetTransactionCount(ctx, msg.From, *msg.PrivacyGroupID)
 		} else {
 			if msg.PrivateFor == nil {
-				return nil, errors.InvalidParameterError("missing private args")
+				errMessage := "missing privateFor"
+				i.logger.Error(errMessage)
+				return nil, errors.InvalidFormatError(errMessage)
 			}
 
 			var privateFrom string
@@ -40,9 +44,9 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 			}
 			n, err = sess.EthCaller().Priv().GetEeaTransactionCount(ctx, msg.From, privateFrom, *msg.PrivateFor)
 		}
-
 		if err != nil {
-			return nil, err
+			i.logger.WithError(err).Error("failed to fetch transaction count (EEA transaction)")
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		msg.Nonce = &n
@@ -51,7 +55,8 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.GasPrice == nil {
 		gasPrice, err2 := sess.EthCaller().Eth().GasPrice(ctx)
 		if err2 != nil {
-			return nil, err2
+			i.logger.WithError(err2).Error("failed to fetch gas price (EEA transaction)")
+			return nil, errors.BlockchainNodeError(err2.Error())
 		}
 
 		msg.GasPrice = gasPrice
@@ -69,7 +74,8 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 
 		gas, err2 := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
 		if err2 != nil {
-			return nil, err2
+			i.logger.WithError(err2).Error("failed to estimate gas (EEA transaction)")
+			return nil, errors.BlockchainNodeError(err2.Error())
 		}
 
 		msg.Gas = &gas
@@ -82,7 +88,8 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	// Get ChainID from Node
 	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
-		return nil, err
+		i.logger.WithError(err).Error("failed to fetch chainID (EEA transaction)")
+		return nil, errors.BlockchainNodeError(err.Error())
 	}
 
 	// Sign
@@ -94,9 +101,11 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	// Submit transaction to downstream node
 	hash, err := sess.EthCaller().EEA().SendRawTransaction(ctx, sig)
 	if err != nil {
-		return nil, err
+		i.logger.WithError(err).Error("failed to send raw EEA transaction")
+		return nil, errors.BlockchainNodeError(err.Error())
 	}
 
+	i.logger.Info("EEA transaction sent successfully", "tx_hash", hash)
 	return &hash, nil
 }
 

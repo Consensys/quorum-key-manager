@@ -3,15 +3,16 @@ package compose
 import (
 	"context"
 	"fmt"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	goreflect "reflect"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config"
-	hashConfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
-	lstackConfig "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
-	hashVault "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
-	lstackVault "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config"
+	hashConfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	lstackConfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
+	hashVault "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
+	lstackVault "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 )
@@ -20,13 +21,13 @@ type Compose struct {
 	reflect *reflect.Reflect
 }
 
-func New() *Compose {
+func New(logger log.Logger) *Compose {
 	factory := &Compose{
 		reflect: reflect.New(),
 	}
 
-	factory.reflect.AddGenerator(goreflect.TypeOf(&hashConfig.Config{}), &hashVault.Vault{})
-	factory.reflect.AddGenerator(goreflect.TypeOf(&lstackConfig.Config{}), &lstackVault.Vault{})
+	factory.reflect.AddGenerator(goreflect.TypeOf(&hashConfig.Config{}), hashVault.New(logger))
+	factory.reflect.AddGenerator(goreflect.TypeOf(&lstackConfig.Config{}), lstackVault.New(logger))
 
 	return factory
 }

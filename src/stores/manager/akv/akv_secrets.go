@@ -1,12 +1,13 @@
 package akv
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets/akv"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv/client"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
 )
 
-// Specs is the specs format for an Azure Key Vault secret store
+// SecretSpecs is the specs format for an Azure Key Vault secret store
 type SecretSpecs struct {
 	VaultName           string `json:"vaultName"`
 	SubscriptionID      string `json:"subscriptionID"`
@@ -22,11 +23,13 @@ type SecretSpecs struct {
 	Resource            string `json:"resource"`
 }
 
-func NewSecretStore(spec *SecretSpecs, logger *log.Logger) (*akv.Store, error) {
+func NewSecretStore(spec *SecretSpecs, logger log.Logger) (*akv.Store, error) {
 	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to instantiate AKV client (secrets)"
+		logger.WithError(err).Error(errMessage, "specs", spec)
+		return nil, errors.ConfigError(errMessage)
 	}
 
 	store := akv.New(cli, logger)

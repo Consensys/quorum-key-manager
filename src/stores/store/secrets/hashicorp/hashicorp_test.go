@@ -7,12 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	testutils2 "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
@@ -38,8 +37,7 @@ func (s *hashicorpSecretStoreTestSuite) SetupTest() {
 	s.mountPoint = "secret"
 	s.mockVault = mocks.NewMockVaultClient(ctrl)
 
-	logger := log.DefaultLogger()
-	s.secretStore = New(s.mockVault, s.mountPoint, logger)
+	s.secretStore = New(s.mockVault, s.mountPoint, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *hashicorpSecretStoreTestSuite) TestSet() {

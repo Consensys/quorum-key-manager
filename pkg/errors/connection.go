@@ -1,19 +1,19 @@
 package errors
 
 const (
-	// Connection Errors (class 01XXX)
-	Connection     uint64 = 1 << 12
-	AKV                   = Connection + 1<<8 // AKV Connection error (subclass 011XX)
-	HashicorpVault        = Connection + 2<<8 // Hashicorp Connection error (subclass 012XX)
-	AWS                   = Connection + 3<<8 // AWS Connection error (subclass 013XX)
+	Connection     = "CN000"
+	AKV            = "CN100"
+	HashicorpVault = "CN200"
+	AWS            = "CN300"
+	Healthcheck    = "CN400"
+	BlockchainNode = "CN500"
 
-	// Invalid Request Errors (class 02XXX)
-	InvalidRequest   uint64 = 2 << 12
-	Unauthorized            = InvalidRequest + 1<<8 // Unauthorized error (subclass 021XX)
-	NotSupported            = InvalidRequest + 2<<8 // NotSupported error (subclass 022XX)
-	NotImplemented          = InvalidRequest + 3<<8 // NotImplemented error (subclass 023XX)
-	InvalidFormat           = InvalidRequest + 4<<8 // Invalid format (subclass 024XX)
-	InvalidParameter        = InvalidRequest + 5<<8 // Invalid parameter provided (subclass 025XX)
+	InvalidRequest   = "IR000"
+	Unauthorized     = "IR100"
+	NotSupported     = "IR200"
+	NotImplemented   = "IR300"
+	InvalidFormat    = "IR400"
+	InvalidParameter = "IR500"
 )
 
 // HashicorpVaultError is raised when failing to perform on Hashicorp Vault
@@ -46,6 +46,21 @@ func IsAWSError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), AWS)
 }
 
+// HealthcheckError is raised when failing to perform a health check
+func HealthcheckError(format string, a ...interface{}) *Error {
+	return Errorf(Healthcheck, format, a...)
+}
+
+// IsHealthcheckError indicate whether an error is a healthcheck error
+func IsHealthcheckError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), Healthcheck)
+}
+
+// BlockchainNodeError is raised when failing to perform a call to the Ethereum node
+func BlockchainNodeError(format string, a ...interface{}) *Error {
+	return Errorf(BlockchainNode, format, a...)
+}
+
 // UnauthorizedError is raised when authentication credentials are invalid
 func UnauthorizedError(format string, a ...interface{}) *Error {
 	return Errorf(Unauthorized, format, a...)
@@ -55,7 +70,7 @@ func IsUnauthorizedError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), Unauthorized)
 }
 
-// UnauthorizedError is raised when authentication credentials are invalid
+// NotSupportedError is raised when operation is not supported
 func NotSupportedError(format string, a ...interface{}) *Error {
 	return Errorf(NotSupported, format, a...)
 }

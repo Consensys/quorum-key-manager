@@ -1,10 +1,10 @@
 package client
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 )
 
 func parseSecretsManagerErrorResponse(err error) error {

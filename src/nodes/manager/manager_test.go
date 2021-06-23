@@ -5,9 +5,13 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/golang/mock/gomock"
+
 	"github.com/stretchr/testify/require"
 
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 )
 
 var manifestWithTessera = &manifest.Manifest{
@@ -70,7 +74,10 @@ var manifestRPCOnly = &manifest.Manifest{
 }
 
 func TestManager(t *testing.T) {
-	mngr := New(nil, nil)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mngr := New(nil, nil, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)
 	require.NoError(t, err, "Load must not error")

@@ -5,23 +5,24 @@ import (
 	"encoding/base64"
 	"time"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/akv"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 )
 
 type Store struct {
 	client akv.KeysClient
-	logger *log.Logger
+	logger log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(client akv.KeysClient, logger *log.Logger) *Store {
+func New(client akv.KeysClient, logger log.Logger) *Store {
 	return &Store{
 		client: client,
 		logger: logger,
@@ -33,7 +34,8 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("creating key")
 
 	kty, err := convertToAKVKeyType(alg)
 	if err != nil {
@@ -58,7 +60,8 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("importing key")
 
 	iWebKey, err := webImportKey(privKey, alg)
 	if err != nil {
@@ -77,14 +80,15 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 }
 
 func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+
 	res, err := s.client.GetKey(ctx, id, "")
 	if err != nil {
 		logger.WithError(err).Error("failed to get key")
 		return nil, err
 	}
 
-	logger.Debug("key was retrieved successfully")
+	logger.Debug("key retrieved successfully")
 	return parseKeyBundleRes(&res), nil
 }
 
@@ -101,12 +105,14 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 		kIDs = append(kIDs, kID)
 	}
 
-	s.logger.Debug("keys were listed successfully")
+	s.logger.Debug("keys listed successfully")
 	return kIDs, nil
 }
 
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("updating key")
+
 	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
 	res, err := s.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
 		Expires: &expireAt,
@@ -116,29 +122,34 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	logger.Info("key was updated successfully")
+	logger.Info("key updated successfully")
 	return parseKeyBundleRes(&res), nil
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("deleting key")
+
 	_, err := s.client.DeleteKey(ctx, id)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete key")
 		return err
 	}
 
-	logger.Info("key was deleted successfully")
+	logger.Info("key deleted successfully")
 	return nil
 }
 
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
+	logger := s.logger.With("id", id)
+
 	res, err := s.client.GetDeletedKey(ctx, id)
 	if err != nil {
-		s.logger.WithField("id", id).Error("failed to get deleted keys")
+		logger.Error("failed to get deleted key")
 		return nil, err
 	}
 
+	logger.Debug("deleted key retrieved successfully")
 	return parseKeyDeleteBundleRes(&res), nil
 }
 
@@ -155,36 +166,41 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 		kIds = append(kIds, kID)
 	}
 
+	s.logger.Debug("deleted keys listed successfully")
 	return kIds, nil
 }
 
 func (s *Store) Undelete(ctx context.Context, id string) error {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("restoring key")
+
 	_, err := s.client.RecoverDeletedKey(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error("failed to undelete key")
+		logger.WithError(err).Error("failed to restore key")
 		return err
 	}
 
-	logger.Info("key was undeleted successfully")
+	logger.Info("key restored successfully")
 	return nil
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	logger := s.logger.WithField("id", id)
-	logger.Debug("key is being destroyed...")
+	logger := s.logger.With("id", id)
+	logger.Debug("destroying key")
+
 	_, err := s.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error("failed to destroy key")
+		s.logger.WithError(err).Error("failed to permanently delete key")
 		return err
 	}
 
-	logger.Info("key was destroyed successfully")
+	logger.Info("key was permanently deleted")
 	return nil
 }
 
 func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
-	logger := s.logger.WithField("id", id)
+	logger := s.logger.With("id", id)
+	logger.Debug("signing payload")
 
 	kItem, err := s.Get(ctx, id)
 	if err != nil {
@@ -206,12 +222,12 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 
 	signature, err := base64.RawURLEncoding.DecodeString(b64Signature)
 	if err != nil {
-		errMessage := "failed to decode signature"
+		errMessage := "failed to decode signature from AKV vault"
 		logger.WithError(err).Error(errMessage)
 		return nil, errors.AKVError(errMessage)
 	}
 
-	logger.Debug("data was signed successfully")
+	logger.Debug("payload signed successfully")
 	return signature, nil
 }
 

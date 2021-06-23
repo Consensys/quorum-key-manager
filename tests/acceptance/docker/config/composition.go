@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/utils"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
+	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/utils"
 )
 
 type Composition struct {

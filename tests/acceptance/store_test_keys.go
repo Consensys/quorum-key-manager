@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,8 +23,6 @@ const (
 	privKeyEDDSA  = "5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
 )
 
-const MAX_RETRIES = 10
-
 type keysTestSuite struct {
 	suite.Suite
 	env    *IntegrationEnvironment
@@ -35,7 +33,7 @@ type keysTestSuite struct {
 func (s *keysTestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	s.env.logger.WithField("keys", s.keyIds).Info("deleting the following keys")
+	s.env.logger.Info("deleting the following keys", "keys", s.keyIds)
 	for _, id := range s.keyIds {
 		err := s.store.Delete(ctx, id)
 		if err != nil && errors.IsNotImplementedError(err) {
@@ -54,15 +52,14 @@ func (s *keysTestSuite) TearDownSuite() {
 			}
 			if maxTries <= 0 {
 				if err != nil {
-					s.env.logger.WithField("keyID", s.keyIds).Info("failed to destroy key")
+					s.env.logger.Info("failed to destroy key", "keyID", id)
 				}
 				break
 			}
 
 			maxTries -= 1
 			waitTime := time.Second * time.Duration(MAX_RETRIES-maxTries)
-			s.env.logger.WithField("keyID", s.keyIds).WithField("waitFor", waitTime.Seconds()).
-				Debug("waiting for deletion to complete")
+			s.env.logger.Debug("waiting for deletion to complete", "keyID", id, "waitFor", waitTime.Seconds())
 			time.Sleep(waitTime)
 		}
 	}

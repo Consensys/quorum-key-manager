@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 
 type ErrorResponse struct {
 	Message string `json:"message" example:"error message"`
-	Code    uint64 `json:"code,omitempty" example:"24000"`
+	Code    string `json:"code,omitempty" example:"IR001"`
 }
 
 func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {

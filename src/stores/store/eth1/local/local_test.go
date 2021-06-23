@@ -7,16 +7,17 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/formatters"
+	testutils2 "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	mock2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/database/mock"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/mock"
 	quorumtypes "github.com/consensys/quorum/core/types"
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	mock2 "github.com/consensysquorum/quorum-key-manager/src/stores/store/database/mock"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/mock"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -51,7 +52,7 @@ func (s *eth1StoreTestSuite) SetupTest() {
 
 	s.mockKeyStore = mock.NewMockStore(ctrl)
 	s.mockEth1AccountsDB = mock2.NewMockETH1Accounts(ctrl)
-	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, log.DefaultLogger())
+	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *eth1StoreTestSuite) TestCreate() {
@@ -223,7 +224,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
 		s.mockKeyStore.EXPECT().Update(ctx, fakeAccount.ID, attributes).Return(key, nil)
-		s.mockEth1AccountsDB.EXPECT().Add(ctx, expectedUpdatedAccount).Return(nil)
+		s.mockEth1AccountsDB.EXPECT().Update(ctx, expectedUpdatedAccount).Return(nil)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.NoError(s.T(), err)
@@ -263,7 +264,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
 		s.mockKeyStore.EXPECT().Update(ctx, fakeAccount.ID, attributes).Return(key, nil)
-		s.mockEth1AccountsDB.EXPECT().Add(ctx, expectedUpdatedAccount).Return(expectedErr)
+		s.mockEth1AccountsDB.EXPECT().Update(ctx, expectedUpdatedAccount).Return(expectedErr)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.Equal(s.T(), expectedErr, err)

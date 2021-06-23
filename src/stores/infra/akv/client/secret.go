@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 )
 
 func (c *AKVClient) SetSecret(ctx context.Context, secretName, value string, tags map[string]string) (keyvault.SecretBundle, error) {
@@ -34,16 +34,34 @@ func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvaul
 	if maxResults == 0 {
 		maxResultPtr = nil
 	}
+
 	res, err := c.client.GetSecrets(ctx, c.cfg.Endpoint, maxResultPtr)
 	if err != nil {
 		return nil, parseErrorResponse(err)
 	}
 
-	if len(res.Values()) == 0 {
-		return []keyvault.SecretItem{}, nil
+	items := []keyvault.SecretItem{}
+	for {
+		items = append(items, res.Values()...)
+		if !res.NotDone() {
+			break
+		}
+
+		err := res.NextWithContext(ctx)
+		if err != nil {
+			return items, err
+		}
+
+		if maxResults != 0 && len(items) >= int(maxResults) {
+			break
+		}
 	}
 
-	return res.Values(), nil
+	if maxResults != 0 && len(items) > int(maxResults) {
+		return items[0:maxResults], nil
+	}
+
+	return items, nil
 }
 
 func (c *AKVClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (keyvault.SecretBundle, error) {

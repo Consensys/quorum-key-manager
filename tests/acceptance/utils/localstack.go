@@ -1,13 +1,10 @@
 package utils
 
 import (
-	"context"
-
-	dockerlocalstack "github.com/ConsenSysQuorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
+	dockerlocalstack "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
 )
 
-func LocalstackContainer(ctx context.Context) (*dockerlocalstack.Config, error) {
-
+func LocalstackContainer() (*dockerlocalstack.Config, error) {
 	localstackHost := "localhost"
 	localstackPort := "4566"
 	localstackServices := []string{"s3", "kms", "secretsmanager"}

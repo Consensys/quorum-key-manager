@@ -2,25 +2,34 @@ package interceptor
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*hexutil.Bytes, error) {
+	i.logger.Debug("signing ETH transaction")
+
 	if msg.Gas == nil {
-		return nil, jsonrpc.InvalidParamsError(fmt.Errorf("gas not specified"))
+		errMessage := "gas not specified"
+		i.logger.Error(errMessage)
+		return nil, jsonrpc.InvalidParamsError(errors.InvalidParameterError(errMessage))
 	}
 
 	if msg.GasPrice == nil {
-		return nil, jsonrpc.InvalidParamsError(fmt.Errorf("gasPrice not specified"))
+		errMessage := "gasPrice not specified"
+		i.logger.Error(errMessage)
+		return nil, jsonrpc.InvalidParamsError(errors.InvalidParameterError(errMessage))
 	}
 
 	if msg.Nonce == nil {
-		return nil, jsonrpc.InvalidParamsError(fmt.Errorf("nonce not specified"))
+		errMessage := "nonce not specified"
+		i.logger.Error(errMessage)
+		return nil, jsonrpc.InvalidParamsError(errors.InvalidParameterError(errMessage))
 	}
 
 	if msg.Data == nil {
@@ -37,7 +46,8 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	sess := proxynode.SessionFromContext(ctx)
 	chainID, err := sess.EthCaller().Eth().ChainID(ctx)
 	if err != nil {
-		return nil, err
+		i.logger.WithError(err).Error("failed to fetch chainID")
+		return nil, errors.BlockchainNodeError(err.Error())
 	}
 
 	// Sign
@@ -51,6 +61,7 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 		return nil, err
 	}
 
+	i.logger.Info("ETH transaction signed successfully")
 	return (*hexutil.Bytes)(&sig), nil
 }
 

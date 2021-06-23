@@ -7,7 +7,11 @@ import (
 	"testing"
 	"time"
 
-	manifest "github.com/ConsenSysQuorum/quorum-key-manager/src/manifests/types"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+
+	"github.com/golang/mock/gomock"
+
+	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,6 +49,9 @@ func assertMessage(t *testing.T, expected []Message, msgs chan []Message) {
 }
 
 func TestLocalManager(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest1.yml", dir), manifest1, 0644)
 	require.NoError(t, err, "WriteFile manifest1 must not error")
@@ -52,30 +59,27 @@ func TestLocalManager(t *testing.T) {
 	err = ioutil.WriteFile(fmt.Sprintf("%v/manifest2.yml", dir), manifest2, 0644)
 	require.NoError(t, err, "WriteFile manifest2 must not error")
 
-	mngr, err := NewLocalManager(&Config{Path: dir})
+	mngr, err := NewLocalManager(&Config{Path: dir}, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
 
 	chanAB := make(chan []Message)
-	subAB, err := mngr.Subscribe([]manifest.Kind{"KindA", "KindB"}, chanAB)
-	require.NoError(t, err, "Subscribe AB must not error")
+	subAB := mngr.Subscribe([]manifest.Kind{"KindA", "KindB"}, chanAB)
+
 	defer func() { _ = subAB.Unsubscribe() }()
 
 	err = mngr.Start(context.TODO())
 	require.NoError(t, err, "Start must not error")
 
 	chanBC := make(chan []Message)
-	subBC, err := mngr.Subscribe([]manifest.Kind{"KindC", "KindB"}, chanBC)
-	require.NoError(t, err, "Subscribe BC must not error")
+	subBC := mngr.Subscribe([]manifest.Kind{"KindC", "KindB"}, chanBC)
 	defer func() { _ = subBC.Unsubscribe() }()
 
 	chanAll := make(chan []Message)
-	subAll, err := mngr.Subscribe(nil, chanAll)
-	require.NoError(t, err, "Subscribe All must not error")
+	subAll := mngr.Subscribe(nil, chanAll)
 	defer func() { _ = subAll.Unsubscribe() }()
 
 	chanNone := make(chan []Message)
-	subNone, err := mngr.Subscribe([]manifest.Kind{}, chanNone)
-	require.NoError(t, err, "Subscribe None must not error")
+	subNone := mngr.Subscribe([]manifest.Kind{}, chanNone)
 	defer func() { _ = subNone.Unsubscribe() }()
 
 	assertMessage(t, []Message{

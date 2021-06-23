@@ -3,11 +3,13 @@ package interceptor
 import (
 	"context"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, error) {
+	i.logger.Debug("listing ETH accounts")
+
 	storeAccounts, err := i.stores.ListAllAccounts(ctx)
 	if err != nil {
 		return nil, err
@@ -18,6 +20,7 @@ func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, err
 		addresses = append(addresses, storeAccount.Address)
 	}
 
+	i.logger.Debug("ETH accounts fetched successfully")
 	return addresses, nil
 }
 

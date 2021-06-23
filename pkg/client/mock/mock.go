@@ -6,8 +6,8 @@ package mock
 
 import (
 	context "context"
-	jsonrpc "github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	types "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
+	jsonrpc "github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	types "github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -260,18 +260,18 @@ func (mr *MockEth1ClientMockRecorder) ImportEth1Account(ctx, storeName, request 
 }
 
 // UpdateEth1Account mocks base method
-func (m *MockEth1Client) UpdateEth1Account(ctx context.Context, storeName string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+func (m *MockEth1Client) UpdateEth1Account(ctx context.Context, storeName, address string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateEth1Account", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "UpdateEth1Account", ctx, storeName, address, request)
 	ret0, _ := ret[0].(*types.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateEth1Account indicates an expected call of UpdateEth1Account
-func (mr *MockEth1ClientMockRecorder) UpdateEth1Account(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) UpdateEth1Account(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEth1Account", reflect.TypeOf((*MockEth1Client)(nil).UpdateEth1Account), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEth1Account", reflect.TypeOf((*MockEth1Client)(nil).UpdateEth1Account), ctx, storeName, address, request)
 }
 
 // SignEth1 mocks base method
@@ -290,78 +290,78 @@ func (mr *MockEth1ClientMockRecorder) SignEth1(ctx, storeName, account, request 
 }
 
 // SignTypedData mocks base method
-func (m *MockEth1Client) SignTypedData(ctx context.Context, storeName, account string, request *types.SignTypedDataRequest) (string, error) {
+func (m *MockEth1Client) SignTypedData(ctx context.Context, storeName, address string, request *types.SignTypedDataRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignTypedData", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignTypedData", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignTypedData indicates an expected call of SignTypedData
-func (mr *MockEth1ClientMockRecorder) SignTypedData(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) SignTypedData(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTypedData", reflect.TypeOf((*MockEth1Client)(nil).SignTypedData), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTypedData", reflect.TypeOf((*MockEth1Client)(nil).SignTypedData), ctx, storeName, address, request)
 }
 
 // SignTransaction mocks base method
-func (m *MockEth1Client) SignTransaction(ctx context.Context, storeName, account string, request *types.SignETHTransactionRequest) (string, error) {
+func (m *MockEth1Client) SignTransaction(ctx context.Context, storeName, address string, request *types.SignETHTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignTransaction", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignTransaction indicates an expected call of SignTransaction
-func (mr *MockEth1ClientMockRecorder) SignTransaction(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) SignTransaction(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTransaction", reflect.TypeOf((*MockEth1Client)(nil).SignTransaction), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTransaction", reflect.TypeOf((*MockEth1Client)(nil).SignTransaction), ctx, storeName, address, request)
 }
 
 // SignQuorumPrivateTransaction mocks base method
-func (m *MockEth1Client) SignQuorumPrivateTransaction(ctx context.Context, storeName, account string, request *types.SignQuorumPrivateTransactionRequest) (string, error) {
+func (m *MockEth1Client) SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types.SignQuorumPrivateTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignQuorumPrivateTransaction", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignQuorumPrivateTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignQuorumPrivateTransaction indicates an expected call of SignQuorumPrivateTransaction
-func (mr *MockEth1ClientMockRecorder) SignQuorumPrivateTransaction(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) SignQuorumPrivateTransaction(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignQuorumPrivateTransaction", reflect.TypeOf((*MockEth1Client)(nil).SignQuorumPrivateTransaction), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignQuorumPrivateTransaction", reflect.TypeOf((*MockEth1Client)(nil).SignQuorumPrivateTransaction), ctx, storeName, address, request)
 }
 
 // SignEEATransaction mocks base method
-func (m *MockEth1Client) SignEEATransaction(ctx context.Context, storeName, account string, request *types.SignEEATransactionRequest) (string, error) {
+func (m *MockEth1Client) SignEEATransaction(ctx context.Context, storeName, address string, request *types.SignEEATransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignEEATransaction", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignEEATransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignEEATransaction indicates an expected call of SignEEATransaction
-func (mr *MockEth1ClientMockRecorder) SignEEATransaction(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) SignEEATransaction(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEEATransaction", reflect.TypeOf((*MockEth1Client)(nil).SignEEATransaction), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEEATransaction", reflect.TypeOf((*MockEth1Client)(nil).SignEEATransaction), ctx, storeName, address, request)
 }
 
 // GetEth1Account mocks base method
-func (m *MockEth1Client) GetEth1Account(ctx context.Context, storeName, account string) (*types.Eth1AccountResponse, error) {
+func (m *MockEth1Client) GetEth1Account(ctx context.Context, storeName, address string) (*types.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "GetEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(*types.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetEth1Account indicates an expected call of GetEth1Account
-func (mr *MockEth1ClientMockRecorder) GetEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) GetEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEth1Account", reflect.TypeOf((*MockEth1Client)(nil).GetEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEth1Account", reflect.TypeOf((*MockEth1Client)(nil).GetEth1Account), ctx, storeName, address)
 }
 
 // ListEth1Accounts mocks base method
@@ -380,45 +380,45 @@ func (mr *MockEth1ClientMockRecorder) ListEth1Accounts(ctx, storeName interface{
 }
 
 // DeleteEth1Account mocks base method
-func (m *MockEth1Client) DeleteEth1Account(ctx context.Context, storeName, account string) error {
+func (m *MockEth1Client) DeleteEth1Account(ctx context.Context, storeName, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "DeleteEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteEth1Account indicates an expected call of DeleteEth1Account
-func (mr *MockEth1ClientMockRecorder) DeleteEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) DeleteEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEth1Account", reflect.TypeOf((*MockEth1Client)(nil).DeleteEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEth1Account", reflect.TypeOf((*MockEth1Client)(nil).DeleteEth1Account), ctx, storeName, address)
 }
 
 // DestroyEth1Account mocks base method
-func (m *MockEth1Client) DestroyEth1Account(ctx context.Context, storeName, account string) error {
+func (m *MockEth1Client) DestroyEth1Account(ctx context.Context, storeName, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DestroyEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "DestroyEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DestroyEth1Account indicates an expected call of DestroyEth1Account
-func (mr *MockEth1ClientMockRecorder) DestroyEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) DestroyEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyEth1Account", reflect.TypeOf((*MockEth1Client)(nil).DestroyEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyEth1Account", reflect.TypeOf((*MockEth1Client)(nil).DestroyEth1Account), ctx, storeName, address)
 }
 
 // RestoreEth1Account mocks base method
-func (m *MockEth1Client) RestoreEth1Account(ctx context.Context, storeName, account string) error {
+func (m *MockEth1Client) RestoreEth1Account(ctx context.Context, storeName, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RestoreEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "RestoreEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RestoreEth1Account indicates an expected call of RestoreEth1Account
-func (mr *MockEth1ClientMockRecorder) RestoreEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) RestoreEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreEth1Account", reflect.TypeOf((*MockEth1Client)(nil).RestoreEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreEth1Account", reflect.TypeOf((*MockEth1Client)(nil).RestoreEth1Account), ctx, storeName, address)
 }
 
 // ECRecover mocks base method
@@ -709,18 +709,18 @@ func (mr *MockKeyManagerClientMockRecorder) ImportEth1Account(ctx, storeName, re
 }
 
 // UpdateEth1Account mocks base method
-func (m *MockKeyManagerClient) UpdateEth1Account(ctx context.Context, storeName string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+func (m *MockKeyManagerClient) UpdateEth1Account(ctx context.Context, storeName, address string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateEth1Account", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "UpdateEth1Account", ctx, storeName, address, request)
 	ret0, _ := ret[0].(*types.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateEth1Account indicates an expected call of UpdateEth1Account
-func (mr *MockKeyManagerClientMockRecorder) UpdateEth1Account(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) UpdateEth1Account(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).UpdateEth1Account), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).UpdateEth1Account), ctx, storeName, address, request)
 }
 
 // SignEth1 mocks base method
@@ -739,78 +739,78 @@ func (mr *MockKeyManagerClientMockRecorder) SignEth1(ctx, storeName, account, re
 }
 
 // SignTypedData mocks base method
-func (m *MockKeyManagerClient) SignTypedData(ctx context.Context, storeName, account string, request *types.SignTypedDataRequest) (string, error) {
+func (m *MockKeyManagerClient) SignTypedData(ctx context.Context, storeName, address string, request *types.SignTypedDataRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignTypedData", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignTypedData", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignTypedData indicates an expected call of SignTypedData
-func (mr *MockKeyManagerClientMockRecorder) SignTypedData(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) SignTypedData(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTypedData", reflect.TypeOf((*MockKeyManagerClient)(nil).SignTypedData), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTypedData", reflect.TypeOf((*MockKeyManagerClient)(nil).SignTypedData), ctx, storeName, address, request)
 }
 
 // SignTransaction mocks base method
-func (m *MockKeyManagerClient) SignTransaction(ctx context.Context, storeName, account string, request *types.SignETHTransactionRequest) (string, error) {
+func (m *MockKeyManagerClient) SignTransaction(ctx context.Context, storeName, address string, request *types.SignETHTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignTransaction", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignTransaction indicates an expected call of SignTransaction
-func (mr *MockKeyManagerClientMockRecorder) SignTransaction(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) SignTransaction(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTransaction", reflect.TypeOf((*MockKeyManagerClient)(nil).SignTransaction), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTransaction", reflect.TypeOf((*MockKeyManagerClient)(nil).SignTransaction), ctx, storeName, address, request)
 }
 
 // SignQuorumPrivateTransaction mocks base method
-func (m *MockKeyManagerClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, account string, request *types.SignQuorumPrivateTransactionRequest) (string, error) {
+func (m *MockKeyManagerClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types.SignQuorumPrivateTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignQuorumPrivateTransaction", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignQuorumPrivateTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignQuorumPrivateTransaction indicates an expected call of SignQuorumPrivateTransaction
-func (mr *MockKeyManagerClientMockRecorder) SignQuorumPrivateTransaction(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) SignQuorumPrivateTransaction(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignQuorumPrivateTransaction", reflect.TypeOf((*MockKeyManagerClient)(nil).SignQuorumPrivateTransaction), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignQuorumPrivateTransaction", reflect.TypeOf((*MockKeyManagerClient)(nil).SignQuorumPrivateTransaction), ctx, storeName, address, request)
 }
 
 // SignEEATransaction mocks base method
-func (m *MockKeyManagerClient) SignEEATransaction(ctx context.Context, storeName, account string, request *types.SignEEATransactionRequest) (string, error) {
+func (m *MockKeyManagerClient) SignEEATransaction(ctx context.Context, storeName, address string, request *types.SignEEATransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignEEATransaction", ctx, storeName, account, request)
+	ret := m.ctrl.Call(m, "SignEEATransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignEEATransaction indicates an expected call of SignEEATransaction
-func (mr *MockKeyManagerClientMockRecorder) SignEEATransaction(ctx, storeName, account, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) SignEEATransaction(ctx, storeName, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEEATransaction", reflect.TypeOf((*MockKeyManagerClient)(nil).SignEEATransaction), ctx, storeName, account, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEEATransaction", reflect.TypeOf((*MockKeyManagerClient)(nil).SignEEATransaction), ctx, storeName, address, request)
 }
 
 // GetEth1Account mocks base method
-func (m *MockKeyManagerClient) GetEth1Account(ctx context.Context, storeName, account string) (*types.Eth1AccountResponse, error) {
+func (m *MockKeyManagerClient) GetEth1Account(ctx context.Context, storeName, address string) (*types.Eth1AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "GetEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(*types.Eth1AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetEth1Account indicates an expected call of GetEth1Account
-func (mr *MockKeyManagerClientMockRecorder) GetEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) GetEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).GetEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).GetEth1Account), ctx, storeName, address)
 }
 
 // ListEth1Accounts mocks base method
@@ -829,45 +829,45 @@ func (mr *MockKeyManagerClientMockRecorder) ListEth1Accounts(ctx, storeName inte
 }
 
 // DeleteEth1Account mocks base method
-func (m *MockKeyManagerClient) DeleteEth1Account(ctx context.Context, storeName, account string) error {
+func (m *MockKeyManagerClient) DeleteEth1Account(ctx context.Context, storeName, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "DeleteEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteEth1Account indicates an expected call of DeleteEth1Account
-func (mr *MockKeyManagerClientMockRecorder) DeleteEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) DeleteEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteEth1Account), ctx, storeName, address)
 }
 
 // DestroyEth1Account mocks base method
-func (m *MockKeyManagerClient) DestroyEth1Account(ctx context.Context, storeName, account string) error {
+func (m *MockKeyManagerClient) DestroyEth1Account(ctx context.Context, storeName, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DestroyEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "DestroyEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DestroyEth1Account indicates an expected call of DestroyEth1Account
-func (mr *MockKeyManagerClientMockRecorder) DestroyEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) DestroyEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).DestroyEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).DestroyEth1Account), ctx, storeName, address)
 }
 
 // RestoreEth1Account mocks base method
-func (m *MockKeyManagerClient) RestoreEth1Account(ctx context.Context, storeName, account string) error {
+func (m *MockKeyManagerClient) RestoreEth1Account(ctx context.Context, storeName, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RestoreEth1Account", ctx, storeName, account)
+	ret := m.ctrl.Call(m, "RestoreEth1Account", ctx, storeName, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RestoreEth1Account indicates an expected call of RestoreEth1Account
-func (mr *MockKeyManagerClientMockRecorder) RestoreEth1Account(ctx, storeName, account interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) RestoreEth1Account(ctx, storeName, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).RestoreEth1Account), ctx, storeName, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreEth1Account", reflect.TypeOf((*MockKeyManagerClient)(nil).RestoreEth1Account), ctx, storeName, address)
 }
 
 // ECRecover mocks base method

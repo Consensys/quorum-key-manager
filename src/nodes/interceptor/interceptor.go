@@ -1,15 +1,16 @@
 package interceptor
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode "github.com/ConsenSysQuorum/quorum-key-manager/src/nodes/node/proxy"
-	storemanager "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
+	storemanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
 )
 
 type Interceptor struct {
-	stores storemanager.Manager
-
+	stores  storemanager.Manager
 	handler jsonrpc.Handler
+	logger  log.Logger
 }
 
 func (i *Interceptor) ServeRPC(rw jsonrpc.ResponseWriter, msg *jsonrpc.RequestMsg) {
@@ -31,13 +32,16 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 	// Silence JSON-RPC personal
 	v2Router.MethodPrefix("personal_").Handle(jsonrpc.MethodNotFoundHandler())
 
-	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router))
+	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router), i.logger)
 }
 
-func New(stores storemanager.Manager) *Interceptor {
+func New(stores storemanager.Manager, logger log.Logger) *Interceptor {
 	i := &Interceptor{
 		stores: stores,
+		logger: logger,
 	}
+
 	i.handler = i.newHandler()
+
 	return i
 }

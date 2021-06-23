@@ -7,7 +7,7 @@ package mock
 import (
 	reflect "reflect"
 
-	ethereum "github.com/ConsenSysQuorum/quorum-key-manager/pkg/ethereum"
+	ethereum "github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -34,7 +34,7 @@ func (m *MockCaller) EXPECT() *MockCallerMockRecorder {
 	return m.recorder
 }
 
-// EEA mocks base method.
+// EEA mock base method.
 func (m *MockCaller) EEA() ethereum.EEACaller {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EEA")
@@ -48,7 +48,7 @@ func (mr *MockCallerMockRecorder) EEA() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EEA", reflect.TypeOf((*MockCaller)(nil).EEA))
 }
 
-// Eth mocks base method.
+// Eth mock base method.
 func (m *MockCaller) Eth() ethereum.EthCaller {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Eth")
@@ -62,7 +62,7 @@ func (mr *MockCallerMockRecorder) Eth() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Eth", reflect.TypeOf((*MockCaller)(nil).Eth))
 }
 
-// Priv mocks base method.
+// Priv mock base method.
 func (m *MockCaller) Priv() ethereum.PrivCaller {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Priv")

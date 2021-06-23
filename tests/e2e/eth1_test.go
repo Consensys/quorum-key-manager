@@ -5,16 +5,17 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/api/types/testutils"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"net/http"
 	"os"
 	"testing"
 
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/common"
-	"github.com/ConsenSysQuorum/quorum-key-manager/tests"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types/testutils"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
+	"github.com/consensysquorum/quorum-key-manager/pkg/client"
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -93,6 +94,26 @@ func (s *eth1TestSuite) TestCreate() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
+	})
+}
+
+func (s *eth1TestSuite) TestUpdate() {
+	request := testutils.FakeCreateEth1AccountRequest()
+	request.ID = "my-account-create"
+
+	acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, request)
+	require.NoError(s.T(), err)
+
+	s.Run("should update an existing account successfully", func() {
+		newTags := map[string]string{
+			"tagnew": "valuenew",
+		}
+		acc2, err := s.keyManagerClient.UpdateEth1Account(s.ctx, s.cfg.Eth1Store, acc.Address.String(), &types.UpdateEth1AccountRequest{
+			Tags: newTags,
+		})
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), newTags, acc2.Tags)
 	})
 }
 

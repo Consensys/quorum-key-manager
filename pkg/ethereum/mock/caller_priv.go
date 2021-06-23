@@ -35,7 +35,7 @@ func (m *MockPrivCaller) EXPECT() *MockPrivCallerMockRecorder {
 	return m.recorder
 }
 
-// DistributeRawTransaction mocks base method.
+// DistributeRawTransaction mock base method.
 func (m *MockPrivCaller) DistributeRawTransaction(arg0 context.Context, arg1 []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DistributeRawTransaction", arg0, arg1)
@@ -50,7 +50,7 @@ func (mr *MockPrivCallerMockRecorder) DistributeRawTransaction(arg0, arg1 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DistributeRawTransaction", reflect.TypeOf((*MockPrivCaller)(nil).DistributeRawTransaction), arg0, arg1)
 }
 
-// GetEeaTransactionCount mocks base method.
+// GetEeaTransactionCount mock base method.
 func (m *MockPrivCaller) GetEeaTransactionCount(ctx context.Context, addr common.Address, privateFrom string, privateFor []string) (uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEeaTransactionCount", ctx, addr, privateFrom, privateFor)
@@ -65,7 +65,7 @@ func (mr *MockPrivCallerMockRecorder) GetEeaTransactionCount(ctx, addr, privateF
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEeaTransactionCount", reflect.TypeOf((*MockPrivCaller)(nil).GetEeaTransactionCount), ctx, addr, privateFrom, privateFor)
 }
 
-// GetTransactionCount mocks base method.
+// GetTransactionCount mock base method.
 func (m *MockPrivCaller) GetTransactionCount(ctx context.Context, addr common.Address, privacyGroupID string) (uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionCount", ctx, addr, privacyGroupID)
