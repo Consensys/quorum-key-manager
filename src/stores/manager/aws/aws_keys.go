@@ -1,9 +1,9 @@
 package aws
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/pkg/log"
-	client2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/infra/aws/client"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/aws"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/client"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
 )
 
 // KeysSpecs is the specs format for an aws secrets manager (aws secretsmanager service)
@@ -14,12 +14,12 @@ type KeysSpecs struct {
 }
 
 func NewKeyStore(specs *KeysSpecs, logger *log.Logger) (*aws.KeyStore, error) {
-	cfg := client2.NewBaseConfig(specs.Region, specs.AccessID, specs.SecretKey)
-	cli, err := client2.NewKmsClient(cfg)
+	cfg := client.NewBaseConfig(specs.Region, specs.AccessID, specs.SecretKey)
+	cli, err := client.NewKmsClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	store := aws.New(cli, logger)
+	store := aws.New(cli, *logger)
 	return store, nil
 }

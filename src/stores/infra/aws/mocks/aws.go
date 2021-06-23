@@ -8,9 +8,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entities "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	kms "github.com/aws/aws-sdk-go/service/kms"
 	secretsmanager "github.com/aws/aws-sdk-go/service/secretsmanager"
+	entities "github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -319,10 +319,10 @@ func (mr *MockKmsClientMockRecorder) Sign(ctx, id, msg interface{}) *gomock.Call
 }
 
 // UpdateKey mocks base method.
-func (m *MockKmsClient) UpdateKey(ctx context.Context, id string, tags map[string]string) (*kms.UpdateCustomKeyStoreOutput, error) {
+func (m *MockKmsClient) UpdateKey(ctx context.Context, id string, tags map[string]string) (*kms.TagResourceOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateKey", ctx, id, tags)
-	ret0, _ := ret[0].(*kms.UpdateCustomKeyStoreOutput)
+	ret0, _ := ret[0].(*kms.TagResourceOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

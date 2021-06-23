@@ -3,9 +3,9 @@
 package acceptancetests
 
 import (
-	entities2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/aws"
+	entities2 "github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	testutils2 "github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"

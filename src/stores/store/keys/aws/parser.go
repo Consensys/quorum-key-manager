@@ -1,8 +1,8 @@
 package aws
 
 import (
-	"github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"time"
 )
 

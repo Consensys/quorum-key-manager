@@ -13,8 +13,8 @@ import (
 	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
 	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
 
+	awskey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
 	awssecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
-	awskey "github.com/ConsenSysQuorum/quorum-key-manager/src/stores/store/keys/aws"
 
 	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
