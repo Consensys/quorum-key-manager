@@ -8,6 +8,9 @@ import (
 )
 
 func parseSecretsManagerErrorResponse(err error) error {
+	if err == nil {
+		return err
+	}
 	aerr, ok := err.(awserr.Error)
 	if !ok {
 		return errors.AWSError(err.Error())
@@ -32,6 +35,9 @@ func parseSecretsManagerErrorResponse(err error) error {
 }
 
 func parseKmsErrorResponse(err error) error {
+	if err == nil {
+		return err
+	}
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
 		case kms.ErrCodeAlreadyExistsException:
