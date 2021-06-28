@@ -30,6 +30,7 @@ type Eth1Client interface {
 	ImportEth1Account(ctx context.Context, storeName string, request *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error)
 	UpdateEth1Account(ctx context.Context, storeName, address string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error)
 	SignEth1(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error)
+	SignEth1Data(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error)
 	SignTypedData(ctx context.Context, storeName, address string, request *types.SignTypedDataRequest) (string, error)
 	SignTransaction(ctx context.Context, storeName, address string, request *types.SignETHTransactionRequest) (string, error)
 	SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types.SignQuorumPrivateTransactionRequest) (string, error)

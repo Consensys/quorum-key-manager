@@ -21,16 +21,18 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 	switch cfg.Mode {
 	case log.DevelopmentMode:
 		zapCfg := zap.NewDevelopmentConfig()
+		zapCfg.Level = level
 		zapCfg.DisableStacktrace = true
 		zapCfg.DisableCaller = true
-		zapCfg.Level = level
 		logger, err = zapCfg.Build()
 	default:
 		zapCfg := zap.NewProductionConfig()
-		zapCfg.DisableCaller = true
 		zapCfg.Level = level
+		zapCfg.DisableStacktrace = true
+		zapCfg.DisableCaller = true
 		logger, err = zapCfg.Build()
 	}
+
 	if err != nil {
 		return nil, err
 	}

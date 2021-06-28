@@ -71,6 +71,17 @@ func (c *HTTPClient) SignEth1(ctx context.Context, storeName, address string, re
 	return parseStringResponse(response)
 }
 
+func (c *HTTPClient) SignEth1Data(ctx context.Context, storeName, address string, req *types.SignHexPayloadRequest) (string, error) {
+	reqURL := fmt.Sprintf("%s/%s/%s/sign-data", withURLStore(c.config.URL, storeName), eth1Path, address)
+	response, err := postRequest(ctx, c.client, reqURL, req)
+	if err != nil {
+		return "", err
+	}
+
+	defer closeResponse(response)
+	return parseStringResponse(response)
+}
+
 func (c *HTTPClient) SignTypedData(ctx context.Context, storeName, address string, req *types.SignTypedDataRequest) (string, error) {
 	reqURL := fmt.Sprintf("%s/%s/%s/sign-typed-data", withURLStore(c.config.URL, storeName), eth1Path, address)
 	response, err := postRequest(ctx, c.client, reqURL, req)
