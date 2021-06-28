@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
@@ -245,7 +246,7 @@ func (ks *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, e
 }
 
 func (ks *KeyStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	return errors.ErrNotImplemented
+	return keys.VerifySignature(ks.logger, pubKey, data, sig, algo)
 }
 
 // Encrypt any arbitrary data using a specified key
