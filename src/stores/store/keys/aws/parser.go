@@ -6,45 +6,19 @@ import (
 	"time"
 )
 
-func algoFromAWSPublicKeyInfo(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
+func parseAlgorithm(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
 	algo := &entities.Algorithm{}
-	if pubKeyInfo == nil {
-		return algo
-	}
 	if pubKeyInfo.KeyUsage != nil && *pubKeyInfo.KeyUsage == kms.KeyUsageTypeSignVerify {
-
 		if *pubKeyInfo.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1 {
 			algo.Type = entities.Ecdsa
 			algo.EllipticCurve = entities.Secp256k1
 		}
-
 	}
 
 	return algo
 }
 
-func metadataFromAWSKey(createdKey *kms.CreateKeyOutput) *entities.Metadata {
-
-	createdAt := createdKey.KeyMetadata.CreationDate
-	deletedAt := &time.Time{}
-	if createdKey.KeyMetadata.DeletionDate != nil {
-		deletedAt = createdKey.KeyMetadata.DeletionDate
-	}
-	expireAt := &time.Time{}
-	if createdKey.KeyMetadata.ValidTo != nil {
-		expireAt = createdKey.KeyMetadata.ValidTo
-	}
-
-	return &entities.Metadata{
-		Version:   "",
-		Disabled:  !*createdKey.KeyMetadata.Enabled,
-		ExpireAt:  *expireAt,
-		CreatedAt: *createdAt,
-		DeletedAt: *deletedAt,
-	}
-}
-
-func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
+func parseMetadata(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
 	// createdAt field always provided
 	createdAt := describedKey.KeyMetadata.CreationDate
 	deletedAt := &time.Time{}
@@ -57,8 +31,7 @@ func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities.M
 	}
 
 	return &entities.Metadata{
-		// Nothing equivalent to key version was found
-		Version:   "",
+		Version:   "1",
 		Disabled:  !*describedKey.KeyMetadata.Enabled,
 		ExpireAt:  *expireAt,
 		CreatedAt: *createdAt,
@@ -66,7 +39,11 @@ func metadataFromAWSDescribeKey(describedKey *kms.DescribeKeyOutput) *entities.M
 	}
 }
 
-func fillAwsAnnotations(annotations map[string]string, keyDesc *kms.DescribeKeyOutput) {
+func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]string {
+	annotations := make(map[string]string)
+
+	annotations[awskeyIDTag] = keyID
+
 	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
 		annotations[awsCustomerKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
 	}
@@ -79,4 +56,6 @@ func fillAwsAnnotations(annotations map[string]string, keyDesc *kms.DescribeKeyO
 	if keyDesc.KeyMetadata.Arn != nil {
 		annotations[awsARN] = *keyDesc.KeyMetadata.Arn
 	}
+
+	return annotations
 }

@@ -33,7 +33,6 @@ type KmsClient interface {
 	DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error)
 	UpdateKey(ctx context.Context, id string, tags map[string]string) (*kms.TagResourceOutput, error)
 	Sign(ctx context.Context, id string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error)
-	Verify(ctx context.Context, id string, msg, signature []byte, signingAlgorithm string) (*kms.VerifyOutput, error)
 	DeleteKey(ctx context.Context, id string) (*kms.ScheduleKeyDeletionOutput, error)
-	RecoverKey(ctx context.Context, id string) (*kms.CancelKeyDeletionOutput, error)
+	RestoreKey(ctx context.Context, id string) (*kms.CancelKeyDeletionOutput, error)
 }

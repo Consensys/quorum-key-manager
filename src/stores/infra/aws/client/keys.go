@@ -140,22 +140,6 @@ func (c *AwsKmsClient) Sign(ctx context.Context, id string, msg []byte, signingA
 	return out, nil
 }
 
-func (c *AwsKmsClient) Verify(ctx context.Context, id string, msg, signature []byte, signingAlgorithm string) (*kms.VerifyOutput, error) {
-	msgType := kms.MessageTypeDigest
-	out, err := c.client.Verify(&kms.VerifyInput{
-		KeyId:            &id,
-		Message:          msg,
-		MessageType:      &msgType,
-		Signature:        signature,
-		SigningAlgorithm: &signingAlgorithm,
-	})
-	if err != nil {
-		return nil, parseKmsErrorResponse(err)
-	}
-
-	return out, nil
-}
-
 func (c *AwsKmsClient) DeleteKey(ctx context.Context, id string) (*kms.ScheduleKeyDeletionOutput, error) {
 	out, err := c.client.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
 		KeyId: &id,
@@ -167,7 +151,7 @@ func (c *AwsKmsClient) DeleteKey(ctx context.Context, id string) (*kms.ScheduleK
 	return out, nil
 }
 
-func (c *AwsKmsClient) RecoverKey(ctx context.Context, id string) (*kms.CancelKeyDeletionOutput, error) {
+func (c *AwsKmsClient) RestoreKey(ctx context.Context, id string) (*kms.CancelKeyDeletionOutput, error) {
 	out, err := c.client.CancelKeyDeletion(&kms.CancelKeyDeletionInput{
 		KeyId: &id,
 	})

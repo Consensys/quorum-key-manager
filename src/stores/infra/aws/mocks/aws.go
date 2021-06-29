@@ -315,21 +315,6 @@ func (mr *MockKmsClientMockRecorder) Sign(ctx, id, msg, signingAlgorithm interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockKmsClient)(nil).Sign), ctx, id, msg, signingAlgorithm)
 }
 
-// Verify mocks base method
-func (m *MockKmsClient) Verify(ctx context.Context, id string, msg, signature []byte, signingAlgorithm string) (*kms.VerifyOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", ctx, id, msg, signature, signingAlgorithm)
-	ret0, _ := ret[0].(*kms.VerifyOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Verify indicates an expected call of Verify
-func (mr *MockKmsClientMockRecorder) Verify(ctx, id, msg, signature, signingAlgorithm interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockKmsClient)(nil).Verify), ctx, id, msg, signature, signingAlgorithm)
-}
-
 // DeleteKey mocks base method
 func (m *MockKmsClient) DeleteKey(ctx context.Context, id string) (*kms.ScheduleKeyDeletionOutput, error) {
 	m.ctrl.T.Helper()
@@ -345,17 +330,17 @@ func (mr *MockKmsClientMockRecorder) DeleteKey(ctx, id interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKey", reflect.TypeOf((*MockKmsClient)(nil).DeleteKey), ctx, id)
 }
 
-// RecoverKey mocks base method
-func (m *MockKmsClient) RecoverKey(ctx context.Context, id string) (*kms.CancelKeyDeletionOutput, error) {
+// RestoreKey mocks base method
+func (m *MockKmsClient) RestoreKey(ctx context.Context, id string) (*kms.CancelKeyDeletionOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecoverKey", ctx, id)
+	ret := m.ctrl.Call(m, "RestoreKey", ctx, id)
 	ret0, _ := ret[0].(*kms.CancelKeyDeletionOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RecoverKey indicates an expected call of RecoverKey
-func (mr *MockKmsClientMockRecorder) RecoverKey(ctx, id interface{}) *gomock.Call {
+// RestoreKey indicates an expected call of RestoreKey
+func (mr *MockKmsClientMockRecorder) RestoreKey(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecoverKey", reflect.TypeOf((*MockKmsClient)(nil).RecoverKey), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreKey", reflect.TypeOf((*MockKmsClient)(nil).RestoreKey), ctx, id)
 }
