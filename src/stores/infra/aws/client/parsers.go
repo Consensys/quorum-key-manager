@@ -8,9 +8,6 @@ import (
 )
 
 func parseSecretsManagerErrorResponse(err error) error {
-	if err == nil {
-		return err
-	}
 	aerr, ok := err.(awserr.Error)
 	if !ok {
 		return errors.AWSError(err.Error())
@@ -19,15 +16,11 @@ func parseSecretsManagerErrorResponse(err error) error {
 	switch aerr.Code() {
 	case secretsmanager.ErrCodeResourceExistsException:
 		return errors.AlreadyExistsError(aerr.Error())
-	case secretsmanager.ErrCodeInvalidParameterException:
-		return errors.InvalidParameterError(aerr.Error())
 	case secretsmanager.ErrCodeInvalidRequestException:
 		return errors.InvalidFormatError(aerr.Error())
 	case secretsmanager.ErrCodeResourceNotFoundException:
 		return errors.NotFoundError(aerr.Error())
-	case secretsmanager.ErrCodeInvalidNextTokenException:
-		return errors.InvalidParameterError(aerr.Error())
-	case secretsmanager.ErrCodeMalformedPolicyDocumentException:
+	case secretsmanager.ErrCodeInvalidNextTokenException, secretsmanager.ErrCodeMalformedPolicyDocumentException, secretsmanager.ErrCodeInvalidParameterException:
 		return errors.InvalidParameterError(aerr.Error())
 	default:
 		return errors.AWSError(aerr.Error())
@@ -35,28 +28,26 @@ func parseSecretsManagerErrorResponse(err error) error {
 }
 
 func parseKmsErrorResponse(err error) error {
-	if err == nil {
-		return err
+	aerr, ok := err.(awserr.Error)
+	if !ok {
+		return errors.AWSError(err.Error())
 	}
-	if aerr, ok := err.(awserr.Error); ok {
-		switch aerr.Code() {
-		case kms.ErrCodeAlreadyExistsException:
-			return errors.AlreadyExistsError("resource already exists")
-		case kms.ErrCodeInternalException:
-			return errors.AWSError("internal error")
-		case kms.ErrCodeLimitExceededException:
-			return errors.AWSError("resource limit error")
-		case kms.ErrCodeIncorrectKeyException:
-		case kms.ErrCodeIncorrectKeyMaterialException:
-		case kms.ErrCodeInvalidAliasNameException:
-		case kms.ErrCodeInvalidCiphertextException:
-		case kms.ErrCodeInvalidArnException:
-		case kms.ErrCodeInvalidStateException:
-			return errors.InvalidParameterError("invalid parameter")
-		case kms.ErrCodeNotFoundException:
-			return errors.NotFoundError("resource was not found")
 
-		}
+	switch aerr.Code() {
+	case kms.ErrCodeNotFoundException:
+		return errors.NotFoundError("resource was not found")
+	case kms.ErrCodeAlreadyExistsException:
+		return errors.AlreadyExistsError(aerr.Error())
+	case
+		kms.ErrCodeIncorrectKeyException,
+		kms.ErrCodeIncorrectKeyMaterialException,
+		kms.ErrCodeInvalidAliasNameException,
+		kms.ErrCodeInvalidCiphertextException,
+		kms.ErrCodeInvalidArnException:
+		return errors.InvalidFormatError(aerr.Error())
+	case kms.ErrCodeInvalidStateException:
+		return errors.InvalidParameterError(aerr.Error())
+	default:
+		return errors.AWSError(aerr.Error())
 	}
-	return err
 }

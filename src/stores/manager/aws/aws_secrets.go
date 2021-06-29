@@ -12,10 +12,11 @@ type SecretSpecs struct {
 	Region    string `json:"region"`
 	AccessID  string `json:"accessID"`
 	SecretKey string `json:"secretKey"`
+	Debug     bool   `json:"debug"`
 }
 
 func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*aws.SecretStore, error) {
-	cfg := client.NewBaseConfig(specs.Region, specs.AccessID, specs.SecretKey)
+	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
 	cli, err := client.NewSecretsClient(cfg)
 	if err != nil {
 		errMessage := "failed to instantiate AWS client (secrets)"

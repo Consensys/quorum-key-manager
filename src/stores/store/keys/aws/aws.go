@@ -18,13 +18,11 @@ const (
 	awsARN                = "awsARN"
 )
 
-// Store is an implementation of key store relying on AWS kms
 type KeyStore struct {
 	client aws.KmsClient
 	logger log.Logger
 }
 
-// New creates an AWS secret store
 func New(client aws.KmsClient, logger log.Logger) *KeyStore {
 	return &KeyStore{
 		client: client,
@@ -32,12 +30,10 @@ func New(client aws.KmsClient, logger log.Logger) *KeyStore {
 	}
 }
 
-// Info returns store information
 func (ks *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Create a new key and stores it
 func (ks *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := ks.logger
 
@@ -79,7 +75,6 @@ func (ks *KeyStore) Import(ctx context.Context, id string, privKey []byte, alg *
 	return nil, errors.ErrNotSupported
 }
 
-// Get the public part of a stored key.
 func (ks *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := ks.logger.With("id", id)
 	outGetKey, err := ks.client.GetPublicKey(ctx, id)
@@ -159,7 +154,6 @@ func (ks *KeyStore) doListTags(ctx context.Context, keyID string, logger log.Log
 	return tags, nil
 }
 
-// List keys
 func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
 	var keys []string
 	nextMarker := ""
@@ -186,7 +180,6 @@ func (ks *KeyStore) List(ctx context.Context) ([]string, error) {
 	return keys, nil
 }
 
-// Update key tags
 func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	logger := ks.logger.With("id", id)
 
@@ -201,7 +194,6 @@ func (ks *KeyStore) Update(ctx context.Context, id string, attr *entities.Attrib
 	return ks.Get(ctx, id)
 }
 
-// Delete key not permanently, by using Undelete() the key can be enabled again
 func (ks *KeyStore) Delete(ctx context.Context, id string) error {
 	logger := ks.logger.With("id", id)
 	_, err := ks.client.DeleteKey(ctx, id)
@@ -213,27 +205,22 @@ func (ks *KeyStore) Delete(ctx context.Context, id string) error {
 	return err
 }
 
-// GetDeleted keys
 func (ks *KeyStore) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// ListDeleted keys
 func (ks *KeyStore) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Undelete a previously deleted secret
 func (ks *KeyStore) Undelete(ctx context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// Destroy secret permanently
 func (ks *KeyStore) Destroy(ctx context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-// Sign from any arbitrary data using the specified key
 func (ks *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
 	logger := ks.logger.With("id", id)
 	outSignature, err := ks.client.Sign(ctx, id, data)
@@ -249,12 +236,10 @@ func (ks *KeyStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *
 	return keys.VerifySignature(ks.logger, pubKey, data, sig, algo)
 }
 
-// Encrypt any arbitrary data using a specified key
 func (ks *KeyStore) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Decrypt a single block of encrypted data.
 func (ks *KeyStore) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
