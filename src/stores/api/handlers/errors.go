@@ -34,6 +34,8 @@ func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {
 		writeErrorResponse(rw, http.StatusFailedDependency, errors.DependencyFailureError(internalDepErrMsg))
 	case errors.IsNotImplementedError(err):
 		writeErrorResponse(rw, http.StatusNotImplemented, err)
+	case errors.IsNotSupportedError(err):
+		writeErrorResponse(rw, http.StatusMethodNotAllowed, err)
 	default:
 		writeErrorResponse(rw, http.StatusInternalServerError, fmt.Errorf(internalErrMsg))
 	}

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 
@@ -9,6 +10,10 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+)
+
+const (
+	aliasPrefix = "alias"
 )
 
 type KeyStore struct {
@@ -31,7 +36,7 @@ func (s *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorith
 	logger := s.logger.With("id", id)
 	logger.Debug("creating key")
 
-	_, err := s.client.CreateKey(ctx, id, alg, attr)
+	_, err := s.client.CreateKey(ctx, alias(id), alg, attr)
 	if err != nil {
 		logger.WithError(err).Error("failed to create key")
 		return nil, err
@@ -56,20 +61,22 @@ func (s *KeyStore) Import(_ context.Context, _ string, _ []byte, _ *entities.Alg
 func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 
-	outGetKey, err := s.client.GetPublicKey(ctx, id)
-	if err != nil {
-		logger.WithError(err).Error("failed to get key")
-		return nil, err
-	}
-
-	tags, err := s.listTags(ctx, *outGetKey.KeyId, logger)
-	if err != nil {
-		return nil, err
-	}
-
-	outDescribe, err := s.client.DescribeKey(ctx, *outGetKey.KeyId)
+	outDescribe, err := s.client.DescribeKey(ctx, alias(id))
 	if err != nil {
 		logger.WithError(err).Error("failed to describe key")
+		return nil, err
+	}
+	keyID := *outDescribe.KeyMetadata.KeyId
+
+	outGetKey, err := s.client.GetPublicKey(ctx, keyID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get public key")
+		return nil, err
+	}
+
+	tags, err := s.listTags(ctx, keyID)
+	if err != nil {
+		logger.WithError(err).Error("failed to list tags")
 		return nil, err
 	}
 
@@ -84,61 +91,44 @@ func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	}, nil
 }
 
-func (s *KeyStore) listTags(ctx context.Context, keyID string, logger log.Logger) (map[string]string, error) {
-	tags := make(map[string]string)
-
-	nextMarker := ""
-	for {
-		ret, err := s.client.ListTags(ctx, keyID, nextMarker)
-		if err != nil {
-			logger.WithError(err).Error("failed to list tags")
-			return nil, err
-		}
-
-		for _, tag := range ret.Tags {
-			tags[*tag.TagKey] = *tag.TagValue
-		}
-		if !*ret.Truncated {
-			break
-		}
-		nextMarker = *ret.NextMarker
-	}
-
-	return tags, nil
-}
-
 func (s *KeyStore) List(ctx context.Context) ([]string, error) {
-	var keyIds []string
-	nextMarker := ""
+	keyIDs, err := s.List(ctx)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to list keys")
+		return nil, err
+	}
 
-	// Loop until the entire list is constituted
-	for {
-		ret, err := s.client.ListKeys(ctx, 0, nextMarker)
+	var ids []string
+	for _, keyID := range keyIDs {
+		outKey, err := s.client.DescribeKey(ctx, keyID)
 		if err != nil {
-			s.logger.WithError(err).Error("failed to list keys")
+			s.logger.WithError(err).Error("failed to get key for alias listing")
 			return nil, err
 		}
 
-		for _, key := range ret.Keys {
-			keyIds = append(keyIds, *key.KeyId)
+		keyAlias, err := s.client.GetAlias(ctx, *outKey.KeyMetadata.KeyId)
+		if err != nil {
+			s.logger.WithError(err).Error("failed to get key for alias listing")
+			return nil, err
 		}
 
-		if ret.NextMarker == nil {
-			break
-		}
-		nextMarker = *ret.NextMarker
-
+		ids = append(ids, keyAlias)
 	}
 
-	s.logger.Info("keys listed successfully")
-	return keyIds, nil
+	s.logger.Debug("keys listed successfully")
+	return ids, nil
 }
 
 func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 	logger.Debug("updating key")
 
-	_, err := s.client.UpdateKey(ctx, id, attr.Tags)
+	key, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.client.UpdateKey(ctx, key.Annotations[awsKeyID], attr.Tags)
 	if err != nil {
 		logger.WithError(err).Error("failed to update key")
 		return nil, err
@@ -152,7 +142,12 @@ func (s *KeyStore) Delete(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("deleting key")
 
-	_, err := s.client.DeleteKey(ctx, id)
+	key, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.client.DeleteKey(ctx, key.Annotations[awsKeyID])
 	if err != nil {
 		logger.WithError(err).Error("failed to delete key")
 		return err
@@ -162,12 +157,12 @@ func (s *KeyStore) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *KeyStore) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+func (s *KeyStore) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
+	return nil, errors.ErrNotSupported
 }
 
-func (s *KeyStore) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+func (s *KeyStore) ListDeleted(_ context.Context) ([]string, error) {
+	return nil, errors.ErrNotSupported
 }
 
 func (s *KeyStore) Undelete(ctx context.Context, id string) error {
@@ -195,8 +190,13 @@ func (s *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, er
 	logger := s.logger.With("id", id)
 	logger.Debug("signing payload")
 
+	key, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: Only sign with ECDSA, extract the algorithm from the key when more keys are available
-	signature, err := s.client.Sign(ctx, id, data, kms.SigningAlgorithmSpecEcdsaSha256)
+	signature, err := s.client.Sign(ctx, key.Annotations[awsKeyID], data, kms.SigningAlgorithmSpecEcdsaSha256)
 	if err != nil {
 		logger.WithError(err).Error("failed to sign")
 		return nil, err
@@ -216,4 +216,30 @@ func (s *KeyStore) Encrypt(ctx context.Context, id string, data []byte) ([]byte,
 
 func (s *KeyStore) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
+}
+
+func (s *KeyStore) listTags(ctx context.Context, keyID string) (map[string]string, error) {
+	tags := make(map[string]string)
+
+	nextMarker := ""
+	for {
+		ret, err := s.client.ListTags(ctx, keyID, nextMarker)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, tag := range ret.Tags {
+			tags[*tag.TagKey] = *tag.TagValue
+		}
+		if !*ret.Truncated {
+			break
+		}
+		nextMarker = *ret.NextMarker
+	}
+
+	return tags, nil
+}
+
+func alias(id string) string {
+	return fmt.Sprintf("%s/%s", aliasPrefix, id)
 }

@@ -211,63 +211,48 @@ func (mr *MockKmsClientMockRecorder) CreateKey(ctx, id, alg, attr interface{}) *
 }
 
 // GetPublicKey mocks base method
-func (m *MockKmsClient) GetPublicKey(ctx context.Context, name string) (*kms.GetPublicKeyOutput, error) {
+func (m *MockKmsClient) GetPublicKey(ctx context.Context, keyID string) (*kms.GetPublicKeyOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPublicKey", ctx, name)
+	ret := m.ctrl.Call(m, "GetPublicKey", ctx, keyID)
 	ret0, _ := ret[0].(*kms.GetPublicKeyOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPublicKey indicates an expected call of GetPublicKey
-func (mr *MockKmsClientMockRecorder) GetPublicKey(ctx, name interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) GetPublicKey(ctx, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockKmsClient)(nil).GetPublicKey), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockKmsClient)(nil).GetPublicKey), ctx, keyID)
 }
 
 // ListKeys mocks base method
-func (m *MockKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
+func (m *MockKmsClient) ListKeys(ctx context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListKeys", ctx, limit, marker)
-	ret0, _ := ret[0].(*kms.ListKeysOutput)
+	ret := m.ctrl.Call(m, "ListKeys", ctx)
+	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListKeys indicates an expected call of ListKeys
-func (mr *MockKmsClientMockRecorder) ListKeys(ctx, limit, marker interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) ListKeys(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKmsClient)(nil).ListKeys), ctx, limit, marker)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKmsClient)(nil).ListKeys), ctx)
 }
 
 // ListTags mocks base method
-func (m *MockKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
+func (m *MockKmsClient) ListTags(ctx context.Context, keyID, marker string) (*kms.ListResourceTagsOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTags", ctx, id, marker)
+	ret := m.ctrl.Call(m, "ListTags", ctx, keyID, marker)
 	ret0, _ := ret[0].(*kms.ListResourceTagsOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListTags indicates an expected call of ListTags
-func (mr *MockKmsClientMockRecorder) ListTags(ctx, id, marker interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) ListTags(ctx, keyID, marker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*MockKmsClient)(nil).ListTags), ctx, id, marker)
-}
-
-// ListAliases mocks base method
-func (m *MockKmsClient) ListAliases(ctx context.Context, id, marker string) (*kms.ListAliasesOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAliases", ctx, id, marker)
-	ret0, _ := ret[0].(*kms.ListAliasesOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAliases indicates an expected call of ListAliases
-func (mr *MockKmsClientMockRecorder) ListAliases(ctx, id, marker interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAliases", reflect.TypeOf((*MockKmsClient)(nil).ListAliases), ctx, id, marker)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*MockKmsClient)(nil).ListTags), ctx, keyID, marker)
 }
 
 // DescribeKey mocks base method
@@ -286,61 +271,76 @@ func (mr *MockKmsClientMockRecorder) DescribeKey(ctx, id interface{}) *gomock.Ca
 }
 
 // UpdateKey mocks base method
-func (m *MockKmsClient) UpdateKey(ctx context.Context, id string, tags map[string]string) (*kms.TagResourceOutput, error) {
+func (m *MockKmsClient) UpdateKey(ctx context.Context, keyID string, tags map[string]string) (*kms.TagResourceOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateKey", ctx, id, tags)
+	ret := m.ctrl.Call(m, "UpdateKey", ctx, keyID, tags)
 	ret0, _ := ret[0].(*kms.TagResourceOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateKey indicates an expected call of UpdateKey
-func (mr *MockKmsClientMockRecorder) UpdateKey(ctx, id, tags interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) UpdateKey(ctx, keyID, tags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKey", reflect.TypeOf((*MockKmsClient)(nil).UpdateKey), ctx, id, tags)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKey", reflect.TypeOf((*MockKmsClient)(nil).UpdateKey), ctx, keyID, tags)
 }
 
 // Sign mocks base method
-func (m *MockKmsClient) Sign(ctx context.Context, id string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error) {
+func (m *MockKmsClient) Sign(ctx context.Context, keyID string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Sign", ctx, id, msg, signingAlgorithm)
+	ret := m.ctrl.Call(m, "Sign", ctx, keyID, msg, signingAlgorithm)
 	ret0, _ := ret[0].(*kms.SignOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Sign indicates an expected call of Sign
-func (mr *MockKmsClientMockRecorder) Sign(ctx, id, msg, signingAlgorithm interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) Sign(ctx, keyID, msg, signingAlgorithm interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockKmsClient)(nil).Sign), ctx, id, msg, signingAlgorithm)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockKmsClient)(nil).Sign), ctx, keyID, msg, signingAlgorithm)
 }
 
 // DeleteKey mocks base method
-func (m *MockKmsClient) DeleteKey(ctx context.Context, id string) (*kms.ScheduleKeyDeletionOutput, error) {
+func (m *MockKmsClient) DeleteKey(ctx context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteKey", ctx, id)
+	ret := m.ctrl.Call(m, "DeleteKey", ctx, keyID)
 	ret0, _ := ret[0].(*kms.ScheduleKeyDeletionOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteKey indicates an expected call of DeleteKey
-func (mr *MockKmsClientMockRecorder) DeleteKey(ctx, id interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) DeleteKey(ctx, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKey", reflect.TypeOf((*MockKmsClient)(nil).DeleteKey), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKey", reflect.TypeOf((*MockKmsClient)(nil).DeleteKey), ctx, keyID)
 }
 
 // RestoreKey mocks base method
-func (m *MockKmsClient) RestoreKey(ctx context.Context, id string) (*kms.CancelKeyDeletionOutput, error) {
+func (m *MockKmsClient) RestoreKey(ctx context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RestoreKey", ctx, id)
+	ret := m.ctrl.Call(m, "RestoreKey", ctx, keyID)
 	ret0, _ := ret[0].(*kms.CancelKeyDeletionOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RestoreKey indicates an expected call of RestoreKey
-func (mr *MockKmsClientMockRecorder) RestoreKey(ctx, id interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) RestoreKey(ctx, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreKey", reflect.TypeOf((*MockKmsClient)(nil).RestoreKey), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreKey", reflect.TypeOf((*MockKmsClient)(nil).RestoreKey), ctx, keyID)
+}
+
+// GetAlias mocks base method
+func (m *MockKmsClient) GetAlias(ctx context.Context, keyID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAlias", ctx, keyID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAlias indicates an expected call of GetAlias
+func (mr *MockKmsClientMockRecorder) GetAlias(ctx, keyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAlias", reflect.TypeOf((*MockKmsClient)(nil).GetAlias), ctx, keyID)
 }

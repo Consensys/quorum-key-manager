@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -108,7 +107,6 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 	importReq := &types.ImportEth1AccountRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, importReq)
 	if err != nil {
-		fmt.Println(err)
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}

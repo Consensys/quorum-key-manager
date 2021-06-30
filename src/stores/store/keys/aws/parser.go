@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	awskeyIDTag           = "aws-KeyID"
-	awsCustomerKeyStoreID = "aws-KeyStoreID"
-	awsCloudHsmClusterID  = "aws-ClusterHSMID"
-	awsAccountID          = "aws-AccountID"
-	awsARN                = "aws-ARN"
+	awsKeyID             = "aws-KeyId"
+	awsCustomKeyStoreId  = "aws-CustomKeyStoreId"
+	awsCloudHsmClusterID = "aws-CloudHsmClusterId"
+	awsAccountID         = "aws-AccountId"
+	awsARN               = "aws-ARN"
 )
 
 func parseAlgorithm(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
@@ -29,31 +29,33 @@ func parseAlgorithm(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
 func parseMetadata(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
 	// createdAt field always provided
 	createdAt := describedKey.KeyMetadata.CreationDate
+
 	deletedAt := &time.Time{}
 	if describedKey.KeyMetadata.DeletionDate != nil {
 		deletedAt = describedKey.KeyMetadata.DeletionDate
 	}
+
 	expireAt := &time.Time{}
 	if describedKey.KeyMetadata.ValidTo != nil {
 		expireAt = describedKey.KeyMetadata.ValidTo
 	}
 
 	return &entities.Metadata{
-		Version:   "1",
 		Disabled:  !*describedKey.KeyMetadata.Enabled,
 		ExpireAt:  *expireAt,
 		CreatedAt: *createdAt,
 		DeletedAt: *deletedAt,
+		UpdatedAt: *createdAt, // Cannot update keys so updatedAt = createdAt
 	}
 }
 
 func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]string {
 	annotations := make(map[string]string)
 
-	annotations[awskeyIDTag] = keyID
+	annotations[awsKeyID] = keyID
 
 	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
-		annotations[awsCustomerKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
+		annotations[awsCustomKeyStoreId] = *keyDesc.KeyMetadata.CustomKeyStoreId
 	}
 	if keyDesc.KeyMetadata.CloudHsmClusterId != nil {
 		annotations[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId

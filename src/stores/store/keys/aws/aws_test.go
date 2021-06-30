@@ -176,7 +176,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
 		assert.Equal(s.T(), myArn, key.Annotations[awsARN])
 		assert.Equal(s.T(), myAccountID, key.Annotations[awsAccountID])
-		assert.Equal(s.T(), myCustomerKeyStoreID, key.Annotations[awsCustomerKeyStoreID])
+		assert.Equal(s.T(), myCustomerKeyStoreID, key.Annotations[awsKeyStoreID])
 		assert.Equal(s.T(), myClusterHsmID, key.Annotations[awsCloudHsmClusterID])
 
 	})

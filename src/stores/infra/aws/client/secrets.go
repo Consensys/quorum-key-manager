@@ -20,10 +20,15 @@ type AwsSecretsClient struct {
 }
 
 func NewSecretsClient(cfg *Config) (*AwsSecretsClient, error) {
-	newSession, _ := session.NewSession()
-	client := secretsmanager.New(newSession, cfg.ToAWSConfig())
+	newSession, err := session.NewSession(cfg.ToAWSConfig())
+	if err != nil {
+		return nil, err
+	}
 
-	return &AwsSecretsClient{client: client, cfg: cfg}, nil
+	return &AwsSecretsClient{
+		client: secretsmanager.New(newSession),
+		cfg:    cfg,
+	}, nil
 }
 
 func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {

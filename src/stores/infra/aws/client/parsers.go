@@ -20,7 +20,10 @@ func parseSecretsManagerErrorResponse(err error) error {
 		return errors.InvalidFormatError(aerr.Error())
 	case secretsmanager.ErrCodeResourceNotFoundException:
 		return errors.NotFoundError(aerr.Error())
-	case secretsmanager.ErrCodeInvalidNextTokenException, secretsmanager.ErrCodeMalformedPolicyDocumentException, secretsmanager.ErrCodeInvalidParameterException:
+	case
+		secretsmanager.ErrCodeInvalidNextTokenException,
+		secretsmanager.ErrCodeMalformedPolicyDocumentException,
+		secretsmanager.ErrCodeInvalidParameterException:
 		return errors.InvalidParameterError(aerr.Error())
 	default:
 		return errors.AWSError(aerr.Error())
@@ -35,7 +38,7 @@ func parseKmsErrorResponse(err error) error {
 
 	switch aerr.Code() {
 	case kms.ErrCodeNotFoundException:
-		return errors.NotFoundError("resource was not found")
+		return errors.NotFoundError(aerr.Error())
 	case kms.ErrCodeAlreadyExistsException:
 		return errors.AlreadyExistsError(aerr.Error())
 	case
@@ -45,7 +48,7 @@ func parseKmsErrorResponse(err error) error {
 		kms.ErrCodeInvalidCiphertextException,
 		kms.ErrCodeInvalidArnException:
 		return errors.InvalidFormatError(aerr.Error())
-	case kms.ErrCodeInvalidStateException:
+	case kms.ErrCodeInvalidStateException, kms.ErrCodeInvalidMarkerException:
 		return errors.InvalidParameterError(aerr.Error())
 	default:
 		return errors.AWSError(aerr.Error())
