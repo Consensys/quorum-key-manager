@@ -33,7 +33,7 @@ func parseSecretsManagerErrorResponse(err error) error {
 func parseKmsErrorResponse(err error) error {
 	aerr, ok := err.(awserr.Error)
 	if !ok {
-		return errors.AWSError(err.Error())
+		return errors.AWSError("not a aws error", err.Error())
 	}
 
 	switch aerr.Code() {
@@ -48,7 +48,7 @@ func parseKmsErrorResponse(err error) error {
 		kms.ErrCodeInvalidCiphertextException,
 		kms.ErrCodeInvalidArnException:
 		return errors.InvalidFormatError(aerr.Error())
-	case kms.ErrCodeInvalidStateException, kms.ErrCodeInvalidMarkerException:
+	case kms.ErrCodeInvalidStateException:
 		return errors.InvalidParameterError(aerr.Error())
 	default:
 		return errors.AWSError(aerr.Error())

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"time"
 )
@@ -68,4 +69,26 @@ func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]s
 	}
 
 	return annotations
+}
+
+func toKeyType(alg *entities.Algorithm) (string, error) {
+	switch {
+	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
+		return kms.CustomerMasterKeySpecEccSecgP256k1, nil
+	case alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Bn254:
+		return "", errors.ErrNotSupported
+	default:
+		return "", errors.InvalidParameterError("invalid key type")
+	}
+}
+
+func toTags(tags map[string]string) []*kms.Tag {
+	var keyTags []*kms.Tag
+	for key, value := range tags {
+		k, v := key, value
+		keyTag := kms.Tag{TagKey: &k, TagValue: &v}
+		keyTags = append(keyTags, &keyTag)
+	}
+
+	return keyTags
 }

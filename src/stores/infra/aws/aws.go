@@ -25,12 +25,12 @@ type SecretsManagerClient interface {
 }
 
 type KmsClient interface {
-	CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, error)
+	CreateKey(ctx context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error)
 	GetPublicKey(ctx context.Context, keyID string) (*kms.GetPublicKeyOutput, error)
 	ListKeys(ctx context.Context) ([]string, error)
 	ListTags(ctx context.Context, keyID, marker string) (*kms.ListResourceTagsOutput, error)
 	DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error)
-	UpdateKey(ctx context.Context, keyID string, tags map[string]string) (*kms.TagResourceOutput, error)
+	UpdateKey(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error)
 	Sign(ctx context.Context, keyID string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error)
 	DeleteKey(ctx context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error)
 	RestoreKey(ctx context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error)

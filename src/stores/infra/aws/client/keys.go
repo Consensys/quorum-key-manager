@@ -5,8 +5,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
 type AwsKmsClient struct {
@@ -26,19 +24,14 @@ func NewKmsClient(cfg *Config) (*AwsKmsClient, error) {
 	}, nil
 }
 
-func (c *AwsKmsClient) CreateKey(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*kms.CreateKeyOutput, error) {
+func (c *AwsKmsClient) CreateKey(ctx context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
 	// Always create with same usage for key now (sign & verify)
 	keyUsage := kms.KeyUsageTypeSignVerify
 
-	keySpec, err := c.convertToAWSKeyType(alg)
-	if err != nil {
-		return nil, err
-	}
-
 	out, err := c.client.CreateKey(&kms.CreateKeyInput{
-		CustomerMasterKeySpec: &keySpec,
+		CustomerMasterKeySpec: &keyType,
 		KeyUsage:              &keyUsage,
-		Tags:                  toAWSTags(attr.Tags),
+		Tags:                  tags,
 	})
 	if err != nil {
 		return nil, err
@@ -155,35 +148,14 @@ func (c *AwsKmsClient) RestoreKey(ctx context.Context, keyID string) (*kms.Cance
 	return out, nil
 }
 
-func (c *AwsKmsClient) UpdateKey(ctx context.Context, keyID string, tags map[string]string) (*kms.TagResourceOutput, error) {
+func (c *AwsKmsClient) UpdateKey(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error) {
 	outTagResource, err := c.client.TagResource(&kms.TagResourceInput{
 		KeyId: &keyID,
-		Tags:  toAWSTags(tags),
+		Tags:  tags,
 	})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
 	}
 
 	return outTagResource, nil
-}
-
-func (c *AwsKmsClient) convertToAWSKeyType(alg *entities.Algorithm) (string, error) {
-	switch {
-	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
-		return kms.CustomerMasterKeySpecEccSecgP256k1, nil
-	case alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Bn254:
-		return "", errors.ErrNotSupported
-	default:
-		return "", errors.InvalidParameterError("invalid key type")
-	}
-}
-
-func toAWSTags(tags map[string]string) []*kms.Tag {
-	var keyTags []*kms.Tag
-	for key, value := range tags {
-		k, v := key, value
-		keyTag := kms.Tag{TagKey: &k, TagValue: &v}
-		keyTags = append(keyTags, &keyTag)
-	}
-	return keyTags
 }

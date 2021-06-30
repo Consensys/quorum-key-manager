@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
-
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 )
 
 const (
@@ -33,10 +32,16 @@ func (s *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
+	logger := s.logger.With("id", id, "curve", alg.EllipticCurve, "signing_algorithm", alg.Type)
 	logger.Debug("creating key")
 
-	_, err := s.client.CreateKey(ctx, alias(id), alg, attr)
+	keyType, err := toKeyType(alg)
+	if err != nil {
+		logger.WithError(err).Error(err.Error())
+		return nil, err
+	}
+
+	_, err = s.client.CreateKey(ctx, alias(id), keyType, toTags(attr.Tags))
 	if err != nil {
 		logger.WithError(err).Error("failed to create key")
 		return nil, err
@@ -128,7 +133,7 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 		return nil, err
 	}
 
-	_, err = s.client.UpdateKey(ctx, key.Annotations[awsKeyID], attr.Tags)
+	_, err = s.client.UpdateKey(ctx, key.Annotations[awsKeyID], toTags(attr.Tags))
 	if err != nil {
 		logger.WithError(err).Error("failed to update key")
 		return nil, err
@@ -166,17 +171,7 @@ func (s *KeyStore) ListDeleted(_ context.Context) ([]string, error) {
 }
 
 func (s *KeyStore) Undelete(ctx context.Context, id string) error {
-	logger := s.logger.With("id", id)
-	logger.Debug("restoring key")
-
-	_, err := s.client.RestoreKey(ctx, id)
-	if err != nil {
-		logger.WithError(err).Error("failed to restore key")
-		return err
-	}
-
-	logger.Info("key restored successfully")
-	return nil
+	return errors.ErrNotImplemented
 }
 
 // Destroy destroys an externally created key and stores it
@@ -243,3 +238,4 @@ func (s *KeyStore) listTags(ctx context.Context, keyID string) (map[string]strin
 func alias(id string) string {
 	return fmt.Sprintf("%s/%s", aliasPrefix, id)
 }
+
