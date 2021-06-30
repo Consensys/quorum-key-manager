@@ -11,14 +11,6 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 )
 
-const (
-	awskeyIDTag           = "aws-KeyID"
-	awsCustomerKeyStoreID = "aws-KeyStoreID"
-	awsCloudHsmClusterID  = "aws-ClusterHSMID"
-	awsAccountID          = "aws-AccountID"
-	awsARN                = "awsARN"
-)
-
 type KeyStore struct {
 	client aws.KmsClient
 	logger log.Logger

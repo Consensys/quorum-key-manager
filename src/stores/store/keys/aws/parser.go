@@ -6,6 +6,14 @@ import (
 	"time"
 )
 
+const (
+	awskeyIDTag           = "aws-KeyID"
+	awsCustomerKeyStoreID = "aws-KeyStoreID"
+	awsCloudHsmClusterID  = "aws-ClusterHSMID"
+	awsAccountID          = "aws-AccountID"
+	awsARN                = "aws-ARN"
+)
+
 func parseAlgorithm(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
 	algo := &entities.Algorithm{}
 	if pubKeyInfo.KeyUsage != nil && *pubKeyInfo.KeyUsage == kms.KeyUsageTypeSignVerify {
