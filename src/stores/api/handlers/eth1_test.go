@@ -59,18 +59,20 @@ func (s *eth1HandlerTestSuite) TearDownTest() {
 }
 
 func (s *eth1HandlerTestSuite) TestCreate() {
+	accountID := "my-create-account-id"
+	
 	s.Run("should execute request successfully", func() {
 		createEth1AccountRequest := testutils.FakeCreateEth1AccountRequest()
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/"+accountID, bytes.NewReader(requestBytes))
 
 		acc := testutils2.FakeETH1Account()
 
 		s.eth1Store.EXPECT().Create(
 			gomock.Any(),
-			createEth1AccountRequest.ID,
+			accountID,
 			&entities.Attributes{
 				Tags: createEth1AccountRequest.Tags,
 			}).Return(acc, nil)
@@ -89,7 +91,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/"+accountID, bytes.NewReader(requestBytes))
 
 		s.eth1Store.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -99,18 +101,19 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 }
 
 func (s *eth1HandlerTestSuite) TestImport() {
+	accountID := "my-import-account-id"
 	s.Run("should execute request successfully", func() {
 		importEth1AccountRequest := testutils.FakeImportEth1AccountRequest()
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/"+accountID+"/import", bytes.NewReader(requestBytes))
 
 		acc := testutils2.FakeETH1Account()
 
 		s.eth1Store.EXPECT().Import(
 			gomock.Any(),
-			importEth1AccountRequest.ID,
+			accountID,
 			importEth1AccountRequest.PrivateKey,
 			&entities.Attributes{
 				Tags: importEth1AccountRequest.Tags,
@@ -130,7 +133,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/"+accountID+"/import", bytes.NewReader(requestBytes))
 
 		s.eth1Store.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 

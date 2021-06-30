@@ -63,7 +63,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys"+keyID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
 
 		key := testutils2.FakeKey()
 
@@ -105,7 +105,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys"+keyID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -117,7 +117,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys"+keyID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))

@@ -61,7 +61,7 @@ func (s *secretsHandlerTestSuite) TestSet() {
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes))
 
 		secret := testutils2.FakeSecret()
 
