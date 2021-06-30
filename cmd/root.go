@@ -14,8 +14,8 @@ import (
 // NewCommand create root command
 func NewCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "quorum-kms",
-		Short: "Run quorum-kms",
+		Use:   "key-manager",
+		Short: "Run Quorum Key Manager",
 	}
 
 	rootCmd.AddCommand(newRunCommand())
@@ -29,7 +29,7 @@ func newRunCommand() *cobra.Command {
 		Short: "Run application",
 		RunE:  run,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			PreRunBindFlags(viper.GetViper(), cmd.Flags(), "quorum-kms")
+			PreRunBindFlags(viper.GetViper(), cmd.Flags(), "key-manager")
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			// TODO: Identify which error code to return

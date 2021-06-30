@@ -69,8 +69,8 @@ down: down-go-quorum down-besu
 down-dev:
 	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
 
-run: gobuild
-	@build/bin/key-manager run
+run: networks gobuild
+	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
 
 run-dbg: gobuild-dbg
 	@dlv --listen=:2345 --headless=true --api-version=2 --accept-multiclient exec ./build/bin/key-manager run
