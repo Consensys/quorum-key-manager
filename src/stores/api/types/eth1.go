@@ -9,12 +9,10 @@ import (
 )
 
 type CreateEth1AccountRequest struct {
-	ID   string            `json:"id" validate:"required" example:"my-account"`
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
 type ImportEth1AccountRequest struct {
-	ID         string            `json:"id" validate:"required" example:"my-imported-account"`
 	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E" swaggertype:"string"`
 	Tags       map[string]string `json:"tags,omitempty"`
 }

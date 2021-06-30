@@ -63,14 +63,14 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys"+keyID, bytes.NewReader(requestBytes))
 
 		key := testutils2.FakeKey()
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
-			createKeyRequest.ID,
+			keyID,
 			&entities.Algorithm{
 				Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
 				EllipticCurve: entities.Curve(createKeyRequest.Curve),
@@ -93,7 +93,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -105,7 +105,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys"+keyID, bytes.NewReader(requestBytes))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -117,7 +117,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys"+keyID, bytes.NewReader(requestBytes))
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
@@ -133,13 +133,13 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
 
 		key := testutils2.FakeKey()
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Import(
 			gomock.Any(),
-			importKeyRequest.ID,
+			keyID,
 			importKeyRequest.PrivateKey,
 			&entities.Algorithm{
 				Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
@@ -163,7 +163,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -175,7 +175,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -187,7 +187,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))

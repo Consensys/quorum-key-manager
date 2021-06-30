@@ -41,10 +41,9 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		URL: s.cfg.KeyManagerURL,
 	})
 
+	accountID := fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000))
 	var err error
-	s.acc, err = s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, &types.CreateEth1AccountRequest{
-		ID: fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
-	})
+	s.acc, err = s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, accountID, &types.CreateEth1AccountRequest{})
 
 	if err != nil {
 		require.NoError(s.T(), err)

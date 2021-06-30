@@ -29,8 +29,7 @@ func NewAccountsHandler(s storesmanager.Manager) *Eth1Handler {
 }
 
 func (h *Eth1Handler) Register(r *mux.Router) {
-	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
-	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
+	r.Methods(http.MethodPost).Path("/{id}/import").HandlerFunc(h.importAccount)
 	r.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
 	r.Methods(http.MethodPost).Path("/{address}/sign-data").HandlerFunc(h.signData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
@@ -41,6 +40,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 	r.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
+	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.create)
 
 	r.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
 
@@ -56,13 +56,14 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 // @Tags Ethereum Account
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Account Identifier"
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.CreateEth1AccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.Eth1AccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1 [post]
+// @Router /stores/{storeName}/eth1/{id} [post]
 func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -73,14 +74,14 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
-
+	
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(request.Context()))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	eth1Acc, err := eth1Store.Create(ctx, createReq.ID, &entities.Attributes{Tags: createReq.Tags})
+	eth1Acc, err := eth1Store.Create(ctx, mux.Vars(request)["id"], &entities.Attributes{Tags: createReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -94,13 +95,14 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Tags Ethereum Account
+// @Param id path string true "Account Identifier"
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.ImportEth1AccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.Eth1AccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/import [post]
+// @Router /stores/{storeName}/eth1/{id}/import [post]
 func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -119,7 +121,7 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	eth1Acc, err := eth1Store.Import(ctx, importReq.ID, importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
+	eth1Acc, err := eth1Store.Import(ctx, mux.Vars(request)["id"], importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

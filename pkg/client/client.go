@@ -10,14 +10,14 @@ import (
 //go:generate mockgen -source=client.go -destination=mock/mock.go -package=mock
 
 type SecretsClient interface {
-	SetSecret(ctx context.Context, storeName string, request *types.SetSecretRequest) (*types.SecretResponse, error)
+	SetSecret(ctx context.Context, storeName, id string, request *types.SetSecretRequest) (*types.SecretResponse, error)
 	GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error)
 	ListSecrets(ctx context.Context, storeName string) ([]string, error)
 }
 
 type KeysClient interface {
-	CreateKey(ctx context.Context, storeName string, request *types.CreateKeyRequest) (*types.KeyResponse, error)
-	ImportKey(ctx context.Context, storeName string, request *types.ImportKeyRequest) (*types.KeyResponse, error)
+	CreateKey(ctx context.Context, storeName, id string, request *types.CreateKeyRequest) (*types.KeyResponse, error)
+	ImportKey(ctx context.Context, storeName, id string, request *types.ImportKeyRequest) (*types.KeyResponse, error)
 	SignKey(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error)
 	VerifyKeySignature(ctx context.Context, storeName string, request *types.VerifyKeySignatureRequest) error
 	GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error)
@@ -26,8 +26,8 @@ type KeysClient interface {
 }
 
 type Eth1Client interface {
-	CreateEth1Account(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error)
-	ImportEth1Account(ctx context.Context, storeName string, request *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error)
+	CreateEth1Account(ctx context.Context, storeName, id string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error)
+	ImportEth1Account(ctx context.Context, storeName, id string, request *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error)
 	UpdateEth1Account(ctx context.Context, storeName, address string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error)
 	SignEth1(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error)
 	SignEth1Data(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error)

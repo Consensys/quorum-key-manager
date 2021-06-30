@@ -56,6 +56,7 @@ func (s *secretsHandlerTestSuite) TearDownTest() {
 
 func (s *secretsHandlerTestSuite) TestSet() {
 	s.Run("should execute request successfully", func() {
+		secretID := "my-secret"
 		setSecretRequest := testutils.FakeSetSecretRequest()
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
@@ -65,7 +66,7 @@ func (s *secretsHandlerTestSuite) TestSet() {
 		secret := testutils2.FakeSecret()
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Set(gomock.Any(), setSecretRequest.ID, setSecretRequest.Value, &entities.Attributes{
+		s.secretStore.EXPECT().Set(gomock.Any(), secretID, setSecretRequest.Value, &entities.Attributes{
 			Tags: setSecretRequest.Tags,
 		}).Return(secret, nil)
 
@@ -79,11 +80,12 @@ func (s *secretsHandlerTestSuite) TestSet() {
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
+		secretID := "my-secret"
 		setSecretRequest := testutils.FakeSetSecretRequest()
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes))
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))

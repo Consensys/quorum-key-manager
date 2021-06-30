@@ -9,9 +9,9 @@ import (
 
 const eth1Path = "eth1"
 
-func (c *HTTPClient) CreateEth1Account(ctx context.Context, storeName string, req *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+func (c *HTTPClient) CreateEth1Account(ctx context.Context, storeName, id string,req *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	eth1Acc := &types.Eth1AccountResponse{}
-	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), eth1Path)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), eth1Path, id)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
@@ -26,9 +26,9 @@ func (c *HTTPClient) CreateEth1Account(ctx context.Context, storeName string, re
 	return eth1Acc, nil
 }
 
-func (c *HTTPClient) ImportEth1Account(ctx context.Context, storeName string, req *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error) {
+func (c *HTTPClient) ImportEth1Account(ctx context.Context, storeName, id string, req *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error) {
 	eth1Acc := &types.Eth1AccountResponse{}
-	reqURL := fmt.Sprintf("%s/%s/import", withURLStore(c.config.URL, storeName), eth1Path)
+	reqURL := fmt.Sprintf("%s/%s/%s/import", withURLStore(c.config.URL, storeName), eth1Path, id)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err

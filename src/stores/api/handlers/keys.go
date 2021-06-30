@@ -27,14 +27,14 @@ func NewKeysHandler(s storesmanager.Manager) *KeysHandler {
 }
 
 func (h *KeysHandler) Register(r *mux.Router) {
-	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
-	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importKey)
+	r.Methods(http.MethodPost).Path("/{id}/import").HandlerFunc(h.importKey)
 	r.Methods(http.MethodPost).Path("/{id}/sign").HandlerFunc(h.sign)
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 	r.Methods(http.MethodPatch).Path("/{id}").HandlerFunc(h.update)
 	r.Methods(http.MethodPut).Path("/{id}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
+	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.create)
 
 	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
 	r.Methods(http.MethodDelete).Path("/{id}/destroy").HandlerFunc(h.destroy)
@@ -45,13 +45,14 @@ func (h *KeysHandler) Register(r *mux.Router) {
 // @Tags Keys
 // @Accept json
 // @Produce json
+// @Param id path string true "Key Identifier"
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.CreateKeyRequest true "Create key request"
 // @Success 200 {object} types.KeyResponse "Key data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys [post]
+// @Router /stores/{storeName}/keys/{id} [post]
 func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -71,7 +72,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 
 	key, err := keyStore.Create(
 		ctx,
-		createKeyRequest.ID,
+		mux.Vars(request)["id"],
 		&entities.Algorithm{
 			Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
 			EllipticCurve: entities.Curve(createKeyRequest.Curve),
@@ -92,13 +93,14 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 // @Tags Keys
 // @Accept json
 // @Produce json
+// @Param id path string true "Key Identifier"
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.ImportKeyRequest true "Create key request"
 // @Success 200 {object} types.KeyResponse "Key data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/import [post]
+// @Router /stores/{storeName}/keys/{id}/import [post]
 func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -118,7 +120,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 
 	key, err := keyStore.Import(
 		ctx,
-		importKeyRequest.ID,
+		mux.Vars(request)["id"],
 		importKeyRequest.PrivateKey,
 		&entities.Algorithm{
 			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
