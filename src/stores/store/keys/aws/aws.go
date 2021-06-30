@@ -73,7 +73,7 @@ func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	}
 	keyID := *outDescribe.KeyMetadata.KeyId
 
-	outGetKey, err := s.client.GetPublicKey(ctx, keyID)
+	outPublicKey, err := s.client.GetPublicKey(ctx, keyID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get public key")
 		return nil, err
@@ -85,15 +85,14 @@ func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 		return nil, err
 	}
 
+	key, err := parseKey(id, outPublicKey, outDescribe, tags)
+	if err != nil {
+		logger.WithError(err).Error("failed to parse retrieved public key")
+		return nil, err
+	}
+
 	logger.Debug("key retrieved successfully")
-	return &entities.Key{
-		ID:          id,
-		PublicKey:   outGetKey.PublicKey,
-		Algo:        parseAlgorithm(outGetKey),
-		Metadata:    parseMetadata(outDescribe),
-		Tags:        tags,
-		Annotations: parseAnnotations(*outGetKey.KeyId, outDescribe),
-	}, nil
+	return key, nil
 }
 
 func (s *KeyStore) List(ctx context.Context) ([]string, error) {
@@ -191,14 +190,20 @@ func (s *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, er
 	}
 
 	// TODO: Only sign with ECDSA, extract the algorithm from the key when more keys are available
-	signature, err := s.client.Sign(ctx, key.Annotations[awsKeyID], data, kms.SigningAlgorithmSpecEcdsaSha256)
+	outSignature, err := s.client.Sign(ctx, key.Annotations[awsKeyID], data, kms.SigningAlgorithmSpecEcdsaSha256)
 	if err != nil {
 		logger.WithError(err).Error("failed to sign")
 		return nil, err
 	}
 
+	signature, err := parseSignature(outSignature)
+	if err != nil {
+		logger.WithError(err).Error("failed to parse signature")
+		return nil, err
+	}
+
 	logger.Debug("payload signed successfully")
-	return signature.Signature, nil
+	return signature, nil
 }
 
 func (s *KeyStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
@@ -238,4 +243,3 @@ func (s *KeyStore) listTags(ctx context.Context, keyID string) (map[string]strin
 func alias(id string) string {
 	return fmt.Sprintf("%s/%s", aliasPrefix, id)
 }
-

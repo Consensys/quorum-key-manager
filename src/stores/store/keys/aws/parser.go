@@ -1,9 +1,12 @@
 package aws
 
 import (
+	"crypto/x509/pkix"
+	"encoding/asn1"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"math/big"
 	"time"
 )
 
@@ -15,16 +18,45 @@ const (
 	awsARN               = "aws-ARN"
 )
 
-func parseAlgorithm(pubKeyInfo *kms.GetPublicKeyOutput) *entities.Algorithm {
-	algo := &entities.Algorithm{}
-	if pubKeyInfo.KeyUsage != nil && *pubKeyInfo.KeyUsage == kms.KeyUsageTypeSignVerify {
-		if *pubKeyInfo.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1 {
-			algo.Type = entities.Ecdsa
-			algo.EllipticCurve = entities.Secp256k1
+type publicKeyInfo struct {
+	Raw       asn1.RawContent
+	Algorithm pkix.AlgorithmIdentifier
+	PublicKey asn1.BitString
+}
+
+type signatureInfo struct {
+	R, S *big.Int
+}
+
+func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*entities.Key, error) {
+	var algo *entities.Algorithm
+	var pubKey []byte
+
+	switch {
+	case *kmsPubKey.KeyUsage == kms.KeyUsageTypeSignVerify && *kmsPubKey.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1:
+		algo = &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
 		}
+
+		val := &publicKeyInfo{}
+		_, err := asn1.Unmarshal(kmsPubKey.PublicKey, val)
+		if err != nil {
+			return nil, errors.AWSError(err.Error())
+		}
+		pubKey = val.PublicKey.Bytes
+	default:
+		return nil, errors.AWSError("unsupported public key type returned from AWS KMS")
 	}
 
-	return algo
+	return &entities.Key{
+		ID:          id,
+		PublicKey:   pubKey,
+		Algo:        algo,
+		Metadata:    parseMetadata(kmsDescribe),
+		Tags:        tags,
+		Annotations: parseAnnotations(*kmsPubKey.KeyId, kmsDescribe),
+	}, nil
 }
 
 func parseMetadata(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
@@ -69,6 +101,16 @@ func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]s
 	}
 
 	return annotations
+}
+
+func parseSignature(kmsSign *kms.SignOutput) ([]byte, error) {
+	val := &signatureInfo{}
+	_, err := asn1.Unmarshal(kmsSign.Signature, val)
+	if err != nil {
+		return nil, errors.AWSError(err.Error())
+	}
+
+	return append(val.R.Bytes(), val.S.Bytes()[:]...), nil
 }
 
 func toKeyType(alg *entities.Algorithm) (string, error) {
