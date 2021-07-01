@@ -3,7 +3,6 @@ package types
 import "time"
 
 type SetSecretRequest struct {
-	ID    string            `json:"id" validate:"required" example:"my-secret"`
 	Value string            `json:"value" validate:"required" example:"my-value"`
 	Tags  map[string]string `json:"tags,omitempty"`
 }

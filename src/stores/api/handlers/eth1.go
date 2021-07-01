@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -14,6 +15,10 @@ import (
 	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/gorilla/mux"
+)
+
+const (
+	QKMKeyIDPrefix = "qkm-"
 )
 
 type Eth1Handler struct {
@@ -79,7 +84,14 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	eth1Acc, err := eth1Store.Create(ctx, createReq.ID, &entities.Attributes{Tags: createReq.Tags})
+	var keyID string
+	if createReq.KeyID != "" {
+		keyID = createReq.KeyID
+	} else {
+		keyID = generateRandomKeyID()
+	}
+
+	eth1Acc, err := eth1Store.Create(ctx, keyID, &entities.Attributes{Tags: createReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -117,7 +129,14 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	eth1Acc, err := eth1Store.Import(ctx, importReq.ID, importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
+	var keyID string
+	if importReq.KeyID != "" {
+		keyID = importReq.KeyID
+	} else {
+		keyID = generateRandomKeyID()
+	}
+
+	eth1Acc, err := eth1Store.Import(ctx, keyID, importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -678,4 +697,8 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 func getAddress(request *http.Request) string {
 	addr := ethcommon.HexToAddress(mux.Vars(request)["address"])
 	return addr.Hex()
+}
+
+func generateRandomKeyID() string {
+	return fmt.Sprintf("%s-%s", QKMKeyIDPrefix, common.RandString(15))
 }

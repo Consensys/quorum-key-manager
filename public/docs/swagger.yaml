@@ -3,23 +3,18 @@ definitions:
   handlers.ErrorResponse:
     properties:
       code:
-        example: 24000
-        type: integer
+        example: IR001
+        type: string
       message:
         example: error message
         type: string
     type: object
   types.CreateEth1AccountRequest:
     properties:
-      id:
-        example: my-account
-        type: string
       tags:
         additionalProperties:
           type: string
         type: object
-    required:
-    - id
     type: object
   types.CreateKeyRequest:
     properties:
@@ -114,9 +109,6 @@ definitions:
     type: object
   types.ImportEth1AccountRequest:
     properties:
-      id:
-        example: my-imported-account
-        type: string
       privateKey:
         example: 56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E
         type: string
@@ -125,16 +117,12 @@ definitions:
           type: string
         type: object
     required:
-    - id
     - privateKey
     type: object
   types.ImportKeyRequest:
     properties:
       curve:
         example: secp256k1
-        type: string
-      id:
-        example: my-key
         type: string
       privateKey:
         example: BFVSFJhqUh9DQJwcayNtsWdD2...
@@ -148,7 +136,6 @@ definitions:
         type: object
     required:
     - curve
-    - id
     - privateKey
     - signingAlgorithm
     type: object
@@ -225,9 +212,6 @@ definitions:
     type: object
   types.SetSecretRequest:
     properties:
-      id:
-        example: my-secret
-        type: string
       tags:
         additionalProperties:
           type: string
@@ -236,7 +220,6 @@ definitions:
         example: my-value
         type: string
     required:
-    - id
     - value
     type: object
   types.SignBase64PayloadRequest:
@@ -450,44 +433,6 @@ paths:
       summary: List Ethereum Accounts
       tags:
       - Ethereum Account
-    post:
-      consumes:
-      - application/json
-      description: Creates a new ECDSA Secp256k1 key representing an Ethereum Account
-      parameters:
-      - description: Store Identifier
-        in: path
-        name: storeName
-        required: true
-        type: string
-      - description: Create Ethereum Account request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/types.CreateEth1AccountRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Created Ethereum Account
-          schema:
-            $ref: '#/definitions/types.Eth1AccountResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "404":
-          description: Store not found
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Create Ethereum Account
-      tags:
-      - Ethereum Account
   /stores/{storeName}/eth1/{address}:
     delete:
       consumes:
@@ -505,7 +450,7 @@ paths:
         required: true
         type: string
       responses:
-        "200":
+        "204":
           description: Deleted successfully
         "404":
           description: Store/Account not found
@@ -611,7 +556,7 @@ paths:
         required: true
         type: string
       responses:
-        "200":
+        "204":
           description: Destroyed successfully
         "404":
           description: Store/Account not found
@@ -625,7 +570,7 @@ paths:
       tags:
       - Ethereum Account
   /stores/{storeName}/eth1/{address}/restore:
-    post:
+    put:
       consumes:
       - application/json
       description: Recover a soft-deleted Ethereum Account
@@ -641,7 +586,7 @@ paths:
         required: true
         type: string
       responses:
-        "200":
+        "204":
           description: Restored successfully
         "404":
           description: Store/Account not found
@@ -696,6 +641,50 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Sign payload with Ethereum Account
+      tags:
+      - Ethereum Account
+  /stores/{storeName}/eth1/{address}/sign-data:
+    post:
+      consumes:
+      - application/json
+      description: Sign Keccak256 payload using selected Ethereum Account
+      parameters:
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Ethereum address
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Sign payload request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.SignHexPayloadRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Signed payload signature
+          schema:
+            type: string
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Store/Account not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Sign hashed payload with Ethereum Account
       tags:
       - Ethereum Account
   /stores/{storeName}/eth1/{address}/sign-eea-transaction:
@@ -875,6 +864,94 @@ paths:
       summary: Sign Typed Data
       tags:
       - Ethereum Account
+  /stores/{storeName}/eth1/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new ECDSA Secp256k1 key representing an Ethereum Account
+      parameters:
+      - description: Account Identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Create Ethereum Account request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateEth1AccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created Ethereum Account
+          schema:
+            $ref: '#/definitions/types.Eth1AccountResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Store not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create Ethereum Account
+      tags:
+      - Ethereum Account
+  /stores/{storeName}/eth1/{id}/import:
+    post:
+      consumes:
+      - application/json
+      description: Import an ECDSA Secp256k1 key representing an Ethereum account
+      parameters:
+      - description: Account Identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Create Ethereum Account request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.ImportEth1AccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created Ethereum Account
+          schema:
+            $ref: '#/definitions/types.Eth1AccountResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Store not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Import Ethereum Account
+      tags:
+      - Ethereum Account
   /stores/{storeName}/eth1/ec-recover:
     post:
       consumes:
@@ -915,45 +992,6 @@ paths:
       summary: EC Recover
       tags:
       - Ethereum
-  /stores/{storeName}/eth1/import:
-    post:
-      consumes:
-      - application/json
-      description: Import an ECDSA Secp256k1 key representing an Ethereum account
-      parameters:
-      - description: Store Identifier
-        in: path
-        name: storeName
-        required: true
-        type: string
-      - description: Create Ethereum Account request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/types.ImportEth1AccountRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Created Ethereum Account
-          schema:
-            $ref: '#/definitions/types.Eth1AccountResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "404":
-          description: Store not found
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Import Ethereum Account
-      tags:
-      - Ethereum Account
   /stores/{storeName}/eth1/verify-signature:
     post:
       consumes:
@@ -977,7 +1015,7 @@ paths:
         schema:
           $ref: '#/definitions/types.VerifyEth1SignatureRequest'
       responses:
-        "200":
+        "204":
           description: Successful verification
         "400":
           description: Invalid request format
@@ -1017,7 +1055,7 @@ paths:
         schema:
           $ref: '#/definitions/types.VerifyTypedDataRequest'
       responses:
-        "200":
+        "204":
           description: Successful verification
         "422":
           description: Cannot verify signature
@@ -1059,49 +1097,11 @@ paths:
       summary: List Key ids
       tags:
       - Keys
-    post:
-      consumes:
-      - application/json
-      description: Create Key with a specific Curve and Signing algorithm
-      parameters:
-      - description: Store Identifier
-        in: path
-        name: storeName
-        required: true
-        type: string
-      - description: Create key request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/types.CreateKeyRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Key data
-          schema:
-            $ref: '#/definitions/types.KeyResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "404":
-          description: Store not found
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Create key
-      tags:
-      - Keys
   /stores/{storeName}/keys/{id}:
     delete:
       consumes:
       - application/json
-      description: Hard delete Key by ID
+      description: Deletes a Key by ID. The key can be recovered
       parameters:
       - description: Store Identifier
         in: path
@@ -1116,7 +1116,7 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        "204":
           description: Deleted successfully
         "404":
           description: Store/Key not found
@@ -1126,7 +1126,7 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Destroy Key
+      summary: Soft-deletes Key
       tags:
       - Keys
     get:
@@ -1160,6 +1160,190 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Get key by ID
+      tags:
+      - Keys
+    patch:
+      consumes:
+      - application/json
+      description: Updates the tags of a key by ID
+      parameters:
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Key identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Key data
+          schema:
+            $ref: '#/definitions/types.KeyResponse'
+        "404":
+          description: Store/Key not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Updates a key
+      tags:
+      - Keys
+    post:
+      consumes:
+      - application/json
+      description: Create Key with a specific Curve and Signing algorithm
+      parameters:
+      - description: Key Identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Create key request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Key data
+          schema:
+            $ref: '#/definitions/types.KeyResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Store not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create key
+      tags:
+      - Keys
+  /stores/{storeName}/keys/{id}/destroy:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes a Key by ID
+      parameters:
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Key identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Destroyed successfully
+        "404":
+          description: Store/Key not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Destroys a Key
+      tags:
+      - Keys
+  /stores/{storeName}/keys/{id}/import:
+    post:
+      consumes:
+      - application/json
+      description: Import Key with a specific Curve and Signing algorithm
+      parameters:
+      - description: Key Identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Create key request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.ImportKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Key data
+          schema:
+            $ref: '#/definitions/types.KeyResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Store not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Import Key
+      tags:
+      - Keys
+  /stores/{storeName}/keys/{id}/restore:
+    put:
+      consumes:
+      - application/json
+      description: Restores a previously soft-deleted key by ID
+      parameters:
+      - description: Store Identifier
+        in: path
+        name: storeName
+        required: true
+        type: string
+      - description: Key identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Restored successfully
+        "404":
+          description: Store/Key not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Restores a soft-deleted key
       tags:
       - Keys
   /stores/{storeName}/keys/{id}/sign:
@@ -1206,45 +1390,6 @@ paths:
       summary: Sign random payload
       tags:
       - Keys
-  /stores/{storeName}/keys/import:
-    post:
-      consumes:
-      - application/json
-      description: Import Key with a specific Curve and Signing algorithm
-      parameters:
-      - description: Store Identifier
-        in: path
-        name: storeName
-        required: true
-        type: string
-      - description: Create key request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/types.ImportKeyRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Key data
-          schema:
-            $ref: '#/definitions/types.KeyResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "404":
-          description: Store not found
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Import Key
-      tags:
-      - Keys
   /stores/{storeName}/keys/verify-signature:
     post:
       consumes:
@@ -1264,7 +1409,7 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        "204":
           description: Successful verification
         "422":
           description: Cannot verify signature
@@ -1315,6 +1460,11 @@ paths:
       - application/json
       description: Create new Secret on selected Store
       parameters:
+      - description: Secret Identifier
+        in: path
+        name: id
+        required: true
+        type: string
       - description: Store Identifier
         in: path
         name: storeName

@@ -70,7 +70,32 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 
 		s.eth1Store.EXPECT().Create(
 			gomock.Any(),
-			createEth1AccountRequest.ID,
+			createEth1AccountRequest.KeyID,
+			&entities.Attributes{
+				Tags: createEth1AccountRequest.Tags,
+			}).Return(acc, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		response := formatters.FormatEth1AccResponse(acc)
+		expectedBody, _ := json.Marshal(response)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request without keyID successfully", func() {
+		createEth1AccountRequest := testutils.FakeCreateEth1AccountRequest()
+		createEth1AccountRequest.KeyID = ""
+		requestBytes, _ := json.Marshal(createEth1AccountRequest)
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes))
+
+		acc := testutils2.FakeETH1Account()
+
+		s.eth1Store.EXPECT().Create(
+			gomock.Any(),
+			gomock.Any(),
 			&entities.Attributes{
 				Tags: createEth1AccountRequest.Tags,
 			}).Return(acc, nil)
@@ -110,7 +135,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 
 		s.eth1Store.EXPECT().Import(
 			gomock.Any(),
-			importEth1AccountRequest.ID,
+			importEth1AccountRequest.KeyID,
 			importEth1AccountRequest.PrivateKey,
 			&entities.Attributes{
 				Tags: importEth1AccountRequest.Tags,

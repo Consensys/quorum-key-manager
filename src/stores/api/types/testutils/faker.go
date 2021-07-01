@@ -13,7 +13,6 @@ import (
 
 func FakeSetSecretRequest() *types.SetSecretRequest {
 	return &types.SetSecretRequest{
-		ID:    "my-secret",
 		Value: "my-secret-value",
 		Tags:  testutils.FakeTags(),
 	}
@@ -21,7 +20,6 @@ func FakeSetSecretRequest() *types.SetSecretRequest {
 
 func FakeCreateKeyRequest() *types.CreateKeyRequest {
 	return &types.CreateKeyRequest{
-		ID:               "my-key",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
 		Tags:             testutils.FakeTags(),
@@ -31,7 +29,6 @@ func FakeCreateKeyRequest() *types.CreateKeyRequest {
 func FakeImportKeyRequest() *types.ImportKeyRequest {
 	privKey, _ := base64.StdEncoding.DecodeString("2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw=")
 	return &types.ImportKeyRequest{
-		ID:               "my-key",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
 		Tags:             testutils.FakeTags(),
@@ -47,14 +44,14 @@ func FakeSignBase64PayloadRequest() *types.SignBase64PayloadRequest {
 
 func FakeCreateEth1AccountRequest() *types.CreateEth1AccountRequest {
 	return &types.CreateEth1AccountRequest{
-		ID:   "my-account",
-		Tags: testutils.FakeTags(),
+		KeyID: "my-key-account",
+		Tags:  testutils.FakeTags(),
 	}
 }
 
 func FakeImportEth1AccountRequest() *types.ImportEth1AccountRequest {
 	return &types.ImportEth1AccountRequest{
-		ID:         "my-account",
+		KeyID:      "my-import-key-account",
 		PrivateKey: hexutil.MustDecode("0xdb337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"),
 		Tags:       testutils.FakeTags(),
 	}

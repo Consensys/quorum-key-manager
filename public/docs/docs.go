@@ -70,63 +70,6 @@ var doc = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "description": "Creates a new ECDSA Secp256k1 key representing an Ethereum Account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ethereum Account"
-                ],
-                "summary": "Create Ethereum Account",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Store Identifier",
-                        "name": "storeName",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Create Ethereum Account request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateEth1AccountRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Created Ethereum Account",
-                        "schema": {
-                            "$ref": "#/definitions/types.Eth1AccountResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Store not found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
             }
         },
         "/stores/{storeName}/eth1/ec-recover": {
@@ -189,65 +132,6 @@ var doc = `{
                 }
             }
         },
-        "/stores/{storeName}/eth1/import": {
-            "post": {
-                "description": "Import an ECDSA Secp256k1 key representing an Ethereum account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ethereum Account"
-                ],
-                "summary": "Import Ethereum Account",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Store Identifier",
-                        "name": "storeName",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Create Ethereum Account request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.ImportEth1AccountRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Created Ethereum Account",
-                        "schema": {
-                            "$ref": "#/definitions/types.Eth1AccountResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Store not found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/stores/{storeName}/eth1/verify-signature": {
             "post": {
                 "description": "Verify signature of an Ethereum signature",
@@ -284,7 +168,7 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Successful verification"
                     },
                     "400": {
@@ -344,7 +228,7 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Successful verification"
                     },
                     "422": {
@@ -438,7 +322,7 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Deleted successfully"
                     },
                     "404": {
@@ -547,7 +431,7 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Destroyed successfully"
                     },
                     "404": {
@@ -566,7 +450,7 @@ var doc = `{
             }
         },
         "/stores/{storeName}/eth1/{address}/restore": {
-            "post": {
+            "put": {
                 "description": "Recover a soft-deleted Ethereum Account",
                 "consumes": [
                     "application/json"
@@ -592,7 +476,7 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Restored successfully"
                     },
                     "404": {
@@ -623,6 +507,72 @@ var doc = `{
                     "Ethereum Account"
                 ],
                 "summary": "Sign payload with Ethereum Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ethereum address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sign payload request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.SignHexPayloadRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Signed payload signature",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Store/Account not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{address}/sign-data": {
+            "post": {
+                "description": "Sign Keccak256 payload using selected Ethereum Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Ethereum Account"
+                ],
+                "summary": "Sign hashed payload with Ethereum Account",
                 "parameters": [
                     {
                         "type": "string",
@@ -940,6 +890,138 @@ var doc = `{
                 }
             }
         },
+        "/stores/{storeName}/eth1/{id}": {
+            "post": {
+                "description": "Creates a new ECDSA Secp256k1 key representing an Ethereum Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ethereum Account"
+                ],
+                "summary": "Create Ethereum Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account Identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create Ethereum Account request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateEth1AccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created Ethereum Account",
+                        "schema": {
+                            "$ref": "#/definitions/types.Eth1AccountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Store not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/eth1/{id}/import": {
+            "post": {
+                "description": "Import an ECDSA Secp256k1 key representing an Ethereum account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ethereum Account"
+                ],
+                "summary": "Import Ethereum Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account Identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create Ethereum Account request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ImportEth1AccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created Ethereum Account",
+                        "schema": {
+                            "$ref": "#/definitions/types.Eth1AccountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Store not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/stores/{storeName}/keys": {
             "get": {
                 "description": "List identifiers of keys store on selected Store",
@@ -982,122 +1064,6 @@ var doc = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "description": "Create Key with a specific Curve and Signing algorithm",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Keys"
-                ],
-                "summary": "Create key",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Store Identifier",
-                        "name": "storeName",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Create key request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateKeyRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Key data",
-                        "schema": {
-                            "$ref": "#/definitions/types.KeyResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Store not found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/stores/{storeName}/keys/import": {
-            "post": {
-                "description": "Import Key with a specific Curve and Signing algorithm",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Keys"
-                ],
-                "summary": "Import Key",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Store Identifier",
-                        "name": "storeName",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Create key request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.ImportKeyRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Key data",
-                        "schema": {
-                            "$ref": "#/definitions/types.KeyResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Store not found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
             }
         },
         "/stores/{storeName}/keys/verify-signature": {
@@ -1130,7 +1096,7 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Successful verification"
                     },
                     "422": {
@@ -1198,8 +1164,8 @@ var doc = `{
                     }
                 }
             },
-            "delete": {
-                "description": "Hard delete Key by ID",
+            "post": {
+                "description": "Create Key with a specific Curve and Signing algorithm",
                 "consumes": [
                     "application/json"
                 ],
@@ -1209,7 +1175,117 @@ var doc = `{
                 "tags": [
                     "Keys"
                 ],
-                "summary": "Destroy Key",
+                "summary": "Create key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Key Identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create key request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Key data",
+                        "schema": {
+                            "$ref": "#/definitions/types.KeyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Store not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a Key by ID. The key can be recovered",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Soft-deletes Key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Key identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Store/Key not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates the tags of a key by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Updates a key",
                 "parameters": [
                     {
                         "type": "string",
@@ -1228,7 +1304,172 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Deleted successfully"
+                        "description": "Key data",
+                        "schema": {
+                            "$ref": "#/definitions/types.KeyResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Store/Key not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/keys/{id}/destroy": {
+            "delete": {
+                "description": "Permanently deletes a Key by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Destroys a Key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Key identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Destroyed successfully"
+                    },
+                    "404": {
+                        "description": "Store/Key not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/keys/{id}/import": {
+            "post": {
+                "description": "Import Key with a specific Curve and Signing algorithm",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Import Key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Key Identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create key request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ImportKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Key data",
+                        "schema": {
+                            "$ref": "#/definitions/types.KeyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Store not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stores/{storeName}/keys/{id}/restore": {
+            "put": {
+                "description": "Restores a previously soft-deleted key by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Restores a soft-deleted key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Store Identifier",
+                        "name": "storeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Key identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Restored successfully"
                     },
                     "404": {
                         "description": "Store/Key not found",
@@ -1375,6 +1616,13 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Secret Identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Store Identifier",
                         "name": "storeName",
                         "in": "path",
@@ -1475,8 +1723,8 @@ var doc = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "type": "integer",
-                    "example": 24000
+                    "type": "string",
+                    "example": "IR001"
                 },
                 "message": {
                     "type": "string",
@@ -1486,14 +1734,7 @@ var doc = `{
         },
         "types.CreateEth1AccountRequest": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "my-account"
-                },
                 "tags": {
                     "type": "object",
                     "additionalProperties": {
@@ -1631,14 +1872,9 @@ var doc = `{
         "types.ImportEth1AccountRequest": {
             "type": "object",
             "required": [
-                "id",
                 "privateKey"
             ],
             "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "my-imported-account"
-                },
                 "privateKey": {
                     "type": "string",
                     "example": "56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E"
@@ -1655,7 +1891,6 @@ var doc = `{
             "type": "object",
             "required": [
                 "curve",
-                "id",
                 "privateKey",
                 "signingAlgorithm"
             ],
@@ -1663,10 +1898,6 @@ var doc = `{
                 "curve": {
                     "type": "string",
                     "example": "secp256k1"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "my-key"
                 },
                 "privateKey": {
                     "type": "string",
@@ -1785,14 +2016,9 @@ var doc = `{
         "types.SetSecretRequest": {
             "type": "object",
             "required": [
-                "id",
                 "value"
             ],
             "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "my-secret"
-                },
                 "tags": {
                     "type": "object",
                     "additionalProperties": {
