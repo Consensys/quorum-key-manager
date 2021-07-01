@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"testing"
 	"time"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	logtestutils "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -47,36 +47,17 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
 	attributes := testutils.FakeAttributes()
 	algorithm := testutils.FakeAlgorithm()
-	creationDate := time.Now()
-	deletionDate := creationDate.AddDate(1, 0, 0)
-	expirationDate := deletionDate.AddDate(0, 1, 0)
-	randomID := common.RandHexString(32)
-	truncatedTagList := false
+	keyID := "key-id"
 
 	retCreateKey := kms.CreateKeyOutput{
 		KeyMetadata: &kms.KeyMetadata{
-			CreationDate: &creationDate,
-			DeletionDate: &deletionDate,
-			Enabled:      aws.Bool(true),
-			KeyId:        aws.String(randomID),
-			ValidTo:      &expirationDate,
+			KeyId: aws.String(keyID),
 		},
-	}
-
-	retGetPub := kms.GetPublicKeyOutput{
-		KeyUsage:              aws.String(kms.KeyUsageTypeSignVerify),
-		CustomerMasterKeySpec: aws.String(kms.CustomerMasterKeySpecEccSecgP256k1),
-	}
-
-	retListTags := &kms.ListResourceTagsOutput{
-		Truncated: &truncatedTagList,
-		Tags:      ToKmsTags(testutils.FakeTags()),
 	}
 
 	s.Run("should create a new key successfully", func() {
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), alias(id), gomock.Any(), gomock.Any()).Return(&retCreateKey, nil)
-		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), randomID).Return(&retGetPub, nil)
-		s.mockKmsClient.EXPECT().ListTags(ctx, randomID, "").Return(retListTags, nil)
+		s.getKeyMockCalls(ctx, keyID)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
@@ -87,116 +68,91 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
-
 	})
 
-	s.Run("should fail on CreateKey error", func() {
+	s.Run("should fail with same error if CreateKey fails", func() {
 		expectedErr := fmt.Errorf("error")
-		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
-			Return(nil, nil, expectedErr)
+
+		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
-
-		assert.Error(s.T(), err)
 		assert.Nil(s.T(), key)
 
+		assert.Equal(s.T(), err, expectedErr)
 	})
 
-	s.Run("should fail on GetPublicKey error", func() {
+	s.Run("should fail with same error if any function of Get fails", func() {
 		expectedErr := fmt.Errorf("error")
-		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
-			Return(&retCreateKey, &randomID, nil)
-		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), randomID).
-			Return(nil, expectedErr)
+
+		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&retCreateKey, nil)
+		s.getKeyMockCallsErr(expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
-
-		assert.Error(s.T(), err)
 		assert.Nil(s.T(), key)
 
+		assert.Equal(s.T(), err, expectedErr)
 	})
 }
 
 func (s *awsKeyStoreTestSuite) TestGet() {
 	ctx := context.Background()
-	myKeyID := "get_key_ID"
-	myArn := "my-key-arn"
-	myClusterHsmID := "my-cluster-hsm"
-	myAccountID := "my-account"
-	myCustomerKeyStoreID := "my-customer-KeyStore"
-	expectedPubKey := []byte("any value")
-	truncatedTagList := false
+	keyID := "key_ID"
+	expectedPubKey, _ := base64.StdEncoding.DecodeString("BNftkhh2vpv65ZBsm4mGLhzr76SDbF5qSycdDhk+TAqyxAihRCj/Vb4Fs89kL6AVFjxYXfo3jW/l22S8XsSa+2U=")
 
-	retGetPubKey := &kms.GetPublicKeyOutput{KeyId: &myKeyID,
-		PublicKey: expectedPubKey}
-
-	retListTags := &kms.ListResourceTagsOutput{
-		Truncated: &truncatedTagList,
-		Tags:      ToKmsTags(testutils.FakeTags()),
-	}
-
-	retDescribeKey := &kms.DescribeKeyOutput{
-		KeyMetadata: &kms.KeyMetadata{
-			KeyId:             &myKeyID,
-			Arn:               &myArn,
-			Enabled:           aws.Bool(true),
-			CreationDate:      aws.Time(time.Now().AddDate(-1, 0, 0)),
-			DeletionDate:      aws.Time(time.Now().AddDate(1, 0, 0)),
-			ValidTo:           aws.Time(time.Now().AddDate(3, 0, 0)),
-			CloudHsmClusterId: &myClusterHsmID,
-			CustomKeyStoreId:  &myCustomerKeyStoreID,
-			AWSAccountId:      &myAccountID,
-		},
-	}
+	retGetPubKey := fakeGetPubKey(keyID)
+	retListTags := fakeListTags()
+	retDescribeKey := fakeDescribeKey(keyID)
 
 	s.Run("should get a key successfully", func() {
-		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
-		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(retListTags, nil)
-		s.mockKmsClient.EXPECT().DescribeKey(ctx, myKeyID).Return(retDescribeKey, nil)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(id)).Return(retDescribeKey, nil)
+		s.mockKmsClient.EXPECT().GetPublicKey(ctx, keyID).Return(retGetPubKey, nil)
+		s.mockKmsClient.EXPECT().ListTags(ctx, keyID, "").Return(retListTags, nil)
 
-		key, err := s.keyStore.Get(ctx, myKeyID)
+		key, err := s.keyStore.Get(ctx, id)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), key.PublicKey, expectedPubKey)
 		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
-		assert.Equal(s.T(), myArn, key.Annotations[awsARN])
-		assert.Equal(s.T(), myAccountID, key.Annotations[awsAccountID])
-		assert.Equal(s.T(), myCustomerKeyStoreID, key.Annotations[awsCustomKeyStoreID])
-		assert.Equal(s.T(), myClusterHsmID, key.Annotations[awsCloudHsmClusterID])
-
+		assert.Equal(s.T(), *retDescribeKey.KeyMetadata.Arn, key.Annotations[awsARN])
+		assert.Equal(s.T(), *retDescribeKey.KeyMetadata.AWSAccountId, key.Annotations[awsAccountID])
+		assert.Equal(s.T(), *retDescribeKey.KeyMetadata.CustomKeyStoreId, key.Annotations[awsCustomKeyStoreID])
+		assert.Equal(s.T(), *retDescribeKey.KeyMetadata.CloudHsmClusterId, key.Annotations[awsCloudHsmClusterID])
 	})
 
-	s.Run("should fail when describeKey error", func() {
+	s.Run("should fail with same error if DescribeKey fails", func() {
 		expectedErr := fmt.Errorf("error")
-		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
-		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(retListTags, nil)
-		s.mockKmsClient.EXPECT().DescribeKey(ctx, myKeyID).Return(nil, expectedErr)
 
-		key, err := s.keyStore.Get(ctx, myKeyID)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, gomock.Any()).Return(nil, expectedErr)
 
-		assert.Error(s.T(), err)
+		key, err := s.keyStore.Get(ctx, id)
 		assert.Nil(s.T(), key)
+
+		assert.Equal(s.T(), err, expectedErr)
 	})
 
-	s.Run("should fail when listTags failed", func() {
+	s.Run("should fail with same error if GetPublicKey fails", func() {
 		expectedErr := fmt.Errorf("error")
-		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(retGetPubKey, nil)
-		s.mockKmsClient.EXPECT().ListTags(ctx, myKeyID, "").Return(nil, expectedErr)
 
-		key, err := s.keyStore.Get(ctx, myKeyID)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, gomock.Any()).Return(retDescribeKey, nil)
+		s.mockKmsClient.EXPECT().GetPublicKey(ctx, gomock.Any()).Return(nil, expectedErr)
 
-		assert.Error(s.T(), err)
+		key, err := s.keyStore.Get(ctx, id)
 		assert.Nil(s.T(), key)
+
+		assert.Equal(s.T(), err, expectedErr)
 	})
 
-	s.Run("should fail when getPublicKey failed", func() {
+	s.Run("should fail with same error if ListTags fails", func() {
 		expectedErr := fmt.Errorf("error")
-		s.mockKmsClient.EXPECT().GetPublicKey(ctx, myKeyID).Return(nil, expectedErr)
 
-		key, err := s.keyStore.Get(ctx, myKeyID)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, gomock.Any()).Return(retDescribeKey, nil)
+		s.mockKmsClient.EXPECT().GetPublicKey(ctx, gomock.Any()).Return(retGetPubKey, nil)
+		s.mockKmsClient.EXPECT().ListTags(ctx, gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 
-		assert.Error(s.T(), err)
+		key, err := s.keyStore.Get(ctx, id)
 		assert.Nil(s.T(), key)
+
+		assert.Equal(s.T(), err, expectedErr)
 	})
 }
 
@@ -313,6 +269,20 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 
 }
 
+func (s *awsKeyStoreTestSuite) getKeyMockCalls(ctx context.Context, keyID string, ) {
+	retGetPubKey := fakeGetPubKey(keyID)
+	retListTags := fakeListTags()
+	retDescribeKey := fakeDescribeKey(keyID)
+
+	s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(id)).Return(retDescribeKey, nil)
+	s.mockKmsClient.EXPECT().GetPublicKey(ctx, keyID).Return(retGetPubKey, nil)
+	s.mockKmsClient.EXPECT().ListTags(ctx, keyID, "").Return(retListTags, nil)
+}
+
+func (s *awsKeyStoreTestSuite) getKeyMockCallsErr(expectedErr error) {
+	s.mockKmsClient.EXPECT().DescribeKey(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
+}
+
 func ToKmsTags(tags map[string]string) []*kms.Tag {
 	var fakeSecretsTags []*kms.Tag
 
@@ -325,4 +295,45 @@ func ToKmsTags(tags map[string]string) []*kms.Tag {
 		fakeSecretsTags = append(fakeSecretsTags, &in)
 	}
 	return fakeSecretsTags
+}
+
+func fakeDescribeKey(keyID string) *kms.DescribeKeyOutput {
+	myArn := "my-key-arn"
+	myClusterHsmID := "my-cluster-hsm"
+	myAccountID := "my-account"
+	myCustomerKeyStoreID := "my-customer-KeyStore"
+
+	return &kms.DescribeKeyOutput{
+		KeyMetadata: &kms.KeyMetadata{
+			KeyId:             &keyID,
+			Arn:               &myArn,
+			Enabled:           aws.Bool(true),
+			CreationDate:      aws.Time(time.Now().AddDate(-1, 0, 0)),
+			DeletionDate:      aws.Time(time.Now().AddDate(1, 0, 0)),
+			ValidTo:           aws.Time(time.Now().AddDate(3, 0, 0)),
+			CloudHsmClusterId: &myClusterHsmID,
+			CustomKeyStoreId:  &myCustomerKeyStoreID,
+			AWSAccountId:      &myAccountID,
+		},
+	}
+}
+
+func fakeListTags() *kms.ListResourceTagsOutput {
+	truncatedTagList := false
+
+	return &kms.ListResourceTagsOutput{
+		Truncated: &truncatedTagList,
+		Tags:      ToKmsTags(testutils.FakeTags()),
+	}
+}
+
+func fakeGetPubKey(keyID string) *kms.GetPublicKeyOutput {
+	asn1pubKey, _ := base64.StdEncoding.DecodeString("MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE1+2SGHa+m/rlkGybiYYuHOvvpINsXmpLJx0OGT5MCrLECKFEKP9VvgWzz2QvoBUWPFhd+jeNb+XbZLxexJr7ZQ==")
+
+	return &kms.GetPublicKeyOutput{
+		KeyId:                 &keyID,
+		PublicKey:             asn1pubKey,
+		KeyUsage:              aws.String(kms.KeyUsageTypeSignVerify),
+		CustomerMasterKeySpec: aws.String(kms.CustomerMasterKeySpecEccSecgP256k1),
+	}
 }
