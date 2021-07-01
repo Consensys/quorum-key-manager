@@ -7,7 +7,7 @@ const (
 	StatusConflict = "ST300"
 )
 
-// NoDataFoundError is raised when accessing a missing Data
+// NotFoundError is raised when accessing a missing Data
 func NotFoundError(format string, a ...interface{}) *Error {
 	return Errorf(NotFound, format, a...)
 }
@@ -17,7 +17,7 @@ func IsNotFoundError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), NotFound)
 }
 
-// AlreadyExistsError is raised when a Data constraint has been violated
+// AlreadyExistsError indicates a resource already exists
 func AlreadyExistsError(format string, a ...interface{}) *Error {
 	return Errorf(AlreadyExists, format, a...)
 }
@@ -27,12 +27,12 @@ func IsAlreadyExistsError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), AlreadyExists)
 }
 
-// AlreadyExistsError is raised when a Data constraint has been violated
+// StatusConflictError indicate a status conflict
 func StatusConflictError(format string, a ...interface{}) *Error {
 	return Errorf(StatusConflict, format, a...)
 }
 
-// IsAlreadyExistsError indicate whether an error is an already exists error
+// IsStatusConflictError indicate whether an error is a status conflict error
 func IsStatusConflictError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), StatusConflict)
 }

@@ -9,9 +9,7 @@ import (
 
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config"
 	hashConfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
-	lstackConfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/localstack"
 	hashVault "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
-	lstackVault "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/localstack"
 	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -27,7 +25,6 @@ func New(logger log.Logger) *Compose {
 	}
 
 	factory.reflect.AddGenerator(goreflect.TypeOf(&hashConfig.Config{}), hashVault.New(logger))
-	factory.reflect.AddGenerator(goreflect.TypeOf(&lstackConfig.Config{}), lstackVault.New(logger))
 
 	return factory
 }

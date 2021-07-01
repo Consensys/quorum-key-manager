@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log/zap"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws"
 	"io/ioutil"
 	"os"
 	"time"
@@ -33,23 +34,21 @@ import (
 
 const (
 	hashicorpContainerID      = "hashicorp-vault"
-	localStackContainerID     = "localstack"
 	networkName               = "key-manager"
 	localhostPath             = "http://localhost"
-	HashicorpSecretStoreName  = "HashicorpSecrets"
 	HashicorpKeyStoreName     = "HashicorpKeys"
 	HashicorpSecretMountPoint = "secret"
 	HashicorpKeyMountPoint    = "orchestrate"
-	AKVSecretStoreName        = "AKVSecrets"
 	AKVKeyStoreName           = "AKVKeys"
+	AWSKeyStoreName           = "AWSKeys"
 )
 
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
 	hashicorpClient   hashicorp2.VaultClient
-	awsSecretsClient  *awsclient.AwsSecretsClient
-	awsKmsClient      *awsclient.AwsKmsClient
+	awsSecretsClient  aws.SecretsManagerClient
+	awsKmsClient      aws.KmsClient
 	akvClient         akv2.Client
 	dockerClient      *docker.Client
 	keyManager        *app.App
@@ -60,7 +59,7 @@ type IntegrationEnvironment struct {
 	cfg               *tests.Config
 }
 
-const MAX_RETRIES = 10
+const MaxRetries = 10
 
 type TestSuiteEnv interface {
 	Start(ctx context.Context) error
@@ -101,19 +100,11 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	localstackContainer, err := utils.LocalstackContainer()
-	if err != nil {
-		return nil, err
-	}
-
 	// Initialize environment container setup
 	composition := &dconfig.Composition{
 		Containers: map[string]*dconfig.Container{
 			hashicorpContainerID: {
 				HashicorpVault: hashicorpContainer,
-			},
-			localStackContainerID: {
-				LocalstackVault: localstackContainer,
 			},
 		},
 	}
@@ -133,33 +124,28 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	envHTTPPort := rand.IntnRange(20000, 28080)
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
-	tmpYml, err := newTmpManifestYml(&manifest.Manifest{
-		Kind: types.HashicorpSecrets,
-		Name: HashicorpSecretStoreName,
-		Specs: &hashicorp.SecretSpecs{
-			Token:      hashicorpContainer.RootToken,
-			MountPoint: HashicorpSecretMountPoint,
-			Address:    hashicorpAddr,
-			Namespace:  "",
+	tmpYml, err := newTmpManifestYml(
+		&manifest.Manifest{
+			Kind: types.HashicorpKeys,
+			Name: HashicorpKeyStoreName,
+			Specs: &hashicorp.KeySpecs{
+				MountPoint: HashicorpKeyMountPoint,
+				Address:    hashicorpAddr,
+				TokenPath:  tmpTokenFile,
+				Namespace:  "",
+			},
 		},
-	}, &manifest.Manifest{
-		Kind: types.HashicorpKeys,
-		Name: HashicorpKeyStoreName,
-		Specs: &hashicorp.KeySpecs{
-			MountPoint: HashicorpKeyMountPoint,
-			Address:    hashicorpAddr,
-			TokenPath:  tmpTokenFile,
-			Namespace:  "",
+		&manifest.Manifest{
+			Kind:  types.AKVKeys,
+			Name:  AKVKeyStoreName,
+			Specs: testCfg.AkvKeySpecs(),
 		},
-	}, &manifest.Manifest{
-		Kind:  types.AKVSecrets,
-		Name:  AKVSecretStoreName,
-		Specs: testCfg.AkvSecretSpecs(),
-	}, &manifest.Manifest{
-		Kind:  types.AKVKeys,
-		Name:  AKVKeyStoreName,
-		Specs: testCfg.AkvKeySpecs(),
-	})
+		&manifest.Manifest{
+			Kind:  types.AWSKeys,
+			Name:  AWSKeyStoreName,
+			Specs: testCfg.AwsKeySpecs(),
+		},
+	)
 
 	if err != nil {
 		logger.WithError(err).Error("cannot create keymanager manifest")
@@ -188,6 +174,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 
+	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, true)
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
 		testCfg.AkvClient.VaultName,
 		testCfg.AkvClient.TenantID,
@@ -199,11 +186,14 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, true)
 	awsSecretsClient, err := awsclient.NewSecretsClient(awsConfig)
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize AWS Secret client")
+		return nil, err
+	}
 	awsKeysClient, err := awsclient.NewKmsClient(awsConfig)
 	if err != nil {
-		logger.WithError(err).Error("cannot initialize aws client")
+		logger.WithError(err).Error("cannot initialize AWS KMS client")
 		return nil, err
 	}
 
@@ -229,19 +219,6 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	err := env.dockerClient.CreateNetwork(ctx, networkName)
 	if err != nil {
 		env.logger.WithError(err).Error("could not create network")
-		return err
-	}
-
-	// Start localstack container
-	err = env.dockerClient.Up(ctx, localStackContainerID, networkName)
-	if err != nil {
-		env.logger.WithError(err).Error("could not up localstack container")
-		return err
-	}
-
-	err = env.dockerClient.WaitTillIsReady(ctx, localStackContainerID, 120*time.Second)
-	if err != nil {
-		env.logger.WithError(err).Error("could not start localstack")
 		return err
 	}
 
@@ -287,11 +264,6 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	err := env.keyManager.Stop(ctx)
 	if err != nil {
 		env.logger.WithError(err).Error("failed to stop key manager")
-	}
-
-	err = env.dockerClient.Down(ctx, localStackContainerID)
-	if err != nil {
-		env.logger.WithError(err).Error("could not down localstack")
 	}
 
 	err = env.dockerClient.Down(ctx, hashicorpContainerID)

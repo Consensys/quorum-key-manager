@@ -226,18 +226,18 @@ func (mr *MockKmsClientMockRecorder) GetPublicKey(ctx, keyID interface{}) *gomoc
 }
 
 // ListKeys mocks base method
-func (m *MockKmsClient) ListKeys(ctx context.Context) ([]string, error) {
+func (m *MockKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListKeys", ctx)
-	ret0, _ := ret[0].([]string)
+	ret := m.ctrl.Call(m, "ListKeys", ctx, limit, marker)
+	ret0, _ := ret[0].(*kms.ListKeysOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListKeys indicates an expected call of ListKeys
-func (mr *MockKmsClientMockRecorder) ListKeys(ctx interface{}) *gomock.Call {
+func (mr *MockKmsClientMockRecorder) ListKeys(ctx, limit, marker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKmsClient)(nil).ListKeys), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKmsClient)(nil).ListKeys), ctx, limit, marker)
 }
 
 // ListTags mocks base method

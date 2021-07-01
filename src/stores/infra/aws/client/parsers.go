@@ -33,7 +33,7 @@ func parseSecretsManagerErrorResponse(err error) error {
 func parseKmsErrorResponse(err error) error {
 	aerr, ok := err.(awserr.Error)
 	if !ok {
-		return errors.AWSError("not a aws error", err.Error())
+		return errors.AWSError(err.Error())
 	}
 
 	switch aerr.Code() {

@@ -134,7 +134,7 @@ func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (tags 
 		return nil, nil, parseSecretsManagerErrorResponse(err)
 	}
 
-	return outTags, outMeta, parseSecretsManagerErrorResponse(err)
+	return outTags, outMeta, nil
 }
 
 func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {

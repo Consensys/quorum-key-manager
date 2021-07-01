@@ -33,7 +33,7 @@ func (s *secretsTestSuite) TearDownSuite() {
 	}
 
 	for _, id := range s.secretIDs {
-		maxTries := MAX_RETRIES
+		maxTries := MaxRetries
 		for {
 			err := s.store.Destroy(ctx, id)
 			if err != nil && !errors.IsStatusConflictError(err) {
@@ -47,7 +47,7 @@ func (s *secretsTestSuite) TearDownSuite() {
 			}
 
 			maxTries -= 1
-			waitTime := time.Second * time.Duration(MAX_RETRIES-maxTries)
+			waitTime := time.Second * time.Duration(MaxRetries-maxTries)
 			s.env.logger.Debug("waiting for deletion to complete", "keyID", id, "waitFor", waitTime.Seconds())
 			time.Sleep(waitTime)
 		}

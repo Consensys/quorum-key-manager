@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"time"
 
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
@@ -41,13 +42,33 @@ func (s *eth1TestSuite) TearDownSuite() {
 	s.env.logger.Info("Deleting the following accounts", "addresses", accounts)
 	for _, address := range accounts {
 		err = s.store.Delete(ctx, address)
-		if err != nil && errors.IsNotSupportedError(err) {
+		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
 			return
 		}
 	}
 
-	for _, address := range accounts {
-		_ = s.store.Destroy(ctx, address)
+	for _, acc := range accounts {
+		maxTries := MaxRetries
+		for {
+			err := s.store.Destroy(ctx, acc)
+			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
+				return
+			}
+			if err != nil && !errors.IsStatusConflictError(err) {
+				break
+			}
+			if maxTries <= 0 {
+				if err != nil {
+					s.env.logger.Info("failed to destroy account", "account", acc)
+				}
+				break
+			}
+
+			maxTries -= 1
+			waitTime := time.Second * time.Duration(MaxRetries-maxTries)
+			s.env.logger.Debug("waiting for deletion to complete", "account", acc, "waitFor", waitTime.Seconds())
+			time.Sleep(waitTime)
+		}
 	}
 }
 
