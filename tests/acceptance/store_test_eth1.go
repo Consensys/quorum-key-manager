@@ -294,7 +294,7 @@ func (s *eth1TestSuite) TestSignTransaction() {
 
 func (s *eth1TestSuite) TestSignData() {
 	ctx := s.env.ctx
-	id := s.newID("my-account-sign-tx")
+	id := s.newID("my-account-sign-data")
 	chainID := big.NewInt(1)
 	tx := types.NewTransaction(
 		0,
