@@ -9,9 +9,9 @@ import (
 
 const keysPath = "keys"
 
-func (c *HTTPClient) CreateKey(ctx context.Context, storeName string, req *types.CreateKeyRequest) (*types.KeyResponse, error) {
+func (c *HTTPClient) CreateKey(ctx context.Context, storeName, id string, req *types.CreateKeyRequest) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
-	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), keysPath)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), keysPath, id)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err
@@ -26,9 +26,9 @@ func (c *HTTPClient) CreateKey(ctx context.Context, storeName string, req *types
 	return key, nil
 }
 
-func (c *HTTPClient) ImportKey(ctx context.Context, storeName string, req *types.ImportKeyRequest) (*types.KeyResponse, error) {
+func (c *HTTPClient) ImportKey(ctx context.Context, storeName, id string, req *types.ImportKeyRequest) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
-	reqURL := fmt.Sprintf("%s/%s/import", withURLStore(c.config.URL, storeName), keysPath)
+	reqURL := fmt.Sprintf("%s/%s/%s/import", withURLStore(c.config.URL, storeName), keysPath, id)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err

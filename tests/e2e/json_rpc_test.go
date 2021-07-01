@@ -43,7 +43,7 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 
 	var err error
 	s.acc, err = s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, &types.CreateEth1AccountRequest{
-		ID: fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
+		KeyID: fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
 	})
 
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *jsonRPCTestSuite) TearDownSuite() {
 	}
 
 	// @TODO validate error once hashicorp support destroy keys
-	_ = s.keyManagerClient.DestroyKey(s.ctx, s.cfg.Eth1Store, s.acc.ID)
+	_ = s.keyManagerClient.DestroyKey(s.ctx, s.cfg.Eth1Store, s.acc.KeyID)
 }
 
 func TestJSONRpcHTTP(t *testing.T) {

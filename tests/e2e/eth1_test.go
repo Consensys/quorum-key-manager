@@ -12,6 +12,7 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/client"
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
@@ -68,7 +69,7 @@ func TestKeyManagerEth1(t *testing.T) {
 func (s *eth1TestSuite) TestCreate() {
 	s.Run("should create a new account successfully", func() {
 		request := testutils.FakeCreateEth1AccountRequest()
-		request.ID = "my-account-create"
+		request.KeyID = "my-account-create"
 
 		acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, request)
 		require.NoError(s.T(), err)
@@ -76,7 +77,27 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), acc.Address)
 		assert.NotEmpty(s.T(), acc.PublicKey)
 		assert.NotEmpty(s.T(), acc.CompressedPublicKey)
-		assert.Equal(s.T(), request.ID, acc.ID)
+		assert.Equal(s.T(), request.KeyID, acc.KeyID)
+		assert.Equal(s.T(), request.Tags, acc.Tags)
+		assert.False(s.T(), acc.Disabled)
+		assert.NotEmpty(s.T(), acc.CreatedAt)
+		assert.NotEmpty(s.T(), acc.UpdatedAt)
+		assert.True(s.T(), acc.ExpireAt.IsZero())
+		assert.True(s.T(), acc.DeletedAt.IsZero())
+		assert.True(s.T(), acc.DestroyedAt.IsZero())
+	})
+	
+	s.Run("should create a new account with random keyID successfully", func() {
+		request := testutils.FakeCreateEth1AccountRequest()
+		request.KeyID = ""
+
+		acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, request)
+		require.NoError(s.T(), err)
+
+		assert.NotEmpty(s.T(), acc.Address)
+		assert.NotEmpty(s.T(), acc.PublicKey)
+		assert.NotEmpty(s.T(), acc.CompressedPublicKey)
+		assert.NotEmpty(s.T(), acc.KeyID)
 		assert.Equal(s.T(), request.Tags, acc.Tags)
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
@@ -99,7 +120,7 @@ func (s *eth1TestSuite) TestCreate() {
 
 func (s *eth1TestSuite) TestUpdate() {
 	request := testutils.FakeCreateEth1AccountRequest()
-	request.ID = "my-account-create"
+	request.KeyID = "my-account-create"
 
 	acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Store, request)
 	require.NoError(s.T(), err)
@@ -119,8 +140,10 @@ func (s *eth1TestSuite) TestUpdate() {
 
 func (s *eth1TestSuite) TestImport() {
 	s.Run("should import an account successfully", func() {
+		privKey, _ := crypto.GenerateKey()
 		request := testutils.FakeImportEth1AccountRequest()
-		request.ID = "my-account-import"
+		request.PrivateKey = privKey.D.Bytes()
+		request.KeyID = "my-account-import"
 
 		acc, err := s.keyManagerClient.ImportEth1Account(s.ctx, s.cfg.Eth1Store, request)
 		require.NoError(s.T(), err)
@@ -128,7 +151,7 @@ func (s *eth1TestSuite) TestImport() {
 		assert.NotEmpty(s.T(), acc.Address)
 		assert.NotEmpty(s.T(), acc.PublicKey)
 		assert.NotEmpty(s.T(), acc.CompressedPublicKey)
-		assert.Equal(s.T(), request.ID, acc.ID)
+		assert.Equal(s.T(), request.KeyID, acc.KeyID)
 		assert.Equal(s.T(), request.Tags, acc.Tags)
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
@@ -276,7 +299,7 @@ func (s *eth1TestSuite) TestGet() {
 		assert.Equal(s.T(), s.mainAccount.Address, retrievedAcc.Address)
 		assert.Equal(s.T(), s.mainAccount.PublicKey, retrievedAcc.PublicKey)
 		assert.Equal(s.T(), s.mainAccount.CompressedPublicKey, retrievedAcc.CompressedPublicKey)
-		assert.Equal(s.T(), s.mainAccount.ID, retrievedAcc.ID)
+		assert.Equal(s.T(), s.mainAccount.KeyID, retrievedAcc.KeyID)
 		assert.Equal(s.T(), s.mainAccount.Tags, retrievedAcc.Tags)
 		assert.Equal(s.T(), s.mainAccount.Disabled, retrievedAcc.Disabled)
 		assert.Equal(s.T(), s.mainAccount.CreatedAt, retrievedAcc.CreatedAt)

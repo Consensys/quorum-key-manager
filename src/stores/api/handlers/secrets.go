@@ -25,7 +25,7 @@ func NewSecretsHandler(s storesmanager.Manager) *SecretsHandler {
 }
 
 func (h *SecretsHandler) Register(r *mux.Router) {
-	r.Methods(http.MethodPost).Path("").HandlerFunc(h.set)
+	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.set)
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 }
@@ -35,6 +35,7 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 // @Tags Secrets
 // @Accept json
 // @Produce json
+// @Param id path string true "Secret Identifier"
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.SetSecretRequest true "Create Secret request"
 // @Success 200 {object} types.SecretResponse "Secret data"
@@ -59,7 +60,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secret, err := secretStore.Set(ctx, setSecretRequest.ID, setSecretRequest.Value, &entities.Attributes{
+	secret, err := secretStore.Set(ctx, mux.Vars(request)["id"], setSecretRequest.Value, &entities.Attributes{
 		Tags: setSecretRequest.Tags,
 	})
 	if err != nil {

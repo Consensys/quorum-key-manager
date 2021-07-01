@@ -63,8 +63,8 @@ func TestKeyManagerKeys(t *testing.T) {
 
 func (s *keysTestSuite) TestCreate() {
 	s.Run("should create a new key successfully: Secp256k1/ECDSA", func() {
+		keyID := "my-key-ecdsa"
 		request := &types.CreateKeyRequest{
-			ID:               "my-key-ecdsa",
 			Curve:            "secp256k1",
 			SigningAlgorithm: "ecdsa",
 			Tags: map[string]string{
@@ -73,13 +73,13 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.NoError(s.T(), err)
 
 		assert.NotEmpty(s.T(), key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(s.T(), request.Curve, key.Curve)
-		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), keyID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
@@ -90,8 +90,8 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should create a new key successfully: BN254/EDDSA", func() {
+		keyID := "my-key-eddsa"
 		request := &types.CreateKeyRequest{
-			ID:               "my-key-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
 			Tags: map[string]string{
@@ -100,13 +100,13 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.NoError(s.T(), err)
 
 		assert.NotEmpty(s.T(), key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(s.T(), request.Curve, key.Curve)
-		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), keyID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
@@ -117,8 +117,8 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should parse errors successfully", func() {
+		keyID := "my-key"
 		request := &types.CreateKeyRequest{
-			ID:               "my-key",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
 			Tags: map[string]string{
@@ -127,7 +127,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(s.ctx, "inexistentStoreName", request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, "inexistentStoreName", keyID, request)
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
@@ -135,8 +135,8 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with bad request if curve is not supported", func() {
+		keyID := "my-key"
 		request := &types.CreateKeyRequest{
-			ID:               "my-key",
 			Curve:            "invalidCurve",
 			SigningAlgorithm: "eddsa",
 			Tags: map[string]string{
@@ -145,7 +145,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
@@ -153,8 +153,8 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with bad request if signing algorithm is not supported", func() {
+		keyID := "my-key"
 		request := &types.CreateKeyRequest{
-			ID:               "my-key",
 			Curve:            "secp256k1",
 			SigningAlgorithm: "invalidSigningAlgorithm",
 			Tags: map[string]string{
@@ -163,7 +163,7 @@ func (s *keysTestSuite) TestCreate() {
 			},
 		}
 
-		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
@@ -173,8 +173,8 @@ func (s *keysTestSuite) TestCreate() {
 
 func (s *keysTestSuite) TestImport() {
 	s.Run("should create a new key successfully: Secp256k1/ECDSA", func() {
+		keyID := "my-key-import-ecdsa"
 		request := &types.ImportKeyRequest{
-			ID:               "my-key-import-ecdsa",
 			Curve:            "secp256k1",
 			PrivateKey:       ecdsaPrivKey,
 			SigningAlgorithm: "ecdsa",
@@ -184,13 +184,13 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R/EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a+S2RklJRFjjoLf+LI=", key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(s.T(), request.Curve, key.Curve)
-		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), keyID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
@@ -201,8 +201,8 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.Run("should create a new key successfully: BN254/EDDSA", func() {
+		keyID := "my-key-import-eddsa"
 		request := &types.ImportKeyRequest{
-			ID:               "my-key-import-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
 			PrivateKey:       eddsaPrivKey,
@@ -212,13 +212,13 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "X9Yz/5+O42+eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
 		assert.Equal(s.T(), request.Curve, key.Curve)
-		assert.Equal(s.T(), request.ID, key.ID)
+		assert.Equal(s.T(), keyID, key.ID)
 		assert.Equal(s.T(), request.Tags, key.Tags)
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
@@ -229,8 +229,8 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.Run("should fail with bad request if curve is not supported", func() {
+		keyID := "my-key-import"
 		request := &types.ImportKeyRequest{
-			ID:               "my-key-import",
 			Curve:            "invalidCurve",
 			SigningAlgorithm: "eddsa",
 			PrivateKey:       ecdsaPrivKey,
@@ -240,7 +240,7 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
@@ -248,8 +248,8 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.Run("should fail with bad request if signing algorithm is not supported", func() {
+		keyID := "my-key-import"
 		request := &types.ImportKeyRequest{
-			ID:               "my-key-import",
 			Curve:            "secp256k1",
 			SigningAlgorithm: "invalidSigningAlgorithm",
 			PrivateKey:       ecdsaPrivKey,
@@ -259,7 +259,7 @@ func (s *keysTestSuite) TestImport() {
 			},
 		}
 
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
@@ -268,8 +268,8 @@ func (s *keysTestSuite) TestImport() {
 }
 
 func (s *keysTestSuite) TestGet() {
+	keyID := "my-key-get"
 	request := &types.ImportKeyRequest{
-		ID:               "my-key-get",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
 		PrivateKey:       ecdsaPrivKey,
@@ -279,7 +279,7 @@ func (s *keysTestSuite) TestGet() {
 		},
 	}
 
-	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 	require.NoError(s.T(), err)
 
 	s.Run("should get a key successfully", func() {
@@ -287,7 +287,7 @@ func (s *keysTestSuite) TestGet() {
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R/EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a+S2RklJRFjjoLf+LI=", keyRetrieved.PublicKey)
-		assert.Equal(s.T(), request.ID, keyRetrieved.ID)
+		assert.Equal(s.T(), keyID, keyRetrieved.ID)
 		assert.Equal(s.T(), request.Tags, keyRetrieved.Tags)
 		assert.False(s.T(), keyRetrieved.Disabled)
 		assert.NotEmpty(s.T(), keyRetrieved.CreatedAt)
@@ -299,8 +299,8 @@ func (s *keysTestSuite) TestGet() {
 }
 
 func (s *keysTestSuite) TestList() {
+	keyID := "my-key-list"
 	request := &types.ImportKeyRequest{
-		ID:               "my-key-list",
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
 		PrivateKey:       ecdsaPrivKey,
@@ -310,7 +310,7 @@ func (s *keysTestSuite) TestList() {
 		},
 	}
 
-	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+	key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 	require.NoError(s.T(), err)
 
 	s.Run("should get all key ids successfully", func() {
@@ -335,14 +335,14 @@ func (s *keysTestSuite) TestSignVerify() {
 	hashedPayload := crypto.Keccak256(data)
 
 	s.Run("should sign a new payload successfully: Secp256k1/ECDSA", func() {
+		keyID := "my-key-sign-ecdsa"
 		request := &types.ImportKeyRequest{
-			ID:               "my-key-sign-ecdsa",
 			Curve:            "secp256k1",
 			PrivateKey:       ecdsaPrivKey,
 			SigningAlgorithm: "ecdsa",
 		}
 
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.NoError(s.T(), err)
 
 		requestSign := &types.SignBase64PayloadRequest{
@@ -370,13 +370,13 @@ func (s *keysTestSuite) TestSignVerify() {
 	})
 
 	s.Run("should sign and verify a new payload successfully: BN254/EDDSA", func() {
+		keyID := "my-key-sign-eddsa"
 		request := &types.ImportKeyRequest{
-			ID:               "my-key-sign-eddsa",
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
 			PrivateKey:       eddsaPrivKey,
 		}
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, request)
+		key, err := s.keyManagerClient.ImportKey(s.ctx, s.cfg.HashicorpKeyStore, keyID, request)
 		require.NoError(s.T(), err)
 
 		requestSign := &types.SignBase64PayloadRequest{

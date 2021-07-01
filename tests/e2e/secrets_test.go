@@ -58,10 +58,9 @@ func TestKeyManagerSecrets(t *testing.T) {
 }
 
 func (s *secretsTestSuite) TestSet() {
-	id := fmt.Sprintf("my-secret-set-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-secret-set-%d", common.RandInt(1000))
 	s.Run("should set a new secret successfully", func() {
 		request := &types.SetSecretRequest{
-			ID:    id,
 			Value: "my-secret-value",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -69,11 +68,11 @@ func (s *secretsTestSuite) TestSet() {
 			},
 		}
 
-		secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
+		secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), request.Value, secret.Value)
-		assert.Equal(s.T(), request.ID, secret.ID)
+		assert.Equal(s.T(), secretID, secret.ID)
 		assert.Equal(s.T(), request.Tags, secret.Tags)
 		assert.Equal(s.T(), "1", secret.Version)
 		assert.False(s.T(), secret.Disabled)
@@ -85,8 +84,8 @@ func (s *secretsTestSuite) TestSet() {
 	})
 
 	s.Run("should parse errors successfully", func() {
+		secretID := "my-secret-set"
 		request := &types.SetSecretRequest{
-			ID:    "my-secret-set",
 			Value: "my-secret-value",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -94,7 +93,7 @@ func (s *secretsTestSuite) TestSet() {
 			},
 		}
 
-		secret, err := s.keyManagerClient.SetSecret(s.ctx, "inexistentStoreName", request)
+		secret, err := s.keyManagerClient.SetSecret(s.ctx, "inexistentStoreName", secretID, request)
 		require.Nil(s.T(), secret)
 
 		httpError := err.(*client.ResponseError)
@@ -103,16 +102,15 @@ func (s *secretsTestSuite) TestSet() {
 }
 
 func (s *secretsTestSuite) TestGet() {
-	id := fmt.Sprintf("my-secret-get-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-secret-get-%d", common.RandInt(1000))
 	request := &types.SetSecretRequest{
-		ID:    id,
 		Value: "my-secret-value",
 	}
 
-	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
+	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
 	require.NoError(s.T(), err)
 
-	secret2, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
+	secret2, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
 	require.NoError(s.T(), err)
 
 	s.Run("should get a secret specific version successfully", func() {
@@ -120,7 +118,7 @@ func (s *secretsTestSuite) TestGet() {
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), request.Value, secretRetrieved.Value)
-		assert.Equal(s.T(), request.ID, secretRetrieved.ID)
+		assert.Equal(s.T(), secretID, secretRetrieved.ID)
 		assert.Equal(s.T(), request.Tags, secretRetrieved.Tags)
 		assert.Equal(s.T(), "1", secretRetrieved.Version)
 		assert.False(s.T(), secretRetrieved.Disabled)
@@ -149,13 +147,12 @@ func (s *secretsTestSuite) TestGet() {
 }
 
 func (s *secretsTestSuite) TestList() {
-	id := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
 	request := &types.SetSecretRequest{
-		ID:    id,
 		Value: "my-secret-value",
 	}
 
-	_, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, request)
+	_, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
 	require.NoError(s.T(), err)
 
 	s.Run("should get all secret ids successfully", func() {
@@ -163,7 +160,7 @@ func (s *secretsTestSuite) TestList() {
 		require.NoError(s.T(), err)
 
 		assert.GreaterOrEqual(s.T(), len(ids), 1)
-		assert.Contains(s.T(), ids, request.ID)
+		assert.Contains(s.T(), ids, secretID)
 	})
 
 	s.Run("should parse errors successfully", func() {

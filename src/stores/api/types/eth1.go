@@ -9,13 +9,13 @@ import (
 )
 
 type CreateEth1AccountRequest struct {
-	ID   string            `json:"id" validate:"required" example:"my-account"`
-	Tags map[string]string `json:"tags,omitempty"`
+	KeyID string            `json:"keyId" example:"my-key-account"`
+	Tags  map[string]string `json:"tags,omitempty"`
 }
 
 type ImportEth1AccountRequest struct {
-	ID         string            `json:"id" validate:"required" example:"my-imported-account"`
-	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E" swaggertype:"string"`
+	KeyID      string            `json:"keyId" example:"my-imported-key-account"`
+	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"0x56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E" swaggertype:"string"`
 	Tags       map[string]string `json:"tags,omitempty"`
 }
 
@@ -95,14 +95,14 @@ type VerifyTypedDataRequest struct {
 }
 
 type Eth1AccountResponse struct {
-	PublicKey           hexutil.Bytes     `json:"publicKey" example:"048e66b3e549818ea2cb354fb70749f6c8de8fa484f7530fc447d5fe80a1c424e4f5ae648d648c980ae7095d1efad87161d83886ca4b6c498ac22a93da5099014a" swaggertype:"string"`
-	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
+	PublicKey           hexutil.Bytes     `json:"publicKey" example:"0x048e66b3e549818ea2cb354fb70749f6c8de8fa484f7530fc447d5fe80a1c424e4f5ae648d648c980ae7095d1efad87161d83886ca4b6c498ac22a93da5099014a" swaggertype:"string"`
+	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
 	CreatedAt           time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
 	UpdatedAt           time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
 	ExpireAt            time.Time         `json:"expireAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
 	DeletedAt           time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
 	DestroyedAt         time.Time         `json:"destroyedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	ID                  string            `json:"id" example:"my-key-id"`
+	KeyID               string            `json:"keyId" example:"my-key-id"`
 	Tags                map[string]string `json:"tags,omitempty"`
 	Address             common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
 	Disabled            bool              `json:"disabled" example:"false"`

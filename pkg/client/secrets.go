@@ -9,9 +9,9 @@ import (
 
 const secretsPath = "secrets"
 
-func (c *HTTPClient) SetSecret(ctx context.Context, storeName string, req *types.SetSecretRequest) (*types.SecretResponse, error) {
+func (c *HTTPClient) SetSecret(ctx context.Context, storeName, id string, req *types.SetSecretRequest) (*types.SecretResponse, error) {
 	secret := &types.SecretResponse{}
-	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), secretsPath)
+	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), secretsPath, id)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return nil, err

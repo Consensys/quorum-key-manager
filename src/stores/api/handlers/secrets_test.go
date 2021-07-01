@@ -55,17 +55,19 @@ func (s *secretsHandlerTestSuite) TearDownTest() {
 }
 
 func (s *secretsHandlerTestSuite) TestSet() {
+	secretID := "my-secret"
+
 	s.Run("should execute request successfully", func() {
 		setSecretRequest := testutils.FakeSetSecretRequest()
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes))
 
 		secret := testutils2.FakeSecret()
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Set(gomock.Any(), setSecretRequest.ID, setSecretRequest.Value, &entities.Attributes{
+		s.secretStore.EXPECT().Set(gomock.Any(), secretID, setSecretRequest.Value, &entities.Attributes{
 			Tags: setSecretRequest.Tags,
 		}).Return(secret, nil)
 
@@ -83,7 +85,7 @@ func (s *secretsHandlerTestSuite) TestSet() {
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes))
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))

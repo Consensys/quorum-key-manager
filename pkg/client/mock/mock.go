@@ -36,18 +36,18 @@ func (m *MockSecretsClient) EXPECT() *MockSecretsClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockSecretsClient) SetSecret(ctx context.Context, storeName string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) SetSecret(ctx context.Context, storeName, id string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, id, request)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SetSecret indicates an expected call of SetSecret
-func (mr *MockSecretsClientMockRecorder) SetSecret(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockSecretsClientMockRecorder) SetSecret(ctx, storeName, id, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockSecretsClient)(nil).SetSecret), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockSecretsClient)(nil).SetSecret), ctx, storeName, id, request)
 }
 
 // GetSecret mocks base method
@@ -104,33 +104,33 @@ func (m *MockKeysClient) EXPECT() *MockKeysClientMockRecorder {
 }
 
 // CreateKey mocks base method
-func (m *MockKeysClient) CreateKey(ctx context.Context, storeName string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeysClient) CreateKey(ctx context.Context, storeName, id string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, id, request)
 	ret0, _ := ret[0].(*types.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateKey indicates an expected call of CreateKey
-func (mr *MockKeysClientMockRecorder) CreateKey(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeysClientMockRecorder) CreateKey(ctx, storeName, id, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockKeysClient)(nil).CreateKey), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockKeysClient)(nil).CreateKey), ctx, storeName, id, request)
 }
 
 // ImportKey mocks base method
-func (m *MockKeysClient) ImportKey(ctx context.Context, storeName string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeysClient) ImportKey(ctx context.Context, storeName, id string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, id, request)
 	ret0, _ := ret[0].(*types.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ImportKey indicates an expected call of ImportKey
-func (mr *MockKeysClientMockRecorder) ImportKey(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeysClientMockRecorder) ImportKey(ctx, storeName, id, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockKeysClient)(nil).ImportKey), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockKeysClient)(nil).ImportKey), ctx, storeName, id, request)
 }
 
 // SignKey mocks base method
@@ -546,18 +546,18 @@ func (m *MockKeyManagerClient) EXPECT() *MockKeyManagerClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockKeyManagerClient) SetSecret(ctx context.Context, storeName string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) SetSecret(ctx context.Context, storeName, id string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, id, request)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SetSecret indicates an expected call of SetSecret
-func (mr *MockKeyManagerClientMockRecorder) SetSecret(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) SetSecret(ctx, storeName, id, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).SetSecret), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).SetSecret), ctx, storeName, id, request)
 }
 
 // GetSecret mocks base method
@@ -591,33 +591,33 @@ func (mr *MockKeyManagerClientMockRecorder) ListSecrets(ctx, storeName interface
 }
 
 // CreateKey mocks base method
-func (m *MockKeyManagerClient) CreateKey(ctx context.Context, storeName string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) CreateKey(ctx context.Context, storeName, id string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, id, request)
 	ret0, _ := ret[0].(*types.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateKey indicates an expected call of CreateKey
-func (mr *MockKeyManagerClientMockRecorder) CreateKey(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) CreateKey(ctx, storeName, id, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockKeyManagerClient)(nil).CreateKey), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockKeyManagerClient)(nil).CreateKey), ctx, storeName, id, request)
 }
 
 // ImportKey mocks base method
-func (m *MockKeyManagerClient) ImportKey(ctx context.Context, storeName string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) ImportKey(ctx context.Context, storeName, id string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, id, request)
 	ret0, _ := ret[0].(*types.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ImportKey indicates an expected call of ImportKey
-func (mr *MockKeyManagerClientMockRecorder) ImportKey(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) ImportKey(ctx, storeName, id, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockKeyManagerClient)(nil).ImportKey), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockKeyManagerClient)(nil).ImportKey), ctx, storeName, id, request)
 }
 
 // SignKey mocks base method

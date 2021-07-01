@@ -391,5 +391,5 @@ func (s *eth1TestSuite) TestSignEEA() {
 }
 
 func (s *eth1TestSuite) newID(name string) string {
-	return fmt.Sprintf("%s-%d", name, common.RandInt(1000))
+	return fmt.Sprintf("%s-%s", name, common.RandString(10))
 }
