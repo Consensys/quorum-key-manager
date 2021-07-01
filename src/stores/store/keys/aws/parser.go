@@ -74,6 +74,7 @@ func parseMetadata(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
 	}
 
 	return &entities.Metadata{
+		Version:   "1",
 		Disabled:  !*describedKey.KeyMetadata.Enabled,
 		ExpireAt:  *expireAt,
 		CreatedAt: *createdAt,
@@ -127,7 +128,8 @@ func toKeyType(alg *entities.Algorithm) (string, error) {
 func toTags(tags map[string]string) []*kms.Tag {
 	var keyTags []*kms.Tag
 	for key, value := range tags {
-		keyTags = append(keyTags, &kms.Tag{TagKey: &key, TagValue: &value})
+		k, v := key, value
+		keyTags = append(keyTags, &kms.Tag{TagKey: &k, TagValue: &v})
 	}
 
 	return keyTags

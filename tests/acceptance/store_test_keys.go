@@ -119,7 +119,7 @@ func (s *keysTestSuite) TestImport() {
 	tags := testutils.FakeTags()
 
 	s.Run("should import a new key pair successfully: ECDSA/Secp256k1", func() {
-		id := s.newID("my-key-ecdsa-import")
+		id := fmt.Sprintf("%s-%d", "my-key-ecdsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
 		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
@@ -132,6 +132,7 @@ func (s *keysTestSuite) TestImport() {
 			return
 		}
 		require.NoError(s.T(), err)
+		s.keyIds = append(s.keyIds, id)
 
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
@@ -280,7 +281,6 @@ func (s *keysTestSuite) TestUpdate() {
 		assert.Equal(s.T(), newTags, updatedKey.Tags)
 		assert.Equal(s.T(), entities.Secp256k1, updatedKey.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Ecdsa, updatedKey.Algo.Type)
-		assert.NotEmpty(s.T(), updatedKey.Metadata.Version)
 		assert.NotNil(s.T(), updatedKey.Metadata.CreatedAt)
 		assert.NotNil(s.T(), updatedKey.Metadata.UpdatedAt)
 		assert.True(s.T(), updatedKey.Metadata.DeletedAt.IsZero())
@@ -358,7 +358,7 @@ func (s *keysTestSuite) TestSignVerify() {
 }
 
 func (s *keysTestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%d", name, common.RandInt(1000))
+	id := fmt.Sprintf("%s-%d", name, common.RandInt(10000))
 	s.keyIds = append(s.keyIds, id)
 
 	return id

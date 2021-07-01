@@ -142,7 +142,8 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 	tagKeys := make([]*string, len(key.Tags))
 	i := 0
 	for k := range key.Tags {
-		tagKeys[i] = &k
+		tagKey := k
+		tagKeys[i] = &tagKey
 		i++
 	}
 
@@ -158,8 +159,9 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 		return nil, err
 	}
 
+	key.Tags = attr.Tags
 	logger.Info("key updated successfully")
-	return s.Get(ctx, id)
+	return key, nil
 }
 
 func (s *KeyStore) Delete(ctx context.Context, id string) error {

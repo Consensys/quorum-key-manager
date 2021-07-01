@@ -4,13 +4,13 @@ package acceptancetests
 
 import (
 	"context"
+	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
+	awskey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
+	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"os"
 	"testing"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
-	awskey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
-	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -55,6 +55,7 @@ func TestKeyManagerStore(t *testing.T) {
 
 	suite.Run(t, s)
 }
+
 /*
 func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	if s.err != nil {
@@ -84,6 +85,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	suite.Run(s.T(), testSuite)
 }
 */
+
 func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -111,6 +113,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite.store = awskey.New(s.env.awsKmsClient, logger)
 	suite.Run(s.T(), testSuite)
 }
+
 /*
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
