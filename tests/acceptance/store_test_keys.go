@@ -295,27 +295,6 @@ func (s *keysTestSuite) TestUpdate() {
 	})
 }
 
-// @TODO Restore after this ticket https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/112
-// func (s *keysTestSuite) TestList() {
-// 	ctx := s.env.ctx
-// 	tags := testutils.FakeTags()
-// 	id := s.newID("my-key-list")
-//
-// 	_, err := s.store.Create(ctx, id, &entities.Algorithm{
-// 		Type:          entities.Ecdsa,
-// 		EllipticCurve: entities.Secp256k1,
-// 	}, &entities.Attributes{
-// 		Tags: tags,
-// 	})
-// 	require.NoError(s.T(), err)
-//
-// 	s.Run("should list all key pairs", func() {
-// 		ids, err := s.store.List(ctx)
-// 		require.NoError(s.T(), err)
-// 		assert.Contains(s.T(), ids, id)
-// 	})
-// }
-
 func (s *keysTestSuite) TestSignVerify() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()

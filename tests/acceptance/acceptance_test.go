@@ -4,22 +4,18 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
 	"os"
 	"testing"
 
-	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
-
-	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
-	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
-
-	awskey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
-	awssecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
-
-	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
-	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
-
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
+	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
+	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
+	awskey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
+	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
+	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
+	awssecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
+	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -139,6 +135,13 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), memory.New(logger), logger)
+	suite.Run(s.T(), testSuite)
+
+	// AWS
+	logger = s.env.logger.WithComponent("Eth1-AWS")
+	testSuite = new(eth1TestSuite)
+	testSuite.env = s.env
+	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, logger), memory.New(logger), logger)
 	suite.Run(s.T(), testSuite)
 }
 

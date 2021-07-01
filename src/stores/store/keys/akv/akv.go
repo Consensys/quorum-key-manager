@@ -213,7 +213,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 		return nil, err
 	}
 
-	b64Signature, err := s.client.Sign(ctx, id, "", algo, base64.RawURLEncoding.EncodeToString(data))
+	b64Signature, err := s.client.Sign(ctx, id, "", algo, base64.StdEncoding.EncodeToString(data))
 	if err != nil {
 		errMessage := "failed to sign payload"
 		logger.WithError(err).Error(errMessage)
