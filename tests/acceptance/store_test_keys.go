@@ -355,7 +355,7 @@ func (s *keysTestSuite) TestSignVerify() {
 }
 
 func (s *keysTestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%d", name, common.RandString(10))
+	id := fmt.Sprintf("%s-%s", name, common.RandString(10))
 	s.keyIds = append(s.keyIds, id)
 
 	return id

@@ -104,6 +104,6 @@ type Eth1AccountResponse struct {
 	DestroyedAt         time.Time         `json:"destroyedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
 	KeyID               string            `json:"keyId" example:"my-key-id"`
 	Tags                map[string]string `json:"tags,omitempty"`
-	ID                  common.Address    `json:"id" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
+	Address             common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
 	Disabled            bool              `json:"disabled" example:"false"`
 }
