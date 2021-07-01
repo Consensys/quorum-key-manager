@@ -25,6 +25,7 @@ coverage.html
 .idea
 *.iml
 .idea_modules/
+.run/
 
 # Build
 build/

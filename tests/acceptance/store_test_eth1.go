@@ -147,15 +147,17 @@ func (s *eth1TestSuite) TestImport() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 	privKey, _ := hex.DecodeString(privKeyECDSA)
+	id := s.newID("my-account-import")
+
+	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+		Tags: tags,
+	})
+	if err != nil && errors.IsNotSupportedError(err) {
+		return
+	}
+	require.NoError(s.T(), err)
 
 	s.Run("should create a new Ethereum Account successfully", func() {
-		id := s.newID("my-account-import")
-
-		account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
-			Tags: tags,
-		})
-		require.NoError(s.T(), err)
-
 		assert.Equal(s.T(), account.ID, id)
 		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address.Hex())
 		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
@@ -255,9 +257,8 @@ func (s *eth1TestSuite) TestSignVerify() {
 	ctx := s.env.ctx
 	payload := []byte("my data to sign")
 	id := s.newID("my-account-sign")
-	privKey, _ := hex.DecodeString(privKeyECDSA2)
 
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
+	account, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), err)

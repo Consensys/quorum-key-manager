@@ -21,7 +21,8 @@ import (
 )
 
 const (
-	id = "my-key"
+	id    = "my-key"
+	keyID = "key-ID"
 )
 
 type awsKeyStoreTestSuite struct {
@@ -47,7 +48,6 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
 	attributes := testutils.FakeAttributes()
 	algorithm := testutils.FakeAlgorithm()
-	keyID := "key-id"
 
 	retCreateKey := kms.CreateKeyOutput{
 		KeyMetadata: &kms.KeyMetadata{
@@ -159,34 +159,45 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 func (s *awsKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
 	msg := []byte("some sample message")
-	myKeyID := "the_ID"
+	asn1Signature, _ := base64.StdEncoding.DecodeString("MEUCIQDtudqysJc4npK9OCT5whzsE/pZ2zc2DjV9djKcUd1YcwIgHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRluw=")
+	expectedSignature, _ := base64.StdEncoding.DecodeString("7bnasrCXOJ6SvTgk+cIc7BP6Wds3Ng41fXYynFHdWHMenG98EvC5AY275FusGrhKSF300NAlaj0Pa1ywNZGW7A==")
 
 	retSign := kms.SignOutput{
-		KeyId:     &myKeyID,
-		Signature: []byte("signature"),
+		KeyId:     aws.String(keyID),
+		Signature: asn1Signature,
 	}
 
-	s.Run("should sign a sample message", func() {
-		s.mockKmsClient.EXPECT().Sign(gomock.Any(), id, msg, kms.SigningAlgorithmSpecEcdsaSha256).
-			Return(&retSign, nil)
+	s.Run("should sign a sample message successfully", func() {
+		s.getKeyMockCalls(ctx, keyID)
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), keyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSign, nil)
 
 		signature, err := s.keyStore.Sign(ctx, id, msg)
-
 		assert.NoError(s.T(), err)
-		assert.NotEmpty(s.T(), signature)
 
+		assert.Equal(s.T(), expectedSignature, signature)
 	})
 
-	s.Run("should fail to sign on error", func() {
+	s.Run("should fail with same error if Get fails", func() {
 		expectedErr := fmt.Errorf("error")
-		s.mockKmsClient.EXPECT().Sign(gomock.Any(), id, msg, kms.SigningAlgorithmSpecEcdsaSha256).
-			Return(nil, expectedErr)
+
+		s.getKeyMockCallsErr(expectedErr)
 
 		signature, err := s.keyStore.Sign(ctx, id, msg)
-
-		assert.Error(s.T(), err)
 		assert.Empty(s.T(), signature)
 
+		assert.Equal(s.T(), err, expectedErr)
+	})
+
+	s.Run("should fail with same error if Sign fails", func() {
+		expectedErr := fmt.Errorf("error")
+
+		s.getKeyMockCalls(ctx, keyID)
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), keyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(nil, expectedErr)
+
+		signature, err := s.keyStore.Sign(ctx, id, msg)
+		assert.Empty(s.T(), signature)
+
+		assert.Equal(s.T(), err, expectedErr)
 	})
 }
 
@@ -232,7 +243,7 @@ func (s *awsKeyStoreTestSuite) TestList() {
 		assert.Empty(s.T(), ids)
 	})
 
-	s.Run("should fail if list fails", func() {
+	s.Run("should fail if ListKeys fails", func() {
 		expectedErr := fmt.Errorf("error")
 
 		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), 0, "").Return(&kms.ListKeysOutput{}, expectedErr)

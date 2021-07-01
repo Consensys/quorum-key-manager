@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -218,6 +219,8 @@ func (s *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, er
 		logger.WithError(err).Error("failed to sign")
 		return nil, err
 	}
+
+	fmt.Println(base64.StdEncoding.EncodeToString(outSignature.Signature))
 
 	signature, err := parseSignature(outSignature)
 	if err != nil {
