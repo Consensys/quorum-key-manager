@@ -127,9 +127,7 @@ func toKeyType(alg *entities.Algorithm) (string, error) {
 func toTags(tags map[string]string) []*kms.Tag {
 	var keyTags []*kms.Tag
 	for key, value := range tags {
-		k, v := key, value
-		keyTag := kms.Tag{TagKey: &k, TagValue: &v}
-		keyTags = append(keyTags, &keyTag)
+		keyTags = append(keyTags, &kms.Tag{TagKey: &key, TagValue: &value})
 	}
 
 	return keyTags

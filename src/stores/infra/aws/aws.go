@@ -30,9 +30,10 @@ type KmsClient interface {
 	ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error)
 	ListTags(ctx context.Context, keyID, marker string) (*kms.ListResourceTagsOutput, error)
 	DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error)
-	UpdateKey(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error)
 	Sign(ctx context.Context, keyID string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error)
 	DeleteKey(ctx context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error)
 	RestoreKey(ctx context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error)
 	GetAlias(ctx context.Context, keyID string) (string, error)
+	TagResource(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error)
+	UntagResource(ctx context.Context, keyID string, tagKeys []*string) (*kms.UntagResourceOutput, error)
 }

@@ -139,9 +139,22 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 		return nil, err
 	}
 
-	_, err = s.client.UpdateKey(ctx, key.Annotations[awsKeyID], toTags(attr.Tags))
+	tagKeys := make([]*string, len(key.Tags))
+	i := 0
+	for k := range key.Tags {
+		tagKeys[i] = &k
+		i++
+	}
+
+	_, err = s.client.UntagResource(ctx, key.Annotations[awsKeyID], tagKeys)
 	if err != nil {
-		logger.WithError(err).Error("failed to update key")
+		logger.WithError(err).Error("failed to untag key")
+		return nil, err
+	}
+
+	_, err = s.client.TagResource(ctx, key.Annotations[awsKeyID], toTags(attr.Tags))
+	if err != nil {
+		logger.WithError(err).Error("failed to tag key")
 		return nil, err
 	}
 

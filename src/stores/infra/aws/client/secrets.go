@@ -33,17 +33,14 @@ func NewSecretsClient(cfg *Config) (*AwsSecretsClient, error) {
 
 func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
 	getSecretInput := &secretsmanager.GetSecretValueInput{
-		SecretId:  &id,
-		VersionId: &version,
+		SecretId:     &id,
+		VersionId:    nil,
 	}
 
-	if version == "" {
-		// Get with secret-id only
-		// Here adding version would cause a not found error
-		getSecretInput = &secretsmanager.GetSecretValueInput{
-			SecretId: &id,
-		}
+	if version != "" {
+		getSecretInput.VersionId = &version
 	}
+
 	output, err := c.client.GetSecretValue(getSecretInput)
 	if err != nil {
 		return nil, parseSecretsManagerErrorResponse(err)

@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
-	awssecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
-	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
+	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
+	awskey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
+	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -55,7 +55,7 @@ func TestKeyManagerStore(t *testing.T) {
 
 	suite.Run(t, s)
 }
-
+/*
 func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -78,13 +78,12 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 
 	// AWS
 	logger = s.env.logger.WithComponent("Secrets-AWS")
-	awsTestSuite := new(secretsTestSuite)
-	awsTestSuite.env = s.env
-	awsTestSuite.store = awssecret.New(s.env.awsSecretsClient, logger)
-	suite.Run(s.T(), awsTestSuite)
+	testSuite = new(secretsTestSuite)
+	testSuite.env = s.env
+	testSuite.store = awssecret.New(s.env.awsSecretsClient, logger)
+	suite.Run(s.T(), testSuite)
 }
-
-/*
+*/
 func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
@@ -112,7 +111,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite.store = awskey.New(s.env.awsKmsClient, logger)
 	suite.Run(s.T(), testSuite)
 }
-
+/*
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")

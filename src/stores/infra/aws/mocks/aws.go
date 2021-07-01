@@ -270,21 +270,6 @@ func (mr *MockKmsClientMockRecorder) DescribeKey(ctx, id interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeKey", reflect.TypeOf((*MockKmsClient)(nil).DescribeKey), ctx, id)
 }
 
-// UpdateKey mocks base method
-func (m *MockKmsClient) UpdateKey(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateKey", ctx, keyID, tags)
-	ret0, _ := ret[0].(*kms.TagResourceOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateKey indicates an expected call of UpdateKey
-func (mr *MockKmsClientMockRecorder) UpdateKey(ctx, keyID, tags interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKey", reflect.TypeOf((*MockKmsClient)(nil).UpdateKey), ctx, keyID, tags)
-}
-
 // Sign mocks base method
 func (m *MockKmsClient) Sign(ctx context.Context, keyID string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error) {
 	m.ctrl.T.Helper()
@@ -343,4 +328,34 @@ func (m *MockKmsClient) GetAlias(ctx context.Context, keyID string) (string, err
 func (mr *MockKmsClientMockRecorder) GetAlias(ctx, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAlias", reflect.TypeOf((*MockKmsClient)(nil).GetAlias), ctx, keyID)
+}
+
+// TagResource mocks base method
+func (m *MockKmsClient) TagResource(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TagResource", ctx, keyID, tags)
+	ret0, _ := ret[0].(*kms.TagResourceOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TagResource indicates an expected call of TagResource
+func (mr *MockKmsClientMockRecorder) TagResource(ctx, keyID, tags interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TagResource", reflect.TypeOf((*MockKmsClient)(nil).TagResource), ctx, keyID, tags)
+}
+
+// UntagResource mocks base method
+func (m *MockKmsClient) UntagResource(ctx context.Context, keyID string, tagKeys []*string) (*kms.UntagResourceOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UntagResource", ctx, keyID, tagKeys)
+	ret0, _ := ret[0].(*kms.UntagResourceOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UntagResource indicates an expected call of UntagResource
+func (mr *MockKmsClientMockRecorder) UntagResource(ctx, keyID, tagKeys interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UntagResource", reflect.TypeOf((*MockKmsClient)(nil).UntagResource), ctx, keyID, tagKeys)
 }

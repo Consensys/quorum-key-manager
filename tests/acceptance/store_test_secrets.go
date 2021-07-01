@@ -79,33 +79,6 @@ func (s *secretsTestSuite) TestSet() {
 		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
 		assert.False(s.T(), secret.Metadata.Disabled)
 	})
-
-	s.Run("should increase version at each set", func() {
-		id := s.newID("my-secret-versioned")
-		value1 := "my-secret-value1"
-		value2 := "my-secret-value2"
-		tags1 := testutils.FakeTags()
-		tags2 := map[string]string{
-			"tag1": "tagValue1",
-			"tag2": "tagValue2",
-		}
-
-		secret1, err := s.store.Set(ctx, id, value1, &entities.Attributes{
-			Tags: tags1,
-		})
-
-		secret2, err := s.store.Set(ctx, id, value2, &entities.Attributes{
-			Tags: tags2,
-		})
-
-		require.NoError(s.T(), err)
-
-		assert.Equal(s.T(), tags1, secret1.Tags)
-		assert.Equal(s.T(), value1, secret1.Value)
-		assert.Equal(s.T(), tags2, secret2.Tags)
-		assert.Equal(s.T(), value2, secret2.Value)
-		assert.NotEqual(s.T(), secret1.Metadata.Version, secret2.Metadata.Version)
-	})
 }
 
 func (s *secretsTestSuite) TestList() {
@@ -136,13 +109,9 @@ func (s *secretsTestSuite) TestGet() {
 	id := s.newID("my-secret-get")
 	value := "my-secret-value"
 
-	// 2 with same ID
-	secret1, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
+	secret, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), setErr)
-	version1 := secret1.Metadata.Version
-	secret2, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
-	require.NoError(s.T(), setErr)
-	version2 := secret2.Metadata.Version
+	version := secret.Metadata.Version
 
 	s.Run("should get latest secret successfully if no version is specified", func() {
 		secret, err := s.store.Get(ctx, id, "")
@@ -160,13 +129,9 @@ func (s *secretsTestSuite) TestGet() {
 	})
 
 	s.Run("should get specific secret version", func() {
-		secret, err := s.store.Get(ctx, id, version1)
+		secret, err := s.store.Get(ctx, id, version)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version1, secret.Metadata.Version)
-
-		secret, err = s.store.Get(ctx, id, version2)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), version2, secret.Metadata.Version)
+		assert.Equal(s.T(), version, secret.Metadata.Version)
 	})
 
 	s.Run("should fail with NotFound if secret is not found", func() {

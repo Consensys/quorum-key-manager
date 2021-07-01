@@ -174,7 +174,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 
-	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, true)
+	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, false)
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
 		testCfg.AkvClient.VaultName,
 		testCfg.AkvClient.TenantID,
