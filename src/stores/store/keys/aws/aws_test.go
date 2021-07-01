@@ -256,28 +256,36 @@ func (s *awsKeyStoreTestSuite) TestList() {
 
 func (s *awsKeyStoreTestSuite) TestDelete() {
 	ctx := context.Background()
-	myDeletedKeyID := "deleteMe"
-
-	outDeletedKey := &kms.DisableKeyOutput{}
 
 	s.Run("should delete/disable one key successfully", func() {
-		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), myDeletedKeyID).Return(outDeletedKey, nil)
+		s.getKeyMockCalls(ctx, keyID)
+		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), keyID).Return(&kms.ScheduleKeyDeletionOutput{}, nil)
 
-		err := s.keyStore.Delete(ctx, myDeletedKeyID)
+		err := s.keyStore.Delete(ctx, id)
 
 		assert.NoError(s.T(), err)
 	})
 
-	s.Run("should fail to delete/disable when error", func() {
+	s.Run("should fail with same error if Get fails", func() {
 		expectedErr := fmt.Errorf("error")
 
-		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), myDeletedKeyID).Return(nil, expectedErr)
+		s.getKeyMockCallsErr(expectedErr)
 
-		err := s.keyStore.Delete(ctx, myDeletedKeyID)
+		err := s.keyStore.Delete(ctx, id)
+
+		assert.Equal(s.T(), err, expectedErr)
+	})
+
+	s.Run("should fail with same error if DeleteKey fails", func() {
+		expectedErr := fmt.Errorf("error")
+
+		s.getKeyMockCalls(ctx, keyID)
+		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), keyID).Return(nil, expectedErr)
+
+		err := s.keyStore.Delete(ctx, id)
 
 		assert.Error(s.T(), err)
 	})
-
 }
 
 func (s *awsKeyStoreTestSuite) getKeyMockCalls(ctx context.Context, keyID string) {
