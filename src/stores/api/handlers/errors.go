@@ -32,10 +32,8 @@ func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {
 		writeErrorResponse(rw, http.StatusUnprocessableEntity, err)
 	case errors.IsHashicorpVaultError(err), errors.IsAKVError(err), errors.IsDependencyFailureError(err), errors.IsAWSError(err):
 		writeErrorResponse(rw, http.StatusFailedDependency, errors.DependencyFailureError(internalDepErrMsg))
-	case errors.IsNotImplementedError(err):
+	case errors.IsNotImplementedError(err), errors.IsNotSupportedError(err):
 		writeErrorResponse(rw, http.StatusNotImplemented, err)
-	case errors.IsNotSupportedError(err):
-		writeErrorResponse(rw, http.StatusMethodNotAllowed, err)
 	default:
 		writeErrorResponse(rw, http.StatusInternalServerError, fmt.Errorf(internalErrMsg))
 	}
