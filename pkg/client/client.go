@@ -26,8 +26,8 @@ type KeysClient interface {
 }
 
 type Eth1Client interface {
-	CreateEth1Account(ctx context.Context, storeName, id string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error)
-	ImportEth1Account(ctx context.Context, storeName, id string, request *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error)
+	CreateEth1Account(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error)
+	ImportEth1Account(ctx context.Context, storeName string, request *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error)
 	UpdateEth1Account(ctx context.Context, storeName, address string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error)
 	SignEth1(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error)
 	SignEth1Data(ctx context.Context, storeName, account string, request *types.SignHexPayloadRequest) (string, error)

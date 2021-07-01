@@ -44,12 +44,14 @@ func FakeSignBase64PayloadRequest() *types.SignBase64PayloadRequest {
 
 func FakeCreateEth1AccountRequest() *types.CreateEth1AccountRequest {
 	return &types.CreateEth1AccountRequest{
-		Tags: testutils.FakeTags(),
+		KeyID: "my-key-account",
+		Tags:  testutils.FakeTags(),
 	}
 }
 
 func FakeImportEth1AccountRequest() *types.ImportEth1AccountRequest {
 	return &types.ImportEth1AccountRequest{
+		KeyID:      "my-import-key-account",
 		PrivateKey: hexutil.MustDecode("0xdb337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"),
 		Tags:       testutils.FakeTags(),
 	}

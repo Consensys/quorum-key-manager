@@ -55,8 +55,9 @@ func (s *secretsHandlerTestSuite) TearDownTest() {
 }
 
 func (s *secretsHandlerTestSuite) TestSet() {
+	secretID := "my-secret"
+
 	s.Run("should execute request successfully", func() {
-		secretID := "my-secret"
 		setSecretRequest := testutils.FakeSetSecretRequest()
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
@@ -80,7 +81,6 @@ func (s *secretsHandlerTestSuite) TestSet() {
 
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
-		secretID := "my-secret"
 		setSecretRequest := testutils.FakeSetSecretRequest()
 		requestBytes, _ := json.Marshal(setSecretRequest)
 

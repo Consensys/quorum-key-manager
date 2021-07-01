@@ -185,7 +185,7 @@ func (s *secretsTestSuite) TestGet() {
 }
 
 func (s *secretsTestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%d", name, common.RandInt(1000))
+	id := fmt.Sprintf("%s-%d", name, common.RandString(10))
 	s.secretIDs = append(s.secretIDs, id)
 
 	return id

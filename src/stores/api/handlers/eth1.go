@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/consensysquorum/quorum-key-manager/pkg/common"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -15,6 +16,10 @@ import (
 	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/gorilla/mux"
+)
+
+const (
+	QKMKeyIDPrefix = "qkm-"
 )
 
 type Eth1Handler struct {
@@ -29,7 +34,8 @@ func NewAccountsHandler(s storesmanager.Manager) *Eth1Handler {
 }
 
 func (h *Eth1Handler) Register(r *mux.Router) {
-	r.Methods(http.MethodPost).Path("/{id}/import").HandlerFunc(h.importAccount)
+	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
+	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
 	r.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
 	r.Methods(http.MethodPost).Path("/{address}/sign-data").HandlerFunc(h.signData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
@@ -40,7 +46,6 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 	r.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
-	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.create)
 
 	r.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
 
@@ -56,14 +61,13 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 // @Tags Ethereum Account
 // @Accept  json
 // @Produce  json
-// @Param id path string true "Account Identifier"
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.CreateEth1AccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.Eth1AccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{id} [post]
+// @Router /stores/{storeName}/eth1 [post]
 func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -74,14 +78,21 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
-	
+
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(request.Context()))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	eth1Acc, err := eth1Store.Create(ctx, mux.Vars(request)["id"], &entities.Attributes{Tags: createReq.Tags})
+	var keyID string
+	if createReq.KeyID != "" {
+		keyID = createReq.KeyID
+	} else {
+		keyID = generateRandomKeyID()
+	}
+
+	eth1Acc, err := eth1Store.Create(ctx, keyID, &entities.Attributes{Tags: createReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -95,14 +106,13 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Tags Ethereum Account
-// @Param id path string true "Account Identifier"
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.ImportEth1AccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.Eth1AccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{id}/import [post]
+// @Router /stores/{storeName}/eth1/import [post]
 func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -121,7 +131,14 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	eth1Acc, err := eth1Store.Import(ctx, mux.Vars(request)["id"], importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
+	var keyID string
+	if importReq.KeyID != "" {
+		keyID = importReq.KeyID
+	} else {
+		keyID = generateRandomKeyID()
+	}
+
+	eth1Acc, err := eth1Store.Import(ctx, keyID, importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -682,4 +699,8 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 func getAddress(request *http.Request) string {
 	addr := ethcommon.HexToAddress(mux.Vars(request)["address"])
 	return addr.Hex()
+}
+
+func generateRandomKeyID() string {
+	return fmt.Sprintf("%s-%s", QKMKeyIDPrefix, common.RandString(15))
 }
