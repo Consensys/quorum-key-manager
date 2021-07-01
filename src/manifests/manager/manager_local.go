@@ -45,7 +45,7 @@ func NewLocalManager(cfg *Config, logger log.Logger) (*LocalManager, error) {
 
 	if os.IsNotExist(err) {
 		errMessage := "folder or file does not exists"
-		logger.WithError(err).Error(errMessage, "path", "lala")
+		logger.WithError(err).Error(errMessage, "path", cfg.Path)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
