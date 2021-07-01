@@ -27,7 +27,7 @@ type SecretsManagerClient interface {
 type KmsClient interface {
 	CreateKey(ctx context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error)
 	GetPublicKey(ctx context.Context, keyID string) (*kms.GetPublicKeyOutput, error)
-	ListKeys(ctx context.Context) ([]string, error)
+	ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error)
 	ListTags(ctx context.Context, keyID, marker string) (*kms.ListResourceTagsOutput, error)
 	DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error)
 	UpdateKey(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error)

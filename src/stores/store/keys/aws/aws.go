@@ -96,29 +96,34 @@ func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 }
 
 func (s *KeyStore) List(ctx context.Context) ([]string, error) {
-	keyIDs, err := s.List(ctx)
-	if err != nil {
-		s.logger.WithError(err).Error("failed to list keys")
-		return nil, err
-	}
-
-	fmt.Println(keyIDs)
-
 	var ids []string
-	for _, keyID := range keyIDs {
-		outKey, err := s.client.DescribeKey(ctx, keyID)
+	nextMarker := ""
+
+	// Loop until the entire list is constituted
+	for {
+		ret, err := s.client.ListKeys(ctx, 0, nextMarker)
 		if err != nil {
-			s.logger.WithError(err).Error("failed to get key for alias listing")
+			s.logger.WithError(err).Error("failed to list keys")
 			return nil, err
 		}
 
-		keyAlias, err := s.client.GetAlias(ctx, *outKey.KeyMetadata.KeyId)
-		if err != nil {
-			s.logger.WithError(err).Error("failed to get key for alias listing")
-			return nil, err
+		for _, key := range ret.Keys {
+			keyAlias, err := s.client.GetAlias(ctx, *key.KeyId)
+			if err != nil {
+				s.logger.WithError(err).Error("failed to key alias")
+				return nil, err
+			}
+
+			// We should not crash if not alias is found even if this should never happen is using the QKM
+			if keyAlias != "" {
+				ids = append(ids, keyAlias)
+			}
 		}
 
-		ids = append(ids, keyAlias)
+		if ret.NextMarker == nil {
+			break
+		}
+		nextMarker = *ret.NextMarker
 	}
 
 	s.logger.Debug("keys listed successfully")

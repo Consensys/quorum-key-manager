@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"strings"
 )
 
 type AwsKmsClient struct {
@@ -68,20 +69,21 @@ func (c *AwsKmsClient) DescribeKey(ctx context.Context, id string) (*kms.Describ
 	return out, nil
 }
 
-func (c *AwsKmsClient) ListKeys(ctx context.Context) ([]string, error) {
-	var keys []string
-	err := c.client.ListKeysPages(&kms.ListKeysInput{}, func(res *kms.ListKeysOutput, lastPage bool) bool {
-		for _, k := range res.Keys {
-			keys = append(keys, *k.KeyArn)
-		}
+func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
+	input := &kms.ListKeysInput{}
+	if limit > 0 {
+		input.Limit = &limit
+	}
+	if len(marker) > 0 {
+		input.Marker = &marker
+	}
 
-		return !lastPage
-	})
+	outListKeys, err := c.client.ListKeys(input)
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
 	}
 
-	return keys, nil
+	return outListKeys, nil
 }
 
 func (c *AwsKmsClient) GetAlias(ctx context.Context, keyID string) (string, error) {
@@ -93,7 +95,12 @@ func (c *AwsKmsClient) GetAlias(ctx context.Context, keyID string) (string, erro
 		return "", parseKmsErrorResponse(err)
 	}
 
-	return *out.Aliases[0].AliasName, nil
+	if len(out.Aliases) > 0 {
+		ss := strings.Split(*out.Aliases[0].AliasName, "/")
+		return ss[len(ss)-1], nil
+	}
+
+	return "", nil
 }
 
 func (c *AwsKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
