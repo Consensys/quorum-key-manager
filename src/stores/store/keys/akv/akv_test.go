@@ -222,7 +222,7 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 
 	bSig, _ := hexutil.Decode(expectedSignature)
 	b64Sig := base64.RawURLEncoding.EncodeToString(bSig)
-	b64Payload := base64.RawURLEncoding.EncodeToString(payload)
+	b64Payload := base64.StdEncoding.EncodeToString(payload)
 
 	s.Run("should sign payload successfully", func() {
 		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
