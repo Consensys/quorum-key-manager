@@ -269,7 +269,7 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 
 }
 
-func (s *awsKeyStoreTestSuite) getKeyMockCalls(ctx context.Context, keyID string, ) {
+func (s *awsKeyStoreTestSuite) getKeyMockCalls(ctx context.Context, keyID string) {
 	retGetPubKey := fakeGetPubKey(keyID)
 	retListTags := fakeListTags()
 	retDescribeKey := fakeDescribeKey(keyID)
