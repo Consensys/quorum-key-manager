@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
@@ -33,8 +34,8 @@ func NewSecretsClient(cfg *Config) (*AwsSecretsClient, error) {
 
 func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
 	getSecretInput := &secretsmanager.GetSecretValueInput{
-		SecretId:     &id,
-		VersionId:    nil,
+		SecretId:  &id,
+		VersionId: nil,
 	}
 
 	if version != "" {

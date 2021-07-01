@@ -2,6 +2,7 @@ package eth1
 
 import (
 	"context"
+
 	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/aws"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"

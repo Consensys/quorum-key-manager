@@ -3,16 +3,17 @@ package aws
 import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"math/big"
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
-	"math/big"
-	"time"
 )
 
 const (
 	awsKeyID             = "aws-KeyId"
-	awsCustomKeyStoreId  = "aws-CustomKeyStoreId"
+	awsCustomKeyStoreID  = "aws-CustomKeyStoreId"
 	awsCloudHsmClusterID = "aws-CloudHsmClusterId"
 	awsAccountID         = "aws-AccountId"
 	awsARN               = "aws-ARN"
@@ -89,7 +90,7 @@ func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]s
 	annotations[awsKeyID] = keyID
 
 	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
-		annotations[awsCustomKeyStoreId] = *keyDesc.KeyMetadata.CustomKeyStoreId
+		annotations[awsCustomKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
 	}
 	if keyDesc.KeyMetadata.CloudHsmClusterId != nil {
 		annotations[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId
@@ -111,7 +112,7 @@ func parseSignature(kmsSign *kms.SignOutput) ([]byte, error) {
 		return nil, errors.AWSError(err.Error())
 	}
 
-	return append(val.R.Bytes(), val.S.Bytes()[:]...), nil
+	return append(val.R.Bytes(), val.S.Bytes()...), nil
 }
 
 func toKeyType(alg *entities.Algorithm) (string, error) {

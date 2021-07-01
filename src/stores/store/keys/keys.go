@@ -2,6 +2,7 @@ package keys
 
 import (
 	"context"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/crypto"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"

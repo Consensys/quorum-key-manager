@@ -51,8 +51,6 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	deletionDate := creationDate.AddDate(1, 0, 0)
 	expirationDate := deletionDate.AddDate(0, 1, 0)
 	randomID := common.RandHexString(32)
-	keyUsage := kms.KeyUsageTypeSignVerify
-	keysSpec := kms.CustomerMasterKeySpecEccSecgP256k1
 	truncatedTagList := false
 
 	retCreateKey := kms.CreateKeyOutput{
@@ -66,8 +64,8 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	}
 
 	retGetPub := kms.GetPublicKeyOutput{
-		KeyUsage:              &keyUsage,
-		CustomerMasterKeySpec: &keysSpec,
+		KeyUsage:              aws.String(kms.KeyUsageTypeSignVerify),
+		CustomerMasterKeySpec: aws.String(kms.CustomerMasterKeySpecEccSecgP256k1),
 	}
 
 	retListTags := &kms.ListResourceTagsOutput{
@@ -76,11 +74,8 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	}
 
 	s.Run("should create a new key successfully", func() {
-		expectedID := id
-		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), id, gomock.Any(), gomock.Any()).
-			Return(&retCreateKey, &expectedID, nil)
-		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), randomID).
-			Return(&retGetPub, nil)
+		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), alias(id), gomock.Any(), gomock.Any()).Return(&retCreateKey, nil)
+		s.mockKmsClient.EXPECT().GetPublicKey(gomock.Any(), randomID).Return(&retGetPub, nil)
 		s.mockKmsClient.EXPECT().ListTags(ctx, randomID, "").Return(retListTags, nil)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
@@ -166,7 +161,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
 		assert.Equal(s.T(), myArn, key.Annotations[awsARN])
 		assert.Equal(s.T(), myAccountID, key.Annotations[awsAccountID])
-		assert.Equal(s.T(), myCustomerKeyStoreID, key.Annotations[awsCustomKeyStoreId])
+		assert.Equal(s.T(), myCustomerKeyStoreID, key.Annotations[awsCustomKeyStoreID])
 		assert.Equal(s.T(), myClusterHsmID, key.Annotations[awsCloudHsmClusterID])
 
 	})

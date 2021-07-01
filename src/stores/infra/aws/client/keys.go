@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"strings"
 )
 
 type AwsKmsClient struct {
