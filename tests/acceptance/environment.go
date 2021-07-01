@@ -174,7 +174,6 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
 
-	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, false)
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
 		testCfg.AkvClient.VaultName,
 		testCfg.AkvClient.TenantID,
@@ -186,6 +185,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, false)
 	awsSecretsClient, err := awsclient.NewSecretsClient(awsConfig)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize AWS Secret client")

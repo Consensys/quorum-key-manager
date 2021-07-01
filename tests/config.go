@@ -72,7 +72,6 @@ func (c *Config) AwsSecretSpecs() *aws.SecretSpecs {
 		Region:    c.AwsClient.Region,
 		AccessID:  c.AwsClient.AccessID,
 		SecretKey: c.AwsClient.SecretKey,
-		Debug:     true,
 	}
 }
 
@@ -81,6 +80,5 @@ func (c *Config) AwsKeySpecs() *aws.KeySpecs {
 		Region:    c.AwsClient.Region,
 		AccessID:  c.AwsClient.AccessID,
 		SecretKey: c.AwsClient.SecretKey,
-		Debug:     true,
 	}
 }
