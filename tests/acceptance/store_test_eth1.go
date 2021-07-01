@@ -292,7 +292,7 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	})
 }
 
-func (s *eth1TestSuite) TestSignData() {
+func (s *eth1TestSuite) TestSignDataVerify() {
 	ctx := s.env.ctx
 	id := s.newID("my-account-sign-tx")
 	chainID := big.NewInt(1)

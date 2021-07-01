@@ -102,8 +102,27 @@ func (s *KeyStore) List(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
+	fmt.Println(keyIDs)
+
+	var ids []string
+	for _, keyID := range keyIDs {
+		outKey, err := s.client.DescribeKey(ctx, keyID)
+		if err != nil {
+			s.logger.WithError(err).Error("failed to get key for alias listing")
+			return nil, err
+		}
+
+		keyAlias, err := s.client.GetAlias(ctx, *outKey.KeyMetadata.KeyId)
+		if err != nil {
+			s.logger.WithError(err).Error("failed to get key for alias listing")
+			return nil, err
+		}
+
+		ids = append(ids, keyAlias)
+	}
+
 	s.logger.Debug("keys listed successfully")
-	return keyIDs, nil
+	return ids, nil
 }
 
 func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
