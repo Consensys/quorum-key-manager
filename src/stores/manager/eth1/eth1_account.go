@@ -3,6 +3,8 @@ package eth1
 import (
 	"context"
 
+	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/aws"
+
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
@@ -42,6 +44,14 @@ func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accoun
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 		keyStore, err = akv.NewKeyStore(spec, logger)
+	case types.AWSKeys:
+		spec := &aws.KeySpecs{}
+		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
+			errMessage := "failed to unmarshal AWS keystore specs"
+			logger.WithError(err).Error(errMessage)
+			return nil, errors.InvalidFormatError(errMessage)
+		}
+		keyStore, err = aws.NewKeyStore(spec, logger)
 	default:
 		errMessage := "invalid keystore kind"
 		logger.Error(errMessage, "kind", specs.Keystore)

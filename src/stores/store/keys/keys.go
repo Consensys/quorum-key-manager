@@ -2,7 +2,6 @@ package keys
 
 import (
 	"context"
-	"encoding/base64"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/crypto"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
@@ -60,11 +59,7 @@ type Store interface {
 }
 
 func VerifySignature(logger log.Logger, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	logger = logger.With(
-		"pub_key", base64.URLEncoding.EncodeToString(pubKey),
-		"curve", algo.EllipticCurve,
-		"signing_algorithm", algo.Type,
-	)
+	logger = logger.With("pub_key", pubKey, "curve", algo.EllipticCurve, "signing_algorithm", algo.Type)
 
 	var err error
 	var verified bool
@@ -86,7 +81,7 @@ func VerifySignature(logger log.Logger, pubKey, data, sig []byte, algo *entities
 
 	if !verified {
 		errMessage := "signature does not belong to the specified public key"
-		logger.Error(errMessage, "pub_key", pubKey)
+		logger.Error(errMessage)
 		return errors.InvalidParameterError(errMessage)
 	}
 

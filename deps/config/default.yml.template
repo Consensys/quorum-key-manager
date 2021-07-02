@@ -30,6 +30,22 @@
     address: http://hashicorp:8200
     tokenPath: '{VAULT_TOKEN_PATH}'
     namespace: ''
+- kind: AWSSecrets
+  version: 0.0.1
+  name: aws-secrets
+  specs:
+    accessID: '{AWS_ACCESS_ID}'
+    secretKey: '{AWS_SECRET_KEY}'
+    region: '{AWS_REGION}'
+    debug: false
+- kind: AWSKeys
+  version: 0.0.1
+  name: aws-keys
+  specs:
+    accessID: '{AWS_ACCESS_ID}'
+    secretKey: '{AWS_SECRET_KEY}'
+    region: '{AWS_REGION}'
+    debug: false
 - kind: Eth1Account
   version: 0.0.1
   name: eth1-accounts

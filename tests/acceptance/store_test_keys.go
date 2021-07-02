@@ -36,7 +36,7 @@ func (s *keysTestSuite) TearDownSuite() {
 	s.env.logger.Info("deleting the following keys", "keys", s.keyIds)
 	for _, id := range s.keyIds {
 		err := s.store.Delete(ctx, id)
-		if err != nil && errors.IsNotImplementedError(err) {
+		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
 			return
 		}
 
@@ -44,9 +44,13 @@ func (s *keysTestSuite) TearDownSuite() {
 	}
 
 	for _, id := range s.keyIds {
-		maxTries := MAX_RETRIES
+		maxTries := MaxRetries
 		for {
 			err := s.store.Destroy(ctx, id)
+			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
+				return
+			}
+
 			if err != nil && !errors.IsStatusConflictError(err) {
 				break
 			}
@@ -58,7 +62,7 @@ func (s *keysTestSuite) TearDownSuite() {
 			}
 
 			maxTries -= 1
-			waitTime := time.Second * time.Duration(MAX_RETRIES-maxTries)
+			waitTime := time.Second * time.Duration(MaxRetries-maxTries)
 			s.env.logger.Debug("waiting for deletion to complete", "keyID", id, "waitFor", waitTime.Seconds())
 			time.Sleep(waitTime)
 		}
@@ -86,7 +90,6 @@ func (s *keysTestSuite) TestCreate() {
 		assert.Equal(s.T(), tags, key.Tags)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
-		assert.NotEmpty(s.T(), key.Metadata.Version)
 		assert.NotNil(s.T(), key.Metadata.CreatedAt)
 		assert.NotNil(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -116,7 +119,7 @@ func (s *keysTestSuite) TestImport() {
 	tags := testutils.FakeTags()
 
 	s.Run("should import a new key pair successfully: ECDSA/Secp256k1", func() {
-		id := s.newID("my-key-ecdsa-import")
+		id := fmt.Sprintf("%s-%d", "my-key-ecdsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
 		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
@@ -125,15 +128,17 @@ func (s *keysTestSuite) TestImport() {
 		}, &entities.Attributes{
 			Tags: tags,
 		})
-
+		if err != nil && errors.IsNotSupportedError(err) {
+			return
+		}
 		require.NoError(s.T(), err)
+		s.keyIds = append(s.keyIds, id)
 
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), tags, key.Tags)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
-		assert.NotEmpty(s.T(), key.Metadata.Version)
 		assert.NotNil(s.T(), key.Metadata.CreatedAt)
 		assert.NotNil(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -163,7 +168,6 @@ func (s *keysTestSuite) TestImport() {
 		assert.Equal(s.T(), tags, key.Tags)
 		assert.Equal(s.T(), entities.Bn254, key.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
-		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.NotNil(s.T(), key.Metadata.CreatedAt)
 		assert.NotNil(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -182,6 +186,9 @@ func (s *keysTestSuite) TestImport() {
 		}, &entities.Attributes{
 			Tags: tags,
 		})
+		if err != nil && errors.IsNotSupportedError(err) {
+			return
+		}
 
 		require.Nil(s.T(), key)
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
@@ -192,9 +199,8 @@ func (s *keysTestSuite) TestGet() {
 	ctx := s.env.ctx
 	id := s.newID("my-key-get")
 	tags := testutils.FakeTags()
-	privKey, _ := hex.DecodeString(privKeyECDSA)
 
-	key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
@@ -207,11 +213,9 @@ func (s *keysTestSuite) TestGet() {
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, keyRetrieved.ID)
-		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), tags, keyRetrieved.Tags)
 		assert.Equal(s.T(), entities.Secp256k1, keyRetrieved.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Ecdsa, keyRetrieved.Algo.Type)
-		assert.NotEmpty(s.T(), keyRetrieved.Metadata.Version)
 		assert.NotNil(s.T(), keyRetrieved.Metadata.CreatedAt)
 		assert.NotNil(s.T(), keyRetrieved.Metadata.UpdatedAt)
 		assert.True(s.T(), keyRetrieved.Metadata.DeletedAt.IsZero())
@@ -251,13 +255,14 @@ func (s *keysTestSuite) TestList() {
 func (s *keysTestSuite) TestUpdate() {
 	ctx := s.env.ctx
 	id := s.newID("my-key-update")
-	privKey, _ := hex.DecodeString(privKeyECDSA)
-	key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
+	tags := testutils.FakeTags()
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
-		Tags: testutils.FakeTags(),
+		Tags: tags,
 	})
+	require.NoError(s.T(), err)
 	require.NoError(s.T(), err)
 
 	s.Run("should update a key pair successfully", func() {
@@ -273,11 +278,9 @@ func (s *keysTestSuite) TestUpdate() {
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, updatedKey.ID)
-		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), newTags, updatedKey.Tags)
 		assert.Equal(s.T(), entities.Secp256k1, updatedKey.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Ecdsa, updatedKey.Algo.Type)
-		assert.NotEmpty(s.T(), updatedKey.Metadata.Version)
 		assert.NotNil(s.T(), updatedKey.Metadata.CreatedAt)
 		assert.NotNil(s.T(), updatedKey.Metadata.UpdatedAt)
 		assert.True(s.T(), updatedKey.Metadata.DeletedAt.IsZero())
@@ -355,7 +358,7 @@ func (s *keysTestSuite) TestSignVerify() {
 }
 
 func (s *keysTestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%s", name, common.RandString(10))
+	id := fmt.Sprintf("%s-%d", name, common.RandInt(10000))
 	s.keyIds = append(s.keyIds, id)
 
 	return id

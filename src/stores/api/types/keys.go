@@ -37,6 +37,7 @@ type KeyResponse struct {
 	Curve            string            `json:"curve" example:"secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" example:"ecdsa"`
 	Tags             map[string]string `json:"tags,omitempty"`
+	Annotations      map[string]string `json:"annotations,omitempty"`
 	Disabled         bool              `json:"disabled" example:"false"`
 	CreatedAt        time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
 	UpdatedAt        time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`

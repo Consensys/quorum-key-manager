@@ -4,22 +4,22 @@ import (
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/client"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
+	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
 )
 
-// SecretSpecs is the specs format for an aws secrets manager (aws secretsmanager service)
-type SecretSpecs struct {
+// KeySpecs is the specs format for an AWS Key Vault key store
+type KeySpecs struct {
 	Region    string `json:"region"`
 	AccessID  string `json:"accessID"`
 	SecretKey string `json:"secretKey"`
 	Debug     bool   `json:"debug"`
 }
 
-func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*aws.SecretStore, error) {
+func NewKeyStore(specs *KeySpecs, logger log.Logger) (*aws.KeyStore, error) {
 	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
-	cli, err := client.NewSecretsClient(cfg)
+	cli, err := client.NewKmsClient(cfg)
 	if err != nil {
-		errMessage := "failed to instantiate AWS client (secrets)"
+		errMessage := "failed to instantiate AWS client (keys)"
 		logger.WithError(err).Error(errMessage, "specs", specs)
 		return nil, errors.ConfigError(errMessage)
 	}

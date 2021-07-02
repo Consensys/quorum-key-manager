@@ -24,7 +24,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-const StoreManagerID = "StoreManager"
+const ID = "StoreManager"
 
 type BaseManager struct {
 	manifests manifestsmanager.Manager
@@ -61,11 +61,11 @@ func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 
 var storeKinds = []manifest.Kind{
 	types.HashicorpSecrets,
-	types.AKVSecrets,
-	types.KMSSecrets,
-	types.AKVKeys,
 	types.HashicorpKeys,
-	types.KMSKeys,
+	types.AKVSecrets,
+	types.AKVKeys,
+	types.AWSSecrets,
+	types.AWSKeys,
 	types.Eth1Account,
 }
 
@@ -198,10 +198,12 @@ func (m *BaseManager) list(_ context.Context, kind manifest.Kind) []string {
 	case "":
 		storeNames = append(
 			append(m.storeNames(m.secrets, kind), m.storeNames(m.keys, kind)...), m.storeNames(m.eth1Accounts, kind)...)
-	case types.HashicorpSecrets, types.AKVSecrets, types.KMSSecrets:
+	case types.HashicorpSecrets, types.AKVSecrets, types.AWSSecrets:
 		storeNames = m.storeNames(m.secrets, kind)
-	case types.AKVKeys, types.HashicorpKeys, types.KMSKeys:
+	case types.AKVKeys, types.HashicorpKeys, types.AWSKeys:
 		storeNames = m.storeNames(m.keys, kind)
+	case types.Eth1Account:
+		storeNames = m.storeNames(m.eth1Accounts, kind)
 	}
 
 	return storeNames
@@ -280,7 +282,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		if err != nil {
 			return err
 		}
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AWSSecrets:
 		spec := &aws.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -289,6 +291,18 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 		store, err := aws.NewSecretStore(spec, logger)
+		if err != nil {
+			return err
+		}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.AWSKeys:
+		spec := &aws.KeySpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			errMessage := "failed to unmarshal AWS key store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
+		}
+		store, err := aws.NewKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
@@ -327,7 +341,7 @@ func (m *BaseManager) storeNames(list map[string]*storeBundle, kind manifest.Kin
 	return storeNames
 }
 
-func (m *BaseManager) ID() string { return StoreManagerID }
+func (m *BaseManager) ID() string { return ID }
 func (m *BaseManager) CheckLiveness() error {
 	if m.isLive {
 		return nil
