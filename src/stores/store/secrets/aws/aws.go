@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"time"
-
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
@@ -15,13 +13,11 @@ const (
 	maxTagsAllowed = 50
 )
 
-// SecretStore is an implementation of secret store relying on AWS secretsmanager
 type SecretStore struct {
 	client aws.SecretsManagerClient
 	logger log.Logger
 }
 
-// New creates an AWS secret store
 func New(client aws.SecretsManagerClient, logger log.Logger) *SecretStore {
 	return &SecretStore{
 		client: client,
@@ -33,20 +29,18 @@ func (s *SecretStore) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Set Set a secret and tag it when tags exist
 func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.With("id", id)
 	logger.Debug("creating secret")
 
 	_, err := s.client.CreateSecret(ctx, id, value)
-
 	if err != nil && errors.IsAlreadyExistsError(err) {
 		_, err1 := s.client.PutSecretValue(ctx, id, value)
 		if err1 != nil {
-			logger.WithError(err).Error("failed to update secret")
+			logger.WithError(err).Error("failed to replace secret")
 			return nil, err1
 		}
-	} else if err != nil && !errors.IsAlreadyExistsError(err) {
+	} else if err != nil {
 		logger.WithError(err).Error("failed to create aws secret")
 		return nil, err
 	}
@@ -74,7 +68,6 @@ func (s *SecretStore) Set(ctx context.Context, id, value string, attr *entities.
 	return formatAwsSecret(id, value, tags, metadata), nil
 }
 
-// Get Gets a secret and its description
 func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := s.logger.With("id", id)
 
@@ -94,7 +87,6 @@ func (s *SecretStore) Get(ctx context.Context, id, version string) (*entities.Se
 	return formatAwsSecret(id, *getSecretOutput.SecretString, tags, metadata), nil
 }
 
-// List Gets all secret ids as a slice of names
 func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	secrets := []string{}
 	nextToken := ""
@@ -117,7 +109,6 @@ func (s *SecretStore) List(ctx context.Context) ([]string, error) {
 	return secrets, nil
 }
 
-// ListPaginated Gets all secret ids as a slice of names
 func (s *SecretStore) listPaginated(ctx context.Context, maxResults int64, nextToken string) (resList []string, resNextToken *string, err error) {
 	listOutput, err := s.client.ListSecrets(ctx, maxResults, nextToken)
 	if err != nil {
@@ -135,12 +126,6 @@ func (s *SecretStore) listPaginated(ctx context.Context, maxResults int64, nextT
 	return secretNamesList, listOutput.NextToken, nil
 }
 
-// Refresh Updates an existing secret by extending its TTL
-func (s *SecretStore) Refresh(_ context.Context, id, _ string, expirationDate time.Time) error {
-	return errors.ErrNotImplemented
-}
-
-// Delete Deletes a secret
 func (s *SecretStore) Delete(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("deleting secret")
@@ -155,17 +140,14 @@ func (s *SecretStore) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// GetDeleted Gets a deleted secret
 func (s *SecretStore) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// ListDeleted Lists all deleted secrets
 func (s *SecretStore) ListDeleted(ctx context.Context) ([]string, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Undelete Restores a previously deleted secret
 func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
@@ -179,7 +161,6 @@ func (s *SecretStore) Undelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// Destroy Deletes a secret permanently (force deletion, secret will be unrecoverable)
 func (s *SecretStore) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("destroying key")

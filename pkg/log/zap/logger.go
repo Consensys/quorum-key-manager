@@ -2,6 +2,7 @@ package zap
 
 import (
 	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 )
 
@@ -18,8 +19,8 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 
 	level := getLevel(cfg.Level)
 
-	switch cfg.Mode {
-	case log.DevelopmentMode:
+	switch cfg.Format {
+	case log.TextFormat:
 		zapCfg := zap.NewDevelopmentConfig()
 		zapCfg.Level = level
 		zapCfg.DisableStacktrace = true
@@ -27,12 +28,12 @@ func NewLogger(cfg *log.Config) (*Logger, error) {
 		logger, err = zapCfg.Build()
 	default:
 		zapCfg := zap.NewProductionConfig()
+		zapCfg.EncoderConfig = ecszap.ECSCompatibleEncoderConfig(zapCfg.EncoderConfig)
 		zapCfg.Level = level
 		zapCfg.DisableStacktrace = true
 		zapCfg.DisableCaller = true
-		logger, err = zapCfg.Build()
+		logger, err = zapCfg.Build(ecszap.WrapCoreOption())
 	}
-
 	if err != nil {
 		return nil, err
 	}
