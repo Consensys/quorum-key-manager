@@ -87,6 +87,27 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
+	s.Run("should execute request with no body successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, nil)
+
+		key := testutils2.FakeKey()
+
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.keyStore.EXPECT().Create(
+			gomock.Any(),
+			gomock.Any(),
+			&entities.Algorithm{},
+			&entities.Attributes{}).Return(key, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		response := formatters.FormatKeyResponse(key)
+		expectedBody, _ := json.Marshal(response)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
 	s.Run("should fail with 400 if signing algorithm is not supported", func() {
 		createKeyRequest := testutils.FakeCreateKeyRequest()
 		createKeyRequest.SigningAlgorithm = invalidSigningAlgorithm
