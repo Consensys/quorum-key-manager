@@ -1,7 +1,7 @@
 package log
 
 type LoggerLevel string
-type LoggerMode string
+type LoggerFormat string
 
 const (
 	InfoLevel  LoggerLevel = "info"
@@ -12,20 +12,18 @@ const (
 )
 
 const (
-	DevelopmentMode LoggerMode = "development"
-	ProductionMode  LoggerMode = "production"
+	TextFormat LoggerFormat = "text"
+	JSONFormat LoggerFormat = "json"
 )
 
 type Config struct {
-	Level     LoggerLevel
-	Timestamp bool
-	Mode      LoggerMode
+	Level  LoggerLevel
+	Format LoggerFormat
 }
 
-func NewConfig(level LoggerLevel, timestamp bool, mode LoggerMode) *Config {
+func NewConfig(level LoggerLevel, format LoggerFormat) *Config {
 	return &Config{
-		Level:     level,
-		Timestamp: timestamp,
-		Mode:      mode,
+		Level:  level,
+		Format: format,
 	}
 }
