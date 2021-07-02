@@ -57,7 +57,7 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 
 	s.Run("should create a new key successfully", func() {
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), alias(id), gomock.Any(), gomock.Any()).Return(&retCreateKey, nil)
-		s.getKeyMockCalls(ctx, keyID)
+		s.getKeyMockCalls(ctx)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
@@ -168,7 +168,7 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 	}
 
 	s.Run("should sign a sample message successfully", func() {
-		s.getKeyMockCalls(ctx, keyID)
+		s.getKeyMockCalls(ctx)
 		s.mockKmsClient.EXPECT().Sign(gomock.Any(), keyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSign, nil)
 
 		signature, err := s.keyStore.Sign(ctx, id, msg)
@@ -191,7 +191,7 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 	s.Run("should fail with same error if Sign fails", func() {
 		expectedErr := fmt.Errorf("error")
 
-		s.getKeyMockCalls(ctx, keyID)
+		s.getKeyMockCalls(ctx)
 		s.mockKmsClient.EXPECT().Sign(gomock.Any(), keyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(nil, expectedErr)
 
 		signature, err := s.keyStore.Sign(ctx, id, msg)
@@ -203,16 +203,19 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 
 func (s *awsKeyStoreTestSuite) TestList() {
 	ctx := context.Background()
-	key0, key1 := "my-Key0", "my-key1"
-	expected := []string{key0, key1}
-	secretsList := []*kms.KeyListEntry{{KeyId: &key0}, {KeyId: &key1}}
+	key0, key1 := "key-id0", "key-id1"
 
 	s.Run("should list all keys ids successfully", func() {
+		expected := []string{"id0", "id1"}
+		secretsList := []*kms.KeyListEntry{{KeyId: &key0}, {KeyId: &key1}}
 		listOutput := &kms.ListKeysOutput{
 			Keys: secretsList,
 		}
 
-		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), 0, "").Return(listOutput, nil)
+		s.mockKmsClient.EXPECT().ListKeys(ctx, int64(0), "").Return(listOutput, nil)
+		s.mockKmsClient.EXPECT().GetAlias(ctx, key0).Return(expected[0], nil)
+		s.mockKmsClient.EXPECT().GetAlias(ctx, key1).Return(expected[1], nil)
+
 		ids, err := s.keyStore.List(ctx)
 
 		assert.NoError(s.T(), err)
@@ -220,15 +223,25 @@ func (s *awsKeyStoreTestSuite) TestList() {
 	})
 
 	s.Run("should list all keys ids successfully with a nextMarker", func() {
+		expected := []string{"id0", "id1", "id2", "id3"}
+		secretsList := []*kms.KeyListEntry{{KeyId: &key0}, {KeyId: &key1}}
 		nextMarker := "next"
-		listOutput := &kms.ListKeysOutput{
+		listOutput0 := &kms.ListKeysOutput{
 			Keys:       secretsList,
 			NextMarker: &nextMarker,
 		}
+		listOutput1 := &kms.ListKeysOutput{
+			Keys: secretsList,
+		}
 
-		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), 0, nextMarker).Return(listOutput, nil)
-		listOutput.NextMarker = nil
-		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), 0, "").Return(listOutput, nil)
+		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), int64(0), "").Return(listOutput0, nil)
+		s.mockKmsClient.EXPECT().GetAlias(ctx, key0).Return(expected[0], nil)
+		s.mockKmsClient.EXPECT().GetAlias(ctx, key1).Return(expected[1], nil)
+
+		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), int64(0), nextMarker).Return(listOutput1, nil)
+		s.mockKmsClient.EXPECT().GetAlias(ctx, key0).Return(expected[2], nil)
+		s.mockKmsClient.EXPECT().GetAlias(ctx, key1).Return(expected[3], nil)
+
 		ids, err := s.keyStore.List(ctx)
 
 		assert.NoError(s.T(), err)
@@ -236,17 +249,19 @@ func (s *awsKeyStoreTestSuite) TestList() {
 	})
 
 	s.Run("should return empty keys list if result is nil", func() {
-		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), 0, "").Return(&kms.ListKeysOutput{}, nil)
-		ids, err := s.keyStore.List(ctx)
+		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), int64(0), "").Return(&kms.ListKeysOutput{}, nil)
 
+		ids, err := s.keyStore.List(ctx)
 		assert.NoError(s.T(), err)
+
 		assert.Empty(s.T(), ids)
 	})
 
 	s.Run("should fail if ListKeys fails", func() {
 		expectedErr := fmt.Errorf("error")
 
-		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), 0, "").Return(&kms.ListKeysOutput{}, expectedErr)
+		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), int64(0), "").Return(nil, expectedErr)
+
 		ids, err := s.keyStore.List(ctx)
 
 		assert.Nil(s.T(), ids)
@@ -258,7 +273,7 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 	ctx := context.Background()
 
 	s.Run("should delete/disable one key successfully", func() {
-		s.getKeyMockCalls(ctx, keyID)
+		s.getKeyMockCalls(ctx)
 		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), keyID).Return(&kms.ScheduleKeyDeletionOutput{}, nil)
 
 		err := s.keyStore.Delete(ctx, id)
@@ -279,7 +294,7 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 	s.Run("should fail with same error if DeleteKey fails", func() {
 		expectedErr := fmt.Errorf("error")
 
-		s.getKeyMockCalls(ctx, keyID)
+		s.getKeyMockCalls(ctx)
 		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), keyID).Return(nil, expectedErr)
 
 		err := s.keyStore.Delete(ctx, id)
@@ -288,7 +303,7 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 	})
 }
 
-func (s *awsKeyStoreTestSuite) getKeyMockCalls(ctx context.Context, keyID string) {
+func (s *awsKeyStoreTestSuite) getKeyMockCalls(ctx context.Context) {
 	retGetPubKey := fakeGetPubKey(keyID)
 	retListTags := fakeListTags()
 	retDescribeKey := fakeDescribeKey(keyID)
