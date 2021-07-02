@@ -108,6 +108,22 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
+	s.Run("should execute request with no request body successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", nil)
+
+		acc := testutils2.FakeETH1Account()
+
+		s.eth1Store.EXPECT().Create(gomock.Any(), gomock.Any(), &entities.Attributes{}).Return(acc, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		response := formatters.FormatEth1AccResponse(acc)
+		expectedBody, _ := json.Marshal(response)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		createEth1AccountRequest := testutils.FakeCreateEth1AccountRequest()
@@ -136,6 +152,32 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		s.eth1Store.EXPECT().Import(
 			gomock.Any(),
 			importEth1AccountRequest.KeyID,
+			importEth1AccountRequest.PrivateKey,
+			&entities.Attributes{
+				Tags: importEth1AccountRequest.Tags,
+			}).Return(acc, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		response := formatters.FormatEth1AccResponse(acc)
+		expectedBody, _ := json.Marshal(response)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request with without KeyID successfully", func() {
+		importEth1AccountRequest := testutils.FakeImportEth1AccountRequest()
+		importEth1AccountRequest.KeyID = ""
+		requestBytes, _ := json.Marshal(importEth1AccountRequest)
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes))
+
+		acc := testutils2.FakeETH1Account()
+
+		s.eth1Store.EXPECT().Import(
+			gomock.Any(),
+			gomock.Any(),
 			importEth1AccountRequest.PrivateKey,
 			&entities.Attributes{
 				Tags: importEth1AccountRequest.Tags,

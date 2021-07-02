@@ -59,7 +59,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 
 	createKeyRequest := &types.CreateKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, createKeyRequest)
-	if err != nil {
+	if err != nil && err.Error() != "EOF" {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}

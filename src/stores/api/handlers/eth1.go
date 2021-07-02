@@ -74,7 +74,7 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 
 	createReq := &types.CreateEth1AccountRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, createReq)
-	if err != nil {
+	if err != nil && err.Error() != "EOF" {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
@@ -120,7 +120,6 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 	importReq := &types.ImportEth1AccountRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, importReq)
 	if err != nil {
-		fmt.Println(err)
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}

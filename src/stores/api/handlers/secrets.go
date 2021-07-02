@@ -42,7 +42,7 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/secrets [post]
+// @Router /stores/{storeName}/secrets/{id} [post]
 func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
