@@ -249,7 +249,7 @@ func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, er
 	return nil, errors.ErrNotImplemented
 }
 
-// Azure generate ecdsa signature does not prevent its malleability-ecdsa-signatures 
+// Azure generate ecdsa signature does not prevent its malleability-ecdsa-signatures
 // A malleable signature can be transformed into a new and valid one for a different message or key.
 // https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
 // More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/

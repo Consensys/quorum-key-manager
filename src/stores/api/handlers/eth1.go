@@ -701,5 +701,5 @@ func getAddress(request *http.Request) string {
 }
 
 func generateRandomKeyID() string {
-	return fmt.Sprintf("%s-%s", QKMKeyIDPrefix, common.RandString(15))
+	return fmt.Sprintf("%s%s", QKMKeyIDPrefix, common.RandString(15))
 }
