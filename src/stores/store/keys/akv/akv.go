@@ -20,7 +20,7 @@ type Store struct {
 	logger log.Logger
 }
 
-// Values taken from github.com/ethereum/go-ethereum/crypto/crypto.go
+// Values copied from github.com/ethereum/go-ethereum/crypto/crypto.go
 var (
 	secp256k1N, _  = new(big.Int).SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
 	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
@@ -241,15 +241,15 @@ func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entiti
 	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
 }
 
-func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-// Azure generate ecdsa signature does not prevent its malleability-ecdsa-signatures
+// Azure generates ECDSA signature whom does not prevent malleability
 // A malleable signature can be transformed into a new and valid one for a different message or key.
 // https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
 // More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/
@@ -264,6 +264,6 @@ func malleabilityECDSASignature(signature []byte) []byte {
 		return signature
 	}
 
-	S = new(big.Int).Sub(secp256k1N, S)
-	return append(R.Bytes(), S.Bytes()...)
+	S2 := new(big.Int).Sub(secp256k1N, S)
+	return append(R.Bytes(), S2.Bytes()...)
 }
