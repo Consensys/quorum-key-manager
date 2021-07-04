@@ -335,8 +335,10 @@ func (s *eth1TestSuite) TestSignDataVerify() {
 	s.Run("should sign a transaction data successfully", func() {
 		signer := types.NewEIP155Signer(chainID)
 		txData := signer.Hash(tx).Bytes()
-		signature, _ := s.store.SignData(ctx, account.Address.Hex(), txData)
-		signedTx, _ := tx.WithSignature(signer, signature)
+		signature, err := s.store.SignData(ctx, account.Address.Hex(), txData)
+		require.NoError(s.T(), err)
+		signedTx, err := tx.WithSignature(signer, signature)
+		require.NoError(s.T(), err)
 		sender, err := types.Sender(signer, signedTx)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), account.Address.Hex(), sender.Hex())

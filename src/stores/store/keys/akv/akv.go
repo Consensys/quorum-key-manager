@@ -3,13 +3,13 @@ package akv
 import (
 	"context"
 	"encoding/base64"
+	"math/big"
 	"time"
-
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensysquorum/quorum-key-manager/pkg/log"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
@@ -19,6 +19,12 @@ type Store struct {
 	client akv.KeysClient
 	logger log.Logger
 }
+
+// Values copied from github.com/ethereum/go-ethereum/crypto/crypto.go
+var (
+	secp256k1N, _  = new(big.Int).SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
+	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
+)
 
 var _ keys.Store = &Store{}
 
@@ -228,17 +234,36 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 	}
 
 	logger.Debug("payload signed successfully")
-	return signature, nil
+	return malleabilityECDSASignature(signature), nil
 }
 
 func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
 	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
 }
 
-func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
+}
+
+// Azure generates ECDSA signature whom does not prevent malleability
+// A malleable signature can be transformed into a new and valid one for a different message or key.
+// https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
+// More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/
+// More info about the fix: https://en.bitcoin.it/wiki/BIP_0062
+func malleabilityECDSASignature(signature []byte) []byte {
+	l := len(signature)
+	hl := l / 2
+
+	R := new(big.Int).SetBytes(signature[:hl])
+	S := new(big.Int).SetBytes(signature[hl:l])
+	if S.Cmp(secp256k1halfN) <= 0 {
+		return signature
+	}
+
+	S2 := new(big.Int).Sub(secp256k1N, S)
+	return append(R.Bytes(), S2.Bytes()...)
 }
