@@ -401,7 +401,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
 func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (interface{}, error) {
 	var privateRecipientEncoded interface{}
 	var err error

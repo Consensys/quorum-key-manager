@@ -10,7 +10,7 @@
         },
         "version": "0.1"
     },
-    "host": "https://consensysquorum.github.io/quorum-key-manager",
+    "host": "https://consensys.github.io/quorum-key-manager",
     "basePath": "/",
     "paths": {
         "/stores/{storeName}/eth1": {

@@ -7,7 +7,7 @@ package src
 // @license.name Business Source License 1.1
 // @license.url https://mariadb.com/bsl11/
 
-// @host https://consensysquorum.github.io/quorum-key-manager
+// @host https://consensys.github.io/quorum-key-manager
 // @BasePath /
 // @query.collection.format multi
 
