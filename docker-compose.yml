@@ -3,9 +3,6 @@ version: "3.7"
 x-default-variables: &default-variables
   LOG_LEVEL: ${LOG_LEVEL-INFO}
   LOG_FORMAT: ${LOG_FORMAT-json}
-  HTTP_HOST: ${HTTP_HOST-0.0.0.0}
-  HTTP_PORT: ${HTTP_PORT-8080}
-  HEALTH_PORT: ${HEALTH_PORT-8081}
   MANIFEST_PATH: ${MANIFEST_PATH-/manifests}
   TEST_DATA: ${TEST_DATA-}
 

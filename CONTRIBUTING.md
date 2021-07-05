@@ -26,7 +26,7 @@ This project and everyone participating in it is governed by the [Quorum Key Man
 
 ## I just have a quick question
 
-Send us an email at [quorum@consensys.net](mailto:quorum@consensys.net) and that's the fastest way to get an answer.
+Send us an email at [quorum-key-manager@consensys.net](mailto:quorum-key-manager@consensys.net) and that's the fastest way to get an answer.
 
 ## How To Contribute
 
@@ -99,7 +99,7 @@ Include details about your configuration and environment:
   - **For Linux - What kernel are you running?** You can get the exact version by running `uname -a` in your terminal.
 - **Are you running in a virtual machine?** If so, which VM software are you using and which operating systems and versions are used for the host and the guest?
 - **Are you running in a docker container?** If so, what version of docker?
-- **Are you running in a a Cloud?** If so, which one, and what type/size of VM is it?
+- **Are you running in a Cloud?** If so, which one, and what type/size of VM is it?
 
 # Style Guides
 

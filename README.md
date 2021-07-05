@@ -1,14 +1,18 @@
+[![Website](https://img.shields.io/website?label=documentation&url=https%3A%2F%2Fdocs.quorum-key-manager.consensys.net%2F)](https://docs.quorum-key-manager.consensys.net/)
+
+[![CircleCI](https://img.shields.io/circleci/build/gh/ConsenSys/quorum-key-manager?token=7062612dcd5a98913aa1b330ae48b6a527be52eb)](https://circleci.com/gh/ConsenSys/quorum-key-manager)
+
 # Quorum Key Manager
-Quorum Key Manager(QKM) is a key management service developed under the BSL 1.1 license and written in Go. 
+Quorum Key Manager (QKM) is a key management service developed under the [BSL 1.1](LICENSE) license and written in Go. 
 
-Quorum Key Manager exposes a HTTP API service to manage your secrets, keys and ethereum accounts. QKM supports the integration with
-*Amazon Key Management Service*, *Azure Key Vault* and *Hashicorp Vault*. 
+Quorum Key Manager exposes an HTTP API service to manage your secrets, keys and Ethereum accounts. QKM supports the integration with
+*AWS Key Management Service*, *Azure Key Vault* and *HashiCorp Vault*. 
 
-In addition, using QKM, you can connect to your ethereum nodes to sign your transaction using the ethereum account stored in your secure key vault.
+In addition, using QKM, you can connect to your Ethereum nodes to sign your transaction using the Ethereum account stored in your secure key vault.
 
 ## Run QKM
 
-Available docker images can be found in `docker.consensys.net/priv/quorum-key-manager`.
+Available docker images can be found at `docker.consensys.net/quorum-key-manager`.
 
 To run the Quorum Key Manager service using docker you can execute the following command:
 
@@ -21,7 +25,7 @@ docker.consensys.net/priv/quorum-key-manager:stable run --manifest-path=/manifes
 
 You can find more information about the expected content of the `/manifest` folder in the project [documentation](#documentation) 
 
-## Build binaries
+## Build from source
 
 To build binary locally requires Go (version 1.15 or later) and C compiler. 
 
@@ -40,8 +44,6 @@ Quorum Key Manager documentation website [https://docs.quorum-key-manager.consen
  
 ## License
 
-Orchestrate is licensed under the BSL 1.1.
+Orchestrate is licensed under the BSL 1.1. Please refer to the [LICENSE file](LICENSE) for a detailed description of the license.
 
-Please refer to the [LICENSE file](LICENSE) for a detailed description of the license.
-
-Please contact [orchestrate@consensys.net](mailto:orchestrate@consensys.net) if you need to purchase a license for a production use-case.  
+Please contact [quorum-key-manager@consensys.net](mailto:quorum-key-manager@consensys.net) if you need to purchase a license for a production use-case.  
