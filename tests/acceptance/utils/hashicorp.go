@@ -2,13 +2,13 @@ package utils
 
 import (
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 	"math/rand"
 	"os"
 	"runtime"
 	"strconv"
 
-	dockerhashicorp "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	dockerhashicorp "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 )
 
 const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"

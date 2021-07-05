@@ -1,9 +1,9 @@
 package proxynode
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
-	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
-	"github.com/consensysquorum/quorum-key-manager/pkg/tessera"
+	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensys/quorum-key-manager/pkg/tessera"
 )
 
 //go:generate mockgen -source=session.go -destination=session_mock.go -package=proxynode

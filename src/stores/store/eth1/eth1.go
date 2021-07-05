@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/signer/core"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 //go:generate mockgen -source=eth1.go -destination=mock/eth1.go -package=mock

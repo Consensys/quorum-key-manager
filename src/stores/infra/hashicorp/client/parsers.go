@@ -3,7 +3,7 @@ package client
 import (
 	"net/http"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/hashicorp/vault/api"
 )
 

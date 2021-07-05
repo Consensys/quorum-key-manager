@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/container"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 )

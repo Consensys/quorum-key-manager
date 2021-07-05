@@ -3,10 +3,10 @@ package cmd
 import (
 	"os"
 
-	"github.com/consensysquorum/quorum-key-manager/cmd/flags"
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/zap"
-	app "github.com/consensysquorum/quorum-key-manager/src"
+	"github.com/consensys/quorum-key-manager/cmd/flags"
+	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/log/zap"
+	app "github.com/consensys/quorum-key-manager/src"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

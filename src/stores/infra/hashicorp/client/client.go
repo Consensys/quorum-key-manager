@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	hashicorp "github.com/hashicorp/vault/api"
 )
 

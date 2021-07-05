@@ -3,10 +3,10 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/aws"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
 	"os"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/manager/akv"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
 )
 
 const envVar = "TEST_DATA"

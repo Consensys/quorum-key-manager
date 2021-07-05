@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 )
 
 func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType,

@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/client"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/token"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/client"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/token"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 )
 
 const maxRetries = 3

@@ -1,10 +1,10 @@
 package aws
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws/client"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/aws/client"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 )
 
 // KeySpecs is the specs format for an AWS Key Vault key store

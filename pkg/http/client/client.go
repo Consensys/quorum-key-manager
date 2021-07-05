@@ -3,7 +3,7 @@ package httpclient
 import (
 	"net/http"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/http/transport"
+	"github.com/consensys/quorum-key-manager/pkg/http/transport"
 )
 
 // Client is an HTTP client

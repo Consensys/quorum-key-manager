@@ -3,7 +3,7 @@ package dialer
 import (
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/pkg/json"
 )
 
 type Config struct {

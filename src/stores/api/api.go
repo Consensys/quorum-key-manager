@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/src/stores/api/handlers"
-	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensys/quorum-key-manager/src/stores/api/handlers"
+	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
 	"github.com/gorilla/mux"
 )
 

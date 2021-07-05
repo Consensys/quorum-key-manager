@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/http/header"
+	"github.com/consensys/quorum-key-manager/pkg/http/header"
 )
 
 func OverrideURL(dst, src *url.URL) {

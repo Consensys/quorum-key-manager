@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
 type ETH1Accounts struct {

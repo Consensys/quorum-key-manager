@@ -5,7 +5,7 @@
 package mock
 
 import (
-	log "github.com/consensysquorum/quorum-key-manager/pkg/log"
+	log "github.com/consensys/quorum-key-manager/pkg/log"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

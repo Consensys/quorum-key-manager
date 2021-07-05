@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 //go:generate mockgen -source=database.go -destination=mock/database.go -package=mock

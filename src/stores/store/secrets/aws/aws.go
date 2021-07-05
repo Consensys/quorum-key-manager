@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/aws"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/aws"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 const (
