@@ -1,7 +1,7 @@
 package flags
 
 import (
-	app "github.com/consensysquorum/quorum-key-manager/src"
+	app "github.com/consensys/quorum-key-manager/src"
 	"github.com/spf13/viper"
 )
 

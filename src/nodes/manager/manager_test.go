@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
 
 	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
 
-	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
 var manifestWithTessera = &manifest.Manifest{

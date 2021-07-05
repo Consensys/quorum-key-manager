@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/cmd"
+	"github.com/consensys/quorum-key-manager/cmd"
 	log "github.com/sirupsen/logrus"
 )
 

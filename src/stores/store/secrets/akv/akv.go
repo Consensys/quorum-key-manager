@@ -4,12 +4,12 @@ import (
 	"context"
 	"path"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 )
 
 type Store struct {

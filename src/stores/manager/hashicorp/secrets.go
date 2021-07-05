@@ -3,11 +3,11 @@ package hashicorp
 import (
 	"context"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/client"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/token"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/client"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/token"
+	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 )
 
 // SecretSpecs is the specs format for an Hashicorp Vault secret store

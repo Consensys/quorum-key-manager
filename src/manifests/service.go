@@ -1,9 +1,9 @@
 package manifests
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/app"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
+	"github.com/consensys/quorum-key-manager/pkg/app"
+	"github.com/consensys/quorum-key-manager/pkg/log"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
 func RegisterService(a *app.App, logger log.Logger) error {

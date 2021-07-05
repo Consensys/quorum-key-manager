@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	jsonutils "github.com/consensysquorum/quorum-key-manager/pkg/json"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
-	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/gorilla/mux"
 )
 

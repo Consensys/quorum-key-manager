@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	testutils2 "github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+	testutils2 "github.com/consensys/quorum-key-manager/pkg/log/testutils"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp/mocks"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/mocks"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"

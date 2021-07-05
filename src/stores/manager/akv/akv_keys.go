@@ -1,10 +1,10 @@
 package akv
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/akv/client"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/akv/client"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys/akv"
 )
 
 // KeySpecs is the specs format for an Azure Key Vault key store

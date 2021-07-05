@@ -5,8 +5,8 @@
 package mock
 
 import (
-	manager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	manager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

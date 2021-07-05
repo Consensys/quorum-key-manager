@@ -5,12 +5,12 @@ import (
 	"encoding/base64"
 	"path"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/infra/hashicorp"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )
 
 const (

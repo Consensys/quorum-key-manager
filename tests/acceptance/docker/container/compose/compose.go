@@ -3,14 +3,14 @@ package compose
 import (
 	"context"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 	goreflect "reflect"
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config"
-	hashConfig "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
-	hashVault "github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
-	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/container/reflect"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
+	hashConfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	hashVault "github.com/consensys/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 )

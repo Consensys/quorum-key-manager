@@ -1,9 +1,9 @@
 package manager
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
 type Action string

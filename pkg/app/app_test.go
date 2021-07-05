@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
+	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

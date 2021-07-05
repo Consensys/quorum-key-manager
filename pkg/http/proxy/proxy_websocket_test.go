@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/http/request"
+	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/http/request"
 	gorillawebsocket "github.com/gorilla/websocket"
 	"github.com/oxtoacart/bpool"
 	"github.com/stretchr/testify/assert"

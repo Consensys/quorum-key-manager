@@ -1,14 +1,14 @@
 package src
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/app"
-	"github.com/consensysquorum/quorum-key-manager/pkg/http/server"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	"github.com/consensysquorum/quorum-key-manager/src/manifests"
-	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
-	"github.com/consensysquorum/quorum-key-manager/src/middleware"
-	"github.com/consensysquorum/quorum-key-manager/src/nodes"
-	"github.com/consensysquorum/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/pkg/app"
+	"github.com/consensys/quorum-key-manager/pkg/http/server"
+	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/manifests"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	"github.com/consensys/quorum-key-manager/src/middleware"
+	"github.com/consensys/quorum-key-manager/src/nodes"
+	"github.com/consensys/quorum-key-manager/src/stores"
 )
 
 type Config struct {

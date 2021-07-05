@@ -1,4 +1,4 @@
-module github.com/consensysquorum/quorum-key-manager
+module github.com/consensys/quorum-key-manager
 
 go 1.15
 

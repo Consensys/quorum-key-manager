@@ -6,11 +6,11 @@ package mock
 
 import (
 	context "context"
-	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
-	entities "github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
-	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1"
-	keys "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
-	secrets "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	eth1 "github.com/consensys/quorum-key-manager/src/stores/store/eth1"
+	keys "github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	secrets "github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"

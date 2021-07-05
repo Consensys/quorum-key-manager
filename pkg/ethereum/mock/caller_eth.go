@@ -9,7 +9,7 @@ import (
 	big "math/big"
 	reflect "reflect"
 
-	ethereum "github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
+	ethereum "github.com/consensys/quorum-key-manager/pkg/ethereum"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 )

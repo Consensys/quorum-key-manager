@@ -1,7 +1,7 @@
 package testutils
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/mock"
+	"github.com/consensys/quorum-key-manager/pkg/log/mock"
 	"github.com/golang/mock/gomock"
 )
 

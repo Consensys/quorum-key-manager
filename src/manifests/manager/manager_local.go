@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
 )
