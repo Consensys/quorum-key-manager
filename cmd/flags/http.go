@@ -51,7 +51,7 @@ Environment variable: %q`, healthPortEnv)
 const (
 	httpHostFlag     = "http-host"
 	httpHostViperKey = "http.host"
-	httpHostDefault  = ""
+	httpHostDefault  = "127.0.0.1"
 	httpHostEnv      = "HTTP_HOST"
 )
 
