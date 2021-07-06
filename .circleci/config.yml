@@ -190,11 +190,11 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: master
+              only: main
       - push-dev-image:
           filters:
             branches:
-              only: master
+              only: main
             tags:
               only: /^v.*/
           requires:
