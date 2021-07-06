@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	testutils2 "github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	"github.com/stretchr/testify/require"
 
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -97,7 +98,7 @@ func (s *eth1StoreTestSuite) TestCreate() {
 	})
 }
 
-func (s *eth1StoreTestSuite) Testimport() {
+func (s *eth1StoreTestSuite) TestImport() {
 	ctx := context.Background()
 	attributes := testutils.FakeAttributes()
 	key := testutils.FakeKey()
@@ -488,7 +489,6 @@ func (s *eth1StoreTestSuite) TestSignVerify() {
 		assert.NoError(s.T(), err)
 		// Note this the returned signature is not the same as the ecdsaSignature! It has an appended byte
 		assert.Equal(s.T(), "0x63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed01", hexutil.Encode(signature))
-
 		err = s.eth1Store.Verify(ctx, address, data, signature)
 		assert.NoError(s.T(), err)
 	})
@@ -512,6 +512,45 @@ func (s *eth1StoreTestSuite) TestSignVerify() {
 		signature, err := s.eth1Store.Sign(ctx, address, data)
 		assert.Equal(s.T(), expectedErr, err)
 		assert.Nil(s.T(), signature)
+	})
+}
+
+func (s *eth1StoreTestSuite) TestSignData() {
+	ctx := context.Background()
+	data := crypto.Keccak256([]byte("my data to sign"))
+	fakeAccount := &entities.ETH1Account{
+		ID:                  "my-account",
+		Address:             common.HexToAddress("0x83a0254be47813BBff771F4562744676C4e793F0"),
+		PublicKey:           hexutil.MustDecode("0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2"),
+		CompressedPublicKey: hexutil.MustDecode("0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f"),
+	}
+	recID := "01"
+
+	s.Run("should sign payload, with no malleable signature, successfully", func() {
+		R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
+		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
+		ecdsaSignature := append(R.Bytes(), S.Bytes()...)
+		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
+		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, data).Return(ecdsaSignature, nil)
+
+		expectedSignature := hexutil.Encode(ecdsaSignature) + recID
+		signature, err := s.eth1Store.SignData(ctx, address, data)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
+	})
+
+	s.Run("should sign payload, with malleable signature, successfully", func() {
+		R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
+		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
+		S2 := new(big.Int).Add(S, secp256k1N)
+		ecdsaSignature := append(R.Bytes(), S2.Bytes()...)
+		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
+		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, data).Return(ecdsaSignature, nil)
+
+		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + recID
+		signature, err := s.eth1Store.SignData(ctx, address, data)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
 	})
 }
 

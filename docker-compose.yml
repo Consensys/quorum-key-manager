@@ -5,6 +5,9 @@ x-default-variables: &default-variables
   LOG_FORMAT: ${LOG_FORMAT-json}
   MANIFEST_PATH: ${MANIFEST_PATH-/manifests}
   TEST_DATA: ${TEST_DATA-}
+  HTTP_PORT: ${HTTP_PORT-}
+  HTTP_HOST: ${HTTP_HOST-0.0.0.0}
+  HEALTH_PORT: ${HEALTH_PORT-}
 
 x-container-common: &container-common
   image: golang:1.15-buster
