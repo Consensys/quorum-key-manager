@@ -3,5 +3,13 @@
   "spec": "latest",
   "source": "master",
   "display": false
+ },
+ "21.7.0-alpha.1": {
+  "spec": "21.7.0-alpha.1",
+  "source": "21.7.0-alpha.1"
+ },
+ "stable": {
+  "spec": "21.7.0-alpha.1",
+  "source": "21.7.0-alpha.1"
  }
 }
