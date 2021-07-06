@@ -130,7 +130,7 @@ jobs:
       - prepare_docker
       - docker_build_dev
       - run:
-          name: Deploy image in  repository
+          name: Deploy image in repository
           command: |
             docker push ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
             docker tag ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:develop

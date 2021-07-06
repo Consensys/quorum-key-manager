@@ -1,7 +1,7 @@
 # Quorum Key Manager
 Quorum Key Manager(QKM) is a key management service developed under the BSL 1.1 license and written in Go. 
 
-Quorum Key Manager exposes a HTTP API service to manage your secrets, keys and ethereum accounts. QKM supports the integration with
+Quorum Key Manager exposes an HTTP API service to manage your secrets, keys and ethereum accounts. QKM supports the integration with
 *Amazon Key Management Service*, *Azure Key Vault* and *Hashicorp Vault*. 
 
 In addition, using QKM, you can connect to your ethereum nodes to sign your transaction using the ethereum account stored in your secure key vault.
@@ -16,7 +16,7 @@ To run the Quorum Key Manager service using docker you can execute the following
 docker run -it \
 --name quorum-key-manager \
 --mount  type=bind,source="$(pwd)"/deps/config,target=/manifests \
-docker.consensys.net/priv/quorum-key-manager:stable run --manifest-path=/manifests
+docker.consensys.net/pub/quorum-key-manager:stable run --manifest-path=/manifests
 ```
 
 You can find more information about the expected content of the `/manifest` folder in the project [documentation](#documentation) 
