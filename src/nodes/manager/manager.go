@@ -203,6 +203,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		return errors.InvalidParameterError(errMessage)
 	}
 
+	logger.Info("node loaded successfully")
 	return nil
 }
 

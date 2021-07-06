@@ -20,7 +20,7 @@ To run the Quorum Key Manager service using docker you can execute the following
 docker run -it \
 --name quorum-key-manager \
 --mount  type=bind,source="$(pwd)"/deps/config,target=/manifests \
-docker.consensys.net/priv/quorum-key-manager:stable run --manifest-path=/manifests
+docker.consensys.net/pub/quorum-key-manager:stable run --manifest-path=/manifests
 ```
 
 You can find more information about the expected content of the `/manifest` folder in the project [documentation](#documentation) 
