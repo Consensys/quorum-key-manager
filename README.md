@@ -12,7 +12,7 @@ In addition, using QKM, you can connect to your Ethereum nodes to sign your tran
 
 ## Run QKM
 
-Available docker images can be found at `docker.consensys.net/quorum-key-manager`.
+Available docker images can be found at `docker.consensys.net/pub/quorum-key-manager`.
 
 To run the Quorum Key Manager service using docker you can execute the following command:
 
