@@ -4,18 +4,18 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database/memory"
-	eth1 "github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1/local"
-	akvkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/akv"
-	awskey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/aws"
-	hashicorpkey "github.com/consensysquorum/quorum-key-manager/src/stores/store/keys/hashicorp"
-	akvsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/akv"
-	awssecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/aws"
-	hashicorpsecret "github.com/consensysquorum/quorum-key-manager/src/stores/store/secrets/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/memory"
+	eth1 "github.com/consensys/quorum-key-manager/src/stores/store/eth1/local"
+	akvkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/akv"
+	awskey "github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
+	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
+	akvsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/akv"
+	awssecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/aws"
+	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	"os"
 	"testing"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/stretchr/testify/suite"
 )
 

@@ -1,8 +1,8 @@
 package httpclient
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/http/transport"
-	"github.com/consensysquorum/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/pkg/http/transport"
+	"github.com/consensys/quorum-key-manager/pkg/json"
 )
 
 // Config for creating an HTTP Client

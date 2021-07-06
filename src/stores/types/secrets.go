@@ -1,7 +1,7 @@
 package types
 
 import (
-	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
 const (

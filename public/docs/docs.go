@@ -2309,7 +2309,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "0.1",
-	Host:        "https://consensysquorum.github.io/quorum-key-manager",
+	Host:        "https://consensys.github.io/quorum-key-manager",
 	BasePath:    "/",
 	Schemes:     []string{},
 	Title:       "Quorum Key Manager API",

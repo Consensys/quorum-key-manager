@@ -394,7 +394,7 @@ definitions:
     - data
     - signature
     type: object
-host: https://consensysquorum.github.io/quorum-key-manager
+host: https://consensys.github.io/quorum-key-manager
 info:
   contact: {}
   description: Quorum Key Manager API server documentation.

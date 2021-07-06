@@ -1,11 +1,11 @@
 package stores
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/app"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
-	manifestsmanager "github.com/consensysquorum/quorum-key-manager/src/manifests/manager"
-	storesapi "github.com/consensysquorum/quorum-key-manager/src/stores/api"
-	storesmanager "github.com/consensysquorum/quorum-key-manager/src/stores/manager"
+	"github.com/consensys/quorum-key-manager/pkg/app"
+	"github.com/consensys/quorum-key-manager/pkg/log"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	storesapi "github.com/consensys/quorum-key-manager/src/stores/api"
+	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
 )
 
 func RegisterService(a *app.App, logger log.Logger) error {

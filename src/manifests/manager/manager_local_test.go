@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log/testutils"
+	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
 
 	"github.com/golang/mock/gomock"
 
-	manifest "github.com/consensysquorum/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

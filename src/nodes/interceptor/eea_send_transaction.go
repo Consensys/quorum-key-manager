@@ -3,11 +3,11 @@ package interceptor
 import (
 	"context"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
-	"github.com/consensysquorum/quorum-key-manager/pkg/jsonrpc"
-	proxynode "github.com/consensysquorum/quorum-key-manager/src/nodes/node/proxy"
+	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
+	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )

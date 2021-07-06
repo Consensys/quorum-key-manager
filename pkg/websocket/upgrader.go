@@ -1,8 +1,8 @@
 package websocket
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/pkg/common"
-	"github.com/consensysquorum/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/gorilla/websocket"
 )
 

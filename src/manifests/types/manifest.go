@@ -3,7 +3,7 @@ package manifest
 import (
 	"encoding/json"
 
-	json2 "github.com/consensysquorum/quorum-key-manager/pkg/json"
+	json2 "github.com/consensys/quorum-key-manager/pkg/json"
 )
 
 type Kind string

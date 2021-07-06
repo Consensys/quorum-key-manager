@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	quorumtypes "github.com/consensys/quorum/core/types"
-	"github.com/consensysquorum/quorum-key-manager/pkg/errors"
-	"github.com/consensysquorum/quorum-key-manager/pkg/ethereum"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/api/formatters"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/database"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/eth1"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/keys"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -401,7 +401,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensysquorum/quorum-key-manager/96
+// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
 func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (interface{}, error) {
 	var privateRecipientEncoded interface{}
 	var err error

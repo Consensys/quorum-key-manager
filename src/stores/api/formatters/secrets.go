@@ -1,8 +1,8 @@
 package formatters
 
 import (
-	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 func FormatSecretResponse(secret *entities.Secret) *types.SecretResponse {

@@ -3,14 +3,14 @@ package hashicorp
 import (
 	"context"
 	"fmt"
-	"github.com/consensysquorum/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 	"net/http"
 
 	"time"
 
 	"github.com/docker/docker/api/types/mount"
 
-	"github.com/consensysquorum/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"

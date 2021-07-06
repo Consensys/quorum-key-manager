@@ -7,8 +7,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/consensysquorum/quorum-key-manager/src/stores/api/types"
-	"github.com/consensysquorum/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 )
 
 func FakeSetSecretRequest() *types.SetSecretRequest {
