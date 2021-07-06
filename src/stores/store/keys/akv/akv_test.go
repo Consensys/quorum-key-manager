@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"math/big"
 	"testing"
 	"time"
 
@@ -202,6 +201,7 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 	version := "1234"
 	payload := []byte("my data")
 	attributes := testutils.FakeAttributes()
+	expectedSignature := "0x8b9679a75861e72fa6968dd5add3bf96e2747f0f124a2e728980f91e1958367e19c2486a40fdc65861824f247603bc18255fa497ca0b8b0a394aa7a6740fdc4601"
 	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
 
 	akvKey := akv.KeyBundle{
@@ -220,37 +220,17 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 		},
 	}
 
-	s.Run("should sign payload, with no malleable signature, successfully", func() {
-		R, _ := new(big.Int).SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
-		S := secp256k1halfN
-		bSig := append(R.Bytes(), S.Bytes()...)
-		expectedSig := append(R.Bytes(), S.Bytes()...)
-		b64Sig := base64.RawURLEncoding.EncodeToString(bSig)
-		b64Payload := base64.StdEncoding.EncodeToString(payload)
+	bSig, _ := hexutil.Decode(expectedSignature)
+	b64Sig := base64.RawURLEncoding.EncodeToString(bSig)
+	b64Payload := base64.StdEncoding.EncodeToString(payload)
 
+	s.Run("should sign payload successfully", func() {
 		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
 		s.mockVault.EXPECT().Sign(gomock.Any(), id, "", akv.ES256K, b64Payload).Return(b64Sig, nil)
 
 		signature, err := s.keyStore.Sign(ctx, id, payload)
 
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), hexutil.Encode(expectedSig), hexutil.Encode(signature))
-	})
-
-	s.Run("should sign payload, with malleable signature, successfully", func() {
-		R, _ := new(big.Int).SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
-		S := new(big.Int).Add(secp256k1halfN, big.NewInt(1))
-		bSig := append(R.Bytes(), S.Bytes()...)
-		expectedSig := append(R.Bytes(), new(big.Int).Sub(secp256k1N, S).Bytes()...)
-		b64Sig := base64.RawURLEncoding.EncodeToString(bSig)
-		b64Payload := base64.StdEncoding.EncodeToString(payload)
-
-		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
-		s.mockVault.EXPECT().Sign(gomock.Any(), id, "", akv.ES256K, b64Payload).Return(b64Sig, nil)
-
-		signature, err := s.keyStore.Sign(ctx, id, payload)
-
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), hexutil.Encode(expectedSig), hexutil.Encode(signature))
+		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
 	})
 }

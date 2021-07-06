@@ -25,6 +25,12 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+// Values copied from github.com/ethereum/go-ethereum/crypto/crypto.go
+var (
+	secp256k1N, _  = new(big.Int).SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
+	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
+)
+
 var eth1KeyAlgo = &entities.Algorithm{
 	Type:          entities.Ecdsa,
 	EllipticCurve: entities.Secp256k1,
@@ -450,7 +456,7 @@ func (s *Store) SignData(ctx context.Context, addr string, data []byte) ([]byte,
 
 	// Recover the recID, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
 	for _, recID := range []byte{0, 1} {
-		appendedSignature := append(signature, recID)
+		appendedSignature := append(malleabilityECDSASignature(signature), recID)
 		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
 		if err != nil {
 			errMessage := "failed to recover public key candidate with appended recID"
@@ -466,4 +472,23 @@ func (s *Store) SignData(ctx context.Context, addr string, data []byte) ([]byte,
 	errMessage := "failed to compute recovery ID"
 	s.logger.Error(errMessage)
 	return nil, errors.DependencyFailureError(errMessage)
+}
+
+// Azure generates ECDSA signature whom does not prevent malleability
+// A malleable signature can be transformed into a new and valid one for a different message or key.
+// https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
+// More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/
+// More info about the fix: https://en.bitcoin.it/wiki/BIP_0062
+func malleabilityECDSASignature(signature []byte) []byte {
+	l := len(signature)
+	hl := l / 2
+
+	R := new(big.Int).SetBytes(signature[:hl])
+	S := new(big.Int).SetBytes(signature[hl:l])
+	if S.Cmp(secp256k1halfN) <= 0 {
+		return signature
+	}
+
+	S2 := new(big.Int).Sub(secp256k1N, S)
+	return append(R.Bytes(), S2.Bytes()...)
 }
