@@ -27,6 +27,7 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-pg/pg/v10 v10.10.1
 	github.com/go-playground/validator/v10 v10.5.0
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.5.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
