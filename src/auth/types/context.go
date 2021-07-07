@@ -6,13 +6,13 @@ type ctxKey string
 
 var reqCtxKey ctxKey = "req"
 
-func RequestContextFromContext(ctx context.Context) *RequestContext {
-	if reqCtx, ok := ctx.Value(reqCtxKey).(*RequestContext); ok {
+func UserContextFromContext(ctx context.Context) *UserContext {
+	if reqCtx, ok := ctx.Value(reqCtxKey).(*UserContext); ok {
 		return reqCtx
 	}
 	return nil
 }
 
-func WithRequestContext(ctx context.Context, reqCtx *RequestContext) context.Context {
+func WithUserContext(ctx context.Context, reqCtx *UserContext) context.Context {
 	return context.WithValue(ctx, reqCtxKey, reqCtx)
 }

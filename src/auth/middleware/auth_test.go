@@ -23,8 +23,8 @@ func (h *testHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	resolver := authorization.ResolverFromContext(req.Context())
 	assert.NotNil(h.t, resolver, "Resolver should have been set on context")
 
-	reqCtx := types.RequestContextFromContext(req.Context())
-	assert.NotNil(h.t, reqCtx, "RequestContext should have been set on context")
+	reqCtx := types.UserContextFromContext(req.Context())
+	assert.NotNil(h.t, reqCtx, "UserContext should have been set on context")
 }
 
 func TestMiddleware(t *testing.T) {

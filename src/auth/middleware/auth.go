@@ -62,10 +62,10 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 	ctx = authorization.WithResolver(ctx, resolver)
 
 	// Create request context and sets UserInfo and attached it to context
-	reqCtx := types.NewRequestContext(req)
+	reqCtx := types.NewUserContext(req)
 	reqCtx.UserInfo = info
 
-	ctx = types.WithRequestContext(ctx, reqCtx)
+	ctx = types.WithUserContext(ctx, reqCtx)
 
 	// Serve next
 	next.ServeHTTP(rw, req.WithContext(ctx))

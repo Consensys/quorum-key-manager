@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-// RequestContext is a set of data attached to every incoming request
-type RequestContext struct {
+// UserContext is a set of data attached to every incoming request
+type UserContext struct {
 	// TLS records information about the TLS connection on which the request was received
 	TLS *tls.ConnectionState
 
@@ -25,8 +25,8 @@ type RequestContext struct {
 	UserInfo *UserInfo
 }
 
-func NewRequestContext(req *http.Request) *RequestContext {
-	return &RequestContext{
+func NewUserContext(req *http.Request) *UserContext {
+	return &UserContext{
 		TLS:        req.TLS,
 		RemoteAddr: req.RemoteAddr,
 		Host:       req.Host,
