@@ -10,16 +10,12 @@ type Operation struct {
 }
 
 type Result struct {
-	isAllowed, isRoot bool
-	err               error
+	isAllowed bool
+	err       error
 }
 
 func (res *Result) Allowed() bool {
 	return res.isAllowed
-}
-
-func (res *Result) IsRoot() bool {
-	return res.isRoot
 }
 
 func (res *Result) Error() error {
