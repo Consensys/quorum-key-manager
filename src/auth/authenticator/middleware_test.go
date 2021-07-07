@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
-	mockmanager "github.com/consensys/quorum-key-manager/src/auth/manager/mock"
 	mockauth "github.com/consensys/quorum-key-manager/src/auth/authenticator/mock"
+	mockmanager "github.com/consensys/quorum-key-manager/src/auth/manager/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

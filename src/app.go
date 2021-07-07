@@ -40,7 +40,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	err = auth.RegisterService(a, logger.WithComponent("auth"))
 	if err != nil {
 		return nil, err

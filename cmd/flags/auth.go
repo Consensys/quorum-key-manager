@@ -5,6 +5,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-func newAuthConfig(vipr *viper.Viper) *auth.Config {
+func newAuthConfig(_ *viper.Viper) *auth.Config {
 	return &auth.Config{}
 }
