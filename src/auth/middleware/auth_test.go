@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
-	"github.com/consensys/quorum-key-manager/src/auth/authorization"
 	mockmanager "github.com/consensys/quorum-key-manager/src/auth/manager/mock"
 	mockauth "github.com/consensys/quorum-key-manager/src/auth/middleware/authenticator/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
@@ -20,9 +19,6 @@ type testHandler struct {
 }
 
 func (h *testHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	resolver := authorization.ResolverFromContext(req.Context())
-	assert.NotNil(h.t, resolver, "Resolver should have been set on context")
-
 	reqCtx := types.UserContextFromContext(req.Context())
 	assert.NotNil(h.t, reqCtx, "UserContext should have been set on context")
 }

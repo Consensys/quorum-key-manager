@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/src/auth/authorization"
 	"github.com/consensys/quorum-key-manager/src/auth/manager"
 	"github.com/consensys/quorum-key-manager/src/auth/middleware/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
@@ -52,14 +51,8 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 		info = types.AnonymousUser
 	}
 
-	// Create policy resolver for UserInfo and attaches it to context
-	resolver, err := mid.authorizationResolver(ctx, info)
-	if err != nil {
-		mid.logger.WithError(err).Error("could not create policy resolver")
-		OnError(rw, req, err)
-		return
-	}
-	ctx = authorization.WithResolver(ctx, resolver)
+	policies := mid.getUserPolicies(ctx, info)
+	mid.logger.With("policies", policies).Debug("request successfully authenticated")
 
 	// Create request context and sets UserInfo and attached it to context
 	reqCtx := types.NewUserContext(req)
@@ -71,7 +64,7 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 	next.ServeHTTP(rw, req.WithContext(ctx))
 }
 
-func (mid *Middleware) authorizationResolver(ctx context.Context, info *types.UserInfo) (*authorization.Resolver, error) {
+func (mid *Middleware) getUserPolicies(ctx context.Context, info *types.UserInfo) []types.Policy {
 	// Retrieve policies associated to user info
 	var policies []types.Policy
 	for _, groupName := range info.Groups {
@@ -92,7 +85,7 @@ func (mid *Middleware) authorizationResolver(ctx context.Context, info *types.Us
 	}
 
 	// Create resolver
-	return authorization.NewResolver(policies)
+	return policies
 }
 
 func OnError(w http.ResponseWriter, r *http.Request, err error) {
