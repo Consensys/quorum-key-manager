@@ -28,7 +28,7 @@ type Resolver struct {
 	// TODO: to be implemented
 }
 
-func NewResolver(policies []*types.Policy) (*Resolver, error) {
+func NewResolver(policies []types.Policy) (*Resolver, error) {
 	return &Resolver{}, nil
 }
 

@@ -73,7 +73,7 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 
 func (mid *Middleware) authorizationResolver(ctx context.Context, info *types.UserInfo) (*authorization.Resolver, error) {
 	// Retrieve policies associated to user info
-	var policies []*types.Policy
+	var policies []types.Policy
 	for _, groupName := range info.Groups {
 		group, err := mid.policyMngr.Group(ctx, groupName)
 		if err != nil {
@@ -87,7 +87,7 @@ func (mid *Middleware) authorizationResolver(ctx context.Context, info *types.Us
 				mid.logger.WithError(err).With("policy", groupName).Debug("could not load policy")
 				continue
 			}
-			policies = append(policies, policy)
+			policies = append(policies, *policy)
 		}
 	}
 
