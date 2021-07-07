@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/middleware/authenticator/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

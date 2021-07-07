@@ -1,4 +1,4 @@
-package authmiddleware
+package authenticator
 
 import (
 	"context"
@@ -6,22 +6,21 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/auth/manager"
-	"github.com/consensys/quorum-key-manager/src/auth/middleware/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
 var authenticatedGroup = "system:authenticated"
 
-// Middleware synchonize authentication
+// Middleware synchronize authentication
 type Middleware struct {
-	authenticator authenticator.Authenticator
+	authenticator Authenticator
 	policyMngr    manager.Manager
 	logger        log.Logger
 }
 
-func New(auth authenticator.Authenticator, policyMngr manager.Manager, logger log.Logger) *Middleware {
+func NewMiddleware(policyMngr manager.Manager, logger log.Logger, authenticators ...Authenticator) *Middleware {
 	return &Middleware{
-		authenticator: auth,
+		authenticator: First(authenticators...),
 		policyMngr:    policyMngr,
 		logger:        logger,
 	}
@@ -54,11 +53,7 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 	policies := mid.getUserPolicies(ctx, info)
 	mid.logger.With("policies", policies).Debug("request successfully authenticated")
 
-	// Create request context and sets UserInfo and attached it to context
-	reqCtx := types.NewUserContext(req)
-	reqCtx.UserInfo = info
-
-	ctx = types.WithUserContext(ctx, reqCtx)
+	ctx = WithUserContext(ctx, NewUserContext(info))
 
 	// Serve next
 	next.ServeHTTP(rw, req.WithContext(ctx))
@@ -88,6 +83,6 @@ func (mid *Middleware) getUserPolicies(ctx context.Context, info *types.UserInfo
 	return policies
 }
 
-func OnError(w http.ResponseWriter, r *http.Request, err error) {
+func OnError(w http.ResponseWriter, _ *http.Request, err error) {
 	http.Error(w, err.Error(), http.StatusUnauthorized)
 }
