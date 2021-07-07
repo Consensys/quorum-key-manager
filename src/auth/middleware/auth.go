@@ -17,12 +17,14 @@ var authenticatedGroup = "system:authenticated"
 type Middleware struct {
 	authenticator authenticator.Authenticator
 	policyMngr    manager.Manager
+	logger        log.Logger
 }
 
-func New(auth authenticator.Authenticator, policyMngr manager.Manager) *Middleware {
+func New(auth authenticator.Authenticator, policyMngr manager.Manager, logger log.Logger) *Middleware {
 	return &Middleware{
 		authenticator: auth,
 		policyMngr:    policyMngr,
+		logger:        logger,
 	}
 }
 
@@ -34,7 +36,6 @@ func (mid *Middleware) Then(h http.Handler) http.Handler {
 
 func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next http.Handler) {
 	ctx := req.Context()
-	logger := log.FromContext(ctx)
 
 	// Authenticate request
 	info, err := mid.authenticator.Authenticate(req)
@@ -54,7 +55,7 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 	// Create policy resolver for UserInfo and attaches it to context
 	resolver, err := mid.authorizationResolver(ctx, info)
 	if err != nil {
-		logger.WithError(err).Errorf("could not create policy resolver")
+		mid.logger.WithError(err).Error("could not create policy resolver")
 		OnError(rw, req, err)
 		return
 	}
@@ -71,21 +72,19 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 }
 
 func (mid *Middleware) authorizationResolver(ctx context.Context, info *types.UserInfo) (*authorization.Resolver, error) {
-	logger := log.FromContext(ctx)
-
 	// Retrieve policies associated to user info
 	var policies []*types.Policy
 	for _, groupName := range info.Groups {
 		group, err := mid.policyMngr.Group(ctx, groupName)
 		if err != nil {
-			logger.WithError(err).WithField("group", groupName).Debugf("could not load group")
+			mid.logger.WithError(err).With("group", groupName).Debug("could not load group")
 			continue
 		}
 
 		for _, policyName := range group.Policies {
 			policy, err := mid.policyMngr.Policy(ctx, policyName)
 			if err != nil {
-				logger.WithError(err).WithField("policy", groupName).Debugf("could not load policy")
+				mid.logger.WithError(err).With("policy", groupName).Debug("could not load policy")
 				continue
 			}
 			policies = append(policies, policy)

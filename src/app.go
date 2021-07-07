@@ -41,7 +41,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 	
-	err = auth.RegisterService(a)
+	err = auth.RegisterService(a, logger.WithComponent("auth"))
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	}
 
 	// Set Middleware
-	authmid, err := auth.Middleware(a)
+	authmid, err := auth.Middleware(a, logger.WithComponent("middleware"))
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
 	"github.com/consensys/quorum-key-manager/src/auth/authorization"
 	mockmanager "github.com/consensys/quorum-key-manager/src/auth/manager/mock"
 	mockauth "github.com/consensys/quorum-key-manager/src/auth/middleware/authenticator/mock"
@@ -29,11 +30,12 @@ func (h *testHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 func TestMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	logger := testutils.NewMockLogger(ctrl)
 
 	auth1 := mockauth.NewMockAuthenticator(ctrl)
 	policyMngr := mockmanager.NewMockManager(ctrl)
 
-	mid := New(auth1, policyMngr)
+	mid := New(auth1, policyMngr, logger)
 
 	t.Run("authentication rejected", func(t *testing.T) {
 		h := mid.Then(&testHandler{t})

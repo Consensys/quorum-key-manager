@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
+	"github.com/consensys/quorum-key-manager/pkg/log"
 	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
 	authmiddleware "github.com/consensys/quorum-key-manager/src/auth/middleware"
 	authenticator "github.com/consensys/quorum-key-manager/src/auth/middleware/authenticator"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
-func RegisterService(a *app.App) error {
+func RegisterService(a *app.App, logger log.Logger) error {
 	// Load manifests service
 	m := new(manifestsmanager.Manager)
 	err := a.Service(m)
@@ -19,7 +20,7 @@ func RegisterService(a *app.App) error {
 	}
 
 	// Create and register the stores service
-	policyMngr := authmanager.New(*m)
+	policyMngr := authmanager.New(*m, logger)
 	err = a.RegisterService(policyMngr)
 	if err != nil {
 		return err
@@ -28,7 +29,7 @@ func RegisterService(a *app.App) error {
 	return nil
 }
 
-func Middleware(a *app.App) (func(http.Handler) http.Handler, error) {
+func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler, error) {
 	// Load configuration
 	cfg := new(Config)
 	err := a.ServiceConfig(cfg)
@@ -49,6 +50,7 @@ func Middleware(a *app.App) (func(http.Handler) http.Handler, error) {
 		// TODO: pass each authenticator implementation based on config
 		),
 		*policyMngr,
+		logger,
 	)
 
 	return mid.Then, nil

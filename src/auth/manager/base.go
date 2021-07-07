@@ -26,14 +26,17 @@ type BaseManager struct {
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
+
+	logger log.Logger
 }
 
-func New(manifests manifestsmanager.Manager) *BaseManager {
+func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests: manifests,
 		policies:  make(map[string]*types.Policy),
 		groups:    make(map[string]*types.Group),
 		mnfsts:    make(chan []manifestsmanager.Message),
+		logger:    logger,
 	}
 }
 
@@ -42,11 +45,7 @@ func (mngr *BaseManager) Start(ctx context.Context) error {
 	defer mngr.mux.Unlock()
 
 	// Subscribe to manifest of Kind Group and Policy
-	sub, err := mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
-	if err != nil {
-		return err
-	}
-	mngr.sub = sub
+	mngr.sub = mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
 
 	// Start loading manifest
 	go mngr.loadAll(ctx)
@@ -125,28 +124,26 @@ func (mngr *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
-	logger := log.FromContext(ctx).
-		WithField("kind", mnf.Kind).
-		WithField("name", mnf.Name)
+	logger := mngr.logger.With("kind", mnf.Kind).With("name", mnf.Name)
 
 	switch mnf.Kind {
 	case GroupKind:
 		err := mngr.loadGroup(mnf)
 		if err != nil {
-			logger.WithError(err).Errorf("could not load Group")
+			logger.WithError(err).Error("could not load Group")
 			return err
 		}
-		logger.Infof("loaded Group")
+		logger.Info("loaded Group")
 	case PolicyKind:
 		err := mngr.loadPolicy(mnf)
 		if err != nil {
-			logger.WithError(err).Errorf("could not load Policy")
+			logger.WithError(err).Error("could not load Policy")
 			return err
 		}
-		logger.Infof("loaded Policy")
+		logger.Info("loaded Policy")
 	default:
 		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
-		logger.WithError(err).Errorf("error starting node")
+		logger.WithError(err).Error("error starting node")
 		return err
 	}
 

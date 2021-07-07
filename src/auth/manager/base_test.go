@@ -7,7 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -59,16 +61,19 @@ var testManifest = []byte(`
 
 func TestBaseManager(t *testing.T) {
 	dir := t.TempDir()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := testutils.NewMockLogger(ctrl)
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
 	require.NoError(t, err, "WriteFile manifest1 must not error")
 
-	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir})
+	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir}, logger)
 	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
 
 	err = manifests.Start(context.TODO())
 	require.NoError(t, err, "Start manifests manager must not error")
 
-	mngr := New(manifests)
+	mngr := New(manifests, logger)
 	err = mngr.Start(context.TODO())
 	require.NoError(t, err, "Start manager manager must not error")
 
