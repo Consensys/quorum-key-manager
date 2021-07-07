@@ -2,12 +2,12 @@ package src
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
+	"github.com/consensys/quorum-key-manager/pkg/http/middleware"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/manifests"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	"github.com/consensys/quorum-key-manager/src/middleware"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/justinas/alice"
@@ -40,7 +40,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	err = auth.RegisterService(a, logger.WithComponent("auth"))
 	if err != nil {
 		return nil, err

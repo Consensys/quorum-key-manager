@@ -120,7 +120,7 @@ func (mngr *BaseManager) loadAll(ctx context.Context) {
 	}
 }
 
-func (mngr *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
+func (mngr *BaseManager) load(_ context.Context, mnf *manifest.Manifest) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 

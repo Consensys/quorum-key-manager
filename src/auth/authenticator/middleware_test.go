@@ -1,4 +1,4 @@
-package authmiddleware
+package authenticator
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	mockauth "github.com/consensys/quorum-key-manager/src/auth/authenticator/mock"
 	mockmanager "github.com/consensys/quorum-key-manager/src/auth/manager/mock"
-	mockauth "github.com/consensys/quorum-key-manager/src/auth/middleware/authenticator/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -18,8 +18,8 @@ type testHandler struct {
 	t *testing.T
 }
 
-func (h *testHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	reqCtx := types.UserContextFromContext(req.Context())
+func (h *testHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
+	reqCtx := UserContextFromContext(req.Context())
 	assert.NotNil(h.t, reqCtx, "UserContext should have been set on context")
 }
 
@@ -31,7 +31,7 @@ func TestMiddleware(t *testing.T) {
 	auth1 := mockauth.NewMockAuthenticator(ctrl)
 	policyMngr := mockmanager.NewMockManager(ctrl)
 
-	mid := New(auth1, policyMngr, logger)
+	mid := NewMiddleware(policyMngr, logger, auth1)
 
 	t.Run("authentication rejected", func(t *testing.T) {
 		h := mid.Then(&testHandler{t})
