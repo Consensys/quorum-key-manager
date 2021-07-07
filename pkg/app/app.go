@@ -138,7 +138,9 @@ func (app *App) ServiceConfig(cfg interface{}) error {
 
 	for typ, config := range app.serviceConfigs {
 		if typ == cfgV.Type() {
-			cfgV.Elem().Set(config.Elem())
+			if !config.IsZero() {
+				cfgV.Elem().Set(config.Elem())
+			}
 			return nil
 		}
 	}
