@@ -127,21 +127,21 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	logger := s.env.logger.WithComponent("Eth1-Hashicorp")
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), postgres.New(logger), logger)
+	testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), postgres.NewETH1Accounts(logger), logger)
 	suite.Run(s.T(), testSuite)
 
 	// AKV
 	logger = s.env.logger.WithComponent("Eth1-AKV")
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), postgres.New(logger), logger)
+	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), postgres.NewETH1Accounts(logger), logger)
 	suite.Run(s.T(), testSuite)
 
 	// AWS
 	logger = s.env.logger.WithComponent("Eth1-AWS")
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, logger), postgres.New(logger), logger)
+	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, logger), postgres.NewETH1Accounts(logger), logger)
 	suite.Run(s.T(), testSuite)
 }
 

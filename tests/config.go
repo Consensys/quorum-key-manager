@@ -47,7 +47,6 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	fmt.Println(cfg.HealthKeyManagerURL, cfg.KeyManagerURL)
 	return cfg, nil
 }
 

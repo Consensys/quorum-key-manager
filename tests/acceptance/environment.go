@@ -6,6 +6,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/pkg/log/zap"
 	"github.com/consensys/quorum-key-manager/src/stores/infra/aws"
+	postgresclient "github.com/consensys/quorum-key-manager/src/stores/infra/postgres/client"
 	"io/ioutil"
 	"os"
 	"time"
@@ -159,6 +160,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	keyManager, err := keymanager.New(&keymanager.Config{
 		HTTP:      httpConfig,
 		Manifests: &manifestsmanager.Config{Path: tmpYml},
+		Postgres:  &postgresclient.Config{},
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
