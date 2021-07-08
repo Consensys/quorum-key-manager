@@ -33,7 +33,7 @@ func (s *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id, "curve", alg.EllipticCurve, "signing_algorithm", alg.Type)
+	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("creating key")
 
 	keyType, err := toKeyType(alg)

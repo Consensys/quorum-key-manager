@@ -49,6 +49,20 @@ func (mr *MockDatabaseMockRecorder) ETH1Accounts() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ETH1Accounts", reflect.TypeOf((*MockDatabase)(nil).ETH1Accounts))
 }
 
+// Keys mocks base method
+func (m *MockDatabase) Keys() database.Keys {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Keys")
+	ret0, _ := ret[0].(database.Keys)
+	return ret0
+}
+
+// Keys indicates an expected call of Keys
+func (mr *MockDatabaseMockRecorder) Keys() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Keys", reflect.TypeOf((*MockDatabase)(nil).Keys))
+}
+
 // MockETH1Accounts is a mock of ETH1Accounts interface
 type MockETH1Accounts struct {
 	ctrl     *gomock.Controller
@@ -200,4 +214,157 @@ func (m *MockETH1Accounts) RemoveDeleted(ctx context.Context, addr string) error
 func (mr *MockETH1AccountsMockRecorder) RemoveDeleted(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDeleted", reflect.TypeOf((*MockETH1Accounts)(nil).RemoveDeleted), ctx, addr)
+}
+
+// MockKeys is a mock of Keys interface
+type MockKeys struct {
+	ctrl     *gomock.Controller
+	recorder *MockKeysMockRecorder
+}
+
+// MockKeysMockRecorder is the mock recorder for MockKeys
+type MockKeysMockRecorder struct {
+	mock *MockKeys
+}
+
+// NewMockKeys creates a new mock instance
+func NewMockKeys(ctrl *gomock.Controller) *MockKeys {
+	mock := &MockKeys{ctrl: ctrl}
+	mock.recorder = &MockKeysMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockKeys) EXPECT() *MockKeysMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method
+func (m *MockKeys) Get(ctx context.Context, id string) (*entities.Key, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, id)
+	ret0, _ := ret[0].(*entities.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockKeysMockRecorder) Get(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockKeys)(nil).Get), ctx, id)
+}
+
+// GetDeleted mocks base method
+func (m *MockKeys) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeleted", ctx, id)
+	ret0, _ := ret[0].(*entities.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeleted indicates an expected call of GetDeleted
+func (mr *MockKeysMockRecorder) GetDeleted(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeleted", reflect.TypeOf((*MockKeys)(nil).GetDeleted), ctx, id)
+}
+
+// GetAll mocks base method
+func (m *MockKeys) GetAll(ctx context.Context) ([]*entities.Key, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", ctx)
+	ret0, _ := ret[0].([]*entities.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll
+func (mr *MockKeysMockRecorder) GetAll(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockKeys)(nil).GetAll), ctx)
+}
+
+// GetAllDeleted mocks base method
+func (m *MockKeys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllDeleted", ctx)
+	ret0, _ := ret[0].([]*entities.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllDeleted indicates an expected call of GetAllDeleted
+func (mr *MockKeysMockRecorder) GetAllDeleted(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDeleted", reflect.TypeOf((*MockKeys)(nil).GetAllDeleted), ctx)
+}
+
+// Add mocks base method
+func (m *MockKeys) Add(ctx context.Context, key *entities.Key) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Add", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Add indicates an expected call of Add
+func (mr *MockKeysMockRecorder) Add(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockKeys)(nil).Add), ctx, key)
+}
+
+// Update mocks base method
+func (m *MockKeys) Update(ctx context.Context, key *entities.Key) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockKeysMockRecorder) Update(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockKeys)(nil).Update), ctx, key)
+}
+
+// AddDeleted mocks base method
+func (m *MockKeys) AddDeleted(ctx context.Context, key *entities.Key) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddDeleted", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddDeleted indicates an expected call of AddDeleted
+func (mr *MockKeysMockRecorder) AddDeleted(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddDeleted", reflect.TypeOf((*MockKeys)(nil).AddDeleted), ctx, key)
+}
+
+// Remove mocks base method
+func (m *MockKeys) Remove(ctx context.Context, addr string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Remove", ctx, addr)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Remove indicates an expected call of Remove
+func (mr *MockKeysMockRecorder) Remove(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockKeys)(nil).Remove), ctx, addr)
+}
+
+// RemoveDeleted mocks base method
+func (m *MockKeys) RemoveDeleted(ctx context.Context, addr string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveDeleted", ctx, addr)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveDeleted indicates an expected call of RemoveDeleted
+func (mr *MockKeysMockRecorder) RemoveDeleted(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDeleted", reflect.TypeOf((*MockKeys)(nil).RemoveDeleted), ctx, addr)
 }

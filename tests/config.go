@@ -46,6 +46,8 @@ func NewConfig() (*Config, error) {
 	if err := json.Unmarshal([]byte(cfgStr), cfg); err != nil {
 		return nil, err
 	}
+
+	fmt.Println(cfg.HealthKeyManagerURL, cfg.KeyManagerURL)
 	return cfg, nil
 }
 
