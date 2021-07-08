@@ -94,3 +94,12 @@ func (c *HashicorpVaultClient) HealthCheck() error {
 
 	return nil
 }
+
+func (c *HashicorpVaultClient) Mount(path string, mountInfo *hashicorp.MountInput) error {
+	err := c.client.Sys().Mount(path, mountInfo)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}

@@ -34,7 +34,7 @@ func NewKeyStore(specs *KeySpecs, logger log.Logger) (*hashicorp.Store, error) {
 	}
 
 	if specs.Token != "" {
-		cli.Client().SetToken(specs.Token)
+		cli.SetToken(specs.Token)
 	} else if specs.TokenPath != "" {
 		tokenWatcher, err := token.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
 		if err != nil {

@@ -5,13 +5,14 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
+	"math/rand"
+	"time"
+
 	"github.com/consensys/gnark-crypto/crypto/hash"
 	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/rand"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/log"
@@ -21,16 +22,16 @@ import (
 
 type Store struct {
 	secretStore secrets.Store
-	keys        database.Keys
+	keysDA      database.Keys
 	logger      log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(secretStore secrets.Store, keys database.Keys, logger log.Logger) *Store {
+func New(secretStore secrets.Store, keysDA database.Keys, logger log.Logger) *Store {
 	return &Store{
 		secretStore: secretStore,
-		keys:        keys,
+		keysDA:      keysDA,
 		logger:      logger,
 	}
 }
@@ -50,7 +51,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 
-	key, err := s.keys.Get(ctx, id)
+	key, err := s.keysDA.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
 	ids := []string{}
-	keysRetrieved, err := s.keys.GetAll(ctx)
+	keysRetrieved, err := s.keysDA.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +79,13 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 	logger := s.logger.With("id", id)
 	logger.Debug("updating key")
 
-	key, err := s.keys.Get(ctx, id)
+	key, err := s.keysDA.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	key.Tags = attr.Tags
 
-	err = s.keys.Update(ctx, key)
+	err = s.keysDA.Update(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +103,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = s.keys.Remove(ctx, id)
+	err = s.keysDA.Remove(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -114,7 +115,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 
-	key, err := s.keys.GetDeleted(ctx, id)
+	key, err := s.keysDA.GetDeleted(ctx, id)
 	if err != nil {
 		logger.Error("failed to get deleted key")
 		return nil, err
@@ -126,7 +127,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	ids := []string{}
-	keysRetrieved, err := s.keys.GetAllDeleted(ctx)
+	keysRetrieved, err := s.keysDA.GetAllDeleted(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +144,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("restoring key")
 
-	key, err := s.keys.GetDeleted(ctx, id)
+	key, err := s.keysDA.GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -153,12 +154,12 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = s.keys.RemoveDeleted(ctx, id)
+	err = s.keysDA.RemoveDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = s.keys.Add(ctx, key)
+	err = s.keysDA.Add(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -171,7 +172,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("destroying key")
 
-	_, err := s.keys.GetDeleted(ctx, id)
+	_, err := s.keysDA.GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -181,7 +182,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = s.keys.RemoveDeleted(ctx, id)
+	err = s.keysDA.RemoveDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -217,8 +218,8 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error
 	case key.Algo.Type == entities.Ecdsa && key.Algo.EllipticCurve == entities.Secp256k1:
 		return s.signECDSA(privkey, data)
 	default:
-		errMessage := "invalid signing algorithm/elliptic curve combination"
-		logger.Error(errMessage)
+		errMessage := "signing algorithm and curve combination not supported for signing"
+		logger.With("algorithm", key.Algo.Type, "curve", key.Algo.EllipticCurve).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 }
@@ -281,7 +282,7 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 		Tags:      attr.Tags,
 	}
 
-	err = s.keys.Add(ctx, key)
+	err = s.keysDA.Add(ctx, key)
 	if err != nil {
 		return nil, err
 	}

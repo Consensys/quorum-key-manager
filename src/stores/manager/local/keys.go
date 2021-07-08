@@ -2,6 +2,7 @@ package local
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 
 	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
@@ -31,7 +32,7 @@ func NewLocalKeys(_ context.Context, specs *KeySpecs, keys database.Keys, logger
 	case types.HashicorpSecrets:
 		spec := &hashicorp.SecretSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
-			errMessage := "failed to unmarshal Hashicorp keystore specs"
+			errMessage := "failed to unmarshal Hashicorp secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
@@ -39,7 +40,7 @@ func NewLocalKeys(_ context.Context, specs *KeySpecs, keys database.Keys, logger
 	case types.AKVSecrets:
 		spec := &akv.SecretSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
-			errMessage := "failed to unmarshal AKV keystore specs"
+			errMessage := "failed to unmarshal AKV secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
@@ -47,7 +48,7 @@ func NewLocalKeys(_ context.Context, specs *KeySpecs, keys database.Keys, logger
 	case types.AWSSecrets:
 		spec := &aws.SecretSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
-			errMessage := "failed to unmarshal AWS keystore specs"
+			errMessage := "failed to unmarshal AWS secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}

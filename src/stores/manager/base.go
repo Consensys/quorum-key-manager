@@ -3,9 +3,10 @@ package storemanager
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
-	"sync"
 
 	"github.com/consensys/quorum-key-manager/pkg/log"
 

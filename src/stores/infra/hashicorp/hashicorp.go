@@ -13,5 +13,6 @@ type VaultClient interface {
 	List(path string) (*hashicorp.Secret, error)
 	SetToken(token string)
 	UnwrapToken(token string) (*hashicorp.Secret, error)
+	Mount(path string, mountInfo *hashicorp.MountInput) error
 	HealthCheck() error
 }

@@ -119,6 +119,20 @@ func (mr *MockVaultClientMockRecorder) UnwrapToken(token interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnwrapToken", reflect.TypeOf((*MockVaultClient)(nil).UnwrapToken), token)
 }
 
+// Mount mocks base method
+func (m *MockVaultClient) Mount(path string, mountInfo *api.MountInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Mount", path, mountInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Mount indicates an expected call of Mount
+func (mr *MockVaultClientMockRecorder) Mount(path, mountInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mount", reflect.TypeOf((*MockVaultClient)(nil).Mount), path, mountInfo)
+}
+
 // HealthCheck mocks base method
 func (m *MockVaultClient) HealthCheck() error {
 	m.ctrl.T.Helper()

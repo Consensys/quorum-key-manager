@@ -172,7 +172,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
-	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
+	hashicorpClient.SetToken(hashicorpContainer.RootToken)
 
 	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
 		testCfg.AkvClient.VaultName,
@@ -241,7 +241,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.hashicorpClient.Client().Sys().Mount("orchestrate", &api.MountInput{
+	err = env.hashicorpClient.Mount("orchestrate", &api.MountInput{
 		Type:        "plugin",
 		Description: "Orchestrate Wallets",
 		Config: api.MountConfigInput{

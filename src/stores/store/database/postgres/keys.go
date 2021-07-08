@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/stores/infra/postgres"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 
@@ -13,6 +15,7 @@ import (
 
 type Keys struct {
 	logger log.Logger
+	db     postgres.Client
 }
 
 var _ database.Keys = &Keys{}
@@ -25,7 +28,6 @@ func NewKeys(logger log.Logger) *Keys {
 
 func (d *Keys) Get(_ context.Context, id string) (*entities.Key, error) {
 	return nil, errors.ErrNotImplemented
-
 }
 
 func (d *Keys) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
