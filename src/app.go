@@ -2,15 +2,17 @@ package src
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
+	"github.com/consensys/quorum-key-manager/pkg/http/middleware"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/manifests"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	"github.com/consensys/quorum-key-manager/src/middleware"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	postgresclient "github.com/consensys/quorum-key-manager/src/stores/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
+	"github.com/justinas/alice"
 )
 
 type Config struct {
@@ -18,6 +20,7 @@ type Config struct {
 	Logger    *log.Config
 	Manifests *manifestsmanager.Config
 	Postgres  *postgresclient.Config
+	Auth      *auth.Config
 }
 
 func New(cfg *Config, logger log.Logger) (*app.App, error) {
@@ -37,6 +40,11 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
+	err = a.RegisterServiceConfig(cfg.Auth)
+	if err != nil {
+		return nil, err
+	}
+
 	// Register Services
 	err = manifests.RegisterService(a, logger.WithComponent("manifests"))
 	if err != nil {
@@ -48,13 +56,28 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
+	err = auth.RegisterService(a, logger.WithComponent("auth"))
+	if err != nil {
+		return nil, err
+	}
+
 	err = nodes.RegisterService(a, logger.WithComponent("nodes"))
 	if err != nil {
 		return nil, err
 	}
 
 	// Set Middleware
-	err = a.SetMiddleware(middleware.AccessLog(logger.WithComponent("accesslog")))
+	authmid, err := auth.Middleware(a, logger.WithComponent("middleware"))
+	if err != nil {
+		return nil, err
+	}
+
+	mid := alice.New(
+		middleware.AccessLog(logger.WithComponent("accesslog")),
+		authmid,
+	)
+
+	err = a.SetMiddleware(mid.Then)
 	if err != nil {
 		return nil, err
 	}
