@@ -1,8 +1,9 @@
 package src
 
 import (
-	postgresclient "github.com/consensys/quorum-key-manager/src/stores/infra/postgres/client"
 	"testing"
+
+	postgresclient "github.com/consensys/quorum-key-manager/src/stores/infra/postgres/client"
 
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
