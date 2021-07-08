@@ -5,10 +5,8 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/stores/infra/postgres"
-
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
@@ -20,9 +18,10 @@ type Keys struct {
 
 var _ database.Keys = &Keys{}
 
-func NewKeys(logger log.Logger) *Keys {
+func NewKeys(logger log.Logger, db postgres.Client) *Keys {
 	return &Keys{
 		logger: logger,
+		db:     db,
 	}
 }
 
@@ -47,7 +46,6 @@ func (d *Keys) GetAllDeleted(_ context.Context) ([]*entities.Key, error) {
 
 func (d *Keys) Add(_ context.Context, key *entities.Key) error {
 	return errors.ErrNotImplemented
-
 }
 
 func (d *Keys) Update(_ context.Context, key *entities.Key) error {

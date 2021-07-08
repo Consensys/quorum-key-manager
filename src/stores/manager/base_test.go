@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
+
 	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
 
 	"github.com/golang/mock/gomock"
@@ -82,6 +84,9 @@ func TestBaseManager(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockLogger := testutils.NewMockLogger(ctrl)
+	mockDB := mock.NewMockDatabase(ctrl)
+
+	mockDB.EXPECT().ETH1Accounts().Return(mock.NewMockETH1Accounts(ctrl))
 
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
@@ -93,7 +98,7 @@ func TestBaseManager(t *testing.T) {
 	err = manifests.Start(context.TODO())
 	require.NoError(t, err, "Start manifests manager must not error")
 
-	mngr := New(manifests, mockLogger)
+	mngr := New(manifests, mockLogger, mockDB)
 	err = mngr.Start(context.TODO())
 	require.NoError(t, err, "Start manager manager must not error")
 

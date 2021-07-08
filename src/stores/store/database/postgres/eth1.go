@@ -1,4 +1,4 @@
-package memory
+package postgres
 
 import (
 	"context"
@@ -22,7 +22,7 @@ type ETH1Accounts struct {
 
 var _ database.ETH1Accounts = &ETH1Accounts{}
 
-func New(logger log.Logger) *ETH1Accounts {
+func NewETH1Accounts(logger log.Logger) *ETH1Accounts {
 	return &ETH1Accounts{
 		mux:                   sync.RWMutex{},
 		addrToAccounts:        make(map[string]*entities.ETH1Account),

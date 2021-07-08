@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/stores/store/database"
+
 	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
 
 	"github.com/consensys/quorum-key-manager/pkg/log"
-
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/memory"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
@@ -42,6 +42,7 @@ type BaseManager struct {
 	isLive bool
 
 	logger log.Logger
+	db     database.Database
 }
 
 type storeBundle struct {
@@ -49,7 +50,7 @@ type storeBundle struct {
 	store    interface{}
 }
 
-func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
+func New(manifests manifestsmanager.Manager, logger log.Logger, db database.Database) *BaseManager {
 	return &BaseManager{
 		manifests:    manifests,
 		mux:          sync.RWMutex{},
@@ -58,6 +59,7 @@ func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 		eth1Accounts: make(map[string]*storeBundle),
 		mnfsts:       make(chan []manifestsmanager.Message),
 		logger:       logger,
+		db:           db,
 	}
 }
 
@@ -330,7 +332,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewLocalKeys(ctx, spec, postgres.NewKeys(logger), logger)
+		store, err := local.NewLocalKeys(ctx, spec, postgres.NewKeys(logger, m.db), logger)
 		if err != nil {
 			return err
 		}
@@ -344,7 +346,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewEth1(ctx, spec, memory.New(logger), logger)
+		store, err := local.NewEth1(ctx, spec, m.db.ETH1Accounts(), logger)
 		if err != nil {
 			return err
 		}

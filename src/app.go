@@ -9,20 +9,30 @@ import (
 	"github.com/consensys/quorum-key-manager/src/middleware"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	postgresclient "github.com/consensys/quorum-key-manager/src/stores/infra/postgres/client"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
 )
 
 type Config struct {
 	HTTP      *server.Config
 	Logger    *log.Config
 	Manifests *manifestsmanager.Config
+	Postgres  *postgresclient.Config
 }
 
 func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	// Create app
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
+	// No need to differentiate between DBs as we always use Postgres
+	postgresClient, err := postgresclient.NewClient(cfg.Postgres)
+	if err != nil {
+		return nil, err
+	}
+	db := postgres.New(logger, postgresClient)
+
 	// Register Service Configuration
-	err := a.RegisterServiceConfig(cfg.Manifests)
+	err = a.RegisterServiceConfig(cfg.Manifests)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +43,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = stores.RegisterService(a, logger.WithComponent("stores"))
+	err = stores.RegisterService(a, logger.WithComponent("stores"), db)
 	if err != nil {
 		return nil, err
 	}
