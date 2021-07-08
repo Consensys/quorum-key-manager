@@ -20,13 +20,14 @@ type JWTChecker struct {
 func NewJWTChecker(cert *x509.Certificate, claimsCfg *ClaimsConfig, skipClaimsValidation bool) *JWTChecker {
 	return &JWTChecker{
 		cert: cert,
+		claimsCfg: claimsCfg,
 		parser: &jwt.Parser{
 			SkipClaimsValidation: skipClaimsValidation,
 		},
 	}
 }
 
-func (checker *JWTChecker) Check(ctx context.Context, bearerToken string) (*Claims, error) {
+func (checker *JWTChecker) Check(_ context.Context, bearerToken string) (*Claims, error) {
 	if checker.cert == nil {
 		// If no certificate provided we deactivate authentication
 		return nil, nil

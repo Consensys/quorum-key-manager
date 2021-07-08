@@ -30,14 +30,14 @@ func (c *Claims) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if raw, ok := objmap[c.cfg.username]; ok {
+	if raw, ok := objmap[c.cfg.Username]; ok {
 		err = json.Unmarshal(*raw, &c.Username)
 		if err != nil {
 			return err
 		}
 	}
 
-	if raw, ok := objmap[c.cfg.group]; ok {
+	if raw, ok := objmap[c.cfg.Group]; ok {
 		var groups string
 		err = json.Unmarshal(*raw, &groups)
 		if err != nil {

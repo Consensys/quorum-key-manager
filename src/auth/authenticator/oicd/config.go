@@ -1,5 +1,14 @@
 package oicd
 
+import (
+	testutils2 "github.com/consensys/quorum-key-manager/pkg/tls/testutils"
+)
+
+const (
+	defaultUsernameClaim = "auth.username"
+	defaultGroupClaim    = "auth.group"
+)
+
 type Config struct {
 	Certificate       string
 	CertificateServer string
@@ -7,17 +16,16 @@ type Config struct {
 }
 
 type ClaimsConfig struct {
-	username string
-	group    string
+	Username string
+	Group    string
 }
-
 
 func NewDefaultConfig() *Config {
 	return &Config{
-		Certificate: "MIIDYjCCAkoCCQC9pJWk7qdipjANBgkqhkiG9w0BAQsFADBzMQswCQYDVQQGEwJGUjEOMAwGA1UEBwwFUGFyaXMxEjAQBgNVBAoMCUNvbnNlblN5czEQMA4GA1UECwwHUGVnYVN5czEuMCwGA1UEAwwlZTJlLXRlc3RzLm9yY2hlc3RyYXRlLmNvbnNlbnN5cy5wYXJpczAeFw0xOTEyMjcxNjI5MTdaFw0yMDEyMjYxNjI5MTdaMHMxCzAJBgNVBAYTAkZSMQ4wDAYDVQQHDAVQYXJpczESMBAGA1UECgwJQ29uc2VuU3lzMRAwDgYDVQQLDAdQZWdhU3lzMS4wLAYDVQQDDCVlMmUtdGVzdHMub3JjaGVzdHJhdGUuY29uc2Vuc3lzLnBhcmlzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo0NqWqI3TSi1uOBvCUquclWo4LcsYT21tNUXQ8YyqVYRSsiBv",
+		Certificate:  testutils2.OneLineRSACertPEMA,
 		Claims: &ClaimsConfig{
-			username: "auth.username",
-			group:    "auth.group",
+			Username: defaultUsernameClaim,
+			Group:    defaultGroupClaim,
 		},
 	}
 }
