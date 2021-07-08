@@ -119,7 +119,7 @@ func (rtl *RenewTokenWatcher) refreshToken() error {
 		token = strings.TrimSuffix(decoded, "\r")            // This one is for windows compatibility
 	} else {
 		// Unwrap token
-		secret, err2 := rtl.client.Client().Logical().Unwrap(wrappedToken.Token)
+		secret, err2 := rtl.client.UnwrapToken(wrappedToken.Token)
 		if err2 != nil {
 			errMessage := "could not unwrap token"
 			rtl.logger.WithError(err2).Error(errMessage)

@@ -241,7 +241,6 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 
 	var privKey []byte
 	var pubKey []byte
-
 	switch {
 	case alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Bn254:
 		eddsaKey, err := eddsaBN254(importedPrivKey)

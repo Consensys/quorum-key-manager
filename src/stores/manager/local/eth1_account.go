@@ -1,4 +1,4 @@
-package eth1
+package local
 
 import (
 	"context"
@@ -18,12 +18,12 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/types"
 )
 
-type Specs struct {
+type Eth1Specs struct {
 	Keystore manifest.Kind
 	Specs    interface{}
 }
 
-func NewEth1(ctx context.Context, specs *Specs, eth1Accounts database.ETH1Accounts, logger log.Logger) (*eth1.Store, error) {
+func NewEth1(ctx context.Context, specs *Eth1Specs, eth1Accounts database.ETH1Accounts, logger log.Logger) (*eth1.Store, error) {
 	var keyStore keys.Store
 	var err error
 

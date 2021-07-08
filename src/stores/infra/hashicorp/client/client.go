@@ -2,12 +2,15 @@ package client
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	hashicorpinfra "github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp"
 	hashicorp "github.com/hashicorp/vault/api"
 )
 
 type HashicorpVaultClient struct {
 	client *hashicorp.Client
 }
+
+var _ hashicorpinfra.VaultClient = &HashicorpVaultClient{}
 
 func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 	client, err := hashicorp.NewClient(cfg.ToHashicorpConfig())
@@ -69,6 +72,15 @@ func (c *HashicorpVaultClient) SetToken(token string) {
 	c.client.SetToken(token)
 }
 
+func (c *HashicorpVaultClient) UnwrapToken(token string) (*hashicorp.Secret, error) {
+	secret, err := c.client.Logical().Unwrap(token)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	return secret, nil
+}
+
 func (c *HashicorpVaultClient) HealthCheck() error {
 	resp, err := c.client.Sys().Health()
 	if err != nil {
@@ -81,8 +93,4 @@ func (c *HashicorpVaultClient) HealthCheck() error {
 	}
 
 	return nil
-}
-
-func (c *HashicorpVaultClient) Client() *hashicorp.Client {
-	return c.client
 }
