@@ -3,13 +3,11 @@ package client
 import (
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
 )
 
 type PostgresClient struct {
-	cfg   *Config
-	db    *pg.DB
-	query *orm.Query
+	cfg *Config
+	db  *pg.DB
 }
 
 var _ postgres.Client = &PostgresClient{}
