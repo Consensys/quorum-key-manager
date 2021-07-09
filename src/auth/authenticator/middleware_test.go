@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	mockauth "github.com/consensys/quorum-key-manager/src/auth/authenticator/mock"
 	mockmanager "github.com/consensys/quorum-key-manager/src/auth/manager/mock"
@@ -27,7 +27,7 @@ func (h *testHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
 func TestMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	logger := testutils2.NewMockLogger(ctrl)
+	logger := testutils.NewMockLogger(ctrl)
 
 	auth1 := mockauth.NewMockAuthenticator(ctrl)
 	policyMngr := mockmanager.NewMockManager(ctrl)

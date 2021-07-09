@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/golang/mock/gomock"
 
@@ -67,7 +67,7 @@ func TestRPCNodeHTTP(t *testing.T) {
 		},
 	}).SetDefault()
 
-	n, err := New(cfg, testutils2.NewMockLogger(ctrl))
+	n, err := New(cfg, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "New must not error")
 
 	err = n.Start(context.Background())
@@ -150,7 +150,7 @@ func TestNodeWebSocket(t *testing.T) {
 		},
 	}).SetDefault()
 
-	n, err := New(cfg, testutils2.NewMockLogger(ctrl))
+	n, err := New(cfg, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "New must not error")
 
 	err = n.Start(context.Background())
@@ -203,7 +203,7 @@ func TestCustomTesseraHandler(t *testing.T) {
 	b, _ := json.Marshal(cfg)
 	t.Logf(string(b))
 
-	n, err := New(cfg, testutils2.NewMockLogger(ctrl))
+	n, err := New(cfg, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "New must not error")
 
 	n.Handler = jsonrpc.DefaultRWHandler(

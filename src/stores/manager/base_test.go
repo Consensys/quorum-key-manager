@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
 
@@ -83,7 +83,7 @@ func TestBaseManager(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockLogger := testutils2.NewMockLogger(ctrl)
+	mockLogger := testutils.NewMockLogger(ctrl)
 	mockDB := mock.NewMockDatabase(ctrl)
 
 	mockDB.EXPECT().ETH1Accounts().Return(mock.NewMockETH1Accounts(ctrl))

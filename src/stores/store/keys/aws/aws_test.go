@@ -8,10 +8,10 @@ import (
 	"time"
 
 	mocks2 "github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
-	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
+	testutils2 "github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -42,13 +42,13 @@ func (s *awsKeyStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mockKmsClient = mocks2.NewMockKmsClient(ctrl)
-	s.keyStore = New(s.mockKmsClient, testutils2.NewMockLogger(ctrl))
+	s.keyStore = New(s.mockKmsClient, testutils.NewMockLogger(ctrl))
 }
 
 func (s *awsKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
-	attributes := testutils.FakeAttributes()
-	algorithm := testutils.FakeAlgorithm()
+	attributes := testutils2.FakeAttributes()
+	algorithm := testutils2.FakeAlgorithm()
 
 	retCreateKey := kms.CreateKeyOutput{
 		KeyMetadata: &kms.KeyMetadata{
@@ -68,7 +68,7 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
+		assert.ObjectsAreEqualValues(testutils2.FakeTags(), key.Tags)
 	})
 
 	s.Run("should fail with same error if CreateKey fails", func() {
@@ -113,7 +113,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), key.PublicKey, expectedPubKey)
-		assert.ObjectsAreEqualValues(testutils.FakeTags(), key.Tags)
+		assert.ObjectsAreEqualValues(testutils2.FakeTags(), key.Tags)
 		assert.Equal(s.T(), *retDescribeKey.KeyMetadata.Arn, key.Annotations[awsARN])
 		assert.Equal(s.T(), *retDescribeKey.KeyMetadata.AWSAccountId, key.Annotations[awsAccountID])
 		assert.Equal(s.T(), *retDescribeKey.KeyMetadata.CustomKeyStoreId, key.Annotations[awsCustomKeyStoreID])
@@ -358,7 +358,7 @@ func fakeListTags() *kms.ListResourceTagsOutput {
 
 	return &kms.ListResourceTagsOutput{
 		Truncated: &truncatedTagList,
-		Tags:      ToKmsTags(testutils.FakeTags()),
+		Tags:      ToKmsTags(testutils2.FakeTags()),
 	}
 }
 

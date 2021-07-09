@@ -3,7 +3,7 @@ package src
 import (
 	"testing"
 
-	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
@@ -22,6 +22,6 @@ func TestApp(t *testing.T) {
 		Auth:      &auth.Config{},
 		Manifests: &manifestsmanager.Config{Path: dir},
 		Postgres:  &client.Config{},
-	}, testutils2.NewMockLogger(ctrl))
+	}, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err, "New must not error")
 }
