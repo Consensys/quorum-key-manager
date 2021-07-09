@@ -1,7 +1,7 @@
 package client
 
 import (
-	postgres2 "github.com/consensys/quorum-key-manager/src/infra/postgres"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -10,7 +10,7 @@ type PostgresClient struct {
 	db  *pg.DB
 }
 
-var _ postgres2.Client = &PostgresClient{}
+var _ postgres.Client = &PostgresClient{}
 
 func NewClient(cfg *Config) (*PostgresClient, error) {
 	pgOptions, err := cfg.ToPGOptions()

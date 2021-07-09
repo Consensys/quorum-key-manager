@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	client2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
-	token2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -25,8 +25,8 @@ type KeySpecs struct {
 }
 
 func NewKeyStore(specs *KeySpecs, logger log.Logger) (*hashicorp.Store, error) {
-	cfg := client2.NewConfig(specs.Address, specs.Namespace)
-	cli, err := client2.NewClient(cfg)
+	cfg := client.NewConfig(specs.Address, specs.Namespace)
+	cli, err := client.NewClient(cfg)
 	if err != nil {
 		errMessage := "failed to instantiate Hashicorp client (keys)"
 		logger.WithError(err).Error(errMessage, "specs", specs)
@@ -36,7 +36,7 @@ func NewKeyStore(specs *KeySpecs, logger log.Logger) (*hashicorp.Store, error) {
 	if specs.Token != "" {
 		cli.SetToken(specs.Token)
 	} else if specs.TokenPath != "" {
-		tokenWatcher, err := token2.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
+		tokenWatcher, err := token.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
 		if err != nil {
 			return nil, err
 		}
