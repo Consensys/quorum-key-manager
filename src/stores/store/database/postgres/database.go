@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	 "github.com/consensys/quorum-key-manager/src/infra/postgres"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 )
 
@@ -25,4 +25,3 @@ func New(logger log.Logger, db postgres.Client) *Database {
 func (db *Database) ETH1Accounts() database.ETH1Accounts {
 	return db.eth1Accounts
 }
-
