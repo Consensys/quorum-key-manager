@@ -22,6 +22,12 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("can not run container: %s", err)
 	}
+	defer func() {
+		err := pool.Purge(ctr)
+		if err != nil {
+			t.Fatal("can not purge container:", err)
+		}
+	}()
 
 	var db *pg.DB
 	opt := pg.Options{
