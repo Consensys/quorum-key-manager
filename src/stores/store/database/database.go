@@ -32,7 +32,7 @@ type Keys interface {
 	GetAllDeleted(ctx context.Context) ([]*entities.Key, error)
 	Add(ctx context.Context, key *entities.Key) error
 	Update(ctx context.Context, key *entities.Key) error
-	AddDeleted(ctx context.Context, key *entities.Key) error
-	Remove(ctx context.Context, addr string) error
-	RemoveDeleted(ctx context.Context, addr string) error
+	Remove(ctx context.Context, id string) error
+	Restore(ctx context.Context, key *entities.Key) error
+	Purge(ctx context.Context, id string) error
 }

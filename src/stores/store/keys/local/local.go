@@ -155,7 +155,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = s.keysDA.RemoveDeleted(ctx, id)
+	err = s.keysDA.Restore(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = s.keysDA.RemoveDeleted(ctx, id)
+	err = s.keysDA.Purge(ctx, id)
 	if err != nil {
 		return err
 	}

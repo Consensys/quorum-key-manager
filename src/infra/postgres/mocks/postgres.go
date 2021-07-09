@@ -6,6 +6,7 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface
@@ -29,4 +30,148 @@ func NewMockClient(ctrl *gomock.Controller) *MockClient {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
+}
+
+// Insert mocks base method
+func (m *MockClient) Insert(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Insert", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Insert indicates an expected call of Insert
+func (mr *MockClientMockRecorder) Insert(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockClient)(nil).Insert), model...)
+}
+
+// SelectPK mocks base method
+func (m *MockClient) SelectPK(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SelectPK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SelectPK indicates an expected call of SelectPK
+func (mr *MockClientMockRecorder) SelectPK(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectPK", reflect.TypeOf((*MockClient)(nil).SelectPK), model...)
+}
+
+// SelectDeletedPK mocks base method
+func (m *MockClient) SelectDeletedPK(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SelectDeletedPK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SelectDeletedPK indicates an expected call of SelectDeletedPK
+func (mr *MockClientMockRecorder) SelectDeletedPK(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedPK", reflect.TypeOf((*MockClient)(nil).SelectDeletedPK), model...)
+}
+
+// Select mocks base method
+func (m *MockClient) Select(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Select", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Select indicates an expected call of Select
+func (mr *MockClientMockRecorder) Select(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Select", reflect.TypeOf((*MockClient)(nil).Select), model...)
+}
+
+// SelectDeleted mocks base method
+func (m *MockClient) SelectDeleted(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SelectDeleted", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SelectDeleted indicates an expected call of SelectDeleted
+func (mr *MockClientMockRecorder) SelectDeleted(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeleted", reflect.TypeOf((*MockClient)(nil).SelectDeleted), model...)
+}
+
+// UpdatePK mocks base method
+func (m *MockClient) UpdatePK(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdatePK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePK indicates an expected call of UpdatePK
+func (mr *MockClientMockRecorder) UpdatePK(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePK", reflect.TypeOf((*MockClient)(nil).UpdatePK), model...)
+}
+
+// DeletePK mocks base method
+func (m *MockClient) DeletePK(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeletePK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePK indicates an expected call of DeletePK
+func (mr *MockClientMockRecorder) DeletePK(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePK", reflect.TypeOf((*MockClient)(nil).DeletePK), model...)
+}
+
+// ForceDeletePK mocks base method
+func (m *MockClient) ForceDeletePK(model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ForceDeletePK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ForceDeletePK indicates an expected call of ForceDeletePK
+func (mr *MockClientMockRecorder) ForceDeletePK(model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeletePK", reflect.TypeOf((*MockClient)(nil).ForceDeletePK), model...)
 }

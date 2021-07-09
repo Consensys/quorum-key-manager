@@ -46,6 +46,16 @@
     secretKey: '{AWS_SECRET_KEY}'
     region: '{AWS_REGION}'
     debug: false
+- kind: LocalKeys
+  version: 0.0.1
+  name: local-keys
+  specs:
+    secretstore: HashicorpSecrets
+    specs:
+      mountPoint: secret
+      address: http://hashicorp:8200
+      token: '{VAULT_TOKEN}'
+      namespace: ''
 - kind: Eth1Account
   version: 0.0.1
   name: eth1-accounts
