@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	testutils3 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/stretchr/testify/require"
 
@@ -54,7 +54,7 @@ func (s *eth1StoreTestSuite) SetupTest() {
 
 	s.mockKeyStore = mock.NewMockStore(ctrl)
 	s.mockEth1AccountsDB = mock2.NewMockETH1Accounts(ctrl)
-	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, testutils3.NewMockLogger(ctrl))
+	s.eth1Store = New(s.mockKeyStore, s.mockEth1AccountsDB, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *eth1StoreTestSuite) TestCreate() {

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	mocks2 "github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
-	testutils3 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	akv "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -38,7 +38,7 @@ var (
 
 type akvKeyStoreTestSuite struct {
 	suite.Suite
-	mockVault *mocks2.MockKeysClient
+	mockVault *mocks.MockKeysClient
 	keyStore  keys.Store
 }
 
@@ -51,8 +51,8 @@ func (s *akvKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockVault = mocks2.NewMockKeysClient(ctrl)
-	s.keyStore = New(s.mockVault, testutils3.NewMockLogger(ctrl))
+	s.mockVault = mocks.NewMockKeysClient(ctrl)
+	s.keyStore = New(s.mockVault, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *akvKeyStoreTestSuite) TestCreate() {

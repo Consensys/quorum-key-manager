@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	mocks2 "github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
-	testutils3 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -22,7 +22,7 @@ import (
 
 type akvSecretStoreTestSuite struct {
 	suite.Suite
-	mockVault   *mocks2.MockClient
+	mockVault   *mocks.MockClient
 	mountPoint  string
 	secretStore secrets.Store
 }
@@ -37,9 +37,9 @@ func (s *akvSecretStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mountPoint = "secret"
-	s.mockVault = mocks2.NewMockClient(ctrl)
+	s.mockVault = mocks.NewMockClient(ctrl)
 
-	s.secretStore = New(s.mockVault, testutils3.NewMockLogger(ctrl))
+	s.secretStore = New(s.mockVault, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *akvSecretStoreTestSuite) TestSet() {

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	mocks2 "github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
+	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
@@ -28,7 +28,7 @@ const (
 
 type awsKeyStoreTestSuite struct {
 	suite.Suite
-	mockKmsClient *mocks2.MockKmsClient
+	mockKmsClient *mocks.MockKmsClient
 	keyStore      keys.Store
 }
 
@@ -41,7 +41,7 @@ func (s *awsKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockKmsClient = mocks2.NewMockKmsClient(ctrl)
+	s.mockKmsClient = mocks.NewMockKmsClient(ctrl)
 	s.keyStore = New(s.mockKmsClient, testutils.NewMockLogger(ctrl))
 }
 
