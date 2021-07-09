@@ -9,15 +9,13 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
-	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	eth1store "github.com/consensys/quorum-key-manager/src/stores/store/eth1"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
@@ -70,7 +68,6 @@ var storeKinds = []manifest.Kind{
 	types.AKVKeys,
 	types.AWSSecrets,
 	types.AWSKeys,
-	types.LocalKeys,
 	types.Eth1Account,
 }
 
@@ -319,20 +316,6 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 
 		store, err := aws.NewKeyStore(spec, logger)
-		if err != nil {
-			return err
-		}
-
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
-	case types.LocalKeys:
-		spec := &local.KeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal local key store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := local.NewLocalKeys(ctx, spec, postgres.NewKeys(logger, m.db), logger)
 		if err != nil {
 			return err
 		}
