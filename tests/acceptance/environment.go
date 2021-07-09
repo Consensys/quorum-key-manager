@@ -10,7 +10,7 @@ import (
 	hashicorp3 "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	client2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	zap2 "github.com/consensys/quorum-key-manager/src/infra/log/zap"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	client4 "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"io/ioutil"
 	"os"
@@ -86,7 +86,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger, err := zap2.NewLogger(log.NewConfig(log.ErrorLevel, log.JSONFormat))
+	logger, err := zap.NewLogger(log.NewConfig(log.ErrorLevel, log.JSONFormat))
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	zap2 "github.com/consensys/quorum-key-manager/src/infra/log/zap"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -52,7 +52,7 @@ func run(cmd *cobra.Command, _ []string) error {
 	vipr := viper.GetViper()
 	cfg := flags.NewAppConfig(vipr)
 
-	logger, err := zap2.NewLogger(cfg.Logger)
+	logger, err := zap.NewLogger(cfg.Logger)
 	if err != nil {
 		return err
 	}
@@ -86,6 +86,6 @@ func run(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-func syncZapLogger(logger *zap2.Logger) {
+func syncZapLogger(logger *zap.Logger) {
 	_ = logger.Sync()
 }

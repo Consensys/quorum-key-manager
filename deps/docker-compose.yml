@@ -3,7 +3,7 @@ version: '3.7'
 x-container-common: &container-common
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
-    - postgres
+    - qkm
 
 x-postgres-common: &postgres-common
   environment:
@@ -26,6 +26,5 @@ volumes:
     driver: local
 
 networks:
-  postgres:
-    external:
-      name: postgres
+  qkm:
+    driver: bridge
