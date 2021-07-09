@@ -236,7 +236,7 @@ Environment variable: %q`, dbTLSCAEnv)
 	_ = viper.BindPFlag(DBTLSCAViperKey, f.Lookup(dbTLSCAFlag))
 }
 
-func NewPostgresConfig(vipr *viper.Viper) *postgresclient.Config {
+func newPostgresConfig(vipr *viper.Viper) *postgresclient.Config {
 	cfg := &postgresclient.Config{
 		Host:              vipr.GetString(DBHostViperKey),
 		Port:              vipr.GetString(DBPortViperKey),

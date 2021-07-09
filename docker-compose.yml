@@ -33,24 +33,6 @@ x-qkm-common: &qkm-common
   DB_HOST: postgres
 
 services:
-  qkm-migration-init:
-    <<: *container-common
-    environment:
-      <<: *default-variables
-      <<: *qkm-common
-    restart: "no"
-    command: migrate init
-
-  qkm-migration:
-    <<: *container-common
-    environment:
-      <<: *default-variables
-      <<: *qkm-common
-    restart: "no"
-    depends_on:
-      - qkm-migration-init
-    command: migrate up
-
   key-manager:
     <<: *container-common
     environment:

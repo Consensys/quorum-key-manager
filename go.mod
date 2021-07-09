@@ -24,7 +24,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
-	github.com/go-pg/migrations/v8 v8.1.0
 	github.com/go-pg/pg/v10 v10.10.1
 	github.com/go-playground/validator/v10 v10.5.0
 	github.com/golang/mock v1.5.0
