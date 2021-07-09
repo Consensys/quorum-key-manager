@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"path"
 
-	hashicorp2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -29,14 +29,14 @@ const (
 )
 
 type Store struct {
-	client     hashicorp2.VaultClient
+	client     hashicorp.VaultClient
 	mountPoint string
 	logger     log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(client hashicorp2.VaultClient, mountPoint string, logger log.Logger) *Store {
+func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,

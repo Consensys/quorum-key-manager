@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
-	aws2 "github.com/consensys/quorum-key-manager/src/infra/aws"
+	"github.com/consensys/quorum-key-manager/src/infra/aws"
 	client3 "github.com/consensys/quorum-key-manager/src/infra/aws/client"
 	hashicorp3 "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	client2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
@@ -48,8 +48,8 @@ type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
 	hashicorpClient   hashicorp3.VaultClient
-	awsSecretsClient  aws2.SecretsManagerClient
-	awsKmsClient      aws2.KmsClient
+	awsSecretsClient  aws.SecretsManagerClient
+	awsKmsClient      aws.KmsClient
 	akvClient         akv.Client
 	dockerClient      *docker.Client
 	keyManager        *app.App
