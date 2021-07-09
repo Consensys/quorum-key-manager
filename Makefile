@@ -101,6 +101,9 @@ stop-besu:
 down-besu:
 	@docker-compose -f deps/besu/docker-compose.yml down --volumes --timeout 0
 
+generate-jwt: networks gobuild
+	@docker-compose -f ./docker-compose.yml up generate-jwt
+
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)
 	@golangci-lint run --fix

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/consensys/quorum-key-manager/pkg/tls"
+	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
@@ -18,11 +18,11 @@ type Authenticator struct {
 var _ authenticator.Authenticator = Authenticator{}
 
 func NewAuthenticator(cfg *Config) (*Authenticator, error) {
-	if cfg.Certificate == "" && cfg.CertificateServer == "" {
+	if cfg.Certificate == "" {
 		return nil, nil
 	}
 
-	cert, err := tls.X509KeyPair([]byte(cfg.Certificate), nil)
+	cert, err := certificate.X509KeyPair([]byte(cfg.Certificate), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/tls"
+	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd"
 	"github.com/golang-jwt/jwt"
 )
@@ -16,8 +16,8 @@ type JWTGenerator struct {
 	claims     *oicd.ClaimsConfig
 }
 
-func NewJWTGenerator(keyPair *tls.KeyPair, claims *oicd.ClaimsConfig) (*JWTGenerator, error) {
-	cert, err := tls.X509(keyPair)
+func NewJWTGenerator(keyPair *certificate.KeyPair, claims *oicd.ClaimsConfig) (*JWTGenerator, error) {
+	cert, err := certificate.X509(keyPair)
 	if err != nil {
 		return nil, err
 	}

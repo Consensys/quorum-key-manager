@@ -5,5 +5,5 @@ import (
 )
 
 type Config struct {
-	OICD oicd.Config
+	OICD *oicd.Config
 }

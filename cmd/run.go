@@ -27,7 +27,8 @@ func newRunCommand() *cobra.Command {
 
 	flags.HTTPFlags(runCmd.Flags())
 	flags.ManifestFlags(runCmd.Flags())
-	flags.PGFlags(runCmd.Flags())
+	flags.LoggerFlags(runCmd.Flags())
+	flags.AuthFlags(runCmd.Flags())
 
 	return runCmd
 }
@@ -36,7 +37,10 @@ func runCmd(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
 
 	vipr := viper.GetViper()
-	cfg := flags.NewAppConfig(vipr)
+	cfg, err := flags.NewAppConfig(vipr)
+	if err != nil {
+		return err
+	}
 
 	logger, err := zap.NewLogger(cfg.Logger)
 	if err != nil {

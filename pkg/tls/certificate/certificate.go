@@ -147,7 +147,7 @@ func decode(raw []byte, typ string) ([][]byte, error) {
 		if len(skippedBlockTypes) == 0 {
 			return nil, fmt.Errorf("failed to find any  data in input")
 		}
-		return nil, fmt.Errorf("failed to find %q  block in input after skipping  blocks of the following types: %v", typ, skippedBlockTypes)
+		return nil, fmt.Errorf("failed to find %q  block in input after skipping blocks of the following types: %v", typ, skippedBlockTypes)
 	}
 
 	return blocks, nil

@@ -1,22 +1,28 @@
 package cmd
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
-	testutils2 "github.com/consensys/quorum-key-manager/pkg/tls/testutils"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd/testutils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var (
+	username   string
+	groups     []string
+	expiration time.Duration
+)
+
 func newUtilCommand() *cobra.Command {
 	utilCmd := &cobra.Command{
-		Use:   "util",
+		Use:   "utils",
 		Short: "Run util script",
 		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
@@ -25,10 +31,18 @@ func newUtilCommand() *cobra.Command {
 
 	// Register Init command
 	generateJWTCmd := &cobra.Command{
-		Use:   "generate-token",
+		Use:   "generate-jwt",
 		Short: "Generate JWT Access Token",
 		RunE:  runGenerateJWT,
 	}
+
+	flags.LoggerFlags(generateJWTCmd.Flags())
+	flags.AuthFlags(generateJWTCmd.Flags())
+	flags.AuthOICDCertKeyFile(generateJWTCmd.Flags())
+
+	generateJWTCmd.Flags().StringVar(&username, "username", "", "username added in claims")
+	generateJWTCmd.Flags().StringArrayVar(&groups, "groups", []string{}, "groups added in claims")
+	generateJWTCmd.Flags().DurationVar(&expiration, "expiration", time.Hour, "Token expiration time")
 
 	utilCmd.AddCommand(generateJWTCmd)
 
@@ -37,31 +51,49 @@ func newUtilCommand() *cobra.Command {
 
 func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	vipr := viper.GetViper()
-	cfg := flags.NewAppConfig(vipr)
+	authCfg, err := flags.NewAuthConfig(vipr)
+	if err != nil {
+		return err
+	}
 
-	logger, err := zap.NewLogger(cfg.Logger)
+	loggerCfg := flags.NewLoggerConfig(vipr)
+	logger, err := zap.NewLogger(loggerCfg)
 	if err != nil {
 		return err
 	}
 	defer syncZapLogger(logger)
 
-	oicdCfg := oicd.NewDefaultConfig()
+	keyFile := vipr.GetString(flags.AuthOICDCAKeyFileViperKey)
+	_, err = os.Stat(keyFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("cannot read CA Key file %s", keyFile)
+		}
+		return err
+	}
+
+	keyFileContent, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+
+	oicdCfg := authCfg.OICD
 	generator, err := testutils.NewJWTGenerator(&certificate.KeyPair{
 		Cert: []byte(oicdCfg.Certificate),
-		Key:  []byte(testutils2.OneLineRSAKeyPEMA),
+		Key:  keyFileContent,
 	}, oicdCfg.Claims)
 
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())
 		return err
 	}
-	
-	token, err := generator.GenerateAccessToken("username", []string{"group-admin", "no-existing-group"}, time.Minute * 60)
+
+	token, err := generator.GenerateAccessToken(username, groups, expiration)
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())
 		return err
 	}
-	
+
 	logger.Info("token generated", "value", token)
 	return nil
 }
