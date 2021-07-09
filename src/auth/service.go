@@ -50,6 +50,7 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 	if err != nil {
 		return nil, err
 	} else if oicdAuth != nil {
+		logger.Info("OICD Authenticator is enabled")
 		auths = append(auths, oicdAuth)
 	}
 

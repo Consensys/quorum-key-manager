@@ -33,6 +33,7 @@ services:
     <<: *container-common
     environment:
       <<: *default-variables
+      AUTH_OICD_CA_CERT: ${AUTH_OICD_CA_CERT-/certificates/cert.pem}
     ports:
       - 8080:8080
       - 8081:8081
@@ -41,6 +42,7 @@ services:
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config:/manifests:ro
+      - ./deps/config/certificates:/certificates:ro
       - hashicorp-token:/vault/token:ro
 
   generate-jwt:
@@ -51,7 +53,7 @@ services:
       AUTH_OICD_CA_KEY: ${AUTH_OICD_CA_KEY-/certificates/key.pem}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-      - ./tests/utils/certificates:/certificates:ro
+      - ./deps/config/certificates:/certificates:ro
     command: utils generate-jwt --username=${USERNAME-username} --groups=${GROUPS-admin,user} --expiration=${EXPIRATION-24h}
     restart: "no"
 

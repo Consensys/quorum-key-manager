@@ -89,20 +89,21 @@ Environment variable: %q`, authOICDCACertFileEnv)
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	caFile := vipr.GetString(authOICDCACertFileViperKey)
 	_, err := os.Stat(caFile)
+	
+	var oicdCfg = &oicd.Config{}
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("cannot read CA Cert file %s", caFile)
+		if !os.IsNotExist(err) {
+			return nil, err
 		}
-		return nil, err
+	} else {
+		caFileContent, err := ioutil.ReadFile(caFile)
+		if err != nil {
+			return nil, err
+		}
+
+		oicdCfg = oicd.NewConfig(string(caFileContent), vipr.GetString(authOICDClaimUsernameViperKey), 
+			vipr.GetString(authOICDClaimGroupViperKey))
 	}
 
-	caFileContent, err := ioutil.ReadFile(caFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return &auth.Config{OICD: oicd.NewConfig(string(caFileContent),
-		vipr.GetString(authOICDClaimUsernameViperKey),
-		vipr.GetString(authOICDClaimGroupViperKey)),
-	}, nil
+	return &auth.Config{OICD: oicdCfg}, nil
 }
