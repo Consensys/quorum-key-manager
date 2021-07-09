@@ -8,6 +8,15 @@ x-default-variables: &default-variables
   HTTP_PORT: ${HTTP_PORT-}
   HTTP_HOST: ${HTTP_HOST-0.0.0.0}
   HEALTH_PORT: ${HEALTH_PORT-}
+  DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-}
+  DB_TLS_CERT: ${DB_TLS_CERT-}
+  DB_TLS_KEY: ${DB_TLS_KEY-}
+  DB_TLS_CA: ${DB_TLS_CA-}
+  DB_HOST: ${DB_HOST-}
+  DB_PORT: ${DB_PORT-}
+  DB_DATABASE: ${DB_DATABASE-}
+  DB_POOLSIZE: ${DB_POOLSIZE-}
+  DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
 
 x-container-common: &container-common
   image: golang:1.15-buster

@@ -8,4 +8,5 @@ const (
 	HashicorpKeys manifest.Kind = "HashicorpKeys"
 	AKVKeys       manifest.Kind = "AKVKeys"
 	AWSKeys       manifest.Kind = "AWSKeys"
+	LocalKeys     manifest.Kind = "LocalKeys"
 )

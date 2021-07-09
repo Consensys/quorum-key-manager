@@ -1,0 +1,30 @@
+version: '3.7'
+
+x-container-common: &container-common
+  restart: ${CONTAINER_RESTART-on-failure}
+  networks:
+    - qkm
+
+x-postgres-common: &postgres-common
+  environment:
+    POSTGRES_PASSWORD: postgres
+
+services:
+  postgres:
+    <<: *container-common
+    <<: *postgres-common
+    image: postgres:13.3-alpine
+    #    command: ["postgres", "-c", "max_connections=100"]
+    #    command: ["postgres", "-c", "log_statement=all"]
+    volumes:
+      - db-data-api:/var/lib/postgresql/data
+    ports:
+      - 5432
+
+volumes:
+  db-data-api:
+    driver: local
+
+networks:
+  qkm:
+    driver: bridge

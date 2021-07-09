@@ -5,11 +5,12 @@ import (
 	"encoding/base64"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )
@@ -33,7 +34,7 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
+	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("creating key")
 
 	kty, err := convertToAKVKeyType(alg)
@@ -59,7 +60,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
+	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("importing key")
 
 	iWebKey, err := webImportKey(privKey, alg)

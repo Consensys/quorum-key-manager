@@ -3,9 +3,10 @@ package keys
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/quorum-key-manager/pkg/crypto"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 

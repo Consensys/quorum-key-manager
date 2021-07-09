@@ -3,9 +3,15 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/pkg/log/zap"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/aws"
+	"github.com/consensys/quorum-key-manager/src/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
+	"github.com/consensys/quorum-key-manager/src/infra/aws"
+	awsclient "github.com/consensys/quorum-key-manager/src/infra/aws/client"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
+	hashicorpclient "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
+	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"io/ioutil"
 	"os"
 	"time"
@@ -16,12 +22,7 @@ import (
 	keymanager "github.com/consensys/quorum-key-manager/src"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
-	akv2 "github.com/consensys/quorum-key-manager/src/stores/infra/akv"
-	akvclient "github.com/consensys/quorum-key-manager/src/stores/infra/akv/client"
-	awsclient "github.com/consensys/quorum-key-manager/src/stores/infra/aws/client"
-	hashicorp2 "github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp"
-	hashicorpclient "github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/client"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
+	hashicorpmanager "github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/types"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
@@ -46,10 +47,10 @@ const (
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
-	hashicorpClient   hashicorp2.VaultClient
+	hashicorpClient   hashicorp.VaultClient
 	awsSecretsClient  aws.SecretsManagerClient
 	awsKmsClient      aws.KmsClient
-	akvClient         akv2.Client
+	akvClient         akv.Client
 	dockerClient      *docker.Client
 	keyManager        *app.App
 	baseURL           string
@@ -128,7 +129,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		&manifest.Manifest{
 			Kind: types.HashicorpKeys,
 			Name: HashicorpKeyStoreName,
-			Specs: &hashicorp.KeySpecs{
+			Specs: &hashicorpmanager.KeySpecs{
 				MountPoint: HashicorpKeyMountPoint,
 				Address:    hashicorpAddr,
 				TokenPath:  tmpTokenFile,
@@ -159,6 +160,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	keyManager, err := keymanager.New(&keymanager.Config{
 		HTTP:      httpConfig,
 		Manifests: &manifestsmanager.Config{Path: tmpYml},
+		Postgres:  &postgresclient.Config{},
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
@@ -172,9 +174,9 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
-	hashicorpClient.Client().SetToken(hashicorpContainer.RootToken)
+	hashicorpClient.SetToken(hashicorpContainer.RootToken)
 
-	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
+	akvClient, err := client.NewClient(client.NewConfig(
 		testCfg.AkvClient.VaultName,
 		testCfg.AkvClient.TenantID,
 		testCfg.AkvClient.ClientID,
@@ -241,7 +243,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.hashicorpClient.Client().Sys().Mount("orchestrate", &api.MountInput{
+	err = env.hashicorpClient.Mount("orchestrate", &api.MountInput{
 		Type:        "plugin",
 		Description: "Orchestrate Wallets",
 		Config: api.MountConfigInput{
