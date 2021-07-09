@@ -2,7 +2,7 @@ package akv
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	client2 "github.com/consensys/quorum-key-manager/src/infra/akv/client"
+	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/akv"
 )
@@ -24,8 +24,8 @@ type KeySpecs struct {
 }
 
 func NewKeyStore(spec *KeySpecs, logger log.Logger) (*akv.Store, error) {
-	cfg := client2.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
-	cli, err := client2.NewClient(cfg)
+	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
+	cli, err := client.NewClient(cfg)
 	if err != nil {
 		errMessage := "failed to instantiate AKV client (keys)"
 		logger.WithError(err).Error(errMessage, "specs", spec)

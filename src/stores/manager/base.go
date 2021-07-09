@@ -9,7 +9,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
-	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -18,6 +17,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	eth1store "github.com/consensys/quorum-key-manager/src/stores/store/eth1"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"

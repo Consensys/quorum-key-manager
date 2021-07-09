@@ -2,7 +2,7 @@ package aws
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	client2 "github.com/consensys/quorum-key-manager/src/infra/aws/client"
+	"github.com/consensys/quorum-key-manager/src/infra/aws/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 )
@@ -16,8 +16,8 @@ type KeySpecs struct {
 }
 
 func NewKeyStore(specs *KeySpecs, logger log.Logger) (*aws.KeyStore, error) {
-	cfg := client2.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
-	cli, err := client2.NewKmsClient(cfg)
+	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
+	cli, err := client.NewKmsClient(cfg)
 	if err != nil {
 		errMessage := "failed to instantiate AWS client (keys)"
 		logger.WithError(err).Error(errMessage, "specs", specs)

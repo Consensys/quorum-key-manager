@@ -2,20 +2,20 @@ package postgres
 
 import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	postgres2 "github.com/consensys/quorum-key-manager/src/infra/postgres"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 )
 
 type Database struct {
 	logger       log.Logger
-	db           postgres2.Client
+	db           postgres.Client
 	eth1Accounts *ETH1Accounts
 	keys         *Keys
 }
 
 var _ database.Database = &Database{}
 
-func New(logger log.Logger, db postgres2.Client) *Database {
+func New(logger log.Logger, db postgres.Client) *Database {
 	return &Database{
 		logger:       logger,
 		db:           db,

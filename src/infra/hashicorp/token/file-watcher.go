@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	hashicorp2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/fsnotify/fsnotify"
@@ -21,13 +21,13 @@ import (
 // RenewTokenWatcher handle the token tokenWatcher of the application
 type RenewTokenWatcher struct {
 	tokenPath     string
-	client        hashicorp2.VaultClient
+	client        hashicorp.VaultClient
 	watcher       *fsnotify.Watcher
 	logger        log.Logger
 	isTokenLoaded bool
 }
 
-func NewRenewTokenWatcher(client hashicorp2.VaultClient, tokenPath string, logger log.Logger) (*RenewTokenWatcher, error) {
+func NewRenewTokenWatcher(client hashicorp.VaultClient, tokenPath string, logger log.Logger) (*RenewTokenWatcher, error) {
 	logger = logger.With("token_path", tokenPath)
 
 	watcher, err := fsnotify.NewWatcher()

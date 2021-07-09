@@ -4,7 +4,7 @@ import (
 	"context"
 	"path"
 
-	akv2 "github.com/consensys/quorum-key-manager/src/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -13,13 +13,13 @@ import (
 )
 
 type Store struct {
-	client akv2.SecretClient
+	client akv.SecretClient
 	logger log.Logger
 }
 
 var _ secrets.Store = &Store{}
 
-func New(client akv2.SecretClient, logger log.Logger) *Store {
+func New(client akv.SecretClient, logger log.Logger) *Store {
 	return &Store{
 		client: client,
 		logger: logger,

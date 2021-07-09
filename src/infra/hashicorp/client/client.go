@@ -2,18 +2,18 @@ package client
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	hashicorp2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
-	hashicorp "github.com/hashicorp/vault/api"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
+	"github.com/hashicorp/vault/api"
 )
 
 type HashicorpVaultClient struct {
-	client *hashicorp.Client
+	client *api.Client
 }
 
-var _ hashicorp2.VaultClient = &HashicorpVaultClient{}
+var _ hashicorp.VaultClient = &HashicorpVaultClient{}
 
 func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
-	client, err := hashicorp.NewClient(cfg.ToHashicorpConfig())
+	client, err := api.NewClient(cfg.ToHashicorpConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 	return &HashicorpVaultClient{client}, nil
 }
 
-func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*hashicorp.Secret, error) {
+func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {
 	if data == nil {
 		secret, err := c.client.Logical().Read(path)
 		if err != nil {
@@ -41,7 +41,7 @@ func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*has
 	return secret, nil
 }
 
-func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (*hashicorp.Secret, error) {
+func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (*api.Secret, error) {
 	secret, err := c.client.Logical().Write(path, data)
 	if err != nil {
 		return nil, parseErrorResponse(err)
@@ -59,7 +59,7 @@ func (c *HashicorpVaultClient) Delete(path string) error {
 	return nil
 }
 
-func (c *HashicorpVaultClient) List(path string) (*hashicorp.Secret, error) {
+func (c *HashicorpVaultClient) List(path string) (*api.Secret, error) {
 	secret, err := c.client.Logical().List(path)
 	if err != nil {
 		return nil, parseErrorResponse(err)
@@ -72,7 +72,7 @@ func (c *HashicorpVaultClient) SetToken(token string) {
 	c.client.SetToken(token)
 }
 
-func (c *HashicorpVaultClient) UnwrapToken(token string) (*hashicorp.Secret, error) {
+func (c *HashicorpVaultClient) UnwrapToken(token string) (*api.Secret, error) {
 	secret, err := c.client.Logical().Unwrap(token)
 	if err != nil {
 		return nil, parseErrorResponse(err)
@@ -95,7 +95,7 @@ func (c *HashicorpVaultClient) HealthCheck() error {
 	return nil
 }
 
-func (c *HashicorpVaultClient) Mount(path string, mountInfo *hashicorp.MountInput) error {
+func (c *HashicorpVaultClient) Mount(path string, mountInfo *api.MountInput) error {
 	err := c.client.Sys().Mount(path, mountInfo)
 	if err != nil {
 		return parseErrorResponse(err)

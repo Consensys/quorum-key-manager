@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	akv2 "github.com/consensys/quorum-key-manager/src/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -16,13 +16,13 @@ import (
 )
 
 type Store struct {
-	client akv2.KeysClient
+	client akv.KeysClient
 	logger log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(client akv2.KeysClient, logger log.Logger) *Store {
+func New(client akv.KeysClient, logger log.Logger) *Store {
 	return &Store{
 		client: client,
 		logger: logger,
