@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/memory"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	eth1store "github.com/consensys/quorum-key-manager/src/stores/store/eth1"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
@@ -40,6 +40,7 @@ type BaseManager struct {
 	isLive bool
 
 	logger log.Logger
+	db     database.Database
 }
 
 type storeBundle struct {
@@ -47,7 +48,7 @@ type storeBundle struct {
 	store    interface{}
 }
 
-func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
+func New(manifests manifestsmanager.Manager, logger log.Logger, db database.Database) *BaseManager {
 	return &BaseManager{
 		manifests:    manifests,
 		mux:          sync.RWMutex{},
@@ -56,6 +57,7 @@ func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 		eth1Accounts: make(map[string]*storeBundle),
 		mnfsts:       make(chan []manifestsmanager.Message),
 		logger:       logger,
+		db:           db,
 	}
 }
 
@@ -242,10 +244,12 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
+
 		store, err := hashicorp.NewSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
+
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.HashicorpKeys:
 		spec := &hashicorp.KeySpecs{}
@@ -254,10 +258,12 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
+
 		store, err := hashicorp.NewKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
+
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVSecrets:
 		spec := &akv.SecretSpecs{}
@@ -266,10 +272,12 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
+
 		store, err := akv.NewSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
+
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
@@ -278,10 +286,12 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
+
 		store, err := akv.NewKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
+
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AWSSecrets:
 		spec := &aws.SecretSpecs{}
@@ -290,10 +300,12 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
+
 		store, err := aws.NewSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
+
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.AWSKeys:
 		spec := &aws.KeySpecs{}
@@ -302,23 +314,26 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
+
 		store, err := aws.NewKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
+
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	case types.Eth1Account:
-		spec := &eth1.Specs{}
+		spec := &local.Eth1Specs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal Eth1 store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := eth1.NewEth1(ctx, spec, memory.New(logger), logger)
+		store, err := local.NewEth1(ctx, spec, m.db.ETH1Accounts(), logger)
 		if err != nil {
 			return err
 		}
+
 		m.eth1Accounts[mnf.Name] = &storeBundle{manifest: mnf, store: store}
 	default:
 		errMessage := "invalid manifest kind"

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"

@@ -2,7 +2,7 @@ package nodes
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	nodesapi "github.com/consensys/quorum-key-manager/src/nodes/api"
 	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes/manager"

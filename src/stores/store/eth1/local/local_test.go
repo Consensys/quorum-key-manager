@@ -7,7 +7,8 @@ import (
 	"math/big"
 	"testing"
 
-	testutils2 "github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"

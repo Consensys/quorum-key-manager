@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	testutils2 "github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	akv "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/akv/mocks"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"

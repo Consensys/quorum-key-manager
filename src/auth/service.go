@@ -3,8 +3,9 @@ package auth
 import (
 	"net/http"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"

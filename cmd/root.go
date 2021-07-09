@@ -3,9 +3,10 @@ package cmd
 import (
 	"os"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
+
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/pkg/log/zap"
 	app "github.com/consensys/quorum-key-manager/src"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -40,6 +41,7 @@ func newRunCommand() *cobra.Command {
 	flags.HTTPFlags(runCmd.Flags())
 	flags.ManifestFlags(runCmd.Flags())
 	flags.LoggerFlags(runCmd.Flags())
+	flags.PGFlags(runCmd.Flags())
 
 	return runCmd
 }

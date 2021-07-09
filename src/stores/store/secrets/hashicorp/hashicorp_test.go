@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/mocks"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	testutils2 "github.com/consensys/quorum-key-manager/pkg/log/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/mocks"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 	"github.com/golang/mock/gomock"

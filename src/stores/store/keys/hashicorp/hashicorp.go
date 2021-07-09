@@ -5,10 +5,10 @@ import (
 	"encoding/base64"
 	"path"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )
@@ -49,7 +49,7 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
+	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("creating key")
 
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
@@ -68,7 +68,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 }
 
 func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
+	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("importing key")
 
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{

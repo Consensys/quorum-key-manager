@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/golang/mock/gomock"
 

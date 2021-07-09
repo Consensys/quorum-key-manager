@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/consensys/quorum-key-manager/src/infra/aws"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )
@@ -33,7 +34,7 @@ func (s *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id, "curve", alg.EllipticCurve, "signing_algorithm", alg.Type)
+	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("creating key")
 
 	keyType, err := toKeyType(alg)
