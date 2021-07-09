@@ -9,8 +9,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
@@ -332,7 +330,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewLocalKeys(ctx, spec, postgres.NewKeys(logger, m.db), logger)
+		store, err := local.NewLocalKeys(ctx, spec, m.db.Keys(), logger)
 		if err != nil {
 			return err
 		}

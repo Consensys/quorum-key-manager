@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
@@ -51,9 +52,9 @@ func (d *Keys) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
 func (d *Keys) GetAll(_ context.Context) ([]*entities.Key, error) {
 	var keys []*entities.Key
 
-	err := d.db.Select(keys)
+	err := d.db.Select(&keys)
 	if err != nil {
-		d.logger.WithError(err).Error("failed to get key")
+		d.logger.WithError(err).Error("failed to list keys")
 		return nil, err
 	}
 
@@ -63,7 +64,7 @@ func (d *Keys) GetAll(_ context.Context) ([]*entities.Key, error) {
 func (d *Keys) GetAllDeleted(_ context.Context) ([]*entities.Key, error) {
 	var keys []*entities.Key
 
-	err := d.db.SelectDeleted(keys)
+	err := d.db.SelectDeleted(&keys)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to get key")
 		return nil, err
@@ -104,7 +105,7 @@ func (d *Keys) Remove(_ context.Context, id string) error {
 }
 
 func (d *Keys) Restore(ctx context.Context, key *entities.Key) error {
-	key.Metadata.DeletedAt = nil
+	key.Metadata.DeletedAt = time.Time{}
 	return d.Update(ctx, key)
 }
 

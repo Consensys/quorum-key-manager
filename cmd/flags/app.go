@@ -11,6 +11,6 @@ func NewAppConfig(vipr *viper.Viper) *app.Config {
 		HTTP:      newHTTPConfig(vipr),
 		Manifests: newManifestsConfig(vipr),
 		Auth:      newAuthConfig(vipr),
-		Postgres:  newPostgresConfig(vipr),
+		Postgres:  NewPostgresConfig(vipr),
 	}
 }

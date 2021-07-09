@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"github.com/go-pg/migrations/v8"
+	"github.com/go-pg/pg/v10"
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
@@ -20,6 +23,7 @@ func NewCommand() *cobra.Command {
 	}
 
 	rootCmd.AddCommand(newRunCommand())
+	rootCmd.AddCommand(newMigrateCmd())
 
 	return rootCmd
 }
@@ -88,4 +92,81 @@ func run(cmd *cobra.Command, _ []string) error {
 
 func syncZapLogger(logger *zap.Logger) {
 	_ = logger.Sync()
+}
+
+// newMigrateCmd create migrate command
+func newMigrateCmd() *cobra.Command {
+	migrateCmd := &cobra.Command{
+		Use:   "migrate",
+		Short: "Migrate database",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrate()
+		},
+	}
+
+	// Register Init command
+	initCmd := &cobra.Command{
+		Use:   "init",
+		Short: "Initialize database",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrate("init")
+		},
+	}
+	migrateCmd.AddCommand(initCmd)
+
+	// Register Up command
+	upCmd := &cobra.Command{
+		Use:   "up [target]",
+		Short: "Upgrade database",
+		Long:  "Runs all available migrations or up to [target] if argument is provided",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrate(append([]string{"up"}, args...)...)
+		},
+	}
+	migrateCmd.AddCommand(upCmd)
+
+	// Register Down command
+	downCmd := &cobra.Command{
+		Use:   "down",
+		Short: "Reverts last migration",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrate("down")
+		},
+	}
+	migrateCmd.AddCommand(downCmd)
+
+	// Register Reset command
+	resetCmd := &cobra.Command{
+		Use:   "reset",
+		Short: "Reverts all migrations",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrate("reset")
+		},
+	}
+	migrateCmd.AddCommand(resetCmd)
+
+	return migrateCmd
+}
+
+func migrate(args ...string) error {
+	// Set database connection
+	opts, err := flags.NewPostgresConfig(viper.GetViper()).ToPGOptions()
+	if err != nil {
+		return err
+	}
+	db := pg.Connect(opts)
+
+	oldVersion, newVersion, err := migrations.Run(db, args...)
+	if err != nil {
+		log.WithError(err).Errorf("Migration failed")
+		return err
+	}
+
+	err = db.Close()
+	if err != nil {
+		log.WithError(err).Warn("could not close Postgres connection")
+	}
+
+	log.WithField("version", newVersion).WithField("previous_version", oldVersion).Info("All migrations completed")
+	return nil
 }

@@ -27,16 +27,41 @@ x-container-common: &container-common
     - quorum
     - besu
     - hashicorp
+    - qkm
+
+x-qkm-common: &qkm-common
+  DB_HOST: postgres
 
 services:
+  qkm-migration-init:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+    restart: "no"
+    command: migrate init
+
+  qkm-migration:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+    restart: "no"
+    depends_on:
+      - qkm-migration-init
+    command: migrate up
+
   key-manager:
     <<: *container-common
     environment:
       <<: *default-variables
+      <<: *qkm-common
     ports:
       - 8080:8080
       - 8081:8081
     restart: "no"
+    depends_on:
+      - qkm-migration
     command: run
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
@@ -53,6 +78,9 @@ networks:
   hashicorp:
     external:
       name: hashicorp
+  qkm:
+    external:
+      name: deps_qkm
 
 volumes:
   hashicorp-token:
