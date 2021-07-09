@@ -1,5 +1,6 @@
 GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" -not -path "./tests/*" | egrep -v "^\./\.go" | grep -v _test.go)
 DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
+DEPS_POSTGRES = postgres
 PACKAGES ?= $(shell go list ./... | egrep -v "tests|e2e|mocks|mock" )
 KEY_MANAGER_SERVICES = key-manager
 
@@ -27,6 +28,7 @@ hashicorp-down:
 
 networks:
 	@docker network create --driver=bridge hashicorp || true
+	@docker network create --driver=bridge postgres || true
 	@docker network create --driver=bridge --subnet=172.16.237.0/24 besu || true
 	@docker network create --driver=bridge --subnet=172.16.238.0/24 quorum || true
 
@@ -34,9 +36,15 @@ down-networks:
 	@docker network rm quorum || true
 	@docker network rm hashicorp || true
 
-deps: networks hashicorp
+postgres:
+	@docker-compose -f deps/postgres/docker-compose.yml up --build -d $(DEPS_POSTGRES)
 
-down-deps: hashicorp-down
+postgres-down:
+	@docker-compose -f deps/postgres/docker-compose.yml down --volumes --timeout 0
+
+deps: networks hashicorp postgres
+
+down-deps: postgres-down hashicorp-down down-networks
 
 run-acceptance:
 	@go test -v -tags acceptance -count=1 ./tests/acceptance
