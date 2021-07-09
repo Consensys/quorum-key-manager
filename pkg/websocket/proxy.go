@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/http/header"
 	"github.com/consensys/quorum-key-manager/pkg/http/proxy"

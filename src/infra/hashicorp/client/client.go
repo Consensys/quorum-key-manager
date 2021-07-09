@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	hashicorpinfra "github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp"
+	hashicorp2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	hashicorp "github.com/hashicorp/vault/api"
 )
 
@@ -10,7 +10,7 @@ type HashicorpVaultClient struct {
 	client *hashicorp.Client
 }
 
-var _ hashicorpinfra.VaultClient = &HashicorpVaultClient{}
+var _ hashicorp2.VaultClient = &HashicorpVaultClient{}
 
 func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 	client, err := hashicorp.NewClient(cfg.ToHashicorpConfig())

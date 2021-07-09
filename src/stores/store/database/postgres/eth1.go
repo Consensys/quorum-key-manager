@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 

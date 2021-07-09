@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
 	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
-
-	"github.com/consensys/quorum-key-manager/pkg/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"

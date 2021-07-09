@@ -30,7 +30,7 @@ type Config struct {
 	SSLMode           string
 }
 
-func (cfg *Config) PGOptions() (*pg.Options, error) {
+func (cfg *Config) ToPGOptions() (*pg.Options, error) {
 	opt := &pg.Options{
 		Addr:            fmt.Sprintf("%v:%v", cfg.Host, cfg.Port),
 		User:            cfg.User,

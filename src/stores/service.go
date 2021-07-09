@@ -2,7 +2,7 @@ package stores
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	storesapi "github.com/consensys/quorum-key-manager/src/stores/api"
 	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"

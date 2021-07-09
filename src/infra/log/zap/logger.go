@@ -1,7 +1,7 @@
 package zap
 
 import (
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 )

@@ -8,6 +8,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/gnark-crypto/crypto/hash"
 	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
@@ -15,7 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )

@@ -3,7 +3,7 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/postgres/mocks"
+	mocks2 "github.com/consensys/quorum-key-manager/src/infra/postgres/mocks"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
 	"github.com/golang/mock/gomock"
@@ -89,7 +89,7 @@ func (s *eth1TestSuite) TestInit() {
 	}
 
 	keyStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
-	db := postgres.New(logger, mocks.NewMockClient(ctrl))
+	db := postgres.New(logger, mocks2.NewMockClient(ctrl))
 
 	key1, err := keyStore.Create(ctx, "init-key-1", algo, attr)
 	require.NoError(s.T(), err)

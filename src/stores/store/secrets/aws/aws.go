@@ -3,10 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	aws2 "github.com/consensys/quorum-key-manager/src/infra/aws"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -15,11 +15,11 @@ const (
 )
 
 type SecretStore struct {
-	client aws.SecretsManagerClient
+	client aws2.SecretsManagerClient
 	logger log.Logger
 }
 
-func New(client aws.SecretsManagerClient, logger log.Logger) *SecretStore {
+func New(client aws2.SecretsManagerClient, logger log.Logger) *SecretStore {
 	return &SecretStore{
 		client: client,
 		logger: logger,

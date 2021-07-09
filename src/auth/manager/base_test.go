@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -63,7 +64,7 @@ func TestBaseManager(t *testing.T) {
 	dir := t.TempDir()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	logger := testutils.NewMockLogger(ctrl)
+	logger := testutils2.NewMockLogger(ctrl)
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
 	require.NoError(t, err, "WriteFile manifest1 must not error")
 

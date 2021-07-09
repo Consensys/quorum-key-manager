@@ -4,13 +4,13 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/pkg/http/middleware"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
-	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/auth"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/manifests"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/consensys/quorum-key-manager/src/stores"
-	postgresclient "github.com/consensys/quorum-key-manager/src/stores/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
 	"github.com/justinas/alice"
 )
@@ -19,7 +19,7 @@ type Config struct {
 	HTTP      *server.Config
 	Logger    *log.Config
 	Manifests *manifestsmanager.Config
-	Postgres  *postgresclient.Config
+	Postgres  *client.Config
 	Auth      *auth.Config
 }
 
@@ -27,8 +27,8 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	// Create app
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
-	// No need to differentiate between DBs as we always use Postgres
-	postgresClient, err := postgresclient.NewClient(cfg.Postgres)
+	// Create Postgres DB
+	postgresClient, err := client.NewClient(cfg.Postgres)
 	if err != nil {
 		return nil, err
 	}
@@ -72,10 +72,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	mid := alice.New(
-		middleware.AccessLog(logger.WithComponent("accesslog")),
-		authmid,
-	)
+	mid := alice.New(middleware.AccessLog(logger.WithComponent("accesslog")), authmid)
 
 	err = a.SetMiddleware(mid.Then)
 	if err != nil {

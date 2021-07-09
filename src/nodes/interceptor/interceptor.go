@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	storemanager "github.com/consensys/quorum-key-manager/src/stores/manager"
 )

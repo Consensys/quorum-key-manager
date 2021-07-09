@@ -3,7 +3,7 @@ package jsonrpc
 import (
 	"fmt"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
 //go:generate mockgen -source=handler.go -destination=mock/handler.go -package=mock

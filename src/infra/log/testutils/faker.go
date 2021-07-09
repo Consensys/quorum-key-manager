@@ -1,12 +1,12 @@
 package testutils
 
 import (
-	"github.com/consensys/quorum-key-manager/pkg/log/mock"
+	mock2 "github.com/consensys/quorum-key-manager/src/infra/log/mock"
 	"github.com/golang/mock/gomock"
 )
 
-func NewMockLogger(ctrl *gomock.Controller) *mock.MockLogger {
-	mockLogger := mock.NewMockLogger(ctrl)
+func NewMockLogger(ctrl *gomock.Controller) *mock2.MockLogger {
+	mockLogger := mock2.NewMockLogger(ctrl)
 
 	mockLogger.EXPECT().Debug(gomock.Any(), gomock.Any()).Return(mockLogger).AnyTimes()
 	mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Return(mockLogger).AnyTimes()

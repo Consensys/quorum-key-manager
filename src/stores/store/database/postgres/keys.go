@@ -3,8 +3,9 @@ package postgres
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/postgres"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+	postgres2 "github.com/consensys/quorum-key-manager/src/infra/postgres"
+
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 
@@ -13,12 +14,12 @@ import (
 
 type Keys struct {
 	logger log.Logger
-	db     postgres.Client
+	db     postgres2.Client
 }
 
 var _ database.Keys = &Keys{}
 
-func NewKeys(logger log.Logger, db postgres.Client) *Keys {
+func NewKeys(logger log.Logger, db postgres2.Client) *Keys {
 	return &Keys{
 		logger: logger,
 		db:     db,

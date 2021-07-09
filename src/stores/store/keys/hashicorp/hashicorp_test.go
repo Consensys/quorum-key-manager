@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	testutils2 "github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	mocks2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/mocks"
+	testutils3 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
-	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/mocks"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
@@ -27,7 +27,7 @@ const (
 
 type hashicorpKeyStoreTestSuite struct {
 	suite.Suite
-	mockVault  *mocks.MockVaultClient
+	mockVault  *mocks2.MockVaultClient
 	mountPoint string
 	keyStore   keys.Store
 }
@@ -42,9 +42,9 @@ func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mountPoint = "hashicorp-plugin"
-	s.mockVault = mocks.NewMockVaultClient(ctrl)
+	s.mockVault = mocks2.NewMockVaultClient(ctrl)
 
-	s.keyStore = New(s.mockVault, s.mountPoint, testutils2.NewMockLogger(ctrl))
+	s.keyStore = New(s.mockVault, s.mountPoint, testutils3.NewMockLogger(ctrl))
 }
 
 func (s *hashicorpKeyStoreTestSuite) TestCreate() {

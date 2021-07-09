@@ -3,10 +3,15 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/pkg/log/zap"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/aws"
-	postgresclient "github.com/consensys/quorum-key-manager/src/stores/infra/postgres/client"
+	"github.com/consensys/quorum-key-manager/src/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
+	aws2 "github.com/consensys/quorum-key-manager/src/infra/aws"
+	client3 "github.com/consensys/quorum-key-manager/src/infra/aws/client"
+	hashicorp3 "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
+	client2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+	zap2 "github.com/consensys/quorum-key-manager/src/infra/log/zap"
+	client4 "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"io/ioutil"
 	"os"
 	"time"
@@ -17,11 +22,6 @@ import (
 	keymanager "github.com/consensys/quorum-key-manager/src"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
-	akv2 "github.com/consensys/quorum-key-manager/src/stores/infra/akv"
-	akvclient "github.com/consensys/quorum-key-manager/src/stores/infra/akv/client"
-	awsclient "github.com/consensys/quorum-key-manager/src/stores/infra/aws/client"
-	hashicorp2 "github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp"
-	hashicorpclient "github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/types"
 	"github.com/consensys/quorum-key-manager/tests"
@@ -47,10 +47,10 @@ const (
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
-	hashicorpClient   hashicorp2.VaultClient
-	awsSecretsClient  aws.SecretsManagerClient
-	awsKmsClient      aws.KmsClient
-	akvClient         akv2.Client
+	hashicorpClient   hashicorp3.VaultClient
+	awsSecretsClient  aws2.SecretsManagerClient
+	awsKmsClient      aws2.KmsClient
+	akvClient         akv.Client
 	dockerClient      *docker.Client
 	keyManager        *app.App
 	baseURL           string
@@ -86,7 +86,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger, err := zap.NewLogger(log.NewConfig(log.ErrorLevel, log.JSONFormat))
+	logger, err := zap2.NewLogger(log.NewConfig(log.ErrorLevel, log.JSONFormat))
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	keyManager, err := keymanager.New(&keymanager.Config{
 		HTTP:      httpConfig,
 		Manifests: &manifestsmanager.Config{Path: tmpYml},
-		Postgres:  &postgresclient.Config{},
+		Postgres:  &client4.Config{},
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
@@ -168,15 +168,15 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	// Hashicorp client for direct integration tests
-	hashicorpCfg := hashicorpclient.NewConfig(hashicorpAddr, "")
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpCfg)
+	hashicorpCfg := client2.NewConfig(hashicorpAddr, "")
+	hashicorpClient, err := client2.NewClient(hashicorpCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
 		return nil, err
 	}
 	hashicorpClient.SetToken(hashicorpContainer.RootToken)
 
-	akvClient, err := akvclient.NewClient(akvclient.NewConfig(
+	akvClient, err := client.NewClient(client.NewConfig(
 		testCfg.AkvClient.VaultName,
 		testCfg.AkvClient.TenantID,
 		testCfg.AkvClient.ClientID,
@@ -187,13 +187,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, false)
-	awsSecretsClient, err := awsclient.NewSecretsClient(awsConfig)
+	awsConfig := client3.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, false)
+	awsSecretsClient, err := client3.NewSecretsClient(awsConfig)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize AWS Secret client")
 		return nil, err
 	}
-	awsKeysClient, err := awsclient.NewKmsClient(awsConfig)
+	awsKeysClient, err := client3.NewKmsClient(awsConfig)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize AWS KMS client")
 		return nil, err

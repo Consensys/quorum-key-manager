@@ -3,10 +3,11 @@ package hashicorp
 import (
 	"context"
 
+	client2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
+	token2 "github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/client"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp/token"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 )
 
@@ -20,8 +21,8 @@ type SecretSpecs struct {
 }
 
 func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*hashicorp.Store, error) {
-	cfg := client.NewConfig(specs.Address, specs.Namespace)
-	cli, err := client.NewClient(cfg)
+	cfg := client2.NewConfig(specs.Address, specs.Namespace)
+	cli, err := client2.NewClient(cfg)
 	if err != nil {
 		errMessage := "failed to instantiate Hashicorp client (secrets)"
 		logger.WithError(err).Error(errMessage, "specs", specs)
@@ -31,7 +32,7 @@ func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*hashicorp.Store, er
 	if specs.Token != "" {
 		cli.SetToken(specs.Token)
 	} else if specs.TokenPath != "" {
-		tokenWatcher, err := token.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
+		tokenWatcher, err := token2.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
 		if err != nil {
 			return nil, err
 		}

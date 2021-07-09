@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/golang/mock/gomock"
 
@@ -59,7 +59,7 @@ func TestLocalManager(t *testing.T) {
 	err = ioutil.WriteFile(fmt.Sprintf("%v/manifest2.yml", dir), manifest2, 0644)
 	require.NoError(t, err, "WriteFile manifest2 must not error")
 
-	mngr, err := NewLocalManager(&Config{Path: dir}, testutils.NewMockLogger(ctrl))
+	mngr, err := NewLocalManager(&Config{Path: dir}, testutils2.NewMockLogger(ctrl))
 	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
 
 	chanAB := make(chan []Message)

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
 	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/manager/mock"
@@ -18,7 +18,7 @@ import (
 
 func newInterceptor(ctrl *gomock.Controller) (i *Interceptor, stores *mockstoremanager.MockManager) {
 	stores = mockstoremanager.NewMockManager(ctrl)
-	return New(stores, testutils.NewMockLogger(ctrl)), stores
+	return New(stores, testutils2.NewMockLogger(ctrl)), stores
 }
 
 type testHandlerCase struct {

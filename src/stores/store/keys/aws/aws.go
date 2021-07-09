@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	aws2 "github.com/consensys/quorum-key-manager/src/infra/aws"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/pkg/log"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )
@@ -17,11 +18,11 @@ const (
 )
 
 type KeyStore struct {
-	client aws.KmsClient
+	client aws2.KmsClient
 	logger log.Logger
 }
 
-func New(client aws.KmsClient, logger log.Logger) *KeyStore {
+func New(client aws2.KmsClient, logger log.Logger) *KeyStore {
 	return &KeyStore{
 		client: client,
 		logger: logger,

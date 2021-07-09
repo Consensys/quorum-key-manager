@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	testutils2 "github.com/consensys/quorum-key-manager/pkg/log/testutils"
+	mocks2 "github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
+	testutils3 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/aws/mocks"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
@@ -20,7 +20,7 @@ import (
 
 type awsSecretStoreTestSuite struct {
 	suite.Suite
-	mockVault   *mocks.MockSecretsManagerClient
+	mockVault   *mocks2.MockSecretsManagerClient
 	secretStore secrets.Store
 }
 
@@ -33,9 +33,9 @@ func (s *awsSecretStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockVault = mocks.NewMockSecretsManagerClient(ctrl)
+	s.mockVault = mocks2.NewMockSecretsManagerClient(ctrl)
 
-	s.secretStore = New(s.mockVault, testutils2.NewMockLogger(ctrl))
+	s.secretStore = New(s.mockVault, testutils3.NewMockLogger(ctrl))
 }
 
 func (s *awsSecretStoreTestSuite) TestSet() {

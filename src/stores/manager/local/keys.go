@@ -3,11 +3,11 @@ package local
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 
 	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
-
-	"github.com/consensys/quorum-key-manager/pkg/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
