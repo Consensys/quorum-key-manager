@@ -20,7 +20,7 @@ type Manager interface {
 	GetSecretStore(ctx context.Context, name string, userInfo *types.UserInfo) (secrets.Store, error)
 
 	// GetKeyStore by name
-	GetKeyStore(ctx context.Context, name string) (keys.Store, error)
+	GetKeyStore(ctx context.Context, name string, userInfo *types.UserInfo) (keys.Store, error)
 
 	// GetEth1Store by name
 	GetEth1Store(ctx context.Context, name string) (eth1.Store, error)

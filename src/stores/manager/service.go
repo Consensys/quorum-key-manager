@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/policy"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/adapters"
+	"github.com/consensys/quorum-key-manager/src/stores/store/connectors"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
@@ -132,7 +132,7 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, name string, userInfo 
 			if err != nil {
 				return nil, err
 			}
-			return adapters.NewSecretsAdapter(store, resolvr, storeBundle.logger), nil
+			return connectors.NewSecretConnector(store, resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -141,12 +141,17 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, name string, userInfo 
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetKeyStore(_ context.Context, name string) (keys.Store, error) {
+func (m *BaseManager) GetKeyStore(ctx context.Context, name string, userInfo *authtypes.UserInfo) (keys.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[name]; ok {
 		if store, ok := storeBundle.store.(keys.Store); ok {
-			return store, nil
+			policies := m.policyManager.UserPolicies(ctx, userInfo)
+			resolvr, err := policy.NewResolver(policies)
+			if err != nil {
+				return nil, err
+			}
+			return connectors.NewKeyConnector(store, resolvr, storeBundle.logger), nil
 		}
 	}
 

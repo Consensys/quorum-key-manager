@@ -7,6 +7,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
@@ -64,7 +65,8 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -112,7 +114,8 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -160,7 +163,8 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -190,7 +194,8 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -233,7 +238,8 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -265,7 +271,8 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -293,7 +300,8 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -328,7 +336,8 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -357,7 +366,8 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -394,7 +404,8 @@ func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
