@@ -160,16 +160,21 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, name string, userInfo *au
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetEth1Store(ctx context.Context, name string) (eth1store.Store, error) {
+func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *authtypes.UserInfo) (eth1store.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
-	return m.getEth1Store(ctx, name)
+	return m.getEth1Store(ctx, name, userInfo)
 }
 
-func (m *BaseManager) getEth1Store(_ context.Context, name string) (eth1store.Store, error) {
+func (m *BaseManager) getEth1Store(ctx context.Context, name string, userInfo *authtypes.UserInfo) (eth1store.Store, error) {
 	if storeBundle, ok := m.eth1Accounts[name]; ok {
 		if store, ok := storeBundle.store.(eth1store.Store); ok {
-			return store, nil
+			policies := m.policyManager.UserPolicies(ctx, userInfo)
+			resolvr, err := policy.NewResolver(policies)
+			if err != nil {
+				return nil, err
+			}
+			return connectors.NewEth1Connector(store, resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -178,7 +183,7 @@ func (m *BaseManager) getEth1Store(_ context.Context, name string) (eth1store.St
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address) (eth1store.Store, error) {
+func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtypes.UserInfo) (eth1store.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -187,7 +192,7 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
-			acc, err := m.getEth1Store(ctx, storeName)
+			acc, err := m.getEth1Store(ctx, storeName, userInfo)
 			if err == nil {
 				// Check if account exists in store and returns it
 				_, err := acc.Get(ctx, addr.Hex())
@@ -203,10 +208,11 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 	return nil, errors.InvalidParameterError(errMessage)
 }
 
-func (m *BaseManager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {
+func (m *BaseManager) List(ctx context.Context, kind manifest.Kind, _ *authtypes.UserInfo) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
+	//TODO Filter available store using userInfo groups
 	return m.list(ctx, kind), nil
 }
 
@@ -227,13 +233,13 @@ func (m *BaseManager) list(_ context.Context, kind manifest.Kind) []string {
 	return storeNames
 }
 
-func (m *BaseManager) ListAllAccounts(ctx context.Context) ([]*entities.ETH1Account, error) {
+func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.UserInfo) ([]*entities.ETH1Account, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
 	accs := []*entities.ETH1Account{}
 	for _, storeName := range m.list(ctx, "") {
-		store, err := m.getEth1Store(ctx, storeName)
+		store, err := m.getEth1Store(ctx, storeName, userInfo)
 		if err == nil {
 			storeAccs, err := store.GetAll(ctx)
 			if err == nil {

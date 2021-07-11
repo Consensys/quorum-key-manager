@@ -15,6 +15,8 @@ type KeyConnector struct {
 	resolver *policy.Resolver
 }
 
+var _ keys.Store = KeyConnector{}
+
 func NewKeyConnector(store keys.Store, resolvr *policy.Resolver, logger log.Logger) *KeyConnector {
 	return &KeyConnector{
 		store:    store,
@@ -212,7 +214,5 @@ func (c KeyConnector) Decrypt(ctx context.Context, id string, data []byte) ([]by
 	logger.Debug("data decrypted successfully")
 	return result, nil
 }
-
-var _ keys.Store = KeyConnector{}
 
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
@@ -36,8 +37,9 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 		msg.Data = &[]byte{}
 	}
 
+	userCtx := authenticator.UserContextFromContext(ctx)
 	// Get store for from
-	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From)
+	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From, userCtx.UserInfo)
 	if err != nil {
 		return nil, err
 	}
