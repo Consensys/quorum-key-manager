@@ -1,4 +1,4 @@
-package manager
+package policy
 
 import (
 	"context"
@@ -71,6 +71,30 @@ func (mngr *BaseManager) Error() error {
 
 func (mngr *BaseManager) Close() error {
 	return nil
+}
+
+func (mngr *BaseManager) UserPolicies(ctx context.Context, info *types.UserInfo) []types.Policy {
+	// Retrieve policies associated to user info
+	var policies []types.Policy
+	for _, groupName := range info.Groups {
+		group, err := mngr.Group(ctx, groupName)
+		if err != nil {
+			mngr.logger.WithError(err).With("group", groupName).Debug("could not load group")
+			continue
+		}
+
+		for _, policyName := range group.Policies {
+			policy, err := mngr.Policy(ctx, policyName)
+			if err != nil {
+				mngr.logger.WithError(err).With("policy", groupName).Debug("could not load policy")
+				continue
+			}
+			policies = append(policies, *policy)
+		}
+	}
+
+	// Create resolver
+	return policies
 }
 
 func (mngr *BaseManager) policy(name string) (*types.Policy, error) {

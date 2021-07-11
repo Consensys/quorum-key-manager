@@ -6,6 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
@@ -54,7 +55,8 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -88,8 +90,9 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 
 	id := mux.Vars(request)["id"]
 	version := request.URL.Query().Get("version")
-
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx))
+	
+	userCtx := authenticator.UserContextFromContext(ctx)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -118,7 +121,8 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx))
+	userCtx := authenticator.UserContextFromContext(ctx)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

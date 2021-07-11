@@ -3,6 +3,7 @@ package storemanager
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
@@ -16,7 +17,7 @@ import (
 // Manager allows to manage multiple stores
 type Manager interface {
 	// GetSecretStore by name
-	GetSecretStore(ctx context.Context, name string) (secrets.Store, error)
+	GetSecretStore(ctx context.Context, name string, userInfo *types.UserInfo) (secrets.Store, error)
 
 	// GetKeyStore by name
 	GetKeyStore(ctx context.Context, name string) (keys.Store, error)

@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/auth/policy"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/stores/store/adapters"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
@@ -27,7 +30,8 @@ import (
 const ID = "StoreManager"
 
 type BaseManager struct {
-	manifests manifestsmanager.Manager
+	manifests     manifestsmanager.Manager
+	policyManager policy.Manager
 
 	mux          sync.RWMutex
 	secrets      map[string]*storeBundle
@@ -45,19 +49,21 @@ type BaseManager struct {
 
 type storeBundle struct {
 	manifest *manifest.Manifest
+	logger   log.Logger
 	store    interface{}
 }
 
-func New(manifests manifestsmanager.Manager, logger log.Logger, db database.Database) *BaseManager {
+func New(manifests manifestsmanager.Manager, policyManager policy.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests:    manifests,
-		mux:          sync.RWMutex{},
-		secrets:      make(map[string]*storeBundle),
-		keys:         make(map[string]*storeBundle),
-		eth1Accounts: make(map[string]*storeBundle),
-		mnfsts:       make(chan []manifestsmanager.Message),
-		logger:       logger,
-		db:           db,
+		manifests:     manifests,
+		policyManager: policyManager,
+		mux:           sync.RWMutex{},
+		secrets:       make(map[string]*storeBundle),
+		keys:          make(map[string]*storeBundle),
+		eth1Accounts:  make(map[string]*storeBundle),
+		mnfsts:        make(chan []manifestsmanager.Message),
+		logger:        logger,
+		db:            db,
 	}
 }
 
@@ -115,13 +121,18 @@ func (m *BaseManager) loadAll(ctx context.Context) {
 	}
 }
 
-func (m *BaseManager) GetSecretStore(_ context.Context, name string) (secrets.Store, error) {
+func (m *BaseManager) GetSecretStore(ctx context.Context, name string, userInfo *authtypes.UserInfo) (secrets.Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
 	if storeBundle, ok := m.secrets[name]; ok {
 		if store, ok := storeBundle.store.(secrets.Store); ok {
-			return store, nil
+			policies := m.policyManager.UserPolicies(ctx, userInfo)
+			resolvr, err := policy.NewResolver(policies)
+			if err != nil {
+				return nil, err
+			}
+			return adapters.NewSecretsAdapter(store, resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -250,7 +261,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case types.HashicorpKeys:
 		spec := &hashicorp.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -264,7 +275,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case types.AKVSecrets:
 		spec := &akv.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -278,7 +289,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case types.AKVKeys:
 		spec := &akv.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -292,7 +303,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case types.AWSSecrets:
 		spec := &aws.SecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -306,7 +317,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case types.AWSKeys:
 		spec := &aws.KeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -320,7 +331,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case types.Eth1Account:
 		spec := &local.Eth1Specs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -334,7 +345,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.eth1Accounts[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.eth1Accounts[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	default:
 		errMessage := "invalid manifest kind"
 		logger.Error(errMessage, "kind", mnf.Kind)

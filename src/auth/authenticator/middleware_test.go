@@ -9,7 +9,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	mockauth "github.com/consensys/quorum-key-manager/src/auth/authenticator/mock"
-	mockmanager "github.com/consensys/quorum-key-manager/src/auth/manager/mock"
+	mockmanager "github.com/consensys/quorum-key-manager/src/auth/policy/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +32,7 @@ func TestMiddleware(t *testing.T) {
 	auth1 := mockauth.NewMockAuthenticator(ctrl)
 	policyMngr := mockmanager.NewMockManager(ctrl)
 
-	mid := NewMiddleware(policyMngr, logger, auth1)
+	mid := NewMiddleware(logger, auth1)
 
 	t.Run("authentication rejected", func(t *testing.T) {
 		h := mid.Then(&testHandler{t})

@@ -1,23 +1,27 @@
-package secrets
+package adapters
 
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/auth/policy"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 )
 
 type Adapter struct {
-	store  Store
-	logger log.Logger
+	store    secrets.Store
+	logger   log.Logger
+	resolver *policy.Resolver
 }
 
-var _ Store = Adapter{}
+var _ secrets.Store = Adapter{}
 
-func NewAdapter(store Store, logger log.Logger) *Adapter {
+func NewSecretsAdapter(store secrets.Store, resolvr *policy.Resolver, logger log.Logger) *Adapter {
 	return &Adapter{
-		store:  store,
-		logger: logger,
+		store:    store,
+		logger:   logger,
+		resolver: resolvr,
 	}
 }
 

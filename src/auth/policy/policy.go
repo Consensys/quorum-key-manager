@@ -1,4 +1,4 @@
-package manager
+package policy
 
 import (
 	"context"
@@ -21,4 +21,7 @@ type Manager interface {
 
 	// Groups returns groups
 	Groups(context.Context) ([]string, error)
+	
+	// Extract User Policies from UserInfo
+	UserPolicies(ctx context.Context, info *types.UserInfo) []types.Policy
 }
