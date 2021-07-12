@@ -116,7 +116,10 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 
 	expectedData := map[string]interface{}{
 		valueLabel: value,
-		tagsLabel:  attributes.Tags,
+		tagsLabel: map[string]interface{}{
+			"tag1": attributes.Tags["tag1"],
+			"tag2": attributes.Tags["tag2"],
+		},
 	}
 	hashicorpSecretData := &hashicorp.Secret{
 		Data: map[string]interface{}{
