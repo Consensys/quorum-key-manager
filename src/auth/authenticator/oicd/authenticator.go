@@ -12,24 +12,30 @@ import (
 const AuthMode = "JWT"
 
 type Authenticator struct {
-	jwtChecker *JWTChecker
+	jwtCheckers []*JWTChecker
 }
 
 var _ authenticator.Authenticator = Authenticator{}
 
 func NewAuthenticator(cfg *Config) (*Authenticator, error) {
-	if cfg.Certificate == "" {
+	if len(cfg.Certificates) == 0 {
 		return nil, nil
 	}
 
-	cert, err := certificate.X509KeyPair([]byte(cfg.Certificate), nil)
-	if err != nil {
-		return nil, err
+	auth := &Authenticator{
+		jwtCheckers: []*JWTChecker{},
 	}
 
-	return &Authenticator{
-		jwtChecker: NewJWTChecker(cert.Leaf, cfg.Claims, false),
-	}, nil
+	for _, cert := range cfg.Certificates {
+		keyPair, err := certificate.X509KeyPair([]byte(cert), nil)
+		if err != nil {
+			return nil, err
+		}
+
+		auth.jwtCheckers = append(auth.jwtCheckers, NewJWTChecker(keyPair.Leaf, cfg.Claims, false))
+	}
+
+	return auth, nil
 }
 
 func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
@@ -39,16 +45,20 @@ func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) 
 		return nil, nil
 	}
 
-	claims, err := a.jwtChecker.Check(req.Context(), token)
-	if err != nil {
-		return nil, err
+	var err error
+	var claims *Claims
+	for _, jwtChecker := range a.jwtCheckers {
+		claims, err = jwtChecker.Check(req.Context(), token)
+		if err == nil {
+			return &types.UserInfo{
+				Username: claims.Username,
+				Groups:   claims.Groups,
+				AuthMode: AuthMode,
+			}, nil
+		}
 	}
-
-	return &types.UserInfo{
-		Username: claims.Username,
-		Groups:   claims.Groups,
-		AuthMode: AuthMode,
-	}, nil
+	
+	return nil, err
 }
 
 func extractToken(prefix, auth string) (string, bool) {

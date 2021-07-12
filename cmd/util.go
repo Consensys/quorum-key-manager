@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,7 +37,8 @@ func newUtilCommand() *cobra.Command {
 	}
 
 	flags.LoggerFlags(generateJWTCmd.Flags())
-	flags.AuthFlags(generateJWTCmd.Flags())
+	flags.AuthOICDClaimUsername(generateJWTCmd.Flags())
+	flags.AuthOICDClaimGroups(generateJWTCmd.Flags())
 	flags.AuthOICDCertKeyFile(generateJWTCmd.Flags())
 
 	generateJWTCmd.Flags().StringVar(&username, "username", "", "username added in claims")
@@ -79,7 +80,6 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 
 	oicdCfg := authCfg.OICD
 	generator, err := testutils.NewJWTGenerator(&certificate.KeyPair{
-		Cert: []byte(oicdCfg.Certificate),
 		Key:  keyFileContent,
 	}, oicdCfg.Claims)
 

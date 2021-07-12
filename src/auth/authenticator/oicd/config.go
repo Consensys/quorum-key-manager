@@ -1,8 +1,8 @@
 package oicd
 
 type Config struct {
-	Certificate string
-	Claims      *ClaimsConfig
+	Certificates   []string
+	Claims         *ClaimsConfig
 }
 
 type ClaimsConfig struct {
@@ -10,9 +10,9 @@ type ClaimsConfig struct {
 	Group    string
 }
 
-func NewConfig(ca, usernameClaim, groupClaims string) *Config {
+func NewConfig(usernameClaim, groupClaims string, certs ...string) *Config {
 	return &Config{
-		Certificate: ca,
+		Certificates:   certs,
 		Claims: &ClaimsConfig{
 			Username: usernameClaim,
 			Group:    groupClaims,
