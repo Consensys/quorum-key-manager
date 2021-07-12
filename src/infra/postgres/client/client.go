@@ -26,6 +26,10 @@ func NewClient(cfg *Config) (*PostgresClient, error) {
 	}, nil
 }
 
+func (c *PostgresClient) Config() *Config {
+	return c.cfg
+}
+
 func (c *PostgresClient) Insert(model ...interface{}) error {
 	_, err := c.db.Model(model...).Insert()
 	if err != nil {

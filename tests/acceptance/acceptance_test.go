@@ -9,9 +9,11 @@ import (
 	akvkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/akv"
 	awskey "github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 	akvsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/akv"
 	awssecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/aws"
 	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
+
 	"os"
 	"testing"
 
@@ -114,6 +116,15 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
 	testSuite.store = awskey.New(s.env.awsKmsClient, logger)
+	suite.Run(s.T(), testSuite)
+
+	// Local
+	logger = s.env.logger.WithComponent("Keys-Local")
+	testSuite = new(keysTestSuite)
+	testSuite.env = s.env
+	keysDA := postgres.NewKeys(logger, s.env.postgresClient)
+	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
+	testSuite.store = local.New(hashicorpSecretStore, keysDA, logger)
 	suite.Run(s.T(), testSuite)
 }
 

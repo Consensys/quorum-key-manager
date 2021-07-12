@@ -6,14 +6,19 @@ import (
 )
 
 func parseErrorResponse(err error) error {
+	if pg.ErrNoRows == err {
+		return errors.NotFoundError("resource not found")
+	}
+	if pg.ErrMultiRows == err {
+		return errors.StatusConflictError("multiple resources found, only expected one")
+	}
+
 	pgErr, ok := err.(pg.Error)
 	if !ok {
 		return errors.PostgresError(err.Error())
 	}
 
 	switch {
-	case pg.ErrNoRows == err:
-		return errors.NotFoundError(err.Error())
 	case pgErr.IntegrityViolation():
 		return errors.StatusConflictError(pgErr.Error())
 	default:

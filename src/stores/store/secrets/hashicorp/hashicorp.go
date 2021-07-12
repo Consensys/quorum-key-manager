@@ -94,10 +94,6 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 
 	data := hashicorpSecretData.Data[dataLabel].(map[string]interface{})
 	value := data[valueLabel].(string)
-	tags := make(map[string]string)
-	if data[tagsLabel] != nil {
-		tags = data[tagsLabel].(map[string]string)
-	}
 
 	// We need to do a second call to get the metadata
 	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
@@ -113,7 +109,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 	}
 
 	logger.Debug("secret retrieved successfully")
-	return formatHashicorpSecret(id, value, tags, metadata), nil
+	return formatHashicorpSecret(id, value, formatTags(data[tagsLabel].(map[string]interface{})), metadata), nil
 }
 
 func (s *Store) List(_ context.Context) ([]string, error) {
