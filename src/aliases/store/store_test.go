@@ -51,21 +51,27 @@ func startAndConnectDB(t *testing.T) (*pg.DB, closeFunc) {
 	return db, closeFn
 }
 
-func TestCreate(t *testing.T) {
-	db, closeFn := startAndConnectDB(t)
-	defer closeFn()
-	s := aliasstore.New(db)
-	ctx := context.TODO()
-	in := aliases.Alias{
+func fakeAlias() aliases.Alias {
+	return aliases.Alias{
 		RegistryID: "JPM",
 		ID:         "Goldman Sachs",
 		Kind:       aliases.AliasKindArray,
 		Value:      `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
 	}
+}
+func TestCreate(t *testing.T) {
+	t.Parallel()
+	db, closeFn := startAndConnectDB(t)
+	defer closeFn()
+	s := aliasstore.New(db)
+
+	in := fakeAlias()
+	ctx := context.Background()
 	db.ModelContext(ctx, &in).CreateTable(nil)
 
 	err := s.CreateAlias(ctx, in)
 	require.NoError(t, err)
+}
 
 	got, err := s.GetAlias(ctx, in.RegistryID, in.ID)
 	require.NoError(t, err)
