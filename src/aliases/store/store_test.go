@@ -9,25 +9,29 @@ import (
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 	"github.com/go-pg/pg/v10"
 	"github.com/ory/dockertest"
+	"github.com/stretchr/testify/require"
 )
 
-func TestCreate(t *testing.T) {
+type closeFunc func()
+
+func startAndConnectDB(t *testing.T) (*pg.DB, closeFunc) {
+	t.Helper()
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		t.Fatalf("can not connect to docker: %s", err)
 	}
 
 	pwd := "postgres"
-	ctr, err := pool.Run("postgres", "10", []string{fmt.Sprintf("POSTGRES_PASSWORD=%s", pwd)})
+	ctr, err := pool.Run("postgres", "13", []string{fmt.Sprintf("POSTGRES_PASSWORD=%s", pwd)})
 	if err != nil {
 		t.Fatalf("can not run container: %s", err)
 	}
-	defer func() {
+	closeFn := func() {
 		err := pool.Purge(ctr)
 		if err != nil {
 			t.Fatal("can not purge container:", err)
 		}
-	}()
+	}
 
 	var db *pg.DB
 	opt := pg.Options{
@@ -44,6 +48,12 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("can not connect")
 	}
+	return db, closeFn
+}
+
+func TestCreate(t *testing.T) {
+	db, closeFn := startAndConnectDB(t)
+	defer closeFn()
 	s := aliasstore.New(db)
 	ctx := context.TODO()
 	alias := aliases.Alias{
@@ -52,17 +62,12 @@ func TestCreate(t *testing.T) {
 	}
 	db.ModelContext(ctx, &alias).CreateTable(nil)
 
-	err = s.CreateAlias(ctx, alias.RegistryID, alias.ID)
-	if err != nil {
-		t.Fatal("can not create after connect:", err)
-	}
+	err := s.CreateAlias(ctx, alias.RegistryID, alias.ID)
+	require.NoError(t, err)
 
 	a, err := s.GetAlias(ctx, alias.RegistryID, alias.ID)
-	t.Log("alias:", a)
-	if err != nil {
-		t.Fatal("can not select after connect:", err)
-	}
-	if a.RegistryID != alias.RegistryID || a.ID != alias.ID {
-		t.Fatal("did not get same object", err)
-	}
+
+	require.NoError(t, err)
+	require.Equal(t, a.RegistryID, alias.RegistryID)
+	require.Equal(t, a.ID, alias.ID)
 }
