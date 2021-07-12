@@ -20,9 +20,8 @@ func New(db *pg.DB) *Store {
 	}
 }
 
-func (s *Store) CreateAlias(ctx context.Context, registry aliases.RegistryID, alias aliases.AliasID) error {
-	a := aliases.Alias{ID: alias, RegistryID: registry}
-	q := s.db.ModelContext(ctx, &a)
+func (s *Store) CreateAlias(ctx context.Context, alias aliases.Alias) error {
+	q := s.db.ModelContext(ctx, &alias)
 	_, err := q.Insert()
 	if err != nil {
 		return err
@@ -41,7 +40,7 @@ func (s *Store) GetAlias(ctx context.Context, registry aliases.RegistryID, alias
 	return &ret, nil
 }
 
-func (s *Store) UpdateAlias(ctx context.Context, registry aliases.RegistryID, alias aliases.AliasID) error {
+func (s *Store) UpdateAlias(ctx context.Context, alias aliases.Alias) error {
 	return errors.New("not implemented")
 }
 

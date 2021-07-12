@@ -56,18 +56,18 @@ func TestCreate(t *testing.T) {
 	defer closeFn()
 	s := aliasstore.New(db)
 	ctx := context.TODO()
-	alias := aliases.Alias{
+	in := aliases.Alias{
 		RegistryID: "JPM",
 		ID:         "Goldman Sachs",
+		Kind:       aliases.AliasKindArray,
+		Value:      `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
 	}
-	db.ModelContext(ctx, &alias).CreateTable(nil)
+	db.ModelContext(ctx, &in).CreateTable(nil)
 
-	err := s.CreateAlias(ctx, alias.RegistryID, alias.ID)
+	err := s.CreateAlias(ctx, in)
 	require.NoError(t, err)
 
-	a, err := s.GetAlias(ctx, alias.RegistryID, alias.ID)
-
+	got, err := s.GetAlias(ctx, in.RegistryID, in.ID)
 	require.NoError(t, err)
-	require.Equal(t, a.RegistryID, alias.RegistryID)
-	require.Equal(t, a.ID, alias.ID)
+	require.Equal(t, &in, got)
 }

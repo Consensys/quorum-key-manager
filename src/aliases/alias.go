@@ -14,12 +14,24 @@ type Alias struct {
 
 	ID         AliasID
 	RegistryID RegistryID
+	Kind       AliasKind
+	Value      AliasValue
 }
 
+type AliasValue string
+
+type AliasKind string
+
+const (
+	AliasKindUnknown = ""
+	AliasKindString  = "string"
+	AliasKindArray   = "array"
+)
+
 type Aliaser interface {
-	CreateAlias(ctx context.Context, registry RegistryID, alias AliasID) error
+	CreateAlias(ctx context.Context, alias Alias) error
 	GetAlias(ctx context.Context, registry RegistryID, alias AliasID) (*Alias, error)
-	UpdateAlias(ctx context.Context, registry RegistryID, alias AliasID) error
+	UpdateAlias(ctx context.Context, alias Alias) error
 	DeleteAlias(ctx context.Context, registry RegistryID, alias AliasID) error
 }
 
