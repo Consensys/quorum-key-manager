@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/policy"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/connectors"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
