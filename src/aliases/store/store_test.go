@@ -73,7 +73,28 @@ func TestCreate(t *testing.T) {
 	require.NoError(t, err)
 }
 
-	got, err := s.GetAlias(ctx, in.RegistryID, in.ID)
-	require.NoError(t, err)
-	require.Equal(t, &in, got)
+func TestGet(t *testing.T) {
+	t.Parallel()
+	db, closeFn := startAndConnectDB(t)
+	defer closeFn()
+	s := aliasstore.New(db)
+
+	in := fakeAlias()
+	ctx := context.Background()
+	db.ModelContext(ctx, &in).CreateTable(nil)
+	t.Run("non existing alias", func(t *testing.T) {
+		_, err := s.GetAlias(ctx, in.RegistryID, in.ID)
+		require.NotNil(t, err)
+	})
+
+	t.Run("just created alias", func(t *testing.T) {
+		err := s.CreateAlias(ctx, in)
+		require.NoError(t, err)
+
+		got, err := s.GetAlias(ctx, in.RegistryID, in.ID)
+		require.NoError(t, err)
+		require.Equal(t, &in, got)
+	})
+}
+
 }
