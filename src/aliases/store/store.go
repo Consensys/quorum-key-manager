@@ -41,7 +41,17 @@ func (s *Store) GetAlias(ctx context.Context, registry aliases.RegistryID, alias
 }
 
 func (s *Store) UpdateAlias(ctx context.Context, alias aliases.Alias) error {
-	return errors.New("not implemented")
+	q := s.db.ModelContext(ctx, &alias)
+	ret := aliases.Alias{}
+	res, err := q.WherePK().Update(&ret)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() != 1 {
+		//TODO the: create sentinel error?
+		return errors.New("update not effected")
+	}
+	return nil
 }
 
 func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, alias aliases.AliasID) error {
