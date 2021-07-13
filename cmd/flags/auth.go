@@ -1,12 +1,12 @@
 package flags
 
 import (
+	"context"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 
 	auth2 "github.com/consensys/quorum-key-manager/pkg/auth"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
@@ -87,7 +87,7 @@ Environment variable: %q`, authOICDClaimUsernameEnv)
 }
 
 func authOICDIssuerServer(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect issuer server domain (ie. https://quorum-key-manager.eu.auth0.com).
+	desc := fmt.Sprintf(`OpenID Connect issuer server domain (ie. https://quorum-key-manager.eu.auth0.com/.well-known/jwks.json).
 Environment variable: %q`, authOICDIssuerURLEnv)
 	f.String(authOICDIssuerURLFlag, authOICDIssuerURLDefault, desc)
 	_ = viper.BindPFlag(authOICDIssuerURLViperKey, f.Lookup(authOICDIssuerURLFlag))
@@ -109,21 +109,20 @@ Environment variable: %q`, authOICDCACertFileEnv)
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	var oicdCfg = &oicd.Config{}
-	
-	certs := []string{}
+	certs := []*x509.Certificate{}
 	
 	fileCert, err := fileCertificate(vipr)
 	if err != nil {
 		return nil, err
-	} else if fileCert != "" {
-		certs = append(certs, fileCert)		
+	} else if fileCert != nil {
+		certs = append(certs, fileCert)
 	}
 	
 	issuerCerts, err := issuerCertificates(vipr)
 	if err != nil {
 		return nil, err
 	} else if issuerCerts != nil {
-		certs = append(certs, issuerCerts...)		
+		certs = append(certs, issuerCerts...)
 	}
 
 	oicdCfg = oicd.NewConfig(vipr.GetString(authOICDClaimUsernameViperKey), 
@@ -132,50 +131,44 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	return &auth.Config{OICD: oicdCfg}, nil
 }
 
-func fileCertificate(vipr *viper.Viper) (string, error) {
+func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	caFile := vipr.GetString(authOICDCACertFileViperKey)
 	_, err := os.Stat(caFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return "", fmt.Errorf("failed to read CA file. %s", err.Error())
+			return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
 		}
-		return "", nil
+		return nil, nil
 	}
 	
 	caFileContent, err := ioutil.ReadFile(caFile)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	
-	return string(caFileContent), nil
+	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	cert, err := x509.ParseCertificate(bCert[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return cert, nil
 }
 
-func issuerCertificates(vipr *viper.Viper) ([]string, error) {
+func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	issuerServer := vipr.GetString(authOICDIssuerURLViperKey)
 	if issuerServer == "" {
 		return nil, nil
 	}
 	
-	issuerURL, err := url.Parse(issuerServer)
+	jwks, err := auth2.RetrieveKeySet(context.Background(), http.DefaultClient, issuerServer)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse url %s", issuerURL)
-	}
-	
-	var keyPairs []certificate.KeyPair
-	switch {
-	case strings.HasSuffix(issuerURL.Host, auth2.Auth0IssuerServerDomain):
-		keyPairs, err = auth2.JWKsCertificates(http.DefaultClient, fmt.Sprintf("%s://%s", issuerURL.Scheme, issuerURL.Host))
-	default:
-		return nil, fmt.Errorf("not support issuer server %s", issuerServer)
+		return nil, fmt.Errorf("failed to retrieve auth server jwks", issuerServer)
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	certs := []string{}
-	for _, kp := range keyPairs {
-		certs = append(certs, string(kp.Cert))
+	certs := []*x509.Certificate{}
+	for _, kw := range jwks.Keys {
+		certs = append(certs, kw.Certificates...)
 	}
 	
 	return certs, nil

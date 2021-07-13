@@ -7,19 +7,18 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/golang-jwt/jwt"
 )
 
 type JWTChecker struct {
-	cert      *x509.Certificate
+	certs     []*x509.Certificate
 	parser    *jwt.Parser
 	claimsCfg *ClaimsConfig
 }
 
-func NewJWTChecker(cert *x509.Certificate, claimsCfg *ClaimsConfig, skipClaimsValidation bool) *JWTChecker {
+func NewJWTChecker(certs []*x509.Certificate, claimsCfg *ClaimsConfig, skipClaimsValidation bool) *JWTChecker {
 	return &JWTChecker{
-		cert: cert,
+		certs:     certs,
 		claimsCfg: claimsCfg,
 		parser: &jwt.Parser{
 			SkipClaimsValidation: skipClaimsValidation,
@@ -28,7 +27,7 @@ func NewJWTChecker(cert *x509.Certificate, claimsCfg *ClaimsConfig, skipClaimsVa
 }
 
 func (checker *JWTChecker) Check(_ context.Context, bearerToken string) (*Claims, error) {
-	if checker.cert == nil {
+	if len(checker.certs) == 0 {
 		// If no certificate provided we deactivate authentication
 		return nil, nil
 	}
@@ -37,33 +36,47 @@ func (checker *JWTChecker) Check(_ context.Context, bearerToken string) (*Claims
 	token, err := checker.parser.ParseWithClaims(
 		bearerToken,
 		&Claims{cfg: checker.claimsCfg},
-		checker.key,
+		checker.keyFunc,
 	)
 	if err != nil {
-		return nil, errors.UnauthorizedError(err.Error())
-	}
-	if !token.Valid {
-		return nil, errors.UnauthorizedError("invalid access token")
+		return nil, err
+	} else if !token.Valid {
+		return nil, fmt.Errorf("invalid access token")
 	}
 
 	return token.Claims.(*Claims), nil
 }
 
-func (checker *JWTChecker) key(token *jwt.Token) (interface{}, error) {
-	switch token.Method.Alg() {
+func (checker *JWTChecker) keyFunc(token *jwt.Token) (interface{}, error) {
+	_, ok := token.Method.(*jwt.SigningMethodRSA)
+	if !ok {
+		return nil, fmt.Errorf("invalid access token signing method")
+	}
+
+	for _, cert := range checker.certs {
+		if pubkey, err := tokenAlgoChecker(token.Method.Alg(), cert); err == nil {
+			return pubkey, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unable to find appropriate key in key set.")
+}
+
+func tokenAlgoChecker(algo string, cert *x509.Certificate) (interface{}, error) {
+	switch algo {
 	case "RS256", "RS384", "RS512":
-		pubKey, ok := checker.cert.PublicKey.(*rsa.PublicKey)
+		pubKey, ok := cert.PublicKey.(*rsa.PublicKey)
 		if !ok {
 			return nil, fmt.Errorf("certificate is not an RSA public key")
 		}
 		return pubKey, nil
 	case "ES256", "ES384", "ES512":
-		pubKey, ok := checker.cert.PublicKey.(*ecdsa.PublicKey)
+		pubKey, ok := cert.PublicKey.(*ecdsa.PublicKey)
 		if !ok {
 			return nil, fmt.Errorf("certificate is not an ECDSA public key")
 		}
 		return pubKey, nil
 	default:
-		return nil, fmt.Errorf("unsupported token method signature %q", token.Method.Alg())
+		return nil, fmt.Errorf("unsupported token method signature %q", algo)
 	}
 }

@@ -4,15 +4,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
 const AuthMode = "JWT"
+const BearerSchema = "Bearer"
 
 type Authenticator struct {
-	jwtCheckers []*JWTChecker
+	jwtChecker *JWTChecker
 }
 
 var _ authenticator.Authenticator = Authenticator{}
@@ -23,16 +24,7 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 	}
 
 	auth := &Authenticator{
-		jwtCheckers: []*JWTChecker{},
-	}
-
-	for _, cert := range cfg.Certificates {
-		keyPair, err := certificate.X509KeyPair([]byte(cert), nil)
-		if err != nil {
-			return nil, err
-		}
-
-		auth.jwtCheckers = append(auth.jwtCheckers, NewJWTChecker(keyPair.Leaf, cfg.Claims, false))
+		jwtChecker: NewJWTChecker(cfg.Certificates, cfg.Claims, false),
 	}
 
 	return auth, nil
@@ -40,25 +32,21 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 
 func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// Extract Access Token from context
-	token, ok := extractToken("Bearer ", req.Header.Get("Authorization"))
+	token, ok := extractToken(BearerSchema, req.Header.Get("Authorization"))
 	if !ok {
 		return nil, nil
 	}
 
-	var err error
-	var claims *Claims
-	for _, jwtChecker := range a.jwtCheckers {
-		claims, err = jwtChecker.Check(req.Context(), token)
-		if err == nil {
-			return &types.UserInfo{
-				Username: claims.Username,
-				Groups:   claims.Groups,
-				AuthMode: AuthMode,
-			}, nil
-		}
+	claims, err := a.jwtChecker.Check(req.Context(), token)
+	if err != nil {
+		return nil, errors.UnauthorizedError(err.Error())
 	}
-	
-	return nil, err
+
+	return &types.UserInfo{
+		Username: claims.Username,
+		Groups:   claims.Groups,
+		AuthMode: AuthMode,
+	}, nil
 }
 
 func extractToken(prefix, auth string) (string, bool) {
@@ -66,5 +54,5 @@ func extractToken(prefix, auth string) (string, bool) {
 		return "", false
 	}
 
-	return auth[len(prefix):], true
+	return auth[len(prefix)+1:], true
 }

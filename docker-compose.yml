@@ -34,7 +34,7 @@ services:
     environment:
       <<: *default-variables
       AUTH_OICD_CA_CERT: ${AUTH_OICD_CA_CERT-/certificates/cert.pem}
-      AUTH_OICD_ISSUER_URL: ${AUTH_OICD_CA_CERT-https://quorum-key-manager.eu.auth0.com}
+      AUTH_OICD_ISSUER_URL: ${AUTH_OICD_CA_CERT-}
     ports:
       - 8080:8080
       - 8081:8081
