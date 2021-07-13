@@ -54,7 +54,7 @@ func (checker *JWTChecker) keyFunc(token *jwt.Token) (interface{}, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("unable to find appropriate key in key set.")
+	return nil, fmt.Errorf("unable to find appropriate key in key set")
 }
 
 func tokenAlgoChecker(method string, cert *x509.Certificate) (interface{}, error) {

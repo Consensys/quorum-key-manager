@@ -71,7 +71,7 @@ func AuthFlags(f *pflag.FlagSet) {
 	AuthOIDCClaimGroups(f)
 }
 
-// Use only on generate-token utils 
+// Use only on generate-token utils
 func AuthOIDCCertKeyFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`OpenID Connect CA Cert filepath.
 Environment variable: %q`, authOIDCCAKeyFileEnv)
@@ -108,16 +108,15 @@ Environment variable: %q`, authOIDCCACertFileEnv)
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
-	var oidcCfg = &oidc.Config{}
 	certs := []*x509.Certificate{}
-	
+
 	fileCert, err := fileCertificate(vipr)
 	if err != nil {
 		return nil, err
 	} else if fileCert != nil {
 		certs = append(certs, fileCert)
 	}
-	
+
 	issuerCerts, err := issuerCertificates(vipr)
 	if err != nil {
 		return nil, err
@@ -125,9 +124,9 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certs = append(certs, issuerCerts...)
 	}
 
-	oidcCfg = oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey), 
-			vipr.GetString(authOIDCClaimGroupViperKey), certs...)
-	
+	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
+		vipr.GetString(authOIDCClaimGroupViperKey), certs...)
+
 	return &auth.Config{OIDC: oidcCfg}, nil
 }
 
@@ -140,13 +139,16 @@ func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 		}
 		return nil, nil
 	}
-	
+
 	caFileContent, err := ioutil.ReadFile(caFile)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
 	cert, err := x509.ParseCertificate(bCert[0])
 	if err != nil {
 		return nil, err
@@ -160,17 +162,16 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	if issuerServer == "" {
 		return nil, nil
 	}
-	
+
 	jwks, err := auth2.RetrieveKeySet(context.Background(), http.DefaultClient, issuerServer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve auth server jwks", issuerServer)
+		return nil, fmt.Errorf("failed to retrieve auth server jwks: %s", issuerServer)
 	}
 
 	certs := []*x509.Certificate{}
 	for _, kw := range jwks.Keys {
 		certs = append(certs, kw.Certificates...)
 	}
-	
+
 	return certs, nil
 }
-

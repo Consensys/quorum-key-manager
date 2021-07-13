@@ -25,7 +25,7 @@ type JWKsKey struct {
 }
 
 func RetrieveKeySet(ctx context.Context, client *http.Client, authEndpoint string) (*jose.JSONWebKeySet, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", authEndpoint, nil)
+	req, _ := http.NewRequestWithContext(ctx, "GET", authEndpoint, nil)
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("call to JWK server failed. %s", err.Error())
@@ -33,7 +33,7 @@ func RetrieveKeySet(ctx context.Context, client *http.Client, authEndpoint strin
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to retrieve keys from JWK server.")
+		return nil, fmt.Errorf("failed to retrieve keys from JWK server")
 	}
 
 	keySet := &jose.JSONWebKeySet{}

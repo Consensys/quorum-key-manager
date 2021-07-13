@@ -5,8 +5,8 @@ import (
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	app "github.com/consensys/quorum-key-manager/src"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -75,4 +75,3 @@ func runCmd(cmd *cobra.Command, _ []string) error {
 
 	return nil
 }
-

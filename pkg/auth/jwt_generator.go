@@ -31,12 +31,12 @@ func (j *JWTGenerator) GenerateAccessToken(username string, groups []string, ttl
 		Subject:   "test-token",
 		ExpiresAt: time.Now().UTC().Add(ttl).Unix(),
 	}
-	
+
 	bsc, _ := json.Marshal(sc)
-	
+
 	c := jwt.MapClaims{}
 	_ = json.Unmarshal(bsc, &c)
-	
+
 	c[j.claims.Username] = username
 	c[j.claims.Group] = strings.Join(groups, ",")
 
