@@ -212,7 +212,7 @@ func (m *BaseManager) List(ctx context.Context, kind manifest.Kind, _ *authtypes
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	//TODO Filter available store using userInfo groups
+	// TODO Filter available store using userInfo groups
 	return m.list(ctx, kind), nil
 }
 

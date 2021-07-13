@@ -11,8 +11,8 @@ import (
 func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, error) {
 	i.logger.Debug("listing ETH accounts")
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	storeAccounts, err := i.stores.ListAllAccounts(ctx, userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	storeAccounts, err := i.stores.ListAllAccounts(ctx, userInfo)
 	if err != nil {
 		return nil, err
 	}

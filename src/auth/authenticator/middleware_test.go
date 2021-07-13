@@ -7,21 +7,28 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/stretchr/testify/require"
 
 	mockauth "github.com/consensys/quorum-key-manager/src/auth/authenticator/mock"
-	mockmanager "github.com/consensys/quorum-key-manager/src/auth/policy/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 type testHandler struct {
-	t *testing.T
+	t        *testing.T
+	userInfo *types.UserInfo
 }
 
 func (h *testHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
-	reqCtx := UserContextFromContext(req.Context())
-	assert.NotNil(h.t, reqCtx, "UserContext should have been set on context")
+	userInfo := UserInfoContextFromContext(req.Context())
+	if h.userInfo != nil {
+		require.NotNil(h.t, h.userInfo)
+		assert.Equal(h.t, h.userInfo.Groups, userInfo.Groups)
+		assert.Equal(h.t, h.userInfo.Username, userInfo.Username)
+	} else {
+		require.Nil(h.t, h.userInfo)
+	}
 }
 
 func TestMiddleware(t *testing.T) {
@@ -30,12 +37,11 @@ func TestMiddleware(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 
 	auth1 := mockauth.NewMockAuthenticator(ctrl)
-	policyMngr := mockmanager.NewMockManager(ctrl)
 
 	mid := NewMiddleware(logger, auth1)
 
 	t.Run("authentication rejected", func(t *testing.T) {
-		h := mid.Then(&testHandler{t})
+		h := mid.Then(&testHandler{t, nil})
 		auth1.EXPECT().Authenticate(gomock.Any()).Return(nil, fmt.Errorf("test invalid auth"))
 
 		req, _ := http.NewRequest(http.MethodGet, "", nil)
@@ -47,7 +53,6 @@ func TestMiddleware(t *testing.T) {
 	})
 
 	t.Run("authentication accepted", func(t *testing.T) {
-		h := mid.Then(&testHandler{t})
 		user := &types.UserInfo{
 			Username: "test-username",
 			Groups: []string{
@@ -55,28 +60,8 @@ func TestMiddleware(t *testing.T) {
 				"group-test2",
 			},
 		}
+		h := mid.Then(&testHandler{t, user})
 		auth1.EXPECT().Authenticate(gomock.Any()).Return(user, nil)
-
-		group1 := &types.Group{
-			Policies: []string{
-				"policy1.A",
-				"policy1.B",
-			},
-		}
-		policyMngr.EXPECT().Group(gomock.Any(), "group-test1").Return(group1, nil)
-		policyMngr.EXPECT().Policy(gomock.Any(), "policy1.A").Return(&types.Policy{}, nil)
-		policyMngr.EXPECT().Policy(gomock.Any(), "policy1.B").Return(&types.Policy{}, nil)
-
-		group2 := &types.Group{
-			Policies: []string{
-				"policy2.A",
-			},
-		}
-		policyMngr.EXPECT().Group(gomock.Any(), "group-test2").Return(group2, nil)
-		policyMngr.EXPECT().Policy(gomock.Any(), "policy2.A").Return(&types.Policy{}, nil)
-
-		policyMngr.EXPECT().Group(gomock.Any(), "system:authenticated").Return(nil, fmt.Errorf("not found"))
-
 		req, _ := http.NewRequest(http.MethodGet, "", nil)
 		rec := httptest.NewRecorder()
 
@@ -84,14 +69,11 @@ func TestMiddleware(t *testing.T) {
 	})
 
 	t.Run("authentication ignored", func(t *testing.T) {
-		h := mid.Then(&testHandler{t})
+		h := mid.Then(&testHandler{t, types.AnonymousUser})
 		auth1.EXPECT().Authenticate(gomock.Any()).Return(nil, nil)
-
-		policyMngr.EXPECT().Group(gomock.Any(), "system:unauthenticated").Return(nil, fmt.Errorf("not found"))
 
 		req, _ := http.NewRequest(http.MethodGet, "", nil)
 		rec := httptest.NewRecorder()
-
 		h.ServeHTTP(rec, req)
 	})
 }

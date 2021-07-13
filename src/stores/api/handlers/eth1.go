@@ -80,8 +80,8 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(request.Context()), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(request.Context()), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -126,8 +126,8 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -173,8 +173,8 @@ func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -213,8 +213,8 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -259,8 +259,8 @@ func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -299,8 +299,8 @@ func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -340,8 +340,8 @@ func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -380,8 +380,8 @@ func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.R
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -421,8 +421,8 @@ func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *ht
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -452,8 +452,8 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -487,8 +487,8 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -551,8 +551,8 @@ func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -580,8 +580,8 @@ func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -619,8 +619,8 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -658,8 +658,8 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -696,8 +696,8 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

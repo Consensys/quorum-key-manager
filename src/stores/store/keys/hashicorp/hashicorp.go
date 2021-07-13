@@ -48,7 +48,6 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	
 
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
@@ -75,7 +74,6 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 		return nil, err
 	}
 
-	
 	return parseResponse(res)
 }
 

@@ -41,7 +41,7 @@ func (c SecretConnector) Set(ctx context.Context, id, value string, attr *entiti
 	return result, nil
 }
 
-func (c SecretConnector) Get(ctx context.Context, id string, version string) (*entities.Secret, error) {
+func (c SecretConnector) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := c.logger.With("id", id)
 	result, err := c.store.Get(ctx, id, version)
 	if err != nil {

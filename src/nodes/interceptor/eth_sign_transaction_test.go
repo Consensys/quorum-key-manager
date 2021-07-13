@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -20,7 +22,14 @@ func TestEthSignTransaction(t *testing.T) {
 	accountsStore := mockaccounts.NewMockStore(ctrl)
 
 	session := proxynode.NewMockSession(ctrl)
+	userInfo := &types.UserInfo{
+		Username: "username",
+		Groups:   []string{"group1", "group2"},
+	}
 	ctx := proxynode.WithSession(context.TODO(), session)
+	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
+		UserInfo: userInfo,
+	})
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)
@@ -38,7 +47,7 @@ func TestEthSignTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
@@ -56,7 +65,7 @@ func TestEthSignTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)

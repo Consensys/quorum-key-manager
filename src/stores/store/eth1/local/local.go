@@ -235,7 +235,7 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
 	privateFromEncoded, err := base64.StdEncoding.DecodeString(*args.PrivateFrom)
 	if err != nil {
-		return nil, errors.InvalidParameterError( "invalid privateFrom param. %s", err.Error())
+		return nil, errors.InvalidParameterError("invalid privateFrom param. %s", err.Error())
 	}
 
 	privateRecipientEncoded, err := getEncodedPrivateRecipient(args.PrivacyGroupID, args.PrivateFor)

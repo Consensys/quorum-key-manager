@@ -101,18 +101,18 @@ func (mr *MockManagerMockRecorder) GetEth1StoreByAddr(ctx, addr, userInfo interf
 }
 
 // List mocks base method
-func (m *MockManager) List(ctx context.Context, kind manifest.Kind) ([]string, error) {
+func (m *MockManager) List(ctx context.Context, kind manifest.Kind, userInfo *types.UserInfo) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx, kind)
+	ret := m.ctrl.Call(m, "List", ctx, kind, userInfo)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockManagerMockRecorder) List(ctx, kind interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) List(ctx, kind, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List), ctx, kind)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List), ctx, kind, userInfo)
 }
 
 // ListAllAccounts mocks base method

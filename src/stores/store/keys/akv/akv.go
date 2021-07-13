@@ -126,7 +126,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	res, err := s.client.GetDeletedKeys(ctx, 0)
 	if err != nil {
-		
+
 		return nil, err
 	}
 

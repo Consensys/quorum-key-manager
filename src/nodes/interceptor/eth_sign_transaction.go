@@ -37,9 +37,9 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 		msg.Data = &[]byte{}
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	// Get store for from
-	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From, userCtx.UserInfo)
+	store, err := i.stores.GetEth1StoreByAddr(ctx, msg.From, userInfo)
 	if err != nil {
 		return nil, err
 	}

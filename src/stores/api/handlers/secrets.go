@@ -55,8 +55,8 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -90,9 +90,9 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 
 	id := mux.Vars(request)["id"]
 	version := request.URL.Query().Get("version")
-	
-	userCtx := authenticator.UserContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -121,8 +121,8 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

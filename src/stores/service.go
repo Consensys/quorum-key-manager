@@ -17,7 +17,7 @@ func RegisterService(a *app.App, logger log.Logger, db database.Database) error 
 	if err != nil {
 		return err
 	}
-	
+
 	// Load policy manager service
 	policyMngr := new(authmanager.Manager)
 	err = a.Service(policyMngr)

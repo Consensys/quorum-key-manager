@@ -13,8 +13,8 @@ func (i *Interceptor) ethSign(ctx context.Context, from ethcommon.Address, data 
 	logger := i.logger.With("from_account", from.Hex())
 	logger.Debug("signing payload")
 
-	userCtx := authenticator.UserContextFromContext(ctx)
-	store, err := i.stores.GetEth1StoreByAddr(ctx, from, userCtx.UserInfo)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	store, err := i.stores.GetEth1StoreByAddr(ctx, from, userInfo)
 	if err != nil {
 		return nil, err
 	}
