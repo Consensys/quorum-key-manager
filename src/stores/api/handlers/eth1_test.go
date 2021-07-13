@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
@@ -28,6 +31,11 @@ const (
 	accAddress    = "0x7E654d251Da770A068413677967F6d3Ea2FeA9E4"
 )
 
+var eth1UserInfo = &types.UserInfo{
+	Username: "username",
+	Groups:   []string{"group1", "group2"},
+}
+
 type eth1HandlerTestSuite struct {
 	suite.Suite
 
@@ -35,6 +43,7 @@ type eth1HandlerTestSuite struct {
 	storeManager *mockstoremanager.MockManager
 	eth1Store    *mocketh1.MockStore
 	router       *mux.Router
+	ctx          context.Context
 }
 
 func TestEth1Handler(t *testing.T) {
@@ -47,8 +56,11 @@ func (s *eth1HandlerTestSuite) SetupTest() {
 
 	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
 	s.eth1Store = mocketh1.NewMockStore(s.ctrl)
+	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
+		UserInfo: eth1UserInfo,
+	})
 
-	s.storeManager.EXPECT().GetEth1Store(gomock.Any(), eth1StoreName).Return(s.eth1Store, nil).AnyTimes()
+	s.storeManager.EXPECT().GetEth1Store(gomock.Any(), eth1StoreName, eth1UserInfo).Return(s.eth1Store, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(s.storeManager).Register(s.router)
@@ -64,7 +76,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -89,7 +101,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -110,7 +122,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 
 	s.Run("should execute request with no request body successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", nil)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", nil).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -130,7 +142,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -145,7 +157,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -171,7 +183,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -197,7 +209,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -212,7 +224,7 @@ func (s *eth1HandlerTestSuite) TestUpdate() {
 		requestBytes, _ := json.Marshal(updateEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -237,7 +249,7 @@ func (s *eth1HandlerTestSuite) TestUpdate() {
 		requestBytes, _ := json.Marshal(updateEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -252,7 +264,7 @@ func (s *eth1HandlerTestSuite) TestSign() {
 		requestBytes, _ := json.Marshal(signRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		signature := []byte("signature")
 		s.eth1Store.EXPECT().Sign(gomock.Any(), accAddress, signRequest.Data).Return(signature, nil)
@@ -269,7 +281,7 @@ func (s *eth1HandlerTestSuite) TestSign() {
 		requestBytes, _ := json.Marshal(signRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -285,7 +297,7 @@ func (s *eth1HandlerTestSuite) TestSignTypedData() {
 		expectedTypedData := formatters.FormatSignTypedDataRequest(signTypedDataRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-typed-data", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-typed-data", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		signature := []byte("signature")
 		s.eth1Store.EXPECT().SignTypedData(gomock.Any(), accAddress, expectedTypedData).Return(signature, nil)
@@ -302,7 +314,7 @@ func (s *eth1HandlerTestSuite) TestSignTypedData() {
 		requestBytes, _ := json.Marshal(signTypedDataRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-typed-data", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-typed-data", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().SignTypedData(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -317,7 +329,7 @@ func (s *eth1HandlerTestSuite) TestSignTransaction() {
 		requestBytes, _ := json.Marshal(signTransactionRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		signedRaw := []byte("signedRaw")
 		s.eth1Store.EXPECT().SignTransaction(gomock.Any(), accAddress, signTransactionRequest.ChainID.ToInt(), gomock.Any()).Return(signedRaw, nil)
@@ -334,7 +346,7 @@ func (s *eth1HandlerTestSuite) TestSignTransaction() {
 		requestBytes, _ := json.Marshal(signTransactionRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().SignTransaction(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -349,7 +361,7 @@ func (s *eth1HandlerTestSuite) TestSignPrivateTransaction() {
 		requestBytes, _ := json.Marshal(signPrivateTransactionRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-quorum-private-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-quorum-private-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		signedRaw := []byte("signedRaw")
 		s.eth1Store.EXPECT().SignPrivate(gomock.Any(), accAddress, gomock.Any()).Return(signedRaw, nil)
@@ -366,7 +378,7 @@ func (s *eth1HandlerTestSuite) TestSignPrivateTransaction() {
 		requestBytes, _ := json.Marshal(signPrivateTransactionRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-quorum-private-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-quorum-private-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().SignPrivate(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -381,7 +393,7 @@ func (s *eth1HandlerTestSuite) TestSignEEATransaction() {
 		requestBytes, _ := json.Marshal(signEEATransactionRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-eea-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-eea-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		signedRaw := []byte("signedRaw")
 		s.eth1Store.EXPECT().SignEEA(gomock.Any(), accAddress, signEEATransactionRequest.ChainID.ToInt(), gomock.Any(), gomock.Any()).Return(signedRaw, nil)
@@ -398,7 +410,7 @@ func (s *eth1HandlerTestSuite) TestSignEEATransaction() {
 		requestBytes, _ := json.Marshal(signEEATransactionRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-eea-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-eea-transaction", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().SignEEA(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -410,7 +422,7 @@ func (s *eth1HandlerTestSuite) TestSignEEATransaction() {
 func (s *eth1HandlerTestSuite) TestGet() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 		s.eth1Store.EXPECT().Get(gomock.Any(), accAddress).Return(acc, nil)
@@ -425,7 +437,7 @@ func (s *eth1HandlerTestSuite) TestGet() {
 
 	s.Run("should execute request to get a deleted key successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1/%s?deleted=true", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1/%s?deleted=true", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 		s.eth1Store.EXPECT().GetDeleted(gomock.Any(), accAddress).Return(acc, nil)
@@ -441,7 +453,7 @@ func (s *eth1HandlerTestSuite) TestGet() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Get(gomock.Any(), accAddress).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -453,7 +465,7 @@ func (s *eth1HandlerTestSuite) TestGet() {
 func (s *eth1HandlerTestSuite) TestList() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1", eth1StoreName), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1", eth1StoreName), nil).WithContext(s.ctx)
 
 		accs := []string{"my-account1", "my-account2"}
 		s.eth1Store.EXPECT().List(gomock.Any()).Return(accs, nil)
@@ -466,7 +478,7 @@ func (s *eth1HandlerTestSuite) TestList() {
 
 	s.Run("should execute request to get a deleted key successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1?deleted=true", eth1StoreName), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1?deleted=true", eth1StoreName), nil).WithContext(s.ctx)
 
 		accs := []string{"my-account1", "my-account2"}
 		s.eth1Store.EXPECT().ListDeleted(gomock.Any()).Return(accs, nil)
@@ -480,7 +492,7 @@ func (s *eth1HandlerTestSuite) TestList() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1", eth1StoreName), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1", eth1StoreName), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().List(gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -492,7 +504,7 @@ func (s *eth1HandlerTestSuite) TestList() {
 func (s *eth1HandlerTestSuite) TestDelete() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Delete(gomock.Any(), accAddress).Return(nil)
 
@@ -505,7 +517,7 @@ func (s *eth1HandlerTestSuite) TestDelete() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
@@ -517,7 +529,7 @@ func (s *eth1HandlerTestSuite) TestDelete() {
 func (s *eth1HandlerTestSuite) TestDestroy() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s/destroy", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s/destroy", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Destroy(gomock.Any(), accAddress).Return(nil)
 
@@ -530,7 +542,7 @@ func (s *eth1HandlerTestSuite) TestDestroy() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s/destroy", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/%s/eth1/%s/destroy", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Destroy(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
@@ -542,7 +554,7 @@ func (s *eth1HandlerTestSuite) TestDestroy() {
 func (s *eth1HandlerTestSuite) TestRestore() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Undelete(gomock.Any(), accAddress).Return(nil)
 
@@ -555,7 +567,7 @@ func (s *eth1HandlerTestSuite) TestRestore() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil)
+		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Undelete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
@@ -570,7 +582,7 @@ func (s *eth1HandlerTestSuite) TestECRecover() {
 		requestBytes, _ := json.Marshal(ecRecoverRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/ec-recover", eth1StoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/ec-recover", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().ECRevocer(gomock.Any(), ecRecoverRequest.Data, ecRecoverRequest.Signature).Return("0xaddress", nil)
 
@@ -586,7 +598,7 @@ func (s *eth1HandlerTestSuite) TestECRecover() {
 		requestBytes, _ := json.Marshal(ecRecoverRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/ec-recover", eth1StoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/ec-recover", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().ECRevocer(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.HashicorpVaultError("error"))
 
@@ -601,7 +613,7 @@ func (s *eth1HandlerTestSuite) TestVerifySignature() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Verify(gomock.Any(), verifyRequest.Address.Hex(), verifyRequest.Data, verifyRequest.Signature).Return(nil)
 
@@ -617,7 +629,7 @@ func (s *eth1HandlerTestSuite) TestVerifySignature() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
@@ -633,7 +645,7 @@ func (s *eth1HandlerTestSuite) TestVerifyTypedDataSignature() {
 		expectedTypedData := formatters.FormatSignTypedDataRequest(&verifyRequest.TypedData)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), verifyRequest.Address.Hex(), expectedTypedData, verifyRequest.Signature).Return(nil)
 
@@ -649,7 +661,7 @@ func (s *eth1HandlerTestSuite) TestVerifyTypedDataSignature() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 

@@ -15,7 +15,7 @@ type SecretSpecs struct {
 	Debug     bool   `json:"debug"`
 }
 
-func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*aws.SecretStore, error) {
+func NewSecretStore(specs *SecretSpecs, logger log.Logger) (*aws.Store, error) {
 	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
 	cli, err := client.NewSecretsClient(cfg)
 	if err != nil {

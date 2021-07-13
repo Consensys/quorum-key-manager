@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/manager/mock"
@@ -26,6 +29,11 @@ const (
 	secretID        = "my-secret"
 )
 
+var secretUserInfo = &types.UserInfo{
+	Username: "username",
+	Groups:   []string{"group1", "group2"},
+}
+
 type secretsHandlerTestSuite struct {
 	suite.Suite
 
@@ -33,6 +41,7 @@ type secretsHandlerTestSuite struct {
 	storeManager *mockstoremanager.MockManager
 	secretStore  *mocksecrets.MockStore
 	router       *mux.Router
+	ctx          context.Context
 }
 
 func TestSecretsHandler(t *testing.T) {
@@ -45,6 +54,9 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 
 	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
 	s.secretStore = mocksecrets.NewMockStore(s.ctrl)
+	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
+		UserInfo: secretUserInfo,
+	})
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(s.storeManager).Register(s.router)
@@ -62,11 +74,10 @@ func (s *secretsHandlerTestSuite) TestSet() {
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes))
-
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 		secret := testutils2.FakeSecret()
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), secretID, setSecretRequest.Value, &entities.Attributes{
 			Tags: setSecretRequest.Tags,
 		}).Return(secret, nil)
@@ -85,9 +96,9 @@ func (s *secretsHandlerTestSuite) TestSet() {
 		requestBytes, _ := json.Marshal(setSecretRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -100,10 +111,10 @@ func (s *secretsHandlerTestSuite) TestGet() {
 		version := "1"
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s", secretID, version), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s", secretID, version), nil).WithContext(s.ctx)
 
 		secret := testutils2.FakeSecret()
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), secretID, version).Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -116,10 +127,10 @@ func (s *secretsHandlerTestSuite) TestGet() {
 
 	s.Run("should execute request successfully without version", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil).WithContext(s.ctx)
 
 		secret := testutils2.FakeSecret()
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), secretID, "").Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -133,9 +144,9 @@ func (s *secretsHandlerTestSuite) TestGet() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -146,11 +157,11 @@ func (s *secretsHandlerTestSuite) TestGet() {
 func (s *secretsHandlerTestSuite) TestList() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil).WithContext(s.ctx)
 
 		ids := []string{"secret1", "secret2"}
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any()).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -163,9 +174,9 @@ func (s *secretsHandlerTestSuite) TestList() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName).Return(s.secretStore, nil)
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)

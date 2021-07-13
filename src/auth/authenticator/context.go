@@ -17,6 +17,14 @@ func UserContextFromContext(ctx context.Context) *UserContext {
 	return nil
 }
 
+func UserInfoContextFromContext(ctx context.Context) *types.UserInfo {
+	userCtx := UserContextFromContext(ctx)
+	if userCtx == nil {
+		return nil
+	}
+	return userCtx.UserInfo
+}
+
 func WithUserContext(ctx context.Context, reqCtx *UserContext) context.Context {
 	return context.WithValue(ctx, reqCtxKey, reqCtx)
 }
