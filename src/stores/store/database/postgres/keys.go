@@ -25,10 +25,10 @@ func NewKeys(logger log.Logger, db postgres.Client) *Keys {
 	}
 }
 
-func (d *Keys) Get(_ context.Context, id string) (*entities.Key, error) {
+func (d *Keys) Get(ctx context.Context, id string) (*entities.Key, error) {
 	key := &entities.Key{ID: id}
 
-	err := d.db.SelectPK(key)
+	err := d.db.SelectPK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to get key")
 		return nil, err
@@ -37,10 +37,10 @@ func (d *Keys) Get(_ context.Context, id string) (*entities.Key, error) {
 	return key, nil
 }
 
-func (d *Keys) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
+func (d *Keys) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	key := &entities.Key{ID: id}
 
-	err := d.db.SelectDeletedPK(key)
+	err := d.db.SelectDeletedPK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to get key")
 		return nil, err
@@ -49,10 +49,10 @@ func (d *Keys) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
 	return key, nil
 }
 
-func (d *Keys) GetAll(_ context.Context) ([]*entities.Key, error) {
+func (d *Keys) GetAll(ctx context.Context) ([]*entities.Key, error) {
 	var keys []*entities.Key
 
-	err := d.db.Select(&keys)
+	err := d.db.Select(ctx, &keys)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to list keys")
 		return nil, err
@@ -61,10 +61,10 @@ func (d *Keys) GetAll(_ context.Context) ([]*entities.Key, error) {
 	return keys, nil
 }
 
-func (d *Keys) GetAllDeleted(_ context.Context) ([]*entities.Key, error) {
+func (d *Keys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
 	var keys []*entities.Key
 
-	err := d.db.SelectDeleted(&keys)
+	err := d.db.SelectDeleted(ctx, keys)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to get key")
 		return nil, err
@@ -73,8 +73,8 @@ func (d *Keys) GetAllDeleted(_ context.Context) ([]*entities.Key, error) {
 	return keys, nil
 }
 
-func (d *Keys) Add(_ context.Context, key *entities.Key) error {
-	err := d.db.Insert(key)
+func (d *Keys) Add(ctx context.Context, key *entities.Key) error {
+	err := d.db.Insert(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to insert key")
 		return err
@@ -83,8 +83,8 @@ func (d *Keys) Add(_ context.Context, key *entities.Key) error {
 	return nil
 }
 
-func (d *Keys) Update(_ context.Context, key *entities.Key) error {
-	err := d.db.UpdatePK(key)
+func (d *Keys) Update(ctx context.Context, key *entities.Key) error {
+	err := d.db.UpdatePK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to update key")
 		return err
@@ -93,9 +93,9 @@ func (d *Keys) Update(_ context.Context, key *entities.Key) error {
 	return nil
 }
 
-func (d *Keys) Remove(_ context.Context, id string) error {
+func (d *Keys) Remove(ctx context.Context, id string) error {
 	key := &entities.Key{ID: id}
-	err := d.db.UpdatePK(key)
+	err := d.db.UpdatePK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to update key")
 		return err
@@ -109,9 +109,9 @@ func (d *Keys) Restore(ctx context.Context, key *entities.Key) error {
 	return d.Update(ctx, key)
 }
 
-func (d *Keys) Purge(_ context.Context, id string) error {
+func (d *Keys) Purge(ctx context.Context, id string) error {
 	key := &entities.Key{ID: id}
-	err := d.db.ForceDeletePK(key)
+	err := d.db.ForceDeletePK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to update key")
 		return err

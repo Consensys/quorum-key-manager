@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -33,9 +34,9 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // Insert mocks base method
-func (m *MockClient) Insert(model ...interface{}) error {
+func (m *MockClient) Insert(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -45,15 +46,16 @@ func (m *MockClient) Insert(model ...interface{}) error {
 }
 
 // Insert indicates an expected call of Insert
-func (mr *MockClientMockRecorder) Insert(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Insert(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockClient)(nil).Insert), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockClient)(nil).Insert), varargs...)
 }
 
 // SelectPK mocks base method
-func (m *MockClient) SelectPK(model ...interface{}) error {
+func (m *MockClient) SelectPK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -63,15 +65,16 @@ func (m *MockClient) SelectPK(model ...interface{}) error {
 }
 
 // SelectPK indicates an expected call of SelectPK
-func (mr *MockClientMockRecorder) SelectPK(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SelectPK(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectPK", reflect.TypeOf((*MockClient)(nil).SelectPK), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectPK", reflect.TypeOf((*MockClient)(nil).SelectPK), varargs...)
 }
 
 // SelectDeletedPK mocks base method
-func (m *MockClient) SelectDeletedPK(model ...interface{}) error {
+func (m *MockClient) SelectDeletedPK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -81,15 +84,16 @@ func (m *MockClient) SelectDeletedPK(model ...interface{}) error {
 }
 
 // SelectDeletedPK indicates an expected call of SelectDeletedPK
-func (mr *MockClientMockRecorder) SelectDeletedPK(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SelectDeletedPK(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedPK", reflect.TypeOf((*MockClient)(nil).SelectDeletedPK), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedPK", reflect.TypeOf((*MockClient)(nil).SelectDeletedPK), varargs...)
 }
 
 // Select mocks base method
-func (m *MockClient) Select(model ...interface{}) error {
+func (m *MockClient) Select(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -99,15 +103,16 @@ func (m *MockClient) Select(model ...interface{}) error {
 }
 
 // Select indicates an expected call of Select
-func (mr *MockClientMockRecorder) Select(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Select(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Select", reflect.TypeOf((*MockClient)(nil).Select), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Select", reflect.TypeOf((*MockClient)(nil).Select), varargs...)
 }
 
 // SelectDeleted mocks base method
-func (m *MockClient) SelectDeleted(model ...interface{}) error {
+func (m *MockClient) SelectDeleted(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -117,15 +122,16 @@ func (m *MockClient) SelectDeleted(model ...interface{}) error {
 }
 
 // SelectDeleted indicates an expected call of SelectDeleted
-func (mr *MockClientMockRecorder) SelectDeleted(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SelectDeleted(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeleted", reflect.TypeOf((*MockClient)(nil).SelectDeleted), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeleted", reflect.TypeOf((*MockClient)(nil).SelectDeleted), varargs...)
 }
 
 // UpdatePK mocks base method
-func (m *MockClient) UpdatePK(model ...interface{}) error {
+func (m *MockClient) UpdatePK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -135,15 +141,16 @@ func (m *MockClient) UpdatePK(model ...interface{}) error {
 }
 
 // UpdatePK indicates an expected call of UpdatePK
-func (mr *MockClientMockRecorder) UpdatePK(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) UpdatePK(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePK", reflect.TypeOf((*MockClient)(nil).UpdatePK), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePK", reflect.TypeOf((*MockClient)(nil).UpdatePK), varargs...)
 }
 
 // DeletePK mocks base method
-func (m *MockClient) DeletePK(model ...interface{}) error {
+func (m *MockClient) DeletePK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -153,15 +160,16 @@ func (m *MockClient) DeletePK(model ...interface{}) error {
 }
 
 // DeletePK indicates an expected call of DeletePK
-func (mr *MockClientMockRecorder) DeletePK(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) DeletePK(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePK", reflect.TypeOf((*MockClient)(nil).DeletePK), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePK", reflect.TypeOf((*MockClient)(nil).DeletePK), varargs...)
 }
 
 // ForceDeletePK mocks base method
-func (m *MockClient) ForceDeletePK(model ...interface{}) error {
+func (m *MockClient) ForceDeletePK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
@@ -171,7 +179,8 @@ func (m *MockClient) ForceDeletePK(model ...interface{}) error {
 }
 
 // ForceDeletePK indicates an expected call of ForceDeletePK
-func (mr *MockClientMockRecorder) ForceDeletePK(model ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ForceDeletePK(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeletePK", reflect.TypeOf((*MockClient)(nil).ForceDeletePK), model...)
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeletePK", reflect.TypeOf((*MockClient)(nil).ForceDeletePK), varargs...)
 }

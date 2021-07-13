@@ -160,11 +160,6 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = s.keysDA.Add(ctx, key)
-	if err != nil {
-		return err
-	}
-
 	logger.Info("key restored successfully")
 	return nil
 }
