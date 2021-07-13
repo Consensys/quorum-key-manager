@@ -9,10 +9,6 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
-const (
-	Auth0IssuerServerDomain = "auth0.com"
-)
-
 type JWKsResponse struct {
 	Keys []JWKsKey `json:"keys"`
 }

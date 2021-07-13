@@ -1,4 +1,4 @@
-package oicd
+package oidc
 
 import (
 	"context"
@@ -48,11 +48,6 @@ func (checker *JWTChecker) Check(_ context.Context, bearerToken string) (*Claims
 }
 
 func (checker *JWTChecker) keyFunc(token *jwt.Token) (interface{}, error) {
-	_, ok := token.Method.(*jwt.SigningMethodRSA)
-	if !ok {
-		return nil, fmt.Errorf("invalid access token signing method")
-	}
-
 	for _, cert := range checker.certs {
 		if pubkey, err := tokenAlgoChecker(token.Method.Alg(), cert); err == nil {
 			return pubkey, nil
@@ -62,8 +57,8 @@ func (checker *JWTChecker) keyFunc(token *jwt.Token) (interface{}, error) {
 	return nil, fmt.Errorf("unable to find appropriate key in key set.")
 }
 
-func tokenAlgoChecker(algo string, cert *x509.Certificate) (interface{}, error) {
-	switch algo {
+func tokenAlgoChecker(method string, cert *x509.Certificate) (interface{}, error) {
+	switch method {
 	case "RS256", "RS384", "RS512":
 		pubKey, ok := cert.PublicKey.(*rsa.PublicKey)
 		if !ok {
@@ -77,6 +72,6 @@ func tokenAlgoChecker(algo string, cert *x509.Certificate) (interface{}, error) 
 		}
 		return pubKey, nil
 	default:
-		return nil, fmt.Errorf("unsupported token method signature %q", algo)
+		return nil, fmt.Errorf("invalid access token signing method %q", method)
 	}
 }

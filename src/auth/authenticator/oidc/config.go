@@ -1,4 +1,4 @@
-package oicd
+package oidc
 
 import (
 	"crypto/x509"

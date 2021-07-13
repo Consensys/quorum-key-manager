@@ -11,104 +11,104 @@ import (
 	auth2 "github.com/consensys/quorum-key-manager/pkg/auth"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 func init() {
-	_ = viper.BindEnv(authOICDCACertFileViperKey, authOICDCACertFileEnv)
-	_ = viper.BindEnv(AuthOICDCAKeyFileViperKey, authOICDCAKeyFileEnv)
-	_ = viper.BindEnv(authOICDIssuerURLViperKey, authOICDIssuerURLEnv)
+	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
+	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
+	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 
-	viper.SetDefault(authOICDClaimUsernameViperKey, authOICDClaimUsernameDefault)
-	_ = viper.BindEnv(authOICDClaimUsernameViperKey, authOICDClaimUsernameEnv)
+	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
+	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
 
-	viper.SetDefault(authOICDClaimGroupViperKey, authOICDClaimGroupDefault)
-	_ = viper.BindEnv(authOICDClaimGroupViperKey, authOICDClaimGroupEnv)
+	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
+	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
 
 }
 
 const (
-	authOICDCACertFileFlag     = "auth-oidc-ca-cert"
-	authOICDCACertFileViperKey = "auth.oidc.ca.cert"
-	authOICDCACertFileDefault  = ""
-	authOICDCACertFileEnv      = "AUTH_OICD_CA_CERT"
+	authOIDCCACertFileFlag     = "auth-oidc-ca-cert"
+	authOIDCCACertFileViperKey = "auth.oidc.ca.cert"
+	authOIDCCACertFileDefault  = ""
+	authOIDCCACertFileEnv      = "AUTH_OIDC_CA_CERT"
 )
 
 const (
-	authOICDIssuerURLFlag     = "auth-oidc-issuer-url"
-	authOICDIssuerURLViperKey = "auth.oidc.issuer.url"
-	authOICDIssuerURLDefault  = ""
-	authOICDIssuerURLEnv      = "AUTH_OICD_ISSUER_URL"
+	authOIDCIssuerURLFlag     = "auth-oidc-issuer-url"
+	authOIDCIssuerURLViperKey = "auth.oidc.issuer.url"
+	authOIDCIssuerURLDefault  = ""
+	authOIDCIssuerURLEnv      = "AUTH_OIDC_ISSUER_URL"
 )
 
 const (
-	authOICDCAKeyFileFlag     = "auth-oidc-ca-key"
-	AuthOICDCAKeyFileViperKey = "auth.oidc.ca.key"
-	authOICDCAKeyFileDefault  = ""
-	authOICDCAKeyFileEnv      = "AUTH_OICD_CA_KEY"
+	authOIDCCAKeyFileFlag     = "auth-oidc-ca-key"
+	AuthOIDCCAKeyFileViperKey = "auth.oidc.ca.key"
+	authOIDCCAKeyFileDefault  = ""
+	authOIDCCAKeyFileEnv      = "AUTH_OIDC_CA_KEY"
 )
 
 const (
-	authOICDClaimUsernameFlag     = "auth-oidc-claim-username"
-	authOICDClaimUsernameViperKey = "auth.oidc.claim.username"
-	authOICDClaimUsernameDefault  = "qkm.auth.username"
-	authOICDClaimUsernameEnv      = "AUTH_OICD_CLAIM_USERNAME"
+	authOIDCClaimUsernameFlag     = "auth-oidc-claim-username"
+	authOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
+	authOIDCClaimUsernameDefault  = "qkm.auth.username"
+	authOIDCClaimUsernameEnv      = "AUTH_OIDC_CLAIM_USERNAME"
 )
 
 const (
-	authOICDClaimGroupFlag     = "auth-oidc-claim-groups"
-	authOICDClaimGroupViperKey = "auth.oidc.claim.groups"
-	authOICDClaimGroupDefault  = "qkm.auth.groups"
-	authOICDClaimGroupEnv      = "AUTH_OICD_CLAIM_GROUPS"
+	authOIDCClaimGroupFlag     = "auth-oidc-claim-groups"
+	authOIDCClaimGroupViperKey = "auth.oidc.claim.groups"
+	authOIDCClaimGroupDefault  = "qkm.auth.groups"
+	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
 
 func AuthFlags(f *pflag.FlagSet) {
-	authOICDCAFile(f)
-	authOICDIssuerServer(f)
-	AuthOICDClaimUsername(f)
-	AuthOICDClaimGroups(f)
+	authOIDCCAFile(f)
+	authOIDCIssuerServer(f)
+	AuthOIDCClaimUsername(f)
+	AuthOIDCClaimGroups(f)
 }
 
 // Use only on generate-token utils 
-func AuthOICDCertKeyFile(f *pflag.FlagSet) {
+func AuthOIDCCertKeyFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`OpenID Connect CA Cert filepath.
-Environment variable: %q`, authOICDCAKeyFileEnv)
-	f.String(authOICDCAKeyFileFlag, authOICDCAKeyFileDefault, desc)
-	_ = viper.BindPFlag(AuthOICDCAKeyFileViperKey, f.Lookup(authOICDCAKeyFileFlag))
+Environment variable: %q`, authOIDCCAKeyFileEnv)
+	f.String(authOIDCCAKeyFileFlag, authOIDCCAKeyFileDefault, desc)
+	_ = viper.BindPFlag(AuthOIDCCAKeyFileViperKey, f.Lookup(authOIDCCAKeyFileFlag))
 }
 
-func authOICDCAFile(f *pflag.FlagSet) {
+func authOIDCCAFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`OpenID Connect CA Key filepath.
-Environment variable: %q`, authOICDClaimUsernameEnv)
-	f.String(authOICDClaimUsernameFlag, authOICDClaimUsernameDefault, desc)
-	_ = viper.BindPFlag(authOICDClaimUsernameViperKey, f.Lookup(authOICDClaimUsernameFlag))
+Environment variable: %q`, authOIDCClaimUsernameEnv)
+	f.String(authOIDCClaimUsernameFlag, authOIDCClaimUsernameDefault, desc)
+	_ = viper.BindPFlag(authOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
 }
 
-func authOICDIssuerServer(f *pflag.FlagSet) {
+func authOIDCIssuerServer(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`OpenID Connect issuer server domain (ie. https://quorum-key-manager.eu.auth0.com/.well-known/jwks.json).
-Environment variable: %q`, authOICDIssuerURLEnv)
-	f.String(authOICDIssuerURLFlag, authOICDIssuerURLDefault, desc)
-	_ = viper.BindPFlag(authOICDIssuerURLViperKey, f.Lookup(authOICDIssuerURLFlag))
+Environment variable: %q`, authOIDCIssuerURLEnv)
+	f.String(authOIDCIssuerURLFlag, authOIDCIssuerURLDefault, desc)
+	_ = viper.BindPFlag(authOIDCIssuerURLViperKey, f.Lookup(authOIDCIssuerURLFlag))
 }
 
-func AuthOICDClaimUsername(f *pflag.FlagSet) {
+func AuthOIDCClaimUsername(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for username.
-Environment variable: %q`, authOICDClaimGroupEnv)
-	f.String(authOICDClaimGroupFlag, authOICDClaimGroupDefault, desc)
-	_ = viper.BindPFlag(authOICDClaimGroupViperKey, f.Lookup(authOICDClaimGroupFlag))
+Environment variable: %q`, authOIDCClaimGroupEnv)
+	f.String(authOIDCClaimGroupFlag, authOIDCClaimGroupDefault, desc)
+	_ = viper.BindPFlag(authOIDCClaimGroupViperKey, f.Lookup(authOIDCClaimGroupFlag))
 }
 
-func AuthOICDClaimGroups(f *pflag.FlagSet) {
+func AuthOIDCClaimGroups(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for groups.
-Environment variable: %q`, authOICDCACertFileEnv)
-	f.String(authOICDCACertFileFlag, authOICDCACertFileDefault, desc)
-	_ = viper.BindPFlag(authOICDCACertFileViperKey, f.Lookup(authOICDCACertFileFlag))
+Environment variable: %q`, authOIDCCACertFileEnv)
+	f.String(authOIDCCACertFileFlag, authOIDCCACertFileDefault, desc)
+	_ = viper.BindPFlag(authOIDCCACertFileViperKey, f.Lookup(authOIDCCACertFileFlag))
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
-	var oicdCfg = &oicd.Config{}
+	var oidcCfg = &oidc.Config{}
 	certs := []*x509.Certificate{}
 	
 	fileCert, err := fileCertificate(vipr)
@@ -125,14 +125,14 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certs = append(certs, issuerCerts...)
 	}
 
-	oicdCfg = oicd.NewConfig(vipr.GetString(authOICDClaimUsernameViperKey), 
-			vipr.GetString(authOICDClaimGroupViperKey), certs...)
+	oidcCfg = oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey), 
+			vipr.GetString(authOIDCClaimGroupViperKey), certs...)
 	
-	return &auth.Config{OICD: oicdCfg}, nil
+	return &auth.Config{OIDC: oidcCfg}, nil
 }
 
 func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
-	caFile := vipr.GetString(authOICDCACertFileViperKey)
+	caFile := vipr.GetString(authOIDCCACertFileViperKey)
 	_, err := os.Stat(caFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -156,7 +156,7 @@ func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 }
 
 func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
-	issuerServer := vipr.GetString(authOICDIssuerURLViperKey)
+	issuerServer := vipr.GetString(authOIDCIssuerURLViperKey)
 	if issuerServer == "" {
 		return nil, nil
 	}

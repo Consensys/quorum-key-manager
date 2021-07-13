@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 )
 
 type Config struct {
-	OICD *oicd.Config
+	OIDC *oidc.Config
 }

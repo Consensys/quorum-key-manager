@@ -1,29 +1,24 @@
-package testutils
+package auth
 
 import (
+	"crypto"
 	"crypto/rsa"
 	"encoding/json"
 	"strings"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/golang-jwt/jwt"
 )
 
 type JWTGenerator struct {
 	privateKey *rsa.PrivateKey
-	claims     *oicd.ClaimsConfig
+	claims     *oidc.ClaimsConfig
 }
 
-func NewJWTGenerator(keyPair *certificate.KeyPair, claims *oicd.ClaimsConfig) (*JWTGenerator, error) {
-	cert, err := certificate.X509(keyPair)
-	if err != nil {
-		return nil, err
-	}
-
+func NewJWTGenerator(key crypto.PrivateKey, claims *oidc.ClaimsConfig) (*JWTGenerator, error) {
 	return &JWTGenerator{
-		privateKey: cert.PrivateKey.(*rsa.PrivateKey),
+		privateKey: key.(*rsa.PrivateKey),
 		claims:     claims,
 	}, nil
 }

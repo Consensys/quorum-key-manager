@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
+	"github.com/consensys/quorum-key-manager/pkg/auth"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oicd/testutils"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -37,9 +37,9 @@ func newUtilCommand() *cobra.Command {
 	}
 
 	flags.LoggerFlags(generateJWTCmd.Flags())
-	flags.AuthOICDClaimUsername(generateJWTCmd.Flags())
-	flags.AuthOICDClaimGroups(generateJWTCmd.Flags())
-	flags.AuthOICDCertKeyFile(generateJWTCmd.Flags())
+	flags.AuthOIDCClaimUsername(generateJWTCmd.Flags())
+	flags.AuthOIDCClaimGroups(generateJWTCmd.Flags())
+	flags.AuthOIDCCertKeyFile(generateJWTCmd.Flags())
 
 	generateJWTCmd.Flags().StringVar(&username, "username", "", "username added in claims")
 	generateJWTCmd.Flags().StringArrayVar(&groups, "groups", []string{}, "groups added in claims")
@@ -64,7 +64,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	}
 	defer syncZapLogger(logger)
 
-	keyFile := vipr.GetString(flags.AuthOICDCAKeyFileViperKey)
+	keyFile := vipr.GetString(flags.AuthOIDCCAKeyFileViperKey)
 	_, err = os.Stat(keyFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -78,10 +78,19 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	oicdCfg := authCfg.OICD
-	generator, err := testutils.NewJWTGenerator(&certificate.KeyPair{
-		Key:  keyFileContent,
-	}, oicdCfg.Claims)
+	oidcCfg := authCfg.OIDC
+	var keys [][]byte
+	keys, err = certificate.Decode(keyFileContent, "PRIVATE KEY")
+	if err != nil {
+		return err
+	}
+
+	certKey, err := certificate.ParsePrivateKey(keys[0])
+	if err != nil {
+		return err
+	}
+
+	generator, err := auth.NewJWTGenerator(certKey, oidcCfg.Claims)
 
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())
