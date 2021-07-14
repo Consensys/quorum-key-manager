@@ -49,29 +49,13 @@ func (checker *JWTChecker) Check(_ context.Context, bearerToken string) (*Claims
 
 func (checker *JWTChecker) keyFunc(token *jwt.Token) (interface{}, error) {
 	for _, cert := range checker.certs {
-		if pubkey, err := tokenAlgoChecker(token.Method.Alg(), cert); err == nil {
-			return pubkey, nil
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); ok {
+			return cert.PublicKey.(*rsa.PublicKey), nil
+		}
+		if _, ok := token.Method.(*jwt.SigningMethodECDSA); !ok {
+			return cert.PublicKey.(*ecdsa.PublicKey), nil
 		}
 	}
 
-	return nil, fmt.Errorf("unable to find appropriate key in key set")
-}
-
-func tokenAlgoChecker(method string, cert *x509.Certificate) (interface{}, error) {
-	switch method {
-	case "RS256", "RS384", "RS512":
-		pubKey, ok := cert.PublicKey.(*rsa.PublicKey)
-		if !ok {
-			return nil, fmt.Errorf("certificate is not an RSA public key")
-		}
-		return pubKey, nil
-	case "ES256", "ES384", "ES512":
-		pubKey, ok := cert.PublicKey.(*ecdsa.PublicKey)
-		if !ok {
-			return nil, fmt.Errorf("certificate is not an ECDSA public key")
-		}
-		return pubKey, nil
-	default:
-		return nil, fmt.Errorf("invalid access token signing method %q", method)
-	}
+	return nil, fmt.Errorf("unexpected method: %s", token.Method.Alg())
 }
