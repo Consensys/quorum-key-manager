@@ -47,6 +47,8 @@ func (s *eth1TestSuite) TearDownSuite() {
 		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
 			return
 		}
+
+		require.NoError(s.T(), err)
 	}
 
 	for _, acc := range accounts {

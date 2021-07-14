@@ -40,6 +40,7 @@ func (s *keysTestSuite) TearDownSuite() {
 			return
 		}
 
+		fmt.Println(err.Error())
 		require.NoError(s.T(), err)
 	}
 

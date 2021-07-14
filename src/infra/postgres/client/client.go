@@ -115,13 +115,8 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 	// Check whether we already are in a tx or not to allow for nested DB transactions
 	dbtx, isTx := c.db.(*pg.Tx)
 	if isTx {
-		err = dbtx.RunInTransaction(ctx, persistFunc)
-	} else {
-		err = c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
-	}
-	if err != nil {
-		return parseErrorResponse(err)
+		return dbtx.RunInTransaction(ctx, persistFunc)
 	}
 
-	return nil
+	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
 }
