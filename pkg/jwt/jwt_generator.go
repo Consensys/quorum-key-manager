@@ -1,29 +1,25 @@
-package auth
+package jwt
 
 import (
 	"crypto"
 	"crypto/rsa"
 	"encoding/json"
-	"strings"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/golang-jwt/jwt"
 )
 
-type JWTGenerator struct {
+type TokenGenerator struct {
 	privateKey *rsa.PrivateKey
-	claims     *oidc.ClaimsConfig
 }
 
-func NewJWTGenerator(key crypto.PrivateKey, claims *oidc.ClaimsConfig) (*JWTGenerator, error) {
-	return &JWTGenerator{
+func NewTokenGenerator(key crypto.PrivateKey) (*TokenGenerator, error) {
+	return &TokenGenerator{
 		privateKey: key.(*rsa.PrivateKey),
-		claims:     claims,
 	}, nil
 }
 
-func (j *JWTGenerator) GenerateAccessToken(username string, groups []string, ttl time.Duration) (tokenValue string, err error) {
+func (j *TokenGenerator) GenerateAccessToken(claims map[string]interface{}, ttl time.Duration) (tokenValue string, err error) {
 	sc := jwt.StandardClaims{
 		Issuer:    "quorum-key-manager",
 		IssuedAt:  time.Now().UTC().Unix(),
@@ -37,8 +33,9 @@ func (j *JWTGenerator) GenerateAccessToken(username string, groups []string, ttl
 	c := jwt.MapClaims{}
 	_ = json.Unmarshal(bsc, &c)
 
-	c[j.claims.Username] = username
-	c[j.claims.Group] = strings.Join(groups, ",")
+	for k, v := range claims {
+		c[k] = v
+	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, c)
 	s, err := token.SignedString(j.privateKey)

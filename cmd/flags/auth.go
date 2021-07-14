@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	auth2 "github.com/consensys/quorum-key-manager/pkg/auth"
+	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
@@ -163,7 +163,7 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 		return nil, nil
 	}
 
-	jwks, err := auth2.RetrieveKeySet(context.Background(), http.DefaultClient, issuerServer)
+	jwks, err := jwt.RetrieveKeySet(context.Background(), http.DefaultClient, issuerServer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve auth server jwks: %s", issuerServer)
 	}

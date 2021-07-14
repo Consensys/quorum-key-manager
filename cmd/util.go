@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	"github.com/consensys/quorum-key-manager/pkg/auth"
+	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/spf13/cobra"
@@ -90,14 +91,17 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	generator, err := auth.NewJWTGenerator(certKey, oidcCfg.Claims)
+	generator, err := jwt.NewTokenGenerator(certKey)
 
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())
 		return err
 	}
 
-	token, err := generator.GenerateAccessToken(username, groups, expiration)
+	token, err := generator.GenerateAccessToken(map[string]interface{}{
+		oidcCfg.Claims.Username: username,
+		oidcCfg.Claims.Group:    strings.Join(groups, ","),
+	}, expiration)
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())
 		return err
