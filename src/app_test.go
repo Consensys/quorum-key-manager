@@ -23,5 +23,6 @@ func TestApp(t *testing.T) {
 		Manifests: &manifestsmanager.Config{Path: dir},
 		Postgres:  &client.Config{},
 	}, testutils.NewMockLogger(ctrl))
+
 	require.NoError(t, err, "New must not error")
 }

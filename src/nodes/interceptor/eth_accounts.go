@@ -4,13 +4,15 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, error) {
 	i.logger.Debug("listing ETH accounts")
 
-	storeAccounts, err := i.stores.ListAllAccounts(ctx)
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	storeAccounts, err := i.stores.ListAllAccounts(ctx, userInfo)
 	if err != nil {
 		return nil, err
 	}

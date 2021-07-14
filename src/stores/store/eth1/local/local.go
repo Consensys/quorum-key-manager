@@ -212,8 +212,6 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
-	logger := s.logger.With("address", addr)
-
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
 	signature, err := s.SignData(ctx, addr, txData)
@@ -223,36 +221,26 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 
 	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
-		errMessage := "failed to set transaction signature"
-		logger.WithError(err).Error(errMessage, "signature", signature)
-		return nil, errors.DependencyFailureError(errMessage)
+		return nil, errors.DependencyFailureError("failed to set transaction signature. %s", err.Error())
 	}
 
 	signedRaw, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
-		errMessage := "failed to RLP encode signed transaction"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.EncodingError(errMessage)
+		return nil, errors.EncodingError("failed to RLP encode signed transaction. %s", err.Error())
 	}
 
 	return signedRaw, nil
 }
 
 func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
-	logger := s.logger.With("address", addr)
-
 	privateFromEncoded, err := base64.StdEncoding.DecodeString(*args.PrivateFrom)
 	if err != nil {
-		errMessage := "invalid privateFrom param"
-		logger.WithError(err).Error(errMessage, "privateFrom", *args.PrivateFrom)
-		return nil, errors.InvalidParameterError(errMessage)
+		return nil, errors.InvalidParameterError("invalid privateFrom param. %s", err.Error())
 	}
 
 	privateRecipientEncoded, err := getEncodedPrivateRecipient(args.PrivacyGroupID, args.PrivateFor)
 	if err != nil {
-		errMessage := "invalid privacyGroupID or privateFor params"
-		logger.WithError(err).Error(errMessage, "privateFor", *args.PrivateFor, "privacyGroupID", *args.PrivacyGroupID)
-		return nil, errors.InvalidParameterError(errMessage)
+		return nil, errors.InvalidParameterError("invalid privacyGroupID or privateFor params. %s", err.Error())
 	}
 
 	hash, err := eeaHash([]interface{}{
@@ -270,9 +258,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		*args.PrivateType,
 	})
 	if err != nil {
-		errMessage := "failed to hash EEA transaction"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
+		return nil, errors.InvalidParameterError("failed to hash EEA transaction. %s", err.Error())
 	}
 
 	signature, err := s.SignData(ctx, addr, hash[:])
@@ -282,9 +268,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 
 	signedTx, err := tx.WithSignature(types.NewEIP155Signer(chainID), signature)
 	if err != nil {
-		errMessage := "failed to set eea transaction signature"
-		logger.WithError(err).Error(errMessage, "signature", signature)
-		return nil, errors.DependencyFailureError(errMessage)
+		return nil, errors.DependencyFailureError("failed to set eea transaction signature. %s", err.Error())
 	}
 	V, R, S := signedTx.RawSignatureValues()
 
@@ -303,17 +287,13 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		*args.PrivateType,
 	})
 	if err != nil {
-		errMessage := "failed to RLP encode signed eea transaction"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.EncodingError(errMessage)
+		return nil, errors.EncodingError("failed to RLP encode signed eea transaction. %s", err.Error())
 	}
 
 	return signedRaw, nil
 }
 
 func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
-	logger := s.logger.With("address", addr)
-
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
 	signature, err := s.SignData(ctx, addr, txData)
@@ -323,16 +303,12 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 
 	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
-		errMessage := "failed to set quorum private transaction signature"
-		logger.WithError(err).Error(errMessage, "signature", signature)
-		return nil, errors.DependencyFailureError(errMessage)
+		return nil, errors.DependencyFailureError("failed to set quorum private transaction signature. %s", err.Error())
 	}
 
 	signedRaw, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
-		errMessage := "failed to RLP encode signed quorum private transaction"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.EncodingError(errMessage)
+		return nil, errors.EncodingError("failed to RLP encode signed quorum private transaction. %s", err.Error())
 	}
 
 	return signedRaw, nil
@@ -341,9 +317,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
 	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
 	if err != nil {
-		errMessage := "failed to recover public key, please verify your signature and payload"
-		s.logger.WithError(err).Error(errMessage)
-		return "", errors.InvalidParameterError(errMessage)
+		return "", errors.InvalidParameterError("failed to recover public key, please verify your signature and payload. %s", err.Error())
 	}
 
 	return crypto.PubkeyToAddress(*pubKey).Hex(), nil
@@ -356,9 +330,7 @@ func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error
 	}
 
 	if addr != recoveredAddress {
-		errMessage := "failed to verify signature: recovered address does not match the expected one or payload is malformed"
-		s.logger.Error(errMessage, "address", addr, "recovered_address", recoveredAddress)
-		return errors.InvalidParameterError(errMessage)
+		return errors.InvalidParameterError("failed to verify signature: recovered address does not match the expected one or payload is malformed")
 	}
 
 	return nil
@@ -367,9 +339,7 @@ func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error
 func (s *Store) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
-		errMessage := "failed to generate EIP-712 encoded data"
-		s.logger.WithError(err).Error(errMessage)
-		return errors.InvalidParameterError(errMessage)
+		return errors.InvalidParameterError("failed to generate EIP-712 encoded data. %s", err.Error())
 	}
 
 	return s.Verify(ctx, addr, []byte(encodedData), sig)

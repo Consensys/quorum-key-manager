@@ -51,12 +51,12 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = stores.RegisterService(a, logger.WithComponent("stores"), db)
+	err = auth.RegisterService(a, logger.WithComponent("auth"))
 	if err != nil {
 		return nil, err
 	}
 
-	err = auth.RegisterService(a, logger.WithComponent("auth"))
+	err = stores.RegisterService(a, logger.WithComponent("stores"), db)
 	if err != nil {
 		return nil, err
 	}

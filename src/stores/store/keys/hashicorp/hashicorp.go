@@ -5,10 +5,9 @@ import (
 	"encoding/base64"
 	"path"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )
@@ -49,8 +48,6 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
-	logger.Debug("creating key")
 
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
@@ -59,18 +56,13 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 		tagsLabel:      attr.Tags,
 	})
 	if err != nil {
-		logger.WithError(err).Error("failed to create key")
 		return nil, err
 	}
 
-	logger.Info("key created successfully")
 	return parseResponse(res)
 }
 
 func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
-	logger.Debug("importing key")
-
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -79,37 +71,28 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 		privateKeyLabel: base64.URLEncoding.EncodeToString(privKey),
 	})
 	if err != nil {
-		logger.WithError(err).Error("failed to import key")
 		return nil, err
 	}
 
-	logger.Info("key imported successfully")
 	return parseResponse(res)
 }
 
 func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
-
 	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
-		logger.WithError(err).Error("failed to get key")
 		return nil, err
 	}
 
 	if res.Data["error"] != nil {
-		errMessage := "could not find key pair"
-		logger.Error(errMessage)
-		return nil, errors.NotFoundError(errMessage)
+		return nil, errors.NotFoundError("could not find key pair")
 	}
 
-	logger.Debug("key retrieved successfully")
 	return parseResponse(res)
 }
 
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
-		s.logger.WithError(err).Error("failed to list keys")
 		return nil, err
 	}
 
@@ -127,23 +110,17 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 		ids = append(ids, id.(string))
 	}
 
-	s.logger.Debug("keys listed successfully")
 	return ids, nil
 }
 
-func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
-	logger.Debug("updating key")
-
+func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys(id), map[string]interface{}{
 		tagsLabel: attr.Tags,
 	})
 	if err != nil {
-		s.logger.WithError(err).Error("failed to update key")
 		return nil, err
 	}
 
-	logger.Info("key updated successfully")
 	return parseResponse(res)
 }
 

@@ -1,4 +1,4 @@
-package manager
+package policy
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 var authKinds = []manifest.Kind{
 	GroupKind,
-	PolicyKind,
+	Kind,
 }
 
 // BaseManager allow to manage Policies and Groups
@@ -71,6 +71,34 @@ func (mngr *BaseManager) Error() error {
 
 func (mngr *BaseManager) Close() error {
 	return nil
+}
+
+func (mngr *BaseManager) UserPolicies(ctx context.Context, info *types.UserInfo) []types.Policy {
+	// Retrieve policies associated to user info
+	var policies []types.Policy
+	if info == nil {
+		return policies
+	}
+
+	for _, groupName := range info.Groups {
+		group, err := mngr.Group(ctx, groupName)
+		if err != nil {
+			mngr.logger.WithError(err).With("group", groupName).Debug("could not load group")
+			continue
+		}
+
+		for _, policyName := range group.Policies {
+			policy, err := mngr.Policy(ctx, policyName)
+			if err != nil {
+				mngr.logger.WithError(err).With("policy", groupName).Debug("could not load policy")
+				continue
+			}
+			policies = append(policies, *policy)
+		}
+	}
+
+	// Create resolver
+	return policies
 }
 
 func (mngr *BaseManager) policy(name string) (*types.Policy, error) {
@@ -135,7 +163,7 @@ func (mngr *BaseManager) load(_ context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 		logger.Info("loaded Group")
-	case PolicyKind:
+	case Kind:
 		err := mngr.loadPolicy(mnf)
 		if err != nil {
 			logger.WithError(err).Error("could not load Policy")
@@ -174,7 +202,7 @@ func (mngr *BaseManager) loadPolicy(mnf *manifest.Manifest) error {
 		return fmt.Errorf("policy %q already exist", mnf.Name)
 	}
 
-	specs := new(PolicySpecs)
+	specs := new(Specs)
 	if err := mnf.UnmarshalSpecs(specs); err != nil {
 		return fmt.Errorf("invalid Policy specs: %v", err)
 	}

@@ -8,6 +8,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/store/eth1/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -21,8 +23,15 @@ func TestEEASendTransaction(t *testing.T) {
 	i, stores := newInterceptor(ctrl)
 	accountsStore := mockaccounts.NewMockStore(ctrl)
 
+	userInfo := &types.UserInfo{
+		Username: "username",
+		Groups:   []string{"group1", "group2"},
+	}
 	session := proxynode.NewMockSession(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
+	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
+		UserInfo: userInfo,
+	})
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)
@@ -43,7 +52,7 @@ func TestEEASendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
@@ -73,7 +82,7 @@ func TestEEASendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom).Return(accountsStore, nil)
+				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
