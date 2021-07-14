@@ -16,10 +16,10 @@ type Key struct {
 	Tags             map[string]string
 	Annotations      map[string]string
 	Disabled         bool
-	ExpireAt         time.Time
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	CreatedAt        time.Time `pg:"default:now()"`
+	UpdatedAt        time.Time `pg:"default:now()"`
 	DeletedAt        time.Time `pg:",soft_delete"`
+	ExpireAt         time.Time
 	DestroyedAt      time.Time
 }
 
