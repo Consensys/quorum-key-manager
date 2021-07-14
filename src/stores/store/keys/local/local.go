@@ -25,16 +25,16 @@ import (
 
 type Store struct {
 	secretStore secrets.Store
-	keysDA      database.Keys
+	db          database.Database
 	logger      log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(secretStore secrets.Store, keysDA database.Keys, logger log.Logger) *Store {
+func New(secretStore secrets.Store, db database.Database, logger log.Logger) *Store {
 	return &Store{
 		secretStore: secretStore,
-		keysDA:      keysDA,
+		db:          db,
 		logger:      logger,
 	}
 }
@@ -54,7 +54,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 
-	key, err := s.keysDA.Get(ctx, id)
+	key, err := s.db.Keys().Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
 	ids := []string{}
-	keysRetrieved, err := s.keysDA.GetAll(ctx)
+	keysRetrieved, err := s.db.Keys().GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -82,13 +82,13 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 	logger := s.logger.With("id", id)
 	logger.Debug("updating key")
 
-	key, err := s.keysDA.Get(ctx, id)
+	key, err := s.db.Keys().Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	key.Tags = attr.Tags
 
-	err = s.keysDA.Update(ctx, key)
+	err = s.db.Keys().Update(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -101,12 +101,14 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("deleting key")
 
-	err := s.secretStore.Delete(ctx, id)
-	if err != nil {
-		return err
-	}
+	err := s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
+		err := s.db.Keys().Remove(ctx, id)
+		if err != nil {
+			return err
+		}
 
-	err = s.keysDA.Remove(ctx, id)
+		return s.secretStore.Delete(ctx, id)
+	})
 	if err != nil {
 		return err
 	}
@@ -118,7 +120,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 
-	key, err := s.keysDA.GetDeleted(ctx, id)
+	key, err := s.db.Keys().GetDeleted(ctx, id)
 	if err != nil {
 		logger.Error("failed to get deleted key")
 		return nil, err
@@ -130,7 +132,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	ids := []string{}
-	keysRetrieved, err := s.keysDA.GetAllDeleted(ctx)
+	keysRetrieved, err := s.db.Keys().GetAllDeleted(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -147,17 +149,19 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("restoring key")
 
-	key, err := s.keysDA.GetDeleted(ctx, id)
+	key, err := s.db.Keys().GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = s.secretStore.Undelete(ctx, id)
-	if err != nil {
-		return err
-	}
+	err = s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
+		derr := s.db.Keys().Restore(ctx, key)
+		if derr != nil {
+			return derr
+		}
 
-	err = s.keysDA.Restore(ctx, key)
+		return s.secretStore.Undelete(ctx, id)
+	})
 	if err != nil {
 		return err
 	}
@@ -170,17 +174,19 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 	logger.Debug("destroying key")
 
-	_, err := s.keysDA.GetDeleted(ctx, id)
+	_, err := s.db.Keys().GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = s.secretStore.Destroy(ctx, id)
-	if err != nil {
-		return err
-	}
+	err = s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
+		derr := s.db.Keys().Purge(ctx, id)
+		if derr != nil {
+			return derr
+		}
 
-	err = s.keysDA.Purge(ctx, id)
+		return s.secretStore.Destroy(ctx, id)
+	})
 	if err != nil {
 		return err
 	}
@@ -267,19 +273,26 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	secret, err := s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), attr)
-	if err != nil {
-		return nil, err
-	}
-
 	key := &entities.Key{
 		ID:        id,
 		PublicKey: pubKey,
 		Algo:      alg,
-		Metadata:  secret.Metadata,
 		Tags:      attr.Tags,
+		Metadata:  &entities.Metadata{},
 	}
-	err = s.keysDA.Add(ctx, models.NewKey(key))
+	err := s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
+		err := dbtx.Keys().Add(ctx, models.NewKey(key))
+		if err != nil {
+			return err
+		}
+
+		_, err = s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), attr)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}

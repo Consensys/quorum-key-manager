@@ -352,7 +352,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewLocalKeys(ctx, spec, m.db.Keys(), logger)
+		store, err := local.NewLocalKeys(ctx, spec, m.db, logger)
 		if err != nil {
 			return err
 		}

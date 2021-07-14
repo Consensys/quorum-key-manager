@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
-
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -13,6 +12,7 @@ import (
 type Database interface {
 	ETH1Accounts() ETH1Accounts
 	Keys() Keys
+	RunInTransaction(ctx context.Context, persistFunc func(dbtx Database) error) error
 }
 
 type ETH1Accounts interface {

@@ -19,8 +19,6 @@ type Key struct {
 	CreatedAt        time.Time `pg:"default:now()"`
 	UpdatedAt        time.Time `pg:"default:now()"`
 	DeletedAt        time.Time `pg:",soft_delete"`
-	ExpireAt         time.Time
-	DestroyedAt      time.Time
 }
 
 func NewKey(k *entities.Key) *Key {
@@ -32,11 +30,9 @@ func NewKey(k *entities.Key) *Key {
 		Tags:             k.Tags,
 		Annotations:      k.Annotations,
 		Disabled:         k.Metadata.Disabled,
-		ExpireAt:         k.Metadata.ExpireAt,
 		CreatedAt:        k.Metadata.CreatedAt,
 		UpdatedAt:        k.Metadata.UpdatedAt,
 		DeletedAt:        k.Metadata.DeletedAt,
-		DestroyedAt:      k.Metadata.DestroyedAt,
 	}
 }
 
@@ -51,12 +47,10 @@ func (k *Key) ToEntity() *entities.Key {
 		Tags:        k.Tags,
 		Annotations: k.Annotations,
 		Metadata: &entities.Metadata{
-			Disabled:    k.Disabled,
-			ExpireAt:    k.ExpireAt,
-			CreatedAt:   k.CreatedAt,
-			UpdatedAt:   k.UpdatedAt,
-			DeletedAt:   k.DeletedAt,
-			DestroyedAt: k.DestroyedAt,
+			Disabled:  k.Disabled,
+			CreatedAt: k.CreatedAt,
+			UpdatedAt: k.UpdatedAt,
+			DeletedAt: k.DeletedAt,
 		},
 	}
 }

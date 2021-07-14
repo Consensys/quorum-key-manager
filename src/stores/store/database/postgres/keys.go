@@ -96,9 +96,9 @@ func (d *Keys) Update(ctx context.Context, key *models.Key) error {
 
 func (d *Keys) Remove(ctx context.Context, id string) error {
 	key := &models.Key{ID: id}
-	err := d.db.UpdatePK(ctx, key)
+	err := d.db.DeletePK(ctx, key)
 	if err != nil {
-		d.logger.WithError(err).Error("failed to update key")
+		d.logger.WithError(err).Error("failed to delete key")
 		return err
 	}
 
@@ -107,14 +107,20 @@ func (d *Keys) Remove(ctx context.Context, id string) error {
 
 func (d *Keys) Restore(ctx context.Context, key *models.Key) error {
 	key.DeletedAt = time.Time{}
-	return d.Update(ctx, key)
+	err := d.Update(ctx, key)
+	if err != nil {
+		d.logger.WithError(err).Error("failed to restore key")
+		return err
+	}
+
+	return nil
 }
 
 func (d *Keys) Purge(ctx context.Context, id string) error {
 	key := &models.Key{ID: id}
 	err := d.db.ForceDeletePK(ctx, key)
 	if err != nil {
-		d.logger.WithError(err).Error("failed to update key")
+		d.logger.WithError(err).Error("failed to permanently delete key")
 		return err
 	}
 

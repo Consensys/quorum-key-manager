@@ -24,7 +24,7 @@ type KeySpecs struct {
 	Specs       interface{}
 }
 
-func NewLocalKeys(_ context.Context, specs *KeySpecs, keys database.Keys, logger log.Logger) (*localkeys.Store, error) {
+func NewLocalKeys(_ context.Context, specs *KeySpecs, db database.Database, logger log.Logger) (*localkeys.Store, error) {
 	var secretStore secrets.Store
 	var err error
 
@@ -62,5 +62,5 @@ func NewLocalKeys(_ context.Context, specs *KeySpecs, keys database.Keys, logger
 		return nil, err
 	}
 
-	return localkeys.New(secretStore, keys, logger), nil
+	return localkeys.New(secretStore, db, logger), nil
 }

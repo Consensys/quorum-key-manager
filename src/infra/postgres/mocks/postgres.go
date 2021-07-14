@@ -6,6 +6,7 @@ package mocks
 
 import (
 	context "context"
+	postgres "github.com/consensys/quorum-key-manager/src/infra/postgres"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -183,4 +184,18 @@ func (mr *MockClientMockRecorder) ForceDeletePK(ctx interface{}, model ...interf
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, model...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeletePK", reflect.TypeOf((*MockClient)(nil).ForceDeletePK), varargs...)
+}
+
+// RunInTransaction mocks base method
+func (m *MockClient) RunInTransaction(ctx context.Context, persist func(postgres.Client) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RunInTransaction", ctx, persist)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RunInTransaction indicates an expected call of RunInTransaction
+func (mr *MockClientMockRecorder) RunInTransaction(ctx, persist interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockClient)(nil).RunInTransaction), ctx, persist)
 }

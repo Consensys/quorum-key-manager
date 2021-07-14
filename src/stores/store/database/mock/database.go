@@ -64,6 +64,20 @@ func (mr *MockDatabaseMockRecorder) Keys() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Keys", reflect.TypeOf((*MockDatabase)(nil).Keys))
 }
 
+// RunInTransaction mocks base method
+func (m *MockDatabase) RunInTransaction(ctx context.Context, persistFunc func(database.Database) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RunInTransaction", ctx, persistFunc)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RunInTransaction indicates an expected call of RunInTransaction
+func (mr *MockDatabaseMockRecorder) RunInTransaction(ctx, persistFunc interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockDatabase)(nil).RunInTransaction), ctx, persistFunc)
+}
+
 // MockETH1Accounts is a mock of ETH1Accounts interface
 type MockETH1Accounts struct {
 	ctrl     *gomock.Controller

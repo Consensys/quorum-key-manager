@@ -3,13 +3,15 @@ package client
 import (
 	"context"
 
+	"github.com/go-pg/pg/v10/orm"
+
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/go-pg/pg/v10"
 )
 
 type PostgresClient struct {
 	cfg *Config
-	db  *pg.DB
+	db  orm.DB
 }
 
 var _ postgres.Client = &PostgresClient{}
@@ -97,6 +99,26 @@ func (c *PostgresClient) DeletePK(ctx context.Context, model ...interface{}) err
 
 func (c *PostgresClient) ForceDeletePK(ctx context.Context, model ...interface{}) error {
 	_, err := c.db.ModelContext(ctx, model...).WherePK().ForceDelete()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(client postgres.Client) error) (err error) {
+	persistFunc := func(tx *pg.Tx) error {
+		c.db = tx
+		return persist(&c)
+	}
+
+	// Check whether we already are in a tx or not to allow for nested DB transactions
+	dbtx, isTx := c.db.(*pg.Tx)
+	if isTx {
+		err = dbtx.RunInTransaction(ctx, persistFunc)
+	} else {
+		err = c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
+	}
 	if err != nil {
 		return parseErrorResponse(err)
 	}
