@@ -5,9 +5,10 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"math/rand"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 

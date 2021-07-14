@@ -1,12 +1,13 @@
 package models
 
 import (
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 type Key struct {
-	tableName struct{} `pg:"keys"`
+	tableName struct{} `pg:"keys"` // nolint:unused,structcheck // reason
 
 	ID               string
 	PublicKey        []byte
