@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"math/rand"
 	"time"
 
@@ -58,7 +59,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	}
 
 	logger.Debug("key retrieved successfully")
-	return key, nil
+	return key.ToEntity(), nil
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
@@ -92,7 +93,7 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 	}
 
 	logger.Info("key updated successfully")
-	return key, nil
+	return key.ToEntity(), nil
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
@@ -123,7 +124,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 	}
 
 	logger.Debug("deleted key retrieved successfully")
-	return key, nil
+	return key.ToEntity(), nil
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
@@ -277,8 +278,7 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 		Metadata:  secret.Metadata,
 		Tags:      attr.Tags,
 	}
-
-	err = s.keysDA.Add(ctx, key)
+	err = s.keysDA.Add(ctx, models.NewKey(key))
 	if err != nil {
 		return nil, err
 	}

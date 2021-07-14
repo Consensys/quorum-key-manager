@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
@@ -26,13 +27,13 @@ type ETH1Accounts interface {
 }
 
 type Keys interface {
-	Get(ctx context.Context, id string) (*entities.Key, error)
-	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
-	GetAll(ctx context.Context) ([]*entities.Key, error)
-	GetAllDeleted(ctx context.Context) ([]*entities.Key, error)
-	Add(ctx context.Context, key *entities.Key) error
-	Update(ctx context.Context, key *entities.Key) error
+	Get(ctx context.Context, id string) (*models.Key, error)
+	GetDeleted(ctx context.Context, id string) (*models.Key, error)
+	GetAll(ctx context.Context) ([]*models.Key, error)
+	GetAllDeleted(ctx context.Context) ([]*models.Key, error)
+	Add(ctx context.Context, key *models.Key) error
+	Update(ctx context.Context, key *models.Key) error
 	Remove(ctx context.Context, id string) error
-	Restore(ctx context.Context, key *entities.Key) error
+	Restore(ctx context.Context, key *models.Key) error
 	Purge(ctx context.Context, id string) error
 }

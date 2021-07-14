@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 type Keys struct {
@@ -25,8 +25,8 @@ func NewKeys(logger log.Logger, db postgres.Client) *Keys {
 	}
 }
 
-func (d *Keys) Get(ctx context.Context, id string) (*entities.Key, error) {
-	key := &entities.Key{ID: id}
+func (d *Keys) Get(ctx context.Context, id string) (*models.Key, error) {
+	key := &models.Key{ID: id}
 
 	err := d.db.SelectPK(ctx, key)
 	if err != nil {
@@ -37,8 +37,8 @@ func (d *Keys) Get(ctx context.Context, id string) (*entities.Key, error) {
 	return key, nil
 }
 
-func (d *Keys) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
-	key := &entities.Key{ID: id}
+func (d *Keys) GetDeleted(ctx context.Context, id string) (*models.Key, error) {
+	key := &models.Key{ID: id}
 
 	err := d.db.SelectDeletedPK(ctx, key)
 	if err != nil {
@@ -49,8 +49,8 @@ func (d *Keys) GetDeleted(ctx context.Context, id string) (*entities.Key, error)
 	return key, nil
 }
 
-func (d *Keys) GetAll(ctx context.Context) ([]*entities.Key, error) {
-	var keys []*entities.Key
+func (d *Keys) GetAll(ctx context.Context) ([]*models.Key, error) {
+	var keys []*models.Key
 
 	err := d.db.Select(ctx, &keys)
 	if err != nil {
@@ -61,8 +61,8 @@ func (d *Keys) GetAll(ctx context.Context) ([]*entities.Key, error) {
 	return keys, nil
 }
 
-func (d *Keys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
-	var keys []*entities.Key
+func (d *Keys) GetAllDeleted(ctx context.Context) ([]*models.Key, error) {
+	var keys []*models.Key
 
 	err := d.db.SelectDeleted(ctx, keys)
 	if err != nil {
@@ -73,7 +73,7 @@ func (d *Keys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
 	return keys, nil
 }
 
-func (d *Keys) Add(ctx context.Context, key *entities.Key) error {
+func (d *Keys) Add(ctx context.Context, key *models.Key) error {
 	err := d.db.Insert(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to insert key")
@@ -83,7 +83,7 @@ func (d *Keys) Add(ctx context.Context, key *entities.Key) error {
 	return nil
 }
 
-func (d *Keys) Update(ctx context.Context, key *entities.Key) error {
+func (d *Keys) Update(ctx context.Context, key *models.Key) error {
 	err := d.db.UpdatePK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to update key")
@@ -94,7 +94,7 @@ func (d *Keys) Update(ctx context.Context, key *entities.Key) error {
 }
 
 func (d *Keys) Remove(ctx context.Context, id string) error {
-	key := &entities.Key{ID: id}
+	key := &models.Key{ID: id}
 	err := d.db.UpdatePK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to update key")
@@ -104,13 +104,13 @@ func (d *Keys) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (d *Keys) Restore(ctx context.Context, key *entities.Key) error {
-	key.Metadata.DeletedAt = time.Time{}
+func (d *Keys) Restore(ctx context.Context, key *models.Key) error {
+	key.DeletedAt = time.Time{}
 	return d.Update(ctx, key)
 }
 
 func (d *Keys) Purge(ctx context.Context, id string) error {
-	key := &entities.Key{ID: id}
+	key := &models.Key{ID: id}
 	err := d.db.ForceDeletePK(ctx, key)
 	if err != nil {
 		d.logger.WithError(err).Error("failed to update key")

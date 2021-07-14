@@ -7,6 +7,7 @@ package mock
 import (
 	context "context"
 	database "github.com/consensys/quorum-key-manager/src/stores/store/database"
+	models "github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -240,10 +241,10 @@ func (m *MockKeys) EXPECT() *MockKeysMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockKeys) Get(ctx context.Context, id string) (*entities.Key, error) {
+func (m *MockKeys) Get(ctx context.Context, id string) (*models.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(*models.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -254,11 +255,26 @@ func (mr *MockKeysMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockKeys)(nil).Get), ctx, id)
 }
 
+// GetDeleted mocks base method
+func (m *MockKeys) GetDeleted(ctx context.Context, id string) (*models.Key, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeleted", ctx, id)
+	ret0, _ := ret[0].(*models.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeleted indicates an expected call of GetDeleted
+func (mr *MockKeysMockRecorder) GetDeleted(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeleted", reflect.TypeOf((*MockKeys)(nil).GetDeleted), ctx, id)
+}
+
 // GetAll mocks base method
-func (m *MockKeys) GetAll(ctx context.Context) ([]*entities.Key, error) {
+func (m *MockKeys) GetAll(ctx context.Context) ([]*models.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx)
-	ret0, _ := ret[0].([]*entities.Key)
+	ret0, _ := ret[0].([]*models.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -270,10 +286,10 @@ func (mr *MockKeysMockRecorder) GetAll(ctx interface{}) *gomock.Call {
 }
 
 // GetAllDeleted mocks base method
-func (m *MockKeys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
+func (m *MockKeys) GetAllDeleted(ctx context.Context) ([]*models.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllDeleted", ctx)
-	ret0, _ := ret[0].([]*entities.Key)
+	ret0, _ := ret[0].([]*models.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -285,7 +301,7 @@ func (mr *MockKeysMockRecorder) GetAllDeleted(ctx interface{}) *gomock.Call {
 }
 
 // Add mocks base method
-func (m *MockKeys) Add(ctx context.Context, key *entities.Key) error {
+func (m *MockKeys) Add(ctx context.Context, key *models.Key) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", ctx, key)
 	ret0, _ := ret[0].(error)
@@ -299,7 +315,7 @@ func (mr *MockKeysMockRecorder) Add(ctx, key interface{}) *gomock.Call {
 }
 
 // Update mocks base method
-func (m *MockKeys) Update(ctx context.Context, key *entities.Key) error {
+func (m *MockKeys) Update(ctx context.Context, key *models.Key) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, key)
 	ret0, _ := ret[0].(error)
@@ -324,6 +340,20 @@ func (m *MockKeys) Remove(ctx context.Context, id string) error {
 func (mr *MockKeysMockRecorder) Remove(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockKeys)(nil).Remove), ctx, id)
+}
+
+// Restore mocks base method
+func (m *MockKeys) Restore(ctx context.Context, key *models.Key) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Restore", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Restore indicates an expected call of Restore
+func (mr *MockKeysMockRecorder) Restore(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockKeys)(nil).Restore), ctx, key)
 }
 
 // Purge mocks base method
