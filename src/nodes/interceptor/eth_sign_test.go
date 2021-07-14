@@ -54,7 +54,7 @@ func TestEthSign(t *testing.T) {
 				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(nil, errors.NotFoundError("account not found"))
 			},
 			reqBody:          []byte(`{"jsonrpc":"2.0","method":"eth_sign","params":["0x78e6e236592597c09d5c137c2af40aecd42d12a2", "0x2eadbe1f"]}`),
-			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":-32603,"message":"Internal error","data":{"message":"account not found"}},"id":null}`),
+			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":null,"error":{"code":-32603,"message":"Internal error","data":{"message":"ST100: account not found"}},"id":null}`),
 		},
 		{
 			desc:    "Error signing",
