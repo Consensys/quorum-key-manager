@@ -49,7 +49,6 @@ func TestMiddleware(t *testing.T) {
 
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusUnauthorized, rec.Code, "Status code should match")
-		assert.Equal(t, []byte(`test invalid auth`), rec.Body.Bytes()[:(rec.Body.Len()-1)], "Body should match")
 	})
 
 	t.Run("authentication accepted", func(t *testing.T) {

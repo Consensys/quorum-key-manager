@@ -56,7 +56,7 @@ func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (tls.Certificate, error) {
 			return tls.Certificate{}, err
 		}
 
-		cert.PrivateKey, err = parsePrivateKey(keys[0])
+		cert.PrivateKey, err = ParsePrivateKey(keys[0])
 		if err != nil {
 			return tls.Certificate{}, err
 		}
@@ -147,7 +147,7 @@ func decode(raw []byte, typ string) ([][]byte, error) {
 		if len(skippedBlockTypes) == 0 {
 			return nil, fmt.Errorf("failed to find any  data in input")
 		}
-		return nil, fmt.Errorf("failed to find %q  block in input after skipping  blocks of the following types: %v", typ, skippedBlockTypes)
+		return nil, fmt.Errorf("failed to find %q  block in input after skipping blocks of the following types: %v", typ, skippedBlockTypes)
 	}
 
 	return blocks, nil
@@ -168,7 +168,7 @@ func decodeBase64(data []byte) ([]byte, error) {
 // Attempt to parse the given private key DER block. OpenSSL 0.9.8 generates
 // PKCS#1 private keys by default, while OpenSSL 1.0.0 generates PKCS#8 keys.
 // OpenSSL ecparam generates SEC1 EC private keys for ECDSA. We try all three.
-func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
+func ParsePrivateKey(der []byte) (crypto.PrivateKey, error) {
 	if key, err := x509.ParsePKCS1PrivateKey(der); err == nil {
 		return key, nil
 	}

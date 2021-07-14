@@ -8,8 +8,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
-var authenticatedGroup = "system:authenticated"
-
 // Middleware synchronize authentication
 type Middleware struct {
 	authenticator Authenticator
@@ -35,13 +33,13 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 	// Authenticate request
 	info, err := mid.authenticator.Authenticate(req)
 	if err != nil {
-		OnError(rw, req, err)
+		mid.onError(rw, req, err)
 		return
 	}
 
 	if info != nil {
 		// If authentication succeeded then sets the system:authenticated group
-		info.Groups = append(info.Groups, authenticatedGroup)
+		info.Groups = append(types.AuthenticatedUser.Groups, info.Groups...)
 	} else {
 		// If no authentication then sets info to anonymous user
 		info = types.AnonymousUser
@@ -55,6 +53,8 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 	next.ServeHTTP(rw, req.WithContext(ctx))
 }
 
-func OnError(w http.ResponseWriter, _ *http.Request, err error) {
-	http.Error(w, err.Error(), http.StatusUnauthorized)
+func (mid *Middleware) onError(w http.ResponseWriter, _ *http.Request, err error) {
+	errMsg := "unauthorized request"
+	mid.logger.Error(errMsg, "err", err.Error())
+	http.Error(w, errMsg, http.StatusUnauthorized)
 }

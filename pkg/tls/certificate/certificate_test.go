@@ -1,11 +1,9 @@
-package certificate_test
+package certificate
 
 import (
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/pkg/tls/testutils"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,7 +66,7 @@ func TestX509KeyPair(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			_, err := certificate.X509KeyPair([]byte(tt.certPemBlock), []byte(tt.privPemBlock))
+			_, err := X509KeyPair([]byte(tt.certPemBlock), []byte(tt.privPemBlock))
 			if (err != nil) != tt.expectedErr {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.expectedErr)
 				return
@@ -117,7 +115,7 @@ func TestDecode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			certs, err := certificate.Decode([]byte(tt.pemBlock), tt.typ)
+			certs, err := Decode([]byte(tt.pemBlock), tt.typ)
 			if (err != nil) != tt.expectedErr {
 				t.Errorf("ParsePEM() error = %v, wantErr %v", err, tt.expectedErr)
 				return

@@ -12,7 +12,6 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 // indirect
 	github.com/aws/aws-sdk-go v1.38.41
 	github.com/consensys/gnark-crypto v0.4.0
 	github.com/consensys/quorum v2.7.0+incompatible
@@ -27,6 +26,7 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-pg/pg/v10 v10.10.1
 	github.com/go-playground/validator/v10 v10.5.0
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.5.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -55,6 +55,7 @@ require (
 	golang.org/x/sys v0.0.0-20210603125802-9665404d3644 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	golang.org/x/tools v0.1.2 // indirect
+	gopkg.in/square/go-jose.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.0
 )

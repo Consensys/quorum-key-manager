@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+	"os"
 
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/spf13/pflag"
@@ -32,8 +33,17 @@ func ManifestFlags(f *pflag.FlagSet) {
 	manifestPath(f)
 }
 
-func newManifestsConfig(vipr *viper.Viper) *manifestsmanager.Config {
+func newManifestsConfig(vipr *viper.Viper) (*manifestsmanager.Config, error) {
+	manifestPath := vipr.GetString(manifestPathKey)
+	_, err := os.Stat(manifestPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("cannot read manifest path %s", manifestPath)
+		}
+		return nil, err
+	}
+
 	return &manifestsmanager.Config{
 		Path: vipr.GetString(manifestPathKey),
-	}
+	}, nil
 }

@@ -5,12 +5,22 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewAppConfig(vipr *viper.Viper) *app.Config {
-	return &app.Config{
-		Logger:    newLoggerConfig(vipr),
-		HTTP:      newHTTPConfig(vipr),
-		Manifests: newManifestsConfig(vipr),
-		Auth:      newAuthConfig(vipr),
-		Postgres:  newPostgresConfig(vipr),
+func NewAppConfig(vipr *viper.Viper) (*app.Config, error) {
+	authCfg, err := NewAuthConfig(vipr)
+	if err != nil {
+		return nil, err
 	}
+
+	manifestCfg, err := newManifestsConfig(vipr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &app.Config{
+		Logger:    NewLoggerConfig(vipr),
+		HTTP:      newHTTPConfig(vipr),
+		Manifests: manifestCfg,
+		Auth:      authCfg,
+		Postgres:  newPostgresConfig(vipr),
+	}, nil
 }

@@ -49,7 +49,7 @@ Environment variable: %q`, []string{"text", "json"}, formatEnv)
 	_ = viper.BindPFlag(FormatViperKey, f.Lookup(formatFlag))
 }
 
-func newLoggerConfig(vipr *viper.Viper) *log.Config {
+func NewLoggerConfig(vipr *viper.Viper) *log.Config {
 	return log.NewConfig(
 		log.LoggerLevel(vipr.GetString(LevelViperKey)),
 		log.LoggerFormat(vipr.GetString(FormatViperKey)),
