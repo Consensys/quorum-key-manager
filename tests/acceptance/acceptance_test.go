@@ -96,7 +96,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 		s.env.logger.Warn("skipping test...")
 		return
 	}
-
+/*
 	// Hashicorp
 	logger := s.env.logger.WithComponent("Keys-Hashicorp")
 	testSuite := new(keysTestSuite)
@@ -117,14 +117,15 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite.env = s.env
 	testSuite.store = awskey.New(s.env.awsKmsClient, logger)
 	suite.Run(s.T(), testSuite)
+	*/
 
 	// Local
-	logger = s.env.logger.WithComponent("Keys-Local")
-	testSuite = new(keysTestSuite)
+	logger := s.env.logger.WithComponent("Keys-Local")
+	testSuite := new(keysTestSuite)
 	testSuite.env = s.env
-	keysDA := postgres.NewKeys(logger, s.env.postgresClient)
+	db := postgres.New(logger, s.env.postgresClient)
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
-	testSuite.store = local.New(hashicorpSecretStore, keysDA, logger)
+	testSuite.store = local.New(hashicorpSecretStore, db, logger)
 	suite.Run(s.T(), testSuite)
 }
 

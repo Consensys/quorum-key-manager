@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
@@ -19,7 +20,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	// Create and register the policy manager service
+	// Create and register the stores service
 	policyMngr := authmanager.New(*m, logger)
 	err = a.RegisterService(policyMngr)
 	if err != nil {
@@ -37,10 +38,28 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 		return nil, err
 	}
 
+	// Load policy manager service
+	policyMngr := new(authmanager.Manager)
+	err = a.Service(policyMngr)
+	if err != nil {
+		return nil, err
+	}
+
+	auths := []authenticator.Authenticator{}
+	if cfg.OIDC != nil {
+		oidcAuth, err := oidc.NewAuthenticator(cfg.OIDC)
+		if err != nil {
+			return nil, err
+		} else if oidcAuth != nil {
+			logger.Info("OIDC Authenticator is enabled")
+			auths = append(auths, oidcAuth)
+		}
+	}
+
 	// Create middleware
 	mid := authenticator.NewMiddleware(
 		logger,
-		// TODO: pass each authenticator implementation based on config
+		auths...,
 	)
 
 	return mid.Then, nil

@@ -67,7 +67,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	}
 
 	// Set Middleware
-	authmid, err := auth.Middleware(a, logger.WithComponent("middleware"))
+	authmid, err := auth.Middleware(a, logger.WithComponent("auth-mid"))
 	if err != nil {
 		return nil, err
 	}

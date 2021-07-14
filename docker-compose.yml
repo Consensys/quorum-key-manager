@@ -38,6 +38,8 @@ services:
     environment:
       <<: *default-variables
       <<: *qkm-common
+      AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/cert.pem}
+      AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_CA_CERT-}
     ports:
       - 8080:8080
       - 8081:8081
@@ -48,7 +50,19 @@ services:
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config:/manifests:ro
+      - ./deps/config/certificates:/certificates:ro
       - hashicorp-token:/vault/token:ro
+
+  generate-jwt:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-/certificates/key.pem}
+    volumes:
+      - ./build/bin/key-manager:/bin/main:ro
+      - ./deps/config/certificates:/certificates:ro
+    command: utils generate-jwt --username=${USERNAME-username} --groups=${GROUPS-admin,user} --expiration=${EXPIRATION-24h}
+    restart: "no"
 
 networks:
   quorum:

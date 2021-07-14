@@ -64,7 +64,7 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: gobuild
+dev: deps gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)	
 
 up: deps go-quorum besu gobuild
@@ -76,9 +76,10 @@ down: down-go-quorum down-besu
 
 down-dev:
 	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
+	@make down-deps
 
-run: networks gobuild
-	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
+run: gobuild
+	@./build/bin/key-manager run
 
 run-dbg: gobuild-dbg
 	@dlv --listen=:2345 --headless=true --api-version=2 --accept-multiclient exec ./build/bin/key-manager run
@@ -100,6 +101,9 @@ stop-besu:
 
 down-besu:
 	@docker-compose -f deps/besu/docker-compose.yml down --volumes --timeout 0
+
+generate-jwt: networks gobuild
+	@docker-compose -f ./docker-compose.yml up generate-jwt
 
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)

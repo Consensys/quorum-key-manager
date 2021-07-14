@@ -1,10 +1,5 @@
 package testutils
 
-import (
-	"github.com/consensys/quorum-key-manager/pkg/tls"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
-)
-
 var (
 	RSACertPEM = `-----BEGIN CERTIFICATE-----
 MIIB0zCCAX2gAwIBAgIJAI/M7BYjwB+uMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV
@@ -113,23 +108,3 @@ R9I4LtD+gdwyah617jzV/OeBHRnDJELqYzmp
 -----END CERTIFICATE-----
 `
 )
-
-var ValidOpt = &tls.Option{
-	Certificates: []*certificate.KeyPair{
-		&certificate.KeyPair{
-			Cert: []byte(OneLineRSACertPEMA),
-			Key:  []byte(OneLineRSAKeyPEMA),
-		},
-	},
-	NextProtos:       []string{"h2", "http/1.1"},
-	CipherSuites:     []string{"TLS_ECDHE_ECDSA_WITH_RC4_128_SHA"},
-	CurvePreferences: []string{"secp256r1"},
-	CAs: [][]byte{
-		[]byte(OneLineRSACertPEMB),
-	},
-	ClientAuth:               "NoClientCert",
-	MinVersion:               "VersionTLS10",
-	MaxVersion:               "VersionTLS13",
-	InsecureSkipVerify:       false,
-	PreferServerCipherSuites: true,
-}

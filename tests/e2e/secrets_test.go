@@ -140,7 +140,8 @@ func (s *secretsTestSuite) TestGet() {
 		secret, err := s.keyManagerClient.GetSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID, "invalidVersion")
 		require.Nil(s.T(), secret)
 
-		httpError := err.(*client.ResponseError)
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
 		assert.Equal(s.T(), 422, httpError.StatusCode)
 		assert.Equal(s.T(), "version must be a number", httpError.Message)
 	})
