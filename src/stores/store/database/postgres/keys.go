@@ -94,7 +94,7 @@ func (d *Keys) Update(ctx context.Context, key *models.Key) error {
 	return nil
 }
 
-func (d *Keys) Remove(ctx context.Context, id string) error {
+func (d *Keys) Delete(ctx context.Context, id string) error {
 	key := &models.Key{ID: id}
 	err := d.db.DeletePK(ctx, key)
 	if err != nil {

@@ -52,14 +52,11 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 }
 
 func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
-
 	key, err := s.db.Keys().Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debug("key retrieved successfully")
 	return key.ToEntity(), nil
 }
 
@@ -74,14 +71,10 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 		ids = append(ids, key.ID)
 	}
 
-	s.logger.Debug("keys listed successfully")
 	return ids, nil
 }
 
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
-	logger.Debug("updating key")
-
 	key, err := s.db.Keys().Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -93,28 +86,18 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	logger.Info("key updated successfully")
 	return key.ToEntity(), nil
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
-	logger := s.logger.With("id", id)
-	logger.Debug("deleting key")
-
-	err := s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		err := s.db.Keys().Remove(ctx, id)
+	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
+		err := s.db.Keys().Delete(ctx, id)
 		if err != nil {
 			return err
 		}
 
 		return s.secretStore.Delete(ctx, id)
 	})
-	if err != nil {
-		return err
-	}
-
-	logger.Info("key deleted successfully")
-	return nil
 }
 
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
@@ -126,7 +109,6 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 		return nil, err
 	}
 
-	logger.Debug("deleted key retrieved successfully")
 	return key.ToEntity(), nil
 }
 
@@ -146,15 +128,12 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) Undelete(ctx context.Context, id string) error {
-	logger := s.logger.With("id", id)
-	logger.Debug("restoring key")
-
 	key, err := s.db.Keys().GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
+	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
 		derr := s.db.Keys().Restore(ctx, key)
 		if derr != nil {
 			return derr
@@ -162,24 +141,15 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 
 		return s.secretStore.Undelete(ctx, id)
 	})
-	if err != nil {
-		return err
-	}
-
-	logger.Info("key restored successfully")
-	return nil
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	logger := s.logger.With("id", id)
-	logger.Debug("destroying key")
-
 	_, err := s.db.Keys().GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
+	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
 		derr := s.db.Keys().Purge(ctx, id)
 		if derr != nil {
 			return derr
@@ -187,17 +157,10 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 
 		return s.secretStore.Destroy(ctx, id)
 	})
-	if err != nil {
-		return err
-	}
-
-	logger.Info("key was permanently deleted")
-	return nil
 }
 
 func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
 	logger := s.logger.With("id", id)
-	logger.Debug("signing payload")
 
 	key, err := s.Get(ctx, id)
 	if err != nil {
@@ -242,7 +205,6 @@ func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, erro
 
 func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
-	logger.Debug("creating key")
 
 	var privKey []byte
 	var pubKey []byte
@@ -273,15 +235,15 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	key := &entities.Key{
-		ID:        id,
-		PublicKey: pubKey,
-		Algo:      alg,
-		Tags:      attr.Tags,
-		Metadata:  &entities.Metadata{},
+	key := &models.Key{
+		ID:               id,
+		PublicKey:        pubKey,
+		SigningAlgorithm: string(alg.Type),
+		EllipticCurve:    string(alg.EllipticCurve),
+		Tags:             attr.Tags,
 	}
 	err := s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		err := dbtx.Keys().Add(ctx, models.NewKey(key))
+		err := dbtx.Keys().Add(ctx, key)
 		if err != nil {
 			return err
 		}
@@ -297,8 +259,7 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 		return nil, err
 	}
 
-	logger.Info("key was created successfully")
-	return key, nil
+	return key.ToEntity(), nil
 }
 
 func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
@@ -320,7 +281,6 @@ func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
 		return nil, errors.CryptoOperationError(errMessage)
 	}
 
-	s.logger.Debug("payload signed successfully")
 	// We remove the recID from the signature (last byte).
 	return signature[:len(signature)-1], nil
 }
@@ -341,7 +301,6 @@ func (s *Store) signEDDSA(privKeyB, data []byte) ([]byte, error) {
 		return nil, errors.CryptoOperationError(errMessage)
 	}
 
-	s.logger.Debug("payload signed successfully")
 	return signature, nil
 }
 

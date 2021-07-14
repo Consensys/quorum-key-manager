@@ -307,7 +307,7 @@ func (s *eth1StoreTestSuite) TestDelete() {
 		assert.Equal(s.T(), expectedErr, err)
 	})
 
-	s.Run("should fail with same error if Remove account fails", func() {
+	s.Run("should fail with same error if Delete account fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1AccountsDB.EXPECT().Get(ctx, address).Return(fakeAccount, nil)

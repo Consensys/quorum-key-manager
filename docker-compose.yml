@@ -44,12 +44,10 @@ services:
       - 8080:8080
       - 8081:8081
     restart: "no"
-    depends_on:
-      - qkm-migration
     command: run
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config:/manifests:ro
+      - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
       - hashicorp-token:/vault/token:ro
 

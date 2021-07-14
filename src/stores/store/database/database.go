@@ -34,7 +34,7 @@ type Keys interface {
 	GetAllDeleted(ctx context.Context) ([]*models.Key, error)
 	Add(ctx context.Context, key *models.Key) error
 	Update(ctx context.Context, key *models.Key) error
-	Remove(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string) error
 	Restore(ctx context.Context, key *models.Key) error
 	Purge(ctx context.Context, id string) error
 }

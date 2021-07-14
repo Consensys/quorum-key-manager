@@ -12,7 +12,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -382,7 +382,7 @@ func (env *IntegrationEnvironment) createTables() error {
 	db := pg.Connect(pgCfg)
 	defer db.Close()
 
-	err = db.Model(&entities.Key{}).CreateTable(&orm.CreateTableOptions{})
+	err = db.Model(&models.Key{}).CreateTable(&orm.CreateTableOptions{})
 	if err != nil {
 		return err
 	}

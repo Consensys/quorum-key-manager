@@ -206,7 +206,7 @@ func (mr *MockETH1AccountsMockRecorder) AddDeleted(ctx, account interface{}) *go
 // Remove mocks base method
 func (m *MockETH1Accounts) Remove(ctx context.Context, addr string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Remove", ctx, addr)
+	ret := m.ctrl.Call(m, "Delete", ctx, addr)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -214,7 +214,7 @@ func (m *MockETH1Accounts) Remove(ctx context.Context, addr string) error {
 // Remove indicates an expected call of Remove
 func (mr *MockETH1AccountsMockRecorder) Remove(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockETH1Accounts)(nil).Remove), ctx, addr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockETH1Accounts)(nil).Remove), ctx, addr)
 }
 
 // RemoveDeleted mocks base method
@@ -343,9 +343,9 @@ func (mr *MockKeysMockRecorder) Update(ctx, key interface{}) *gomock.Call {
 }
 
 // Remove mocks base method
-func (m *MockKeys) Remove(ctx context.Context, id string) error {
+func (m *MockKeys) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Remove", ctx, id)
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -353,7 +353,7 @@ func (m *MockKeys) Remove(ctx context.Context, id string) error {
 // Remove indicates an expected call of Remove
 func (mr *MockKeysMockRecorder) Remove(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockKeys)(nil).Remove), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockKeys)(nil).Delete), ctx, id)
 }
 
 // Restore mocks base method

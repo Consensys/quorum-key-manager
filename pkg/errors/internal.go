@@ -13,7 +13,7 @@ var ErrNotImplemented = NotImplementedError("this operation is not yet implement
 var ErrNotSupported = NotSupportedError("this operation is not supported. Please contact your administrator")
 
 func isErrorClass(code, base string) bool {
-	// Remove tailing 0's of the base error code
+	// Delete tailing 0's of the base error code
 	for base[len(base)-1] == '0' {
 		base = base[:len(base)-1]
 	}

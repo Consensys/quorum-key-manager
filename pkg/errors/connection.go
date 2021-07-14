@@ -49,12 +49,12 @@ func IsAWSError(err error) bool {
 
 // PostgresError is raised when failing to perform on Postgres client
 func PostgresError(format string, a ...interface{}) *Error {
-	return Errorf(AWS, format, a...)
+	return Errorf(Postgres, format, a...)
 }
 
 // IsPostgresError indicate whether an error is a Postgres client connection error
 func IsPostgresError(err error) bool {
-	return isErrorClass(FromError(err).GetCode(), AWS)
+	return isErrorClass(FromError(err).GetCode(), Postgres)
 }
 
 // HealthcheckError is raised when failing to perform a health check
