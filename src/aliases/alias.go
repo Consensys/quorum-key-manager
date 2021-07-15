@@ -40,6 +40,8 @@ type Aliaser interface {
 type RegistryID string
 
 type Registry struct {
+	tableName struct{} `pg:"registries" json:"-"`
+
 	ID RegistryID
 }
 

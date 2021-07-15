@@ -152,3 +152,38 @@ func TestDelete(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestList(t *testing.T) {
+	t.Parallel()
+	db, closeFn := startAndConnectDB(t)
+	defer closeFn()
+	s := aliasstore.New(db)
+
+	in := fakeAlias()
+	ctx := context.Background()
+	db.ModelContext(ctx, &in).CreateTable(nil)
+	t.Run("non existing alias", func(t *testing.T) {
+		aliases, err := s.ListAliases(ctx, in.RegistryID)
+		require.NoError(t, err)
+		require.Len(t, aliases, 0)
+	})
+
+	t.Run("just created alias", func(t *testing.T) {
+		err := s.CreateAlias(ctx, in)
+		require.NoError(t, err)
+
+		newAlias := in
+		newAlias.ID = `Crédit Mutuel`
+		newAlias.Kind = aliases.AliasKindString
+		newAlias.Value = `SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`
+		err = s.CreateAlias(ctx, newAlias)
+		require.NoError(t, err)
+
+		aliases, err := s.ListAliases(ctx, in.RegistryID)
+		require.NoError(t, err)
+		require.NotEmpty(t, aliases)
+		require.Len(t, aliases, 2)
+		require.Equal(t, aliases[0].ID, in.ID)
+		require.Equal(t, aliases[1].ID, newAlias.ID)
+	})
+}

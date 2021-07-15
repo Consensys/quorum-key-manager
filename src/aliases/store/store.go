@@ -70,7 +70,12 @@ func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, al
 }
 
 func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryID) ([]aliases.Alias, error) {
-	return nil, goerrors.New("not implemented")
+	aliases := []aliases.Alias{}
+	err := s.db.ModelContext(ctx, &aliases).Where("alias.registry_id = ?", registry).Select()
+	if err != nil {
+		return nil, err
+	}
+	return aliases, nil
 }
 
 func (s *Store) DeleteRegistry(ctx context.Context, registry aliases.RegistryID) error {
