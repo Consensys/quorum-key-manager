@@ -30,29 +30,27 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 // Organization -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
-	if len(req.TLS.PeerCertificates) > 0 {
-		// As mentioned in doc first array element is the leaf
-		clientCert := *req.TLS.PeerCertificates[0]
-		// check this cert matches authenticator provided one
-		// using strict comparison
-		var matchingCert bool
-
-		for _, authCert := range authenticator.Certificates {
-			if bytes.Equal(clientCert.Raw, authCert.Raw) {
-				matchingCert = true
-				break
-			}
-		}
-		if matchingCert {
-			return &types.UserInfo{
-				Username: clientCert.Subject.CommonName,
-				Groups:   clientCert.Subject.Organization,
-				AuthMode: AuthMode,
-			}, nil
-		}
-		return nil, errors.UnauthorizedError("certs do not match")
-
+	if len(req.TLS.PeerCertificates) == 0 {
+		return nil, errors.UnauthorizedError("no cert found in request")
 	}
+	// first array element is the leaf
+	clientCert := *req.TLS.PeerCertificates[0]
+	// check this cert matches authenticator provided one
+	// using strict comparison
+	var matchingCert bool
 
-	return nil, errors.UnauthorizedError("no cert found in request")
+	for _, authCert := range authenticator.Certificates {
+		if bytes.Equal(clientCert.Raw, authCert.Raw) {
+			matchingCert = true
+			break
+		}
+	}
+	if matchingCert {
+		return &types.UserInfo{
+			Username: clientCert.Subject.CommonName,
+			Groups:   clientCert.Subject.Organization,
+			AuthMode: AuthMode,
+		}, nil
+	}
+	return types.AnonymousUser, nil
 }

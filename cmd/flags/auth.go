@@ -18,6 +18,21 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
+	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
+	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
+
+	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
+	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
+
+	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
+	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+
+	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
+
+}
+
 const (
 	authTLSCertsFileFlag        = "auth-tls-ca"
 	authTLSCertsFileViperKey    = "auth.tls.ca"
@@ -59,21 +74,6 @@ const (
 	authOIDCClaimGroupDefault  = "qkm.auth.groups"
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
-
-func init() {
-	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
-	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
-	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
-
-	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
-	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-
-	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
-	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
-
-	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
-
-}
 
 func authTLSCertFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
@@ -175,16 +175,12 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
 	// TLS part
-	certsTLS := []*x509.Certificate{}
-
 	fileCertTLS, err := tlsAuthClientCertificate(vipr)
 	if err != nil {
 		return nil, err
-	} else if fileCertTLS != nil {
-		certsTLS = append(certsTLS, fileCertTLS)
 	}
 
-	tlsCfg := tls.NewConfig(certsTLS...)
+	tlsCfg := tls.NewConfig([]*x509.Certificate{fileCertTLS}...)
 
 	return &auth.Config{OIDC: oidcCfg, TLS: tlsCfg}, nil
 
