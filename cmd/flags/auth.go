@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
@@ -97,6 +98,9 @@ func tlsAuthClientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	}
 
 	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
 	cert, err := x509.ParseCertificate(bCert[0])
 	if err != nil {
 		return nil, err
@@ -171,7 +175,6 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
 	// TLS part
-	var tlsCfg = &tls.Config{}
 	certsTLS := []*x509.Certificate{}
 
 	fileCertTLS, err := tlsAuthClientCertificate(vipr)
@@ -181,7 +184,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certsTLS = append(certsTLS, fileCertTLS)
 	}
 
-	tlsCfg = tls.NewConfig(certsTLS...)
+	tlsCfg := tls.NewConfig(certsTLS...)
 
 	return &auth.Config{OIDC: oidcCfg, TLS: tlsCfg}, nil
 
