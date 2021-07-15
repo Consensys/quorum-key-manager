@@ -6,7 +6,6 @@ import (
 
 type Config struct {
 	Certificates []*x509.Certificate
-	Claims       *ClaimsConfig
 }
 
 type ClaimsConfig struct {
@@ -14,12 +13,8 @@ type ClaimsConfig struct {
 	Group    string
 }
 
-func NewConfig(usernameClaim, groupClaims string, certs ...*x509.Certificate) *Config {
+func NewConfig(certs ...*x509.Certificate) *Config {
 	return &Config{
 		Certificates: certs,
-		Claims: &ClaimsConfig{
-			Username: usernameClaim,
-			Group:    groupClaims,
-		},
 	}
 }
