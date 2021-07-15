@@ -116,6 +116,7 @@ func (m *BaseManager) Close() error {
 func (m *BaseManager) loadAll(ctx context.Context) {
 	for mnfsts := range m.mnfsts {
 		for _, mnf := range mnfsts {
+			//the: handle the error
 			_ = m.load(ctx, mnf.Manifest)
 		}
 	}

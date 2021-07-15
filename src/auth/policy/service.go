@@ -12,6 +12,7 @@ import (
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
+//the: avoid globals?
 var authKinds = []manifest.Kind{
 	GroupKind,
 	Kind,
@@ -59,6 +60,7 @@ func (mngr *BaseManager) Stop(context.Context) error {
 	defer mngr.mux.Unlock()
 
 	if mngr.sub != nil {
+		//the: why ignoring the error?
 		_ = mngr.sub.Unsubscribe()
 	}
 	close(mngr.mnfsts)
@@ -101,7 +103,9 @@ func (mngr *BaseManager) UserPolicies(ctx context.Context, info *types.UserInfo)
 	return policies
 }
 
+//the: indicate that this is not thread-safe and we need to lock the mutex before accessing this func, or lock/unlock in here.
 func (mngr *BaseManager) policy(name string) (*types.Policy, error) {
+	//the: https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html#_return_early_rather_than_nesting_deeply
 	if policy, ok := mngr.policies[name]; ok {
 		return policy, nil
 	}
@@ -121,7 +125,9 @@ func (mngr *BaseManager) Policies(context.Context) ([]string, error) {
 	return policies, nil
 }
 
+//the: indicate that this is not thread-safe and we need to lock the mutex before accessing this func, or lock/unlock in here.
 func (mngr *BaseManager) group(name string) (*types.Group, error) {
+	//the: https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html#_return_early_rather_than_nesting_deeply
 	if group, ok := mngr.groups[name]; ok {
 		return group, nil
 	}
@@ -141,15 +147,18 @@ func (mngr *BaseManager) Groups(context.Context) ([]string, error) {
 	return groups, nil
 }
 
+//the: should return an error
 func (mngr *BaseManager) loadAll(ctx context.Context) {
 	for mnfsts := range mngr.mnfsts {
 		for _, mnf := range mnfsts {
+			//the: why ignore the error?
 			_ = mngr.load(ctx, mnf.Manifest)
 		}
 	}
 }
 
 func (mngr *BaseManager) load(_ context.Context, mnf *manifest.Manifest) error {
+	//the: maybe lock in the underlying funcs (loadGroup, loadPolicy)?
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
