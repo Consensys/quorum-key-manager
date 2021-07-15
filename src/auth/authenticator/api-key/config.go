@@ -3,7 +3,7 @@ package apikey
 import "hash"
 
 type Config struct {
-	ApiKeyFile map[string]*UserNameAndGroups
+	APIKeyFile map[string]*UserNameAndGroups
 	Hasher     hash.Hash
 }
 
@@ -14,6 +14,6 @@ type UserNameAndGroups struct {
 
 func NewConfig(apiKeyFile map[string]*UserNameAndGroups) *Config {
 	return &Config{
-		ApiKeyFile: apiKeyFile,
+		APIKeyFile: apiKeyFile,
 	}
 }

@@ -2,11 +2,12 @@ package apikey
 
 import (
 	"crypto/sha256"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestAuthenticatorSameApiKey(t *testing.T) {
@@ -16,14 +17,14 @@ func TestAuthenticatorSameApiKey(t *testing.T) {
 	apiKey := "my-api-key"
 	hasher := sha256.New()
 
-	auth, _ := NewAuthenticator(&Config{ApiKeyFile: map[string]*UserNameAndGroups{},
+	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]*UserNameAndGroups{},
 		Hasher: hasher,
 	})
 
 	t.Run("should accept apikey and extract ID successfully", func(t *testing.T) {
 
 		reqAlice := httptest.NewRequest("GET", "https://test.url", nil)
-		reqAlice.Header.Add(ApiKeyHeader, string(apiKey))
+		reqAlice.Header.Add(APIKeyHeader, apiKey)
 
 		userInfo, err := auth.Authenticate(reqAlice)
 
