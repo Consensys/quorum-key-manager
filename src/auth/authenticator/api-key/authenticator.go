@@ -1,31 +1,29 @@
 package apikey
 
 import (
-	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"hash"
 	"net/http"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
 const (
 	AuthMode     = "ApiKey"
-	ApiKeyHeader = "X-Key-Manager-APIKEY"
+	APIKeyHeader = "X-Key-Manager-APIKEY"
 )
 
 type Authenticator struct {
-	ApiKeyFile map[string]*UserNameAndGroups
+	APIKeyFile map[string]*UserNameAndGroups
 	Hasher     hash.Hash
 }
 
-var _ authenticator.Authenticator = Authenticator{}
-
 func NewAuthenticator(cfg *Config) (*Authenticator, error) {
-	if len(cfg.ApiKeyFile) == 0 {
+	if len(cfg.APIKeyFile) == 0 {
 		return nil, nil
 	}
 
-	auth := &Authenticator{ApiKeyFile: cfg.ApiKeyFile,
+	auth := &Authenticator{APIKeyFile: cfg.APIKeyFile,
 		Hasher: cfg.Hasher}
 
 	return auth, nil
@@ -36,12 +34,12 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 // ? -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract ApiKey
-	apiKey := req.Header.Get(ApiKeyHeader)
+	apiKey := req.Header.Get(APIKeyHeader)
 
-	clientApiKeyHash := authenticator.Hasher.Sum([]byte(apiKey))
+	clientAPIKeyHash := authenticator.Hasher.Sum([]byte(apiKey))
 
 	// compare hashes
-	userAndGroups, contains := authenticator.ApiKeyFile[string(clientApiKeyHash)]
+	userAndGroups, contains := authenticator.APIKeyFile[string(clientAPIKeyHash)]
 	if contains {
 		return &types.UserInfo{
 			AuthMode: AuthMode,

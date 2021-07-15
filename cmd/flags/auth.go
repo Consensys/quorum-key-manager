@@ -6,14 +6,14 @@ import (
 	"crypto/x509"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 
+	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/apikey"
-
 
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
@@ -23,10 +23,28 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
+	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
+	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
+
+	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
+	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
+
+	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
+	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+
+	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
+
+	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
+
+}
+
 const (
-	authApiKeyFileFlag     = "auth-api-key-file"
-	authApiKeyFileViperKey = "auth.api.key.file"
-	authApiKeyFileEnv      = "AUTH_API_KEY_FILE"
+	authAPIKeyFileFlag        = "auth-api-key-file"
+	authAPIKeyFileViperKey    = "auth.api.key.file"
+	authAPIKeyDefaultFileFlag = ""
+	authAPIKeyFileEnv         = "AUTH_API_KEY_FILE"
 )
 
 const (
@@ -71,28 +89,18 @@ const (
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
 
-func init() {
-	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
-	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
-	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
-
-	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
-	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-
-	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
-	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
-
-	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
-
-	_ = viper.BindEnv(authApiKeyFileViperKey, authApiKeyFileEnv)
-
-}
-
 func authTLSCertFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
 Environment variable: %q`, authTLSCertsCertsFileEnv)
 	f.String(authTLSCertsFileFlag, authTLSCertsDefaultFileFlag, desc)
 	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
+}
+
+func authAPIKeyFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
+Environment variable: %q`, authAPIKeyFileEnv)
+	f.String(authAPIKeyFileFlag, authAPIKeyDefaultFileFlag, desc)
+	_ = viper.BindPFlag(authAPIKeyFileViperKey, f.Lookup(authAPIKeyFileFlag))
 }
 
 func tlsAuthClientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
@@ -128,6 +136,7 @@ func AuthFlags(f *pflag.FlagSet) {
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimGroups(f)
 	authTLSCertFile(f)
+	authAPIKeyFile(f)
 }
 
 // Use only on generate-token utils
@@ -188,7 +197,6 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
 	// TLS part
-	var tlsCfg = &tls.Config{}
 	certsTLS := []*x509.Certificate{}
 
 	fileCertTLS, err := tlsAuthClientCertificate(vipr)
@@ -198,15 +206,15 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certsTLS = append(certsTLS, fileCertTLS)
 	}
 
-	tlsCfg = tls.NewConfig(certsTLS...)
+	tlsCfg := tls.NewConfig(certsTLS...)
 
 	// Api-KEY part
 	var apiKeyCfg = &apikey.Config{}
-	fileApiKeys, err := apiKeyCsvFile(vipr)
+	fileAPIKeys, err := apiKeyCsvFile(vipr)
 	if err != nil {
 		return nil, err
-	} else if fileApiKeys != nil {
-		apiKeyCfg.ApiKeyFile = fileApiKeys
+	} else if fileAPIKeys != nil {
+		apiKeyCfg.APIKeyFile = fileAPIKeys
 		apiKeyCfg.Hasher = sha256.New()
 	}
 
@@ -262,7 +270,7 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 
 func apiKeyCsvFile(vipr *viper.Viper) (map[string]*apikey.UserNameAndGroups, error) {
 	// Open the file
-	csvFileName := vipr.GetString(authApiKeyFileViperKey)
+	csvFileName := vipr.GetString(authAPIKeyFileViperKey)
 	csvfile, err := os.Open(csvFileName)
 	if err != nil {
 		return nil, err
