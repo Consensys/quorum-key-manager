@@ -84,7 +84,7 @@ func TestGet(t *testing.T) {
 	db.ModelContext(ctx, &in).CreateTable(nil)
 	t.Run("non existing alias", func(t *testing.T) {
 		_, err := s.GetAlias(ctx, in.RegistryID, in.ID)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("just created alias", func(t *testing.T) {
@@ -108,7 +108,7 @@ func TestUpdate(t *testing.T) {
 	db.ModelContext(ctx, &in).CreateTable(nil)
 	t.Run("non existing alias", func(t *testing.T) {
 		err := s.UpdateAlias(ctx, in)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("just created alias", func(t *testing.T) {
@@ -138,7 +138,7 @@ func TestDelete(t *testing.T) {
 	db.ModelContext(ctx, &in).CreateTable(nil)
 	t.Run("non existing alias", func(t *testing.T) {
 		err := s.DeleteAlias(ctx, in.RegistryID, in.ID)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("just created alias", func(t *testing.T) {
