@@ -33,6 +33,8 @@ type Aliaser interface {
 	GetAlias(ctx context.Context, registry RegistryID, alias AliasID) (*Alias, error)
 	UpdateAlias(ctx context.Context, alias Alias) error
 	DeleteAlias(ctx context.Context, registry RegistryID, alias AliasID) error
+
+	ListAliases(ctx context.Context, registry RegistryID) ([]Alias, error)
 }
 
 type RegistryID string
@@ -42,6 +44,5 @@ type Registry struct {
 }
 
 type Registrer interface {
-	GetRegistry(ctx context.Context, registry RegistryID) (*Registry, error)
 	DeleteRegistry(ctx context.Context, registry RegistryID) error
 }

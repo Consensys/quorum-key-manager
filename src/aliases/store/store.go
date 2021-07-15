@@ -58,7 +58,7 @@ func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, al
 	return errors.New("not implemented")
 }
 
-func (s *Store) GetRegistry(ctx context.Context, registry aliases.RegistryID) (*aliases.Registry, error) {
+func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryID) ([]aliases.Alias, error) {
 	return nil, errors.New("not implemented")
 }
 
