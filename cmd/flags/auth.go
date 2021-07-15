@@ -2,12 +2,17 @@ package flags
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/csv"
 	"fmt"
+	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
@@ -21,6 +26,12 @@ func init() {
 	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
 
 }
+
+const (
+	authApiKeyFileFlag     = "auth-api-key-file"
+	authApiKeyFileViperKey = "auth.api.key.file"
+	authApiKeyFileEnv      = "AUTH_API_KEY_FILE"
+)
 
 const (
 	authTLSCertsFileFlag        = "auth-tls-ca"
@@ -76,6 +87,8 @@ func init() {
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
 
 	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
+
+	_ = viper.BindEnv(authApiKeyFileViperKey, authApiKeyFileEnv)
 
 }
 
@@ -188,6 +201,16 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 
 	tlsCfg = tls.NewConfig(certsTLS...)
 
+	// Api-KEY part
+	var apiKeyCfg = &apikey.Config{}
+	fileApiKeys, err := apiKeyCsvFile(vipr)
+	if err != nil {
+		return nil, err
+	} else if fileApiKeys != nil {
+		apiKeyCfg.ApiKeyFile = fileApiKeys
+		apiKeyCfg.Hasher = sha256.New()
+	}
+
 	return &auth.Config{OIDC: oidcCfg, TLS: tlsCfg}, nil
 
 }
@@ -236,4 +259,37 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	}
 
 	return certs, nil
+}
+
+func apiKeyCsvFile(vipr *viper.Viper) (map[string]*apikey.UserNameAndGroups, error) {
+	// Open the file
+	csvFileName := vipr.GetString(authApiKeyFileViperKey)
+	csvfile, err := os.Open(csvFileName)
+	if err != nil {
+		return nil, err
+	}
+	defer csvfile.Close()
+
+	// Parse the file
+	r := csv.NewReader(csvfile)
+
+	retFile := make(map[string]*apikey.UserNameAndGroups)
+
+	// Iterate through the lines
+	for {
+		// Read each line from csv
+		cells, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		retFile[cells[0]] = &apikey.UserNameAndGroups{UserName: cells[1],
+			Groups: strings.Split(cells[2], ","),
+		}
+	}
+
+	return retFile, nil
 }
