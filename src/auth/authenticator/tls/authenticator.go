@@ -3,7 +3,7 @@ package tls
 import (
 	"bytes"
 	"crypto/x509"
-	"fmt"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"net/http"
@@ -27,32 +27,33 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 	return auth, nil
 }
 
+// Authenticate
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
 	if len(req.TLS.PeerCertificates) > 0 {
 		// As mentioned in doc first array element is the leaf
-		cert := req.TLS.PeerCertificates[0]
+		clientCert := *req.TLS.PeerCertificates[0]
 		//check this cert matches authenticator provided one
 		// using strict comparison
 		var matchingCert bool
 
-		for i, cert := range authenticator.Certificates {
-			if bytes.Equal(cert.Raw, authenticator.Certificates[i].Raw) {
+		for _, authCert := range authenticator.Certificates {
+			if bytes.Equal(clientCert.Raw, authCert.Raw) {
 				matchingCert = true
 				break
 			}
 		}
 		if matchingCert {
 			return &types.UserInfo{
-				Username: cert.Subject.CommonName,
-				Groups:   cert.Subject.Organization,
+				Username: clientCert.Subject.CommonName,
+				Groups:   clientCert.Subject.Organization,
 				AuthMode: AuthMode,
 			}, nil
 		} else {
-			return nil, fmt.Errorf("certs do not match")
+			return nil, errors.UnauthorizedError("certs do not match")
 		}
 
 	}
 
-	return nil, fmt.Errorf("request provides no cert")
+	return nil, errors.UnauthorizedError("no cert found in request")
 }
