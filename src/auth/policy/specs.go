@@ -5,12 +5,14 @@ import (
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
+//the: make it const to avoid external abuse
 var GroupKind manifest.Kind = "Group"
 
 type GroupSpecs struct {
 	Policies []string `json:"policies"`
 }
 
+//the: make it const to avoid external abuse
 var PolicyKind manifest.Kind = "Policy"
 
 type PolicySpecs struct {

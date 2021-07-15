@@ -82,6 +82,7 @@ func TestBaseManager(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verifies that objects have been properly loaded
+	//the: replace the context.TODO() by a reusable context.Background()
 	group1, err := mngr.Group(context.TODO(), "test-group1")
 	require.NoError(t, err, "Group1 should be stored")
 	assert.Equal(t, "test-group1", group1.Name, "Group1 should have correct name")
@@ -101,6 +102,8 @@ func TestBaseManager(t *testing.T) {
 	require.NoError(t, err, "policy2A should be stored")
 	assert.Equal(t, "test-policy2A", policy2A.Name, "Policy2A should have correct name")
 	assert.Len(t, policy2A.Statements, 1, "Policy2A should have correct statements")
+
+	//the: add a test that adding test-group1 would fail. Same for a policy
 
 	err = manifests.Stop(context.TODO())
 	require.NoError(t, err, "Stop manifests manager must not error")
