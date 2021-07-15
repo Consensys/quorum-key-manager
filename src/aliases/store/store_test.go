@@ -59,7 +59,7 @@ func fakeAlias() aliases.Alias {
 		Value:      `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
 	}
 }
-func TestCreate(t *testing.T) {
+func TestCreateAlias(t *testing.T) {
 	t.Parallel()
 	db, closeFn := startAndConnectDB(t)
 	defer closeFn()
@@ -73,7 +73,7 @@ func TestCreate(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestGet(t *testing.T) {
+func TestGetAlias(t *testing.T) {
 	t.Parallel()
 	db, closeFn := startAndConnectDB(t)
 	defer closeFn()
@@ -97,7 +97,7 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdateAlias(t *testing.T) {
 	t.Parallel()
 	db, closeFn := startAndConnectDB(t)
 	defer closeFn()
@@ -127,7 +127,7 @@ func TestUpdate(t *testing.T) {
 	})
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteAlias(t *testing.T) {
 	t.Parallel()
 	db, closeFn := startAndConnectDB(t)
 	defer closeFn()
@@ -153,7 +153,7 @@ func TestDelete(t *testing.T) {
 	})
 }
 
-func TestList(t *testing.T) {
+func TestListAlias(t *testing.T) {
 	t.Parallel()
 	db, closeFn := startAndConnectDB(t)
 	defer closeFn()
