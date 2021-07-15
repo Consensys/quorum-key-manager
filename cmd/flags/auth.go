@@ -21,19 +21,13 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-
 )
 
-func init() {
-	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
-
-}
-
 const (
-	authTLSCertsFileFlag        = "auth-tls-client-certs"
-	authTLSCertsFileViperKey    = "auth.tls.client.certs"
+	authTLSCertsFileFlag        = "auth-tls-ca"
+	authTLSCertsFileViperKey    = "auth.tls.ca"
 	authTLSCertsDefaultFileFlag = ""
-	authTLSCertsCertsFileEnv    = "AUTH_TLS_CLIENT_CERTS"
+	authTLSCertsCertsFileEnv    = "AUTH_TLS_CA"
 )
 
 // Use only on generate-token utils
@@ -148,9 +142,8 @@ func init() {
 
 }
 
-// Use only on generate-token utils
-func AuthTLSCertKeyFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect CA Cert filepath.
+func authTLSCertFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
 Environment variable: %q`, authTLSCertsCertsFileEnv)
 	f.String(authTLSCertsFileFlag, authTLSCertsDefaultFileFlag, desc)
 	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
@@ -192,6 +185,7 @@ func AuthFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimGroups(f)
+	authTLSCertFile(f)
 	authAPIKeyFile(f)
 }
 
