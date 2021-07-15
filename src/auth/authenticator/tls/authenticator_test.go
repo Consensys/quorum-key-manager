@@ -66,7 +66,7 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 		assert.Nil(t, userInfo)
 	})
 
-	t.Run("should return anonymous when client cert is missing", func(t *testing.T) {
+	t.Run("should reject when client cert is missing", func(t *testing.T) {
 
 		reqEve := httptest.NewRequest("GET", "https://test.url", nil)
 		reqEve.TLS = &tls.ConnectionState{}
@@ -85,7 +85,7 @@ func TestNilAuthenticator(t *testing.T) {
 		Certificates: []*x509.Certificate{},
 	})
 
-	t.Run("should not instantiate when no cert provided", func(t *testing.T) {
+	t.Run("should not instanciate when no cert provided", func(t *testing.T) {
 		assert.Nil(t, auth)
 	})
 
