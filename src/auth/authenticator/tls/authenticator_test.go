@@ -85,7 +85,7 @@ func TestNilAuthenticator(t *testing.T) {
 		Certificates: []*x509.Certificate{},
 	})
 
-	t.Run("should not instanciate when no cert provided", func(t *testing.T) {
+	t.Run("should not instantiate when no cert provided", func(t *testing.T) {
 		assert.Nil(t, auth)
 	})
 

@@ -117,6 +117,9 @@ func clientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	}
 
 	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
 	cert, err := x509.ParseCertificate(bCert[0])
 	if err != nil {
 		return nil, err
