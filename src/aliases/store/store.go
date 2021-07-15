@@ -55,7 +55,17 @@ func (s *Store) UpdateAlias(ctx context.Context, alias aliases.Alias) error {
 }
 
 func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, alias aliases.AliasID) error {
-	return errors.New("not implemented")
+	a := aliases.Alias{ID: alias, RegistryID: registry}
+	q := s.db.ModelContext(ctx, &a)
+	ret := aliases.Alias{}
+	res, err := q.WherePK().Delete(&ret)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() != 1 {
+		return errors.New("delete not effected")
+	}
+	return nil
 }
 
 func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryID) ([]aliases.Alias, error) {
