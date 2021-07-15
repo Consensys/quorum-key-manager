@@ -123,6 +123,6 @@ func TestUpdate(t *testing.T) {
 
 		got, err := s.GetAlias(ctx, in.RegistryID, in.ID)
 		require.NoError(t, err)
-		require.Equal(t, &in, got)
+		require.Equal(t, &updated, got)
 	})
 }
