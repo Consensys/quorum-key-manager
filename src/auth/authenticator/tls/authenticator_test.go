@@ -3,20 +3,21 @@ package tls
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/pkg/tls/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestAuthenticatorSameCert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TlsClientAliceCert), []byte(testutils.TlsAuthKey))
+	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
 
 	auth, _ := NewAuthenticator(&Config{
 		Certificates: []*x509.Certificate{aliceCert.Leaf},
@@ -43,8 +44,8 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TlsClientAliceCert), []byte(testutils.TlsAuthKey))
-	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TlsClientEveCert), []byte(testutils.TlsAuthKey))
+	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
+	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKey))
 
 	assert.NotEqualValues(t, aliceCert, eveCert)
 
@@ -84,7 +85,7 @@ func TestNilAuthenticator(t *testing.T) {
 		Certificates: []*x509.Certificate{},
 	})
 
-	t.Run("should not instanciate when no cert provided", func(t *testing.T) {
+	t.Run("should not instantiate when no cert provided", func(t *testing.T) {
 		assert.Nil(t, auth)
 	})
 
