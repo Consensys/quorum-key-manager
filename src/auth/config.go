@@ -7,6 +7,5 @@ import (
 
 type Config struct {
 	OIDC *oidc.Config
-	// TODO: list config for each authenticator
-	TlsCfg *tls.Config
+	TLS  *tls.Config
 }
