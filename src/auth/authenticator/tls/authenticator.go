@@ -27,7 +27,9 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 	return auth, nil
 }
 
-// Authenticate
+// Authenticate checks certs and retrieve user Info
+// CN field -> Username
+// Organisation -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
 	if len(req.TLS.PeerCertificates) > 0 {
