@@ -6,13 +6,14 @@ import (
 	"crypto/x509"
 	"encoding/csv"
 	"fmt"
-	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/apikey"
+
 
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
@@ -110,6 +111,9 @@ func tlsAuthClientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	}
 
 	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
 	cert, err := x509.ParseCertificate(bCert[0])
 	if err != nil {
 		return nil, err
