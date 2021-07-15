@@ -220,7 +220,6 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 
 	tlsCfg = tls.NewConfig(certsTLS...)
 
-
 	return &auth.Config{OIDC: oidcCfg,
 		APIKEY: apiKeyCfg,
 		TLS: tlsCfg,
