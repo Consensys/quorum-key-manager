@@ -6,8 +6,8 @@ import (
 	"crypto/x509"
 	"encoding/csv"
 	"fmt"
-	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
+	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -115,6 +115,9 @@ func tlsAuthClientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	}
 
 	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
 	cert, err := x509.ParseCertificate(bCert[0])
 	if err != nil {
 		return nil, err
@@ -189,7 +192,6 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
 	// TLS part
-	var tlsCfg = &tls.Config{}
 	certsTLS := []*x509.Certificate{}
 
 	fileCertTLS, err := tlsAuthClientCertificate(vipr)
@@ -199,7 +201,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certsTLS = append(certsTLS, fileCertTLS)
 	}
 
-	tlsCfg = tls.NewConfig(certsTLS...)
+	tlsCfg := tls.NewConfig(certsTLS...)
 
 	// Api-KEY part
 	var apiKeyCfg = &apikey.Config{}
@@ -207,7 +209,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	if err != nil {
 		return nil, err
 	} else if fileApiKeys != nil {
-		apiKeyCfg.ApiKeyFile = fileApiKeys
+		apiKeyCfg.APIKeyFile = fileApiKeys
 		apiKeyCfg.Hasher = sha256.New()
 	}
 
