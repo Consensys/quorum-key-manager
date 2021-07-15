@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -81,17 +82,6 @@ func clientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	}
 
 	return cert, nil
-func init() {
-	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
-	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
-	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
-
-	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
-	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-
-	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
-	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
-	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
 
 }
 
@@ -142,6 +132,53 @@ const (
 	authOIDCClaimGroupDefault  = "qkm.auth.groups"
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
+
+func init() {
+	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
+	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
+	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
+
+	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
+	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
+
+	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
+	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+
+	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
+
+}
+
+// Use only on generate-token utils
+func AuthTLSCertKeyFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`OpenID Connect CA Cert filepath.
+Environment variable: %q`, authTLSCertsCertsFileEnv)
+	f.String(authTLSCertsFileFlag, authTLSCertsDefaultFileFlag, desc)
+	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
+}
+
+func clientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
+	caFile := vipr.GetString(authTLSCertsFileViperKey)
+	_, err := os.Stat(caFile)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
+		}
+		return nil, nil
+	}
+
+	caFileContent, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return nil, err
+	}
+
+	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	cert, err := x509.ParseCertificate(bCert[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return cert, nil
+}
 
 func authAPIKeyFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
@@ -222,13 +259,29 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		return nil, err
 	} else if fileAPIKeys != nil {
 		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
+		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
+
+	// TLS part
+	var tlsCfg = &tls.Config{}
+	certsTLS := []*x509.Certificate{}
+
+	fileCertTLS, err := clientCertificate(vipr)
+	if err != nil {
+		return nil, err
+	} else if fileCertTLS != nil {
+		certsTLS = append(certsTLS, fileCertTLS)
+	}
+
+	tlsCfg = tls.NewConfig(certsTLS...)
 
 	}
 
 	return &auth.Config{OIDC: oidcCfg,
 		APIKEY: apiKeyCfg,
+		TLS: tlsCfg,
 	}, nil
 
+}
 }
 
 func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
