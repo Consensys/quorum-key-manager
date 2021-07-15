@@ -2,10 +2,12 @@ package aliasstore
 
 import (
 	"context"
-	"errors"
+	goerrors "errors"
 
-	aliases "github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/go-pg/pg/v10"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	aliases "github.com/consensys/quorum-key-manager/src/aliases"
 )
 
 var _ aliases.API = &Store{}
@@ -48,8 +50,7 @@ func (s *Store) UpdateAlias(ctx context.Context, alias aliases.Alias) error {
 		return err
 	}
 	if res.RowsAffected() != 1 {
-		//TODO the: create sentinel error?
-		return errors.New("update not effected")
+		return errors.NotFoundError("update not effected")
 	}
 	return nil
 }
@@ -63,15 +64,15 @@ func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, al
 		return err
 	}
 	if res.RowsAffected() != 1 {
-		return errors.New("delete not effected")
+		return errors.NotFoundError("delete not effected")
 	}
 	return nil
 }
 
 func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryID) ([]aliases.Alias, error) {
-	return nil, errors.New("not implemented")
+	return nil, goerrors.New("not implemented")
 }
 
 func (s *Store) DeleteRegistry(ctx context.Context, registry aliases.RegistryID) error {
-	return errors.New("not implemented")
+	return goerrors.New("not implemented")
 }
