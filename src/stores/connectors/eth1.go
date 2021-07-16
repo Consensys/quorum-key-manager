@@ -198,6 +198,7 @@ func (c Eth1Connector) SignTypedData(ctx context.Context, addr string, typedData
 
 func (c Eth1Connector) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.SignTransaction(ctx, addr, chainID, tx)
 	if err != nil {
 		return nil, err
@@ -209,6 +210,7 @@ func (c Eth1Connector) SignTransaction(ctx context.Context, addr string, chainID
 
 func (c Eth1Connector) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.SignEEA(ctx, addr, chainID, tx, args)
 	if err != nil {
 		return nil, err
@@ -220,6 +222,7 @@ func (c Eth1Connector) SignEEA(ctx context.Context, addr string, chainID *big.In
 
 func (c Eth1Connector) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.SignPrivate(ctx, addr, tx)
 	if err != nil {
 		return nil, err
@@ -235,7 +238,7 @@ func (c Eth1Connector) ECRevocer(ctx context.Context, data, sig []byte) (string,
 		return "", err
 	}
 
-	c.logger.Debug("EC recovered successfully")
+	c.logger.Debug("ethereum account recovered successfully from signature")
 	return result, nil
 }
 
@@ -252,7 +255,6 @@ func (c Eth1Connector) Verify(ctx context.Context, addr string, data, sig []byte
 func (c Eth1Connector) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
 	err := c.store.VerifyTypedData(ctx, addr, typedData, sig)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to verify typed data")
 		return err
 	}
 
@@ -262,21 +264,21 @@ func (c Eth1Connector) VerifyTypedData(ctx context.Context, addr string, typedDa
 
 func (c Eth1Connector) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.Encrypt(ctx, addr, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to encrypt data")
 		return nil, err
 	}
 
-	logger.Debug("data encrypted successfully")
+	logger.Info("data encrypted successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.Decrypt(ctx, addr, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to decrypt data")
 		return nil, err
 	}
 

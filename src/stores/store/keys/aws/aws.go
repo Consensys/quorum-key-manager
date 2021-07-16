@@ -33,14 +33,22 @@ func (s *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	keyType, err := toKeyType(alg)
-	if err != nil {
-		return nil, err
+	var keyType string
+
+	switch {
+	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
+		keyType = kms.CustomerMasterKeySpecEccSecgP256k1
+	default:
+		errMessage := "invalid or not supported elliptic curve and signing algorithm for AWS key creation"
+		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	_, err = s.client.CreateKey(ctx, alias(id), keyType, toTags(attr.Tags))
+	_, err := s.client.CreateKey(ctx, alias(id), keyType, toTags(attr.Tags))
 	if err != nil {
-		return nil, err
+		errMessage := "failed to create AWS key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	key, err := s.Get(ctx, id)
@@ -59,25 +67,36 @@ func (s *KeyStore) Import(_ context.Context, _ string, _ []byte, _ *entities.Alg
 }
 
 func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
+	logger := s.logger.With("id", id)
+
 	outDescribe, err := s.client.DescribeKey(ctx, alias(id))
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get AWS key"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 	keyID := *outDescribe.KeyMetadata.KeyId
+	logger = logger.With("key_id", keyID)
 
 	outPublicKey, err := s.client.GetPublicKey(ctx, keyID)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get AWS public key"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	tags, err := s.listTags(ctx, keyID)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to list AWS key tags"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	key, err := parseKey(id, outPublicKey, outDescribe, tags)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to parse key retrieved from AWS KMS"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.AWSError(errMessage)
 	}
 
 	return key, nil
@@ -91,13 +110,17 @@ func (s *KeyStore) List(ctx context.Context) ([]string, error) {
 	for {
 		ret, err := s.client.ListKeys(ctx, 0, nextMarker)
 		if err != nil {
-			return nil, err
+			errMessage := "failed to list AWS keys"
+			s.logger.WithError(err).Error(errMessage)
+			return nil, errors.FromError(err).SetMessage(errMessage)
 		}
 
 		for _, key := range ret.Keys {
 			keyAlias, err := s.client.GetAlias(ctx, *key.KeyId)
 			if err != nil {
-				return nil, err
+				errMessage := "failed to get AWS key alias"
+				s.logger.With("keyID", *key.KeyId).WithError(err).Error(errMessage)
+				return nil, errors.FromError(err).SetMessage(errMessage)
 			}
 
 			// We should not crash if not alias is found even if this should never happen is using the QKM
@@ -120,6 +143,8 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 	if err != nil {
 		return nil, err
 	}
+	keyID := key.Annotations[awsKeyID]
+	logger := s.logger.With("id", id, "key_id", keyID)
 
 	tagKeys := make([]*string, len(key.Tags))
 	i := 0
@@ -129,14 +154,18 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 		i++
 	}
 
-	_, err = s.client.UntagResource(ctx, key.Annotations[awsKeyID], tagKeys)
+	_, err = s.client.UntagResource(ctx, keyID, tagKeys)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to untag AWS key"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	_, err = s.client.TagResource(ctx, key.Annotations[awsKeyID], toTags(attr.Tags))
+	_, err = s.client.TagResource(ctx, keyID, toTags(attr.Tags))
 	if err != nil {
-		return nil, err
+		errMessage := "failed to tag AWS key"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	key.Tags = attr.Tags
@@ -151,7 +180,9 @@ func (s *KeyStore) Delete(ctx context.Context, id string) error {
 
 	_, err = s.client.DeleteKey(ctx, key.Annotations[awsKeyID])
 	if err != nil {
-		return err
+		errMessage := "failed to delete AWS key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil
@@ -185,18 +216,22 @@ func (s *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, er
 	// TODO: Only sign with ECDSA, extract the algorithm from the key when more keys are available
 	outSignature, err := s.client.Sign(ctx, key.Annotations[awsKeyID], data, kms.SigningAlgorithmSpecEcdsaSha256)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to sign using AWS key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	signature, err := parseSignature(outSignature)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to parse signature from AWS"
+		s.logger.With("id", id, "signature", signature).WithError(err).Error(errMessage)
+		return nil, errors.AWSError(errMessage)
 	}
 
 	return signature, nil
 }
 
-func (s *KeyStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+func (s *KeyStore) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
 	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
 }
 
