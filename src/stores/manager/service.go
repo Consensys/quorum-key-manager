@@ -74,6 +74,7 @@ var storeKinds = []manifest.Kind{
 	types.AKVKeys,
 	types.AWSSecrets,
 	types.AWSKeys,
+	types.LocalKeys,
 	types.Eth1Account,
 }
 
@@ -338,6 +339,20 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 
 		store, err := aws.NewKeyStore(spec, logger)
+		if err != nil {
+			return err
+		}
+
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+	case types.LocalKeys:
+		spec := &local.KeySpecs{}
+		if err := mnf.UnmarshalSpecs(spec); err != nil {
+			errMessage := "failed to unmarshal local key store specs"
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidFormatError(errMessage)
+		}
+
+		store, err := local.NewLocalKeys(ctx, spec, m.db, logger)
 		if err != nil {
 			return err
 		}

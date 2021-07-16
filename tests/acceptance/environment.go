@@ -12,8 +12,13 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
@@ -35,6 +40,7 @@ import (
 
 const (
 	hashicorpContainerID      = "hashicorp-vault"
+	postgresContainerID       = "postgres"
 	networkName               = "key-manager"
 	localhostPath             = "http://localhost"
 	HashicorpKeyStoreName     = "HashicorpKeys"
@@ -42,6 +48,7 @@ const (
 	HashicorpKeyMountPoint    = "orchestrate"
 	AKVKeyStoreName           = "AKVKeys"
 	AWSKeyStoreName           = "AWSKeys"
+	MaxRetries                = 10
 )
 
 type IntegrationEnvironment struct {
@@ -52,6 +59,7 @@ type IntegrationEnvironment struct {
 	awsKmsClient      aws.KmsClient
 	akvClient         akv.Client
 	dockerClient      *docker.Client
+	postgresClient    *postgresclient.PostgresClient
 	keyManager        *app.App
 	baseURL           string
 	Cancel            context.CancelFunc
@@ -59,8 +67,6 @@ type IntegrationEnvironment struct {
 	tmpHashicorpToken string
 	cfg               *tests.Config
 }
-
-const MaxRetries = 10
 
 type TestSuiteEnv interface {
 	Start(ctx context.Context) error
@@ -95,18 +101,19 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	if err != nil {
 		return nil, err
 	}
-
 	tmpTokenFile, err := newTmpFile(hashicorpContainer.RootToken)
 	if err != nil {
 		return nil, err
 	}
 
+	postgresPort := strconv.Itoa(10000 + rand.Intn(10000))
+	postgresContainer := postgres.NewDefault().SetPort(postgresPort)
+
 	// Initialize environment container setup
 	composition := &dconfig.Composition{
 		Containers: map[string]*dconfig.Container{
-			hashicorpContainerID: {
-				HashicorpVault: hashicorpContainer,
-			},
+			hashicorpContainerID: {HashicorpVault: hashicorpContainer},
+			postgresContainerID:  {Postgres: postgresContainer},
 		},
 	}
 
@@ -153,14 +160,20 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
-	logger.Info("new temporary manifest created", "path", tmpYml)
-
 	httpConfig := server.NewDefaultConfig()
 	httpConfig.Port = uint32(envHTTPPort)
+	postgresCfg := &postgresclient.Config{
+		Host:     "127.0.0.1",
+		Port:     postgresContainer.Port,
+		User:     "postgres",
+		Password: postgresContainer.Password,
+		Database: "postgres",
+	}
 	keyManager, err := keymanager.New(&keymanager.Config{
 		HTTP:      httpConfig,
 		Manifests: &manifestsmanager.Config{Path: tmpYml},
-		Postgres:  &postgresclient.Config{},
+		Postgres:  postgresCfg,
+		Logger:    log.NewConfig(log.DebugLevel, log.TextFormat),
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
@@ -199,6 +212,12 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	postgresClient, err := postgresclient.NewClient(postgresCfg)
+	if err != nil {
+		logger.WithError(err).Error("cannot initialize Postgres client")
+		return nil, err
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
 		ctx:               ctx,
@@ -208,6 +227,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		awsSecretsClient:  awsSecretsClient,
 		awsKmsClient:      awsKeysClient,
 		dockerClient:      dockerClient,
+		postgresClient:    postgresClient,
 		keyManager:        keyManager,
 		baseURL:           fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
 		Cancel:            cancel,
@@ -257,6 +277,25 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
+	// Start Postgres
+	err = env.dockerClient.Up(ctx, postgresContainerID, networkName)
+	if err != nil {
+		env.logger.WithError(err).Error("could not up postgres")
+		return err
+	}
+
+	err = env.dockerClient.WaitTillIsReady(ctx, postgresContainerID, 10*time.Second)
+	if err != nil {
+		env.logger.WithError(err).Error("could not start postgres")
+		return err
+	}
+
+	err = env.createTables()
+	if err != nil {
+		env.logger.WithError(err).Error("could not migrate postgres")
+		return err
+	}
+
 	return nil
 }
 
@@ -271,6 +310,11 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	err = env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
+	}
+
+	err = env.dockerClient.Down(ctx, postgresContainerID)
+	if err != nil {
+		env.logger.WithError(err).Error("could not down postgres")
 	}
 
 	err = env.dockerClient.RemoveNetwork(ctx, networkName)
@@ -327,4 +371,22 @@ func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
 	}
 
 	return file.Name(), nil
+}
+
+func (env *IntegrationEnvironment) createTables() error {
+	pgCfg, err := env.postgresClient.Config().ToPGOptions()
+	if err != nil {
+		return err
+	}
+
+	db := pg.Connect(pgCfg)
+	defer db.Close()
+
+	err = db.Model(&models.Key{}).CreateTable(&orm.CreateTableOptions{})
+	if err != nil {
+		return err
+	}
+
+	env.logger.Info("tables created successgfully from models")
+	return nil
 }

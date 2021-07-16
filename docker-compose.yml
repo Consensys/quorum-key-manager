@@ -27,12 +27,17 @@ x-container-common: &container-common
     - quorum
     - besu
     - hashicorp
+    - qkm
+
+x-qkm-common: &qkm-common
+  DB_HOST: postgres
 
 services:
   key-manager:
     <<: *container-common
     environment:
       <<: *default-variables
+      <<: *qkm-common
       AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/cert.pem}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_CA_CERT-}
     ports:
@@ -42,7 +47,7 @@ services:
     command: run
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config:/manifests:ro
+      - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
       - hashicorp-token:/vault/token:ro
 
@@ -67,6 +72,9 @@ networks:
   hashicorp:
     external:
       name: hashicorp
+  qkm:
+    external:
+      name: deps_qkm
 
 volumes:
   hashicorp-token:

@@ -115,7 +115,7 @@ func (rtl *RenewTokenWatcher) refreshToken() error {
 	err = json.Unmarshal(encoded, &wrappedToken)
 	if err != nil {
 		// Plain text token
-		decoded := strings.TrimSuffix(string(encoded), "\n") // Remove the newline if it exists
+		decoded := strings.TrimSuffix(string(encoded), "\n") // Delete the newline if it exists
 		token = strings.TrimSuffix(decoded, "\r")            // This one is for windows compatibility
 	} else {
 		// Unwrap token

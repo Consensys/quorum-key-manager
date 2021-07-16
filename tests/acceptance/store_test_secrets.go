@@ -109,7 +109,9 @@ func (s *secretsTestSuite) TestGet() {
 	id := s.newID("my-secret-get")
 	value := "my-secret-value"
 
-	secret, setErr := s.store.Set(ctx, id, value, &entities.Attributes{})
+	secret, setErr := s.store.Set(ctx, id, value, &entities.Attributes{
+		Tags: testutils.FakeTags(),
+	})
 	require.NoError(s.T(), setErr)
 	version := secret.Metadata.Version
 

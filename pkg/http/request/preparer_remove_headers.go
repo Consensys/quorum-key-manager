@@ -45,7 +45,7 @@ var hopByHopHeaders = []string{
 // and must not be retransmitted by proxies or cached (c.f. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
 func RemoveHopByHopHeaders() Preparer {
 	return PrepareFunc(func(req *http.Request) (*http.Request, error) {
-		// Remove hop-by-hop headers to the backend. Especially
+		// Delete hop-by-hop headers to the backend. Especially
 		// important is "Connection" because we want a persistent
 		// connection, regardless of what the client sent to us.
 		for _, h := range hopByHopHeaders {

@@ -1,4 +1,3 @@
-//nolint
 package errors
 
 import (
@@ -15,7 +14,7 @@ func (e *Error) GetCode() string {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("%s", e.Message)
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
 func (e *Error) GetMessage() string {
