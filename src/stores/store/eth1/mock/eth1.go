@@ -232,9 +232,9 @@ func (mr *MockStoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.Call 
 }
 
 // SignData mocks base method
-func (m *MockStore) SignData(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (m *MockStore) signHash(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignData", ctx, addr, data)
+	ret := m.ctrl.Call(m, "signHash", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -243,7 +243,7 @@ func (m *MockStore) SignData(ctx context.Context, addr string, data []byte) ([]b
 // SignData indicates an expected call of SignData
 func (mr *MockStoreMockRecorder) SignData(ctx, addr, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignData", reflect.TypeOf((*MockStore)(nil).SignData), ctx, addr, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "signHash", reflect.TypeOf((*MockStore)(nil).signHash), ctx, addr, data)
 }
 
 // SignTypedData mocks base method

@@ -199,7 +199,7 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 }
 
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	return s.SignData(ctx, addr, crypto.Keccak256(data))
+	return s.signHash(ctx, addr, crypto.Keccak256(data))
 }
 
 func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
@@ -214,7 +214,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
-	signature, err := s.SignData(ctx, addr, txData)
+	signature, err := s.signHash(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	signature, err := s.SignData(ctx, addr, hash[:])
+	signature, err := s.signHash(ctx, addr, hash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
-	signature, err := s.SignData(ctx, addr, txData)
+	signature, err := s.signHash(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +437,7 @@ func eeaHash(object interface{}) (hash common.Hash, err error) {
 	return hash, nil
 }
 
-func (s *Store) SignData(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (s *Store) signHash(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	account, err := s.Get(ctx, addr)
 	if err != nil {
 		return nil, err
