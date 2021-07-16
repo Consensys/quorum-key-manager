@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -204,7 +205,7 @@ func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, erro
 }
 
 func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
+	logger := s.logger.With("id", id).With("signing_algorithm", alg.Type).With("curve", alg.EllipticCurve)
 
 	var privKey []byte
 	var pubKey []byte
@@ -264,7 +265,9 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 
 func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
 	if len(data) != crypto.DigestLength {
-		return nil, errors.InvalidParameterError("data is required to be exactly %d bytes (%d)", crypto.DigestLength, len(data))
+		errMessage := fmt.Sprintf("data is required to be exactly %d bytes (%d)", crypto.DigestLength, len(data))
+		s.logger.With("data_length", len(data), "expected_data_length", crypto.DigestLength).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	ecdsaPrivKey, err := crypto.ToECDSA(privKey)
