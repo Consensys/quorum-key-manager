@@ -27,7 +27,7 @@ func startAndConnectDB(t *testing.T) (*pg.DB, closeFunc) {
 		t.Fatalf("can not run container: %s", err)
 	}
 	closeFn := func() {
-		err := pool.Purge(ctr)
+		err = pool.Purge(ctr)
 		if err != nil {
 			t.Fatal("can not purge container:", err)
 		}
@@ -41,7 +41,7 @@ func startAndConnectDB(t *testing.T) (*pg.DB, closeFunc) {
 	db = pg.Connect(&opt)
 	err = pool.Retry(func(db *pg.DB) func() error {
 		return func() error {
-			_, err := db.Exec("SELECT 1;")
+			_, err = db.Exec("SELECT 1;")
 			return err
 		}
 	}(db))
@@ -67,9 +67,10 @@ func TestCreateAlias(t *testing.T) {
 
 	in := fakeAlias()
 	ctx := context.Background()
-	db.ModelContext(ctx, &in).CreateTable(nil)
+	err := db.ModelContext(ctx, &in).CreateTable(nil)
+	require.NoError(t, err)
 
-	err := s.CreateAlias(ctx, in)
+	err = s.CreateAlias(ctx, in)
 	require.NoError(t, err)
 }
 
@@ -81,7 +82,8 @@ func TestGetAlias(t *testing.T) {
 
 	in := fakeAlias()
 	ctx := context.Background()
-	db.ModelContext(ctx, &in).CreateTable(nil)
+	err := db.ModelContext(ctx, &in).CreateTable(nil)
+	require.NoError(t, err)
 	t.Run("non existing alias", func(t *testing.T) {
 		_, err := s.GetAlias(ctx, in.RegistryID, in.ID)
 		require.Error(t, err)
@@ -105,7 +107,8 @@ func TestUpdateAlias(t *testing.T) {
 
 	in := fakeAlias()
 	ctx := context.Background()
-	db.ModelContext(ctx, &in).CreateTable(nil)
+	err := db.ModelContext(ctx, &in).CreateTable(nil)
+	require.NoError(t, err)
 	t.Run("non existing alias", func(t *testing.T) {
 		err := s.UpdateAlias(ctx, in)
 		require.Error(t, err)
@@ -135,7 +138,8 @@ func TestDeleteAlias(t *testing.T) {
 
 	in := fakeAlias()
 	ctx := context.Background()
-	db.ModelContext(ctx, &in).CreateTable(nil)
+	err := db.ModelContext(ctx, &in).CreateTable(nil)
+	require.NoError(t, err)
 	t.Run("non existing alias", func(t *testing.T) {
 		err := s.DeleteAlias(ctx, in.RegistryID, in.ID)
 		require.Error(t, err)
@@ -161,11 +165,12 @@ func TestListAlias(t *testing.T) {
 
 	in := fakeAlias()
 	ctx := context.Background()
-	db.ModelContext(ctx, &in).CreateTable(nil)
+	err := db.ModelContext(ctx, &in).CreateTable(nil)
+	require.NoError(t, err)
 	t.Run("non existing alias", func(t *testing.T) {
-		aliases, err := s.ListAliases(ctx, in.RegistryID)
+		als, err := s.ListAliases(ctx, in.RegistryID)
 		require.NoError(t, err)
-		require.Len(t, aliases, 0)
+		require.Len(t, als, 0)
 	})
 
 	t.Run("just created alias", func(t *testing.T) {

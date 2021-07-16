@@ -12,9 +12,9 @@ import (
 func RegisterService(a *app.App, logger log.Logger, db database.Database) error {
 	// Create and register the stores service
 
-	//TODO replace by the database.Database abstraction
+	// TODO replace by the database.Database abstraction
 	pgdb := &pg.DB{}
-	//TODO replace by the database.Database abstraction
+	// TODO replace by the database.Database abstraction
 	store := aliasstore.New(pgdb)
 	err := a.RegisterService(store)
 	if err != nil {

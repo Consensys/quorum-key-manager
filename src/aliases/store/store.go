@@ -22,7 +22,7 @@ func New(db *pg.DB) *Store {
 	}
 }
 
-//TODO implement all the Runnable
+// TODO implement all the Runnable
 func (s *Store) Start(ctx context.Context) error { return nil }
 func (s *Store) Stop(context.Context) error      { return nil }
 func (s *Store) Close() error                    { return nil }
@@ -76,12 +76,12 @@ func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, al
 }
 
 func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryID) ([]aliases.Alias, error) {
-	aliases := []aliases.Alias{}
-	err := s.db.ModelContext(ctx, &aliases).Where("alias.registry_id = ?", registry).Select()
+	als := []aliases.Alias{}
+	err := s.db.ModelContext(ctx, &als).Where("alias.registry_id = ?", registry).Select()
 	if err != nil {
 		return nil, err
 	}
-	return aliases, nil
+	return als, nil
 }
 
 func (s *Store) DeleteRegistry(ctx context.Context, registry aliases.RegistryID) error {

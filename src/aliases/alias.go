@@ -10,7 +10,7 @@ type API interface {
 type AliasID string
 
 type Alias struct {
-	tableName struct{} `pg:"aliases" json:"-"`
+	tableName struct{} `pg:"aliases"` // nolint:unused,structcheck // reason
 
 	ID         AliasID
 	RegistryID RegistryID
@@ -40,7 +40,7 @@ type Aliaser interface {
 type RegistryID string
 
 type Registry struct {
-	tableName struct{} `pg:"registries" json:"-"`
+	tableName struct{} `pg:"registries"` // nolint:unused,structcheck // reason
 
 	ID RegistryID
 }
