@@ -49,8 +49,8 @@ down-deps: postgres-down hashicorp-down down-networks
 run-acceptance:
 	@go test -v -tags acceptance -count=1 ./tests/acceptance
 
-run-e2e:
-	@go test -v -tags e2e -count=1 ./tests/e2e
+run-e2e: deps
+	@go test -v -tags e2e -count=1 ./tests/e2e ./src/aliases/store
 
 gobuild:
 	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager
