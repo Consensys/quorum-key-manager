@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -209,16 +210,21 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	tlsCfg := tls.NewConfig(certsTLS...)
 
 	// Api-KEY part
-	var apiKeyCfg = &apikey.Config{}
+	var apiKeyCfg *apikey.Config
 	fileAPIKeys, err := apiKeyCsvFile(vipr)
 	if err != nil {
 		return nil, err
 	} else if fileAPIKeys != nil {
 		apiKeyCfg.APIKeyFile = fileAPIKeys
-		apiKeyCfg.Hasher = sha256.New()
+		hasher := sha256.New()
+		apiKeyCfg.Hasher = &hasher
+		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, hasher)
 	}
 
-	return &auth.Config{OIDC: oidcCfg, TLS: tlsCfg}, nil
+	return &auth.Config{OIDC: oidcCfg,
+		TLS:    tlsCfg,
+		APIKEY: apiKeyCfg,
+	}, nil
 
 }
 
