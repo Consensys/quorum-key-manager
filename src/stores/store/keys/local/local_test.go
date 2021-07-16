@@ -1,19 +1,15 @@
 package local
 
 import (
+	"testing"
+
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
 	mocksecrets "github.com/consensys/quorum-key-manager/src/stores/store/secrets/mock"
-	"testing"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
-)
-
-const (
-	id        = "my-key"
-	publicKey = "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI="
 )
 
 type localKeyStoreTestSuite struct {
@@ -36,9 +32,6 @@ func (s *localKeyStoreTestSuite) SetupTest() {
 	s.mockDB = mock.NewMockDatabase(ctrl)
 	s.mockKeys = mock.NewMockKeys(ctrl)
 	s.mockSecretStore = mocksecrets.NewMockStore(ctrl)
-
-	// s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
-	// s.mockDB.EXPECT().Keys().Return(s.mockKeys).AnyTimes()
 
 	s.keyStore = New(s.mockSecretStore, s.mockDB, testutils2.NewMockLogger(ctrl))
 }
