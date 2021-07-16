@@ -3,7 +3,6 @@ package tls
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"net/http/httptest"
 	"testing"
 
