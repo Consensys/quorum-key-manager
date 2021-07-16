@@ -31,7 +31,7 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
 	if len(req.TLS.PeerCertificates) == 0 {
-		return nil, errors.UnauthorizedError("no cert found in request")
+		return types.AnonymousUser, nil
 	}
 	// first array element is the leaf
 	clientCert := *req.TLS.PeerCertificates[0]
@@ -52,5 +52,5 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 			AuthMode: AuthMode,
 		}, nil
 	}
-	return types.AnonymousUser, nil
+	return nil, errors.UnauthorizedError("no matching cert found")
 }
