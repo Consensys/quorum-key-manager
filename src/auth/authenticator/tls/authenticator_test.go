@@ -3,6 +3,7 @@ package tls
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"net/http/httptest"
 	"testing"
 
@@ -66,7 +67,7 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 		assert.Nil(t, userInfo)
 	})
 
-	t.Run("should reject when client cert is missing", func(t *testing.T) {
+	t.Run("should return anonymous when client cert is missing", func(t *testing.T) {
 
 		reqEve := httptest.NewRequest("GET", "https://test.url", nil)
 		reqEve.TLS = &tls.ConnectionState{}
