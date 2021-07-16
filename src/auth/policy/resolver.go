@@ -56,43 +56,66 @@ func (res *result) Error() error {
 	return nil
 }
 
-type actionResolver struct {
-	exactActions    map[string]*effectsResolver
+// actionsResolver is associated to every statement path
+// it aggregates all statement actions associated to the path into a radix tree
+type actionsResolver struct {
+	// exactActions maps an exact action name to an effect resolver
+	exactActions map[string]*effectResolver
+
+	// prefixedActions maps prefixed action to an effect resolver
 	prefixedActions *radix.Tree
 }
 
-func newActionResolver() *actionResolver {
-	return &actionResolver{
-		exactActions:    make(map[string]*effectsResolver),
+func newActionsResolver() *actionsResolver {
+	return &actionsResolver{
+		exactActions:    make(map[string]*effectResolver),
 		prefixedActions: radix.New(),
 	}
 }
 
-func (rslvr *actionResolver) addStatement(sttmnt *statement) error {
+func (rslvr *actionsResolver) addStatement(sttmnt *statement) error {
+	// loop over all actions in the statement
 	for _, action := range sttmnt.Actions {
-		effect, err := newEffectResolver(sttmnt)
-		if err != nil {
-			return err
-		}
-
 		if strings.HasSuffix(action, wildCardSuffix) {
+			// action is a prefix pattern (e.g. Sign*)
 			actionPrefix := strings.TrimSuffix(action, wildCardSuffix)
-			effects, ok := rslvr.prefixedActions.Get(actionPrefix)
+
+			// lookup for effect already associtated to this prefix
+			effect, ok := rslvr.prefixedActions.Get(actionPrefix)
 			if ok {
-				effects.(*effectsResolver).addEffect(effect)
+				// we already had an effect for prefix so we acculmulate the statement
+				err := effect.(*effectResolver).addStatement(sttmnt)
+				if err != nil {
+					return err
+				}
 			} else {
-				newEffects := new(effectsResolver)
-				newEffects.addEffect(effect)
-				_, _ = rslvr.prefixedActions.Insert(actionPrefix, newEffects)
+				// we create the effect and insert it into the radix tree
+				newEffect := new(effectResolver)
+				err := newEffect.addStatement(sttmnt)
+				if err != nil {
+					return err
+				}
+				_, _ = rslvr.prefixedActions.Insert(actionPrefix, newEffect)
 			}
 		} else {
-			effects, ok := rslvr.exactActions[action]
+			// action is an exact name (e.g. SignTransaction)
+
+			// lookup for effect already associated to this action
+			effect, ok := rslvr.exactActions[action]
 			if ok {
-				effects.addEffect(effect)
+				// we already had an effect for prefix so we acculmulate the statement
+				err := effect.addStatement(sttmnt)
+				if err != nil {
+					return err
+				}
 			} else {
-				newEffects := new(effectsResolver)
-				newEffects.addEffect(effect)
-				rslvr.exactActions[action] = newEffects
+				// we create the effect and insert it into the map of exact actions
+				newEffect := new(effectResolver)
+				err := newEffect.addStatement(sttmnt)
+				if err != nil {
+					return err
+				}
+				rslvr.exactActions[action] = newEffect
 			}
 		}
 	}
@@ -100,27 +123,35 @@ func (rslvr *actionResolver) addStatement(sttmnt *statement) error {
 	return nil
 }
 
-func (rslvr *actionResolver) isAuthorized(op *Operation) (res *result) {
+func (rslvr *actionsResolver) isAuthorized(op *Operation) (res *result) {
 	res = &result{
 		op: op,
 	}
 
+	// do we have an exact match for the action?
 	actionEffects, hasExact := rslvr.exactActions[op.Action]
 	if hasExact {
+		// if we have an exact match and it resolves to Deny we return Deny
 		res = actionEffects.isAuthorized(op)
 		if res.deny != nil {
 			return res
 		}
 	}
 
+	// do we have a prefix matching the action?
 	actionPrefix, _, hasPrefix := rslvr.prefixedActions.LongestPrefix(op.Action)
 	if !hasPrefix {
+		// no prefix so we return
 		return res
 	}
 
+	// we have a prefix
+	// we walk all matching prefix starting from root up to the longest matching prefix
+	// if we meet a single Deny we stop walking and return a Deny
 	rslvr.prefixedActions.WalkPath(actionPrefix, func(_ string, v interface{}) bool {
-		r := v.(*effectsResolver).isAuthorized(op)
+		r := v.(*effectResolver).isAuthorized(op)
 		if r.deny != nil {
+			// we met a Deny
 			res = r
 			return true
 		}
@@ -135,73 +166,57 @@ func (rslvr *actionResolver) isAuthorized(op *Operation) (res *result) {
 	return
 }
 
-type effectsResolver struct {
-	effects []*effectResolver
-}
-
-func (rslvr *effectsResolver) isAuthorized(op *Operation) (res *result) {
-	for _, effect := range rslvr.effects {
-		r := effect.isAuthorized(op)
-		if r.deny != nil {
-			res = r
-			return
-		}
-
-		if res == nil || res.allow == nil {
-			res = r
-		}
-	}
-
-	return
-}
-
-func (rslvr *effectsResolver) addEffect(effect *effectResolver) {
-	rslvr.effects = append(rslvr.effects, effect)
-}
-
+// effectResolver is associated to each pair path/action (possibly prefixes)
 type effectResolver struct {
-	statement *statement
+	allow *statement
+	deny  *statement
 }
 
-func newEffectResolver(sttmnt *statement) (*effectResolver, error) {
-	if sttmnt == nil {
-		return nil, fmt.Errorf("nil statement")
+func (rslvr *effectResolver) isAuthorized(op *Operation) (res *result) {
+	return &result{
+		op:    op,
+		deny:  rslvr.deny,
+		allow: rslvr.allow,
 	}
-
-	if (sttmnt.Effect != "Allow") && (sttmnt.Effect != "Deny") {
-		return nil, fmt.Errorf("invalid statement effect %q", sttmnt.Effect)
-	}
-
-	return &effectResolver{
-		statement: sttmnt,
-	}, nil
 }
 
-func (r *effectResolver) isAuthorized(op *Operation) *result {
-	res := &result{
-		op: op,
+// addStatement cumulates the effect of multiple statement
+// if a singe statement is Deny, resolver will always resolve to Deny
+// if multiple Deny are passed only the first one is kept
+func (rslvr *effectResolver) addStatement(sttmnt *statement) error {
+	if rslvr.deny != nil {
+		return nil
 	}
-	switch r.statement.Effect {
+
+	switch sttmnt.Effect {
 	case "Allow":
-		res.allow = r.statement
+		rslvr.allow = sttmnt
+		return nil
 	case "Deny":
-		res.deny = r.statement
+		rslvr.deny = sttmnt
+		rslvr.allow = nil
+		return nil
 	default:
-		// this should never happen if using newStatementResolver
-		panic(fmt.Sprintf("invalid effect %q", r.statement.Effect))
+		return fmt.Errorf("invalid effect %q", sttmnt.Effect)
 	}
-
-	return res
 }
 
+// RadixResolver allows to perform authorization checks
+
+// It is built from a set of Policy by aggregating all statements into some
+// radix trees structure allowing optimized authorization checks
 type RadixResolver struct {
-	exactPath    map[string]*actionResolver
+	// exactPath maps an exact path to an action resolver
+	exactPath map[string]*actionsResolver
+
+	// prefixedPath maps prefixed path to an action resolver
 	prefixedPath *radix.Tree
 }
 
+// NewRadixResolver creates a new RadixResolver
 func NewRadixResolver(policies ...*types.Policy) (*RadixResolver, error) {
 	rslvr := &RadixResolver{
-		exactPath:    make(map[string]*actionResolver),
+		exactPath:    make(map[string]*actionsResolver),
 		prefixedPath: radix.New(),
 	}
 
@@ -215,6 +230,11 @@ func NewRadixResolver(policies ...*types.Policy) (*RadixResolver, error) {
 	return rslvr, nil
 }
 
+// IsAuthorized check whether operation is authorized
+
+// An operation is authorized if
+// - no statement Deny the operation
+// - at least one statement Allow the operation
 func (r *RadixResolver) IsAuthorized(op *Operation) Result {
 	return r.isAuthorized(op)
 }
@@ -224,8 +244,10 @@ func (r *RadixResolver) isAuthorized(op *Operation) (res *result) {
 		op: op,
 	}
 
+	// do we have an exact match for the path?
 	actionRslvr, hasExact := r.exactPath[op.Path]
 	if hasExact {
+		// if we have an exact match and it resolves to Deny we return Deny
 		r := actionRslvr.isAuthorized(op)
 		if r.deny != nil {
 			return r
@@ -233,13 +255,18 @@ func (r *RadixResolver) isAuthorized(op *Operation) (res *result) {
 		res = r
 	}
 
+	// do we have a prefix matching the action?
 	actionPrefix, _, hasPrefix := r.prefixedPath.LongestPrefix(op.Path)
 	if !hasPrefix {
+		// no prefix so we return
 		return
 	}
 
+	// we have a prefix
+	// we walk all matching prefix starting from root up to the longest matching prefix
+	// if we meet a single Deny we stop walking and return a Deny
 	r.prefixedPath.WalkPath(actionPrefix, func(_ string, v interface{}) bool {
-		r := v.(*actionResolver).isAuthorized(op)
+		r := v.(*actionsResolver).isAuthorized(op)
 		if r.deny != nil {
 			res = r
 			return true
@@ -256,37 +283,53 @@ func (r *RadixResolver) isAuthorized(op *Operation) (res *result) {
 }
 
 func (r *RadixResolver) insertStatement(sttmnt *statement) error {
+	// loop over all resource path in the statement
 	for _, path := range sttmnt.Resource {
 		if strings.HasSuffix(path, wildCardSuffix) {
+			// path is a prefix pattern (e.g. /path/to/*)
 			pathPrefix := strings.TrimSuffix(path, wildCardSuffix)
-			actionsRslvr, ok := r.prefixedPath.Get(pathPrefix)
 
+			// lookup for an actions resolver already associtated to this prefix
+			actionsRslvr, ok := r.prefixedPath.Get(pathPrefix)
 			if ok {
-				err := actionsRslvr.(*actionResolver).addStatement(sttmnt)
+				// we have an existing actions resolver so we accumulate the statement to it
+				err := actionsRslvr.(*actionsResolver).addStatement(sttmnt)
 				if err != nil {
 					return err
 				}
 			} else {
-				newActions := newActionResolver()
+				// we do not have an existing actions resolver
+				// we create it and accumulate statement to it
+				newActions := newActionsResolver()
 				err := newActions.addStatement(sttmnt)
 				if err != nil {
 					return err
 				}
+
+				// insert action resolver to the associated prefix
 				_, _ = r.prefixedPath.Insert(pathPrefix, newActions)
 			}
 		} else {
+			// path is exact (e.g. /path/to/a)
+
+			// lookup for an actions resolver already associtated to this path
 			actionsRslvr, ok := r.exactPath[path]
 			if ok {
+				// we have an existing actions resolver so we accumulate the statement to it
 				err := actionsRslvr.addStatement(sttmnt)
 				if err != nil {
 					return err
 				}
 			} else {
-				newActions := newActionResolver()
+				// we do not have an existing actions resolver
+				// we create it and accumulate statement to it
+				newActions := newActionsResolver()
 				err := newActions.addStatement(sttmnt)
 				if err != nil {
 					return err
 				}
+
+				// store actions resolver
 				r.exactPath[path] = newActions
 			}
 		}
