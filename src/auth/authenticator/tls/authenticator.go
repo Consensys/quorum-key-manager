@@ -1,7 +1,6 @@
 package tls
 
 import (
-	"bytes"
 	"crypto/x509"
 	"net/http"
 
@@ -37,20 +36,16 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	clientCert := *req.TLS.PeerCertificates[0]
 	// check this cert matches authenticator provided one
 	// using strict comparison
-	var matchingCert bool
-
 	for _, authCert := range authenticator.Certificates {
-		if bytes.Equal(clientCert.Raw, authCert.Raw) {
-			matchingCert = true
-			break
+		if clientCert.Equal(authCert) {
+			return &types.UserInfo{
+				Username: clientCert.Subject.CommonName,
+				Groups:   clientCert.Subject.Organization,
+				AuthMode: AuthMode,
+			}, nil
+
 		}
 	}
-	if matchingCert {
-		return &types.UserInfo{
-			Username: clientCert.Subject.CommonName,
-			Groups:   clientCert.Subject.Organization,
-			AuthMode: AuthMode,
-		}, nil
-	}
+
 	return nil, errors.UnauthorizedError("no matching cert found")
 }
