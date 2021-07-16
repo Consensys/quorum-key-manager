@@ -30,7 +30,7 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
 	if len(req.TLS.PeerCertificates) == 0 {
-		return types.AnonymousUser, nil
+		return nil, nil
 	}
 	// first array element is the leaf
 	clientCert := *req.TLS.PeerCertificates[0]
