@@ -3,7 +3,6 @@ package tls
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"net/http/httptest"
 	"testing"
 
@@ -75,7 +74,7 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 		userInfo, err := auth.Authenticate(reqEve)
 
 		require.NoError(t, err)
-		assert.Equal(t, userInfo, types.AnonymousUser)
+		assert.Nil(t, userInfo)
 	})
 
 }
