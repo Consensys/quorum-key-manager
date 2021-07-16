@@ -214,7 +214,7 @@ type RadixResolver struct {
 }
 
 // NewRadixResolver creates a new RadixResolver
-func NewRadixResolver(policies ...*types.Policy) (*RadixResolver, error) {
+func NewRadixResolver(policies ...types.Policy) (*RadixResolver, error) {
 	rslvr := &RadixResolver{
 		exactPath:    make(map[string]*actionsResolver),
 		prefixedPath: radix.New(),
@@ -338,9 +338,9 @@ func (r *RadixResolver) insertStatement(sttmnt *statement) error {
 	return nil
 }
 
-func (r *RadixResolver) insertPolicy(policy *types.Policy) error {
+func (r *RadixResolver) insertPolicy(policy types.Policy) error {
 	for _, sttmnt := range policy.Statements {
-		err := r.insertStatement(&statement{*sttmnt, policy})
+		err := r.insertStatement(&statement{*sttmnt, &policy})
 		if err != nil {
 			return err
 		}

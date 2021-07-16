@@ -22,14 +22,14 @@ func TestRadixResolver(t *testing.T) {
 	tests := []struct {
 		desc string
 
-		policies    []*types.Policy
+		policies    []types.Policy
 		expectedErr error
 		tests       []*testIsAuthorized
 	}{
 		{
 			desc: "Single policy single statement exact paths and actions ",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -78,8 +78,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Single policy multiple statements exact paths and actions",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -122,8 +122,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Multiple policy multiple statements exact paths and actions",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -140,7 +140,7 @@ func TestRadixResolver(t *testing.T) {
 						},
 					},
 				},
-				&types.Policy{
+				types.Policy{
 					Name: "TestPolicy2",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -195,8 +195,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Multiple statements with Deny exact paths and actions",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -207,7 +207,7 @@ func TestRadixResolver(t *testing.T) {
 						},
 					},
 				},
-				&types.Policy{
+				types.Policy{
 					Name: "TestPolicy2",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -250,8 +250,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Single statement exact paths and wildcard action",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -313,8 +313,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Single statement wildcard path and exact action",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -366,8 +366,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Single statement wildcard path and wildcar action",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -409,8 +409,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Multiple statement with Deny wildcard path and wildcard action",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -421,7 +421,7 @@ func TestRadixResolver(t *testing.T) {
 						},
 					},
 				},
-				&types.Policy{
+				types.Policy{
 					Name: "TestPolicy2",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -479,8 +479,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Overlapping wildcards path and wildcard actions",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -518,8 +518,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Overlapping wildcards path and wildcard actions with Deny",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -552,8 +552,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Same wildcard path, wildcard actions with Deny",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -564,7 +564,7 @@ func TestRadixResolver(t *testing.T) {
 						},
 					},
 				},
-				&types.Policy{
+				types.Policy{
 					Name: "TestPolicy2",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -591,8 +591,8 @@ func TestRadixResolver(t *testing.T) {
 		},
 		{
 			desc: "Shorted wildcard denies first",
-			policies: []*types.Policy{
-				&types.Policy{
+			policies: []types.Policy{
+				types.Policy{
 					Name: "TestPolicy1",
 					Statements: []*types.Statement{
 						&types.Statement{
@@ -603,7 +603,7 @@ func TestRadixResolver(t *testing.T) {
 						},
 					},
 				},
-				&types.Policy{
+				types.Policy{
 					Name: "TestPolicy2",
 					Statements: []*types.Statement{
 						&types.Statement{

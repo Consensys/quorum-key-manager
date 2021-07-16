@@ -12,12 +12,12 @@ import (
 type KeyConnector struct {
 	store    keys.Store
 	logger   log.Logger
-	resolver *policy.Resolver
+	resolver policy.Resolver
 }
 
 var _ keys.Store = KeyConnector{}
 
-func NewKeyConnector(store keys.Store, resolvr *policy.Resolver, logger log.Logger) *KeyConnector {
+func NewKeyConnector(store keys.Store, resolvr policy.Resolver, logger log.Logger) *KeyConnector {
 	return &KeyConnector{
 		store:    store,
 		logger:   logger,

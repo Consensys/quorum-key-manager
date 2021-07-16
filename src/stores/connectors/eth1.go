@@ -17,12 +17,12 @@ import (
 type Eth1Connector struct {
 	store    eth1.Store
 	logger   log.Logger
-	resolver *policy.Resolver
+	resolver policy.Resolver
 }
 
 var _ eth1.Store = Eth1Connector{}
 
-func NewEth1Connector(store eth1.Store, resolvr *policy.Resolver, logger log.Logger) *Eth1Connector {
+func NewEth1Connector(store eth1.Store, resolvr policy.Resolver, logger log.Logger) *Eth1Connector {
 	return &Eth1Connector{
 		store:    store,
 		logger:   logger,

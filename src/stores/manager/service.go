@@ -128,7 +128,7 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, name string, userInfo 
 	if storeBundle, ok := m.secrets[name]; ok {
 		if store, ok := storeBundle.store.(secrets.Store); ok {
 			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			resolvr, err := policy.NewResolver(policies)
+			resolvr, err := policy.NewRadixResolver(policies...)
 			if err != nil {
 				return nil, err
 			}
@@ -147,7 +147,7 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, name string, userInfo *au
 	if storeBundle, ok := m.keys[name]; ok {
 		if store, ok := storeBundle.store.(keys.Store); ok {
 			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			resolvr, err := policy.NewResolver(policies)
+			resolvr, err := policy.NewRadixResolver(policies...)
 			if err != nil {
 				return nil, err
 			}
@@ -170,7 +170,7 @@ func (m *BaseManager) getEth1Store(ctx context.Context, name string, userInfo *a
 	if storeBundle, ok := m.eth1Accounts[name]; ok {
 		if store, ok := storeBundle.store.(eth1store.Store); ok {
 			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			resolvr, err := policy.NewResolver(policies)
+			resolvr, err := policy.NewRadixResolver(policies...)
 			if err != nil {
 				return nil, err
 			}

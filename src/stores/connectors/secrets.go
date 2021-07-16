@@ -12,12 +12,12 @@ import (
 type SecretConnector struct {
 	store    secrets.Store
 	logger   log.Logger
-	resolver *policy.Resolver
+	resolver policy.Resolver
 }
 
 var _ secrets.Store = SecretConnector{}
 
-func NewSecretConnector(store secrets.Store, resolvr *policy.Resolver, logger log.Logger) *SecretConnector {
+func NewSecretConnector(store secrets.Store, resolvr policy.Resolver, logger log.Logger) *SecretConnector {
 	return &SecretConnector{
 		store:    store,
 		logger:   logger,
