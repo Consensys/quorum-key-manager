@@ -44,33 +44,33 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "Action1", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "Action1", Path: "/path/to/b"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #3",
-					op:                &Operation{Action: "Action2", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action2", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #4",
-					op:                &Operation{Action: "Action2", Path: "/path/to/b"},
+					op:                &Operation{Action: "Action2", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Not allowed Action on Allowed path",
-					op:                &Operation{Action: "Action3", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action3", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: false,
 					expectedErr:       fmt.Errorf("action \"Action3\" on resource \"/path/to/a\" not allowed"),
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on not allowed path",
-					op:                &Operation{Action: "Action1", Path: "/path/to/c"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/c"},
 					expectedIsAllowed: false,
 					expectedErr:       fmt.Errorf("action \"Action1\" on resource \"/path/to/c\" not allowed"),
 				},
@@ -100,22 +100,22 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "Action1", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "Action2", Path: "/path/to/b"},
+					op:                &Operation{Action: "Action2", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
-					desc:        "Not allowed Action/Path combination #1",
-					op:          &Operation{Action: "Action2", Path: "/path/to/a"},
+					desc:        "Not allowed Action/ResourcePath combination #1",
+					op:          &Operation{Action: "Action2", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"Action2\" on resource \"/path/to/a\" not allowed"),
 				},
 				&testIsAuthorized{
-					desc:        "Not allowed Action/Path combination #2",
-					op:          &Operation{Action: "Action1", Path: "/path/to/b"},
+					desc:        "Not allowed Action/ResourcePath combination #2",
+					op:          &Operation{Action: "Action1", ResourcePath: "/path/to/b"},
 					expectedErr: fmt.Errorf("action \"Action1\" on resource \"/path/to/b\" not allowed"),
 				},
 			},
@@ -161,33 +161,33 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "Action1", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "Action1", Path: "/path/to/b"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #3",
-					op:                &Operation{Action: "Action2", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action2", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #4",
-					op:                &Operation{Action: "Action2", Path: "/path/to/b"},
+					op:                &Operation{Action: "Action2", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Not allowed Action on Allowed path",
-					op:                &Operation{Action: "Action3", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action3", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: false,
 					expectedErr:       fmt.Errorf("action \"Action3\" on resource \"/path/to/a\" not allowed"),
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on not allowed path",
-					op:                &Operation{Action: "Action1", Path: "/path/to/c"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/c"},
 					expectedIsAllowed: false,
 					expectedErr:       fmt.Errorf("action \"Action1\" on resource \"/path/to/c\" not allowed"),
 				},
@@ -228,22 +228,22 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "Action1", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action1", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "Action2", Path: "/path/to/b"},
+					op:                &Operation{Action: "Action2", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:        "Denied action/path combination #1",
-					op:          &Operation{Action: "Action2", Path: "/path/to/a"},
+					op:          &Operation{Action: "Action2", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"Action2\" on resource \"/path/to/a\" denied by policy \"TestPolicy2\" statement \"TestStatement4\""),
 				},
 				&testIsAuthorized{
 					desc:        "Denied action/path combination #2",
-					op:          &Operation{Action: "Action1", Path: "/path/to/b"},
+					op:          &Operation{Action: "Action1", ResourcePath: "/path/to/b"},
 					expectedErr: fmt.Errorf("action \"Action1\" on resource \"/path/to/b\" denied by policy \"TestPolicy2\" statement \"TestStatement3\""),
 				},
 			},
@@ -266,47 +266,47 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "ActionA", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionA", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "ActionAFoo", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionAFoo", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #3",
-					op:                &Operation{Action: "ActionABar", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionABar", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "ActionB", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionB", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "ActionBFoo", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionBFoo", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #3",
-					op:                &Operation{Action: "ActionBBar", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionBBar", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:        "Too short action",
-					op:          &Operation{Action: "Action", Path: "/path/to/a"},
+					op:          &Operation{Action: "Action", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"Action\" on resource \"/path/to/a\" not allowed"),
 				},
 				&testIsAuthorized{
 					desc:        "Invalid prefix action",
-					op:          &Operation{Action: "InvalidPrefixAction", Path: "/path/to/a"},
+					op:          &Operation{Action: "InvalidPrefixAction", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"InvalidPrefixAction\" on resource \"/path/to/a\" not allowed"),
 				},
 				&testIsAuthorized{
 					desc:        "Valid action invalid path",
-					op:          &Operation{Action: "ActionA", Path: "/path/to/b"},
+					op:          &Operation{Action: "ActionA", ResourcePath: "/path/to/b"},
 					expectedErr: fmt.Errorf("action \"ActionA\" on resource \"/path/to/b\" not allowed"),
 				},
 			},
@@ -329,37 +329,37 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "Action", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "Action", Path: "/path/to/b"},
+					op:                &Operation{Action: "Action", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #3",
-					op:                &Operation{Action: "Action", Path: "/path/to/a/b/c"},
+					op:                &Operation{Action: "Action", ResourcePath: "/path/to/a/b/c"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #4",
-					op:                &Operation{Action: "Action", Path: "/path/to/"},
+					op:                &Operation{Action: "Action", ResourcePath: "/path/to/"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
-					desc:        "Path too short",
-					op:          &Operation{Action: "Action", Path: "/path/to"},
+					desc:        "ResourcePath too short",
+					op:          &Operation{Action: "Action", ResourcePath: "/path/to"},
 					expectedErr: fmt.Errorf("action \"Action\" on resource \"/path/to\" not allowed"),
 				},
 				&testIsAuthorized{
 					desc:        "Invalid path",
-					op:          &Operation{Action: "Action", Path: "/path/too/a"},
+					op:          &Operation{Action: "Action", ResourcePath: "/path/too/a"},
 					expectedErr: fmt.Errorf("action \"Action\" on resource \"/path/too/a\" not allowed"),
 				},
 				&testIsAuthorized{
 					desc:        "Invalid action",
-					op:          &Operation{Action: "InvalidAction", Path: "/path/to/a"},
+					op:          &Operation{Action: "InvalidAction", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"InvalidAction\" on resource \"/path/to/a\" not allowed"),
 				},
 			},
@@ -382,27 +382,27 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "ActionA", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionA", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "ActionB", Path: "/path/to/b"},
+					op:                &Operation{Action: "ActionB", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
-					desc:        "Path too short",
-					op:          &Operation{Action: "Action", Path: "/path/to"},
+					desc:        "ResourcePath too short",
+					op:          &Operation{Action: "Action", ResourcePath: "/path/to"},
 					expectedErr: fmt.Errorf("action \"Action\" on resource \"/path/to\" not allowed"),
 				},
 				&testIsAuthorized{
-					desc:        "Path too short",
-					op:          &Operation{Action: "Action", Path: "/path/to"},
+					desc:        "ResourcePath too short",
+					op:          &Operation{Action: "Action", ResourcePath: "/path/to"},
 					expectedErr: fmt.Errorf("action \"Action\" on resource \"/path/to\" not allowed"),
 				},
 				&testIsAuthorized{
 					desc:        "Action too short",
-					op:          &Operation{Action: "Actio", Path: "/path/to/a"},
+					op:          &Operation{Action: "Actio", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"Actio\" on resource \"/path/to/a\" not allowed"),
 				},
 			},
@@ -442,37 +442,37 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "ActionA", Path: "/path/to/a"},
+					op:                &Operation{Action: "ActionA", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "ActionB", Path: "/path/to/b"},
+					op:                &Operation{Action: "ActionB", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:        "Action denied",
-					op:          &Operation{Action: "ActionDenied", Path: "/path/to/a"},
+					op:          &Operation{Action: "ActionDenied", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"ActionDenied\" on resource \"/path/to/a\" denied by policy \"TestPolicy2\" statement \"TestStatement2\""),
 				},
 				&testIsAuthorized{
 					desc:              "ActionAdenied on not denied on path",
-					op:                &Operation{Action: "ActionADenied", Path: "/path/to/b"},
+					op:                &Operation{Action: "ActionADenied", ResourcePath: "/path/to/b"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:        "ActionAdenied on denied path",
-					op:          &Operation{Action: "ActionADenied", Path: "/path/to/a"},
+					op:          &Operation{Action: "ActionADenied", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"ActionADenied\" on resource \"/path/to/a\" denied by policy \"TestPolicy2\" statement \"TestStatement3\""),
 				},
 				&testIsAuthorized{
 					desc:        "ActionDenied on denied path",
-					op:          &Operation{Action: "ActionDenied", Path: "/path/to"},
+					op:          &Operation{Action: "ActionDenied", ResourcePath: "/path/to"},
 					expectedErr: fmt.Errorf("action \"ActionDenied\" on resource \"/path/to\" denied by policy \"TestPolicy2\" statement \"TestStatement2\""),
 				},
 				&testIsAuthorized{
 					desc:        "ActionDenied not allowed on short path",
-					op:          &Operation{Action: "ActionDenied", Path: "/path"},
+					op:          &Operation{Action: "ActionDenied", ResourcePath: "/path"},
 					expectedErr: fmt.Errorf("action \"ActionDenied\" on resource \"/path\" not allowed"),
 				},
 			},
@@ -501,17 +501,17 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "ActionAllowed", Path: "/path/to"},
+					op:                &Operation{Action: "ActionAllowed", ResourcePath: "/path/to"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #2",
-					op:                &Operation{Action: "AnyAction", Path: "/path/to/a"},
+					op:                &Operation{Action: "AnyAction", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
-					desc:        "Path too short",
-					op:          &Operation{Action: "AnyAction", Path: "/path/to"},
+					desc:        "ResourcePath too short",
+					op:          &Operation{Action: "AnyAction", ResourcePath: "/path/to"},
 					expectedErr: fmt.Errorf("action \"AnyAction\" on resource \"/path/to\" not allowed"),
 				},
 			},
@@ -540,12 +540,12 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "Action", Path: "/path/to/a"},
+					op:                &Operation{Action: "Action", ResourcePath: "/path/to/a"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:        "Allowed Action on Allowed path #2",
-					op:          &Operation{Action: "ActionDenied", Path: "/path/to/a"},
+					op:          &Operation{Action: "ActionDenied", ResourcePath: "/path/to/a"},
 					expectedErr: fmt.Errorf("action \"ActionDenied\" on resource \"/path/to/a\" denied by policy \"TestPolicy1\" statement \"TestStatement2\""),
 				},
 			},
@@ -579,12 +579,12 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:              "Allowed Action on Allowed path #1",
-					op:                &Operation{Action: "Action", Path: "/path"},
+					op:                &Operation{Action: "Action", ResourcePath: "/path"},
 					expectedIsAllowed: true,
 				},
 				&testIsAuthorized{
 					desc:        "Allowed Action on Allowed path #2",
-					op:          &Operation{Action: "ActionDenied", Path: "/path"},
+					op:          &Operation{Action: "ActionDenied", ResourcePath: "/path"},
 					expectedErr: fmt.Errorf("action \"ActionDenied\" on resource \"/path\" denied by policy \"TestPolicy2\" statement \"TestStatement2\""),
 				},
 			},
@@ -624,22 +624,22 @@ func TestRadixResolver(t *testing.T) {
 			tests: []*testIsAuthorized{
 				&testIsAuthorized{
 					desc:        "ABC /a/b/c",
-					op:          &Operation{Action: "ABC", Path: "/a/b/c"},
+					op:          &Operation{Action: "ABC", ResourcePath: "/a/b/c"},
 					expectedErr: fmt.Errorf("action \"ABC\" on resource \"/a/b/c\" denied by policy \"TestPolicy1\" statement \"TestStatement1\""),
 				},
 				&testIsAuthorized{
 					desc:        "AB /a/b/c",
-					op:          &Operation{Action: "AB", Path: "/a/b/c"},
+					op:          &Operation{Action: "AB", ResourcePath: "/a/b/c"},
 					expectedErr: fmt.Errorf("action \"AB\" on resource \"/a/b/c\" denied by policy \"TestPolicy2\" statement \"TestStatement2\""),
 				},
 				&testIsAuthorized{
 					desc:        "AB /a/b",
-					op:          &Operation{Action: "AB", Path: "/a/b"},
+					op:          &Operation{Action: "AB", ResourcePath: "/a/b"},
 					expectedErr: fmt.Errorf("action \"AB\" on resource \"/a/b\" denied by policy \"TestPolicy2\" statement \"TestStatement2\""),
 				},
 				&testIsAuthorized{
 					desc:        "A",
-					op:          &Operation{Action: "A", Path: "/a/b/c"},
+					op:          &Operation{Action: "A", ResourcePath: "/a/b/c"},
 					expectedErr: fmt.Errorf("action \"A\" on resource \"/a/b/c\" denied by policy \"TestPolicy2\" statement \"TestStatement3\""),
 				},
 			},

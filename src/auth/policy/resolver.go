@@ -13,8 +13,8 @@ var (
 )
 
 type Operation struct {
-	Action string
-	Path   string
+	Action       string
+	ResourcePath string
 }
 
 type Result interface {
@@ -46,11 +46,11 @@ func (res *result) Allowed() bool {
 
 func (res *result) Error() error {
 	if res.deny != nil {
-		return fmt.Errorf("action %q on resource %q denied by policy %q statement %q", res.op.Action, res.op.Path, res.deny.policy.Name, res.deny.Name)
+		return fmt.Errorf("action %q on resource %q denied by policy %q statement %q", res.op.Action, res.op.ResourcePath, res.deny.policy.Name, res.deny.Name)
 	}
 
 	if res.allow == nil {
-		return fmt.Errorf("action %q on resource %q not allowed", res.op.Action, res.op.Path)
+		return fmt.Errorf("action %q on resource %q not allowed", res.op.Action, res.op.ResourcePath)
 	}
 
 	return nil
@@ -245,7 +245,7 @@ func (r *RadixResolver) isAuthorized(op *Operation) (res *result) {
 	}
 
 	// do we have an exact match for the path?
-	actionRslvr, hasExact := r.exactPath[op.Path]
+	actionRslvr, hasExact := r.exactPath[op.ResourcePath]
 	if hasExact {
 		// if we have an exact match and it resolves to Deny we return Deny
 		r := actionRslvr.isAuthorized(op)
@@ -256,7 +256,7 @@ func (r *RadixResolver) isAuthorized(op *Operation) (res *result) {
 	}
 
 	// do we have a prefix matching the action?
-	actionPrefix, _, hasPrefix := r.prefixedPath.LongestPrefix(op.Path)
+	actionPrefix, _, hasPrefix := r.prefixedPath.LongestPrefix(op.ResourcePath)
 	if !hasPrefix {
 		// no prefix so we return
 		return
