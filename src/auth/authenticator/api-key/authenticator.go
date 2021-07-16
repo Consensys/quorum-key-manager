@@ -1,21 +1,25 @@
 package apikey
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"hash"
 	"net/http"
+	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
 const (
-	AuthMode     = "ApiKey"
-	APIKeyHeader = "X-Key-Manager-APIKEY"
+	AuthMode    = "ApiKey"
+	BasicSchema = "Basic"
 )
 
 type Authenticator struct {
 	APIKeyFile map[string]*UserNameAndGroups
-	Hasher     hash.Hash
+	Hasher     *hash.Hash
+	B64Encoder *base64.Encoding
 }
 
 func NewAuthenticator(cfg *Config) (*Authenticator, error) {
@@ -24,7 +28,9 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 	}
 
 	auth := &Authenticator{APIKeyFile: cfg.APIKeyFile,
-		Hasher: cfg.Hasher}
+		Hasher:     cfg.Hasher,
+		B64Encoder: cfg.B64Encoder,
+	}
 
 	return auth, nil
 }
@@ -34,12 +40,22 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 // ? -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract ApiKey
-	apiKey := req.Header.Get(APIKeyHeader)
+	apiKey, ok, err := extractAPIKey(req.Header.Get("Authorization"), authenticator.B64Encoder)
+	if err != nil {
+		// could not be decoded
+		return nil, errors.UnauthorizedError("apikey format error")
+	}
+	// respond anonymous when none found
+	if !ok || apiKey == "" {
+		return types.AnonymousUser, nil
+	}
 
-	clientAPIKeyHash := authenticator.Hasher.Sum([]byte(apiKey))
+	h := *authenticator.Hasher
 
-	// compare hashes
-	userAndGroups, contains := authenticator.APIKeyFile[string(clientAPIKeyHash)]
+	clientAPIKeyHash := h.Sum([]byte(apiKey))
+
+	// search hex string hashes
+	userAndGroups, contains := authenticator.APIKeyFile[hex.EncodeToString(clientAPIKeyHash)]
 	if contains {
 		return &types.UserInfo{
 			AuthMode: AuthMode,
@@ -49,4 +65,16 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	}
 
 	return nil, errors.UnauthorizedError("apikey does not match")
+}
+
+func extractAPIKey(auth string, b64encoder *base64.Encoding) (apiKey string, found bool, err error) {
+	if len(auth) < len(BasicSchema) || !strings.EqualFold(auth[:len(BasicSchema)], BasicSchema) {
+		return "", false, nil
+	}
+	b64EncodedAPIKey := auth[len(BasicSchema)+1:]
+	decodedAPIKey, err := b64encoder.DecodeString(b64EncodedAPIKey)
+	if err != nil {
+		return "", true, err
+	}
+	return string(decodedAPIKey), true, nil
 }
