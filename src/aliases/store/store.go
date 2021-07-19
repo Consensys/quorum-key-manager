@@ -4,27 +4,24 @@ import (
 	"context"
 	goerrors "errors"
 
-	"github.com/go-pg/pg/v10"
-
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliases "github.com/consensys/quorum-key-manager/src/aliases"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
 var _ aliases.API = &Store{}
 
 type Store struct {
-	db *pg.DB
+	pgClient postgres.Client
 }
 
-func New(db *pg.DB) *Store {
+func New(pgClient postgres.Client) *Store {
 	return &Store{
-		db: db,
+		pgClient: pgClient,
 	}
 }
 
 func (s *Store) CreateAlias(ctx context.Context, alias aliases.Alias) error {
-	q := s.db.ModelContext(ctx, &alias)
-	_, err := q.Insert()
+	err := s.pgClient.Insert(ctx, &alias)
 	if err != nil {
 		return err
 	}
@@ -33,49 +30,23 @@ func (s *Store) CreateAlias(ctx context.Context, alias aliases.Alias) error {
 
 func (s *Store) GetAlias(ctx context.Context, registry aliases.RegistryID, alias aliases.AliasID) (*aliases.Alias, error) {
 	a := aliases.Alias{ID: alias, RegistryID: registry}
-	q := s.db.ModelContext(ctx, &a)
-	ret := aliases.Alias{}
-	err := q.WherePK().Select(&ret)
-	if err != nil {
-		return nil, err
-	}
-	return &ret, nil
+	err := s.pgClient.Select(ctx, &a)
+	return &a, err
 }
 
 func (s *Store) UpdateAlias(ctx context.Context, alias aliases.Alias) error {
-	q := s.db.ModelContext(ctx, &alias)
-	ret := aliases.Alias{}
-	res, err := q.WherePK().Update(&ret)
-	if err != nil {
-		return err
-	}
-	if res.RowsAffected() != 1 {
-		return errors.NotFoundError("update not effected")
-	}
-	return nil
+	return s.pgClient.Update(ctx, &alias)
 }
 
 func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, alias aliases.AliasID) error {
 	a := aliases.Alias{ID: alias, RegistryID: registry}
-	q := s.db.ModelContext(ctx, &a)
-	ret := aliases.Alias{}
-	res, err := q.WherePK().Delete(&ret)
-	if err != nil {
-		return err
-	}
-	if res.RowsAffected() != 1 {
-		return errors.NotFoundError("delete not effected")
-	}
-	return nil
+	return s.pgClient.Delete(ctx, &a)
 }
 
 func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryID) ([]aliases.Alias, error) {
 	als := []aliases.Alias{}
-	err := s.db.ModelContext(ctx, &als).Where("alias.registry_id = ?", registry).Select()
-	if err != nil {
-		return nil, err
-	}
-	return als, nil
+	err := s.pgClient.SelectMany(ctx, &aliases.Alias{}, &als, "alias.registry_id = ?", registry)
+	return als, err
 }
 
 func (s *Store) DeleteRegistry(ctx context.Context, registry aliases.RegistryID) error {

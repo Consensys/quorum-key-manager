@@ -3,15 +3,16 @@ package client
 import (
 	"context"
 
+	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
-	"github.com/go-pg/pg/v10"
 )
 
 type PostgresClient struct {
-	cfg *Config
-	db  orm.DB
+	cfg  *Config
+	db   orm.DB
+	pgdb *pg.DB
 }
 
 var _ postgres.Client = &PostgresClient{}
@@ -25,8 +26,9 @@ func NewClient(cfg *Config) (*PostgresClient, error) {
 	db := pg.Connect(pgOptions)
 
 	return &PostgresClient{
-		cfg: cfg,
-		db:  db,
+		cfg:  cfg,
+		db:   db,
+		pgdb: db,
 	}, nil
 }
 
@@ -119,4 +121,12 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 	}
 
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
+}
+
+func (c *PostgresClient) Ping(ctx context.Context) error {
+	return c.pgdb.Ping(ctx)
+}
+
+func (c *PostgresClient) CreateTable(ctx context.Context, model interface{}) error {
+	return c.db.ModelContext(ctx, model).CreateTable(nil)
 }
