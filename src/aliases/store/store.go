@@ -22,12 +22,6 @@ func New(db *pg.DB) *Store {
 	}
 }
 
-// TODO implement all the Runnable
-func (s *Store) Start(ctx context.Context) error { return nil }
-func (s *Store) Stop(context.Context) error      { return nil }
-func (s *Store) Close() error                    { return nil }
-func (s *Store) Error() error                    { return nil }
-
 func (s *Store) CreateAlias(ctx context.Context, alias aliases.Alias) error {
 	q := s.db.ModelContext(ctx, &alias)
 	_, err := q.Insert()
