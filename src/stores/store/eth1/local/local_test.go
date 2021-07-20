@@ -535,7 +535,7 @@ func (s *eth1StoreTestSuite) TestSignData() {
 		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, data).Return(ecdsaSignature, nil)
 
 		expectedSignature := hexutil.Encode(ecdsaSignature) + recID
-		signature, err := s.eth1Store.signHash(ctx, address, data)
+		signature, err := s.eth1Store.SignData(ctx, address, data)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
 	})
@@ -549,7 +549,7 @@ func (s *eth1StoreTestSuite) TestSignData() {
 		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.ID, data).Return(ecdsaSignature, nil)
 
 		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + recID
-		signature, err := s.eth1Store.signHash(ctx, address, data)
+		signature, err := s.eth1Store.SignData(ctx, address, data)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
 	})

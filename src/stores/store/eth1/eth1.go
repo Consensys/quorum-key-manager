@@ -55,6 +55,9 @@ type Store interface {
 	// Sign signs a payload using the specified Ethereum account
 	Sign(ctx context.Context, addr string, data []byte) ([]byte, error)
 
+	// SignData signs a hash using the specified Ethereum account
+	SignData(ctx context.Context, addr string, data []byte) ([]byte, error)
+
 	// SignTypedData signs EIP-712 formatted data using the specified Ethereum account
 	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
 

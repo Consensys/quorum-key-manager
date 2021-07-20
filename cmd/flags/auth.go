@@ -124,8 +124,11 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certs = append(certs, issuerCerts...)
 	}
 
-	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
-		vipr.GetString(authOIDCClaimGroupViperKey), certs...)
+	oidcCfg := oidc.NewConfig(
+		vipr.GetString(authOIDCClaimUsernameViperKey),
+		vipr.GetString(authOIDCClaimGroupViperKey),
+		certs...,
+	)
 
 	return &auth.Config{OIDC: oidcCfg}, nil
 }
