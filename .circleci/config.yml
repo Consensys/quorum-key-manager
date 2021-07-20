@@ -56,6 +56,53 @@ commands:
             -q
             -t ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG} .
 
+  # potential remote environment values
+  # - qa
+  # - staging
+  # potential remote namespace:
+  # - staging-qkm-v21-1 (CIRCLE_TAG=v21.1.4)
+  # - qa-qkm (CIRCLE_BRANCH=main)
+  # - qa-qkm-v21-1 (CIRCLE_BRANCH=maintenance/v21.1)
+  set_remote_environment_variables:
+    description: "Set remote environment values"
+    parameters:
+      environment_values:
+        type: string
+        default: ""
+      qkm_namespace:
+        type: string
+        default: ""
+    steps:
+      - when:
+          condition: <<parameters.environment_values>>
+          steps:
+            - run:
+                name: Set Environment Values
+                command: echo 'export ENVIRONMENT_VALUES=<<parameters.environment_values>>' >> $BASH_ENV
+      - unless:
+          condition: <<parameters.environment_values>>
+          steps:
+            - run:
+                name: Set Environment Values
+                command: if [ "${CIRCLE_TAG}" ]; then echo 'export ENVIRONMENT_VALUES=staging' >> $BASH_ENV ; else echo 'export ENVIRONMENT_VALUES=qa' >> $BASH_ENV; fi
+      - when:
+          condition: <<parameters.qkm_namespace>>
+          steps:
+            - run:
+                name: Set Orchestrate Namespace
+                command: echo 'export QKM_NAMESPACE=<<parameters.environment_values>>-qkm' >> $BASH_ENV
+
+      - unless:
+          condition: <<parameters.qkm_namespace>>
+          steps:
+            - run:
+                name: Set Quorum Key Manager Namespace
+                command: |
+                  if [ "${CIRCLE_TAG}" ]; then echo 'export TAG=${CIRCLE_TAG%.*}' >> $BASH_ENV && echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm-${TAG//./-}' >> $BASH_ENV;
+                  elif [ "${CIRCLE_BRANCH}" == "main" ]; then echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm' >> $BASH_ENV;
+                  else echo 'export TAG=${CIRCLE_BRANCH#"maintenance/"}' >> $BASH_ENV && echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm-${TAG//./-}' >> $BASH_ENV;
+                  fi
+
 jobs:
   lint:
     executor:
@@ -157,6 +204,32 @@ jobs:
             docker tag ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
             docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
 
+  deploy-qa:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - checkout
+      - set_remote_environment_variables
+      - run:
+          name: Deploy QA environment
+          command: >-
+            QKM_TAG=${CIRCLE_SHA1:0:7}
+            QKM_REPOSITORY=${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager
+            make deploy-remote-env
+
+  deploy-staging:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - checkout
+      - set_remote_environment_variables
+      - run:
+          name: Deploy staging environment
+          command: >-
+            QKM_TAG=${CIRCLE_TAG}
+            QKM_REPOSITORY=${DOCKER_REGISTRY_REPO}/quorum-key-manager
+            make deploy-remote-env
+
 workflows:
   version: 2
   default:
@@ -203,6 +276,12 @@ workflows:
               only: /^v.*/
           requires:
             - e2e
+      - deploy-qa:
+          filters:
+            branches:
+              only: main
+          requires:
+            - push-dev-image
       - wait-for-approval:
           type: approval
           requires:
@@ -220,3 +299,11 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
+      - deploy-staging:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - release-tag
