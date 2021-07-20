@@ -158,10 +158,11 @@ func (s *keysTestSuite) TestImport() {
 			Tags: tags,
 		})
 		// AKV and AWS does not support EDDSA
-		if err != nil && errors.IsNotSupportedError(err) {
+		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsInvalidParameterError(err) {
 			assert.Nil(s.T(), key)
 			return
 		}
+		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", base64.URLEncoding.EncodeToString(key.PublicKey))
