@@ -334,7 +334,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		}, &entities.Attributes{
 			Tags: tags,
 		})
-		if err != nil && errors.IsNotSupportedError(err) {
+		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsInvalidParameterError(err) {
 			return
 		}
 		require.NoError(s.T(), err)
