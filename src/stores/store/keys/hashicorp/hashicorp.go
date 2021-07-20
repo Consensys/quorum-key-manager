@@ -48,7 +48,6 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -56,7 +55,9 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 		tagsLabel:      attr.Tags,
 	})
 	if err != nil {
-		return nil, err
+		errMessage := "failed to create Hashicorp key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return parseResponse(res)
@@ -71,20 +72,28 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 		privateKeyLabel: base64.URLEncoding.EncodeToString(privKey),
 	})
 	if err != nil {
-		return nil, err
+		errMessage := "failed to import Hashicorp key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return parseResponse(res)
 }
 
 func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
+	logger := s.logger.With("id", id)
+
 	res, err := s.client.Read(s.pathKeys(id), nil)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get Hashicorp key"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	if res.Data["error"] != nil {
-		return nil, errors.NotFoundError("could not find key pair")
+		errMessage := "could not find key pair"
+		logger.Error(errMessage)
+		return nil, errors.NotFoundError(errMessage)
 	}
 
 	return parseResponse(res)
@@ -93,7 +102,9 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
-		return nil, err
+		errMessage := "failed to list Hashicorp keys"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	if res == nil || res.Data == nil || res.Data["keys"] == nil {
@@ -118,7 +129,9 @@ func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) 
 		tagsLabel: attr.Tags,
 	})
 	if err != nil {
-		return nil, err
+		errMessage := "failed to update Hashicorp key"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return parseResponse(res)
@@ -140,30 +153,27 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 	return errors.ErrNotImplemented
 }
 
-func (s *Store) Destroy(ctx context.Context, id string) error {
-	logger := s.logger.With("id", id)
-	logger.Debug("destroying key")
-
+func (s *Store) Destroy(_ context.Context, id string) error {
 	err := s.client.Delete(path.Join(s.pathKeys(id), "destroy"))
 	if err != nil {
-		s.logger.WithError(err).Error("failed to permanently delete key")
-		return err
+		errMessage := "failed to permanently delete Hashicorp key"
+		s.logger.WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
-	logger.Info("key permanently deleted")
 	return nil
 }
 
 func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) {
 	logger := s.logger.With("id", id)
-	logger.Debug("signing payload")
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
 		dataLabel: base64.URLEncoding.EncodeToString(data),
 	})
 	if err != nil {
-		logger.WithError(err).Error("failed to sign payload")
-		return nil, err
+		errMessage := "failed to sign using Hashicorp key"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	signature, err := base64.URLEncoding.DecodeString(res.Data[signatureLabel].(string))
@@ -173,7 +183,6 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 		return nil, errors.HashicorpVaultError(errMessage)
 	}
 
-	logger.Debug("payload signed successfully")
 	return signature, nil
 }
 

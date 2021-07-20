@@ -21,6 +21,11 @@ func (e *Error) GetMessage() string {
 	return e.Message
 }
 
+func (e *Error) SetMessage(format string, args ...interface{}) *Error {
+	e.Message = fmt.Sprintf(format, args...)
+	return e
+}
+
 func Errorf(code, format string, a ...interface{}) *Error {
 	return &Error{fmt.Sprintf(format, a...), code}
 }

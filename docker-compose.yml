@@ -39,7 +39,7 @@ services:
       <<: *default-variables
       <<: *qkm-common
       AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/cert.pem}
-      AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_CA_CERT-}
+      AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
     ports:
       - 8080:8080
       - 8081:8081

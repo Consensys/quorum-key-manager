@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -30,45 +31,64 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+	logger := s.logger.With("id", id)
+
 	_, err := s.client.CreateSecret(ctx, id, value)
 	if err != nil && errors.IsAlreadyExistsError(err) {
 		_, err1 := s.client.PutSecretValue(ctx, id, value)
 		if err1 != nil {
-			return nil, err1
+			errMessage := "failed to set existing AWS secret"
+			logger.WithError(err).Error(errMessage)
+			return nil, errors.FromError(err).SetMessage(errMessage)
 		}
 	} else if err != nil {
-		return nil, err
+		errMessage := "failed to create AWS secret"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	// Tag secret resource when tags found
 	if len(attr.Tags) > 0 {
 		// check overall len must be limited to max according to doc
 		if len(attr.Tags) > maxTagsAllowed {
-			return nil, errors.InvalidParameterError("resource may not be tagged with more than %d items", maxTagsAllowed)
+			errMessage := fmt.Sprintf("resource may not be tagged with more than %d items", maxTagsAllowed)
+			logger.WithError(err).Error(errMessage)
+			return nil, errors.InvalidParameterError(errMessage)
 		}
 
 		_, err = s.client.TagSecretResource(ctx, id, attr.Tags)
 		if err != nil {
-			return nil, err
+			errMessage := "failed to set AWS secret tags"
+			logger.WithError(err).Error(errMessage)
+			return nil, errors.FromError(err).SetMessage(errMessage)
 		}
 	}
+
 	tags, metadata, err := s.client.DescribeSecret(ctx, id)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get AWS secret after creation"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return formatAwsSecret(id, value, tags, metadata), nil
 }
 
 func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
+	logger := s.logger.With("id", id)
+
 	getSecretOutput, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get AWS secret"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	tags, metadata, err := s.client.DescribeSecret(ctx, id)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get AWS secret description"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return formatAwsSecret(id, *getSecretOutput.SecretString, tags, metadata), nil
@@ -84,12 +104,13 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		secrets = append(secrets, ret...)
 		if retToken == nil {
 			break
 		}
-		nextToken = *retToken
 
+		nextToken = *retToken
 	}
 
 	return secrets, nil
@@ -98,7 +119,9 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 func (s *Store) listPaginated(ctx context.Context, maxResults int64, nextToken string) (resList []string, resNextToken *string, err error) {
 	listOutput, err := s.client.ListSecrets(ctx, maxResults, nextToken)
 	if err != nil {
-		return nil, nil, err
+		errMessage := "failed to list AWS secrets"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	// return only a list of secret names (IDs)
@@ -113,7 +136,9 @@ func (s *Store) listPaginated(ctx context.Context, maxResults int64, nextToken s
 func (s *Store) Delete(ctx context.Context, id string) error {
 	_, err := s.client.DeleteSecret(ctx, id, false)
 	if err != nil {
-		return err
+		errMessage := "failed to delete AWS secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil
@@ -130,7 +155,9 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 func (s *Store) Undelete(ctx context.Context, id string) error {
 	_, err := s.client.RestoreSecret(ctx, id)
 	if err != nil {
-		return err
+		errMessage := "failed to restore AWS secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil
@@ -139,7 +166,9 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	_, err := s.client.DeleteSecret(ctx, id, true)
 	if err != nil {
-		return err
+		errMessage := "failed to permanently delete AWS secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil

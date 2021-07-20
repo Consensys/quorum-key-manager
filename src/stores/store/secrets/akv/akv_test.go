@@ -2,7 +2,6 @@ package akv
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -19,6 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
+
+var expectedErr = errors.AKVError("error")
 
 type akvSecretStoreTestSuite struct {
 	suite.Suite
@@ -80,13 +81,12 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 	})
 
 	s.Run("should fail with same error if write fails", func() {
-		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
 		assert.Nil(s.T(), secret)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsAKVError(err))
 	})
 }
 
@@ -129,14 +129,12 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 	})
 
 	s.Run("should fail with error if bad request in response", func() {
-		expectedErr := errors.AKVError("conn err")
-
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.Nil(s.T(), secret)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsAKVError(err))
 	})
 }
 
@@ -174,13 +172,11 @@ func (s *akvSecretStoreTestSuite) TestList() {
 	})
 
 	s.Run("should fail if list fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockVault.EXPECT().GetSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.SecretItem{}, expectedErr)
 		ids, err := s.secretStore.List(ctx)
 
 		assert.Nil(s.T(), ids)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsAKVError(err))
 	})
 }
 
@@ -195,11 +191,9 @@ func (s *akvSecretStoreTestSuite) TestDestroy() {
 	})
 
 	s.Run("should fail with NotFoundError if DeleteSecret fails with 404", func() {
-		expectedErr := errors.NotFoundError("not found")
-
 		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(false, expectedErr)
 		err := s.secretStore.Destroy(ctx, id)
 
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsAKVError(err))
 	})
 }

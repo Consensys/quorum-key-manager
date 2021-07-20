@@ -318,37 +318,6 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	})
 }
 
-func (s *eth1TestSuite) TestSignDataVerify() {
-	ctx := s.env.ctx
-	id := s.newID("my-account-sign-data")
-	chainID := big.NewInt(1)
-	tx := types.NewTransaction(
-		0,
-		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
-		big.NewInt(0),
-		0,
-		big.NewInt(0),
-		nil,
-	)
-
-	account, err := s.store.Create(ctx, id, &entities.Attributes{
-		Tags: testutils.FakeTags(),
-	})
-	require.NoError(s.T(), err)
-
-	s.Run("should sign a transaction data successfully", func() {
-		signer := types.NewEIP155Signer(chainID)
-		txData := signer.Hash(tx).Bytes()
-		signature, err := s.store.SignData(ctx, account.Address.Hex(), txData)
-		require.NoError(s.T(), err)
-		signedTx, err := tx.WithSignature(signer, signature)
-		require.NoError(s.T(), err)
-		sender, err := types.Sender(signer, signedTx)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), account.Address.Hex(), sender.Hex())
-	})
-}
-
 func (s *eth1TestSuite) TestSignPrivate() {
 	ctx := s.env.ctx
 	id := s.newID("my-account-sign-private")

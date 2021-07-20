@@ -28,20 +28,19 @@ func NewKeyConnector(store keys.Store, resolvr *policy.Resolver, logger log.Logg
 func (c KeyConnector) Info(ctx context.Context) (*entities.StoreInfo, error) {
 	result, err := c.store.Info(ctx)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to fetch keystore info")
 		return nil, err
 	}
 
-	c.logger.Debug("fetched keystore info successfully")
+	c.logger.Debug("key store info retrieved successfully")
 	return result, nil
 }
 
 func (c KeyConnector) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := c.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("creating key")
+
 	result, err := c.store.Create(ctx, id, alg, attr)
 	if err != nil {
-		logger.WithError(err).Error("failed to create key")
 		return nil, err
 	}
 
@@ -55,7 +54,6 @@ func (c KeyConnector) Import(ctx context.Context, id string, privKey []byte, alg
 
 	result, err := c.store.Import(ctx, id, privKey, alg, attr)
 	if err != nil {
-		logger.WithError(err).Error("failed to import key")
 		return nil, err
 	}
 
@@ -65,9 +63,9 @@ func (c KeyConnector) Import(ctx context.Context, id string, privKey []byte, alg
 
 func (c KeyConnector) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := c.logger.With("id", id)
+
 	result, err := c.store.Get(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error("failed to get key")
 		return nil, err
 	}
 
@@ -78,7 +76,6 @@ func (c KeyConnector) Get(ctx context.Context, id string) (*entities.Key, error)
 func (c KeyConnector) List(ctx context.Context) ([]string, error) {
 	result, err := c.store.List(ctx)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to list keys")
 		return nil, err
 	}
 
@@ -92,7 +89,6 @@ func (c KeyConnector) Update(ctx context.Context, id string, attr *entities.Attr
 
 	result, err := c.store.Update(ctx, id, attr)
 	if err != nil {
-		logger.WithError(err).Error("failed to update key")
 		return nil, err
 	}
 
@@ -106,7 +102,6 @@ func (c KeyConnector) Delete(ctx context.Context, id string) error {
 
 	err := c.store.Delete(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error("failed to delete key")
 		return err
 	}
 
@@ -119,7 +114,6 @@ func (c KeyConnector) GetDeleted(ctx context.Context, id string) (*entities.Key,
 
 	result, err := c.store.GetDeleted(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error("failed to get deleted key")
 		return nil, err
 	}
 
@@ -130,7 +124,6 @@ func (c KeyConnector) GetDeleted(ctx context.Context, id string) (*entities.Key,
 func (c KeyConnector) ListDeleted(ctx context.Context) ([]string, error) {
 	result, err := c.store.ListDeleted(ctx)
 	if err != nil {
-		c.logger.Error("failed to list deleted keys")
 		return nil, err
 	}
 
@@ -144,7 +137,6 @@ func (c KeyConnector) Undelete(ctx context.Context, id string) error {
 
 	err := c.store.Undelete(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error("failed to restore key")
 		return err
 	}
 
@@ -158,7 +150,6 @@ func (c KeyConnector) Destroy(ctx context.Context, id string) error {
 
 	err := c.store.Destroy(ctx, id)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to permanently delete key")
 		return err
 	}
 
@@ -171,7 +162,6 @@ func (c KeyConnector) Sign(ctx context.Context, id string, data []byte) ([]byte,
 
 	result, err := c.store.Sign(ctx, id, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to sign payload")
 		return nil, err
 	}
 
@@ -182,7 +172,6 @@ func (c KeyConnector) Sign(ctx context.Context, id string, data []byte) ([]byte,
 func (c KeyConnector) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
 	err := c.store.Verify(ctx, pubKey, data, sig, algo)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to verify data")
 		return err
 	}
 
@@ -192,9 +181,9 @@ func (c KeyConnector) Verify(ctx context.Context, pubKey, data, sig []byte, algo
 
 func (c KeyConnector) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	logger := c.logger.With("id", id)
+
 	result, err := c.store.Encrypt(ctx, id, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to encrypt data")
 		return nil, err
 	}
 
@@ -204,9 +193,9 @@ func (c KeyConnector) Encrypt(ctx context.Context, id string, data []byte) ([]by
 
 func (c KeyConnector) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	logger := c.logger.With("id", id)
+
 	result, err := c.store.Decrypt(ctx, id, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to decrypt data")
 		return nil, err
 	}
 

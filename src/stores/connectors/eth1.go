@@ -33,158 +33,150 @@ func NewEth1Connector(store eth1.Store, resolvr *policy.Resolver, logger log.Log
 func (c Eth1Connector) Info(ctx context.Context) (*entities.StoreInfo, error) {
 	result, err := c.store.Info(ctx)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to fetch ethereum store info")
 		return nil, err
 	}
 
-	c.logger.Debug("fetched ethereum store info successfully")
+	c.logger.Debug("ethereum store info retrieved successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("id", id)
-	logger.Debug("creating ethereum key")
+	logger.Debug("creating ethereum account")
+
 	result, err := c.store.Create(ctx, id, attr)
 	if err != nil {
-		logger.WithError(err).Error("failed to create ethereum key")
 		return nil, err
 	}
 
-	logger.Info("ethereum key created successfully")
+	logger.Info("ethereum account created successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("id", id)
-	logger.Debug("importing ethereum key")
+	logger.Debug("importing ethereum account")
+
 	result, err := c.store.Import(ctx, id, privKey, attr)
 	if err != nil {
-		logger.WithError(err).Error("failed to import ethereum key")
 		return nil, err
 	}
 
-	logger.Info("ethereum key imported successfully")
+	logger.Info("ethereum account imported successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.Get(ctx, addr)
 	if err != nil {
-		logger.WithError(err).Error("failed to get ethereum key")
 		return nil, err
 	}
 
-	logger.Debug("ethereum key retrieved successfully")
+	logger.Debug("ethereum account retrieved successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 	result, err := c.store.GetAll(ctx)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to get all ethereum keys")
 		return nil, err
 	}
 
-	c.logger.Debug("ethereum keys retrieved all successfully")
+	c.logger.Debug("all ethereum accounts retrieved successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) List(ctx context.Context) ([]string, error) {
 	result, err := c.store.List(ctx)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to list ethereum keys")
 		return nil, err
 	}
 
-	c.logger.Debug("ethereum keys listed successfully")
+	c.logger.Debug("ethereum accounts listed successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("address", addr)
-	logger.Debug("updating ethereum key")
+	logger.Debug("updating ethereum account")
 
 	result, err := c.store.Update(ctx, addr, attr)
 	if err != nil {
-		logger.WithError(err).Error("failed to update key")
 		return nil, err
 	}
 
-	logger.Info("ethereum key updated successfully")
+	logger.Info("ethereum account updated successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Delete(ctx context.Context, addr string) error {
 	logger := c.logger.With("address", addr)
-	logger.Debug("deleting key")
+	logger.Debug("deleting ethereum account")
 
 	err := c.store.Delete(ctx, addr)
 	if err != nil {
-		logger.WithError(err).Error("failed to delete ethereum key")
 		return err
 	}
 
-	logger.Info("ethereum key deleted successfully")
+	logger.Info("ethereum account deleted successfully")
 	return nil
 }
 
 func (c Eth1Connector) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.GetDeleted(ctx, addr)
 	if err != nil {
-		logger.WithError(err).Error("failed to get deleted ethereum key")
 		return nil, err
 	}
 
-	logger.Debug("deleted ethereum key retrieved successfully")
+	logger.Debug("deleted ethereum account retrieved successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) ListDeleted(ctx context.Context) ([]string, error) {
 	result, err := c.store.ListDeleted(ctx)
 	if err != nil {
-		c.logger.Error("failed to list deleted ethereum keys")
 		return nil, err
 	}
 
-	c.logger.Debug("deleted ethereum keys listed successfully")
+	c.logger.Debug("deleted ethereum accounts listed successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Undelete(ctx context.Context, addr string) error {
 	logger := c.logger.With("address", addr)
-	logger.Debug("restoring key")
+	logger.Debug("restoring ethereum account")
 
 	err := c.store.Undelete(ctx, addr)
 	if err != nil {
-		logger.WithError(err).Error("failed to restore ethereum key")
 		return err
 	}
 
-	logger.Info("ethereum key restored successfully")
+	logger.Info("ethereum account restored successfully")
 	return nil
 }
 
 func (c Eth1Connector) Destroy(ctx context.Context, addr string) error {
 	logger := c.logger.With("address", addr)
-	logger.Debug("destroying key")
+	logger.Debug("destroying ethereum account")
 
 	err := c.store.Destroy(ctx, addr)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to permanently delete ethereum key")
 		return err
 	}
 
-	logger.Info("ethereum key was permanently deleted")
+	logger.Info("ethereum account was permanently deleted")
 	return nil
 }
 
 func (c Eth1Connector) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.Sign(ctx, addr, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to sign payload")
 		return nil, err
 	}
 
@@ -206,9 +198,9 @@ func (c Eth1Connector) SignData(ctx context.Context, addr string, data []byte) (
 
 func (c Eth1Connector) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.SignTypedData(ctx, addr, typedData)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to sign typed data")
 		return nil, err
 	}
 
@@ -218,9 +210,9 @@ func (c Eth1Connector) SignTypedData(ctx context.Context, addr string, typedData
 
 func (c Eth1Connector) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.SignTransaction(ctx, addr, chainID, tx)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to sign transaction")
 		return nil, err
 	}
 
@@ -230,9 +222,9 @@ func (c Eth1Connector) SignTransaction(ctx context.Context, addr string, chainID
 
 func (c Eth1Connector) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.SignEEA(ctx, addr, chainID, tx, args)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to sign EEA transaction")
 		return nil, err
 	}
 
@@ -242,9 +234,9 @@ func (c Eth1Connector) SignEEA(ctx context.Context, addr string, chainID *big.In
 
 func (c Eth1Connector) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.SignPrivate(ctx, addr, tx)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to sign private transaction")
 		return nil, err
 	}
 
@@ -255,18 +247,16 @@ func (c Eth1Connector) SignPrivate(ctx context.Context, addr string, tx *quorumt
 func (c Eth1Connector) ECRevocer(ctx context.Context, data, sig []byte) (string, error) {
 	result, err := c.store.ECRevocer(ctx, data, sig)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to verify data")
 		return "", err
 	}
 
-	c.logger.Debug("EC recovered successfully")
+	c.logger.Debug("ethereum account recovered successfully from signature")
 	return result, nil
 }
 
 func (c Eth1Connector) Verify(ctx context.Context, addr string, data, sig []byte) error {
 	err := c.store.Verify(ctx, addr, data, sig)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to verify data")
 		return err
 	}
 
@@ -277,7 +267,6 @@ func (c Eth1Connector) Verify(ctx context.Context, addr string, data, sig []byte
 func (c Eth1Connector) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
 	err := c.store.VerifyTypedData(ctx, addr, typedData, sig)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to verify typed data")
 		return err
 	}
 
@@ -287,21 +276,21 @@ func (c Eth1Connector) VerifyTypedData(ctx context.Context, addr string, typedDa
 
 func (c Eth1Connector) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.Encrypt(ctx, addr, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to encrypt data")
 		return nil, err
 	}
 
-	logger.Debug("data encrypted successfully")
+	logger.Info("data encrypted successfully")
 	return result, nil
 }
 
 func (c Eth1Connector) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
+
 	result, err := c.store.Decrypt(ctx, addr, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to decrypt data")
 		return nil, err
 	}
 

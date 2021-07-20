@@ -3,9 +3,10 @@ package aws
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"testing"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -25,6 +26,8 @@ const (
 	id    = "my-key"
 	keyID = "key-ID"
 )
+
+var expectedErr = errors.AWSError("error")
 
 type awsKeyStoreTestSuite struct {
 	suite.Suite
@@ -72,26 +75,22 @@ func (s *awsKeyStoreTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with same error if CreateKey fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 		assert.Nil(s.T(), key)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 
 	s.Run("should fail with same error if any function of Get fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockKmsClient.EXPECT().CreateKey(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&retCreateKey, nil)
 		s.getKeyMockCallsErr(expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 		assert.Nil(s.T(), key)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 
@@ -121,31 +120,25 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 	})
 
 	s.Run("should fail with same error if DescribeKey fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockKmsClient.EXPECT().DescribeKey(ctx, gomock.Any()).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Get(ctx, id)
 		assert.Nil(s.T(), key)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 
 	s.Run("should fail with same error if GetPublicKey fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockKmsClient.EXPECT().DescribeKey(ctx, gomock.Any()).Return(retDescribeKey, nil)
 		s.mockKmsClient.EXPECT().GetPublicKey(ctx, gomock.Any()).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Get(ctx, id)
 		assert.Nil(s.T(), key)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 
 	s.Run("should fail with same error if ListTags fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockKmsClient.EXPECT().DescribeKey(ctx, gomock.Any()).Return(retDescribeKey, nil)
 		s.mockKmsClient.EXPECT().GetPublicKey(ctx, gomock.Any()).Return(retGetPubKey, nil)
 		s.mockKmsClient.EXPECT().ListTags(ctx, gomock.Any(), gomock.Any()).Return(nil, expectedErr)
@@ -153,7 +146,7 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 		key, err := s.keyStore.Get(ctx, id)
 		assert.Nil(s.T(), key)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 
@@ -179,26 +172,22 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 	})
 
 	s.Run("should fail with same error if Get fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.getKeyMockCallsErr(expectedErr)
 
 		signature, err := s.keyStore.Sign(ctx, id, msg)
 		assert.Empty(s.T(), signature)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 
 	s.Run("should fail with same error if Sign fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.getKeyMockCalls(ctx)
 		s.mockKmsClient.EXPECT().Sign(gomock.Any(), keyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(nil, expectedErr)
 
 		signature, err := s.keyStore.Sign(ctx, id, msg)
 		assert.Empty(s.T(), signature)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 
@@ -259,14 +248,12 @@ func (s *awsKeyStoreTestSuite) TestList() {
 	})
 
 	s.Run("should fail if ListKeys fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockKmsClient.EXPECT().ListKeys(gomock.Any(), int64(0), "").Return(nil, expectedErr)
 
 		ids, err := s.keyStore.List(ctx)
-
 		assert.Nil(s.T(), ids)
-		assert.Equal(s.T(), expectedErr, err)
+
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 
@@ -283,24 +270,20 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 	})
 
 	s.Run("should fail with same error if Get fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.getKeyMockCallsErr(expectedErr)
 
 		err := s.keyStore.Delete(ctx, id)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 
 	s.Run("should fail with same error if DeleteKey fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.getKeyMockCalls(ctx)
 		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), keyID).Return(nil, expectedErr)
 
 		err := s.keyStore.Delete(ctx, id)
 
-		assert.Error(s.T(), err)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 
