@@ -32,7 +32,9 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	res, err := s.client.SetSecret(ctx, id, value, attr.Tags)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to create AKV secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return parseSecretBundle(&res), nil
@@ -41,7 +43,9 @@ func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attrib
 func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	res, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get AKV secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return parseSecretBundle(&res), nil
@@ -50,7 +54,9 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 func (s *Store) List(ctx context.Context) ([]string, error) {
 	items, err := s.client.GetSecrets(ctx, 0)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to list AKV secrets"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	var list = []string{}
@@ -66,7 +72,9 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 func (s *Store) Delete(ctx context.Context, id string) error {
 	_, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
-		return err
+		errMessage := "failed to delete AKV secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil
@@ -87,7 +95,9 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	_, err := s.client.PurgeDeletedSecret(ctx, id)
 	if err != nil {
-		return err
+		errMessage := "failed to permanently delete AKV secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil

@@ -118,8 +118,9 @@ func (d *Keys) Restore(ctx context.Context, key *models.Key) error {
 	key.DeletedAt = time.Time{}
 	err := d.Update(ctx, key)
 	if err != nil {
-		d.logger.WithError(err).Error("failed to restore key")
-		return err
+		errMessage := "failed to restore key"
+		d.logger.WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil

@@ -30,7 +30,7 @@ func formatHashicorpSecretData(jsonData map[string]interface{}) (*entities.Metad
 
 	metadata.CreatedAt, err = time.Parse(time.RFC3339, jsonData["created_time"].(string))
 	if err != nil {
-		return nil, errors.HashicorpVaultError("failed to parse hashicorp created time from data")
+		return nil, err
 	}
 
 	metadata.UpdatedAt = metadata.CreatedAt
