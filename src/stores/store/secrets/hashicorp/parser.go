@@ -68,6 +68,10 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 }
 
 func formatTags(tagsI map[string]interface{}) map[string]string {
+	if tagsI == nil {
+		return nil
+	}
+
 	tags := make(map[string]string)
 	for i, tag := range tagsI {
 		tags[i] = tag.(string)

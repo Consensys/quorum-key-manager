@@ -105,7 +105,12 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 		return nil, errors.HashicorpVaultError(errMessage)
 	}
 
-	return formatHashicorpSecret(id, value, formatTags(data[tagsLabel].(map[string]interface{})), metadata), nil
+	var tags map[string]string
+	if data[tagsLabel] != nil {
+		tags = formatTags(data[tagsLabel].(map[string]interface{}))
+	}
+
+	return formatHashicorpSecret(id, value, tags, metadata), nil
 }
 
 func (s *Store) List(_ context.Context) ([]string, error) {
