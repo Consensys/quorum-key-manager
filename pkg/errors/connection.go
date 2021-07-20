@@ -7,6 +7,7 @@ const (
 	AWS            = "CN300"
 	Healthcheck    = "CN400"
 	BlockchainNode = "CN500"
+	Postgres       = "CN600"
 
 	InvalidRequest   = "IR000"
 	Unauthorized     = "IR100"
@@ -44,6 +45,16 @@ func AWSError(format string, a ...interface{}) *Error {
 // IsAWSError indicate whether an error is a AWS client connection error
 func IsAWSError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), AWS)
+}
+
+// PostgresError is raised when failing to perform on Postgres client
+func PostgresError(format string, a ...interface{}) *Error {
+	return Errorf(Postgres, format, a...)
+}
+
+// IsPostgresError indicate whether an error is a Postgres client connection error
+func IsPostgresError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), Postgres)
 }
 
 // HealthcheckError is raised when failing to perform a health check

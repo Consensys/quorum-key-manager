@@ -4,10 +4,9 @@ import (
 	"context"
 	"path"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/infra/akv"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 )
@@ -31,36 +30,26 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
-	logger := s.logger.With("id", id)
-	logger.Debug("creating secret")
-
 	res, err := s.client.SetSecret(ctx, id, value, attr.Tags)
 	if err != nil {
-		logger.Error("failed to set secret")
 		return nil, err
 	}
 
-	logger.Info("secret set successfully")
 	return parseSecretBundle(&res), nil
 }
 
 func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
-	logger := s.logger.With("id", id)
-
 	res, err := s.client.GetSecret(ctx, id, version)
 	if err != nil {
-		logger.Error("failed to get secret")
 		return nil, err
 	}
 
-	logger.Debug("secret retrieved successfully")
 	return parseSecretBundle(&res), nil
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
 	items, err := s.client.GetSecrets(ctx, 0)
 	if err != nil {
-		s.logger.Error("failed to list secrets")
 		return nil, err
 	}
 
@@ -71,21 +60,15 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 		list = append(list, path.Base(*secret.ID))
 	}
 
-	s.logger.Debug("secrets listed successfully")
 	return list, nil
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
-	logger := s.logger.With("id", id)
-	logger.Debug("deleting secret")
-
 	_, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
-		logger.Error("failed to delete secret")
 		return err
 	}
 
-	logger.Info("secret deleted successfully")
 	return nil
 }
 
@@ -102,15 +85,10 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	logger := s.logger.With("id", id)
-	logger.Debug("destroying key")
-
 	_, err := s.client.PurgeDeletedSecret(ctx, id)
 	if err != nil {
-		logger.Error("failed to permanently delete secret")
 		return err
 	}
 
-	logger.Info("secret permanently deleted")
 	return nil
 }

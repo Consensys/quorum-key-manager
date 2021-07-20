@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"math/rand"
 	"os"
 	"runtime"

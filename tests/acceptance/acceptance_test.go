@@ -4,14 +4,16 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/memory"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
 	eth1 "github.com/consensys/quorum-key-manager/src/stores/store/eth1/local"
 	akvkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/akv"
 	awskey "github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 	akvsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/akv"
 	awssecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/aws"
 	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
+
 	"os"
 	"testing"
 
@@ -115,6 +117,15 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	testSuite.env = s.env
 	testSuite.store = awskey.New(s.env.awsKmsClient, logger)
 	suite.Run(s.T(), testSuite)
+
+	// Local
+	logger = s.env.logger.WithComponent("Keys-Local")
+	testSuite = new(keysTestSuite)
+	testSuite.env = s.env
+	db := postgres.New(logger, s.env.postgresClient)
+	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
+	testSuite.store = local.New(hashicorpSecretStore, db, logger)
+	suite.Run(s.T(), testSuite)
 }
 
 func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
@@ -127,21 +138,30 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	logger := s.env.logger.WithComponent("Eth1-Hashicorp")
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), memory.New(logger), logger)
+	testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), postgres.NewETH1Accounts(logger), logger)
 	suite.Run(s.T(), testSuite)
 
 	// AKV
 	logger = s.env.logger.WithComponent("Eth1-AKV")
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), memory.New(logger), logger)
+	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), postgres.NewETH1Accounts(logger), logger)
 	suite.Run(s.T(), testSuite)
 
 	// AWS
 	logger = s.env.logger.WithComponent("Eth1-AWS")
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, logger), memory.New(logger), logger)
+	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, logger), postgres.NewETH1Accounts(logger), logger)
+	suite.Run(s.T(), testSuite)
+
+	// Local
+	logger = s.env.logger.WithComponent("Eth1-Local")
+	testSuite = new(eth1TestSuite)
+	testSuite.env = s.env
+	db := postgres.New(logger, s.env.postgresClient)
+	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
+	testSuite.store = eth1.New(local.New(hashicorpSecretStore, db, logger), postgres.NewETH1Accounts(logger), logger)
 	suite.Run(s.T(), testSuite)
 }
 

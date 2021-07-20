@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"io"
 	"os"
 	"strings"

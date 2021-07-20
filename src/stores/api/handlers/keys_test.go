@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/manager/mock"
@@ -29,6 +32,11 @@ const (
 	keyID                   = "my-key"
 )
 
+var keyUserInfo = &types.UserInfo{
+	Username: "username",
+	Groups:   []string{"group1", "group2"},
+}
+
 type keysHandlerTestSuite struct {
 	suite.Suite
 
@@ -36,6 +44,7 @@ type keysHandlerTestSuite struct {
 	storeManager *mockstoremanager.MockManager
 	keyStore     *mockkeys.MockStore
 	router       *mux.Router
+	ctx          context.Context
 }
 
 func TestKeysHandler(t *testing.T) {
@@ -50,6 +59,9 @@ func (s *keysHandlerTestSuite) SetupTest() {
 	s.keyStore = mockkeys.NewMockStore(s.ctrl)
 
 	s.router = mux.NewRouter()
+	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
+		UserInfo: keyUserInfo,
+	})
 	NewStoresHandler(s.storeManager).Register(s.router)
 }
 
@@ -63,11 +75,11 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		key := testutils2.FakeKey()
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			keyID,
@@ -89,11 +101,11 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 	s.Run("should execute request with no body successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, nil)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, nil).WithContext(s.ctx)
 
 		key := testutils2.FakeKey()
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			gomock.Any(),
@@ -114,7 +126,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -126,7 +138,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -138,9 +150,9 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -154,10 +166,10 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		key := testutils2.FakeKey()
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Import(
 			gomock.Any(),
 			keyID,
@@ -184,7 +196,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -196,7 +208,7 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusBadRequest, rw.Code)
@@ -208,9 +220,9 @@ func (s *keysHandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importKeyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -224,9 +236,9 @@ func (s *keysHandlerTestSuite) TestSign() {
 		requestBytes, _ := json.Marshal(signPayloadRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		signature := []byte("signature")
 		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, signPayloadRequest.Data).Return(signature, nil)
@@ -243,9 +255,9 @@ func (s *keysHandlerTestSuite) TestSign() {
 		requestBytes, _ := json.Marshal(signPayloadRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -256,9 +268,9 @@ func (s *keysHandlerTestSuite) TestSign() {
 func (s *keysHandlerTestSuite) TestGet() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		key := testutils2.FakeKey()
 		s.keyStore.EXPECT().Get(gomock.Any(), keyID).Return(key, nil)
 
@@ -273,9 +285,9 @@ func (s *keysHandlerTestSuite) TestGet() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -286,9 +298,9 @@ func (s *keysHandlerTestSuite) TestGet() {
 func (s *keysHandlerTestSuite) TestList() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		ids := []string{"key1", "key2"}
 		s.keyStore.EXPECT().List(gomock.Any()).Return(ids, nil)
@@ -303,9 +315,9 @@ func (s *keysHandlerTestSuite) TestList() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil)
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -316,9 +328,9 @@ func (s *keysHandlerTestSuite) TestList() {
 func (s *keysHandlerTestSuite) TestDelete() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -329,10 +341,10 @@ func (s *keysHandlerTestSuite) TestDelete() {
 
 	s.Run("should execute request successfully with version", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 		httpRequest = httpRequest.WithContext(WithStoreName(httpRequest.Context(), keyStoreName))
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -344,9 +356,9 @@ func (s *keysHandlerTestSuite) TestDelete() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -357,9 +369,9 @@ func (s *keysHandlerTestSuite) TestDelete() {
 func (s *keysHandlerTestSuite) TestDestroy() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -370,10 +382,10 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 
 	s.Run("should execute request successfully with version", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil).WithContext(s.ctx)
 		httpRequest = httpRequest.WithContext(WithStoreName(httpRequest.Context(), keyStoreName))
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -385,9 +397,9 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil)
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName).Return(s.keyStore, nil)
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)

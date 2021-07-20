@@ -1,13 +1,12 @@
 package cmd
 
 import (
-	"os"
+	"strings"
 
-	"github.com/consensys/quorum-key-manager/cmd/flags"
-	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/pkg/log/zap"
-	app "github.com/consensys/quorum-key-manager/src"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -19,71 +18,28 @@ func NewCommand() *cobra.Command {
 	}
 
 	rootCmd.AddCommand(newRunCommand())
+	rootCmd.AddCommand(newUtilCommand())
 
 	return rootCmd
 }
 
-func newRunCommand() *cobra.Command {
-	runCmd := &cobra.Command{
-		Use:   "run",
-		Short: "Run application",
-		RunE:  run,
-		PreRun: func(cmd *cobra.Command, args []string) {
-			PreRunBindFlags(viper.GetViper(), cmd.Flags(), "key-manager")
-		},
-		PostRun: func(cmd *cobra.Command, args []string) {
-			// TODO: Identify which error code to return
-			os.Exit(0)
-		},
-	}
-
-	flags.HTTPFlags(runCmd.Flags())
-	flags.ManifestFlags(runCmd.Flags())
-	flags.LoggerFlags(runCmd.Flags())
-
-	return runCmd
-}
-
-func run(cmd *cobra.Command, _ []string) error {
-	ctx := cmd.Context()
-
-	vipr := viper.GetViper()
-	cfg := flags.NewAppConfig(vipr)
-
-	logger, err := zap.NewLogger(cfg.Logger)
-	if err != nil {
-		return err
-	}
-	defer syncZapLogger(logger)
-
-	appli, err := app.New(cfg, logger)
-	if err != nil {
-		logger.WithError(err).Error("could not create app")
-		return err
-	}
-
-	done := make(chan struct{})
-	sig := common.NewSignalListener(func(sig os.Signal) {
-		logger.With("sig", sig.String()).Warn("signal intercepted")
-		if err = appli.Stop(ctx); err != nil {
-			logger.WithError(err).Error("application stopped with errors")
-		}
-		close(done)
-	})
-
-	defer sig.Close()
-
-	err = appli.Start(ctx)
-	if err != nil {
-		logger.WithError(err).Error("application failed to start")
-		return err
-	}
-
-	<-done
-
-	return nil
-}
-
 func syncZapLogger(logger *zap.Logger) {
 	_ = logger.Sync()
+}
+
+func preRunBindFlags(vipr *viper.Viper, flgs *pflag.FlagSet, ignore string) {
+	for _, vk := range vipr.AllKeys() {
+		if ignore != "" && strings.HasPrefix(vk, ignore) {
+			continue
+		}
+
+		// Convert viperKey to cmd flag name
+		// For example: 'rest.api' to "rest-api"
+		name := strings.Replace(vk, ".", "-", -1)
+
+		// Only bind in case command flags contain the name
+		if flgs.Lookup(name) != nil {
+			_ = viper.BindPFlag(vk, flgs.Lookup(name))
+		}
+	}
 }

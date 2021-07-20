@@ -3,10 +3,12 @@ package auth
 import (
 	"net/http"
 
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	"github.com/consensys/quorum-key-manager/pkg/log"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
+	authmanager "github.com/consensys/quorum-key-manager/src/auth/policy"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
@@ -43,11 +45,21 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 		return nil, err
 	}
 
+	auths := []authenticator.Authenticator{}
+	if cfg.OIDC != nil {
+		oidcAuth, err := oidc.NewAuthenticator(cfg.OIDC)
+		if err != nil {
+			return nil, err
+		} else if oidcAuth != nil {
+			logger.Info("OIDC Authenticator is enabled")
+			auths = append(auths, oidcAuth)
+		}
+	}
+
 	// Create middleware
 	mid := authenticator.NewMiddleware(
-		*policyMngr,
 		logger,
-		// TODO: pass each authenticator implementation based on config
+		auths...,
 	)
 
 	return mid.Then, nil

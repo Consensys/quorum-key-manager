@@ -6,9 +6,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"

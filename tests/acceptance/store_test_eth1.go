@@ -3,21 +3,23 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres/mocks"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
+	"github.com/golang/mock/gomock"
 	"math/big"
 	"time"
 
-	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
-	ethlocal "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/memory"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
 	eth1local "github.com/consensys/quorum-key-manager/src/stores/store/eth1/local"
 	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
+	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -45,6 +47,8 @@ func (s *eth1TestSuite) TearDownSuite() {
 		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
 			return
 		}
+
+		require.NoError(s.T(), err)
 	}
 
 	for _, acc := range accounts {
@@ -73,6 +77,9 @@ func (s *eth1TestSuite) TearDownSuite() {
 }
 
 func (s *eth1TestSuite) TestInit() {
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+
 	logger := s.env.logger
 	ctx := s.env.ctx
 	attr := &entities.Attributes{
@@ -84,7 +91,7 @@ func (s *eth1TestSuite) TestInit() {
 	}
 
 	keyStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
-	db := memory.New(logger)
+	db := postgres.New(logger, mocks.NewMockClient(ctrl))
 
 	key1, err := keyStore.Create(ctx, "init-key-1", algo, attr)
 	require.NoError(s.T(), err)
@@ -98,10 +105,10 @@ func (s *eth1TestSuite) TestInit() {
 	}, attr)
 	require.NoError(s.T(), err)
 
-	err = ethlocal.InitDB(ctx, keyStore, db)
+	err = local.InitDB(ctx, keyStore, db.ETH1Accounts())
 	require.NoError(s.T(), err)
 
-	ethStore := eth1local.New(keyStore, db, logger)
+	ethStore := eth1local.New(keyStore, db.ETH1Accounts(), logger)
 
 	s.Run("should load ETH1 keys", func() {
 		pubKey1, _ := crypto.UnmarshalPubkey(key1.PublicKey)
@@ -132,7 +139,6 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), account.PublicKey)
 		assert.NotEmpty(s.T(), account.CompressedPublicKey)
 		assert.Equal(s.T(), account.Tags, tags)
-		assert.NotEmpty(s.T(), account.Metadata.Version)
 		assert.False(s.T(), account.Metadata.Disabled)
 		assert.True(s.T(), account.Metadata.DestroyedAt.IsZero())
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
@@ -163,7 +169,6 @@ func (s *eth1TestSuite) TestImport() {
 		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
 		assert.Equal(s.T(), "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
 		assert.Equal(s.T(), account.Tags, tags)
-		assert.NotEmpty(s.T(), account.Metadata.Version)
 		assert.False(s.T(), account.Metadata.Disabled)
 		assert.True(s.T(), account.Metadata.DestroyedAt.IsZero())
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
@@ -211,7 +216,6 @@ func (s *eth1TestSuite) TestGet() {
 		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.PublicKey))
 		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.CompressedPublicKey))
 		assert.Equal(s.T(), retrievedAccount.Tags, tags)
-		assert.NotEmpty(s.T(), retrievedAccount.Metadata.Version)
 		assert.False(s.T(), retrievedAccount.Metadata.Disabled)
 		assert.True(s.T(), retrievedAccount.Metadata.DestroyedAt.IsZero())
 		assert.True(s.T(), retrievedAccount.Metadata.DeletedAt.IsZero())

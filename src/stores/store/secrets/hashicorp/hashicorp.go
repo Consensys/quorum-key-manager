@@ -5,12 +5,11 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
-
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -43,9 +42,6 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
-	logger := s.logger.With("id", id)
-	logger.Debug("creating secret")
-
 	data := map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
@@ -55,23 +51,18 @@ func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attribut
 
 	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
 	if err != nil {
-		logger.WithError(err).Error("failed to set secret")
 		return nil, err
 	}
 
 	metadata, err := formatHashicorpSecretData(hashicorpSecret.Data)
 	if err != nil {
-		logger.WithError(err).Error("failed to parse secret data")
 		return nil, err
 	}
 
-	logger.Info("secret set successfully")
 	return formatHashicorpSecret(id, value, attr.Tags, metadata), nil
 }
 
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {
-	logger := s.logger.With("id", id)
-
 	var callData map[string][]string
 	if version != "" {
 		_, err := strconv.Atoi(version)
@@ -86,7 +77,6 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
 	if err != nil {
-		logger.WithError(err).Error("failed to get secret data")
 		return nil, err
 	} else if hashicorpSecretData == nil {
 		return nil, errors.NotFoundError("secret not found")
@@ -94,32 +84,24 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 
 	data := hashicorpSecretData.Data[dataLabel].(map[string]interface{})
 	value := data[valueLabel].(string)
-	tags := make(map[string]string)
-	if data[tagsLabel] != nil {
-		tags = data[tagsLabel].(map[string]string)
-	}
 
 	// We need to do a second call to get the metadata
 	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
 	if err != nil {
-		logger.WithError(err).Error("failed to get secret metadata")
 		return nil, err
 	}
 
 	metadata, err := formatHashicorpSecretMetadata(hashicorpSecretMetadata, version)
 	if err != nil {
-		logger.WithError(err).Error("failed to format secret metadata")
 		return nil, err
 	}
 
-	logger.Debug("secret retrieved successfully")
-	return formatHashicorpSecret(id, value, tags, metadata), nil
+	return formatHashicorpSecret(id, value, formatTags(data[tagsLabel].(map[string]interface{})), metadata), nil
 }
 
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
-		s.logger.WithError(err).Error("failed to list secrets")
 		return nil, err
 	}
 
@@ -133,7 +115,6 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 		keysStr[i] = key.(string)
 	}
 
-	s.logger.Debug("secrets listed successfully")
 	return keysStr, nil
 }
 

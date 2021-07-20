@@ -46,6 +46,7 @@ func NewConfig() (*Config, error) {
 	if err := json.Unmarshal([]byte(cfgStr), cfg); err != nil {
 		return nil, err
 	}
+
 	return cfg, nil
 }
 

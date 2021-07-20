@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/consensys/quorum-key-manager/pkg/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
@@ -212,8 +212,6 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
-	logger := s.logger.With("address", addr)
-
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
 	signature, err := s.SignData(ctx, addr, txData)
@@ -224,14 +222,14 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		errMessage := "failed to set transaction signature"
-		logger.WithError(err).Error(errMessage, "signature", signature)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
 	signedRaw, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
 		errMessage := "failed to RLP encode signed transaction"
-		logger.WithError(err).Error(errMessage)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.EncodingError(errMessage)
 	}
 
@@ -239,19 +237,17 @@ func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.I
 }
 
 func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
-	logger := s.logger.With("address", addr)
-
 	privateFromEncoded, err := base64.StdEncoding.DecodeString(*args.PrivateFrom)
 	if err != nil {
 		errMessage := "invalid privateFrom param"
-		logger.WithError(err).Error(errMessage, "privateFrom", *args.PrivateFrom)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	privateRecipientEncoded, err := getEncodedPrivateRecipient(args.PrivacyGroupID, args.PrivateFor)
 	if err != nil {
-		errMessage := "invalid privacyGroupID or privateFor params"
-		logger.WithError(err).Error(errMessage, "privateFor", *args.PrivateFor, "privacyGroupID", *args.PrivacyGroupID)
+		errMessage := "invalid privacyGroupID or privateFor"
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
@@ -271,7 +267,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 	})
 	if err != nil {
 		errMessage := "failed to hash EEA transaction"
-		logger.WithError(err).Error(errMessage)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
@@ -283,7 +279,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 	signedTx, err := tx.WithSignature(types.NewEIP155Signer(chainID), signature)
 	if err != nil {
 		errMessage := "failed to set eea transaction signature"
-		logger.WithError(err).Error(errMessage, "signature", signature)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 	V, R, S := signedTx.RawSignatureValues()
@@ -304,7 +300,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 	})
 	if err != nil {
 		errMessage := "failed to RLP encode signed eea transaction"
-		logger.WithError(err).Error(errMessage)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.EncodingError(errMessage)
 	}
 
@@ -312,8 +308,6 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 }
 
 func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
-	logger := s.logger.With("address", addr)
-
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
 	signature, err := s.SignData(ctx, addr, txData)
@@ -324,14 +318,14 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		errMessage := "failed to set quorum private transaction signature"
-		logger.WithError(err).Error(errMessage, "signature", signature)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
 	signedRaw, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
 		errMessage := "failed to RLP encode signed quorum private transaction"
-		logger.WithError(err).Error(errMessage)
+		s.logger.WithError(err).Error(errMessage)
 		return nil, errors.EncodingError(errMessage)
 	}
 
@@ -357,7 +351,7 @@ func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error
 
 	if addr != recoveredAddress {
 		errMessage := "failed to verify signature: recovered address does not match the expected one or payload is malformed"
-		s.logger.Error(errMessage, "address", addr, "recovered_address", recoveredAddress)
+		s.logger.WithError(err).Error(errMessage)
 		return errors.InvalidParameterError(errMessage)
 	}
 
@@ -407,7 +401,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-// TODO: Remove usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
+// TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
 func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (interface{}, error) {
 	var privateRecipientEncoded interface{}
 	var err error

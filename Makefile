@@ -1,5 +1,6 @@
 GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" -not -path "./tests/*" | egrep -v "^\./\.go" | grep -v _test.go)
 DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
+DEPS_POSTGRES = postgres
 PACKAGES ?= $(shell go list ./... | egrep -v "tests|e2e|mocks|mock" )
 KEY_MANAGER_SERVICES = key-manager
 
@@ -32,11 +33,18 @@ networks:
 
 down-networks:
 	@docker network rm quorum || true
+	@docker network rm besu || true
 	@docker network rm hashicorp || true
 
-deps: networks hashicorp
+postgres:
+	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_POSTGRES)
 
-down-deps: hashicorp-down
+postgres-down:
+	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0
+
+deps: networks hashicorp postgres
+
+down-deps: postgres-down hashicorp-down down-networks
 
 run-acceptance:
 	@go test -v -tags acceptance -count=1 ./tests/acceptance
@@ -56,7 +64,7 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: deps gobuild
+dev: gobuild
 	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)	
 
 up: deps go-quorum besu gobuild
@@ -68,10 +76,9 @@ down: down-go-quorum down-besu
 
 down-dev:
 	@docker-compose -f ./docker-compose.yml down --volumes --timeout 0
-	@make down-deps
 
-run: networks gobuild
-	@docker-compose -f ./docker-compose.yml up --build -d $(KEY_MANAGER_SERVICES)
+run: gobuild
+	@./build/bin/key-manager run
 
 run-dbg: gobuild-dbg
 	@dlv --listen=:2345 --headless=true --api-version=2 --accept-multiclient exec ./build/bin/key-manager run
@@ -93,6 +100,9 @@ stop-besu:
 
 down-besu:
 	@docker-compose -f deps/besu/docker-compose.yml down --volumes --timeout 0
+
+generate-jwt: networks gobuild
+	@docker-compose -f ./docker-compose.yml up generate-jwt
 
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)

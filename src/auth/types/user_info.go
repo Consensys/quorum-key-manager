@@ -13,8 +13,15 @@ type UserInfo struct {
 }
 
 var AnonymousUser = &UserInfo{
-	Username: "system:anonymous",
+	Username: "user:anonymous",
 	Groups: []string{
 		"system:unauthenticated",
+	},
+}
+
+var AuthenticatedUser = &UserInfo{
+	Username: "user:authenticated",
+	Groups: []string{
+		"system:authenticated",
 	},
 }
