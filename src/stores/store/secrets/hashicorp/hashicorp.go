@@ -41,31 +41,22 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.With("id", id)
 
-	data := map[string]interface{}{
+	_, err := s.client.Write(s.pathData(id), map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
 			tagsLabel:  attr.Tags,
 		},
-	}
-
-	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
+	})
 	if err != nil {
 		errMessage := "failed to create Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	metadata, err := formatHashicorpSecretData(hashicorpSecret.Data)
-	if err != nil {
-		errMessage := "failed to parse Hashicorp secret"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.HashicorpVaultError(errMessage)
-	}
-
-	return formatHashicorpSecret(id, value, attr.Tags, metadata), nil
+	return s.Get(ctx, id, "")
 }
 
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {

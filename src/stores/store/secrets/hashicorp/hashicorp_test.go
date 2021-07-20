@@ -3,7 +3,6 @@ package hashicorp
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -18,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
+
+var expectedErr = errors.HashicorpVaultError("error")
 
 type hashicorpSecretStoreTestSuite struct {
 	suite.Suite
@@ -47,10 +48,25 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 	value := "my-value2"
 	expectedPath := s.mountPoint + "/data/" + id
 	attributes := testutils.FakeAttributes()
-	expectedData := map[string]interface{}{
+	expectedWriteData := map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
 			tagsLabel:  attributes.Tags,
+		},
+	}
+	expectedPathData := s.mountPoint + "/data/" + id
+	expectedPathMetadata := s.mountPoint + "/metadata/" + id
+
+	expectedData := map[string]interface{}{
+		valueLabel: value,
+		tagsLabel: map[string]interface{}{
+			"tag1": attributes.Tags["tag1"],
+			"tag2": attributes.Tags["tag2"],
+		},
+	}
+	hashicorpSecretData := &hashicorp.Secret{
+		Data: map[string]interface{}{
+			dataLabel: expectedData,
 		},
 	}
 	hashicorpSecret := &hashicorp.Secret{
@@ -58,14 +74,44 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 			"created_time":  "2018-03-22T02:24:06.945319214Z",
 			"deletion_time": "",
 			"destroyed":     false,
-			"version":       json.Number("2"),
+			"version":       json.Number("3"),
 		},
+	}
+	expectedMetadata := map[string]interface{}{
+		"created_time":         "2018-03-22T02:24:06.945319214Z",
+		"current_version":      json.Number("3"),
+		"max_versions":         0,
+		"oldest_version":       0,
+		"updated_time":         "2018-03-22T02:36:43.986212308Z",
+		"delete_version_after": "0s",
+		"versions": map[string]interface{}{
+			"1": map[string]interface{}{
+				"created_time":  "2018-01-22T02:36:43.986212308Z",
+				"deletion_time": "",
+				"destroyed":     true,
+			},
+			"2": map[string]interface{}{
+				"created_time":  "2018-03-22T02:36:33.954880664Z",
+				"deletion_time": "",
+				"destroyed":     false,
+			},
+			"3": map[string]interface{}{
+				"created_time":  "2018-03-22T02:36:43.986212308Z",
+				"deletion_time": "",
+				"destroyed":     false,
+			},
+		},
+	}
+	hashicorpSecretMetadata := &hashicorp.Secret{
+		Data: expectedMetadata,
 	}
 
 	s.Run("should set a new secret successfully", func() {
-		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
+		expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:36:43.986212308Z")
 
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Write(expectedPath, expectedWriteData).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(hashicorpSecretData, nil)
+		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(hashicorpSecretMetadata, nil)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -73,31 +119,14 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 		assert.Equal(s.T(), value, secret.Value)
 		assert.Equal(s.T(), expectedCreatedAt, secret.Metadata.CreatedAt)
 		assert.Equal(s.T(), attributes.Tags, secret.Tags)
-		assert.Equal(s.T(), "2", secret.Metadata.Version)
+		assert.Equal(s.T(), "3", secret.Metadata.Version)
 		assert.False(s.T(), secret.Metadata.Disabled)
 		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
 		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
 	s.Run("should fail with same error if write fails", func() {
-		expectedErr := fmt.Errorf("my error")
-		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(nil, expectedErr)
-
-		secret, err := s.secretStore.Set(ctx, id, value, attributes)
-
-		assert.Nil(s.T(), secret)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with error if it fails to extract metadata", func() {
-		hashSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				"created_time": "invalidTime",
-				"version":      json.Number("2"),
-			},
-		}
-
-		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedData).Return(hashSecret, nil)
+		s.mockVault.EXPECT().Write(s.mountPoint+"/data/"+id, expectedWriteData).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -205,24 +234,22 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	})
 
 	s.Run("should fail with same error if read data fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.Nil(s.T(), secret)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 
 	s.Run("should fail with same error if read metadata fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Read(expectedPathData, nil).Return(hashicorpSecretData, nil)
 		s.mockVault.EXPECT().Read(expectedPathMetadata, nil).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, "")
 
 		assert.Nil(s.T(), secret)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
 
@@ -257,12 +284,11 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 	})
 
 	s.Run("should fail with same error if read data fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
 		ids, err := s.secretStore.List(ctx)
 
 		assert.Empty(s.T(), ids)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }

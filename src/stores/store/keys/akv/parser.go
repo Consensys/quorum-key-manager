@@ -64,8 +64,6 @@ func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 
 }
 
-
-
 func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 	key := &entities.Key{
 		PublicKey: pubKeyBytes(res.Key),

@@ -20,24 +20,6 @@ func formatHashicorpSecret(id, value string, tags map[string]string, metadata *e
 	}
 }
 
-func formatHashicorpSecretData(jsonData map[string]interface{}) (*entities.Metadata, error) {
-	metadata := &entities.Metadata{
-		Version:  jsonData[versionLabel].(json.Number).String(),
-		Disabled: false,
-	}
-
-	var err error
-
-	metadata.CreatedAt, err = time.Parse(time.RFC3339, jsonData["created_time"].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	metadata.UpdatedAt = metadata.CreatedAt
-
-	return metadata, nil
-}
-
 func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entities.Metadata, error) {
 	jsonMetadata := secret.Data
 

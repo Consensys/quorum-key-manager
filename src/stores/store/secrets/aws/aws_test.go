@@ -18,6 +18,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+var expectedErr = errors.AWSError("error")
+
 type awsSecretStoreTestSuite struct {
 	suite.Suite
 	mockVault   *mocks.MockSecretsManagerClient
@@ -90,32 +92,29 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 	})
 
 	s.Run("should fail with describe error", func() {
-		expectedErr := fmt.Errorf("any error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 		assert.Nil(s.T(), secret)
 
 	})
 
 	s.Run("should fail with tag error", func() {
-		expectedErr := fmt.Errorf("any error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(createOutput, nil)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(nil, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 		assert.Nil(s.T(), secret)
 
 	})
 
 	s.Run("should fail with same error if write fails", func() {
-		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().CreateSecret(gomock.Any(), id, value).Return(&secretsmanager.CreateSecretOutput{}, expectedErr)
 		s.mockVault.EXPECT().TagSecretResource(gomock.Any(), id, attributes.Tags).Return(&secretsmanager.TagResourceOutput{}, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), nil)
@@ -123,7 +122,7 @@ func (s *awsSecretStoreTestSuite) TestSet() {
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
 		assert.Nil(s.T(), secret)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 
 	s.Run("should update secret if already exists", func() {
@@ -168,23 +167,20 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 	})
 
 	s.Run("should fail with same error if GetSecret fails", func() {
-		expectedErr := fmt.Errorf("error")
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, expectedErr)
 
 		retValue, err := s.secretStore.Get(ctx, id, version)
 		assert.Nil(s.T(), retValue)
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 
-	s.Run("should fail with same eeror if DescribeSecret fails", func() {
-		expectedErr := fmt.Errorf("error")
-
+	s.Run("should fail with same error if DescribeSecret fails", func() {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, nil)
 		s.mockVault.EXPECT().DescribeSecret(gomock.Any(), id).Return(testutils.FakeTags(), testutils.FakeMetadata(), expectedErr)
 
 		retValue, err := s.secretStore.Get(ctx, id, version)
 		assert.Nil(s.T(), retValue)
-		assert.Equal(s.T(), err, expectedErr)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 
@@ -234,13 +230,12 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 	})
 
 	s.Run("should fail with same error if DeleteSecret fails", func() {
-		expectedError := fmt.Errorf("error")
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedError)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedErr)
 
 		err := s.secretStore.Destroy(ctx, id)
 
 		assert.Error(s.T(), err)
-		assert.Equal(s.T(), err, expectedError)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 
@@ -289,13 +284,11 @@ func (s *awsSecretStoreTestSuite) TestList() {
 	})
 
 	s.Run("should fail if list fails", func() {
-		expectedErr := fmt.Errorf("error")
-
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(&secretsmanager.ListSecretsOutput{}, expectedErr)
 		ids, err := s.secretStore.List(ctx)
 
 		assert.Nil(s.T(), ids)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsAWSError(err))
 	})
 }
 

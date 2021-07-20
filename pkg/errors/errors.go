@@ -22,7 +22,7 @@ func (e *Error) GetMessage() string {
 }
 
 func (e *Error) SetMessage(format string, args ...interface{}) *Error {
-	e.Message = fmt.Sprintf(format, args)
+	e.Message = fmt.Sprintf(format, args...)
 	return e
 }
 
