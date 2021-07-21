@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -24,6 +25,8 @@ const (
 	id        = "my-key"
 	publicKey = "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI="
 )
+
+var expectedErr = errors.HashicorpVaultError("error")
 
 type hashicorpKeyStoreTestSuite struct {
 	suite.Suite
@@ -92,13 +95,12 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with same error if write fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
 		assert.Nil(s.T(), key)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
 
@@ -150,13 +152,12 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	})
 
 	s.Run("should fail with same error if write fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
 		assert.Nil(s.T(), key)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
 
@@ -198,13 +199,12 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	})
 
 	s.Run("should fail with same error if read fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Get(ctx, id)
 
 		assert.Nil(s.T(), key)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
 
@@ -229,13 +229,12 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 	})
 
 	s.Run("should fail with same error if read fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
 		key, err := s.keyStore.List(ctx)
 
 		assert.Nil(s.T(), key)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
 
@@ -263,7 +262,6 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 	})
 
 	s.Run("should fail with same error if write fails", func() {
-		expectedErr := fmt.Errorf("my error")
 		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
 			dataLabel: expectedData,
 		}).Return(nil, expectedErr)
@@ -271,6 +269,6 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 		signature, err := s.keyStore.Sign(ctx, id, data)
 
 		assert.Empty(s.T(), signature)
-		assert.Equal(s.T(), expectedErr, err)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }

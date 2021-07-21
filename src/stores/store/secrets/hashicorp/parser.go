@@ -20,24 +20,6 @@ func formatHashicorpSecret(id, value string, tags map[string]string, metadata *e
 	}
 }
 
-func formatHashicorpSecretData(jsonData map[string]interface{}) (*entities.Metadata, error) {
-	metadata := &entities.Metadata{
-		Version:  jsonData[versionLabel].(json.Number).String(),
-		Disabled: false,
-	}
-
-	var err error
-
-	metadata.CreatedAt, err = time.Parse(time.RFC3339, jsonData["created_time"].(string))
-	if err != nil {
-		return nil, errors.HashicorpVaultError("failed to parse hashicorp created time from data")
-	}
-
-	metadata.UpdatedAt = metadata.CreatedAt
-
-	return metadata, nil
-}
-
 func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entities.Metadata, error) {
 	jsonMetadata := secret.Data
 
@@ -86,6 +68,10 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 }
 
 func formatTags(tagsI map[string]interface{}) map[string]string {
+	if tagsI == nil {
+		return nil
+	}
+
 	tags := make(map[string]string)
 	for i, tag := range tagsI {
 		tags[i] = tag.(string)

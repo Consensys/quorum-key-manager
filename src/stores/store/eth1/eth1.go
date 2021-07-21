@@ -55,10 +55,10 @@ type Store interface {
 	// Sign signs a payload using the specified Ethereum account
 	Sign(ctx context.Context, addr string, data []byte) ([]byte, error)
 
-	// Sign signs a payload using the specified Ethereum account
+	// SignData signs a hash using the specified Ethereum account
 	SignData(ctx context.Context, addr string, data []byte) ([]byte, error)
 
-	// Sign signs EIP-712 formatted data using the specified Ethereum account
+	// SignTypedData signs EIP-712 formatted data using the specified Ethereum account
 	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
 
 	// SignTransaction signs a public Ethereum transaction
@@ -76,7 +76,7 @@ type Store interface {
 	// Verify verifies that a signature belongs to a given address
 	Verify(ctx context.Context, addr string, data, sig []byte) error
 
-	// Verify verifies that a typed data signature belongs to a given address
+	// VerifyTypedData verifies that a typed data signature belongs to a given address
 	VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error
 
 	// Encrypt encrypts any arbitrary data using a specified account

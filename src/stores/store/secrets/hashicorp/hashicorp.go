@@ -41,33 +41,34 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Set(_ context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
-	data := map[string]interface{}{
+func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
+	logger := s.logger.With("id", id)
+
+	_, err := s.client.Write(s.pathData(id), map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
 			tagsLabel:  attr.Tags,
 		},
-	}
-
-	hashicorpSecret, err := s.client.Write(s.pathData(id), data)
+	})
 	if err != nil {
-		return nil, err
+		errMessage := "failed to create Hashicorp secret"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	metadata, err := formatHashicorpSecretData(hashicorpSecret.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	return formatHashicorpSecret(id, value, attr.Tags, metadata), nil
+	return s.Get(ctx, id, "")
 }
 
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {
+	logger := s.logger.With("id", id, "version", version)
+
 	var callData map[string][]string
 	if version != "" {
 		_, err := strconv.Atoi(version)
 		if err != nil {
-			return nil, errors.InvalidParameterError("version must be a number")
+			errMessage := "version must be a number"
+			logger.WithError(err).Error(errMessage)
+			return nil, errors.InvalidParameterError(errMessage)
 		}
 
 		callData = map[string][]string{
@@ -77,9 +78,13 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get Hashicorp secret data"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	} else if hashicorpSecretData == nil {
-		return nil, errors.NotFoundError("secret not found")
+		errMessage := "Hashicorp secret not found"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.NotFoundError(errMessage)
 	}
 
 	data := hashicorpSecretData.Data[dataLabel].(map[string]interface{})
@@ -88,21 +93,32 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 	// We need to do a second call to get the metadata
 	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to get Hashicorp secret metadata"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	metadata, err := formatHashicorpSecretMetadata(hashicorpSecretMetadata, version)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to parse Hashicorp secret"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.HashicorpVaultError(errMessage)
 	}
 
-	return formatHashicorpSecret(id, value, formatTags(data[tagsLabel].(map[string]interface{})), metadata), nil
+	var tags map[string]string
+	if data[tagsLabel] != nil {
+		tags = formatTags(data[tagsLabel].(map[string]interface{}))
+	}
+
+	return formatHashicorpSecret(id, value, tags, metadata), nil
 }
 
 func (s *Store) List(_ context.Context) ([]string, error) {
 	res, err := s.client.List(s.pathMetadata(""))
 	if err != nil {
-		return nil, err
+		errMessage := "failed to list Hashicorp secrets"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	if res == nil {

@@ -6,9 +6,9 @@ package mock
 
 import (
 	context "context"
-	types "github.com/consensys/quorum/core/types"
 	ethereum "github.com/consensys/quorum-key-manager/pkg/ethereum"
 	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	types "github.com/consensys/quorum/core/types"
 	types0 "github.com/ethereum/go-ethereum/core/types"
 	core "github.com/ethereum/go-ethereum/signer/core"
 	gomock "github.com/golang/mock/gomock"

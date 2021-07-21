@@ -70,7 +70,7 @@ func VerifySignature(logger log.Logger, pubKey, data, sig []byte, algo *entities
 	case algo.EllipticCurve == entities.Bn254 && algo.Type == entities.Eddsa:
 		verified, err = crypto.VerifyEDDSASignature(pubKey, data, sig)
 	default:
-		errMessage := "unsupported algorithm"
+		errMessage := "unsupported signing algorithm and elliptic curve combination"
 		logger.Error(errMessage)
 		return errors.NotSupportedError(errMessage)
 	}

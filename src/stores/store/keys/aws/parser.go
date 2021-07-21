@@ -3,11 +3,11 @@ package aws
 import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"fmt"
 	"math/big"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -43,11 +43,11 @@ func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.Des
 		val := &publicKeyInfo{}
 		_, err := asn1.Unmarshal(kmsPubKey.PublicKey, val)
 		if err != nil {
-			return nil, errors.AWSError(err.Error())
+			return nil, err
 		}
 		pubKey = val.PublicKey.Bytes
 	default:
-		return nil, errors.AWSError("unsupported public key type returned from AWS KMS")
+		return nil, fmt.Errorf("unsupported public key type returned from AWS KMS")
 	}
 
 	return &entities.Key{
@@ -109,21 +109,10 @@ func parseSignature(kmsSign *kms.SignOutput) ([]byte, error) {
 	val := &signatureInfo{}
 	_, err := asn1.Unmarshal(kmsSign.Signature, val)
 	if err != nil {
-		return nil, errors.AWSError(err.Error())
+		return nil, err
 	}
 
 	return append(val.R.Bytes(), val.S.Bytes()...), nil
-}
-
-func toKeyType(alg *entities.Algorithm) (string, error) {
-	switch {
-	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
-		return kms.CustomerMasterKeySpecEccSecgP256k1, nil
-	case alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Bn254:
-		return "", errors.ErrNotSupported
-	default:
-		return "", errors.InvalidParameterError("invalid key type")
-	}
 }
 
 func toTags(tags map[string]string) []*kms.Tag {
