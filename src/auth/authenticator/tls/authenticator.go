@@ -2,6 +2,7 @@ package tls
 
 import (
 	"crypto/x509"
+	"log"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -37,6 +38,7 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	// check this cert matches authenticator provided one
 	// using strict comparison
 	for _, authCert := range authenticator.Certificates {
+		log.Printf("client cert %v\n, auth cert %v\n", clientCert.Subject, authCert.Subject)
 		if clientCert.Equal(authCert) {
 			return &types.UserInfo{
 				Username: clientCert.Subject.CommonName,

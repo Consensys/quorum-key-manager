@@ -7,6 +7,8 @@ x-default-variables: &default-variables
   TEST_DATA: ${TEST_DATA-}
   HTTP_PORT: ${HTTP_PORT-}
   HTTP_HOST: ${HTTP_HOST-0.0.0.0}
+  HTTPS_PORT: ${HTTPS_PORT-}
+  HTTPS_HOST: ${HTTPS_HOST-0.0.0.0}
   HEALTH_PORT: ${HEALTH_PORT-}
   DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-}
   DB_TLS_CERT: ${DB_TLS_CERT-}
@@ -39,16 +41,21 @@ services:
       <<: *default-variables
       <<: *qkm-common
       AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/cert.pem}
-      AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_CA_CERT-}
+      AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
+      AUTH_TLS_CA: ${AUTH_TLS_CA-/certificates/authTLS.pem}
+      TLS_SERVER_KEY: ${TLS_SERVER_KEY-/tls/localhost.key}
+      TLS_SERVER_CERT: ${TLS_SERVER_CERT-/tls/localhost.crt}
     ports:
       - 8080:8080
       - 8081:8081
+      - 8443:8443
     restart: "no"
     command: run
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
+      - ./deps/config/tls:/tls:ro
       - hashicorp-token:/vault/token:ro
 
   generate-jwt:
