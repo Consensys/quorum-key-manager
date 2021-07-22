@@ -4,6 +4,7 @@ package e2e
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"github.com/consensys/quorum-key-manager/pkg/client"
@@ -52,6 +53,24 @@ func (s *authTestSuite) TestListWithMatchingAPIKey() {
 	})
 
 	s.Run("should accept request successfully with correct APIKey", func() {
+func (s *authTestSuite) TestListWithMatchingCert() {
+
+	cert, err := tls.LoadX509KeyPair("certs/same.crt", "certs/common.key")
+	if err != nil {
+		s.T().FailNow()
+	}
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}, &client.Config{
+		URL: s.cfg.KeyManagerURL,
+	},
+	)
+
+	s.Run("should accept request successfully", func() {
 
 		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
 		require.Empty(s.T(), ids)
@@ -77,6 +96,24 @@ func (s *authTestSuite) TestListWithWrongAPIKey() {
 
 	s.Run("should reject request with wrong APIKey", func() {
 
+func (s *authTestSuite) TestListWithWrongCert() {
+
+	cert, err := tls.LoadX509KeyPair("certs/wrong.crt", "certs/common.key")
+	if err != nil {
+		s.T().FailNow()
+	}
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}, &client.Config{
+		URL: s.cfg.KeyManagerURL,
+	},
+	)
+
+	s.Run("should reject request successfully", func() {
 		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
 		require.Empty(s.T(), ids)
 
