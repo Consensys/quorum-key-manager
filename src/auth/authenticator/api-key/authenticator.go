@@ -52,11 +52,15 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 
 	h := *authenticator.Hasher
 	h.Reset()
-	h.Write([]byte(clientAPIKey))
+	_, err = h.Write([]byte(clientAPIKey))
+	if err != nil {
+		// could not be decoded
+		return nil, errors.UnauthorizedError("apikey format error")
+	}
 	clientAPIKeyHash := h.Sum(nil)
 
 	// search hex string hashes
-	strClientHash := hex.EncodeToString(clientAPIKeyHash[:])
+	strClientHash := hex.EncodeToString(clientAPIKeyHash)
 	// Upper case hash
 	strClientHash = strings.ToUpper(strClientHash)
 	userAndGroups, contains := authenticator.APIKeyFile[strClientHash]
