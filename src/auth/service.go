@@ -1,6 +1,7 @@
 package auth
 
 import (
+	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
@@ -64,6 +65,16 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 		} else if tlsAuth != nil {
 			logger.Info("TLS Authenticator is enabled")
 			auths = append(auths, tlsAuth)
+		}
+	}
+
+	if cfg.APIKEY != nil {
+		apikeyAuth, err := apikey.NewAuthenticator(cfg.APIKEY)
+		if err != nil {
+			return nil, err
+		} else if apikeyAuth != nil {
+			logger.Info("APIKEY Authenticator is enabled")
+			auths = append(auths, apikeyAuth)
 		}
 	}
 
