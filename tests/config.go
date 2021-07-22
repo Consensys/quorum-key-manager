@@ -3,8 +3,10 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
 	"os"
+
+	pgclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
 
 	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
 )
@@ -12,15 +14,16 @@ import (
 const envVar = "TEST_DATA"
 
 type Config struct {
-	AkvClient            *akvClient `json:"akv_client"`
-	AwsClient            *awsClient `json:"aws_client"`
-	KeyManagerURL        string     `json:"key_manager_url"`
-	HealthKeyManagerURL  string     `json:"health_key_manager_url"`
-	HashicorpSecretStore string     `json:"hashicorp_secret_store"`
-	HashicorpKeyStore    string     `json:"hashicorp_key_store"`
-	Eth1Store            string     `json:"eth1_store"`
-	QuorumNodeID         string     `json:"quorum_node_id"`
-	BesuNodeID           string     `json:"besu_node_id"`
+	AkvClient            *akvClient       `json:"akv_client"`
+	AwsClient            *awsClient       `json:"aws_client"`
+	KeyManagerURL        string           `json:"key_manager_url"`
+	HealthKeyManagerURL  string           `json:"health_key_manager_url"`
+	HashicorpSecretStore string           `json:"hashicorp_secret_store"`
+	HashicorpKeyStore    string           `json:"hashicorp_key_store"`
+	Eth1Store            string           `json:"eth1_store"`
+	QuorumNodeID         string           `json:"quorum_node_id"`
+	BesuNodeID           string           `json:"besu_node_id"`
+	Postgres             *pgclient.Config `json:"postgres"`
 }
 
 type akvClient struct {

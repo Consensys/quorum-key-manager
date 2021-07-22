@@ -123,10 +123,23 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
 }
 
+func (c *PostgresClient) SelectMany(ctx context.Context, model interface{}, dst interface{}, condition string, params ...interface{}) error {
+	q := c.db.ModelContext(ctx, model)
+	err := q.Where(condition, params...).Select(dst)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *PostgresClient) Ping(ctx context.Context) error {
 	return c.pgdb.Ping(ctx)
 }
 
 func (c *PostgresClient) CreateTable(ctx context.Context, model interface{}) error {
 	return c.db.ModelContext(ctx, model).CreateTable(nil)
+}
+
+func (c *PostgresClient) DropTable(ctx context.Context, model interface{}) error {
+	return c.db.ModelContext(ctx, model).DropTable(nil)
 }

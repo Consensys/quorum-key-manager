@@ -3,10 +3,11 @@ version: '3.7'
 x-container-common: &container-common
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
-    - qkm
+    - postgres
 
 x-postgres-common: &postgres-common
   environment:
+    # update ./pgadmin/password as well when changing here
     POSTGRES_PASSWORD: postgres
 
 services:
@@ -21,10 +22,28 @@ services:
     ports:
       - 5432
 
+  pgadmin:
+    <<: *container-common
+    image: dpage/pgadmin4:4.27
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+    restart: unless-stopped
+    volumes:
+      - state-pgadmin:/root/.pgadmin
+      - ./postgres/pgadmin/servers.json:/pgadmin4/servers.json
+      - ./postgres/pgadmin/password:/pgadmin4/password
+    ports:
+      - 9001:80
+
 volumes:
   db-data-api:
     driver: local
+  state-pgadmin:
+    driver: local
 
 networks:
-  qkm:
-    driver: bridge
+  postgres:
+    external:
+      name: postgres

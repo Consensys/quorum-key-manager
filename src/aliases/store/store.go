@@ -35,12 +35,12 @@ func (s *Store) GetAlias(ctx context.Context, registry aliases.RegistryID, alias
 }
 
 func (s *Store) UpdateAlias(ctx context.Context, alias aliases.Alias) error {
-	return s.pgClient.Update(ctx, &alias)
+	return s.pgClient.UpdatePK(ctx, &alias)
 }
 
 func (s *Store) DeleteAlias(ctx context.Context, registry aliases.RegistryID, alias aliases.AliasID) error {
 	a := aliases.Alias{ID: alias, RegistryID: registry}
-	return s.pgClient.Delete(ctx, &a)
+	return s.pgClient.DeletePK(ctx, &a)
 }
 
 func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryID) ([]aliases.Alias, error) {

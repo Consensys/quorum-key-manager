@@ -16,18 +16,18 @@ const (
 )
 
 type Config struct {
-	Host              string
-	Port              string
-	User              string
-	Password          string
-	Database          string
-	PoolSize          int
-	PoolTimeout       time.Duration
-	DialTimeout       time.Duration
-	KeepAliveInterval time.Duration
-	TLS               *tls.Option
-	ApplicationName   string
-	SSLMode           string
+	Host              string        `json:"host"`
+	Port              string        `json:"port"`
+	User              string        `json:"user"`
+	Password          string        `json:"password"`
+	Database          string        `json:"database"`
+	PoolSize          int           `json:"pool_size"`
+	PoolTimeout       time.Duration `json:"pool_timeout"`
+	DialTimeout       time.Duration `json:"dial_timeout"`
+	KeepAliveInterval time.Duration `json:"keep_alive_interval"`
+	TLS               *tls.Option   `json:"tls"`
+	ApplicationName   string        `json:"application_name"`
+	SSLMode           string        `json:"ssl_mode"`
 }
 
 func (cfg *Config) ToPGOptions() (*pg.Options, error) {
