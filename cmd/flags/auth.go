@@ -210,15 +210,13 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	tlsCfg := tls.NewConfig(certsTLS...)
 
 	// Api-KEY part
-	var apiKeyCfg *apikey.Config
+	var apiKeyCfg = &apikey.Config{}
 	fileAPIKeys, err := apiKeyCsvFile(vipr)
 	if err != nil {
 		return nil, err
 	} else if fileAPIKeys != nil {
-		apiKeyCfg.APIKeyFile = fileAPIKeys
-		hasher := sha256.New()
-		apiKeyCfg.Hasher = &hasher
-		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, hasher)
+		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
+
 	}
 
 	return &auth.Config{OIDC: oidcCfg,
@@ -285,6 +283,10 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]*apikey.UserNameAndGroups, err
 
 	// Parse the file
 	r := csv.NewReader(csvfile)
+	// Set separator as ";"
+	r.Comma = ';'
+	// ignore comments in file
+	r.Comment = '#'
 
 	retFile := make(map[string]*apikey.UserNameAndGroups)
 
