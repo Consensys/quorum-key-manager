@@ -40,22 +40,26 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 // ? -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract ApiKey
-	apiKey, ok, err := extractAPIKey(req.Header.Get("Authorization"), authenticator.B64Encoder)
+	clientAPIKey, ok, err := extractAPIKey(req.Header.Get("Authorization"), authenticator.B64Encoder)
 	if err != nil {
 		// could not be decoded
 		return nil, errors.UnauthorizedError("apikey format error")
 	}
-	// respond anonymous when none found
-	if !ok || apiKey == "" {
-		return types.AnonymousUser, nil
+	// respond nothing when none found
+	if !ok || clientAPIKey == "" {
+		return nil, nil
 	}
 
 	h := *authenticator.Hasher
-
-	clientAPIKeyHash := h.Sum([]byte(apiKey))
+	h.Reset()
+	h.Write([]byte(clientAPIKey))
+	clientAPIKeyHash := h.Sum(nil)
 
 	// search hex string hashes
-	userAndGroups, contains := authenticator.APIKeyFile[hex.EncodeToString(clientAPIKeyHash)]
+	strClientHash := hex.EncodeToString(clientAPIKeyHash[:])
+	// Upper case hash
+	strClientHash = strings.ToUpper(strClientHash)
+	userAndGroups, contains := authenticator.APIKeyFile[strClientHash]
 	if contains {
 		return &types.UserInfo{
 			AuthMode: AuthMode,
