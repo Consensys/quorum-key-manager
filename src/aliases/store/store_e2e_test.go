@@ -198,30 +198,3 @@ func TestListAlias(t *testing.T) {
 		require.Equal(t, als[1].ID, newAlias.ID)
 	})
 }
-
-func TestDeleteRegistry(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	db, closeFn := startAndConnectDB(ctx, t)
-	defer closeFn()
-	s := aliasstore.New(db)
-
-	in := fakeAlias()
-	err := db.CreateTable(ctx, &in)
-	require.NoError(t, err)
-	t.Run("non existing alias", func(t *testing.T) {
-		err := s.DeleteAlias(ctx, in.RegistryID, in.ID)
-		require.Error(t, err)
-	})
-
-	t.Run("just created alias", func(t *testing.T) {
-		err := s.CreateAlias(ctx, in)
-		require.NoError(t, err)
-
-		err = s.DeleteAlias(ctx, in.RegistryID, in.ID)
-		require.NoError(t, err)
-
-		_, err = s.GetAlias(ctx, in.RegistryID, in.ID)
-		require.Error(t, err)
-	})
-}
