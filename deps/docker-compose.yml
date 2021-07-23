@@ -32,8 +32,8 @@ services:
     restart: unless-stopped
     volumes:
       - state-pgadmin:/root/.pgadmin
-      - ./postgres/pgadmin/servers.json:/pgadmin4/servers.json
-      - ./postgres/pgadmin/password:/pgadmin4/password
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+      - ./pgadmin/password:/pgadmin4/password
     ports:
       - 9001:80
 
