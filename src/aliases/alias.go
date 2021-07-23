@@ -2,20 +2,21 @@ package aliases
 
 import "context"
 
-type API interface {
+//TODO the: rename, API is normally all the public exposed HTTP services
+type Backend interface {
 	Aliaser
 	Registrer
 }
 
-type AliasID string
+type AliasKey string
 
 type Alias struct {
 	tableName struct{} `pg:"aliases"` // nolint:unused,structcheck // reason
 
-	ID         AliasID
-	RegistryID RegistryID
-	Kind       AliasKind
-	Value      AliasValue
+	Key          AliasKey     `pg:",pk"`
+	RegistryName RegistryName `pg:",pk"`
+	Kind         AliasKind
+	Value        AliasValue
 }
 
 type AliasValue string
@@ -29,22 +30,24 @@ const (
 )
 
 type Aliaser interface {
-	CreateAlias(ctx context.Context, alias Alias) error
-	GetAlias(ctx context.Context, registry RegistryID, alias AliasID) (*Alias, error)
-	UpdateAlias(ctx context.Context, alias Alias) error
-	DeleteAlias(ctx context.Context, registry RegistryID, alias AliasID) error
+	CreateAlias(ctx context.Context, registry RegistryName, alias Alias) error
+	GetAlias(ctx context.Context, registry RegistryName, aliasKey AliasKey) (*Alias, error)
+	UpdateAlias(ctx context.Context, registry RegistryName, alias Alias) error
+	DeleteAlias(ctx context.Context, registry RegistryName, aliasKey AliasKey) error
 
-	ListAliases(ctx context.Context, registry RegistryID) ([]Alias, error)
+	ListAliases(ctx context.Context, registry RegistryName) ([]Alias, error)
+
+	DeleteRegistry(ctx context.Context, registry RegistryName) error
 }
 
-type RegistryID string
+type RegistryName string
 
 type Registry struct {
 	tableName struct{} `pg:"registries"` // nolint:unused,structcheck // reason
 
-	ID RegistryID
+	Name RegistryName `pg:",pk"`
 }
 
 type Registrer interface {
-	DeleteRegistry(ctx context.Context, registry RegistryID) error
+	DeleteRegistry(ctx context.Context, registry RegistryName) error
 }

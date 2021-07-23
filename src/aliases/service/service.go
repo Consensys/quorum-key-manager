@@ -14,7 +14,6 @@ func RegisterService(a *app.App, logger log.Logger, pgClient postgres.Client) er
 	// Create and register the stores service
 
 	// TODO replace by the database.Database abstraction
-	// TODO replace by the database.Database abstraction
 	store := aliasstore.New(pgClient)
 	m := NewManager(store)
 	err := a.RegisterService(m)
@@ -26,12 +25,12 @@ func RegisterService(a *app.App, logger log.Logger, pgClient postgres.Client) er
 }
 
 type BaseManager struct {
-	aliases.API
+	aliases.Backend
 }
 
-func NewManager(backend aliases.API) *BaseManager {
+func NewManager(backend aliases.Backend) *BaseManager {
 	return &BaseManager{
-		API: backend,
+		Backend: backend,
 	}
 }
 
