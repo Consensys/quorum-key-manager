@@ -143,7 +143,7 @@ func (s *secretsTestSuite) TestGet() {
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), 422, httpError.StatusCode)
-		assert.Equal(s.T(), "version must be a number", httpError.Message)
+		assert.Equal(s.T(), "IR500: version must be a number", httpError.Message)
 	})
 }
 
