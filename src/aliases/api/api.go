@@ -1,8 +1,9 @@
 package aliasapi
 
 import (
-	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 	"github.com/gorilla/mux"
+
+	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 )
 
 type AliasAPI struct {

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/tls"
 	"github.com/go-pg/pg/v10"
+
+	"github.com/consensys/quorum-key-manager/pkg/tls"
 )
 
 const (
