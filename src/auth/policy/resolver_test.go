@@ -27,7 +27,7 @@ func TestRadixResolver(t *testing.T) {
 		tests       []*testIsAuthorized
 	}{
 		{
-			desc: "Single policy single statement exact paths and actions ",
+			desc: "Single policy single statement Allow with exact paths and actions",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -77,7 +77,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Single policy multiple statements exact paths and actions",
+			desc: "Single policy multiple statements Allow with exact paths and actions",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -121,7 +121,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Multiple policy multiple statements exact paths and actions",
+			desc: "Multiple Allow with exact paths and actions",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -194,7 +194,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Multiple statements with Deny exact paths and actions",
+			desc: "Multiple statements Allow & Deny exact paths and actions",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -249,7 +249,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Single statement exact paths and wildcard action",
+			desc: "Single statement exact paths and prefix action",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -365,7 +365,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Single statement wildcard path and wildcar action",
+			desc: "Single statement Allow prefix path and action",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -408,7 +408,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Multiple statement with Deny wildcard path and wildcard action",
+			desc: "Multiple statement Allow & Deny prefix path and action",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -478,7 +478,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Overlapping wildcards path and wildcard actions",
+			desc: "Overlapping prefix paths and actions",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -517,7 +517,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Overlapping wildcards path and wildcard actions with Deny",
+			desc: "Overlapping Allow & Deny prefix path and actions",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -551,7 +551,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Same wildcard path, wildcard actions with Deny",
+			desc: "Same prefix path & actions with Deny",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -590,7 +590,7 @@ func TestRadixResolver(t *testing.T) {
 			},
 		},
 		{
-			desc: "Shorted wildcard denies first",
+			desc: "Shorter prefix denies first",
 			policies: []types.Policy{
 				types.Policy{
 					Name: "TestPolicy1",
@@ -641,6 +641,145 @@ func TestRadixResolver(t *testing.T) {
 					desc:        "A",
 					op:          &Operation{Action: "A", ResourcePath: "/a/b/c"},
 					expectedErr: fmt.Errorf("action \"A\" on resource \"/a/b/c\" denied by policy \"TestPolicy2\" statement \"TestStatement3\""),
+				},
+			},
+		},
+		{
+			desc: "Shorter wildcard denies first",
+			policies: []types.Policy{
+				types.Policy{
+					Name: "TestPolicy1",
+					Statements: []*types.Statement{
+						&types.Statement{
+							Name:     "TestStatement1",
+							Effect:   "Deny",
+							Actions:  []string{"ABC*"},
+							Resource: []string{"/a*"},
+						},
+					},
+				},
+				types.Policy{
+					Name: "TestPolicy2",
+					Statements: []*types.Statement{
+						&types.Statement{
+							Name:     "TestStatement3",
+							Effect:   "Deny",
+							Actions:  []string{"A*"},
+							Resource: []string{"/a/b/c*"},
+						},
+						&types.Statement{
+							Name:     "TestStatement2",
+							Effect:   "Deny",
+							Actions:  []string{"AB*"},
+							Resource: []string{"/a/b*"},
+						},
+					},
+				},
+			},
+			tests: []*testIsAuthorized{
+				&testIsAuthorized{
+					desc:        "ABC /a/b/c",
+					op:          &Operation{Action: "ABC", ResourcePath: "/a/b/c"},
+					expectedErr: fmt.Errorf("action \"ABC\" on resource \"/a/b/c\" denied by policy \"TestPolicy1\" statement \"TestStatement1\""),
+				},
+				&testIsAuthorized{
+					desc:        "AB /a/b/c",
+					op:          &Operation{Action: "AB", ResourcePath: "/a/b/c"},
+					expectedErr: fmt.Errorf("action \"AB\" on resource \"/a/b/c\" denied by policy \"TestPolicy2\" statement \"TestStatement2\""),
+				},
+				&testIsAuthorized{
+					desc:        "AB /a/b",
+					op:          &Operation{Action: "AB", ResourcePath: "/a/b"},
+					expectedErr: fmt.Errorf("action \"AB\" on resource \"/a/b\" denied by policy \"TestPolicy2\" statement \"TestStatement2\""),
+				},
+				&testIsAuthorized{
+					desc:        "A",
+					op:          &Operation{Action: "A", ResourcePath: "/a/b/c"},
+					expectedErr: fmt.Errorf("action \"A\" on resource \"/a/b/c\" denied by policy \"TestPolicy2\" statement \"TestStatement3\""),
+				},
+			},
+		},
+		{
+			desc: "Allow/Deny exact and prix",
+			policies: []types.Policy{
+				types.Policy{
+					Name: "TestPolicy1",
+					Statements: []*types.Statement{
+						&types.Statement{
+							Name:    "TestStatement1",
+							Effect:  "Allow",
+							Actions: []string{"ABC"},
+							Resource: []string{
+								"/a/b/c",
+								"/a*",
+							},
+						},
+						&types.Statement{
+							Name:    "TestStatement2",
+							Effect:  "Deny",
+							Actions: []string{"ABC"},
+							Resource: []string{
+								"/a/b*",
+								"/a/",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			desc: "Allow/Deny on same exact and prefix",
+			policies: []types.Policy{
+				types.Policy{
+					Name: "TestPolicy1",
+					Statements: []*types.Statement{
+						&types.Statement{
+							Name:   "TestStatement1",
+							Effect: "Allow",
+							Actions: []string{
+								"ActionA",
+								"ActionB*",
+							},
+							Resource: []string{
+								"/a/b",
+								"/c/d*",
+							},
+						},
+						&types.Statement{
+							Name:   "TestStatement2",
+							Effect: "Deny",
+							Actions: []string{
+								"ActionA*",
+								"ActionB",
+							},
+							Resource: []string{
+								"/a/b*",
+								"/c/d",
+							},
+						},
+					},
+				},
+			},
+			tests: []*testIsAuthorized{
+				&testIsAuthorized{
+					desc:        "ActionA /a/b",
+					op:          &Operation{Action: "ActionA", ResourcePath: "/a/b"},
+					expectedErr: fmt.Errorf("action \"ActionA\" on resource \"/a/b\" denied by policy \"TestPolicy1\" statement \"TestStatement2\""),
+				},
+				&testIsAuthorized{
+					desc:        "ActionA /c/d",
+					op:          &Operation{Action: "ActionA", ResourcePath: "/c/d"},
+					expectedErr: fmt.Errorf("action \"ActionA\" on resource \"/c/d\" denied by policy \"TestPolicy1\" statement \"TestStatement2\""),
+				},
+				&testIsAuthorized{
+					desc:        "ActionB /c/d",
+					op:          &Operation{Action: "ActionB", ResourcePath: "/c/d"},
+					expectedErr: fmt.Errorf("action \"ActionB\" on resource \"/c/d\" denied by policy \"TestPolicy1\" statement \"TestStatement2\""),
+				},
+				&testIsAuthorized{
+					desc:        "ActionB /a/b",
+					op:          &Operation{Action: "ActionB", ResourcePath: "/a/b"},
+					expectedErr: fmt.Errorf("action \"ActionB\" on resource \"/a/b\" denied by policy \"TestPolicy1\" statement \"TestStatement2\""),
 				},
 			},
 		},
