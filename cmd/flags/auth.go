@@ -48,15 +48,15 @@ func init() {
 	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
 
-	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsCertsFileEnv)
+	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsFileEnv)
 
 }
 
 const (
-	authTLSCertsFileFlag        = "auth-tls-ca"
-	authTLSCertsFileViperKey    = "auth.tls.ca"
-	authTLSCertsDefaultFileFlag = ""
-	authTLSCertsCertsFileEnv    = "AUTH_TLS_CA"
+	authTLSCertsFileFlag     = "auth-tls-ca"
+	authTLSCertsFileViperKey = "auth.tls.ca"
+	authTLSCertsFileDefault  = ""
+	authTLSCertsFileEnv      = "AUTH_TLS_CA"
 )
 
 const (
@@ -96,8 +96,8 @@ const (
 
 func authTLSCertFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
-Environment variable: %q`, authTLSCertsCertsFileEnv)
-	f.String(authTLSCertsFileFlag, authTLSCertsDefaultFileFlag, desc)
+Environment variable: %q`, authTLSCertsFileEnv)
+	f.String(authTLSCertsFileFlag, authTLSCertsFileDefault, desc)
 	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
 }
 
