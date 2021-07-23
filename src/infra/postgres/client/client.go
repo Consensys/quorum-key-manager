@@ -86,18 +86,24 @@ func (c *PostgresClient) SelectDeleted(ctx context.Context, model ...interface{}
 }
 
 func (c *PostgresClient) UpdatePK(ctx context.Context, model ...interface{}) error {
-	_, err := c.db.ModelContext(ctx, model...).WherePK().Update()
+	res, err := c.db.ModelContext(ctx, model...).WherePK().Update()
 	if err != nil {
 		return parseErrorResponse(err)
+	}
+	if res.RowsAffected() != 1 {
+		return errors.NotFoundError("update not effected")
 	}
 
 	return nil
 }
 
 func (c *PostgresClient) DeletePK(ctx context.Context, model ...interface{}) error {
-	_, err := c.db.ModelContext(ctx, model...).WherePK().Delete()
+	res, err := c.db.ModelContext(ctx, model...).WherePK().Delete()
 	if err != nil {
 		return parseErrorResponse(err)
+	}
+	if res.RowsAffected() != 1 {
+		return errors.NotFoundError("update not effected")
 	}
 
 	return nil
