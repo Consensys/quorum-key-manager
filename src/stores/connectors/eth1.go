@@ -2,6 +2,7 @@ package connectors
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"math/big"
 
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
@@ -161,9 +162,15 @@ func (c Eth1Connector) Undelete(ctx context.Context, addr string) error {
 
 func (c Eth1Connector) Destroy(ctx context.Context, addr string) error {
 	logger := c.logger.With("address", addr)
+	logger.Debug("check ethereum account is soft-deleted")
+
+	_, err := c.GetDeleted(ctx, addr)
+	if err != nil {
+		return errors.StatusConflictError("ethereum account should be deleted before")
+	}
 	logger.Debug("destroying ethereum account")
 
-	err := c.store.Destroy(ctx, addr)
+	err = c.store.Destroy(ctx, addr)
 	if err != nil {
 		return err
 	}

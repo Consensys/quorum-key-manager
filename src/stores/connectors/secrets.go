@@ -2,6 +2,7 @@ package connectors
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/auth/policy"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -115,7 +116,16 @@ func (c SecretConnector) Undelete(ctx context.Context, id string) error {
 func (c SecretConnector) Destroy(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 
-	err := c.store.Destroy(ctx, id)
+	logger.Debug("check secret is soft-deleted")
+
+	_, err := c.GetDeleted(ctx, id)
+	if err != nil {
+		return errors.StatusConflictError("secret should be deleted before")
+	}
+
+	logger.Debug("destroying secret")
+
+	err = c.store.Destroy(ctx, id)
 	if err != nil {
 		return err
 	}
