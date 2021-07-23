@@ -2,7 +2,6 @@ package aliases
 
 import "context"
 
-//TODO the: rename, API is normally all the public exposed HTTP services
 type Backend interface {
 	Aliaser
 	Registrer

@@ -17,6 +17,6 @@ func New(store *aliasstore.Store) *AliasAPI {
 }
 
 func (a *AliasAPI) Register(r *mux.Router) {
-	//TODO: the: implement aliashandlers
+	// TODO: the: implement aliashandlers
 	//	aliashandlers.NewStoresHandler(a.store).Register(r)
 }
