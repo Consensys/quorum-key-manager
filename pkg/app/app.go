@@ -246,7 +246,7 @@ func (app *App) startServer() {
 		if tlsErr == nil {
 			app.logger.Debug("started API TLS server successfully", "addr", app.server.Addr)
 		} else {
-			app.logger.WithError(tlsErr).Info("failed to start API TLS server")
+			app.logger.WithError(tlsErr).Error("failed to start API TLS server")
 		}
 		app.errors <- tlsErr
 	}()
@@ -257,7 +257,7 @@ func (app *App) startServer() {
 		if healthErr == nil {
 			app.logger.Debug("started Health server successfully", "addr", app.server.Addr)
 		} else {
-			app.logger.WithError(healthErr).Info("failed to start API TLS server")
+			app.logger.WithError(healthErr).Error("failed to start Health server")
 		}
 		app.errors <- healthErr
 	}()
