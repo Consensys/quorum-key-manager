@@ -38,6 +38,31 @@ func TestAliasStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
+type aliasStoreTestSuite struct {
+	suite.Suite
+	env   *IntegrationEnvironment
+	store aliases.Backend
+	rand  *rand.Rand
+}
+
+func (s *aliasStoreTestSuite) SetupSuite() {
+	err := StartEnvironment(s.env.ctx, s.env)
+	if err != nil {
+		s.T().Error(err)
+		return
+	}
+	s.env.logger.Info("setup test suite has completed")
+
+	pgClient := s.env.postgresClient
+	s.store = aliasstore.New(pgClient)
+	randSrc := rand.NewSource(time.Now().UnixNano())
+	s.rand = rand.New(randSrc)
+}
+
+func (s *aliasStoreTestSuite) TearDownSuite() {
+	s.env.Teardown(context.Background())
+}
+
 func (s *aliasStoreTestSuite) fakeAlias() aliases.Alias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
@@ -146,29 +171,4 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 		require.Equal(s.T(), als[0].Key, in.Key)
 		require.Equal(s.T(), als[1].Key, newAlias.Key)
 	})
-}
-
-type aliasStoreTestSuite struct {
-	suite.Suite
-	env   *IntegrationEnvironment
-	store aliases.Backend
-	rand  *rand.Rand
-}
-
-func (s *aliasStoreTestSuite) SetupSuite() {
-	err := StartEnvironment(s.env.ctx, s.env)
-	if err != nil {
-		s.T().Error(err)
-		return
-	}
-	s.env.logger.Info("setup test suite has completed")
-
-	pgClient := s.env.postgresClient
-	s.store = aliasstore.New(pgClient)
-	randSrc := rand.NewSource(time.Now().UnixNano())
-	s.rand = rand.New(randSrc)
-}
-
-func (s *aliasStoreTestSuite) TearDownSuite() {
-	s.env.Teardown(context.Background())
 }
