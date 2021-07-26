@@ -37,6 +37,12 @@ func init() {
 }
 
 const (
+	csvSeparator      = ';'
+	csvCommentsMarker = '#'
+	csvRowLen         = 3
+)
+
+const (
 	authAPIKeyFileFlag        = "auth-api-key-file"
 	authAPIKeyFileViperKey    = "auth.api.key.file"
 	authAPIKeyDefaultFileFlag = ""
@@ -225,10 +231,10 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]*apikey.UserNameAndGroups, err
 
 	// Parse the file
 	r := csv.NewReader(csvfile)
-	// Set separator as ";"
-	r.Comma = ';'
+	// Set separator
+	r.Comma = csvSeparator
 	// ignore comments in file
-	r.Comment = '#'
+	r.Comment = csvCommentsMarker
 
 	retFile := make(map[string]*apikey.UserNameAndGroups)
 
@@ -241,6 +247,9 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]*apikey.UserNameAndGroups, err
 		}
 		if err != nil {
 			return nil, err
+		}
+		if len(cells) != csvRowLen {
+			return nil, fmt.Errorf("invalid number of cells in file %s should be %d", csvfile.Name(), csvRowLen)
 		}
 
 		retFile[cells[0]] = &apikey.UserNameAndGroups{UserName: cells[1],

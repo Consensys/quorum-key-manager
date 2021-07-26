@@ -3,6 +3,7 @@ package apikey
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"net/http"
 	"strings"
@@ -40,22 +41,18 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 // ? -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract ApiKey
-	clientAPIKey, ok, err := extractAPIKey(req.Header.Get("Authorization"), authenticator.B64Encoder)
+	clientAPIKey, err := extractAPIKey(req.Header.Get("Authorization"), authenticator.B64Encoder)
 	if err != nil {
 		// could not be decoded
-		return nil, errors.UnauthorizedError("apikey format error")
-	}
-	// respond nothing when none found
-	if !ok || clientAPIKey == "" {
-		return nil, nil
+		return nil, errors.UnauthorizedError(err.Error())
 	}
 
 	h := *authenticator.Hasher
 	h.Reset()
 	_, err = h.Write([]byte(clientAPIKey))
 	if err != nil {
-		// could not be decoded
-		return nil, errors.UnauthorizedError("apikey format error")
+		// could not be written
+		return nil, errors.UnauthorizedError(err.Error())
 	}
 	clientAPIKeyHash := h.Sum(nil)
 
@@ -63,8 +60,7 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	strClientHash := hex.EncodeToString(clientAPIKeyHash)
 	// Upper case hash
 	strClientHash = strings.ToUpper(strClientHash)
-	userAndGroups, contains := authenticator.APIKeyFile[strClientHash]
-	if contains {
+	if userAndGroups, contains := authenticator.APIKeyFile[strClientHash]; contains {
 		return &types.UserInfo{
 			AuthMode: AuthMode,
 			Username: userAndGroups.UserName,
@@ -75,14 +71,14 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	return nil, errors.UnauthorizedError("apikey does not match")
 }
 
-func extractAPIKey(auth string, b64encoder *base64.Encoding) (apiKey string, found bool, err error) {
+func extractAPIKey(auth string, b64encoder *base64.Encoding) (apiKey string, err error) {
 	if len(auth) < len(BasicSchema) || !strings.EqualFold(auth[:len(BasicSchema)], BasicSchema) {
-		return "", false, nil
+		return "", fmt.Errorf("apikey was not provided")
 	}
 	b64EncodedAPIKey := auth[len(BasicSchema)+1:]
 	decodedAPIKey, err := b64encoder.DecodeString(b64EncodedAPIKey)
 	if err != nil {
-		return "", true, err
+		return "", fmt.Errorf("apikey encoding is not supported")
 	}
-	return string(decodedAPIKey), true, nil
+	return string(decodedAPIKey), nil
 }
