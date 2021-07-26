@@ -72,7 +72,7 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 }
 
 func extractAPIKey(auth string, b64encoder *base64.Encoding) (apiKey string, err error) {
-	if len(auth) < len(BasicSchema) || !strings.EqualFold(auth[:len(BasicSchema)], BasicSchema) {
+	if len(auth) <= len(BasicSchema) || !strings.EqualFold(auth[:len(BasicSchema)], BasicSchema) {
 		return "", fmt.Errorf("apikey was not provided")
 	}
 	b64EncodedAPIKey := auth[len(BasicSchema)+1:]
