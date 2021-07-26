@@ -133,7 +133,7 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
 }
 
-func (c *PostgresClient) SelectMany(ctx context.Context, model interface{}, dst interface{}, condition string, params ...interface{}) error {
+func (c *PostgresClient) SelectMany(ctx context.Context, model, dst interface{}, condition string, params ...interface{}) error {
 	q := c.db.ModelContext(ctx, model)
 	err := q.Where(condition, params...).Select(dst)
 	if err != nil {
