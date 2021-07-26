@@ -58,8 +58,8 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 
 	// search hex string hashes
 	strClientHash := hex.EncodeToString(clientAPIKeyHash)
-	// Upper case hash
-	strClientHash = strings.ToUpper(strClientHash)
+
+	// Now check either of lower or upper cases map keys is found
 	if userAndGroups, contains := authenticator.APIKeyFile[strClientHash]; contains {
 		return &types.UserInfo{
 			AuthMode: AuthMode,
