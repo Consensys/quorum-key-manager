@@ -31,7 +31,7 @@ func (s *Store) CreateAlias(ctx context.Context, registryName aliases.RegistryNa
 
 func (s *Store) GetAlias(ctx context.Context, registryName aliases.RegistryName, aliasKey aliases.AliasKey) (*aliases.Alias, error) {
 	a := aliases.Alias{Key: aliasKey, RegistryName: registryName}
-	err := s.pgClient.Select(ctx, &a)
+	err := s.pgClient.SelectPK(ctx, &a)
 	return &a, err
 }
 

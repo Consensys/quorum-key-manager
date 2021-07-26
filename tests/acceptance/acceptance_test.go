@@ -5,7 +5,12 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
+	"testing"
+
 	"github.com/consensys/quorum-key-manager/pkg/common"
+	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
@@ -17,9 +22,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	"github.com/stretchr/testify/suite"
-	"os"
-	"path"
-	"testing"
 )
 
 type storeTestSuite struct {
@@ -175,6 +177,18 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite.env = s.env
 	testSuite.store = eth1.New(keys.NewConnector(localStore, db, logger), db, logger)
 	testSuite.db = db
+	suite.Run(s.T(), testSuite)
+
+}
+
+func (s *storeTestSuite) TestAliasStore() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+	testSuite := new(aliasStoreTestSuite)
+	testSuite.env = s.env
+	testSuite.store = aliasstore.New(s.env.postgresClient)
 	suite.Run(s.T(), testSuite)
 
 }

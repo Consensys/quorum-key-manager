@@ -133,7 +133,7 @@ func (s *postgresTestSuite) TestUpdate() {
 		updated := data
 		updated.Value = "update simple: updated"
 
-		err = s.pgClient.Update(s.ctx, &updated)
+		err = s.pgClient.UpdatePK(s.ctx, &updated)
 		require.NoError(s.T(), err)
 
 		got := FakeType{ID: 3, Value: "wrong"}
@@ -156,7 +156,7 @@ func (s *postgresTestSuite) TestDelete() {
 		require.NoError(s.T(), err)
 
 		toDelete := data
-		err = s.pgClient.Delete(s.ctx, &toDelete)
+		err = s.pgClient.DeletePK(s.ctx, &toDelete)
 		require.NoError(s.T(), err)
 
 		got := data

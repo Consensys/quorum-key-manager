@@ -3,6 +3,12 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -12,14 +18,11 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	models2 "github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
-	"io/ioutil"
-	"os"
-	"strconv"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -385,15 +388,18 @@ func (env *IntegrationEnvironment) createTables() error {
 	opts := &orm.CreateTableOptions{
 		FKConstraints: true,
 	}
+	for _, v := range []interface{}{
+		&models.Key{},
+		&models.ETH1Account{},
+		&aliases.Alias{},
+		&models2.Key{},
+		&models2.ETH1Account{},
+	} {
+		err = db.Model(v).CreateTable(opts)
 
-	err = db.Model(&models2.Key{}).CreateTable(opts)
-	if err != nil {
-		return err
-	}
-
-	err = db.Model(&models2.ETH1Account{}).CreateTable(opts)
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	env.logger.Info("tables created successgfully from models")
