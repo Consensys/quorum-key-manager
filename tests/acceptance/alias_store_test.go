@@ -1,16 +1,42 @@
+// +build acceptance
+
 package acceptancetests
 
 import (
+	"context"
 	"math/rand"
+	"os"
 	"strconv"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 )
+
+func TestAliasStore(t *testing.T) {
+	s := new(aliasStoreTestSuite)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	sig := common.NewSignalListener(func(signal os.Signal) {
+		cancel()
+	})
+	defer sig.Close()
+
+	var err error
+	s.env, err = NewIntegrationEnvironment(ctx)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	s.store = aliasstore.New(s.env.postgresClient)
+
+	suite.Run(t, s)
+}
 
 func (s *aliasStoreTestSuite) fakeAlias() aliases.Alias {
 	randInt := s.rand.Intn(1 << 32)
