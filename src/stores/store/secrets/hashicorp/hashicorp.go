@@ -135,23 +135,50 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 }
 
 func (s *Store) Delete(_ context.Context, id string) error {
-	return errors.ErrNotImplemented
+	logger := s.logger.With("id", id)
+
+	err := s.client.Delete(s.pathData(id))
+	if err != nil {
+		errMessage := "failed to delete Hashicorp secret"
+		logger.WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }
 
 func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
+func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Undelete(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+func (s *Store) Undelete(_ context.Context, id string) error {
+	logger := s.logger.With("id", id)
+
+	err := s.client.UnDelete(s.pathData(id))
+	if err != nil {
+		errMessage := "failed to restore Hashicorp secret"
+		logger.WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }
 
-func (s *Store) Destroy(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+func (s *Store) Destroy(_ context.Context, id string) error {
+	logger := s.logger.With("id", id)
+
+	err := s.client.Destroy(s.pathData(id))
+	if err != nil {
+		errMessage := "failed to destroy Hashicorp secret"
+		logger.WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }
 
 func (s *Store) pathData(id string) string {

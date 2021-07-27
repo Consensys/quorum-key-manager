@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/hashicorp/vault/api"
@@ -52,6 +54,32 @@ func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (
 
 func (c *HashicorpVaultClient) Delete(path string) error {
 	_, err := c.client.Logical().Delete(path)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (c *HashicorpVaultClient) UnDelete(path string) error {
+	req := c.client.NewRequest("POST", fmt.Sprintf("/secret/undelete/%s", path))
+	resp, err := c.client.RawRequest(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (c *HashicorpVaultClient) Destroy(path string) error {
+	req := c.client.NewRequest("POST", fmt.Sprintf("/secret/destroy/%s", path))
+	resp, err := c.client.RawRequest(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return parseErrorResponse(err)
 	}

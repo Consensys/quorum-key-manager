@@ -26,6 +26,7 @@ type Config struct {
 	BurstLimit    int
 	MaxRetries    int
 	SkipVerify    bool
+	Token         string
 }
 
 func NewConfig(addr, namespace string) *Config {
