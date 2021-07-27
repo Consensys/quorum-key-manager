@@ -61,7 +61,7 @@ func (c *HashicorpVaultClient) Delete(path string) error {
 	return nil
 }
 
-func (c *HashicorpVaultClient) UnDelete(path string) error {
+func (c *HashicorpVaultClient) Restore(path string) error {
 	req := c.client.NewRequest("POST", fmt.Sprintf("/secret/undelete/%s", path))
 	resp, err := c.client.RawRequest(req)
 	if resp != nil {

@@ -137,7 +137,7 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 func (s *Store) Delete(_ context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	err := s.client.Delete(s.pathData(id))
+	err := s.client.Delete(s.pathID(id))
 	if err != nil {
 		errMessage := "failed to delete Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -158,7 +158,7 @@ func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
 func (s *Store) Undelete(_ context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	err := s.client.UnDelete(s.pathData(id))
+	err := s.client.Restore(s.pathID(id))
 	if err != nil {
 		errMessage := "failed to restore Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -171,7 +171,7 @@ func (s *Store) Undelete(_ context.Context, id string) error {
 func (s *Store) Destroy(_ context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	err := s.client.Destroy(s.pathData(id))
+	err := s.client.Destroy(s.pathID(id))
 	if err != nil {
 		errMessage := "failed to destroy Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -179,6 +179,10 @@ func (s *Store) Destroy(_ context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (s *Store) pathID(id string) string {
+	return path.Join(s.mountPoint, id)
 }
 
 func (s *Store) pathData(id string) string {

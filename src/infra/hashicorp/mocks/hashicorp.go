@@ -77,18 +77,18 @@ func (mr *MockVaultClientMockRecorder) Delete(path interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockVaultClient)(nil).Delete), path)
 }
 
-// UnDelete mocks base method
-func (m *MockVaultClient) UnDelete(path string) error {
+// Restore mocks base method
+func (m *MockVaultClient) Restore(path string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnDelete", path)
+	ret := m.ctrl.Call(m, "Restore", path)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UnDelete indicates an expected call of UnDelete
-func (mr *MockVaultClientMockRecorder) UnDelete(path interface{}) *gomock.Call {
+// Restore indicates an expected call of Restore
+func (mr *MockVaultClientMockRecorder) Restore(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnDelete", reflect.TypeOf((*MockVaultClient)(nil).UnDelete), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockVaultClient)(nil).Restore), path)
 }
 
 // Destroy mocks base method

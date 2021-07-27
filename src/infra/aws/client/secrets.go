@@ -32,7 +32,7 @@ func NewSecretsClient(cfg *Config) (*AwsSecretsClient, error) {
 	}, nil
 }
 
-func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
+func (c *AwsSecretsClient) GetSecret(_ context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
 	getSecretInput := &secretsmanager.GetSecretValueInput{
 		SecretId:  &id,
 		VersionId: nil,
@@ -49,7 +49,7 @@ func (c *AwsSecretsClient) GetSecret(ctx context.Context, id, version string) (*
 
 	return output, nil
 }
-func (c *AwsSecretsClient) CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
+func (c *AwsSecretsClient) CreateSecret(_ context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error) {
 	output, err := c.client.CreateSecret(&secretsmanager.CreateSecretInput{
 		Name:         &id,
 		SecretString: &value,
@@ -61,7 +61,7 @@ func (c *AwsSecretsClient) CreateSecret(ctx context.Context, id, value string) (
 	return output, nil
 }
 
-func (c *AwsSecretsClient) PutSecretValue(ctx context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
+func (c *AwsSecretsClient) PutSecretValue(_ context.Context, id, value string) (*secretsmanager.PutSecretValueOutput, error) {
 	output, err := c.client.PutSecretValue(&secretsmanager.PutSecretValueInput{
 		SecretId:     &id,
 		SecretString: &value,
@@ -73,7 +73,7 @@ func (c *AwsSecretsClient) PutSecretValue(ctx context.Context, id, value string)
 	return output, nil
 }
 
-func (c *AwsSecretsClient) TagSecretResource(ctx context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
+func (c *AwsSecretsClient) TagSecretResource(_ context.Context, id string, tags map[string]string) (*secretsmanager.TagResourceOutput, error) {
 
 	var inputTags []*secretsmanager.Tag
 
@@ -96,7 +96,7 @@ func (c *AwsSecretsClient) TagSecretResource(ctx context.Context, id string, tag
 	return output, nil
 }
 
-func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error) {
+func (c *AwsSecretsClient) DescribeSecret(_ context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error) {
 	output, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
 		SecretId: &id,
 	})
@@ -135,7 +135,7 @@ func (c *AwsSecretsClient) DescribeSecret(ctx context.Context, id string) (tags 
 	return outTags, outMeta, nil
 }
 
-func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
+func (c *AwsSecretsClient) ListSecrets(_ context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error) {
 	listInput := &secretsmanager.ListSecretsInput{}
 	if len(nextToken) > 0 {
 		listInput.NextToken = &nextToken
@@ -151,7 +151,7 @@ func (c *AwsSecretsClient) ListSecrets(ctx context.Context, maxResults int64, ne
 	return output, nil
 
 }
-func (c *AwsSecretsClient) UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
+func (c *AwsSecretsClient) UpdateSecret(_ context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error) {
 	output, err := c.client.UpdateSecret(&secretsmanager.UpdateSecretInput{
 		SecretId:     &id,
 		SecretString: &value,
@@ -165,37 +165,37 @@ func (c *AwsSecretsClient) UpdateSecret(ctx context.Context, id, value, keyID, d
 	return output, nil
 }
 
-func (c *AwsSecretsClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
-	output, err := c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
+func (c *AwsSecretsClient) RestoreSecret(_ context.Context, id string) error {
+	_, err := c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
 		SecretId: &id,
 	})
 	if err != nil {
-		return nil, parseSecretsManagerErrorResponse(err)
+		return parseSecretsManagerErrorResponse(err)
 	}
 
-	return output, nil
+	return nil
 }
-func (c *AwsSecretsClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
-
+func (c *AwsSecretsClient) DeleteSecret(_ context.Context, id string, force bool) error {
 	if force {
 		// check appropriate state with description
 		desc, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
 			SecretId: &id,
 		})
 		if err != nil {
-			return nil, parseSecretsManagerErrorResponse(err)
+			return parseSecretsManagerErrorResponse(err)
 		}
-		if err == nil && desc.DeletedDate != nil {
-			return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
+		if desc.DeletedDate != nil {
+			return errors.InvalidParameterError("failed to destroy, must be deleted first")
 		}
 	}
-	output, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
+
+	_, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
 		SecretId:                   &id,
 		ForceDeleteWithoutRecovery: &force,
 	})
 	if err != nil {
-		return nil, parseSecretsManagerErrorResponse(err)
+		return parseSecretsManagerErrorResponse(err)
 	}
 
-	return output, nil
+	return nil
 }

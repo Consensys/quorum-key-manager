@@ -154,14 +154,14 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 		i++
 	}
 
-	_, err = s.client.UntagResource(ctx, keyID, tagKeys)
+	err = s.client.UntagResource(ctx, keyID, tagKeys)
 	if err != nil {
 		errMessage := "failed to untag AWS key"
 		logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	_, err = s.client.TagResource(ctx, keyID, toTags(attr.Tags))
+	err = s.client.TagResource(ctx, keyID, toTags(attr.Tags))
 	if err != nil {
 		errMessage := "failed to tag AWS key"
 		logger.WithError(err).Error(errMessage)

@@ -116,25 +116,8 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	return secrets, nil
 }
 
-func (s *Store) listPaginated(ctx context.Context, maxResults int64, nextToken string) (resList []string, resNextToken *string, err error) {
-	listOutput, err := s.client.ListSecrets(ctx, maxResults, nextToken)
-	if err != nil {
-		errMessage := "failed to list AWS secrets"
-		s.logger.WithError(err).Error(errMessage)
-		return nil, nil, errors.FromError(err).SetMessage(errMessage)
-	}
-
-	// return only a list of secret names (IDs)
-	secretNamesList := []string{}
-	for _, secret := range listOutput.SecretList {
-		secretNamesList = append(secretNamesList, *secret.Name)
-	}
-
-	return secretNamesList, listOutput.NextToken, nil
-}
-
 func (s *Store) Delete(ctx context.Context, id string) error {
-	_, err := s.client.DeleteSecret(ctx, id, false)
+	err := s.client.DeleteSecret(ctx, id, false)
 	if err != nil {
 		errMessage := "failed to delete AWS secret"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
@@ -153,7 +136,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) Undelete(ctx context.Context, id string) error {
-	_, err := s.client.RestoreSecret(ctx, id)
+	err := s.client.RestoreSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to restore AWS secret"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
@@ -164,7 +147,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	_, err := s.client.DeleteSecret(ctx, id, true)
+	err := s.client.DeleteSecret(ctx, id, true)
 	if err != nil {
 		errMessage := "failed to permanently delete AWS secret"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
@@ -172,4 +155,21 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (s *Store) listPaginated(ctx context.Context, maxResults int64, nextToken string) (resList []string, resNextToken *string, err error) {
+	listOutput, err := s.client.ListSecrets(ctx, maxResults, nextToken)
+	if err != nil {
+		errMessage := "failed to list AWS secrets"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	// return only a list of secret names (IDs)
+	secretNamesList := []string{}
+	for _, secret := range listOutput.SecretList {
+		secretNamesList = append(secretNamesList, *secret.Name)
+	}
+
+	return secretNamesList, listOutput.NextToken, nil
 }
