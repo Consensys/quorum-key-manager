@@ -60,7 +60,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseResponse(res)
+	return parseAPISecretToKey(res)
 }
 
 func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
@@ -77,7 +77,7 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseResponse(res)
+	return parseAPISecretToKey(res)
 }
 
 func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
@@ -96,7 +96,7 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 		return nil, errors.NotFoundError(errMessage)
 	}
 
-	return parseResponse(res)
+	return parseAPISecretToKey(res)
 }
 
 func (s *Store) List(_ context.Context) ([]string, error) {
@@ -134,7 +134,7 @@ func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) 
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseResponse(res)
+	return parseAPISecretToKey(res)
 }
 
 func (s *Store) Delete(_ context.Context, id string) error {

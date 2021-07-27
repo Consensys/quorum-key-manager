@@ -48,14 +48,14 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	res, err := s.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
+	res, err := s.client.CreateKey(ctx, id, kty, crv, attr, nil, attr.Tags)
 	if err != nil {
 		errMessage := "failed to create AKV key"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseKeyBundleRes(&res), nil
+	return res, nil
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
@@ -90,14 +90,14 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 		X:   &pKeyX,
 		Y:   &pKeyY,
 	}
-	res, err := s.client.ImportKey(ctx, id, iWebKey, convertToAKVKeyAttr(attr), attr.Tags)
+	res, err := s.client.ImportKey(ctx, id, iWebKey, attr, attr.Tags)
 	if err != nil {
 		errMessage := "failed to import AKV key"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseKeyBundleRes(&res), nil
+	return res, nil
 }
 
 func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
@@ -108,7 +108,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseKeyBundleRes(&res), nil
+	return res, nil
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
@@ -121,8 +121,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 
 	kIDs := []string{}
 	for _, kItem := range res {
-		kID, _ := parseKeyID(kItem.Kid)
-		kIDs = append(kIDs, kID)
+		kIDs = append(kIDs, kItem.ID)
 	}
 
 	return kIDs, nil
@@ -132,14 +131,14 @@ func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes
 	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
 	res, err := s.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
 		Expires: &expireAt,
-	}, convertToAKVOps(attr.Operations), attr.Tags)
+	}, attr.Operations, attr.Tags)
 	if err != nil {
 		errMessage := "failed to update AKV key"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseKeyBundleRes(&res), nil
+	return res, nil
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
@@ -161,7 +160,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return parseKeyDeleteBundleRes(&res), nil
+	return res, nil
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
@@ -174,8 +173,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 
 	kIds := []string{}
 	for _, kItem := range res {
-		kID, _ := parseKeyID(kItem.Kid)
-		kIds = append(kIds, kID)
+		kIds = append(kIds, kItem.ID)
 	}
 
 	return kIds, nil

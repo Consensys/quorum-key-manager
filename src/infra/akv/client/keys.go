@@ -7,45 +7,46 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 func (c *AKVClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType,
-	crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation,
-	tags map[string]string) (keyvault.KeyBundle, error) {
+	crv keyvault.JSONWebKeyCurveName, attr *entities.Attributes, ops []entities.CryptoOperation,
+	tags map[string]string) (*entities.Key, error) {
 
 	result, err := c.client.CreateKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyCreateParameters{
 		Kty:           kty,
 		Curve:         crv,
 		Tags:          common.Tomapstrptr(tags),
-		KeyAttributes: attr,
+		KeyAttributes: convertToAKVKeyAttr(attr),
 	})
 	if err != nil {
-		return result, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
-	return result, nil
+	return parseKeyBundle(&result), nil
 }
 
-func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *entities.Attributes, tags map[string]string) (*entities.Key, error) {
 	result, err := c.client.ImportKey(ctx, c.cfg.Endpoint, keyName, keyvault.KeyImportParameters{
 		Key:           k,
 		Tags:          common.Tomapstrptr(tags),
-		KeyAttributes: attr,
+		KeyAttributes: convertToAKVKeyAttr(attr),
 	})
 	if err != nil {
-		return result, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
-	return result, nil
+	return parseKeyBundle(&result), nil
 }
 
-func (c *AKVClient) GetKey(ctx context.Context, keyName, version string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) GetKey(ctx context.Context, keyName, version string) (*entities.Key, error) {
 	result, err := c.client.GetKey(ctx, c.cfg.Endpoint, keyName, version)
 	if err != nil {
-		return result, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
-	return result, nil
+	return parseKeyBundle(&result), nil
 }
 
-func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {
+func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]*entities.Key, error) {
 	maxResultPtr := &maxResults
 	if maxResults == 0 {
 		maxResultPtr = nil
@@ -55,9 +56,11 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 		return nil, parseErrorResponse(err)
 	}
 
-	items := []keyvault.KeyItem{}
+	items := []*entities.Key{}
 	for {
-		items = append(items, res.Values()...)
+		for _, k := range res.Values() {
+			items = append(items, parseKeyItemBundle(&k))
+		}
 		if !res.NotDone() {
 			break
 		}
@@ -80,35 +83,39 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 }
 
 func (c *AKVClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes,
-	ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
+	ops []entities.CryptoOperation, tags map[string]string) (*entities.Key, error) {
+
 	result, err := c.client.UpdateKey(ctx, c.cfg.Endpoint, keyName, version, keyvault.KeyUpdateParameters{
 		KeyAttributes: attr,
 		Tags:          common.Tomapstrptr(tags),
-		KeyOps:        &ops,
+		KeyOps:        convertToAKVOps(ops),
 	})
+
 	if err != nil {
-		return result, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
-	return result, nil
+
+	return parseKeyBundle(&result), nil
 }
 
-func (c *AKVClient) DeleteKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
+func (c *AKVClient) DeleteKey(ctx context.Context, keyName string) (*entities.Key, error) {
 	result, err := c.client.DeleteKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return result, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
-	return result, nil
+	return parseDeletedKeyBundle(&result), nil
 }
 
-func (c *AKVClient) GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
+func (c *AKVClient) GetDeletedKey(ctx context.Context, keyName string) (*entities.Key, error) {
 	result, err := c.client.GetDeletedKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return result, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
-	return result, nil
+
+	return parseDeletedKeyBundle(&result), nil
 }
 
-func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error) {
+func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]*entities.Key, error) {
 	maxResultPtr := &maxResults
 	if maxResults == 0 {
 		maxResultPtr = nil
@@ -117,11 +124,17 @@ func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]key
 	if err != nil {
 		return nil, parseErrorResponse(err)
 	}
-	if len(res.Values()) == 0 {
-		return []keyvault.DeletedKeyItem{}, nil
+
+	result := []*entities.Key{}
+	for _, k := range res.Values() {
+		result = append(result, parseDeletedKeyItemBundle(&k))
 	}
 
-	return res.Values(), nil
+	if len(res.Values()) == 0 {
+		return []*entities.Key{}, nil
+	}
+
+	return result, nil
 }
 
 func (c *AKVClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, error) {
@@ -132,12 +145,12 @@ func (c *AKVClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, 
 	return res.StatusCode == http.StatusNoContent, nil
 }
 
-func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error) {
+func (c *AKVClient) RecoverDeletedKey(ctx context.Context, keyName string) (*entities.Key, error) {
 	result, err := c.client.RecoverDeletedKey(ctx, c.cfg.Endpoint, keyName)
 	if err != nil {
-		return result, parseErrorResponse(err)
+		return nil, parseErrorResponse(err)
 	}
-	return result, nil
+	return parseKeyBundle(&result), nil
 }
 
 func (c *AKVClient) Sign(ctx context.Context, keyName, version string, alg keyvault.JSONWebKeySignatureAlgorithm, payload string) (string, error) {
