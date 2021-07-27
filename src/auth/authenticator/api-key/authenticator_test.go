@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"golang.org/x/crypto/sha3"
@@ -33,7 +32,6 @@ func TestAuthenticatorCorrectAPIKey(t *testing.T) {
 	aliceAPIKeyHash := sha256.Sum256([]byte(aliceAPIKey))
 	b64AliceAPIKey := b64Encoder.EncodeToString([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash[:])
-	hexStrAliceAPIKeyHash = strings.ToUpper(hexStrAliceAPIKeyHash)
 	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
@@ -44,7 +42,6 @@ func TestAuthenticatorCorrectAPIKey(t *testing.T) {
 	b64BobAPIKey := b64Encoder.EncodeToString([]byte(bobAPIKey))
 
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
-	hexStrBobAPIKeyHash = strings.ToUpper(hexStrBobAPIKeyHash)
 
 	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
@@ -93,7 +90,6 @@ func TestAuthenticatorCorrectAPIKeyWithChangingHashers(t *testing.T) {
 	aliceAPIKeyHash := sha512.Sum512([]byte(aliceAPIKey))
 	b64AliceAPIKey := b64Encoder.EncodeToString([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash[:])
-	hexStrAliceAPIKeyHash = strings.ToUpper(hexStrAliceAPIKeyHash)
 	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
@@ -104,7 +100,6 @@ func TestAuthenticatorCorrectAPIKeyWithChangingHashers(t *testing.T) {
 	b64BobAPIKey := b64Encoder.EncodeToString([]byte(bobAPIKey))
 
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
-	hexStrBobAPIKeyHash = strings.ToUpper(hexStrBobAPIKeyHash)
 
 	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
@@ -153,7 +148,6 @@ func TestAuthenticatorCorrectAPIKeyWithChangingEncoder(t *testing.T) {
 	aliceAPIKeyHash := sha3.Sum224([]byte(aliceAPIKey))
 	b64AliceAPIKey := b64Encoder.EncodeToString([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash[:])
-	hexStrAliceAPIKeyHash = strings.ToUpper(hexStrAliceAPIKeyHash)
 
 	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
@@ -165,7 +159,6 @@ func TestAuthenticatorCorrectAPIKeyWithChangingEncoder(t *testing.T) {
 	b64BobAPIKey := b64Encoder.EncodeToString([]byte(bobAPIKey))
 
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
-	hexStrBobAPIKeyHash = strings.ToUpper(hexStrBobAPIKeyHash)
 
 	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
@@ -324,7 +317,7 @@ func TestAuthenticatorNoAPIKey(t *testing.T) {
 
 		userInfo, err := auth.Authenticate(reqAlice)
 
-		require.NoError(t, err)
+		require.Error(t, err)
 		assert.Nil(t, userInfo)
 
 	})
