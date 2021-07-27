@@ -158,7 +158,7 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 		require.NoError(s.T(), err)
 
 		newAlias := in
-		newAlias.ID = `Crédit Mutuel`
+		newAlias.Key = `Crédit Mutuel`
 		newAlias.Kind = aliases.AliasKindString
 		newAlias.Value = `SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`
 		err = s.store.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
