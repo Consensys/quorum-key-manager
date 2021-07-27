@@ -21,7 +21,7 @@ func New(logger log.Logger, client postgres.Client) *Database {
 	return &Database{
 		logger:       logger,
 		client:       client,
-		eth1Accounts: NewETH1Accounts(logger), // TODO: Implement ETH1Accounts using Postgres and not in-memory
+		eth1Accounts: NewETH1Accounts(logger, client),
 		keys:         NewKeys(logger, client),
 	}
 }
@@ -39,7 +39,7 @@ func (db Database) RunInTransaction(ctx context.Context, persist func(dbtx datab
 		db.client = newClient
 		db.keys = NewKeys(db.logger, newClient)
 		// TODO: Pass db.client to Eth1Accounts
-		db.eth1Accounts = NewETH1Accounts(db.logger)
+		db.eth1Accounts = NewETH1Accounts(db.logger, newClient)
 
 		return persist(&db)
 	})

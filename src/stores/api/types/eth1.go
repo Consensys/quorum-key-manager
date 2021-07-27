@@ -95,15 +95,11 @@ type VerifyTypedDataRequest struct {
 }
 
 type Eth1AccountResponse struct {
-	PublicKey           hexutil.Bytes     `json:"publicKey" example:"0x048e66b3e549818ea2cb354fb70749f6c8de8fa484f7530fc447d5fe80a1c424e4f5ae648d648c980ae7095d1efad87161d83886ca4b6c498ac22a93da5099014a" swaggertype:"string"`
-	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
-	CreatedAt           time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
-	UpdatedAt           time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
-	ExpireAt            time.Time         `json:"expireAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	DeletedAt           time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	DestroyedAt         time.Time         `json:"destroyedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	KeyID               string            `json:"keyId" example:"my-key-id"`
-	Tags                map[string]string `json:"tags,omitempty"`
-	Address             common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
-	Disabled            bool              `json:"disabled" example:"false"`
+	Address   common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
+	Key       KeyResponse       `json:"key"`
+	Tags      map[string]string `json:"tags,omitempty"`
+	CreatedAt time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
+	UpdatedAt time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
+	DeletedAt time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
+	Disabled  bool              `json:"disabled" example:"false"`
 }

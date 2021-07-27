@@ -78,7 +78,7 @@ var storeKinds = []manifest.Kind{
 	types.Eth1Account,
 }
 
-func (m *BaseManager) Start(ctx context.Context) error {
+func (m *BaseManager) Start(_ context.Context) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	defer func() {
@@ -89,7 +89,7 @@ func (m *BaseManager) Start(ctx context.Context) error {
 	m.sub = m.manifests.Subscribe(storeKinds, m.mnfsts)
 
 	// Start loading manifest
-	go m.loadAll(ctx)
+	go m.loadAll()
 
 	return nil
 }
@@ -114,10 +114,10 @@ func (m *BaseManager) Close() error {
 	return nil
 }
 
-func (m *BaseManager) loadAll(ctx context.Context) {
+func (m *BaseManager) loadAll() {
 	for mnfsts := range m.mnfsts {
 		for _, mnf := range mnfsts {
-			_ = m.load(ctx, mnf.Manifest)
+			_ = m.load(mnf.Manifest)
 		}
 	}
 }
@@ -252,7 +252,7 @@ func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.U
 	return accs, nil
 }
 
-func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
+func (m *BaseManager) load(mnf *manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
@@ -352,7 +352,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewLocalKeys(ctx, spec, m.db, logger)
+		store, err := local.NewLocalKeys(spec, m.db, logger)
 		if err != nil {
 			return err
 		}
@@ -366,7 +366,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewEth1(ctx, spec, m.db.ETH1Accounts(), logger)
+		store, err := local.NewEth1(spec, m.db, logger)
 		if err != nil {
 			return err
 		}

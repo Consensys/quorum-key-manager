@@ -88,18 +88,14 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 	return ethtypes.NewTransaction(uint64(tx.Nonce), *tx.To, big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
 }
 
-func FormatEth1AccResponse(key *entities.ETH1Account) *types.Eth1AccountResponse {
+func FormatEth1AccResponse(eth1Acc *entities.ETH1Account) *types.Eth1AccountResponse {
 	return &types.Eth1AccountResponse{
-		KeyID:               key.ID,
-		Address:             key.Address,
-		PublicKey:           key.PublicKey,
-		CompressedPublicKey: key.CompressedPublicKey,
-		Tags:                key.Tags,
-		Disabled:            key.Metadata.Disabled,
-		CreatedAt:           key.Metadata.CreatedAt,
-		UpdatedAt:           key.Metadata.UpdatedAt,
-		ExpireAt:            key.Metadata.ExpireAt,
-		DeletedAt:           key.Metadata.DeletedAt,
-		DestroyedAt:         key.Metadata.DestroyedAt,
+		Address:   eth1Acc.Address,
+		Key:       *FormatKeyResponse(eth1Acc.Key),
+		Tags:      eth1Acc.Tags,
+		Disabled:  eth1Acc.Metadata.Disabled,
+		CreatedAt: eth1Acc.Metadata.CreatedAt,
+		UpdatedAt: eth1Acc.Metadata.UpdatedAt,
+		DeletedAt: eth1Acc.Metadata.DeletedAt,
 	}
 }
