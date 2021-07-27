@@ -18,7 +18,7 @@ const (
 )
 
 type Authenticator struct {
-	APIKeyFile map[string]*UserNameAndGroups
+	APIKeyFile map[string]UserNameAndGroups
 	Hasher     *hash.Hash
 	B64Encoder *base64.Encoding
 }

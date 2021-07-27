@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	APIKeyFile map[string]*UserNameAndGroups
+	APIKeyFile map[string]UserNameAndGroups
 	Hasher     *hash.Hash
 	B64Encoder *base64.Encoding
 }
@@ -16,7 +16,7 @@ type UserNameAndGroups struct {
 	Groups   []string
 }
 
-func NewConfig(apiKeyFile map[string]*UserNameAndGroups, b64Encoder *base64.Encoding, hasher hash.Hash) *Config {
+func NewConfig(apiKeyFile map[string]UserNameAndGroups, b64Encoder *base64.Encoding, hasher hash.Hash) *Config {
 	return &Config{
 		APIKeyFile: apiKeyFile,
 		Hasher:     &hasher,

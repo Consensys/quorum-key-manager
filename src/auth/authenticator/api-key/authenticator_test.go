@@ -34,7 +34,7 @@ func TestAuthenticatorCorrectAPIKey(t *testing.T) {
 	b64AliceAPIKey := b64Encoder.EncodeToString([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash[:])
 	hexStrAliceAPIKeyHash = strings.ToUpper(hexStrAliceAPIKeyHash)
-	userAliceAndGroups := &UserNameAndGroups{
+	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
 	}
@@ -46,12 +46,12 @@ func TestAuthenticatorCorrectAPIKey(t *testing.T) {
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
 	hexStrBobAPIKeyHash = strings.ToUpper(hexStrBobAPIKeyHash)
 
-	userBobAndGroups := &UserNameAndGroups{
+	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
 		Groups:   []string{"g3", "g1"},
 	}
 
-	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]*UserNameAndGroups{
+	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]UserNameAndGroups{
 		hexStrAliceAPIKeyHash: userAliceAndGroups,
 		hexStrBobAPIKeyHash:   userBobAndGroups,
 	},
@@ -94,7 +94,7 @@ func TestAuthenticatorCorrectAPIKeyWithChangingHashers(t *testing.T) {
 	b64AliceAPIKey := b64Encoder.EncodeToString([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash[:])
 	hexStrAliceAPIKeyHash = strings.ToUpper(hexStrAliceAPIKeyHash)
-	userAliceAndGroups := &UserNameAndGroups{
+	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
 	}
@@ -106,12 +106,12 @@ func TestAuthenticatorCorrectAPIKeyWithChangingHashers(t *testing.T) {
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
 	hexStrBobAPIKeyHash = strings.ToUpper(hexStrBobAPIKeyHash)
 
-	userBobAndGroups := &UserNameAndGroups{
+	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
 		Groups:   []string{"g3", "g1"},
 	}
 
-	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]*UserNameAndGroups{
+	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]UserNameAndGroups{
 		hexStrAliceAPIKeyHash: userAliceAndGroups,
 		hexStrBobAPIKeyHash:   userBobAndGroups,
 	},
@@ -155,7 +155,7 @@ func TestAuthenticatorCorrectAPIKeyWithChangingEncoder(t *testing.T) {
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash[:])
 	hexStrAliceAPIKeyHash = strings.ToUpper(hexStrAliceAPIKeyHash)
 
-	userAliceAndGroups := &UserNameAndGroups{
+	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
 	}
@@ -167,12 +167,12 @@ func TestAuthenticatorCorrectAPIKeyWithChangingEncoder(t *testing.T) {
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
 	hexStrBobAPIKeyHash = strings.ToUpper(hexStrBobAPIKeyHash)
 
-	userBobAndGroups := &UserNameAndGroups{
+	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
 		Groups:   []string{"g3", "g1"},
 	}
 
-	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]*UserNameAndGroups{
+	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]UserNameAndGroups{
 		hexStrAliceAPIKeyHash: userAliceAndGroups,
 		hexStrBobAPIKeyHash:   userBobAndGroups,
 	},
@@ -213,12 +213,12 @@ func TestAuthenticatorWrongEncodingAPIKey(t *testing.T) {
 	aliceAPIKey := AliceAPIKey
 	aliceAPIKeyHash := hasher.Sum([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash)
-	userAliceAndGroups := &UserNameAndGroups{
+	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
 	}
 
-	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]*UserNameAndGroups{
+	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]UserNameAndGroups{
 		hexStrAliceAPIKeyHash: userAliceAndGroups,
 	},
 		Hasher:     &hasher,
@@ -251,7 +251,7 @@ func TestAuthenticatorWrongAPIKey(t *testing.T) {
 	aliceAPIKey := AliceAPIKey
 	aliceAPIKeyHash := hasher.Sum([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash)
-	userAliceAndGroups := &UserNameAndGroups{
+	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
 	}
@@ -260,12 +260,12 @@ func TestAuthenticatorWrongAPIKey(t *testing.T) {
 	bobAPIKeyHash := hasher.Sum([]byte(bobAPIKey))
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash)
 
-	userBobAndGroups := &UserNameAndGroups{
+	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
 		Groups:   []string{"g3", "g1"},
 	}
 
-	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]*UserNameAndGroups{
+	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]UserNameAndGroups{
 		hexStrAliceAPIKeyHash: userAliceAndGroups,
 		hexStrBobAPIKeyHash:   userBobAndGroups,
 	},
@@ -296,7 +296,7 @@ func TestAuthenticatorNoAPIKey(t *testing.T) {
 	aliceAPIKey := "aliceAPIKey"
 	aliceAPIKeyHash := hasher.Sum([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash)
-	userAliceAndGroups := &UserNameAndGroups{
+	userAliceAndGroups := UserNameAndGroups{
 		UserName: "Alice",
 		Groups:   []string{"g1", "g2"},
 	}
@@ -305,12 +305,12 @@ func TestAuthenticatorNoAPIKey(t *testing.T) {
 	bobAPIKeyHash := hasher.Sum([]byte(bobAPIKey))
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash)
 
-	userBobAndGroups := &UserNameAndGroups{
+	userBobAndGroups := UserNameAndGroups{
 		UserName: "Bob",
 		Groups:   []string{"g3", "g1"},
 	}
 
-	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]*UserNameAndGroups{
+	auth, _ := NewAuthenticator(&Config{APIKeyFile: map[string]UserNameAndGroups{
 		hexStrAliceAPIKeyHash: userAliceAndGroups,
 		hexStrBobAPIKeyHash:   userBobAndGroups,
 	},
