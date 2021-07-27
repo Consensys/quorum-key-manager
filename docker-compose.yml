@@ -40,6 +40,7 @@ services:
       <<: *qkm-common
       AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/cert.pem}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
+      AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-/apikey/sample.csv}
     ports:
       - 8080:8080
       - 8081:8081
@@ -49,6 +50,7 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
+      - ./deps/config/apikey:/apikey:ro
       - hashicorp-token:/vault/token:ro
 
   generate-jwt:

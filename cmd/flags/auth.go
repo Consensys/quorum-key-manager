@@ -2,15 +2,21 @@ package flags
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/csv"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth"
+	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -26,8 +32,22 @@ func init() {
 
 	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
 
 }
+
+const (
+	csvSeparator      = ';'
+	csvCommentsMarker = '#'
+	csvRowLen         = 3
+)
+
+const (
+	authAPIKeyFileFlag        = "auth-api-key-file"
+	authAPIKeyFileViperKey    = "auth.api.key.file"
+	authAPIKeyDefaultFileFlag = ""
+	authAPIKeyFileEnv         = "AUTH_API_KEY_FILE"
+)
 
 const (
 	authOIDCCACertFileFlag     = "auth-oidc-ca-cert"
@@ -64,11 +84,19 @@ const (
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
 
+func authAPIKeyFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
+Environment variable: %q`, authAPIKeyFileEnv)
+	f.String(authAPIKeyFileFlag, authAPIKeyDefaultFileFlag, desc)
+	_ = viper.BindPFlag(authAPIKeyFileViperKey, f.Lookup(authAPIKeyFileFlag))
+}
+
 func AuthFlags(f *pflag.FlagSet) {
 	authOIDCCAFile(f)
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimGroups(f)
+	authAPIKeyFile(f)
 }
 
 // Use only on generate-token utils
@@ -108,29 +136,40 @@ Environment variable: %q`, authOIDCCACertFileEnv)
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
-	certs := []*x509.Certificate{}
+	// OIDC part
+	certsOIDC := []*x509.Certificate{}
 
-	fileCert, err := fileCertificate(vipr)
+	fileCertOIDC, err := fileCertificate(vipr)
 	if err != nil {
 		return nil, err
-	} else if fileCert != nil {
-		certs = append(certs, fileCert)
+	} else if fileCertOIDC != nil {
+		certsOIDC = append(certsOIDC, fileCertOIDC)
 	}
 
 	issuerCerts, err := issuerCertificates(vipr)
 	if err != nil {
 		return nil, err
 	} else if issuerCerts != nil {
-		certs = append(certs, issuerCerts...)
+		certsOIDC = append(certsOIDC, issuerCerts...)
 	}
 
-	oidcCfg := oidc.NewConfig(
-		vipr.GetString(authOIDCClaimUsernameViperKey),
-		vipr.GetString(authOIDCClaimGroupViperKey),
-		certs...,
-	)
+	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
+		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
-	return &auth.Config{OIDC: oidcCfg}, nil
+	// Api-KEY part
+	var apiKeyCfg = &apikey.Config{}
+	fileAPIKeys, err := apiKeyCsvFile(vipr)
+	if err != nil {
+		return nil, err
+	} else if fileAPIKeys != nil {
+		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
+
+	}
+
+	return &auth.Config{OIDC: oidcCfg,
+		APIKEY: apiKeyCfg,
+	}, nil
+
 }
 
 func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
@@ -177,4 +216,46 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	}
 
 	return certs, nil
+}
+
+func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, error) {
+	// Open the file
+	csvFileName := vipr.GetString(authAPIKeyFileViperKey)
+	csvfile, err := os.Open(csvFileName)
+	if err != nil {
+		return nil, err
+	}
+	defer func(csvfile *os.File) {
+		_ = csvfile.Close()
+	}(csvfile)
+
+	// Parse the file
+	r := csv.NewReader(csvfile)
+	// Set separator
+	r.Comma = csvSeparator
+	// ignore comments in file
+	r.Comment = csvCommentsMarker
+
+	retFile := make(map[string]apikey.UserNameAndGroups)
+
+	// Iterate through the lines
+	for {
+		// Read each line from csv
+		cells, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if len(cells) != csvRowLen {
+			return nil, fmt.Errorf("invalid number of cells in file %s should be %d", csvfile.Name(), csvRowLen)
+		}
+
+		retFile[cells[0]] = apikey.UserNameAndGroups{UserName: cells[1],
+			Groups: strings.Split(cells[2], ","),
+		}
+	}
+
+	return retFile, nil
 }
