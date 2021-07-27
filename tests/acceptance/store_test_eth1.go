@@ -52,6 +52,7 @@ func (s *eth1TestSuite) TearDownSuite() {
 			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
 				err := s.db.ETH1Accounts().Purge(ctx, acc)
 				require.NoError(s.T(), err)
+				break
 			}
 			if err != nil && !errors.IsStatusConflictError(err) {
 				break
@@ -137,18 +138,6 @@ func (s *eth1TestSuite) TestImport() {
 		require.Nil(s.T(), account)
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
-
-	err = s.store.Delete(ctx, account.Address.Hex())
-	if err != nil && errors.IsNotImplementedError(err) || err != nil && errors.IsNotSupportedError(err) {
-		return
-	}
-	require.NoError(s.T(), err)
-
-	err = s.store.Destroy(ctx, account.Address.Hex())
-	if err != nil && errors.IsNotImplementedError(err) || err != nil && errors.IsNotSupportedError(err) {
-		return
-	}
-	require.NoError(s.T(), err)
 }
 
 func (s *eth1TestSuite) TestGet() {
