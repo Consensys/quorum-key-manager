@@ -90,6 +90,7 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 
 func FormatEth1AccResponse(eth1Acc *entities.ETH1Account) *types.Eth1AccountResponse {
 	return &types.Eth1AccountResponse{
+		KeyID:               eth1Acc.KeyID,
 		Address:             eth1Acc.Address,
 		PublicKey:           eth1Acc.PublicKey,
 		CompressedPublicKey: eth1Acc.CompressedPublicKey,

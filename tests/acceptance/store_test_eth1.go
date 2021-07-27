@@ -85,6 +85,7 @@ func (s *eth1TestSuite) TestCreate() {
 
 		assert.NotEmpty(s.T(), account.Address)
 		assert.NotEmpty(s.T(), account.PublicKey)
+		assert.NotEmpty(s.T(), account.CompressedPublicKey)
 		assert.Equal(s.T(), account.KeyID, id)
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
@@ -113,6 +114,7 @@ func (s *eth1TestSuite) TestImport() {
 		assert.Equal(s.T(), account.KeyID, id)
 		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address.Hex())
 		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
+		assert.Equal(s.T(), "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
