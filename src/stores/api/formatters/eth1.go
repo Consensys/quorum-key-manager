@@ -90,12 +90,13 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 
 func FormatEth1AccResponse(eth1Acc *entities.ETH1Account) *types.Eth1AccountResponse {
 	return &types.Eth1AccountResponse{
-		Address:   eth1Acc.Address,
-		Key:       *FormatKeyResponse(eth1Acc.Key),
-		Tags:      eth1Acc.Tags,
-		Disabled:  eth1Acc.Metadata.Disabled,
-		CreatedAt: eth1Acc.Metadata.CreatedAt,
-		UpdatedAt: eth1Acc.Metadata.UpdatedAt,
-		DeletedAt: eth1Acc.Metadata.DeletedAt,
+		Address:             eth1Acc.Address,
+		PublicKey:           eth1Acc.PublicKey,
+		CompressedPublicKey: eth1Acc.CompressedPublicKey,
+		Tags:                eth1Acc.Tags,
+		CreatedAt:           eth1Acc.Metadata.CreatedAt,
+		UpdatedAt:           eth1Acc.Metadata.UpdatedAt,
+		DeletedAt:           eth1Acc.Metadata.DeletedAt,
+		Disabled:            eth1Acc.Metadata.Disabled,
 	}
 }

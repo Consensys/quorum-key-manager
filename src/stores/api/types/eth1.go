@@ -95,11 +95,12 @@ type VerifyTypedDataRequest struct {
 }
 
 type Eth1AccountResponse struct {
-	Address   common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
-	Key       KeyResponse       `json:"key"`
-	Tags      map[string]string `json:"tags,omitempty"`
-	CreatedAt time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
-	UpdatedAt time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
-	DeletedAt time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	Disabled  bool              `json:"disabled" example:"false"`
+	Address             common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`
+	PublicKey           hexutil.Bytes     `json:"publicKey" example:"0x6019a3c8..." swaggertype:"string"`
+	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0x6019a3c8..." swaggertype:"string"`
+	Tags                map[string]string `json:"tags,omitempty"`
+	CreatedAt           time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
+	UpdatedAt           time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
+	DeletedAt           time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
+	Disabled            bool              `json:"disabled" example:"false"`
 }

@@ -13,7 +13,6 @@ import (
 	akvsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/akv"
 	awssecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/aws"
 	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
-
 	"os"
 	"testing"
 
@@ -141,6 +140,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.New(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db, logger)
+	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
 	// AKV
@@ -148,6 +148,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.New(akvkey.New(s.env.akvClient, logger), db, logger)
+	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
 	// AWS
@@ -155,6 +156,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, logger), db, logger)
+	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
 	// Local
@@ -163,6 +165,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite.env = s.env
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
 	testSuite.store = eth1.New(local.New(hashicorpSecretStore, db, logger), db, logger)
+	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 }
 

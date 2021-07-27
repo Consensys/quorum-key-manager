@@ -9,9 +9,10 @@ import (
 func parseKey(key *entities.Key, attr *entities.Attributes) *models.ETH1Account {
 	pubKey, _ := crypto.UnmarshalPubkey(key.PublicKey)
 	return &models.ETH1Account{
-		Address: crypto.PubkeyToAddress(*pubKey).Hex(),
-		KeyID:   key.ID,
-		Key:     models.NewKey(key),
-		Tags:    attr.Tags,
+		KeyID:               key.ID,
+		Address:             crypto.PubkeyToAddress(*pubKey).Hex(),
+		Tags:                attr.Tags,
+		PublicKey:           key.PublicKey,
+		CompressedPublicKey: crypto.CompressPubkey(pubKey),
 	}
 }

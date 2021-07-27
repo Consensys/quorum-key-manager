@@ -3,6 +3,7 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"math/big"
 	"time"
 
@@ -26,6 +27,7 @@ type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store eth1.Store
+	db    database.Database // TODO: Remove when Delete and Destroy functions are implemented in all stores
 }
 
 func (s *eth1TestSuite) TearDownSuite() {
@@ -38,10 +40,9 @@ func (s *eth1TestSuite) TearDownSuite() {
 	for _, address := range accounts {
 		err = s.store.Delete(ctx, address)
 		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-			return
+			err := s.db.ETH1Accounts().Delete(ctx, address)
+			require.NoError(s.T(), err)
 		}
-
-		require.NoError(s.T(), err)
 	}
 
 	for _, acc := range accounts {
@@ -49,7 +50,8 @@ func (s *eth1TestSuite) TearDownSuite() {
 		for {
 			err := s.store.Destroy(ctx, acc)
 			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-				return
+				err := s.db.ETH1Accounts().Purge(ctx, acc)
+				require.NoError(s.T(), err)
 			}
 			if err != nil && !errors.IsStatusConflictError(err) {
 				break
@@ -81,8 +83,8 @@ func (s *eth1TestSuite) TestCreate() {
 		require.NoError(s.T(), err)
 
 		assert.NotEmpty(s.T(), account.Address)
-		assert.NotEmpty(s.T(), account.Key.PublicKey)
-		assert.Equal(s.T(), account.Key, id)
+		assert.NotEmpty(s.T(), account.PublicKey)
+		assert.Equal(s.T(), account.KeyID, id)
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
@@ -107,9 +109,9 @@ func (s *eth1TestSuite) TestImport() {
 	require.NoError(s.T(), err)
 
 	s.Run("should create a new Ethereum Account successfully", func() {
-		assert.Equal(s.T(), account.Key, id)
+		assert.Equal(s.T(), account.KeyID, id)
 		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address.Hex())
-		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.Key.PublicKey))
+		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
@@ -118,13 +120,13 @@ func (s *eth1TestSuite) TestImport() {
 		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
 	})
 
-	s.Run("should fail with AlreadyExistsError if the account already exists (same address)", func() {
+	s.Run("should fail with StatusConflict if we violate a constraint (same address already exists)", func() {
 		account, err := s.store.Import(ctx, "my-account", privKey, &entities.Attributes{
 			Tags: tags,
 		})
 
 		require.Nil(s.T(), account)
-		assert.True(s.T(), errors.IsAlreadyExistsError(err))
+		assert.True(s.T(), errors.IsStatusConflictError(err))
 	})
 
 	s.Run("should fail with InvalidParameterError if private key is invalid", func() {
@@ -135,6 +137,18 @@ func (s *eth1TestSuite) TestImport() {
 		require.Nil(s.T(), account)
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
+
+	err = s.store.Delete(ctx, account.Address.Hex())
+	if err != nil && errors.IsNotImplementedError(err) || err != nil && errors.IsNotSupportedError(err) {
+		return
+	}
+	require.NoError(s.T(), err)
+
+	err = s.store.Destroy(ctx, account.Address.Hex())
+	if err != nil && errors.IsNotImplementedError(err) || err != nil && errors.IsNotSupportedError(err) {
+		return
+	}
+	require.NoError(s.T(), err)
 }
 
 func (s *eth1TestSuite) TestGet() {
@@ -153,7 +167,7 @@ func (s *eth1TestSuite) TestGet() {
 
 		assert.Equal(s.T(), retrievedAccount.KeyID, id)
 		assert.NotEmpty(s.T(), retrievedAccount.Address)
-		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.Key.PublicKey))
+		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.PublicKey))
 		assert.Equal(s.T(), retrievedAccount.Tags, tags)
 		assert.False(s.T(), retrievedAccount.Metadata.Disabled)
 		assert.True(s.T(), retrievedAccount.Metadata.DeletedAt.IsZero())

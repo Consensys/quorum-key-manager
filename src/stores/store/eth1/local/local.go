@@ -480,7 +480,7 @@ func (s *Store) SignData(ctx context.Context, addr string, data []byte) ([]byte,
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
-		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), account.Key.PublicKey) {
+		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), account.PublicKey) {
 			return appendedSignature, nil
 		}
 	}

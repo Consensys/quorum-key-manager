@@ -29,7 +29,7 @@ func NewETH1Accounts(logger log.Logger, db postgres.Client) *ETH1Accounts {
 func (d *ETH1Accounts) Get(ctx context.Context, addr string) (*models.ETH1Account, error) {
 	eth1Acc := &models.ETH1Account{Address: addr}
 
-	err := d.db.SelectQuery(d.db.ModelContext(ctx, eth1Acc).Relation("Key").WherePK())
+	err := d.db.SelectPK(ctx, eth1Acc)
 	if err != nil {
 		errMessage := "failed to get account"
 		d.logger.With("address", addr).WithError(err).Error(errMessage)
@@ -42,7 +42,7 @@ func (d *ETH1Accounts) Get(ctx context.Context, addr string) (*models.ETH1Accoun
 func (d *ETH1Accounts) GetDeleted(ctx context.Context, addr string) (*models.ETH1Account, error) {
 	eth1Acc := &models.ETH1Account{Address: addr}
 
-	err := d.db.SelectQuery(d.db.ModelContext(ctx, eth1Acc).Relation("Key").WherePK().Deleted())
+	err := d.db.SelectDeletedPK(ctx, eth1Acc)
 	if err != nil {
 		errMessage := "failed to get deleted account"
 		d.logger.With("address", addr).WithError(err).Error(errMessage)
@@ -55,7 +55,7 @@ func (d *ETH1Accounts) GetDeleted(ctx context.Context, addr string) (*models.ETH
 func (d *ETH1Accounts) GetAll(ctx context.Context) ([]*models.ETH1Account, error) {
 	var eth1Accs []*models.ETH1Account
 
-	err := d.db.SelectQuery(d.db.ModelContext(ctx, &eth1Accs).Relation("Key"))
+	err := d.db.Select(ctx, &eth1Accs)
 	if err != nil {
 		errMessage := "failed to get all accounts"
 		d.logger.WithError(err).Error(errMessage)
@@ -68,7 +68,7 @@ func (d *ETH1Accounts) GetAll(ctx context.Context) ([]*models.ETH1Account, error
 func (d *ETH1Accounts) GetAllDeleted(ctx context.Context) ([]*models.ETH1Account, error) {
 	var eth1Accs []*models.ETH1Account
 
-	err := d.db.SelectQuery(d.db.ModelContext(ctx, &eth1Accs).Relation("Key").Deleted())
+	err := d.db.SelectDeleted(ctx, &eth1Accs)
 	if err != nil {
 		errMessage := "failed to get all deleted accounts"
 		d.logger.WithError(err).Error(errMessage)

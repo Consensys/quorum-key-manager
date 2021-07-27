@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4:4.27
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+    restart: unless-stopped
+    volumes:
+      - pgadmin:/root/.pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+      - ./pgadmin/password:/pgadmin4/password
+    ports:
+      - 9001:80
+    networks:
+      - qkm
+
+volumes:
+  pgadmin:
+    driver: local
+
+networks:
+  orchestrate:
+    external:
+      name: deps_qkm

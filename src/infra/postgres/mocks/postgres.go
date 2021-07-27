@@ -7,7 +7,6 @@ package mocks
 import (
 	context "context"
 	postgres "github.com/consensys/quorum-key-manager/src/infra/postgres"
-	orm "github.com/go-pg/pg/v10/orm"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -33,25 +32,6 @@ func NewMockClient(ctrl *gomock.Controller) *MockClient {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
-}
-
-// ModelContext mocks base method
-func (m *MockClient) ModelContext(ctx context.Context, model ...interface{}) *orm.Query {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range model {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "ModelContext", varargs...)
-	ret0, _ := ret[0].(*orm.Query)
-	return ret0
-}
-
-// ModelContext indicates an expected call of ModelContext
-func (mr *MockClientMockRecorder) ModelContext(ctx interface{}, model ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, model...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModelContext", reflect.TypeOf((*MockClient)(nil).ModelContext), varargs...)
 }
 
 // Insert mocks base method
@@ -109,20 +89,6 @@ func (mr *MockClientMockRecorder) SelectDeletedPK(ctx interface{}, model ...inte
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, model...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedPK", reflect.TypeOf((*MockClient)(nil).SelectDeletedPK), varargs...)
-}
-
-// SelectQuery mocks base method
-func (m *MockClient) SelectQuery(query *orm.Query) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectQuery", query)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SelectQuery indicates an expected call of SelectQuery
-func (mr *MockClientMockRecorder) SelectQuery(query interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectQuery", reflect.TypeOf((*MockClient)(nil).SelectQuery), query)
 }
 
 // Select mocks base method

@@ -138,3 +138,9 @@ docker-build:
 
 deploy-remote-env:
 	@bash ./scripts/deploy-remote-env.sh
+
+pgadmin:
+	@docker-compose -f deps/docker-compose-tools.yml up -d pgadmin
+
+down-pgadmin:
+	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v pgadmin
