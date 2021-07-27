@@ -3,10 +3,6 @@ package acceptancetests
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/postgres/mocks"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
-	"github.com/golang/mock/gomock"
 	"math/big"
 	"time"
 
@@ -17,13 +13,10 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
-	eth1local "github.com/consensys/quorum-key-manager/src/stores/store/eth1/local"
-	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -76,53 +69,6 @@ func (s *eth1TestSuite) TearDownSuite() {
 	}
 }
 
-func (s *eth1TestSuite) TestInit() {
-	ctrl := gomock.NewController(s.T())
-	defer ctrl.Finish()
-
-	logger := s.env.logger
-	ctx := s.env.ctx
-	attr := &entities.Attributes{
-		Tags: testutils.FakeTags(),
-	}
-	algo := &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
-	}
-
-	keyStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
-	db := postgres.New(logger, mocks.NewMockClient(ctrl))
-
-	key1, err := keyStore.Create(ctx, "init-key-1", algo, attr)
-	require.NoError(s.T(), err)
-
-	key2, err := keyStore.Create(ctx, "init-key-2", algo, attr)
-	require.NoError(s.T(), err)
-
-	_, err = keyStore.Create(ctx, "init-key-eddsa", &entities.Algorithm{
-		Type:          entities.Eddsa,
-		EllipticCurve: entities.Bn254,
-	}, attr)
-	require.NoError(s.T(), err)
-
-	err = local.InitDB(ctx, keyStore, db.ETH1Accounts())
-	require.NoError(s.T(), err)
-
-	ethStore := eth1local.New(keyStore, db.ETH1Accounts(), logger)
-
-	s.Run("should load ETH1 keys", func() {
-		pubKey1, _ := crypto.UnmarshalPubkey(key1.PublicKey)
-		account1, err := ethStore.Get(ctx, crypto.PubkeyToAddress(*pubKey1).Hex())
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), account1.ID, key1.ID)
-
-		pubKey2, _ := crypto.UnmarshalPubkey(key2.PublicKey)
-		account2, err := ethStore.Get(ctx, crypto.PubkeyToAddress(*pubKey2).Hex())
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), account2.ID, key2.ID)
-	})
-}
-
 func (s *eth1TestSuite) TestCreate() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
@@ -134,15 +80,12 @@ func (s *eth1TestSuite) TestCreate() {
 		})
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), account.ID, id)
 		assert.NotEmpty(s.T(), account.Address)
-		assert.NotEmpty(s.T(), account.PublicKey)
-		assert.NotEmpty(s.T(), account.CompressedPublicKey)
+		assert.NotEmpty(s.T(), account.Key.PublicKey)
+		assert.Equal(s.T(), account.Key, id)
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
-		assert.True(s.T(), account.Metadata.DestroyedAt.IsZero())
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), account.Metadata.ExpireAt.IsZero())
 		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
 		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
@@ -164,15 +107,12 @@ func (s *eth1TestSuite) TestImport() {
 	require.NoError(s.T(), err)
 
 	s.Run("should create a new Ethereum Account successfully", func() {
-		assert.Equal(s.T(), account.ID, id)
+		assert.Equal(s.T(), account.Key, id)
 		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address.Hex())
-		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
-		assert.Equal(s.T(), "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
+		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.Key.PublicKey))
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
-		assert.True(s.T(), account.Metadata.DestroyedAt.IsZero())
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), account.Metadata.ExpireAt.IsZero())
 		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
 		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
@@ -211,15 +151,12 @@ func (s *eth1TestSuite) TestGet() {
 		retrievedAccount, err := s.store.Get(ctx, account.Address.Hex())
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), retrievedAccount.ID, id)
+		assert.Equal(s.T(), retrievedAccount.KeyID, id)
 		assert.NotEmpty(s.T(), retrievedAccount.Address)
-		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.PublicKey))
-		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.CompressedPublicKey))
+		assert.NotEmpty(s.T(), hexutil.Encode(retrievedAccount.Key.PublicKey))
 		assert.Equal(s.T(), retrievedAccount.Tags, tags)
 		assert.False(s.T(), retrievedAccount.Metadata.Disabled)
-		assert.True(s.T(), retrievedAccount.Metadata.DestroyedAt.IsZero())
 		assert.True(s.T(), retrievedAccount.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), retrievedAccount.Metadata.ExpireAt.IsZero())
 		assert.NotEmpty(s.T(), retrievedAccount.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), retrievedAccount.Metadata.UpdatedAt)
 		assert.Equal(s.T(), retrievedAccount.Metadata.UpdatedAt, retrievedAccount.Metadata.CreatedAt)

@@ -387,6 +387,11 @@ func (env *IntegrationEnvironment) createTables() error {
 		return err
 	}
 
+	err = db.Model(&models.ETH1Account{}).CreateTable(&orm.CreateTableOptions{})
+	if err != nil {
+		return err
+	}
+
 	env.logger.Info("tables created successgfully from models")
 	return nil
 }

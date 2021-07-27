@@ -34,6 +34,10 @@ func (c *PostgresClient) Config() *Config {
 	return c.cfg
 }
 
+func (c *PostgresClient) ModelContext(ctx context.Context, model ...interface{}) *orm.Query {
+	return c.db.ModelContext(ctx, model...)
+}
+
 func (c *PostgresClient) Insert(ctx context.Context, model ...interface{}) error {
 	_, err := c.db.ModelContext(ctx, model...).Insert()
 	if err != nil {
@@ -54,6 +58,15 @@ func (c *PostgresClient) SelectPK(ctx context.Context, model ...interface{}) err
 
 func (c *PostgresClient) SelectDeletedPK(ctx context.Context, model ...interface{}) error {
 	err := c.db.ModelContext(ctx, model...).WherePK().Deleted().Select()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (_ *PostgresClient) SelectQuery(query *orm.Query) error {
+	err := query.Select()
 	if err != nil {
 		return parseErrorResponse(err)
 	}
