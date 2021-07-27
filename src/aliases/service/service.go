@@ -6,14 +6,11 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
-func RegisterService(a *app.App, logger log.Logger, pgClient postgres.Client) error {
-	// Create and register the stores service
-
-	// TODO replace by the database.Database abstraction
+// RegisterService creates and register the alias service.
+func RegisterService(a *app.App, pgClient postgres.Client) error {
 	store := aliasstore.New(pgClient)
 	m := NewManager(store)
 	err := a.RegisterService(m)

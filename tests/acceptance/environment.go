@@ -54,6 +54,7 @@ const (
 	MaxRetries                = 4
 )
 
+// IntegrationEnvironment holds all connected clients needed to ready docker containers.
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger

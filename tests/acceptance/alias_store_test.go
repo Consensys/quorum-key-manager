@@ -53,8 +53,7 @@ func (s *aliasStoreTestSuite) SetupSuite() {
 	}
 	s.env.logger.Info("setup test suite has completed")
 
-	pgClient := s.env.postgresClient
-	s.store = aliasstore.New(pgClient)
+	s.store = aliasstore.New(s.env.postgresClient)
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	s.rand = rand.New(randSrc)
 }

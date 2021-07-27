@@ -10,6 +10,7 @@ import (
 
 var _ aliases.Backend = &Store{}
 
+// Store stores the alias data in a postgres DB.
 type Store struct {
 	pgClient postgres.Client
 }
