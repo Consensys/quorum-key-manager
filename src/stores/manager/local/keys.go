@@ -1,8 +1,6 @@
 package local
 
 import (
-	"context"
-
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
@@ -24,7 +22,7 @@ type KeySpecs struct {
 	Specs       interface{}
 }
 
-func NewLocalKeys(_ context.Context, specs *KeySpecs, db database.Database, logger log.Logger) (*localkeys.Store, error) {
+func NewLocalKeys(specs *KeySpecs, db database.Database, logger log.Logger) (*localkeys.Store, error) {
 	var secretStore secrets.Store
 	var err error
 

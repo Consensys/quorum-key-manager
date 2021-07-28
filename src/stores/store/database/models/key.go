@@ -7,8 +7,6 @@ import (
 )
 
 type Key struct {
-	tableName struct{} `pg:"keys"` // nolint:unused,structcheck // reason
-
 	ID               string
 	PublicKey        []byte
 	SigningAlgorithm string
@@ -19,21 +17,6 @@ type Key struct {
 	CreatedAt        time.Time `pg:"default:now()"`
 	UpdatedAt        time.Time `pg:"default:now()"`
 	DeletedAt        time.Time `pg:",soft_delete"`
-}
-
-func NewKey(k *entities.Key) *Key {
-	return &Key{
-		ID:               k.ID,
-		PublicKey:        k.PublicKey,
-		SigningAlgorithm: string(k.Algo.Type),
-		EllipticCurve:    string(k.Algo.EllipticCurve),
-		Tags:             k.Tags,
-		Annotations:      k.Annotations,
-		Disabled:         k.Metadata.Disabled,
-		CreatedAt:        k.Metadata.CreatedAt,
-		UpdatedAt:        k.Metadata.UpdatedAt,
-		DeletedAt:        k.Metadata.DeletedAt,
-	}
 }
 
 func (k *Key) ToEntity() *entities.Key {

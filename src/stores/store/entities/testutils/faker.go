@@ -32,7 +32,7 @@ func FakeKey() *entities.Key {
 
 func FakeETH1Account() *entities.ETH1Account {
 	return &entities.ETH1Account{
-		ID:                  "my-account",
+		KeyID:               "my-account",
 		Address:             common.HexToAddress("0x83a0254be47813BBff771F4562744676C4e793F0"),
 		Metadata:            FakeMetadata(),
 		PublicKey:           hexutil.MustDecode("0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2"),

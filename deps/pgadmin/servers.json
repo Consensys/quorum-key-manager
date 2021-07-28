@@ -1,0 +1,17 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "QKM",
+      "Group": "QKM",
+      "Port": 5432,
+      "Username": "postgres",
+      "Host": "postgres",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "postgres",
+      "PassFile": "/pgadmin4/password",
+      "BGColor": "#3E5D6B",
+      "FGColor": "#67C39B"
+    }
+  }
+}
+

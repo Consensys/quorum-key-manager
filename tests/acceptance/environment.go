@@ -382,7 +382,16 @@ func (env *IntegrationEnvironment) createTables() error {
 	db := pg.Connect(pgCfg)
 	defer db.Close()
 
-	err = db.Model(&models.Key{}).CreateTable(&orm.CreateTableOptions{})
+	opts := &orm.CreateTableOptions{
+		FKConstraints: true,
+	}
+
+	err = db.Model(&models.Key{}).CreateTable(opts)
+	if err != nil {
+		return err
+	}
+
+	err = db.Model(&models.ETH1Account{}).CreateTable(opts)
 	if err != nil {
 		return err
 	}

@@ -102,11 +102,8 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 }
 
 func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
-
 	key, err := s.db.Keys().GetDeleted(ctx, id)
 	if err != nil {
-		logger.Error("failed to get deleted key")
 		return nil, err
 	}
 
@@ -124,7 +121,6 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 		ids = append(ids, key.ID)
 	}
 
-	s.logger.Debug("deleted keys listed successfully")
 	return ids, nil
 }
 

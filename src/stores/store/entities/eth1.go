@@ -3,10 +3,10 @@ package entities
 import "github.com/ethereum/go-ethereum/common"
 
 type ETH1Account struct {
-	ID                  string
 	Address             common.Address
-	Metadata            *Metadata
+	KeyID               string
 	PublicKey           []byte
 	CompressedPublicKey []byte
+	Metadata            *Metadata
 	Tags                map[string]string
 }

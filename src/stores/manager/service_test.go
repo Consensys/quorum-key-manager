@@ -88,8 +88,6 @@ func TestBaseManager(t *testing.T) {
 	mockDB := mock.NewMockDatabase(ctrl)
 	mockPolicyMngr := mock2.NewMockManager(ctrl)
 
-	mockDB.EXPECT().ETH1Accounts().Return(mock.NewMockETH1Accounts(ctrl))
-
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
 	require.NoError(t, err, "WriteFile manifest1 must not error")

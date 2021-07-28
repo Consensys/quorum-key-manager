@@ -2,11 +2,11 @@ package postgres
 
 import (
 	"context"
-	"sync"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
@@ -14,134 +14,123 @@ import (
 )
 
 type ETH1Accounts struct {
-	addrToAccounts        map[string]*entities.ETH1Account
-	deletedAddrToAccounts map[string]*entities.ETH1Account
-	mux                   sync.RWMutex
-	logger                log.Logger
+	logger log.Logger
+	db     postgres.Client
 }
 
 var _ database.ETH1Accounts = &ETH1Accounts{}
 
-func NewETH1Accounts(logger log.Logger) *ETH1Accounts {
+func NewETH1Accounts(logger log.Logger, db postgres.Client) *ETH1Accounts {
 	return &ETH1Accounts{
-		mux:                   sync.RWMutex{},
-		addrToAccounts:        make(map[string]*entities.ETH1Account),
-		deletedAddrToAccounts: make(map[string]*entities.ETH1Account),
-		logger:                logger,
+		logger: logger,
+		db:     db,
 	}
 }
 
-func (d *ETH1Accounts) Get(_ context.Context, addr string) (*entities.ETH1Account, error) {
-	d.mux.RLock()
-	defer d.mux.RUnlock()
+func (d *ETH1Accounts) Get(ctx context.Context, addr string) (*models.ETH1Account, error) {
+	eth1Acc := &models.ETH1Account{Address: addr}
 
-	account, ok := d.addrToAccounts[addr]
-	if !ok {
-		errMessage := "account was not found"
-		d.logger.Error(errMessage, "account", addr)
-		return nil, errors.NotFoundError(errMessage)
+	err := d.db.SelectPK(ctx, eth1Acc)
+	if err != nil {
+		errMessage := "failed to get account"
+		d.logger.With("address", addr).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return account, nil
+	return eth1Acc, nil
 }
 
-func (d *ETH1Accounts) GetDeleted(_ context.Context, addr string) (*entities.ETH1Account, error) {
-	d.mux.RLock()
-	defer d.mux.RUnlock()
+func (d *ETH1Accounts) GetDeleted(ctx context.Context, addr string) (*models.ETH1Account, error) {
+	eth1Acc := &models.ETH1Account{Address: addr}
 
-	id, ok := d.deletedAddrToAccounts[addr]
-	if !ok {
-		errMessage := "deleted account was not found"
-		d.logger.Error(errMessage, "account", addr)
-		return nil, errors.NotFoundError(errMessage)
+	err := d.db.SelectDeletedPK(ctx, eth1Acc)
+	if err != nil {
+		errMessage := "failed to get deleted account"
+		d.logger.With("address", addr).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return id, nil
+	return eth1Acc, nil
 }
 
-func (d *ETH1Accounts) GetAll(_ context.Context) ([]*entities.ETH1Account, error) {
-	d.mux.RLock()
-	defer d.mux.RUnlock()
+func (d *ETH1Accounts) GetAll(ctx context.Context) ([]*models.ETH1Account, error) {
+	var eth1Accs []*models.ETH1Account
 
-	accounts := []*entities.ETH1Account{}
-
-	for _, account := range d.addrToAccounts {
-		accounts = append(accounts, account)
+	err := d.db.Select(ctx, &eth1Accs)
+	if err != nil {
+		errMessage := "failed to get all accounts"
+		d.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return accounts, nil
+	return eth1Accs, nil
 }
 
-func (d *ETH1Accounts) GetAllDeleted(_ context.Context) ([]*entities.ETH1Account, error) {
-	d.mux.RLock()
-	defer d.mux.RUnlock()
+func (d *ETH1Accounts) GetAllDeleted(ctx context.Context) ([]*models.ETH1Account, error) {
+	var eth1Accs []*models.ETH1Account
 
-	accounts := []*entities.ETH1Account{}
-
-	for _, account := range d.deletedAddrToAccounts {
-		accounts = append(accounts, account)
+	err := d.db.SelectDeleted(ctx, &eth1Accs)
+	if err != nil {
+		errMessage := "failed to get all deleted accounts"
+		d.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return accounts, nil
+	return eth1Accs, nil
 }
 
-func (d *ETH1Accounts) Add(_ context.Context, account *entities.ETH1Account) error {
-	d.mux.Lock()
-	defer d.mux.Unlock()
-
-	if _, ok := d.addrToAccounts[account.Address.Hex()]; ok {
-		errMessage := "account already exists"
-		d.logger.Error(errMessage, "account", account.Address)
-		return errors.AlreadyExistsError(errMessage)
+func (d *ETH1Accounts) Add(ctx context.Context, account *models.ETH1Account) error {
+	err := d.db.Insert(ctx, account)
+	if err != nil {
+		errMessage := "failed to add account"
+		d.logger.With("address", account.Address).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
-
-	if _, ok := d.deletedAddrToAccounts[account.Address.Hex()]; ok {
-		errMessage := "account is currently deleted. Please restore it instead"
-		d.logger.Error(errMessage, "account", account.Address)
-		return errors.AlreadyExistsError(errMessage)
-	}
-
-	d.addrToAccounts[account.Address.Hex()] = account
 
 	return nil
 }
 
-func (d *ETH1Accounts) Update(_ context.Context, account *entities.ETH1Account) error {
-	d.mux.Lock()
-	defer d.mux.Unlock()
-
-	if _, ok := d.addrToAccounts[account.Address.Hex()]; !ok {
-		errMessage := "account does not exists"
-		d.logger.Error(errMessage, "account", account.Address)
-		return errors.NotFoundError(errMessage)
+func (d *ETH1Accounts) Update(ctx context.Context, account *models.ETH1Account) error {
+	err := d.db.UpdatePK(ctx, account)
+	if err != nil {
+		errMessage := "failed to update account"
+		d.logger.With("address", account.Address).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
 	}
 
-	d.addrToAccounts[account.Address.Hex()] = account
+	return nil
+}
+
+func (d *ETH1Accounts) Delete(ctx context.Context, addr string) error {
+	err := d.db.DeletePK(ctx, &models.ETH1Account{Address: addr})
+	if err != nil {
+		errMessage := "failed to delete account"
+		d.logger.With("address", addr).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
 
 	return nil
 }
 
-func (d *ETH1Accounts) AddDeleted(_ context.Context, account *entities.ETH1Account) error {
-	d.mux.Lock()
-	defer d.mux.Unlock()
-
-	d.deletedAddrToAccounts[account.Address.Hex()] = account
-
-	return nil
-}
-
-func (d *ETH1Accounts) Remove(_ context.Context, addr string) error {
-	d.mux.Lock()
-	defer d.mux.Unlock()
-	delete(d.addrToAccounts, addr)
+func (d *ETH1Accounts) Restore(ctx context.Context, account *models.ETH1Account) error {
+	account.DeletedAt = time.Time{}
+	err := d.Update(ctx, account)
+	if err != nil {
+		errMessage := "failed to restore account"
+		d.logger.With("address", account.Address).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
 
 	return nil
 }
 
-func (d *ETH1Accounts) RemoveDeleted(_ context.Context, addr string) error {
-	d.mux.Lock()
-	defer d.mux.Unlock()
-	delete(d.deletedAddrToAccounts, addr)
+func (d *ETH1Accounts) Purge(ctx context.Context, addr string) error {
+	err := d.db.ForceDeletePK(ctx, &models.ETH1Account{Address: addr})
+	if err != nil {
+		errMessage := "failed to permanently delete account"
+		d.logger.With("address", addr).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
 
 	return nil
 }
