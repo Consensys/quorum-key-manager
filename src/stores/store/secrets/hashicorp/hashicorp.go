@@ -137,7 +137,20 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 func (s *Store) Delete(_ context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	err := s.client.Delete(s.pathID(id))
+	var callData map[string][]string
+	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
+	if err != nil {
+		errMessage := "failed to get Hashicorp secret data for deletion"
+		logger.WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+	if hashicorpSecretData == nil {
+		errMessage := "Hashicorp secret not found for deletion"
+		logger.WithError(err).Error(errMessage)
+		return errors.NotFoundError(errMessage)
+	}
+
+	err = s.client.Delete(s.pathData(id))
 	if err != nil {
 		errMessage := "failed to delete Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -158,7 +171,11 @@ func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
 func (s *Store) Undelete(_ context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	err := s.client.Restore(s.pathID(id))
+	// @TODO Fetch versions from DB once they are available
+	versions := []string{}
+	err := s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
+		"versions": versions,
+	})
 	if err != nil {
 		errMessage := "failed to restore Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -171,7 +188,11 @@ func (s *Store) Undelete(_ context.Context, id string) error {
 func (s *Store) Destroy(_ context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	err := s.client.Destroy(s.pathID(id))
+	// @TODO Fetch versions from DB once they are available
+	versions := []string{}
+	err := s.client.WritePost(s.pathDestroyID(id), map[string][]string{
+		"versions": versions,
+	})
 	if err != nil {
 		errMessage := "failed to destroy Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -181,8 +202,12 @@ func (s *Store) Destroy(_ context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) pathID(id string) string {
-	return path.Join(s.mountPoint, id)
+func (s *Store) pathUndeleteID(id string) string {
+	return path.Join(s.mountPoint, "undelete", id)
+}
+
+func (s *Store) pathDestroyID(id string) string {
+	return path.Join(s.mountPoint, "destroy", id)
 }
 
 func (s *Store) pathData(id string) string {

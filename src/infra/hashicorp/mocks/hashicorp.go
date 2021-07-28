@@ -63,6 +63,20 @@ func (mr *MockVaultClientMockRecorder) Write(path, data interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockVaultClient)(nil).Write), path, data)
 }
 
+// WritePost mocks base method
+func (m *MockVaultClient) WritePost(path string, data map[string][]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WritePost", path, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WritePost indicates an expected call of WritePost
+func (mr *MockVaultClientMockRecorder) WritePost(path, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WritePost", reflect.TypeOf((*MockVaultClient)(nil).WritePost), path, data)
+}
+
 // Delete mocks base method
 func (m *MockVaultClient) Delete(path string) error {
 	m.ctrl.T.Helper()
@@ -75,34 +89,6 @@ func (m *MockVaultClient) Delete(path string) error {
 func (mr *MockVaultClientMockRecorder) Delete(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockVaultClient)(nil).Delete), path)
-}
-
-// Restore mocks base method
-func (m *MockVaultClient) Restore(path string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Restore", path)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Restore indicates an expected call of Restore
-func (mr *MockVaultClientMockRecorder) Restore(path interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockVaultClient)(nil).Restore), path)
-}
-
-// Destroy mocks base method
-func (m *MockVaultClient) Destroy(path string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Destroy", path)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Destroy indicates an expected call of Destroy
-func (mr *MockVaultClientMockRecorder) Destroy(path interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockVaultClient)(nil).Destroy), path)
 }
 
 // List mocks base method

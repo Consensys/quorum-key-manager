@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
@@ -10,6 +11,7 @@ import (
 
 type HashicorpVaultClient struct {
 	client *api.Client
+	cfg    *Config
 }
 
 var _ hashicorp.VaultClient = &HashicorpVaultClient{}
@@ -22,7 +24,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
 	client.SetNamespace(cfg.Namespace)
 
-	return &HashicorpVaultClient{client}, nil
+	return &HashicorpVaultClient{client, cfg}, nil
 }
 
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {
@@ -61,21 +63,22 @@ func (c *HashicorpVaultClient) Delete(path string) error {
 	return nil
 }
 
-func (c *HashicorpVaultClient) Restore(path string) error {
-	req := c.client.NewRequest("POST", fmt.Sprintf("/secret/undelete/%s", path))
-	resp, err := c.client.RawRequest(req)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		return parseErrorResponse(err)
+func (c *HashicorpVaultClient) WritePost(path string, data map[string][]string) error {
+	req := c.client.NewRequest("POST", fmt.Sprintf("/v1/%s", path))
+	var values url.Values
+	for k, v := range data {
+		if values == nil {
+			values = make(url.Values)
+		}
+		for _, val := range v {
+			values.Add(k, val)
+		}
 	}
 
-	return nil
-}
+	if values != nil {
+		req.Params = values
+	}
 
-func (c *HashicorpVaultClient) Destroy(path string) error {
-	req := c.client.NewRequest("POST", fmt.Sprintf("/secret/destroy/%s", path))
 	resp, err := c.client.RawRequest(req)
 	if resp != nil {
 		defer resp.Body.Close()

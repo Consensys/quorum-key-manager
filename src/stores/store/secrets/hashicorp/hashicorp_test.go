@@ -296,9 +296,10 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 	ctx := context.Background()
 	id := "my-deleted-secret"
-	expectedPath := s.mountPoint + "/" + id
+	expectedPath := s.mountPoint + "/data/" + id
 
 	s.Run("should delete secret by id successfully", func() {
+		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(&hashicorp.Secret{}, nil)
 		s.mockVault.EXPECT().Delete(expectedPath).Return(nil)
 
 		err := s.secretStore.Delete(ctx, id)
@@ -306,7 +307,15 @@ func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 		assert.NoError(s.T(), err)
 	})
 
+	s.Run("should fail with same NotFound if secret is not found by id ", func() {
+		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(nil, nil)
+
+		err := s.secretStore.Delete(ctx, id)
+		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+
 	s.Run("should fail with same error if delete secret by id fails", func() {
+		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(&hashicorp.Secret{}, nil)
 		s.mockVault.EXPECT().Delete(expectedPath).Return(expectedErr)
 
 		err := s.secretStore.Delete(ctx, id)
@@ -314,19 +323,37 @@ func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 	})
 }
 
+func (s *hashicorpSecretStoreTestSuite) TestUndelete() {
+	ctx := context.Background()
+	id := "my-restore-secret"
+	expectedPath := s.mountPoint + "/undelete/" + id
+
+	s.Run("should restore secret by id successfully", func() {
+		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(nil)
+		err := s.secretStore.Undelete(ctx, id)
+		assert.NoError(s.T(), err)
+	})
+
+	s.Run("should fail with same error if restore secret by id fails", func() {
+		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(expectedErr)
+		err := s.secretStore.Undelete(ctx, id)
+		assert.True(s.T(), errors.IsHashicorpVaultError(err))
+	})
+}
+
 func (s *hashicorpSecretStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 	id := "my-destroyed-secret"
-	expectedPath := s.mountPoint + "/" + id
+	expectedPath := s.mountPoint + "/destroy/" + id
 
 	s.Run("should destroy secret by id successfully", func() {
-		s.mockVault.EXPECT().Destroy(expectedPath).Return(nil)
+		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(nil)
 		err := s.secretStore.Destroy(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if destroy secret by id fails", func() {
-		s.mockVault.EXPECT().Destroy(expectedPath).Return(expectedErr)
+		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(expectedErr)
 		err := s.secretStore.Destroy(ctx, id)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
