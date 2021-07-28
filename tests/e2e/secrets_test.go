@@ -25,6 +25,7 @@ type secretsTestSuite struct {
 	ctx              context.Context
 	keyManagerClient *client.HTTPClient
 	cfg              *tests.Config
+	skipUnsupported  bool
 }
 
 func (s *secretsTestSuite) SetupSuite() {
@@ -45,7 +46,7 @@ func (s *secretsTestSuite) TearDownSuite() {
 
 func TestKeyManagerSecrets(t *testing.T) {
 	s := new(secretsTestSuite)
-
+	s.skipUnsupported = true
 	s.ctx = context.Background()
 	sig := common.NewSignalListener(func(signal os.Signal) {
 		s.err = fmt.Errorf("interrupt signal was caught")
@@ -144,6 +145,118 @@ func (s *secretsTestSuite) TestGet() {
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), 422, httpError.StatusCode)
 		assert.Equal(s.T(), "IR500: version must be a number", httpError.Message)
+	})
+}
+
+func (s *secretsTestSuite) TestDelete() {
+	secretID := fmt.Sprintf("my-delete-secret-%d", common.RandInt(1000))
+	request := &types.SetSecretRequest{
+		Value: "my-secret-value",
+	}
+
+	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
+	require.NoError(s.T(), err)
+
+	s.Run("should delete a secret specific version successfully", func() {
+		err := s.keyManagerClient.DeleteSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID)
+		require.NoError(s.T(), err)
+	})
+
+	s.Run("should parse errors successfully", func() {
+		err := s.keyManagerClient.DeleteSecret(s.ctx, s.cfg.HashicorpSecretStore, "invalidID")
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
+	})
+}
+
+func (s *secretsTestSuite) TestGetDeleted() {
+	// @TODO Remove early exit once every support secret store support this feature
+	if s.skipUnsupported {
+		return 
+	}
+	
+	secretID := fmt.Sprintf("my-deleted-secret-%d", common.RandInt(1000))
+	request := &types.SetSecretRequest{
+		Value: "my-secret-value",
+	}
+
+	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
+	require.NoError(s.T(), err)
+
+	err = s.keyManagerClient.DeleteSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID)
+	require.NoError(s.T(), err)
+
+	s.Run("should get deleted secret successfully", func() {
+		secretRetrieved, err := s.keyManagerClient.GetDeletedSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID)
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), secretID, secretRetrieved.ID)
+	})
+
+	s.Run("should parse errors successfully", func() {
+		_, err := s.keyManagerClient.GetDeletedSecret(s.ctx, s.cfg.HashicorpSecretStore, "invalidID")
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
+	})
+}
+
+func (s *secretsTestSuite) TestRestoreDeleted() {
+	// @TODO Remove early exit once every support secret store support this feature
+	if s.skipUnsupported {
+		return 
+	}
+	secretID := fmt.Sprintf("my-restore-secret-%d", common.RandInt(1000))
+	request := &types.SetSecretRequest{
+		Value: "my-secret-value",
+	}
+
+	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
+	require.NoError(s.T(), err)
+
+	err = s.keyManagerClient.DeleteSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID)
+	require.NoError(s.T(), err)
+
+	s.Run("should restore deleted secret successfully", func() {
+		err := s.keyManagerClient.RestoreSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID)
+		require.NoError(s.T(), err)
+	})
+
+	s.Run("should parse errors successfully", func() {
+		err := s.keyManagerClient.RestoreSecret(s.ctx, s.cfg.HashicorpSecretStore, "invalidID")
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
+	})
+}
+
+func (s *secretsTestSuite) TestDestroyDeleted() {
+	// @TODO Remove early exit once every support secret store support this feature
+	if s.skipUnsupported {
+		return 
+	}
+	secretID := fmt.Sprintf("my-destroy-secret-%d", common.RandInt(1000))
+	request := &types.SetSecretRequest{
+		Value: "my-secret-value",
+	}
+
+	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.cfg.HashicorpSecretStore, secretID, request)
+	require.NoError(s.T(), err)
+
+	err = s.keyManagerClient.DeleteSecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID)
+	require.NoError(s.T(), err)
+
+	s.Run("should restore deleted secret successfully", func() {
+		err := s.keyManagerClient.DestroySecret(s.ctx, s.cfg.HashicorpSecretStore, secret.ID)
+		require.NoError(s.T(), err)
+	})
+
+	s.Run("should parse errors successfully", func() {
+		err := s.keyManagerClient.DestroySecret(s.ctx, s.cfg.HashicorpSecretStore, "invalidID")
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
 	})
 }
 

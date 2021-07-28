@@ -30,6 +30,7 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/deleted").HandlerFunc(h.listDeleted)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
+	r.Methods(http.MethodGet).Path("/{id}/deleted").HandlerFunc(h.getDeletedOne)
 	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
 	r.Methods(http.MethodDelete).Path("/{id}/destroy").HandlerFunc(h.destroy)
 	r.Methods(http.MethodPut).Path("/{id}/restore").HandlerFunc(h.restore)
@@ -103,6 +104,39 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	secret, err := secretStore.Get(ctx, id, version)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	_ = json.NewEncoder(rw).Encode(formatters.FormatSecretResponse(secret))
+}
+
+// @Summary Gets a deleted secret by id
+// @Description Retrieves deleted secret information by ID
+// @Tags Secrets
+// @Accept json
+// @Produce json
+// @Param storeName path string true "Store Identifier"
+// @Param id path string true "Secret Identifier"
+// @Success 200 {object} types.SecretResponse "Secret object"
+// @Failure 404 {object} ErrorResponse "Store/Secret not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/secrets/{id}/deleted [get]
+func (h *SecretsHandler) getDeletedOne(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	id := mux.Vars(request)["id"]
+
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	secret, err := secretStore.GetDeleted(ctx, id)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
