@@ -1,0 +1,4 @@
+# apikey-sample-1 sha256 b64 -> YXBpa2V5LXNhbXBsZS0x
+6f0688586a63c6d85ae2984567ff6937af5eaf0d1c6ebbe16be96619c5deeb38;my-first-user;test,acceptance,e2e
+# apikey-sample-2 sha256 b64 -> YXBpa2V5LXNhbXBsZS0y
+ce06c731c721ba171d8193ac8a8c47aa1ed9a750ef623c8df28c3783225a9dd8;my-second-user;test,acceptance,e2e,admin
