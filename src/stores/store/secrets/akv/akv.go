@@ -52,7 +52,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
-	items, err := s.client.GetSecrets(ctx, 0)
+	items, err := s.client.ListSecrets(ctx, 0)
 	if err != nil {
 		errMessage := "failed to list AKV secrets"
 		s.logger.WithError(err).Error(errMessage)
@@ -92,7 +92,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, er
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	items, err := s.client.GetDeletedSecrets(ctx, 0)
+	items, err := s.client.ListDeletedSecrets(ctx, 0)
 	if err != nil {
 		errMessage := "failed to list deleted AKV secrets"
 		s.logger.WithError(err).Error(errMessage)

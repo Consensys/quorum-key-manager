@@ -17,11 +17,11 @@ type Client interface {
 type SecretClient interface {
 	SetSecret(ctx context.Context, secretName string, value string, tags map[string]string) (keyvault.SecretBundle, error)
 	GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error)
-	GetSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error)
+	ListSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error)
 	UpdateSecret(ctx context.Context, secretName string, secretVersion string, expireAt time.Time) (keyvault.SecretBundle, error)
 	DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error)
 	GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error)
-	GetDeletedSecrets(ctx context.Context, maxResults int32) ([]keyvault.DeletedSecretItem, error)
+	ListDeletedSecrets(ctx context.Context, maxResults int32) ([]keyvault.DeletedSecretItem, error)
 	PurgeDeletedSecret(ctx context.Context, secretName string) (bool, error)
 	RecoverSecret(ctx context.Context, secretName string) (keyvault.SecretBundle, error)
 }

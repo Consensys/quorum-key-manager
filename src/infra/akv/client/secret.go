@@ -29,7 +29,7 @@ func (c *AKVClient) GetSecret(ctx context.Context, secretName, secretVersion str
 	return result, nil
 }
 
-func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error) {
+func (c *AKVClient) ListSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error) {
 	maxResultPtr := &maxResults
 	if maxResults == 0 {
 		maxResultPtr = nil
@@ -102,7 +102,7 @@ func (c *AKVClient) GetDeletedSecret(ctx context.Context, secretName string) (ke
 	return result, nil
 }
 
-func (c *AKVClient) GetDeletedSecrets(ctx context.Context, maxResults int32) ([]keyvault.DeletedSecretItem, error) {
+func (c *AKVClient) ListDeletedSecrets(ctx context.Context, maxResults int32) ([]keyvault.DeletedSecretItem, error) {
 	maxResultPtr := &maxResults
 	if maxResults == 0 {
 		maxResultPtr = nil
