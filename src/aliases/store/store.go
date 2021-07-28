@@ -1,57 +1,50 @@
 package aliasstore
 
-import (
-	"context"
-	goerrors "errors"
+import "context"
 
-	aliases "github.com/consensys/quorum-key-manager/src/aliases"
-	"github.com/consensys/quorum-key-manager/src/infra/postgres"
+//go:generate mockgen -source=store.go -destination=mock/store.go -package=mock
+
+// Store handles the alias storing.
+type Store interface {
+	// CreateAlias creates an alias in the registry.
+	CreateAlias(ctx context.Context, registry RegistryName, alias Alias) error
+	// GetAlias gets an alias from the registry.
+	GetAlias(ctx context.Context, registry RegistryName, aliasKey AliasKey) (*Alias, error)
+	// UpdateAlias updates an alias in the registry.
+	UpdateAlias(ctx context.Context, registry RegistryName, alias Alias) error
+	// GetAlias deletes an alias from the registry.
+	DeleteAlias(ctx context.Context, registry RegistryName, aliasKey AliasKey) error
+
+	// ListAlias lists all aliases from a registry.
+	ListAliases(ctx context.Context, registry RegistryName) ([]Alias, error)
+
+	// DeleteRegistry deletes a registry, with all the aliases it contained.
+	DeleteRegistry(ctx context.Context, registry RegistryName) error
+}
+
+// Alias allows the user to associates a RegistryName + a Key to 1 or more public keys stored
+// in Value. The Value has 2 formats:
+// - a JSON string if AliasKind is an AliasKindString.
+// - a JSON array of strings if AliasKind is an AliasKindArray.
+type Alias struct {
+	tableName struct{} `pg:"aliases"` // nolint:unused,structcheck // reason
+
+	Key          AliasKey     `pg:",pk"`
+	RegistryName RegistryName `pg:",pk"`
+	Kind         AliasKind
+	Value        AliasValue
+}
+
+type AliasKey string
+
+type AliasValue string
+
+type AliasKind string
+
+const (
+	AliasKindUnknown = ""
+	AliasKindString  = "string"
+	AliasKindArray   = "array"
 )
 
-var _ aliases.Backend = &Store{}
-
-// Store stores the alias data in a postgres DB.
-type Store struct {
-	pgClient postgres.Client
-}
-
-func New(pgClient postgres.Client) *Store {
-	return &Store{
-		pgClient: pgClient,
-	}
-}
-
-func (s *Store) CreateAlias(ctx context.Context, registryName aliases.RegistryName, alias aliases.Alias) error {
-	alias.RegistryName = registryName
-	err := s.pgClient.Insert(ctx, &alias)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Store) GetAlias(ctx context.Context, registryName aliases.RegistryName, aliasKey aliases.AliasKey) (*aliases.Alias, error) {
-	a := aliases.Alias{Key: aliasKey, RegistryName: registryName}
-	err := s.pgClient.SelectPK(ctx, &a)
-	return &a, err
-}
-
-func (s *Store) UpdateAlias(ctx context.Context, registryName aliases.RegistryName, alias aliases.Alias) error {
-	alias.RegistryName = registryName
-	return s.pgClient.UpdatePK(ctx, &alias)
-}
-
-func (s *Store) DeleteAlias(ctx context.Context, registryName aliases.RegistryName, aliasKey aliases.AliasKey) error {
-	a := aliases.Alias{Key: aliasKey, RegistryName: registryName}
-	return s.pgClient.DeletePK(ctx, &a)
-}
-
-func (s *Store) ListAliases(ctx context.Context, registry aliases.RegistryName) ([]aliases.Alias, error) {
-	als := []aliases.Alias{}
-	err := s.pgClient.SelectMany(ctx, &aliases.Alias{}, &als, "alias.registry_name = ?", registry)
-	return als, err
-}
-
-func (s *Store) DeleteRegistry(ctx context.Context, registryName aliases.RegistryName) error {
-	return goerrors.New("not implemented")
-}
+type RegistryName string

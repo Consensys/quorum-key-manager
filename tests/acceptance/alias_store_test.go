@@ -33,8 +33,6 @@ func TestAliasStore(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	s.store = aliasstore.New(s.env.postgresClient)
-
 	suite.Run(t, s)
 }
 

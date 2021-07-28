@@ -3,31 +3,16 @@ package aliasservice
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/pkg/app"
-	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
-	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
-// RegisterService creates and register the alias service.
-func RegisterService(a *app.App, pgClient postgres.Client) error {
-	store := aliasstore.New(pgClient)
-	m := NewManager(store)
-	err := a.RegisterService(m)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type BaseManager struct {
-	aliases.Backend
+	aliasstore.Store
 }
 
-func NewManager(backend aliases.Backend) *BaseManager {
+func NewManager(store aliasstore.Store) *BaseManager {
 	return &BaseManager{
-		Backend: backend,
+		Store: store,
 	}
 }
 
