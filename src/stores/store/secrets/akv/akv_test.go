@@ -3,11 +3,14 @@ package akv
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
@@ -43,12 +46,24 @@ func (s *akvSecretStoreTestSuite) SetupTest() {
 func (s *akvSecretStoreTestSuite) TestSet() {
 	ctx := context.Background()
 	id := "my-secret1"
+	version := "2"
+	secretBundleID := id + "/" + version
 	value := "my-value1"
 	attributes := testutils.FakeAttributes()
 
-	res := testutils.FakeSecret()
-	res.ID = id
-	res.Value = value
+	expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
+	expectedUpdatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
+
+	res := keyvault.SecretBundle{
+		Value: &value,
+		ID:    &secretBundleID,
+		Attributes: &keyvault.SecretAttributes{
+			Created: &(&struct{ x date.UnixTime }{date.NewUnixTimeFromNanoseconds(expectedCreatedAt.UnixNano())}).x,
+			Updated: &(&struct{ x date.UnixTime }{date.NewUnixTimeFromNanoseconds(expectedUpdatedAt.UnixNano())}).x,
+			Enabled: &(&struct{ x bool }{true}).x,
+		},
+		Tags: common.Tomapstrptr(attributes.Tags),
+	}
 
 	s.Run("should set a new secret successfully", func() {
 		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(res, nil)
@@ -56,12 +71,17 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), id, secret.ID)
 		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), expectedCreatedAt, secret.Metadata.CreatedAt)
+		assert.Equal(s.T(), attributes.Tags, secret.Tags)
+		assert.Equal(s.T(), version, secret.Metadata.Version)
+		assert.False(s.T(), secret.Metadata.Disabled)
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
 	s.Run("should fail with same error if write fails", func() {
-		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(nil, expectedErr)
+		s.mockVault.EXPECT().SetSecret(gomock.Any(), id, value, attributes.Tags).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Set(ctx, id, value, attributes)
 
@@ -72,13 +92,25 @@ func (s *akvSecretStoreTestSuite) TestSet() {
 
 func (s *akvSecretStoreTestSuite) TestGet() {
 	ctx := context.Background()
-	id := "my-secret1"
-	value := "my-value1"
+	id := "my-secret2"
 	version := "2"
+	secretBundleID := id + "/" + version
+	value := "my-value2"
+	attributes := testutils.FakeAttributes()
 
-	res := testutils.FakeSecret()
-	res.ID = id
-	res.Value = value
+	expectedCreatedAt, _ := time.Parse(time.RFC3339, "2018-03-22T02:24:06.945319214Z")
+	expectedUpdatedAt, _ := time.Parse(time.RFC3339, "2018-03-23T02:24:06.945319214Z")
+
+	res := keyvault.SecretBundle{
+		Value: &value,
+		ID:    &secretBundleID,
+		Attributes: &keyvault.SecretAttributes{
+			Created: &(&struct{ x date.UnixTime }{date.NewUnixTimeFromNanoseconds(expectedCreatedAt.UnixNano())}).x,
+			Updated: &(&struct{ x date.UnixTime }{date.NewUnixTimeFromNanoseconds(expectedUpdatedAt.UnixNano())}).x,
+			Enabled: &(&struct{ x bool }{true}).x,
+		},
+		Tags: common.Tomapstrptr(attributes.Tags),
+	}
 
 	s.Run("should get a secret successfully with empty version", func() {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(res, nil)
@@ -86,12 +118,18 @@ func (s *akvSecretStoreTestSuite) TestGet() {
 		secret, err := s.secretStore.Get(ctx, id, version)
 
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), id, secret.ID)
 		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), expectedCreatedAt, secret.Metadata.CreatedAt)
+		assert.Equal(s.T(), expectedUpdatedAt, secret.Metadata.UpdatedAt)
+		assert.Equal(s.T(), attributes.Tags, secret.Tags)
+		assert.Equal(s.T(), version, secret.Metadata.Version)
+		assert.False(s.T(), secret.Metadata.Disabled)
+		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 	})
 
 	s.Run("should fail with error if bad request in response", func() {
-		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(nil, expectedErr)
+		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(keyvault.SecretBundle{}, expectedErr)
 
 		secret, err := s.secretStore.Get(ctx, id, version)
 

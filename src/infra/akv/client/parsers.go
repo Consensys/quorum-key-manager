@@ -1,4 +1,4 @@
-package utils
+package client
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ const (
 	PurgeDeletedKeyMethod = "PurgeDeletedKey"
 )
 
-func ErrorResponse(err error) error {
+func parseErrorResponse(err error) error {
 	aerr, ok := err.(autorest.DetailedError)
 	if !ok {
 		return errors.AKVError("%v", err)

@@ -7,7 +7,6 @@ package mocks
 import (
 	context "context"
 	keyvault "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
@@ -37,10 +36,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockClient) SetSecret(ctx context.Context, secretName, value string, tags map[string]string) (*entities.Secret, error) {
+func (m *MockClient) SetSecret(ctx context.Context, secretName, value string, tags map[string]string) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSecret", ctx, secretName, value, tags)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -52,10 +51,10 @@ func (mr *MockClientMockRecorder) SetSecret(ctx, secretName, value, tags interfa
 }
 
 // GetSecret mocks base method
-func (m *MockClient) GetSecret(ctx context.Context, secretName, secretVersion string) (*entities.Secret, error) {
+func (m *MockClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecret", ctx, secretName, secretVersion)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -67,10 +66,10 @@ func (mr *MockClientMockRecorder) GetSecret(ctx, secretName, secretVersion inter
 }
 
 // GetSecrets mocks base method
-func (m *MockClient) GetSecrets(ctx context.Context, maxResults int32) ([]*entities.Secret, error) {
+func (m *MockClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecrets", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Secret)
+	ret0, _ := ret[0].([]keyvault.SecretItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -82,10 +81,10 @@ func (mr *MockClientMockRecorder) GetSecrets(ctx, maxResults interface{}) *gomoc
 }
 
 // UpdateSecret mocks base method
-func (m *MockClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (*entities.Secret, error) {
+func (m *MockClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSecret", ctx, secretName, secretVersion, expireAt)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -97,10 +96,10 @@ func (mr *MockClientMockRecorder) UpdateSecret(ctx, secretName, secretVersion, e
 }
 
 // DeleteSecret mocks base method
-func (m *MockClient) DeleteSecret(ctx context.Context, secretName string) (*entities.Secret, error) {
+func (m *MockClient) DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteSecret", ctx, secretName)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -111,26 +110,11 @@ func (mr *MockClientMockRecorder) DeleteSecret(ctx, secretName interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockClient)(nil).DeleteSecret), ctx, secretName)
 }
 
-// RecoverSecret mocks base method
-func (m *MockClient) RecoverSecret(ctx context.Context, secretName string) (*entities.Secret, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecoverSecret", ctx, secretName)
-	ret0, _ := ret[0].(*entities.Secret)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RecoverSecret indicates an expected call of RecoverSecret
-func (mr *MockClientMockRecorder) RecoverSecret(ctx, secretName interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecoverSecret", reflect.TypeOf((*MockClient)(nil).RecoverSecret), ctx, secretName)
-}
-
 // GetDeletedSecret mocks base method
-func (m *MockClient) GetDeletedSecret(ctx context.Context, secretName string) (*entities.Secret, error) {
+func (m *MockClient) GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, secretName)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -142,10 +126,10 @@ func (mr *MockClientMockRecorder) GetDeletedSecret(ctx, secretName interface{}) 
 }
 
 // GetDeletedSecrets mocks base method
-func (m *MockClient) GetDeletedSecrets(ctx context.Context, maxResults int32) ([]*entities.Secret, error) {
+func (m *MockClient) GetDeletedSecrets(ctx context.Context, maxResults int32) ([]keyvault.DeletedSecretItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedSecrets", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Secret)
+	ret0, _ := ret[0].([]keyvault.DeletedSecretItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -171,11 +155,26 @@ func (mr *MockClientMockRecorder) PurgeDeletedSecret(ctx, secretName interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PurgeDeletedSecret", reflect.TypeOf((*MockClient)(nil).PurgeDeletedSecret), ctx, secretName)
 }
 
+// RecoverSecret mocks base method
+func (m *MockClient) RecoverSecret(ctx context.Context, secretName string) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecoverSecret", ctx, secretName)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecoverSecret indicates an expected call of RecoverSecret
+func (mr *MockClientMockRecorder) RecoverSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecoverSecret", reflect.TypeOf((*MockClient)(nil).RecoverSecret), ctx, secretName)
+}
+
 // CreateKey mocks base method
-func (m *MockClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName, attr *entities.Attributes, ops []entities.CryptoOperation, tags map[string]string) (*entities.Key, error) {
+func (m *MockClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, keyName, kty, crv, attr, ops, tags)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -187,10 +186,10 @@ func (mr *MockClientMockRecorder) CreateKey(ctx, keyName, kty, crv, attr, ops, t
 }
 
 // ImportKey mocks base method
-func (m *MockClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *entities.Attributes, tags map[string]string) (*entities.Key, error) {
+func (m *MockClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportKey", ctx, keyName, k, attr, tags)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -202,10 +201,10 @@ func (mr *MockClientMockRecorder) ImportKey(ctx, keyName, k, attr, tags interfac
 }
 
 // GetKey mocks base method
-func (m *MockClient) GetKey(ctx context.Context, name, version string) (*entities.Key, error) {
+func (m *MockClient) GetKey(ctx context.Context, name, version string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKey", ctx, name, version)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -217,10 +216,10 @@ func (mr *MockClientMockRecorder) GetKey(ctx, name, version interface{}) *gomock
 }
 
 // GetKeys mocks base method
-func (m *MockClient) GetKeys(ctx context.Context, maxResults int32) ([]*entities.Key, error) {
+func (m *MockClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKeys", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Key)
+	ret0, _ := ret[0].([]keyvault.KeyItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -232,10 +231,10 @@ func (mr *MockClientMockRecorder) GetKeys(ctx, maxResults interface{}) *gomock.C
 }
 
 // UpdateKey mocks base method
-func (m *MockClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes, ops []entities.CryptoOperation, tags map[string]string) (*entities.Key, error) {
+func (m *MockClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateKey", ctx, keyName, version, attr, ops, tags)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -247,10 +246,10 @@ func (mr *MockClientMockRecorder) UpdateKey(ctx, keyName, version, attr, ops, ta
 }
 
 // DeleteKey mocks base method
-func (m *MockClient) DeleteKey(ctx context.Context, keyName string) (*entities.Key, error) {
+func (m *MockClient) DeleteKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteKey", ctx, keyName)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.DeletedKeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -262,10 +261,10 @@ func (mr *MockClientMockRecorder) DeleteKey(ctx, keyName interface{}) *gomock.Ca
 }
 
 // GetDeletedKey mocks base method
-func (m *MockClient) GetDeletedKey(ctx context.Context, keyName string) (*entities.Key, error) {
+func (m *MockClient) GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedKey", ctx, keyName)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.DeletedKeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -277,10 +276,10 @@ func (mr *MockClientMockRecorder) GetDeletedKey(ctx, keyName interface{}) *gomoc
 }
 
 // GetDeletedKeys mocks base method
-func (m *MockClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]*entities.Key, error) {
+func (m *MockClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedKeys", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Key)
+	ret0, _ := ret[0].([]keyvault.DeletedKeyItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -307,10 +306,10 @@ func (mr *MockClientMockRecorder) PurgeDeletedKey(ctx, keyName interface{}) *gom
 }
 
 // RecoverDeletedKey mocks base method
-func (m *MockClient) RecoverDeletedKey(ctx context.Context, keyName string) (*entities.Key, error) {
+func (m *MockClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RecoverDeletedKey", ctx, keyName)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -390,10 +389,10 @@ func (m *MockSecretClient) EXPECT() *MockSecretClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockSecretClient) SetSecret(ctx context.Context, secretName, value string, tags map[string]string) (*entities.Secret, error) {
+func (m *MockSecretClient) SetSecret(ctx context.Context, secretName, value string, tags map[string]string) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSecret", ctx, secretName, value, tags)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -405,10 +404,10 @@ func (mr *MockSecretClientMockRecorder) SetSecret(ctx, secretName, value, tags i
 }
 
 // GetSecret mocks base method
-func (m *MockSecretClient) GetSecret(ctx context.Context, secretName, secretVersion string) (*entities.Secret, error) {
+func (m *MockSecretClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecret", ctx, secretName, secretVersion)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -420,10 +419,10 @@ func (mr *MockSecretClientMockRecorder) GetSecret(ctx, secretName, secretVersion
 }
 
 // GetSecrets mocks base method
-func (m *MockSecretClient) GetSecrets(ctx context.Context, maxResults int32) ([]*entities.Secret, error) {
+func (m *MockSecretClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecrets", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Secret)
+	ret0, _ := ret[0].([]keyvault.SecretItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -435,10 +434,10 @@ func (mr *MockSecretClientMockRecorder) GetSecrets(ctx, maxResults interface{}) 
 }
 
 // UpdateSecret mocks base method
-func (m *MockSecretClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (*entities.Secret, error) {
+func (m *MockSecretClient) UpdateSecret(ctx context.Context, secretName, secretVersion string, expireAt time.Time) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSecret", ctx, secretName, secretVersion, expireAt)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -450,10 +449,10 @@ func (mr *MockSecretClientMockRecorder) UpdateSecret(ctx, secretName, secretVers
 }
 
 // DeleteSecret mocks base method
-func (m *MockSecretClient) DeleteSecret(ctx context.Context, secretName string) (*entities.Secret, error) {
+func (m *MockSecretClient) DeleteSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteSecret", ctx, secretName)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -464,26 +463,11 @@ func (mr *MockSecretClientMockRecorder) DeleteSecret(ctx, secretName interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockSecretClient)(nil).DeleteSecret), ctx, secretName)
 }
 
-// RecoverSecret mocks base method
-func (m *MockSecretClient) RecoverSecret(ctx context.Context, secretName string) (*entities.Secret, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecoverSecret", ctx, secretName)
-	ret0, _ := ret[0].(*entities.Secret)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RecoverSecret indicates an expected call of RecoverSecret
-func (mr *MockSecretClientMockRecorder) RecoverSecret(ctx, secretName interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecoverSecret", reflect.TypeOf((*MockSecretClient)(nil).RecoverSecret), ctx, secretName)
-}
-
 // GetDeletedSecret mocks base method
-func (m *MockSecretClient) GetDeletedSecret(ctx context.Context, secretName string) (*entities.Secret, error) {
+func (m *MockSecretClient) GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, secretName)
-	ret0, _ := ret[0].(*entities.Secret)
+	ret0, _ := ret[0].(keyvault.DeletedSecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -495,10 +479,10 @@ func (mr *MockSecretClientMockRecorder) GetDeletedSecret(ctx, secretName interfa
 }
 
 // GetDeletedSecrets mocks base method
-func (m *MockSecretClient) GetDeletedSecrets(ctx context.Context, maxResults int32) ([]*entities.Secret, error) {
+func (m *MockSecretClient) GetDeletedSecrets(ctx context.Context, maxResults int32) ([]keyvault.DeletedSecretItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedSecrets", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Secret)
+	ret0, _ := ret[0].([]keyvault.DeletedSecretItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -522,6 +506,21 @@ func (m *MockSecretClient) PurgeDeletedSecret(ctx context.Context, secretName st
 func (mr *MockSecretClientMockRecorder) PurgeDeletedSecret(ctx, secretName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PurgeDeletedSecret", reflect.TypeOf((*MockSecretClient)(nil).PurgeDeletedSecret), ctx, secretName)
+}
+
+// RecoverSecret mocks base method
+func (m *MockSecretClient) RecoverSecret(ctx context.Context, secretName string) (keyvault.SecretBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecoverSecret", ctx, secretName)
+	ret0, _ := ret[0].(keyvault.SecretBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecoverSecret indicates an expected call of RecoverSecret
+func (mr *MockSecretClientMockRecorder) RecoverSecret(ctx, secretName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecoverSecret", reflect.TypeOf((*MockSecretClient)(nil).RecoverSecret), ctx, secretName)
 }
 
 // MockKeysClient is a mock of KeysClient interface
@@ -548,10 +547,10 @@ func (m *MockKeysClient) EXPECT() *MockKeysClientMockRecorder {
 }
 
 // CreateKey mocks base method
-func (m *MockKeysClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName, attr *entities.Attributes, ops []entities.CryptoOperation, tags map[string]string) (*entities.Key, error) {
+func (m *MockKeysClient) CreateKey(ctx context.Context, keyName string, kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, keyName, kty, crv, attr, ops, tags)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -563,10 +562,10 @@ func (mr *MockKeysClientMockRecorder) CreateKey(ctx, keyName, kty, crv, attr, op
 }
 
 // ImportKey mocks base method
-func (m *MockKeysClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *entities.Attributes, tags map[string]string) (*entities.Key, error) {
+func (m *MockKeysClient) ImportKey(ctx context.Context, keyName string, k *keyvault.JSONWebKey, attr *keyvault.KeyAttributes, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportKey", ctx, keyName, k, attr, tags)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -578,10 +577,10 @@ func (mr *MockKeysClientMockRecorder) ImportKey(ctx, keyName, k, attr, tags inte
 }
 
 // GetKey mocks base method
-func (m *MockKeysClient) GetKey(ctx context.Context, name, version string) (*entities.Key, error) {
+func (m *MockKeysClient) GetKey(ctx context.Context, name, version string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKey", ctx, name, version)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -593,10 +592,10 @@ func (mr *MockKeysClientMockRecorder) GetKey(ctx, name, version interface{}) *go
 }
 
 // GetKeys mocks base method
-func (m *MockKeysClient) GetKeys(ctx context.Context, maxResults int32) ([]*entities.Key, error) {
+func (m *MockKeysClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKeys", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Key)
+	ret0, _ := ret[0].([]keyvault.KeyItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -608,10 +607,10 @@ func (mr *MockKeysClientMockRecorder) GetKeys(ctx, maxResults interface{}) *gomo
 }
 
 // UpdateKey mocks base method
-func (m *MockKeysClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes, ops []entities.CryptoOperation, tags map[string]string) (*entities.Key, error) {
+func (m *MockKeysClient) UpdateKey(ctx context.Context, keyName, version string, attr *keyvault.KeyAttributes, ops []keyvault.JSONWebKeyOperation, tags map[string]string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateKey", ctx, keyName, version, attr, ops, tags)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -623,10 +622,10 @@ func (mr *MockKeysClientMockRecorder) UpdateKey(ctx, keyName, version, attr, ops
 }
 
 // DeleteKey mocks base method
-func (m *MockKeysClient) DeleteKey(ctx context.Context, keyName string) (*entities.Key, error) {
+func (m *MockKeysClient) DeleteKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteKey", ctx, keyName)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.DeletedKeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -638,10 +637,10 @@ func (mr *MockKeysClientMockRecorder) DeleteKey(ctx, keyName interface{}) *gomoc
 }
 
 // GetDeletedKey mocks base method
-func (m *MockKeysClient) GetDeletedKey(ctx context.Context, keyName string) (*entities.Key, error) {
+func (m *MockKeysClient) GetDeletedKey(ctx context.Context, keyName string) (keyvault.DeletedKeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedKey", ctx, keyName)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.DeletedKeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -653,10 +652,10 @@ func (mr *MockKeysClientMockRecorder) GetDeletedKey(ctx, keyName interface{}) *g
 }
 
 // GetDeletedKeys mocks base method
-func (m *MockKeysClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]*entities.Key, error) {
+func (m *MockKeysClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]keyvault.DeletedKeyItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedKeys", ctx, maxResults)
-	ret0, _ := ret[0].([]*entities.Key)
+	ret0, _ := ret[0].([]keyvault.DeletedKeyItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -683,10 +682,10 @@ func (mr *MockKeysClientMockRecorder) PurgeDeletedKey(ctx, keyName interface{}) 
 }
 
 // RecoverDeletedKey mocks base method
-func (m *MockKeysClient) RecoverDeletedKey(ctx context.Context, keyName string) (*entities.Key, error) {
+func (m *MockKeysClient) RecoverDeletedKey(ctx context.Context, keyName string) (keyvault.KeyBundle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RecoverDeletedKey", ctx, keyName)
-	ret0, _ := ret[0].(*entities.Key)
+	ret0, _ := ret[0].(keyvault.KeyBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -20,8 +20,8 @@ type SecretsManagerClient interface {
 	DescribeSecret(ctx context.Context, id string) (tags map[string]string, metadata *entities.Metadata, err error)
 	ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error)
 	UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error)
-	RestoreSecret(ctx context.Context, id string) error
-	DeleteSecret(ctx context.Context, id string, force bool) error
+	RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error)
+	DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error)
 }
 
 type KmsClient interface {
@@ -34,6 +34,6 @@ type KmsClient interface {
 	DeleteKey(ctx context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error)
 	RestoreKey(ctx context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error)
 	GetAlias(ctx context.Context, keyID string) (string, error)
-	TagResource(ctx context.Context, keyID string, tags []*kms.Tag) error
-	UntagResource(ctx context.Context, keyID string, tagKeys []*string) error
+	TagResource(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error)
+	UntagResource(ctx context.Context, keyID string, tagKeys []*string) (*kms.UntagResourceOutput, error)
 }

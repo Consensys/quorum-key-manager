@@ -156,28 +156,26 @@ func (c *AwsKmsClient) RestoreKey(_ context.Context, keyID string) (*kms.CancelK
 	return out, nil
 }
 
-func (c *AwsKmsClient) TagResource(_ context.Context, keyID string, tags []*kms.Tag) error {
-	_, err := c.client.TagResource(&kms.TagResourceInput{
+func (c *AwsKmsClient) TagResource(_ context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error) {
+	outTagResource, err := c.client.TagResource(&kms.TagResourceInput{
 		KeyId: &keyID,
 		Tags:  tags,
 	})
-
 	if err != nil {
-		return parseKmsErrorResponse(err)
+		return nil, parseKmsErrorResponse(err)
 	}
 
-	return nil
+	return outTagResource, nil
 }
 
-func (c *AwsKmsClient) UntagResource(_ context.Context, keyID string, tagKeys []*string) error {
-	_, err := c.client.UntagResource(&kms.UntagResourceInput{
+func (c *AwsKmsClient) UntagResource(_ context.Context, keyID string, tagKeys []*string) (*kms.UntagResourceOutput, error) {
+	outUntagResource, err := c.client.UntagResource(&kms.UntagResourceInput{
 		KeyId:   &keyID,
 		TagKeys: tagKeys,
 	})
-
 	if err != nil {
-		return parseKmsErrorResponse(err)
+		return nil, parseKmsErrorResponse(err)
 	}
 
-	return nil
+	return outUntagResource, nil
 }

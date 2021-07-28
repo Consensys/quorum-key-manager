@@ -165,37 +165,37 @@ func (c *AwsSecretsClient) UpdateSecret(_ context.Context, id, value, keyID, des
 	return output, nil
 }
 
-func (c *AwsSecretsClient) RestoreSecret(_ context.Context, id string) error {
-	_, err := c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
+func (c *AwsSecretsClient) RestoreSecret(_ context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
+	output, err := c.client.RestoreSecret(&secretsmanager.RestoreSecretInput{
 		SecretId: &id,
 	})
 	if err != nil {
-		return parseSecretsManagerErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
-	return nil
+	return output, nil
 }
-func (c *AwsSecretsClient) DeleteSecret(_ context.Context, id string, force bool) error {
+func (c *AwsSecretsClient) DeleteSecret(_ context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
+
 	if force {
 		// check appropriate state with description
 		desc, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
 			SecretId: &id,
 		})
 		if err != nil {
-			return parseSecretsManagerErrorResponse(err)
+			return nil, parseSecretsManagerErrorResponse(err)
 		}
 		if desc.DeletedDate != nil {
-			return errors.InvalidParameterError("failed to destroy, must be deleted first")
+			return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
 		}
 	}
-
-	_, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
+	output, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
 		SecretId:                   &id,
 		ForceDeleteWithoutRecovery: &force,
 	})
 	if err != nil {
-		return parseSecretsManagerErrorResponse(err)
+		return nil, parseSecretsManagerErrorResponse(err)
 	}
 
-	return nil
+	return output, nil
 }

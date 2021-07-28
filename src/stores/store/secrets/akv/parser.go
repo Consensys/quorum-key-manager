@@ -1,4 +1,4 @@
-package utils
+package akv
 
 import (
 	"strings"
@@ -9,19 +9,11 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
-func ParseSecretItem(secretItem *keyvault.SecretItem) *entities.Secret {
-	return buildNewSecret(secretItem.ID, nil, secretItem.Tags, secretItem.Attributes)
-}
-
-func ParseDeletedSecretItem(secretItem *keyvault.DeletedSecretItem) *entities.Secret {
-	return buildNewSecret(secretItem.ID, nil, secretItem.Tags, secretItem.Attributes)
-}
-
-func ParseDeleteSecretBundle(secretBundle *keyvault.DeletedSecretBundle) *entities.Secret {
+func parseDeletedSecretBundle(secretBundle *keyvault.DeletedSecretBundle) *entities.Secret {
 	return buildNewSecret(secretBundle.ID, secretBundle.Value, secretBundle.Tags, secretBundle.Attributes)
 }
 
-func ParseSecretBundle(secretBundle *keyvault.SecretBundle) *entities.Secret {
+func parseSecretBundle(secretBundle *keyvault.SecretBundle) *entities.Secret {
 	return buildNewSecret(secretBundle.ID, secretBundle.Value, secretBundle.Tags, secretBundle.Attributes)
 }
 

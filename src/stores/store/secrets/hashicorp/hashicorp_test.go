@@ -137,7 +137,7 @@ func (s *hashicorpSecretStoreTestSuite) TestSet() {
 
 func (s *hashicorpSecretStoreTestSuite) TestGet() {
 	ctx := context.Background()
-	id := "my-secret"
+	id := "my-get-secret"
 	value := "my-value"
 	attributes := testutils.FakeAttributes()
 	expectedPathData := s.mountPoint + "/data/" + id
@@ -295,7 +295,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 
 func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 	ctx := context.Background()
-	id := "my-secret"
+	id := "my-deleted-secret"
 	expectedPath := s.mountPoint + "/" + id
 
 	s.Run("should delete secret by id successfully", func() {
@@ -316,7 +316,7 @@ func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 
 func (s *hashicorpSecretStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
-	id := "my-secret"
+	id := "my-destroyed-secret"
 	expectedPath := s.mountPoint + "/" + id
 
 	s.Run("should destroy secret by id successfully", func() {

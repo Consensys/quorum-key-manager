@@ -143,11 +143,12 @@ func (mr *MockSecretsManagerClientMockRecorder) UpdateSecret(ctx, id, value, key
 }
 
 // RestoreSecret mocks base method
-func (m *MockSecretsManagerClient) RestoreSecret(ctx context.Context, id string) error {
+func (m *MockSecretsManagerClient) RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RestoreSecret", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*secretsmanager.RestoreSecretOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // RestoreSecret indicates an expected call of RestoreSecret
@@ -157,11 +158,12 @@ func (mr *MockSecretsManagerClientMockRecorder) RestoreSecret(ctx, id interface{
 }
 
 // DeleteSecret mocks base method
-func (m *MockSecretsManagerClient) DeleteSecret(ctx context.Context, id string, force bool) error {
+func (m *MockSecretsManagerClient) DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteSecret", ctx, id, force)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*secretsmanager.DeleteSecretOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DeleteSecret indicates an expected call of DeleteSecret
@@ -329,11 +331,12 @@ func (mr *MockKmsClientMockRecorder) GetAlias(ctx, keyID interface{}) *gomock.Ca
 }
 
 // TagResource mocks base method
-func (m *MockKmsClient) TagResource(ctx context.Context, keyID string, tags []*kms.Tag) error {
+func (m *MockKmsClient) TagResource(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TagResource", ctx, keyID, tags)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*kms.TagResourceOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // TagResource indicates an expected call of TagResource
@@ -343,11 +346,12 @@ func (mr *MockKmsClientMockRecorder) TagResource(ctx, keyID, tags interface{}) *
 }
 
 // UntagResource mocks base method
-func (m *MockKmsClient) UntagResource(ctx context.Context, keyID string, tagKeys []*string) error {
+func (m *MockKmsClient) UntagResource(ctx context.Context, keyID string, tagKeys []*string) (*kms.UntagResourceOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UntagResource", ctx, keyID, tagKeys)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*kms.UntagResourceOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UntagResource indicates an expected call of UntagResource

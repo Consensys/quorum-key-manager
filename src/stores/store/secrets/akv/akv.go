@@ -2,6 +2,7 @@ package akv
 
 import (
 	"context"
+	"path"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
@@ -36,7 +37,7 @@ func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attrib
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return res, nil
+	return parseSecretBundle(&res), nil
 }
 
 func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
@@ -47,7 +48,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return res, nil
+	return parseSecretBundle(&res), nil
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
@@ -60,7 +61,9 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 
 	var list = []string{}
 	for _, secret := range items {
-		list = append(list, secret.ID)
+		// path.Base to only retrieve the secretName instead of https://<vaultName>.vault.azure.net/secrets/<secretName>
+		// See listSecrets function in https://github.com/Azure-Samples/azure-sdk-for-go-samples/blob/master/keyvault/examples/go-keyvault-msi-example.go
+		list = append(list, path.Base(*secret.ID))
 	}
 
 	return list, nil
@@ -85,7 +88,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, er
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return res, nil
+	return parseDeletedSecretBundle(&res), nil
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
@@ -98,7 +101,9 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 
 	var list = []string{}
 	for _, secret := range items {
-		list = append(list, secret.ID)
+		// path.Base to only retrieve the secretName instead of https://<vaultName>.vault.azure.net/secrets/<secretName>
+		// See listSecrets function in https://github.com/Azure-Samples/azure-sdk-for-go-samples/blob/master/keyvault/examples/go-keyvault-msi-example.go
+		list = append(list, path.Base(*secret.ID))
 	}
 
 	return list, nil
