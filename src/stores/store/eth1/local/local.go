@@ -139,7 +139,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 
 func (s *Store) Delete(ctx context.Context, addr string) error {
 	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		err := s.db.Keys().Delete(ctx, addr)
+		err := s.db.ETH1Accounts().Delete(ctx, addr)
 		if err != nil {
 			return err
 		}

@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"math/big"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
+	testutils3 "github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
@@ -17,8 +19,8 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/mock"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -59,15 +61,14 @@ func (s *eth1StoreTestSuite) SetupTest() {
 	s.mockEth1Accounts = mock2.NewMockETH1Accounts(ctrl)
 
 	s.mockDB.EXPECT().ETH1Accounts().Return(s.mockEth1Accounts).AnyTimes()
-	s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	s.eth1Store = New(s.mockKeyStore, s.mockDB, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *eth1StoreTestSuite) TestCreate() {
 	ctx := context.Background()
-	attributes := testutils.FakeAttributes()
-	key := testutils.FakeKey()
+	attributes := testutils3.FakeAttributes()
+	key := testutils3.FakeKey()
 
 	s.Run("should create a new Ethereum Account successfully", func() {
 		expectedAccount := &models.ETH1Account{
@@ -107,8 +108,8 @@ func (s *eth1StoreTestSuite) TestCreate() {
 
 func (s *eth1StoreTestSuite) TestImport() {
 	ctx := context.Background()
-	attributes := testutils.FakeAttributes()
-	key := testutils.FakeKey()
+	attributes := testutils3.FakeAttributes()
+	key := testutils3.FakeKey()
 	privKeyB, _ := hex.DecodeString(privKey)
 
 	s.Run("should import a new Ethereum Account successfully", func() {
@@ -156,7 +157,7 @@ func (s *eth1StoreTestSuite) TestGet() {
 
 		account, err := s.eth1Store.Get(ctx, address)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), fakeETH1Account, account)
+		assert.Equal(s.T(), fakeETH1Account.ToEntity(), account)
 	})
 
 	s.Run("should fail with same error if Get account fails", func() {
@@ -173,12 +174,12 @@ func (s *eth1StoreTestSuite) TestGetAll() {
 	ctx := context.Background()
 
 	s.Run("should get all Ethereum Accounts successfully", func() {
-		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
+		expectedAccounts := []*models.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1Accounts.EXPECT().GetAll(ctx).Return(expectedAccounts, nil)
 
 		accounts, err := s.eth1Store.GetAll(ctx)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), expectedAccounts, accounts)
+		assert.Equal(s.T(), []*entities.ETH1Account{expectedAccounts[0].ToEntity(), expectedAccounts[1].ToEntity()}, accounts)
 	})
 
 	s.Run("should fail with same error if GetAll accounts fails", func() {
@@ -195,12 +196,12 @@ func (s *eth1StoreTestSuite) TestList() {
 	ctx := context.Background()
 
 	s.Run("should list all Ethereum Accounts successfully", func() {
-		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
+		expectedAccounts := []*models.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1Accounts.EXPECT().GetAll(ctx).Return(expectedAccounts, nil)
 
 		addresses, err := s.eth1Store.List(ctx)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), []string{expectedAccounts[0].Address.Hex(), expectedAccounts[1].Address.Hex()}, addresses)
+		assert.Equal(s.T(), []string{expectedAccounts[0].Address, expectedAccounts[1].Address}, addresses)
 	})
 
 	s.Run("should fail with same error if GetAll account fails", func() {
@@ -215,27 +216,19 @@ func (s *eth1StoreTestSuite) TestList() {
 
 func (s *eth1StoreTestSuite) TestUpdate() {
 	ctx := context.Background()
-	attributes := testutils.FakeAttributes()
-	key := testutils.FakeKey()
+	attributes := testutils3.FakeAttributes()
 	fakeAccount := testutils.FakeETH1Account()
 
 	s.Run("should update an Ethereum Account successfully", func() {
-		expectedUpdatedAccount := &entities.ETH1Account{
-			KeyID:               key.ID,
-			Address:             common.HexToAddress(address),
-			Metadata:            key.Metadata,
-			PublicKey:           hexutil.MustDecode(pubKey),
-			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
-			Tags:                key.Tags,
-		}
+		expectedAccount := *fakeAccount
+		expectedAccount.Tags = attributes.Tags
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Update(ctx, fakeAccount.KeyID, attributes).Return(key, nil)
-		s.mockEth1Accounts.EXPECT().Update(ctx, expectedUpdatedAccount).Return(nil)
+		s.mockEth1Accounts.EXPECT().Update(ctx, &expectedAccount).Return(nil)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), expectedUpdatedAccount, account)
+		assert.Equal(s.T(), expectedAccount.ToEntity(), account)
 	})
 
 	s.Run("should fail with same error if Get account fails", func() {
@@ -247,31 +240,11 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 		assert.Nil(s.T(), account)
 	})
 
-	s.Run("should fail with same error if Update key fails", func() {
+	s.Run("should fail with same error if Update account fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Update(ctx, fakeAccount.KeyID, attributes).Return(nil, expectedErr)
-
-		account, err := s.eth1Store.Update(ctx, address, attributes)
-		assert.Equal(s.T(), expectedErr, err)
-		assert.Nil(s.T(), account)
-	})
-
-	s.Run("should fail with same error if Add account fails", func() {
-		expectedUpdatedAccount := &entities.ETH1Account{
-			KeyID:               key.ID,
-			Address:             common.HexToAddress(address),
-			Metadata:            key.Metadata,
-			PublicKey:           hexutil.MustDecode(pubKey),
-			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
-			Tags:                key.Tags,
-		}
-		expectedErr := fmt.Errorf("my error")
-
-		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Update(ctx, fakeAccount.KeyID, attributes).Return(key, nil)
-		s.mockEth1Accounts.EXPECT().Update(ctx, expectedUpdatedAccount).Return(expectedErr)
+		s.mockEth1Accounts.EXPECT().Update(ctx, gomock.Any()).Return(expectedErr)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.Equal(s.T(), expectedErr, err)
@@ -281,50 +254,18 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 
 func (s *eth1StoreTestSuite) TestDelete() {
 	ctx := context.Background()
-	fakeAccount := testutils.FakeETH1Account()
 
 	s.Run("should delete an Ethereum Account successfully", func() {
-		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Delete(ctx, fakeAccount.KeyID).Return(nil)
+		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
 
 		err := s.eth1Store.Delete(ctx, address)
 		assert.NoError(s.T(), err)
 	})
 
-	s.Run("should fail with same error if Get account fails", func() {
+	s.Run("should fail with same error if RunInTransaction fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
-		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(nil, expectedErr)
-
-		err := s.eth1Store.Delete(ctx, address)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if Delete key fails", func() {
-		expectedErr := fmt.Errorf("my error")
-
-		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Delete(ctx, fakeAccount.KeyID).Return(expectedErr)
-
-		err := s.eth1Store.Delete(ctx, address)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if Delete account fails", func() {
-		expectedErr := fmt.Errorf("my error")
-
-		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Delete(ctx, fakeAccount.KeyID).Return(nil)
-
-		err := s.eth1Store.Delete(ctx, address)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if AddDeleted account fails", func() {
-		expectedErr := fmt.Errorf("my error")
-
-		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Delete(ctx, fakeAccount.KeyID).Return(nil)
+		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(expectedErr)
 
 		err := s.eth1Store.Delete(ctx, address)
 		assert.Equal(s.T(), expectedErr, err)
@@ -340,7 +281,7 @@ func (s *eth1StoreTestSuite) TestGetDeleted() {
 
 		account, err := s.eth1Store.GetDeleted(ctx, address)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), fakeETH1Account, account)
+		assert.Equal(s.T(), fakeETH1Account.ToEntity(), account)
 	})
 
 	s.Run("should fail with same error if Get account fails", func() {
@@ -357,12 +298,12 @@ func (s *eth1StoreTestSuite) TestListDeleted() {
 	ctx := context.Background()
 
 	s.Run("should list all Ethereum Accounts successfully", func() {
-		expectedAccounts := []*entities.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
+		expectedAccounts := []*models.ETH1Account{testutils.FakeETH1Account(), testutils.FakeETH1Account()}
 		s.mockEth1Accounts.EXPECT().GetAllDeleted(ctx).Return(expectedAccounts, nil)
 
 		addresses, err := s.eth1Store.ListDeleted(ctx)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), []string{expectedAccounts[0].Address.Hex(), expectedAccounts[1].Address.Hex()}, addresses)
+		assert.Equal(s.T(), []string{expectedAccounts[0].Address, expectedAccounts[1].Address}, addresses)
 	})
 
 	s.Run("should fail with same error if GetAll account fails", func() {
@@ -377,18 +318,16 @@ func (s *eth1StoreTestSuite) TestListDeleted() {
 
 func (s *eth1StoreTestSuite) TestUndelete() {
 	ctx := context.Background()
-	fakeAccount := testutils.FakeETH1Account()
 
-	s.Run("should undelete an Ethereum Account successfully", func() {
-		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Undelete(ctx, fakeAccount.KeyID).Return(nil)
-		s.mockEth1Accounts.EXPECT().Add(ctx, fakeAccount).Return(nil)
+	s.Run("should delete an Ethereum Account successfully", func() {
+		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(testutils.FakeETH1Account(), nil)
+		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
 
 		err := s.eth1Store.Undelete(ctx, address)
 		assert.NoError(s.T(), err)
 	})
 
-	s.Run("should fail with same error if GetDeleted account fails", func() {
+	s.Run("should fail with same error if GetDeleted fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(nil, expectedErr)
@@ -397,32 +336,11 @@ func (s *eth1StoreTestSuite) TestUndelete() {
 		assert.Equal(s.T(), expectedErr, err)
 	})
 
-	s.Run("should fail with same error if Undelete key fails", func() {
+	s.Run("should fail with same error if RunInTransaction fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
-		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Undelete(ctx, fakeAccount.KeyID).Return(expectedErr)
-
-		err := s.eth1Store.Undelete(ctx, address)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if RemoveDeleted account fails", func() {
-		expectedErr := fmt.Errorf("my error")
-
-		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Undelete(ctx, fakeAccount.KeyID).Return(nil)
-
-		err := s.eth1Store.Undelete(ctx, address)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if Add account fails", func() {
-		expectedErr := fmt.Errorf("my error")
-
-		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Undelete(ctx, fakeAccount.KeyID).Return(nil)
-		s.mockEth1Accounts.EXPECT().Add(ctx, fakeAccount).Return(expectedErr)
+		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(testutils.FakeETH1Account(), nil)
+		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(expectedErr)
 
 		err := s.eth1Store.Undelete(ctx, address)
 		assert.Equal(s.T(), expectedErr, err)
@@ -431,17 +349,16 @@ func (s *eth1StoreTestSuite) TestUndelete() {
 
 func (s *eth1StoreTestSuite) TestDestroy() {
 	ctx := context.Background()
-	fakeAccount := testutils.FakeETH1Account()
 
-	s.Run("should undelete an Ethereum Account successfully", func() {
-		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Destroy(ctx, fakeAccount.KeyID).Return(nil)
+	s.Run("should delete an Ethereum Account successfully", func() {
+		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(testutils.FakeETH1Account(), nil)
+		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
 
 		err := s.eth1Store.Destroy(ctx, address)
 		assert.NoError(s.T(), err)
 	})
 
-	s.Run("should fail with same error if GetDeleted account fails", func() {
+	s.Run("should fail with same error if GetDeleted fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(nil, expectedErr)
@@ -450,21 +367,11 @@ func (s *eth1StoreTestSuite) TestDestroy() {
 		assert.Equal(s.T(), expectedErr, err)
 	})
 
-	s.Run("should fail with same error if Destroy key fails", func() {
+	s.Run("should fail with same error if RunInTransaction fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
-		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Destroy(ctx, fakeAccount.KeyID).Return(expectedErr)
-
-		err := s.eth1Store.Destroy(ctx, address)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if RemoveDeleted account fails", func() {
-		expectedErr := fmt.Errorf("my error")
-
-		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Destroy(ctx, fakeAccount.KeyID).Return(nil)
+		s.mockEth1Accounts.EXPECT().GetDeleted(ctx, address).Return(testutils.FakeETH1Account(), nil)
+		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(expectedErr)
 
 		err := s.eth1Store.Destroy(ctx, address)
 		assert.Equal(s.T(), expectedErr, err)
@@ -514,9 +421,9 @@ func (s *eth1StoreTestSuite) TestSignVerify() {
 func (s *eth1StoreTestSuite) TestSignData() {
 	ctx := context.Background()
 	data := crypto.Keccak256([]byte("my data to sign"))
-	fakeAccount := &entities.ETH1Account{
+	fakeAccount := &models.ETH1Account{
 		KeyID:               "my-account",
-		Address:             common.HexToAddress("0x83a0254be47813BBff771F4562744676C4e793F0"),
+		Address:             "0x83a0254be47813BBff771F4562744676C4e793F0",
 		PublicKey:           hexutil.MustDecode("0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2"),
 		CompressedPublicKey: hexutil.MustDecode("0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f"),
 	}
