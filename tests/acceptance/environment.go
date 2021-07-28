@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/aliases"
+	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -392,9 +392,9 @@ func (env *IntegrationEnvironment) createTables() error {
 	for _, v := range []interface{}{
 		&models.Key{},
 		&models.ETH1Account{},
-		&aliases.Alias{},
 		&models2.Key{},
 		&models2.ETH1Account{},
+		&aliasstore.Alias{},
 	} {
 		err = db.Model(v).CreateTable(opts)
 

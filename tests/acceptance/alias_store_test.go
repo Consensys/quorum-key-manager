@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
+	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 )
 
 func TestAliasStore(t *testing.T) {
@@ -39,7 +39,7 @@ func TestAliasStore(t *testing.T) {
 type aliasStoreTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store aliases.Backend
+	store aliasstore.Store
 	rand  *rand.Rand
 }
 
@@ -51,7 +51,7 @@ func (s *aliasStoreTestSuite) SetupSuite() {
 	}
 	s.env.logger.Info("setup test suite has completed")
 
-	s.store = aliasstore.New(s.env.postgresClient)
+	s.store = aliaspg.New(s.env.postgresClient)
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	s.rand = rand.New(randSrc)
 }
@@ -60,13 +60,13 @@ func (s *aliasStoreTestSuite) TearDownSuite() {
 	s.env.Teardown(context.Background())
 }
 
-func (s *aliasStoreTestSuite) fakeAlias() aliases.Alias {
+func (s *aliasStoreTestSuite) fakeAlias() aliasstore.Alias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
-	return aliases.Alias{
-		RegistryName: aliases.RegistryName("JPM-" + randID),
-		Key:          aliases.AliasKey("Goldman Sachs-" + randID),
-		Kind:         aliases.AliasKindArray,
+	return aliasstore.Alias{
+		RegistryName: aliasstore.RegistryName("JPM-" + randID),
+		Key:          aliasstore.AliasKey("Goldman Sachs-" + randID),
+		Kind:         aliasstore.AliasKindArray,
 		Value:        `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
 	}
 }
@@ -156,7 +156,7 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
-		newAlias.Kind = aliases.AliasKindString
+		newAlias.Kind = aliasstore.AliasKindString
 		newAlias.Value = `SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`
 		err = s.store.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)
