@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/ethereum/go-ethereum/common"
-	"time"
 )
 
 type ETH1Account struct {

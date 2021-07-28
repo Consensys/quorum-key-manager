@@ -5,12 +5,11 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"math/big"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
@@ -57,21 +56,13 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	var account *models.ETH1Account
-	err := s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		key, derr := s.keyStore.Create(ctx, id, eth1KeyAlgo, attr)
-		if derr != nil {
-			return derr
-		}
+	key, err := s.keyStore.Create(ctx, id, eth1KeyAlgo, attr)
+	if err != nil {
+		return nil, err
+	}
 
-		account = parseKey(key, attr)
-		derr = dbtx.ETH1Accounts().Add(ctx, account)
-		if derr != nil {
-			return derr
-		}
-
-		return nil
-	})
+	account := parseKey(key, attr)
+	err = s.db.ETH1Accounts().Add(ctx, account)
 	if err != nil {
 		return nil, err
 	}
@@ -80,21 +71,13 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	var account *models.ETH1Account
-	err := s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		key, derr := s.keyStore.Import(ctx, id, privKey, eth1KeyAlgo, attr)
-		if derr != nil {
-			return derr
-		}
+	key, err := s.keyStore.Import(ctx, id, privKey, eth1KeyAlgo, attr)
+	if err != nil {
+		return nil, err
+	}
 
-		account = parseKey(key, attr)
-		derr = dbtx.ETH1Accounts().Add(ctx, account)
-		if derr != nil {
-			return derr
-		}
-
-		return nil
-	})
+	account := parseKey(key, attr)
+	err = s.db.ETH1Accounts().Add(ctx, account)
 	if err != nil {
 		return nil, err
 	}
