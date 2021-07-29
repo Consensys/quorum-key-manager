@@ -134,10 +134,14 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 	return keysStr, nil
 }
 
-func (s *Store) Delete(_ context.Context, id string) error {
-	logger := s.logger.With("id", id)
+func (s *Store) Delete(_ context.Context, id, version string) error {
+	logger := s.logger.With("id", id).With("version", version)
 
-	var callData map[string][]string
+	var callData = map[string][]string{}
+	if version != "" {
+		callData["versions"] = []string{version}
+	}
+
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
 	if err != nil {
 		errMessage := "failed to get Hashicorp secret data for deletion"
@@ -150,7 +154,12 @@ func (s *Store) Delete(_ context.Context, id string) error {
 		return errors.NotFoundError(errMessage)
 	}
 
-	err = s.client.Delete(s.pathData(id))
+	data := map[string][]string{}
+	if version != "" {
+		data["versions"] = []string{version}
+	}
+
+	err = s.client.Delete(s.pathData(id), data)
 	if err != nil {
 		errMessage := "failed to delete Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -160,22 +169,21 @@ func (s *Store) Delete(_ context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) GetDeleted(_ context.Context, _, _ string) (*entities.Secret, error) {
+	return nil, errors.ErrNotSupported
 }
 
 func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+	return nil, errors.ErrNotSupported
 }
 
-func (s *Store) Undelete(_ context.Context, id string) error {
-	logger := s.logger.With("id", id)
+func (s *Store) Restore(_ context.Context, id, version string) error {
+	logger := s.logger.With("id", id).With("version", version)
 
-	// @TODO Fetch versions from DB once they are available
-	versions := []string{}
 	err := s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
-		"versions": versions,
+		"versions": {version},
 	})
+
 	if err != nil {
 		errMessage := "failed to restore Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -185,13 +193,11 @@ func (s *Store) Undelete(_ context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Destroy(_ context.Context, id string) error {
+func (s *Store) Destroy(_ context.Context, id, version string) error {
 	logger := s.logger.With("id", id)
 
-	// @TODO Fetch versions from DB once they are available
-	versions := []string{}
 	err := s.client.WritePost(s.pathDestroyID(id), map[string][]string{
-		"versions": versions,
+		"versions": {version},
 	})
 	if err != nil {
 		errMessage := "failed to destroy Hashicorp secret"

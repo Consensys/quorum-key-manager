@@ -101,7 +101,7 @@ func (c *HTTPClient) DestroySecret(ctx context.Context, storeName, id string) er
 
 func (c *HTTPClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
 	secret := &types.SecretResponse{}
-	reqURL := fmt.Sprintf("%s/%s/%s/deleted", withURLStore(c.config.URL, storeName), secretsPath, id)
+	reqURL := fmt.Sprintf("%s/%s/%s?deleted=true", withURLStore(c.config.URL, storeName), secretsPath, id)
 
 	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
@@ -136,7 +136,7 @@ func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string) ([]strin
 
 func (c *HTTPClient) ListDeletedSecrets(ctx context.Context, storeName string) ([]string, error) {
 	var ids []string
-	reqURL := fmt.Sprintf("%s/%s/deleted", withURLStore(c.config.URL, storeName), secretsPath)
+	reqURL := fmt.Sprintf("%s/%s?deleted=true", withURLStore(c.config.URL, storeName), secretsPath)
 	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return nil, err

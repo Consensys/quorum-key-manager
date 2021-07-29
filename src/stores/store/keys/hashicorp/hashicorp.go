@@ -154,7 +154,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 }
 
 func (s *Store) Destroy(_ context.Context, id string) error {
-	err := s.client.Delete(path.Join(s.pathKeys(id), "destroy"))
+	err := s.client.Delete(path.Join(s.pathKeys(id), "destroy"), map[string][]string{})
 	if err != nil {
 		errMessage := "failed to permanently delete Hashicorp key"
 		s.logger.WithError(err).Error(errMessage)

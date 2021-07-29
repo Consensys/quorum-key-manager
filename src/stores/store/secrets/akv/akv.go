@@ -69,7 +69,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	return list, nil
 }
 
-func (s *Store) Delete(ctx context.Context, id string) error {
+func (s *Store) Delete(ctx context.Context, id, _ string) error {
 	_, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to delete AKV secret"
@@ -80,7 +80,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
+func (s *Store) GetDeleted(ctx context.Context, id, _ string) (*entities.Secret, error) {
 	res, err := s.client.GetDeletedSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to get deleted AKV secret"
@@ -109,7 +109,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	return list, nil
 }
 
-func (s *Store) Undelete(ctx context.Context, id string) error {
+func (s *Store) Restore(ctx context.Context, id, _ string) error {
 	_, err := s.client.RecoverSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to restore AKV secret"
@@ -120,7 +120,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Destroy(ctx context.Context, id string) error {
+func (s *Store) Destroy(ctx context.Context, id, version string) error {
 	_, err := s.client.PurgeDeletedSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to permanently delete AKV secret"

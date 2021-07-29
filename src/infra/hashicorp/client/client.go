@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
@@ -54,8 +53,8 @@ func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (
 	return secret, nil
 }
 
-func (c *HashicorpVaultClient) Delete(path string) error {
-	_, err := c.client.Logical().Delete(path)
+func (c *HashicorpVaultClient) Delete(path string, data map[string][]string) error {
+	_, err := c.client.Logical().DeleteWithData(path, data)
 	if err != nil {
 		return parseErrorResponse(err)
 	}
@@ -65,18 +64,10 @@ func (c *HashicorpVaultClient) Delete(path string) error {
 
 func (c *HashicorpVaultClient) WritePost(path string, data map[string][]string) error {
 	req := c.client.NewRequest("POST", fmt.Sprintf("/v1/%s", path))
-	var values url.Values
-	for k, v := range data {
-		if values == nil {
-			values = make(url.Values)
+	if data != nil {
+		if err := req.SetJSONBody(data); err != nil {
+			return errors.EncodingError(err.Error())
 		}
-		for _, val := range v {
-			values.Add(k, val)
-		}
-	}
-
-	if values != nil {
-		req.Params = values
 	}
 
 	resp, err := c.client.RawRequest(req)

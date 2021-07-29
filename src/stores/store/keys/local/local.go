@@ -97,7 +97,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 			return err
 		}
 
-		return s.secretStore.Delete(ctx, id)
+		return s.secretStore.Delete(ctx, id, "")
 	})
 }
 
@@ -136,7 +136,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 			return derr
 		}
 
-		return s.secretStore.Undelete(ctx, id)
+		return s.secretStore.Restore(ctx, id, "")
 	})
 }
 
@@ -152,7 +152,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 			return derr
 		}
 
-		return s.secretStore.Destroy(ctx, id)
+		return s.secretStore.Destroy(ctx, id, "")
 	})
 }
 

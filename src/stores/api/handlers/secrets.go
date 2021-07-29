@@ -26,14 +26,12 @@ func NewSecretsHandler(s storesmanager.Manager) *SecretsHandler {
 }
 
 func (h *SecretsHandler) Register(r *mux.Router) {
-	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.set)
-	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
-	r.Methods(http.MethodGet).Path("/deleted").HandlerFunc(h.listDeleted)
-	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
-	r.Methods(http.MethodGet).Path("/{id}/deleted").HandlerFunc(h.getDeletedOne)
-	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
 	r.Methods(http.MethodDelete).Path("/{id}/destroy").HandlerFunc(h.destroy)
 	r.Methods(http.MethodPut).Path("/{id}/restore").HandlerFunc(h.restore)
+	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.set)
+	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
+	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
+	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
 }
 
 // @Summary Creates a secret
@@ -53,6 +51,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
+	id := mux.Vars(request)["id"]
 	setSecretRequest := &types.SetSecretRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, setSecretRequest)
 	if err != nil {
@@ -67,7 +66,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secret, err := secretStore.Set(ctx, mux.Vars(request)["id"], setSecretRequest.Value, &entities.Attributes{
+	secret, err := secretStore.Set(ctx, id, setSecretRequest.Value, &entities.Attributes{
 		Tags: setSecretRequest.Tags,
 	})
 	if err != nil {
@@ -85,6 +84,8 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Secret Identifier"
+// @Param version query string false "secret version"
+// @Param deleted query bool false "filter by deleted accounts"
 // @Success 200 {object} types.SecretResponse "Secret object"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -103,40 +104,14 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secret, err := secretStore.Get(ctx, id, version)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
+	var secret *entities.Secret
+	getDeleted := request.URL.Query().Get("deleted")
+	if getDeleted == "" {
+		secret, err = secretStore.Get(ctx, id, version)
+	} else {
+		secret, err = secretStore.GetDeleted(ctx, id, version)
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters.FormatSecretResponse(secret))
-}
-
-// @Summary Gets a deleted secret by id
-// @Description Retrieves deleted secret information by ID
-// @Tags Secrets
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store Identifier"
-// @Param id path string true "Secret Identifier"
-// @Success 200 {object} types.SecretResponse "Secret object"
-// @Failure 404 {object} ErrorResponse "Store/Secret not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/secrets/{id}/deleted [get]
-func (h *SecretsHandler) getDeletedOne(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	id := mux.Vars(request)["id"]
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	secret, err := secretStore.GetDeleted(ctx, id)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -150,6 +125,7 @@ func (h *SecretsHandler) getDeletedOne(rw http.ResponseWriter, request *http.Req
 // @Tags Secrets
 // @Accept json
 // @Produce json
+// @Param deleted query bool false "filter by deleted accounts"
 // @Param storeName path string true "Store Identifier"
 // @Success 200 {array} []types.SecretResponse "List of Secret IDs"
 // @Failure 404 {object} ErrorResponse "Store not found"
@@ -166,37 +142,13 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	ids, err := secretStore.List(ctx)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
+	var ids []string
+	getDeleted := request.URL.Query().Get("deleted")
+	if getDeleted == "" {
+		ids, err = secretStore.List(ctx)
+	} else {
+		ids, err = secretStore.ListDeleted(ctx)
 	}
-
-	_ = json.NewEncoder(rw).Encode(ids)
-}
-
-// @Summary List soft-deleted secrets
-// @Description List of deleted secret IDs stored in the selected Store
-// @Tags Secrets
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store Identifier"
-// @Success 200 {array} []types.SecretResponse "List of Secret IDs"
-// @Failure 404 {object} ErrorResponse "Store not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/secrets/deleted [get]
-func (h *SecretsHandler) listDeleted(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	ids, err := secretStore.ListDeleted(ctx)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -212,6 +164,7 @@ func (h *SecretsHandler) listDeleted(rw http.ResponseWriter, request *http.Reque
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Secret Identifier"
+// @Param version query string false "secret version"
 // @Success 204 "Deleted successfully"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -221,6 +174,7 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
+	version := request.URL.Query().Get("version")
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
@@ -229,7 +183,7 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = secretStore.Delete(ctx, id)
+	err = secretStore.Delete(ctx, id, version)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -245,6 +199,7 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param storeName path string true "Secret Identifier"
 // @Param id path string true "Key identifier"
+// @Param version query string false "secret version"
 // @Success 204 "Destroyed successfully"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -252,6 +207,8 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
+	id := mux.Vars(request)["id"]
+	version := request.URL.Query().Get("version")
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
@@ -259,7 +216,7 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	err = keyStore.Destroy(ctx, getID(request))
+	err = keyStore.Destroy(ctx, id, version)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -275,6 +232,7 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Secret identifier"
+// @Param version query string false "secret version"
 // @Success 204 "Restored successfully"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -283,6 +241,9 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
+	id := mux.Vars(request)["id"]
+	version := request.URL.Query().Get("version")
+
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
@@ -290,7 +251,7 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	err = keyStore.Undelete(ctx, getID(request))
+	err = keyStore.Restore(ctx, id, version)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

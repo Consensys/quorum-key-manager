@@ -10,7 +10,7 @@ type VaultClient interface {
 	Read(path string, data map[string][]string) (*hashicorp.Secret, error)
 	Write(path string, data map[string]interface{}) (*hashicorp.Secret, error)
 	WritePost(path string, data map[string][]string) error
-	Delete(path string) error
+	Delete(path string, data map[string][]string) error
 	List(path string) (*hashicorp.Secret, error)
 	SetToken(token string)
 	UnwrapToken(token string) (*hashicorp.Secret, error)

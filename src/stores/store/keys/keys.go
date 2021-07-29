@@ -31,7 +31,7 @@ type Store interface {
 	// Update key tags
 	Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error)
 
-	// Delete secret not permanently, by using Undelete() the secret can be retrieve
+	// Delete secret not permanently, by using Restore() the secret can be retrieve
 	Delete(ctx context.Context, id string) error
 
 	// GetDeleted keys
@@ -40,7 +40,7 @@ type Store interface {
 	// ListDeleted keys
 	ListDeleted(ctx context.Context) ([]string, error)
 
-	// Undelete a previously deleted secret
+	// Restore a previously deleted secret
 	Undelete(ctx context.Context, id string) error
 
 	// Destroy secret permanently

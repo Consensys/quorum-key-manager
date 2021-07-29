@@ -299,26 +299,29 @@ func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 	expectedPath := s.mountPoint + "/data/" + id
 
 	s.Run("should delete secret by id successfully", func() {
-		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(&hashicorp.Secret{}, nil)
-		s.mockVault.EXPECT().Delete(expectedPath).Return(nil)
+		data := map[string][]string{"versions": {"1"}}
+		s.mockVault.EXPECT().Read(expectedPath, data).Return(&hashicorp.Secret{}, nil)
+		s.mockVault.EXPECT().Delete(expectedPath, data).Return(nil)
 
-		err := s.secretStore.Delete(ctx, id)
+		err := s.secretStore.Delete(ctx, id, "1")
 
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same NotFound if secret is not found by id ", func() {
-		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(nil, nil)
+		data := map[string][]string{}
+		s.mockVault.EXPECT().Read(expectedPath, data).Return(nil, nil)
 
-		err := s.secretStore.Delete(ctx, id)
+		err := s.secretStore.Delete(ctx, id, "")
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 
 	s.Run("should fail with same error if delete secret by id fails", func() {
-		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(&hashicorp.Secret{}, nil)
-		s.mockVault.EXPECT().Delete(expectedPath).Return(expectedErr)
+		data := map[string][]string{}
+		s.mockVault.EXPECT().Read(expectedPath, data).Return(&hashicorp.Secret{}, nil)
+		s.mockVault.EXPECT().Delete(expectedPath, data).Return(expectedErr)
 
-		err := s.secretStore.Delete(ctx, id)
+		err := s.secretStore.Delete(ctx, id, "")
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
@@ -329,14 +332,15 @@ func (s *hashicorpSecretStoreTestSuite) TestUndelete() {
 	expectedPath := s.mountPoint + "/undelete/" + id
 
 	s.Run("should restore secret by id successfully", func() {
-		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(nil)
-		err := s.secretStore.Undelete(ctx, id)
+		data := map[string][]string{"versions": {"1"}}
+		s.mockVault.EXPECT().WritePost(expectedPath, data).Return(nil)
+		err := s.secretStore.Restore(ctx, id, "1")
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if restore secret by id fails", func() {
 		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(expectedErr)
-		err := s.secretStore.Undelete(ctx, id)
+		err := s.secretStore.Restore(ctx, id, "")
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
@@ -347,14 +351,15 @@ func (s *hashicorpSecretStoreTestSuite) TestDestroy() {
 	expectedPath := s.mountPoint + "/destroy/" + id
 
 	s.Run("should destroy secret by id successfully", func() {
-		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(nil)
-		err := s.secretStore.Destroy(ctx, id)
+		data := map[string][]string{"versions": {"1"}}
+		s.mockVault.EXPECT().WritePost(expectedPath, data).Return(nil)
+		err := s.secretStore.Destroy(ctx, id, "1")
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if destroy secret by id fails", func() {
 		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(expectedErr)
-		err := s.secretStore.Destroy(ctx, id)
+		err := s.secretStore.Destroy(ctx, id, "")
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
