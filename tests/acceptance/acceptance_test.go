@@ -96,6 +96,8 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 		return
 	}
 
+	db := postgres.New(s.env.logger.WithComponent("Keys-DB"), s.env.postgresClient)
+
 	// Hashicorp
 	logger := s.env.logger.WithComponent("Keys-Hashicorp")
 	testSuite := new(keysTestSuite)
@@ -114,16 +116,15 @@ func (s *storeTestSuite) TestKeyManagerStore_Keys() {
 	logger = s.env.logger.WithComponent("Keys-AWS")
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
-	testSuite.store = awskey.New(s.env.awsKmsClient, logger)
+	testSuite.store = awskey.New(s.env.awsKmsClient, db, logger)
 	suite.Run(s.T(), testSuite)
 
 	// Local
 	logger = s.env.logger.WithComponent("Keys-Local")
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
-	db := postgres.New(logger, s.env.postgresClient)
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
-	testSuite.store = local.New(hashicorpSecretStore, db, logger)
+	testSuite.store = local.New(hashicorpSecretStore, logger)
 	suite.Run(s.T(), testSuite)
 }
 
@@ -155,7 +156,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	logger = s.env.logger.WithComponent("Eth1-AWS")
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, logger), db, logger)
+	testSuite.store = eth1.New(awskey.New(s.env.awsKmsClient, db, logger), db, logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
@@ -164,7 +165,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
-	testSuite.store = eth1.New(local.New(hashicorpSecretStore, db, logger), db, logger)
+	testSuite.store = eth1.New(local.New(hashicorpSecretStore, logger), db, logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 }

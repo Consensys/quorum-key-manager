@@ -278,7 +278,7 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = keyStore.Undelete(ctx, getID(request))
+	err = keyStore.Restore(ctx, getID(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

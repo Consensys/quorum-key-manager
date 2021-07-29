@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/store/models"
+	"github.com/consensys/quorum-key-manager/src/stores/store/models/testutils"
 	"math/big"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	testutils3 "github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -19,7 +20,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/mock"
 	quorumtypes "github.com/consensys/quorum/core/types"

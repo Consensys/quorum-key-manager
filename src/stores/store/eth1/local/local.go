@@ -448,7 +448,7 @@ func (s *Store) SignData(ctx context.Context, addr string, data []byte) ([]byte,
 		return nil, err
 	}
 
-	signature, err := s.keyStore.Sign(ctx, account.KeyID, data)
+	signature, err := s.keyStore.Sign(ctx, account.KeyID, data, eth1KeyAlgo)
 	if err != nil {
 		return nil, err
 	}

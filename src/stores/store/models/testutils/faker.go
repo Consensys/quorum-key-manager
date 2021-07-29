@@ -1,9 +1,9 @@
 package testutils
 
 import (
+	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )

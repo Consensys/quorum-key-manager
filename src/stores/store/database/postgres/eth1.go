@@ -2,12 +2,11 @@ package postgres
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
-
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"

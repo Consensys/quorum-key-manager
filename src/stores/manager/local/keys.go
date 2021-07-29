@@ -60,5 +60,5 @@ func NewLocalKeys(specs *KeySpecs, db database.Database, logger log.Logger) (*lo
 		return nil, err
 	}
 
-	return localkeys.New(secretStore, db, logger), nil
+	return localkeys.New(secretStore, logger), nil
 }

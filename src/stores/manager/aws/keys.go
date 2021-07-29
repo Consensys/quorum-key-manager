@@ -4,6 +4,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/aws/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 )
 
@@ -15,7 +16,7 @@ type KeySpecs struct {
 	Debug     bool   `json:"debug"`
 }
 
-func NewKeyStore(specs *KeySpecs, logger log.Logger) (*aws.KeyStore, error) {
+func NewKeyStore(specs *KeySpecs, db database.Database, logger log.Logger) (*aws.KeyStore, error) {
 	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
 	cli, err := client.NewKmsClient(cfg)
 	if err != nil {
@@ -24,6 +25,6 @@ func NewKeyStore(specs *KeySpecs, logger log.Logger) (*aws.KeyStore, error) {
 		return nil, errors.ConfigError(errMessage)
 	}
 
-	store := aws.New(cli, logger)
+	store := aws.New(cli, db, logger)
 	return store, nil
 }

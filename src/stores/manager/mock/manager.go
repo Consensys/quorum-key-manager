@@ -8,9 +8,9 @@ import (
 	context "context"
 	types "github.com/consensys/quorum-key-manager/src/auth/types"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	connectors "github.com/consensys/quorum-key-manager/src/stores/connectors"
 	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	eth1 "github.com/consensys/quorum-key-manager/src/stores/store/eth1"
-	keys "github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	secrets "github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
@@ -56,10 +56,10 @@ func (mr *MockManagerMockRecorder) GetSecretStore(ctx, name, userInfo interface{
 }
 
 // GetKeyStore mocks base method
-func (m *MockManager) GetKeyStore(ctx context.Context, name string, userInfo *types.UserInfo) (keys.Store, error) {
+func (m *MockManager) GetKeyStore(ctx context.Context, name string, userInfo *types.UserInfo) (connectors.KeysConnector, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKeyStore", ctx, name, userInfo)
-	ret0, _ := ret[0].(keys.Store)
+	ret0, _ := ret[0].(connectors.KeysConnector)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

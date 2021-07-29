@@ -49,7 +49,7 @@ func NewEth1(specs *Eth1Specs, db database.Database, logger log.Logger) (*eth1.S
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
-		keyStore, err = aws.NewKeyStore(spec, logger)
+		keyStore, err = aws.NewKeyStore(spec, db, logger)
 	default:
 		errMessage := "invalid keystore kind"
 		logger.Error(errMessage, "kind", specs.Keystore)

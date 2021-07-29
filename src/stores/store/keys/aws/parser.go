@@ -4,11 +4,10 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"fmt"
-	"math/big"
-	"time"
-
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/models"
+	"math/big"
 )
 
 const (
@@ -29,59 +28,36 @@ type signatureInfo struct {
 	R, S *big.Int
 }
 
-func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*entities.Key, error) {
-	var algo *entities.Algorithm
-	var pubKey []byte
+func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*models.Key, error) {
+	key := &models.Key{
+		ID:          id,
+		Tags:        tags,
+		Annotations: parseAnnotations(*kmsPubKey.KeyId, kmsDescribe),
+	}
 
 	switch {
 	case *kmsPubKey.KeyUsage == kms.KeyUsageTypeSignVerify && *kmsPubKey.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1:
-		algo = &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
-		}
+		key.SigningAlgorithm = string(entities.Ecdsa)
+		key.EllipticCurve = string(entities.Secp256k1)
 
 		val := &publicKeyInfo{}
 		_, err := asn1.Unmarshal(kmsPubKey.PublicKey, val)
 		if err != nil {
 			return nil, err
 		}
-		pubKey = val.PublicKey.Bytes
+		key.PublicKey = val.PublicKey.Bytes
 	default:
 		return nil, fmt.Errorf("unsupported public key type returned from AWS KMS")
 	}
 
-	return &entities.Key{
-		ID:          id,
-		PublicKey:   pubKey,
-		Algo:        algo,
-		Metadata:    parseMetadata(kmsDescribe),
-		Tags:        tags,
-		Annotations: parseAnnotations(*kmsPubKey.KeyId, kmsDescribe),
-	}, nil
-}
-
-func parseMetadata(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
 	// createdAt field always provided
-	createdAt := describedKey.KeyMetadata.CreationDate
-
-	deletedAt := &time.Time{}
-	if describedKey.KeyMetadata.DeletionDate != nil {
-		deletedAt = describedKey.KeyMetadata.DeletionDate
+	key.CreatedAt = *kmsDescribe.KeyMetadata.CreationDate
+	if kmsDescribe.KeyMetadata.DeletionDate != nil {
+		key.DeletedAt = *kmsDescribe.KeyMetadata.DeletionDate
 	}
+	key.Disabled = !*kmsDescribe.KeyMetadata.Enabled
 
-	expireAt := &time.Time{}
-	if describedKey.KeyMetadata.ValidTo != nil {
-		expireAt = describedKey.KeyMetadata.ValidTo
-	}
-
-	return &entities.Metadata{
-		Version:   "1",
-		Disabled:  !*describedKey.KeyMetadata.Enabled,
-		ExpireAt:  *expireAt,
-		CreatedAt: *createdAt,
-		DeletedAt: *deletedAt,
-		UpdatedAt: *createdAt, // Cannot update keys so updatedAt = createdAt
-	}
+	return key, nil
 }
 
 func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]string {

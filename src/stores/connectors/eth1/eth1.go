@@ -1,4 +1,4 @@
-package connectors
+package eth1
 
 import (
 	"context"

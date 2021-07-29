@@ -6,16 +6,14 @@ import (
 	"crypto/ecdsa"
 	"encoding/base64"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"math/rand"
 	"time"
-
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/gnark-crypto/crypto/hash"
 	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -26,181 +24,27 @@ import (
 
 type Store struct {
 	secretStore secrets.Store
-	db          database.Database
 	logger      log.Logger
 }
 
 var _ keys.Store = &Store{}
 
-func New(secretStore secrets.Store, db database.Database, logger log.Logger) *Store {
+func New(secretStore secrets.Store, logger log.Logger) *Store {
 	return &Store{
 		secretStore: secretStore,
-		db:          db,
 		logger:      logger,
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+	return s.create(ctx, id, nil, alg, attr)
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	return s.createKey(ctx, id, nil, alg, attr)
+func (s *Store) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+	return s.create(ctx, id, importedPrivKey, alg, attr)
 }
 
-func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	return s.createKey(ctx, id, privKey, alg, attr)
-}
-
-func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
-	key, err := s.db.Keys().Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return key.ToEntity(), nil
-}
-
-func (s *Store) List(ctx context.Context) ([]string, error) {
-	ids := []string{}
-	keysRetrieved, err := s.db.Keys().GetAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, key := range keysRetrieved {
-		ids = append(ids, key.ID)
-	}
-
-	return ids, nil
-}
-
-func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	key, err := s.db.Keys().Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	key.Tags = attr.Tags
-
-	err = s.db.Keys().Update(ctx, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return key.ToEntity(), nil
-}
-
-func (s *Store) Delete(ctx context.Context, id string) error {
-	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		err := s.db.Keys().Delete(ctx, id)
-		if err != nil {
-			return err
-		}
-
-		return s.secretStore.Delete(ctx, id)
-	})
-}
-
-func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
-	key, err := s.db.Keys().GetDeleted(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return key.ToEntity(), nil
-}
-
-func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	ids := []string{}
-	keysRetrieved, err := s.db.Keys().GetAllDeleted(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, key := range keysRetrieved {
-		ids = append(ids, key.ID)
-	}
-
-	return ids, nil
-}
-
-func (s *Store) Undelete(ctx context.Context, id string) error {
-	key, err := s.db.Keys().GetDeleted(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		derr := s.db.Keys().Restore(ctx, key)
-		if derr != nil {
-			return derr
-		}
-
-		return s.secretStore.Undelete(ctx, id)
-	})
-}
-
-func (s *Store) Destroy(ctx context.Context, id string) error {
-	_, err := s.db.Keys().GetDeleted(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		derr := s.db.Keys().Purge(ctx, id)
-		if derr != nil {
-			return derr
-		}
-
-		return s.secretStore.Destroy(ctx, id)
-	})
-}
-
-func (s *Store) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
-	logger := s.logger.With("id", id)
-
-	key, err := s.Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	secret, err := s.secretStore.Get(ctx, id, "")
-	if err != nil {
-		return nil, err
-	}
-
-	privkey, err := base64.StdEncoding.DecodeString(secret.Value)
-	if err != nil {
-		errMessage := "failed to decode private key secret"
-		logger.Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
-	}
-
-	switch {
-	case key.Algo.Type == entities.Eddsa && key.Algo.EllipticCurve == entities.Bn254:
-		return s.signEDDSA(privkey, data)
-	case key.Algo.Type == entities.Ecdsa && key.Algo.EllipticCurve == entities.Secp256k1:
-		return s.signECDSA(privkey, data)
-	default:
-		errMessage := "signing algorithm and curve combination not supported for signing"
-		logger.With("algorithm", key.Algo.Type, "curve", key.Algo.EllipticCurve).Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
-	}
-}
-
-func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
-}
-
-func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {
-	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
-	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
 	logger := s.logger.With("id", id).With("signing_algorithm", alg.Type).With("curve", alg.EllipticCurve)
 
 	var privKey []byte
@@ -239,24 +83,63 @@ func (s *Store) createKey(ctx context.Context, id string, importedPrivKey []byte
 		EllipticCurve:    string(alg.EllipticCurve),
 		Tags:             attr.Tags,
 	}
-	err := s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		err := dbtx.Keys().Add(ctx, key)
-		if err != nil {
-			return err
-		}
-
-		_, err = s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), attr)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	_, err := s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), &entities.Attributes{})
 	if err != nil {
 		return nil, err
 	}
 
-	return key.ToEntity(), nil
+	return key, nil
+}
+
+func (s *Store) Update(_ context.Context, _ string, _ *entities.Attributes) (*models.Key, error) {
+	return nil, errors.ErrNotSupported
+}
+
+func (s *Store) Delete(ctx context.Context, id string) error {
+	return s.secretStore.Delete(ctx, id)
+}
+
+func (s *Store) Undelete(ctx context.Context, id string) error {
+	return s.secretStore.Undelete(ctx, id)
+}
+
+func (s *Store) Destroy(ctx context.Context, id string) error {
+	return s.secretStore.Destroy(ctx, id)
+}
+
+func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
+	logger := s.logger.With("id", id)
+
+	secret, err := s.secretStore.Get(ctx, id, "")
+	if err != nil {
+		return nil, err
+	}
+
+	privkey, err := base64.StdEncoding.DecodeString(secret.Value)
+	if err != nil {
+		errMessage := "failed to decode private key secret"
+		logger.Error(errMessage)
+		return nil, errors.DependencyFailureError(errMessage)
+	}
+
+	switch {
+	case algo.Type == entities.Eddsa && algo.EllipticCurve == entities.Bn254:
+		return s.signEDDSA(privkey, data)
+	case algo.Type == entities.Ecdsa && algo.EllipticCurve == entities.Secp256k1:
+		return s.signECDSA(privkey, data)
+	default:
+		errMessage := "signing algorithm and curve combination not supported for signing"
+		logger.With("algorithm", algo.Type, "curve", algo.EllipticCurve).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+}
+
+func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {
+	return nil, errors.ErrNotImplemented
+}
+
+func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
@@ -309,7 +192,7 @@ func eddsaBN254(importedPrivKey []byte) (eddsabn254.PrivateKey, error) {
 		rand.New(rand.NewSource(time.Now().UnixNano())).Read(seed)
 
 		// Usually standards implementations of eddsa do not require the choice of a specific hash function (usually it's SHA256).
-		// Here we needed to allow the choice of the hash so we can chose a hash function that is easily programmable in a snark circuit.
+		// Here we needed to allow the choice of the hash, so we can choose a hash function that is easily programmable in a snark circuit.
 		// Same hFunc should be used for sign and verify
 		return eddsabn254.GenerateKey(bytes.NewReader(seed))
 	}

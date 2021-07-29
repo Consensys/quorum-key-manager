@@ -2,12 +2,12 @@ package storemanager
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
@@ -20,7 +20,7 @@ type Manager interface {
 	GetSecretStore(ctx context.Context, name string, userInfo *types.UserInfo) (secrets.Store, error)
 
 	// GetKeyStore by name
-	GetKeyStore(ctx context.Context, name string, userInfo *types.UserInfo) (keys.Store, error)
+	GetKeyStore(ctx context.Context, name string, userInfo *types.UserInfo) (connectors.KeysConnector, error)
 
 	// GetEth1Store by name
 	GetEth1Store(ctx context.Context, name string, userInfo *types.UserInfo) (eth1.Store, error)

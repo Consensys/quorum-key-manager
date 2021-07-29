@@ -3,6 +3,7 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
+	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"path"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -22,7 +23,6 @@ const (
 	privateKeyLabel = "privateKey"
 	dataLabel       = "data"
 	signatureLabel  = "signature"
-	versionLabel    = "version"
 	createdAtLabel  = "created_at"
 	updatedAtLabel  = "updated_at"
 )
@@ -43,11 +43,7 @@ func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *St
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -63,7 +59,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 	return parseResponse(res)
 }
 
-func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -80,51 +76,7 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 	return parseResponse(res)
 }
 
-func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
-
-	res, err := s.client.Read(s.pathKeys(id), nil)
-	if err != nil {
-		errMessage := "failed to get Hashicorp key"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.FromError(err).SetMessage(errMessage)
-	}
-
-	if res.Data["error"] != nil {
-		errMessage := "could not find key pair"
-		logger.Error(errMessage)
-		return nil, errors.NotFoundError(errMessage)
-	}
-
-	return parseResponse(res)
-}
-
-func (s *Store) List(_ context.Context) ([]string, error) {
-	res, err := s.client.List(s.pathKeys(""))
-	if err != nil {
-		errMessage := "failed to list Hashicorp keys"
-		s.logger.WithError(err).Error(errMessage)
-		return nil, errors.FromError(err).SetMessage(errMessage)
-	}
-
-	if res == nil || res.Data == nil || res.Data["keys"] == nil {
-		return []string{}, nil
-	}
-
-	keyIds, ok := res.Data["keys"].([]interface{})
-	if !ok {
-		return []string{}, nil
-	}
-
-	var ids = []string{}
-	for _, id := range keyIds {
-		ids = append(ids, id.(string))
-	}
-
-	return ids, nil
-}
-
-func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) (*models.Key, error) {
 	res, err := s.client.Write(s.pathKeys(id), map[string]interface{}{
 		tagsLabel: attr.Tags,
 	})
@@ -137,20 +89,12 @@ func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) 
 	return parseResponse(res)
 }
 
-func (s *Store) Delete(_ context.Context, id string) error {
-	return errors.ErrNotImplemented
+func (s *Store) Delete(_ context.Context, _ string) error {
+	return errors.ErrNotSupported
 }
 
-func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) Undelete(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+func (s *Store) Undelete(_ context.Context, _ string) error {
+	return errors.ErrNotSupported
 }
 
 func (s *Store) Destroy(_ context.Context, id string) error {
@@ -164,7 +108,7 @@ func (s *Store) Destroy(_ context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities.Algorithm) ([]byte, error) {
 	logger := s.logger.With("id", id)
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
@@ -184,10 +128,6 @@ func (s *Store) Sign(_ context.Context, id string, data []byte) ([]byte, error) 
 	}
 
 	return signature, nil
-}
-
-func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
 }
 
 func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
