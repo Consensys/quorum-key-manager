@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
-	keys2 "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
-	secrets2 "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
+	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
+	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"sync"
 
 	"github.com/consensys/quorum-key-manager/src/auth/policy"
@@ -135,7 +135,7 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, name string, userInfo 
 			if err != nil {
 				return nil, err
 			}
-			return secrets2.NewSecretConnector(store, resolvr, storeBundle.logger), nil
+			return secretsconnector.NewSecretConnector(store, resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -149,7 +149,7 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, name string, userInfo *au
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[name]; ok {
 		if store, ok := storeBundle.store.(keys.Store); ok {
-			return keys2.NewConnector(store, m.db, storeBundle.logger), nil
+			return keysconnector.NewConnector(store, m.db, storeBundle.logger), nil
 		}
 	}
 

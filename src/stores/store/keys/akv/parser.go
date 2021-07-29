@@ -3,31 +3,17 @@ package akv
 import (
 	"crypto/ecdsa"
 	"encoding/base64"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/ethereum/go-ethereum/crypto"
 )
-
-func convertToAKVOps(ops []entities.CryptoOperation) []keyvault.JSONWebKeyOperation {
-	akvOps := []keyvault.JSONWebKeyOperation{}
-
-	for _, op := range ops {
-		switch op {
-		case entities.Encryption:
-			akvOps = append(akvOps, keyvault.Encrypt, keyvault.Decrypt)
-		case entities.Signing:
-			akvOps = append(akvOps, keyvault.Sign, keyvault.Verify)
-		}
-	}
-
-	return akvOps
-}
 
 func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	kAttr := &keyvault.KeyAttributes{}
@@ -53,10 +39,11 @@ func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 
 func parseKeyBundleRes(res *keyvault.KeyBundle) *models.Key {
 	key := &models.Key{
+		ID:        parseKeyID(res.Key.Kid),
 		PublicKey: pubKeyBytes(res.Key),
+		Tags:      common.Tomapstr(res.Tags),
 		CreatedAt: time.Time(*res.Attributes.Created),
 		UpdatedAt: time.Time(*res.Attributes.Updated),
-		Tags:      common.Tomapstr(res.Tags),
 	}
 
 	if res.Key.Kty == keyvault.EC {
@@ -68,6 +55,23 @@ func parseKeyBundleRes(res *keyvault.KeyBundle) *models.Key {
 	}
 
 	return key
+}
+
+func parseKeyID(kid *string) string {
+	// path.Base to only retrieve the secretVersion instead of https://<vaultName>.vault.azure.net/keys/<keyName>/<secretVersion>
+	chunks := strings.Split(*kid, "/")
+	var idx int
+	for idx = range chunks {
+		if chunks[idx] == "keys" {
+			break
+		}
+	}
+
+	if len(chunks) > idx+1 {
+		return chunks[idx+1]
+	}
+
+	return ""
 }
 
 func decodePubKeyBase64(src string) ([]byte, error) {

@@ -4,12 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"github.com/consensys/quorum-key-manager/src/stores/store/models"
-	"time"
-
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -98,10 +95,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 }
 
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*models.Key, error) {
-	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
-	res, err := s.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
-		Expires: &expireAt,
-	}, convertToAKVOps(attr.Operations), attr.Tags)
+	res, err := s.client.UpdateKey(ctx, id, "", nil, nil, attr.Tags)
 	if err != nil {
 		errMessage := "failed to update AKV key"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
