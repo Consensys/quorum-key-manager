@@ -35,10 +35,6 @@ func (s *keysTestSuite) TearDownSuite() {
 	s.env.logger.Info("deleting the following keys", "keys", s.keyIds)
 	for _, id := range s.keyIds {
 		err := s.store.Delete(ctx, id)
-		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-			return
-		}
-
 		require.NoError(s.T(), err)
 	}
 
@@ -46,13 +42,17 @@ func (s *keysTestSuite) TearDownSuite() {
 		maxTries := MaxRetries
 		for {
 			err := s.store.Destroy(ctx, id)
-			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-				return
-			}
-
-			if err != nil && !errors.IsStatusConflictError(err) {
+			if err == nil {
 				break
 			}
+			if errors.IsNotSupportedError(err) || errors.IsNotImplementedError(err) {
+				return
+			}
+			if !errors.IsStatusConflictError(err) && !errors.IsNotFoundError(err){
+				break
+			}
+			
+
 			if maxTries <= 0 {
 				if err != nil {
 					s.env.logger.Info("failed to destroy key", "keyID", id)

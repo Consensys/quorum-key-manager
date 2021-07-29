@@ -21,7 +21,8 @@ type SecretsManagerClient interface {
 	ListSecrets(ctx context.Context, maxResults int64, nextToken string) (*secretsmanager.ListSecretsOutput, error)
 	UpdateSecret(ctx context.Context, id, value, keyID, desc string) (*secretsmanager.UpdateSecretOutput, error)
 	RestoreSecret(ctx context.Context, id string) (*secretsmanager.RestoreSecretOutput, error)
-	DeleteSecret(ctx context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error)
+	DeleteSecret(ctx context.Context, id string) (*secretsmanager.DeleteSecretOutput, error)
+	DestroySecret(ctx context.Context, id string) (*secretsmanager.DeleteSecretOutput, error)
 }
 
 type KmsClient interface {

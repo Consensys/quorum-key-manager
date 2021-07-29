@@ -198,14 +198,12 @@ func (s *awsSecretStoreTestSuite) TestGetDeleted() {
 func (s *awsSecretStoreTestSuite) TestDeleted() {
 	ctx := context.Background()
 	id := "my-secret-deleted"
-	destroy := false
-
 	deleteOutput := &secretsmanager.DeleteSecretOutput{
 		Name: &id,
 	}
 
 	s.Run("should delete secret successfully", func() {
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id).Return(deleteOutput, nil)
 
 		err := s.secretStore.Delete(ctx, id)
 		assert.NoError(s.T(), err)
@@ -215,14 +213,13 @@ func (s *awsSecretStoreTestSuite) TestDeleted() {
 func (s *awsSecretStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 	id := "my-secret"
-	destroy := true
 
 	deleteOutput := &secretsmanager.DeleteSecretOutput{
 		Name: &id,
 	}
 
 	s.Run("should destroy secret successfully", func() {
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
+		s.mockVault.EXPECT().DestroySecret(gomock.Any(), id).Return(deleteOutput, nil)
 
 		err := s.secretStore.Destroy(ctx, id)
 
@@ -230,7 +227,7 @@ func (s *awsSecretStoreTestSuite) TestDestroy() {
 	})
 
 	s.Run("should fail with same error if DeleteSecret fails", func() {
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedErr)
+		s.mockVault.EXPECT().DestroySecret(gomock.Any(), id).Return(nil, expectedErr)
 
 		err := s.secretStore.Destroy(ctx, id)
 

@@ -26,6 +26,10 @@ type secretsTestSuite struct {
 }
 
 func (s *secretsTestSuite) TearDownSuite() {
+	if _, ok := s.store.(*hashicorp.Store); ok {
+		return
+	}
+
 	ctx := s.env.ctx
 
 	s.env.logger.Info("Deleting the following secrets", "secrets", s.secretIDs)
@@ -40,9 +44,16 @@ func (s *secretsTestSuite) TearDownSuite() {
 		maxTries := MaxRetries
 		for {
 			err := s.store.Destroy(ctx, id)
-			if err != nil && !errors.IsStatusConflictError(err) {
+			if err == nil {
 				break
 			}
+			if errors.IsNotSupportedError(err) || errors.IsNotImplementedError(err) {
+				return
+			}
+			if !errors.IsStatusConflictError(err) && !errors.IsNotFoundError(err){
+				break
+			}
+
 			if maxTries <= 0 {
 				if err != nil {
 					s.env.logger.Info("failed to destroy secret", "secretID", id)
@@ -180,12 +191,12 @@ func (s *secretsTestSuite) TestDelete() {
 func (s *secretsTestSuite) TestGetDeleted() {
 	// Skip not supported secret store types
 	if _, ok := s.store.(*hashicorp.Store); ok {
-        return
-    } 
-    
+		return
+	}
+
 	if _, ok := s.store.(*aws.Store); ok {
-        return
-    }
+		return
+	}
 
 	ctx := s.env.ctx
 	id := s.newID("my-deleted-secret")
@@ -197,12 +208,12 @@ func (s *secretsTestSuite) TestGetDeleted() {
 	require.NoError(s.T(), setErr)
 	deleteErr := s.store.Delete(ctx, id)
 	require.NoError(s.T(), deleteErr)
-	
-	// Wait time for key to transition to Deleted state
+
+	// Wait time for key to transition to deleted state
 	if _, ok := s.store.(*akv.Store); ok {
 		err := s.waitDeletedStatus(s.env.ctx, id)
 		require.NoError(s.T(), err)
-    }
+	}
 
 	s.Run("should get deleted secret successfully", func() {
 		secret, err := s.store.GetDeleted(ctx, id)
@@ -220,12 +231,11 @@ func (s *secretsTestSuite) TestGetDeleted() {
 	})
 }
 
-
 func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 	// Skip not supported secret store types
 	if _, ok := s.store.(*hashicorp.Store); ok {
-        return
-    } 
+		return
+	}
 
 	ctx := s.env.ctx
 	id := s.newID("my-restored-secret")
@@ -238,13 +248,13 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 
 	deleteErr := s.store.Delete(ctx, id)
 	require.NoError(s.T(), deleteErr)
-	
-	// Wait time for key to transition to Deleted state
+
+	// Wait time for key to transition to deleted state
 	if _, ok := s.store.(*akv.Store); ok {
 		err := s.waitDeletedStatus(s.env.ctx, id)
 		require.NoError(s.T(), err)
-    }
-	
+	}
+
 	s.Run("should restore deleted secret successfully", func() {
 		err := s.store.Undelete(ctx, id)
 		require.NoError(s.T(), err)
@@ -260,9 +270,9 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 func (s *secretsTestSuite) TestDestroyDeletedSecret() {
 	// Skip not supported secret store types
 	if _, ok := s.store.(*hashicorp.Store); ok {
-        return
-    } 
-    
+		return
+	}
+
 	ctx := s.env.ctx
 	id := s.newID("my-destroy-secret")
 	value := "my-destroy-secret-value"
@@ -274,25 +284,25 @@ func (s *secretsTestSuite) TestDestroyDeletedSecret() {
 
 	deleteErr := s.store.Delete(ctx, id)
 	require.NoError(s.T(), deleteErr)
-	
-	// Wait time for key to transition to Deleted state
+
+	// Wait time for key to transition to deleted state
 	if _, ok := s.store.(*akv.Store); ok {
 		err := s.waitDeletedStatus(s.env.ctx, id)
 		require.NoError(s.T(), err)
-    }
+	}
 	
+	// AWS requires some time transition to deleted state
+	if _, ok := s.store.(*aws.Store); !ok {
+		time.Sleep(time.Second)
+	}
+
 	s.Run("should destroy deleted secret successfully", func() {
 		err := s.store.Destroy(ctx, id)
 		require.NoError(s.T(), err)
-		
-		secret, err := s.store.GetDeleted(ctx, id)
-		require.Nil(s.T(), secret)
-		require.NotNil(s.T(), err)
-		require.True(s.T(), errors.IsNotFoundError(err))
 	})
 
-	s.Run("should fail with NotFound if deleted secret is not found", func() {
-		err := s.store.Undelete(ctx, "inexistentID")
+	s.Run("should fail with NotFound if destroy deleted secret is not found", func() {
+		err := s.store.Destroy(ctx, "inexistentID")
 		require.NotNil(s.T(), err)
 		require.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -301,12 +311,12 @@ func (s *secretsTestSuite) TestDestroyDeletedSecret() {
 func (s *secretsTestSuite) TestListDeleted() {
 	// Skip not supported secret store types
 	if _, ok := s.store.(*hashicorp.Store); ok {
-        return
-    } 
-    
+		return
+	}
+
 	if _, ok := s.store.(*aws.Store); ok {
-        return
-    }
+		return
+	}
 
 	ctx := s.env.ctx
 	id := s.newID("my-deleted-secret-list")
@@ -317,18 +327,17 @@ func (s *secretsTestSuite) TestListDeleted() {
 	require.NoError(s.T(), err)
 	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
-	
+
 	err = s.store.Delete(ctx, id)
 	require.NoError(s.T(), err)
 	err = s.store.Delete(ctx, id2)
 	require.NoError(s.T(), err)
-	
-	// Wait time for key to transition to Deleted state
+
+	// Wait time for key to transition to deleted state
 	if _, ok := s.store.(*akv.Store); ok {
 		err := s.waitDeletedStatus(s.env.ctx, id)
 		require.NoError(s.T(), err)
-    }
-	
+	}
 
 	s.Run("should list all deleted secrets ids successfully", func() {
 		ids, err := s.store.ListDeleted(ctx)
@@ -350,7 +359,7 @@ func (s *secretsTestSuite) waitDeletedStatus(ctx context.Context, id string) err
 	maxTries := MaxRetries
 	for {
 		_, err := s.store.GetDeleted(ctx, id)
-		if err == nil  {
+		if err == nil {
 			break
 		} else if !errors.IsNotFoundError(err) {
 			s.env.logger.Error("failed to get deleted secret", "secretID", id)

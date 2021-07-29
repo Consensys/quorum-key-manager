@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 
@@ -175,23 +176,39 @@ func (c *AwsSecretsClient) RestoreSecret(_ context.Context, id string) (*secrets
 
 	return output, nil
 }
-func (c *AwsSecretsClient) DeleteSecret(_ context.Context, id string, force bool) (*secretsmanager.DeleteSecretOutput, error) {
-
-	if force {
-		// check appropriate state with description
-		desc, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
-			SecretId: &id,
-		})
-		if err != nil {
-			return nil, parseSecretsManagerErrorResponse(err)
-		}
-		if desc.DeletedDate != nil {
-			return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
-		}
-	}
+func (c *AwsSecretsClient) DeleteSecret(_ context.Context, id string) (*secretsmanager.DeleteSecretOutput, error) {
 	output, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
 		SecretId:                   &id,
-		ForceDeleteWithoutRecovery: &force,
+		ForceDeleteWithoutRecovery: common.ToPtr(false).(*bool),
+	})
+	if err != nil {
+		return nil, parseSecretsManagerErrorResponse(err)
+	}
+
+	return output, nil
+}
+
+func (c *AwsSecretsClient) DestroySecret(ctx context.Context, id string) (*secretsmanager.DeleteSecretOutput, error) {
+	// check appropriate state with description
+	desc, err := c.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
+		SecretId: &id,
+	})
+	if err != nil {
+		return nil, parseSecretsManagerErrorResponse(err)
+	}
+	if desc.DeletedDate == nil {
+		return nil, errors.InvalidParameterError("failed to destroy, must be deleted first")
+	}
+
+	// We need to restore before we can destroy the key
+	_, err = c.RestoreSecret(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := c.client.DeleteSecret(&secretsmanager.DeleteSecretInput{
+		SecretId:                   &id,
+		ForceDeleteWithoutRecovery: common.ToPtr(true).(*bool),
 	})
 	if err != nil {
 		return nil, parseSecretsManagerErrorResponse(err)
