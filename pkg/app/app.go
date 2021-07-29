@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"reflect"
 	"sync"
@@ -162,7 +161,7 @@ func (app *App) RegisterService(srv interface{}) error {
 	if rSrv, ok := srv.(common.Runnable); ok {
 		app.services = append(app.services, reflect.ValueOf(rSrv))
 	} else {
-		errMessage := fmt.Sprintf("registered service is not a runnable: %T", srv)
+		errMessage := "registered service is not a runnable"
 		app.logger.Error(errMessage)
 		return errors.ConfigError(errMessage)
 	}
