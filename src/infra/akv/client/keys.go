@@ -117,11 +117,30 @@ func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]key
 	if err != nil {
 		return nil, parseErrorResponse(err)
 	}
-	if len(res.Values()) == 0 {
-		return []keyvault.DeletedKeyItem{}, nil
+
+	result := []keyvault.DeletedKeyItem{}
+	for {
+		result = append(result, res.Values()...)
+
+		if !res.NotDone() {
+			break
+		}
+
+		err := res.NextWithContext(ctx)
+		if err != nil {
+			return result, err
+		}
+
+		if maxResults != 0 && len(result) >= int(maxResults) {
+			break
+		}
 	}
 
-	return res.Values(), nil
+	if maxResults != 0 && len(result) > int(maxResults) {
+		return result[0:maxResults], nil
+	}
+
+	return result, nil
 }
 
 func (c *AKVClient) PurgeDeletedKey(ctx context.Context, keyName string) (bool, error) {

@@ -74,7 +74,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 
 	key, err := keyStore.Create(
 		ctx,
-		mux.Vars(request)["id"],
+		getID(request),
 		&entities.Algorithm{
 			Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
 			EllipticCurve: entities.Curve(createKeyRequest.Curve),
@@ -123,7 +123,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 
 	key, err := keyStore.Import(
 		ctx,
-		mux.Vars(request)["id"],
+		getID(request),
 		importKeyRequest.PrivateKey,
 		&entities.Algorithm{
 			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),

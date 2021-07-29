@@ -1,4 +1,4 @@
-//nolint
+// nolint
 
 package client
 
@@ -26,21 +26,28 @@ func deleteRequest(ctx context.Context, client *http.Client, reqURL string) (*ht
 
 func postRequest(ctx context.Context, client *http.Client, reqURL string, postRequest interface{}) (*http.Response, error) {
 	body := new(bytes.Buffer)
-	_ = json.NewEncoder(body).Encode(postRequest)
+	if postRequest != nil {
+		_ = json.NewEncoder(body).Encode(postRequest)
+	}
 
 	return request(ctx, client, reqURL, http.MethodPost, body)
 }
 
+// nolint
 func putRequest(ctx context.Context, client *http.Client, reqURL string, putRequest interface{}) (*http.Response, error) {
 	body := new(bytes.Buffer)
-	_ = json.NewEncoder(body).Encode(putRequest)
+	if putRequest != nil {
+		_ = json.NewEncoder(body).Encode(putRequest)
+	}
 
 	return request(ctx, client, reqURL, http.MethodPut, body)
 }
 
-func patchRequest(ctx context.Context, client *http.Client, reqURL string, postRequest interface{}) (*http.Response, error) {
+func patchRequest(ctx context.Context, client *http.Client, reqURL string, patchRequest interface{}) (*http.Response, error) {
 	body := new(bytes.Buffer)
-	_ = json.NewEncoder(body).Encode(postRequest)
+	if patchRequest != nil {
+		_ = json.NewEncoder(body).Encode(patchRequest)
+	}
 
 	return request(ctx, client, reqURL, http.MethodPatch, body)
 }

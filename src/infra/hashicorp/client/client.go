@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/hashicorp/vault/api"
@@ -8,6 +10,7 @@ import (
 
 type HashicorpVaultClient struct {
 	client *api.Client
+	cfg    *Config
 }
 
 var _ hashicorp.VaultClient = &HashicorpVaultClient{}
@@ -20,7 +23,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
 	client.SetNamespace(cfg.Namespace)
 
-	return &HashicorpVaultClient{client}, nil
+	return &HashicorpVaultClient{client, cfg}, nil
 }
 
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {
@@ -50,8 +53,27 @@ func (c *HashicorpVaultClient) Write(path string, data map[string]interface{}) (
 	return secret, nil
 }
 
-func (c *HashicorpVaultClient) Delete(path string) error {
-	_, err := c.client.Logical().Delete(path)
+func (c *HashicorpVaultClient) Delete(path string, data map[string][]string) error {
+	_, err := c.client.Logical().DeleteWithData(path, data)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (c *HashicorpVaultClient) WritePost(path string, data map[string][]string) error {
+	req := c.client.NewRequest("POST", fmt.Sprintf("/v1/%s", path))
+	if data != nil {
+		if err := req.SetJSONBody(data); err != nil {
+			return errors.EncodingError(err.Error())
+		}
+	}
+
+	resp, err := c.client.RawRequest(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return parseErrorResponse(err)
 	}

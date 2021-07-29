@@ -444,6 +444,7 @@ func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *ht
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
+// @Param deleted query bool false "filter by deleted accounts"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Success 200 {object} types.Eth1AccountResponse "Ethereum Account data"
@@ -480,6 +481,8 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Accept json
 // @Produce json
 // @Param storeName path string true "Store Identifier"
+// @Param deleted query bool false "filter by deleted accounts"
+// @Param chain_uuid query string false "Chain UUID"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Success 200 {array} []types.Eth1AccountResponse "Ethereum Account list"
 // @Router /stores/{storeName}/eth1 [get]

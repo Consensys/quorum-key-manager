@@ -63,18 +63,32 @@ func (mr *MockVaultClientMockRecorder) Write(path, data interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockVaultClient)(nil).Write), path, data)
 }
 
-// Delete mocks base method
-func (m *MockVaultClient) Delete(path string) error {
+// WritePost mocks base method
+func (m *MockVaultClient) WritePost(path string, data map[string][]string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", path)
+	ret := m.ctrl.Call(m, "WritePost", path, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WritePost indicates an expected call of WritePost
+func (mr *MockVaultClientMockRecorder) WritePost(path, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WritePost", reflect.TypeOf((*MockVaultClient)(nil).WritePost), path, data)
+}
+
+// Delete mocks base method
+func (m *MockVaultClient) Delete(path string, data map[string][]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", path, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockVaultClientMockRecorder) Delete(path interface{}) *gomock.Call {
+func (mr *MockVaultClientMockRecorder) Delete(path, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockVaultClient)(nil).Delete), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockVaultClient)(nil).Delete), path, data)
 }
 
 // List mocks base method

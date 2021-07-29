@@ -8,6 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 )
 
 const (
@@ -18,6 +19,8 @@ type Store struct {
 	client aws.SecretsManagerClient
 	logger log.Logger
 }
+
+var _ secrets.Store = &Store{}
 
 func New(client aws.SecretsManagerClient, logger log.Logger) *Store {
 	return &Store{
@@ -95,7 +98,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
-	secrets := []string{}
+	result := []string{}
 	nextToken := ""
 
 	// Loop until the entire list is constituted
@@ -105,7 +108,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 			return nil, err
 		}
 
-		secrets = append(secrets, ret...)
+		result = append(result, ret...)
 		if retToken == nil {
 			break
 		}
@@ -113,7 +116,48 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 		nextToken = *retToken
 	}
 
-	return secrets, nil
+	return result, nil
+}
+
+func (s *Store) Delete(ctx context.Context, id, _ string) error {
+	_, err := s.client.DeleteSecret(ctx, id)
+	if err != nil {
+		errMessage := "failed to delete AWS secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
+}
+
+func (s *Store) GetDeleted(_ context.Context, id, _ string) (*entities.Secret, error) {
+	return nil, errors.ErrNotImplemented
+}
+
+func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
+	return nil, errors.ErrNotImplemented
+}
+
+func (s *Store) Restore(ctx context.Context, id, version string) error {
+	_, err := s.client.RestoreSecret(ctx, id)
+	if err != nil {
+		errMessage := "failed to restore AWS secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
+}
+
+func (s *Store) Destroy(ctx context.Context, id, _ string) error {
+	_, err := s.client.DestroySecret(ctx, id)
+	if err != nil {
+		errMessage := "failed to permanently delete AWS secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }
 
 func (s *Store) listPaginated(ctx context.Context, maxResults int64, nextToken string) (resList []string, resNextToken *string, err error) {
@@ -131,45 +175,4 @@ func (s *Store) listPaginated(ctx context.Context, maxResults int64, nextToken s
 	}
 
 	return secretNamesList, listOutput.NextToken, nil
-}
-
-func (s *Store) Delete(ctx context.Context, id string) error {
-	_, err := s.client.DeleteSecret(ctx, id, false)
-	if err != nil {
-		errMessage := "failed to delete AWS secret"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
-	}
-
-	return nil
-}
-
-func (s *Store) GetDeleted(_ context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) Undelete(ctx context.Context, id string) error {
-	_, err := s.client.RestoreSecret(ctx, id)
-	if err != nil {
-		errMessage := "failed to restore AWS secret"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
-	}
-
-	return nil
-}
-
-func (s *Store) Destroy(ctx context.Context, id string) error {
-	_, err := s.client.DeleteSecret(ctx, id, true)
-	if err != nil {
-		errMessage := "failed to permanently delete AWS secret"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
-	}
-
-	return nil
 }

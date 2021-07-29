@@ -188,18 +188,18 @@ func (mr *MockStoreMockRecorder) ListDeleted(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeleted", reflect.TypeOf((*MockStore)(nil).ListDeleted), ctx)
 }
 
-// Undelete mocks base method
+// Restore mocks base method
 func (m *MockStore) Undelete(ctx context.Context, addr string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Undelete", ctx, addr)
+	ret := m.ctrl.Call(m, "Restore", ctx, addr)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Undelete indicates an expected call of Undelete
+// Restore indicates an expected call of Restore
 func (mr *MockStoreMockRecorder) Undelete(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Undelete", reflect.TypeOf((*MockStore)(nil).Undelete), ctx, addr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockStore)(nil).Undelete), ctx, addr)
 }
 
 // Destroy mocks base method
