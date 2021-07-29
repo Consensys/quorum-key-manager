@@ -3,7 +3,7 @@ version: '3.7'
 x-container-common: &container-common
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
-    - postgres
+    - qkm
 
 x-postgres-common: &postgres-common
   environment:
@@ -22,21 +22,6 @@ services:
     ports:
       - 5432
 
-  pgadmin:
-    <<: *container-common
-    image: dpage/pgadmin4:4.27
-    environment:
-      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
-    restart: unless-stopped
-    volumes:
-      - state-pgadmin:/root/.pgadmin
-      - ./pgadmin/servers.json:/pgadmin4/servers.json
-      - ./pgadmin/password:/pgadmin4/password
-    ports:
-      - 9001:80
-
 volumes:
   db-data-api:
     driver: local
@@ -44,6 +29,6 @@ volumes:
     driver: local
 
 networks:
-  postgres:
+  qkm:
     external:
-      name: postgres
+      name: qkm

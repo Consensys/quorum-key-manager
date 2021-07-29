@@ -30,13 +30,13 @@ networks:
 	@docker network create --driver=bridge hashicorp || true
 	@docker network create --driver=bridge --subnet=172.16.237.0/24 besu || true
 	@docker network create --driver=bridge --subnet=172.16.238.0/24 quorum || true
-	@docker network create --driver=bridge postgres || true
+	@docker network create --driver=bridge qkm || true
 
 down-networks:
 	@docker network rm quorum || true
 	@docker network rm besu || true
 	@docker network rm hashicorp || true
-	@docker network rm postgres || true
+	@docker network rm qkm || true
 
 postgres:
 	@docker-compose -f deps/docker-compose.yml up -d $(DEPS_POSTGRES)
