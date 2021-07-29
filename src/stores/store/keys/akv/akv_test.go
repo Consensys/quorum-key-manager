@@ -38,6 +38,8 @@ var (
 	base64PubKeyY = "CXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI"
 )
 
+var expectedErr = errors.AKVError("error")
+
 type akvKeyStoreTestSuite struct {
 	suite.Suite
 	mockVault *mocks.MockKeysClient
@@ -218,7 +220,6 @@ func (s *akvKeyStoreTestSuite) TestUpdate() {
 	})
 
 	s.Run("should return same wrapped error if UpdateKey fails", func() {
-		expectedErr := errors.AKVError("error")
 		s.mockVault.EXPECT().UpdateKey(gomock.Any(), id, "", nil, nil, newAttributes.Tags).Return(akv.KeyBundle{}, expectedErr)
 
 		_, err := s.keyStore.Update(ctx, id, newAttributes)
@@ -237,8 +238,6 @@ func (s *akvKeyStoreTestSuite) TestDelete() {
 	})
 
 	s.Run("should return same wrapped error if DeleteKey fails", func() {
-		expectedErr := errors.AKVError("error")
-
 		s.mockVault.EXPECT().DeleteKey(gomock.Any(), id).Return(keyvault.DeletedKeyBundle{}, expectedErr)
 
 		err := s.keyStore.Delete(ctx, id)
@@ -257,8 +256,6 @@ func (s *akvKeyStoreTestSuite) TestUndelete() {
 	})
 
 	s.Run("should return same wrapped error if RecoverDeletedKey fails", func() {
-		expectedErr := errors.AKVError("error")
-
 		s.mockVault.EXPECT().RecoverDeletedKey(gomock.Any(), id).Return(keyvault.KeyBundle{}, expectedErr)
 
 		err := s.keyStore.Undelete(ctx, id)
@@ -277,8 +274,6 @@ func (s *akvKeyStoreTestSuite) TestDestroy() {
 	})
 
 	s.Run("should return same wrapped error if PurgeDeletedKey fails", func() {
-		expectedErr := errors.AKVError("error")
-
 		s.mockVault.EXPECT().PurgeDeletedKey(gomock.Any(), id).Return(false, expectedErr)
 
 		err := s.keyStore.Destroy(ctx, id)
