@@ -153,6 +153,23 @@ func (s *awsKeyStoreTestSuite) TestGet() {
 func (s *awsKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
 	msg := []byte("some sample message")
+	/*
+
+		following value: MEUCIQDtudqysJc4npK9OCT5whzsE/pZ2zc2DjV9djKcUd1YcwIgHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRluw=
+		is the encoding of :
+		30
+		45
+		02 21
+		00edb9dab2b097389e92bd3824f9c21c
+		ec13fa59db37360e357d76329c51dd58
+		73
+		02 20
+		1e9c6f7c12f0b9018dbbe45bac1ab84a
+		485df4d0d0256a3d0f6b5cb0359196ec
+
+		where R = edb9dab2b097389e92bd3824f9c21cec13fa59db37360e357d76329c51dd5873
+		and S = 1e9c6f7c12f0b9018dbbe45bac1ab84a485df4d0d0256a3d0f6b5cb0359196ec
+	*/
 	asn1Signature, _ := base64.StdEncoding.DecodeString("MEUCIQDtudqysJc4npK9OCT5whzsE/pZ2zc2DjV9djKcUd1YcwIgHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRluw=")
 	expectedSignature, _ := base64.StdEncoding.DecodeString("7bnasrCXOJ6SvTgk+cIc7BP6Wds3Ng41fXYynFHdWHMenG98EvC5AY275FusGrhKSF300NAlaj0Pa1ywNZGW7A==")
 
@@ -169,6 +186,46 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 		assert.NoError(s.T(), err)
 
 		assert.Equal(s.T(), expectedSignature, signature)
+	})
+
+	/*
+
+		following value: MEQCIQDtudqysJc4npK9OCT5whzsE/pZ2zc2DjV9djKcUd1YcwIfHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRlg==
+		is the encoding of :
+		30
+		44 # payload is 1 byte smaller
+		02 21
+		00edb9dab2b097389e92bd3824f9c21c
+		ec13fa59db37360e357d76329c51dd58
+		73
+		02 1F # S part is 1 byte smaller
+		1e9c6f7c12f0b9018dbbe45bac1ab84a
+		485df4d0d0256a3d0f6b5cb0359196
+
+		where R = edb9dab2b097389e92bd3824f9c21cec13fa59db37360e357d76329c51dd5873
+		and S = 1e9c6f7c12f0b9018dbbe45bac1ab84a485df4d0d0256a3d0f6b5cb0359196 # last byte removed
+
+		So it should output :
+																		> leading 0x00 byte here
+		edb9dab2b097389e92bd3824f9c21cec13fa59db37360e357d76329c51dd5873001e9c6f7c12f0b9018dbbe45bac1ab84a485df4d0d0256a3d0f6b5cb0359196
+
+	*/
+	asn1SmallerSignature, _ := base64.StdEncoding.DecodeString("MEQCIQDtudqysJc4npK9OCT5whzsE/pZ2zc2DjV9djKcUd1YcwIfHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRlg==")
+	expectedSmallerSignature, _ := base64.StdEncoding.DecodeString("7bnasrCXOJ6SvTgk+cIc7BP6Wds3Ng41fXYynFHdWHMAHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRlg==")
+
+	retSmallerSign := kms.SignOutput{
+		KeyId:     aws.String(keyID),
+		Signature: asn1SmallerSignature,
+	}
+
+	s.Run("should sign a sample message successfully when signature has smaller size", func() {
+		s.getKeyMockCalls(ctx)
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), keyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSmallerSign, nil)
+
+		signature, err := s.keyStore.Sign(ctx, id, msg)
+		assert.NoError(s.T(), err)
+
+		assert.Equal(s.T(), expectedSmallerSignature, signature)
 	})
 
 	s.Run("should fail with same error if Get fails", func() {
