@@ -115,9 +115,9 @@ func parseSignature(kmsSign *kms.SignOutput) ([]byte, error) {
 	// ensure signature size is 64
 	sig := make([]byte, 64)
 	// copy R in first half
-	copy(sig[len(sig)/2-len(val.R.Bytes()):], val.R.Bytes()[:])
+	copy(sig[len(sig)/2-len(val.R.Bytes()):], val.R.Bytes())
 	// copy S in second half
-	copy(sig[len(sig)-len(val.S.Bytes()):], val.S.Bytes()[:])
+	copy(sig[len(sig)-len(val.S.Bytes()):], val.S.Bytes())
 
 	return sig, nil
 }
