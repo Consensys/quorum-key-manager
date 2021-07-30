@@ -11,9 +11,8 @@ import (
 )
 
 type PostgresClient struct {
-	cfg  *Config
-	db   orm.DB
-	pgdb *pg.DB
+	cfg *Config
+	db  orm.DB
 }
 
 var _ postgres.Client = &PostgresClient{}
@@ -27,9 +26,8 @@ func NewClient(cfg *Config) (*PostgresClient, error) {
 	db := pg.Connect(pgOptions)
 
 	return &PostgresClient{
-		cfg:  cfg,
-		db:   db,
-		pgdb: db,
+		cfg: cfg,
+		db:  db,
 	}, nil
 }
 
@@ -140,10 +138,6 @@ func (c *PostgresClient) SelectMany(ctx context.Context, model, dst interface{},
 		return err
 	}
 	return nil
-}
-
-func (c *PostgresClient) Ping(ctx context.Context) error {
-	return c.pgdb.Ping(ctx)
 }
 
 func (c *PostgresClient) CreateTable(ctx context.Context, model interface{}) error {

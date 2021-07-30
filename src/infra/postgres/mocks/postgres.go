@@ -120,20 +120,6 @@ func (mr *MockClientMockRecorder) Insert(ctx interface{}, model ...interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockClient)(nil).Insert), varargs...)
 }
 
-// Ping mocks base method.
-func (m *MockClient) Ping(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Ping", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Ping indicates an expected call of Ping.
-func (mr *MockClientMockRecorder) Ping(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockClient)(nil).Ping), ctx)
-}
-
 // RunInTransaction mocks base method.
 func (m *MockClient) RunInTransaction(ctx context.Context, persist func(postgres.Client) error) error {
 	m.ctrl.T.Helper()

@@ -19,7 +19,6 @@ type Client interface {
 
 	SelectMany(ctx context.Context, model interface{}, dst interface{}, condition string, params ...interface{}) error
 
-	Ping(ctx context.Context) error
 	CreateTable(ctx context.Context, model interface{}) error
 	DropTable(ctx context.Context, model interface{}) error
 }
