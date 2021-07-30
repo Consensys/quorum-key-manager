@@ -7,6 +7,8 @@ import (
 	"math/big"
 	"testing"
 
+	mock3 "github.com/consensys/quorum-key-manager/src/stores/connectors/mock"
+
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -19,7 +21,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys/mock"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,10 +40,10 @@ const (
 
 type eth1StoreTestSuite struct {
 	suite.Suite
-	mockKeyStore     *mock.MockStore
-	mockDB           *mock2.MockDatabase
-	mockEth1Accounts *mock2.MockETH1Accounts
-	eth1Store        *Store
+	mockKeysConnector *mock3.MockKeysConnector
+	mockDB            *mock2.MockDatabase
+	mockEth1Accounts  *mock2.MockETH1Accounts
+	eth1Store         *Store
 }
 
 func TestStore(t *testing.T) {
@@ -54,13 +55,13 @@ func (s *eth1StoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockKeyStore = mock.NewMockStore(ctrl)
+	s.mockKeysConnector = mock3.NewMockKeysConnector(ctrl)
 	s.mockDB = mock2.NewMockDatabase(ctrl)
 	s.mockEth1Accounts = mock2.NewMockETH1Accounts(ctrl)
 
 	s.mockDB.EXPECT().ETH1Accounts().Return(s.mockEth1Accounts).AnyTimes()
 
-	s.eth1Store = New(s.mockKeyStore, s.mockDB, testutils2.NewMockLogger(ctrl))
+	s.eth1Store = New(s.mockKeysConnector, s.mockDB, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *eth1StoreTestSuite) TestCreate() {
@@ -75,8 +76,13 @@ func (s *eth1StoreTestSuite) TestCreate() {
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
 			Tags:                attributes.Tags,
+			Metadata: &entities.Metadata{
+				Disabled:  key.Metadata.Disabled,
+				CreatedAt: key.Metadata.CreatedAt,
+				UpdatedAt: key.Metadata.UpdatedAt,
+			},
 		}
-		s.mockKeyStore.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(key, nil)
+		s.mockKeysConnector.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(key, nil)
 		s.mockEth1Accounts.EXPECT().Add(ctx, expectedAccount).Return(expectedAccount, nil)
 
 		account, err := s.eth1Store.Create(ctx, id, attributes)
@@ -86,7 +92,7 @@ func (s *eth1StoreTestSuite) TestCreate() {
 
 	s.Run("should fail with same error if Create key fails", func() {
 		expectedErr := fmt.Errorf("my error")
-		s.mockKeyStore.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(nil, expectedErr)
+		s.mockKeysConnector.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(nil, expectedErr)
 
 		account, err := s.eth1Store.Create(ctx, id, attributes)
 		assert.Equal(s.T(), expectedErr, err)
@@ -95,7 +101,7 @@ func (s *eth1StoreTestSuite) TestCreate() {
 
 	s.Run("should fail with same error if Add account fails", func() {
 		expectedErr := fmt.Errorf("my error")
-		s.mockKeyStore.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(key, nil)
+		s.mockKeysConnector.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(key, nil)
 		s.mockEth1Accounts.EXPECT().Add(ctx, gomock.Any()).Return(nil, expectedErr)
 
 		account, err := s.eth1Store.Create(ctx, id, attributes)
@@ -117,8 +123,13 @@ func (s *eth1StoreTestSuite) TestImport() {
 			PublicKey:           hexutil.MustDecode(pubKey),
 			CompressedPublicKey: hexutil.MustDecode(compressedPubKey),
 			Tags:                attributes.Tags,
+			Metadata: &entities.Metadata{
+				Disabled:  key.Metadata.Disabled,
+				CreatedAt: key.Metadata.CreatedAt,
+				UpdatedAt: key.Metadata.UpdatedAt,
+			},
 		}
-		s.mockKeyStore.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(key, nil)
+		s.mockKeysConnector.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(key, nil)
 		s.mockEth1Accounts.EXPECT().Add(ctx, expectedAccount).Return(expectedAccount, nil)
 
 		account, err := s.eth1Store.Import(ctx, id, privKeyB, attributes)
@@ -128,7 +139,7 @@ func (s *eth1StoreTestSuite) TestImport() {
 
 	s.Run("should fail with same error if Create key fails", func() {
 		expectedErr := fmt.Errorf("my error")
-		s.mockKeyStore.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(nil, expectedErr)
+		s.mockKeysConnector.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(nil, expectedErr)
 
 		account, err := s.eth1Store.Import(ctx, id, privKeyB, attributes)
 		assert.Equal(s.T(), expectedErr, err)
@@ -137,7 +148,7 @@ func (s *eth1StoreTestSuite) TestImport() {
 
 	s.Run("should fail with same error if Add account fails", func() {
 		expectedErr := fmt.Errorf("my error")
-		s.mockKeyStore.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(key, nil)
+		s.mockKeysConnector.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(key, nil)
 		s.mockEth1Accounts.EXPECT().Add(ctx, gomock.Any()).Return(nil, expectedErr)
 
 		account, err := s.eth1Store.Import(ctx, id, privKeyB, attributes)
@@ -254,15 +265,26 @@ func (s *eth1StoreTestSuite) TestDelete() {
 	ctx := context.Background()
 
 	s.Run("should delete an Ethereum Account successfully", func() {
+		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(testutils.FakeETH1Account(), nil)
 		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
 
 		err := s.eth1Store.Delete(ctx, address)
 		assert.NoError(s.T(), err)
 	})
 
+	s.Run("should fail with same error if Get fails", func() {
+		expectedErr := fmt.Errorf("my error")
+
+		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(nil, expectedErr)
+
+		err := s.eth1Store.Delete(ctx, address)
+		assert.Equal(s.T(), expectedErr, err)
+	})
+
 	s.Run("should fail with same error if RunInTransaction fails", func() {
 		expectedErr := fmt.Errorf("my error")
 
+		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(testutils.FakeETH1Account(), nil)
 		s.mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(expectedErr)
 
 		err := s.eth1Store.Delete(ctx, address)
@@ -384,7 +406,7 @@ func (s *eth1StoreTestSuite) TestSignVerify() {
 
 	s.Run("should sign a payload successfully with appended V value and verify it", func() {
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, crypto.Keccak256(data), eth1KeyAlgo).Return(ecdsaSignature, nil)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, crypto.Keccak256(data)).Return(ecdsaSignature, nil)
 
 		signature, err := s.eth1Store.Sign(ctx, address, data)
 		assert.NoError(s.T(), err)
@@ -408,7 +430,7 @@ func (s *eth1StoreTestSuite) TestSignVerify() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, crypto.Keccak256(data), eth1KeyAlgo).Return(nil, expectedErr)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, crypto.Keccak256(data)).Return(nil, expectedErr)
 
 		signature, err := s.eth1Store.Sign(ctx, address, data)
 		assert.Equal(s.T(), expectedErr, err)
@@ -432,7 +454,7 @@ func (s *eth1StoreTestSuite) TestSignData() {
 		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
 		ecdsaSignature := append(R.Bytes(), S.Bytes()...)
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, data, eth1KeyAlgo).Return(ecdsaSignature, nil)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, data).Return(ecdsaSignature, nil)
 
 		expectedSignature := hexutil.Encode(ecdsaSignature) + recID
 		signature, err := s.eth1Store.SignData(ctx, address, data)
@@ -446,7 +468,7 @@ func (s *eth1StoreTestSuite) TestSignData() {
 		S2 := new(big.Int).Add(S, secp256k1N)
 		ecdsaSignature := append(R.Bytes(), S2.Bytes()...)
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, data, eth1KeyAlgo).Return(ecdsaSignature, nil)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, data).Return(ecdsaSignature, nil)
 
 		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + recID
 		signature, err := s.eth1Store.SignData(ctx, address, data)
@@ -471,7 +493,7 @@ func (s *eth1StoreTestSuite) TestSignTransaction() {
 
 	s.Run("should sign a payload successfully with appended V value", func() {
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, types.NewEIP155Signer(chainID).Hash(tx).Bytes(), eth1KeyAlgo).Return(ecdsaSignature, nil)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, types.NewEIP155Signer(chainID).Hash(tx).Bytes()).Return(ecdsaSignature, nil)
 
 		signedRaw, err := s.eth1Store.SignTransaction(ctx, address, chainID, tx)
 		assert.NoError(s.T(), err)
@@ -492,7 +514,7 @@ func (s *eth1StoreTestSuite) TestSignTransaction() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, gomock.Any(), eth1KeyAlgo).Return(nil, expectedErr)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, gomock.Any()).Return(nil, expectedErr)
 
 		signedRaw, err := s.eth1Store.SignTransaction(ctx, address, chainID, tx)
 		assert.Equal(s.T(), expectedErr, err)
@@ -515,7 +537,7 @@ func (s *eth1StoreTestSuite) TestSignPrivate() {
 
 	s.Run("should sign a payload successfully with appended V value", func() {
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, quorumtypes.QuorumPrivateTxSigner{}.Hash(tx).Bytes(), eth1KeyAlgo).Return(ecdsaSignature, nil)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, quorumtypes.QuorumPrivateTxSigner{}.Hash(tx).Bytes()).Return(ecdsaSignature, nil)
 
 		signedRaw, err := s.eth1Store.SignPrivate(ctx, address, tx)
 		assert.NoError(s.T(), err)
@@ -536,7 +558,7 @@ func (s *eth1StoreTestSuite) TestSignPrivate() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, gomock.Any(), eth1KeyAlgo).Return(nil, expectedErr)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, gomock.Any()).Return(nil, expectedErr)
 
 		signedRaw, err := s.eth1Store.SignPrivate(ctx, address, tx)
 		assert.Equal(s.T(), expectedErr, err)
@@ -568,7 +590,7 @@ func (s *eth1StoreTestSuite) TestSignEEA() {
 
 	s.Run("should sign a payload with privacyFor successfully with appended V value", func() {
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, hexutil.MustDecode("0x5749cc0adae7a54f9c5148a9e21719a2b472dec7b7ae7c1d68bf35e2e161f94d"), eth1KeyAlgo).Return(ecdsaSignature, nil)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, hexutil.MustDecode("0x5749cc0adae7a54f9c5148a9e21719a2b472dec7b7ae7c1d68bf35e2e161f94d")).Return(ecdsaSignature, nil)
 
 		signedRaw, err := s.eth1Store.SignEEA(ctx, address, chainID, tx, privateArgs)
 		assert.NoError(s.T(), err)
@@ -589,7 +611,7 @@ func (s *eth1StoreTestSuite) TestSignEEA() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockKeyStore.EXPECT().Sign(ctx, fakeAccount.KeyID, gomock.Any(), eth1KeyAlgo).Return(nil, expectedErr)
+		s.mockKeysConnector.EXPECT().Sign(ctx, fakeAccount.KeyID, gomock.Any()).Return(nil, expectedErr)
 
 		signedRaw, err := s.eth1Store.SignEEA(ctx, address, chainID, tx, privateArgs)
 		assert.Equal(s.T(), expectedErr, err)

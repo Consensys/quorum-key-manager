@@ -151,12 +151,9 @@ func (s *Store) Delete(_ context.Context, id, version string) error {
 		return errors.NotFoundError(errMessage)
 	}
 
-	data := map[string][]string{}
-	if version != "" {
-		data["versions"] = []string{version}
-	}
-
-	err = s.client.Delete(s.pathData(id), data)
+	err = s.client.Delete(s.pathData(id), map[string][]string{
+		"versions": {version},
+	})
 	if err != nil {
 		errMessage := "failed to delete Hashicorp secret"
 		logger.WithError(err).Error(errMessage)

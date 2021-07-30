@@ -46,7 +46,7 @@ type akvKeyStoreTestSuite struct {
 	keyStore  keys.Store
 }
 
-func TestHashicorpKeyStore(t *testing.T) {
+func TestAKVKeyStore(t *testing.T) {
 	s := new(akvKeyStoreTestSuite)
 	suite.Run(t, s)
 }

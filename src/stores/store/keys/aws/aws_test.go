@@ -236,7 +236,7 @@ func (s *awsKeyStoreTestSuite) TestDestroy() {
 	key := testutils2.FakeKey()
 
 	s.Run("should destroy a key successfully", func() {
-		s.mockKeys.EXPECT().Get(gomock.Any(), id).Return(key, nil)
+		s.mockKeys.EXPECT().GetDeleted(gomock.Any(), id).Return(key, nil)
 		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), key.Annotations.AWSKeyID).Return(&kms.ScheduleKeyDeletionOutput{}, nil)
 
 		err := s.keyStore.Destroy(ctx, id)
@@ -244,8 +244,8 @@ func (s *awsKeyStoreTestSuite) TestDestroy() {
 		assert.NoError(s.T(), err)
 	})
 
-	s.Run("should fail with same error if Get fails", func() {
-		s.mockKeys.EXPECT().Get(gomock.Any(), id).Return(nil, expectedErr)
+	s.Run("should fail with same error if GetDeleted fails", func() {
+		s.mockKeys.EXPECT().GetDeleted(gomock.Any(), id).Return(nil, expectedErr)
 
 		err := s.keyStore.Destroy(ctx, id)
 
@@ -253,7 +253,7 @@ func (s *awsKeyStoreTestSuite) TestDestroy() {
 	})
 
 	s.Run("should fail with same error if DeleteKey fails", func() {
-		s.mockKeys.EXPECT().Get(gomock.Any(), id).Return(key, nil)
+		s.mockKeys.EXPECT().GetDeleted(gomock.Any(), id).Return(key, nil)
 		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), key.Annotations.AWSKeyID).Return(nil, expectedErr)
 
 		err := s.keyStore.Destroy(ctx, id)

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/consensys/quorum-key-manager/src/stores/connectors"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -14,7 +16,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -36,18 +37,18 @@ var eth1KeyAlgo = &entities.Algorithm{
 }
 
 type Store struct {
-	keyStore keys.Store
-	db       database.Database
-	logger   log.Logger
+	keysConnector connectors.KeysConnector
+	db            database.Database
+	logger        log.Logger
 }
 
 var _ eth1.Store = &Store{}
 
-func New(keyStore keys.Store, db database.Database, logger log.Logger) *Store {
+func New(keysConnector connectors.KeysConnector, db database.Database, logger log.Logger) *Store {
 	return &Store{
-		keyStore: keyStore,
-		logger:   logger,
-		db:       db,
+		keysConnector: keysConnector,
+		logger:        logger,
+		db:            db,
 	}
 }
 
@@ -56,7 +57,7 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 }
 
 func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	key, err := s.keyStore.Create(ctx, id, eth1KeyAlgo, attr)
+	key, err := s.keysConnector.Create(ctx, id, eth1KeyAlgo, attr)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	key, err := s.keyStore.Import(ctx, id, privKey, eth1KeyAlgo, attr)
+	key, err := s.keysConnector.Import(ctx, id, privKey, eth1KeyAlgo, attr)
 	if err != nil {
 		return nil, err
 	}
@@ -106,13 +107,23 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 }
 
 func (s *Store) Delete(ctx context.Context, addr string) error {
+	acc, err := s.db.ETH1Accounts().Get(ctx, addr)
+	if err != nil {
+		return err
+	}
+
 	return s.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		err := s.db.ETH1Accounts().Delete(ctx, addr)
+		err = s.db.ETH1Accounts().Delete(ctx, addr)
 		if err != nil {
 			return err
 		}
 
-		return s.keyStore.Delete(ctx, addr)
+		err = s.keysConnector.Delete(ctx, acc.KeyID)
+		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support deleting, we only delete in DB
+			return err
+		}
+
+		return nil
 	})
 }
 
@@ -146,7 +157,7 @@ func (s *Store) Undelete(ctx context.Context, addr string) error {
 			return derr
 		}
 
-		return s.keyStore.Undelete(ctx, account.KeyID)
+		return s.keysConnector.Restore(ctx, account.KeyID)
 	})
 }
 
@@ -162,7 +173,7 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 			return derr
 		}
 
-		return s.keyStore.Destroy(ctx, account.KeyID)
+		return s.keysConnector.Destroy(ctx, account.KeyID)
 	})
 }
 
@@ -343,7 +354,7 @@ func (s *Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 		return nil, err
 	}
 
-	return s.keyStore.Encrypt(ctx, account.KeyID, data)
+	return s.keysConnector.Encrypt(ctx, account.KeyID, data)
 }
 
 func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
@@ -352,7 +363,7 @@ func (s *Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, 
 		return nil, err
 	}
 
-	return s.keyStore.Decrypt(ctx, account.KeyID, data)
+	return s.keysConnector.Decrypt(ctx, account.KeyID, data)
 }
 
 func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
@@ -411,7 +422,7 @@ func (s *Store) SignData(ctx context.Context, addr string, data []byte) ([]byte,
 		return nil, err
 	}
 
-	signature, err := s.keyStore.Sign(ctx, account.KeyID, data, eth1KeyAlgo)
+	signature, err := s.keysConnector.Sign(ctx, account.KeyID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +447,7 @@ func (s *Store) SignData(ctx context.Context, addr string, data []byte) ([]byte,
 	return nil, errors.DependencyFailureError(errMessage)
 }
 
-// Azure generates ECDSA signature whom does not prevent malleability
+// Azure generates ECDSA signature that does not prevent malleability
 // A malleable signature can be transformed into a new and valid one for a different message or key.
 // https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
 // More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/
