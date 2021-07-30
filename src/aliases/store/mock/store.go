@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/models"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,7 +36,7 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // CreateAlias mocks base method.
-func (m *MockStore) CreateAlias(ctx context.Context, registry aliasstore.RegistryName, alias aliasstore.Alias) error {
+func (m *MockStore) CreateAlias(ctx context.Context, registry aliasmodels.RegistryName, alias aliasmodels.Alias) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, alias)
 	ret0, _ := ret[0].(error)
@@ -50,7 +50,7 @@ func (mr *MockStoreMockRecorder) CreateAlias(ctx, registry, alias interface{}) *
 }
 
 // DeleteAlias mocks base method.
-func (m *MockStore) DeleteAlias(ctx context.Context, registry aliasstore.RegistryName, aliasKey aliasstore.AliasKey) error {
+func (m *MockStore) DeleteAlias(ctx context.Context, registry aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAlias", ctx, registry, aliasKey)
 	ret0, _ := ret[0].(error)
@@ -64,7 +64,7 @@ func (mr *MockStoreMockRecorder) DeleteAlias(ctx, registry, aliasKey interface{}
 }
 
 // DeleteRegistry mocks base method.
-func (m *MockStore) DeleteRegistry(ctx context.Context, registry aliasstore.RegistryName) error {
+func (m *MockStore) DeleteRegistry(ctx context.Context, registry aliasmodels.RegistryName) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
 	ret0, _ := ret[0].(error)
@@ -78,10 +78,10 @@ func (mr *MockStoreMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomo
 }
 
 // GetAlias mocks base method.
-func (m *MockStore) GetAlias(ctx context.Context, registry aliasstore.RegistryName, aliasKey aliasstore.AliasKey) (*aliasstore.Alias, error) {
+func (m *MockStore) GetAlias(ctx context.Context, registry aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) (*aliasmodels.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAlias", ctx, registry, aliasKey)
-	ret0, _ := ret[0].(*aliasstore.Alias)
+	ret0, _ := ret[0].(*aliasmodels.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -93,10 +93,10 @@ func (mr *MockStoreMockRecorder) GetAlias(ctx, registry, aliasKey interface{}) *
 }
 
 // ListAliases mocks base method.
-func (m *MockStore) ListAliases(ctx context.Context, registry aliasstore.RegistryName) ([]aliasstore.Alias, error) {
+func (m *MockStore) ListAliases(ctx context.Context, registry aliasmodels.RegistryName) ([]aliasmodels.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
-	ret0, _ := ret[0].([]aliasstore.Alias)
+	ret0, _ := ret[0].([]aliasmodels.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -108,7 +108,7 @@ func (mr *MockStoreMockRecorder) ListAliases(ctx, registry interface{}) *gomock.
 }
 
 // UpdateAlias mocks base method.
-func (m *MockStore) UpdateAlias(ctx context.Context, registry aliasstore.RegistryName, alias aliasstore.Alias) error {
+func (m *MockStore) UpdateAlias(ctx context.Context, registry aliasmodels.RegistryName, alias aliasmodels.Alias) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, alias)
 	ret0, _ := ret[0].(error)
