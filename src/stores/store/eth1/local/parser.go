@@ -13,5 +13,10 @@ func parseKey(key *entities.Key, attr *entities.Attributes) *entities.ETH1Accoun
 		Tags:                attr.Tags,
 		PublicKey:           key.PublicKey,
 		CompressedPublicKey: crypto.CompressPubkey(pubKey),
+		Metadata: &entities.Metadata{
+			Disabled:  key.Metadata.Disabled,
+			CreatedAt: key.Metadata.CreatedAt,
+			UpdatedAt: key.Metadata.UpdatedAt,
+		},
 	}
 }

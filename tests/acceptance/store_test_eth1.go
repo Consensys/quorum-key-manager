@@ -92,7 +92,6 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
 		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
-		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
 	})
 }
 
@@ -164,7 +163,6 @@ func (s *eth1TestSuite) TestGet() {
 		assert.True(s.T(), retrievedAccount.Metadata.DeletedAt.IsZero())
 		assert.NotEmpty(s.T(), retrievedAccount.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), retrievedAccount.Metadata.UpdatedAt)
-		assert.Equal(s.T(), retrievedAccount.Metadata.UpdatedAt, retrievedAccount.Metadata.CreatedAt)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {

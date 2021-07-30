@@ -23,9 +23,10 @@ type signatureInfo struct {
 func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*entities.Key, error) {
 	key := &entities.Key{
 		ID:          id,
+		Algo:        &entities.Algorithm{},
+		Metadata:    &entities.Metadata{},
 		Tags:        tags,
 		Annotations: parseAnnotations(*kmsPubKey.KeyId, kmsDescribe),
-		Metadata:    &entities.Metadata{},
 	}
 
 	switch {
@@ -47,6 +48,7 @@ func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.Des
 
 	// createdAt field always provided
 	key.Metadata.CreatedAt = *kmsDescribe.KeyMetadata.CreationDate
+	key.Metadata.UpdatedAt = key.Metadata.CreatedAt
 	if kmsDescribe.KeyMetadata.DeletionDate != nil {
 		key.Metadata.DeletedAt = *kmsDescribe.KeyMetadata.DeletionDate
 	}

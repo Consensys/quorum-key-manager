@@ -35,9 +35,7 @@ func (s *keysTestSuite) TearDownSuite() {
 	s.env.logger.Info("deleting the following keys", "keys", s.keyIds)
 	for _, id := range s.keyIds {
 		err := s.store.Delete(ctx, id)
-		if err != nil && (errors.IsNotSupportedError(err) || errors.IsNotImplementedError(err)) {
-			return
-		}
+		require.NoError(s.T(), err)
 	}
 
 	for _, id := range s.keyIds {
@@ -45,12 +43,6 @@ func (s *keysTestSuite) TearDownSuite() {
 		for {
 			err := s.store.Destroy(ctx, id)
 			if err == nil {
-				break
-			}
-			if errors.IsNotSupportedError(err) || errors.IsNotImplementedError(err) {
-				return
-			}
-			if !errors.IsStatusConflictError(err) && !errors.IsNotFoundError(err) {
 				break
 			}
 
