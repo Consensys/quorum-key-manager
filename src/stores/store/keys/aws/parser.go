@@ -5,18 +5,9 @@ import (
 	"encoding/asn1"
 	"fmt"
 	"math/big"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-)
-
-const (
-	awsKeyID             = "aws-KeyId"
-	awsCustomKeyStoreID  = "aws-CustomKeyStoreId"
-	awsCloudHsmClusterID = "aws-CloudHsmClusterId"
-	awsAccountID         = "aws-AccountId"
-	awsARN               = "aws-ARN"
 )
 
 type publicKeyInfo struct {
@@ -30,12 +21,17 @@ type signatureInfo struct {
 }
 
 func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*entities.Key, error) {
-	var algo *entities.Algorithm
-	var pubKey []byte
+	key := &entities.Key{
+		ID:          id,
+		Algo:        &entities.Algorithm{},
+		Metadata:    &entities.Metadata{},
+		Tags:        tags,
+		Annotations: parseAnnotations(*kmsPubKey.KeyId, kmsDescribe),
+	}
 
 	switch {
 	case *kmsPubKey.KeyUsage == kms.KeyUsageTypeSignVerify && *kmsPubKey.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1:
-		algo = &entities.Algorithm{
+		key.Algo = &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}
@@ -45,61 +41,38 @@ func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.Des
 		if err != nil {
 			return nil, err
 		}
-		pubKey = val.PublicKey.Bytes
+		key.PublicKey = val.PublicKey.Bytes
 	default:
 		return nil, fmt.Errorf("unsupported public key type returned from AWS KMS")
 	}
 
-	return &entities.Key{
-		ID:          id,
-		PublicKey:   pubKey,
-		Algo:        algo,
-		Metadata:    parseMetadata(kmsDescribe),
-		Tags:        tags,
-		Annotations: parseAnnotations(*kmsPubKey.KeyId, kmsDescribe),
-	}, nil
-}
-
-func parseMetadata(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
 	// createdAt field always provided
-	createdAt := describedKey.KeyMetadata.CreationDate
-
-	deletedAt := &time.Time{}
-	if describedKey.KeyMetadata.DeletionDate != nil {
-		deletedAt = describedKey.KeyMetadata.DeletionDate
+	key.Metadata.CreatedAt = *kmsDescribe.KeyMetadata.CreationDate
+	key.Metadata.UpdatedAt = key.Metadata.CreatedAt
+	if kmsDescribe.KeyMetadata.DeletionDate != nil {
+		key.Metadata.DeletedAt = *kmsDescribe.KeyMetadata.DeletionDate
 	}
+	key.Metadata.Disabled = !*kmsDescribe.KeyMetadata.Enabled
 
-	expireAt := &time.Time{}
-	if describedKey.KeyMetadata.ValidTo != nil {
-		expireAt = describedKey.KeyMetadata.ValidTo
-	}
-
-	return &entities.Metadata{
-		Version:   "1",
-		Disabled:  !*describedKey.KeyMetadata.Enabled,
-		ExpireAt:  *expireAt,
-		CreatedAt: *createdAt,
-		DeletedAt: *deletedAt,
-		UpdatedAt: *createdAt, // Cannot update keys so updatedAt = createdAt
-	}
+	return key, nil
 }
 
-func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]string {
-	annotations := make(map[string]string)
-
-	annotations[awsKeyID] = keyID
+func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) *entities.Annotation {
+	annotations := &entities.Annotation{
+		AWSKeyID: keyID,
+	}
 
 	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
-		annotations[awsCustomKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
+		annotations.AWSCustomKeyStoreID = *keyDesc.KeyMetadata.CustomKeyStoreId
 	}
 	if keyDesc.KeyMetadata.CloudHsmClusterId != nil {
-		annotations[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId
+		annotations.AWSCloudHsmClusterID = *keyDesc.KeyMetadata.CloudHsmClusterId
 	}
 	if keyDesc.KeyMetadata.AWSAccountId != nil {
-		annotations[awsAccountID] = *keyDesc.KeyMetadata.AWSAccountId
+		annotations.AWSAccountID = *keyDesc.KeyMetadata.AWSAccountId
 	}
 	if keyDesc.KeyMetadata.Arn != nil {
-		annotations[awsARN] = *keyDesc.KeyMetadata.Arn
+		annotations.AWSArn = *keyDesc.KeyMetadata.Arn
 	}
 
 	return annotations

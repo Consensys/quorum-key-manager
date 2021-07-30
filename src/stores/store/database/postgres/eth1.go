@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
-
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -27,7 +28,7 @@ func NewETH1Accounts(logger log.Logger, db postgres.Client) *ETH1Accounts {
 	}
 }
 
-func (d *ETH1Accounts) Get(ctx context.Context, addr string) (*models.ETH1Account, error) {
+func (d *ETH1Accounts) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	eth1Acc := &models.ETH1Account{Address: addr}
 
 	err := d.db.SelectPK(ctx, eth1Acc)
@@ -37,10 +38,10 @@ func (d *ETH1Accounts) Get(ctx context.Context, addr string) (*models.ETH1Accoun
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return eth1Acc, nil
+	return eth1Acc.ToEntity(), nil
 }
 
-func (d *ETH1Accounts) GetDeleted(ctx context.Context, addr string) (*models.ETH1Account, error) {
+func (d *ETH1Accounts) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	eth1Acc := &models.ETH1Account{Address: addr}
 
 	err := d.db.SelectDeletedPK(ctx, eth1Acc)
@@ -50,10 +51,10 @@ func (d *ETH1Accounts) GetDeleted(ctx context.Context, addr string) (*models.ETH
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return eth1Acc, nil
+	return eth1Acc.ToEntity(), nil
 }
 
-func (d *ETH1Accounts) GetAll(ctx context.Context) ([]*models.ETH1Account, error) {
+func (d *ETH1Accounts) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 	var eth1Accs []*models.ETH1Account
 
 	err := d.db.Select(ctx, &eth1Accs)
@@ -63,10 +64,15 @@ func (d *ETH1Accounts) GetAll(ctx context.Context) ([]*models.ETH1Account, error
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return eth1Accs, nil
+	var accounts []*entities.ETH1Account
+	for _, acc := range eth1Accs {
+		accounts = append(accounts, acc.ToEntity())
+	}
+
+	return accounts, nil
 }
 
-func (d *ETH1Accounts) GetAllDeleted(ctx context.Context) ([]*models.ETH1Account, error) {
+func (d *ETH1Accounts) GetAllDeleted(ctx context.Context) ([]*entities.ETH1Account, error) {
 	var eth1Accs []*models.ETH1Account
 
 	err := d.db.SelectDeleted(ctx, &eth1Accs)
@@ -76,29 +82,38 @@ func (d *ETH1Accounts) GetAllDeleted(ctx context.Context) ([]*models.ETH1Account
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return eth1Accs, nil
+	var accounts []*entities.ETH1Account
+	for _, acc := range eth1Accs {
+		accounts = append(accounts, acc.ToEntity())
+	}
+
+	return accounts, nil
 }
 
-func (d *ETH1Accounts) Add(ctx context.Context, account *models.ETH1Account) error {
-	err := d.db.Insert(ctx, account)
+func (d *ETH1Accounts) Add(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error) {
+	accModel := models.NewETH1Account(account)
+
+	err := d.db.Insert(ctx, accModel)
 	if err != nil {
 		errMessage := "failed to add account"
 		d.logger.With("address", account.Address).WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return nil
+	return accModel.ToEntity(), nil
 }
 
-func (d *ETH1Accounts) Update(ctx context.Context, account *models.ETH1Account) error {
-	err := d.db.UpdatePK(ctx, account)
+func (d *ETH1Accounts) Update(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error) {
+	accModel := models.NewETH1Account(account)
+
+	err := d.db.UpdatePK(ctx, accModel)
 	if err != nil {
 		errMessage := "failed to update account"
 		d.logger.With("address", account.Address).WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return nil
+	return accModel.ToEntity(), nil
 }
 
 func (d *ETH1Accounts) Delete(ctx context.Context, addr string) error {
@@ -112,9 +127,9 @@ func (d *ETH1Accounts) Delete(ctx context.Context, addr string) error {
 	return nil
 }
 
-func (d *ETH1Accounts) Restore(ctx context.Context, account *models.ETH1Account) error {
-	account.DeletedAt = time.Time{}
-	err := d.Update(ctx, account)
+func (d *ETH1Accounts) Restore(ctx context.Context, account *entities.ETH1Account) error {
+	account.Metadata.DeletedAt = time.Time{}
+	_, err := d.Update(ctx, account)
 	if err != nil {
 		errMessage := "failed to restore account"
 		d.logger.With("address", account.Address).WithError(err).Error(errMessage)

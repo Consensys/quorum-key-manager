@@ -7,7 +7,7 @@ type Key struct {
 	Algo        *Algorithm
 	Metadata    *Metadata
 	Tags        map[string]string
-	Annotations map[string]string
+	Annotations *Annotation
 }
 
 func (k *Key) IsETH1Account() bool {

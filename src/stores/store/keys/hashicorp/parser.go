@@ -2,12 +2,12 @@ package hashicorp
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/hashicorp/vault/api"
 )
 
@@ -25,7 +25,6 @@ func parseAPISecretToKey(hashicorpSecret *api.Secret) (*entities.Key, error) {
 			EllipticCurve: entities.Curve(hashicorpSecret.Data[curveLabel].(string)),
 		},
 		Metadata: &entities.Metadata{
-			Version:  hashicorpSecret.Data[versionLabel].(json.Number).String(),
 			Disabled: false,
 		},
 		Tags: make(map[string]string),

@@ -3,202 +3,51 @@ package connectors
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/policy"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 )
 
-type KeyConnector struct {
-	store    keys.Store
-	logger   log.Logger
-	resolver *policy.Resolver
-}
+//go:generate mockgen -source=keys.go -destination=mock/keys.go -package=mock
 
-var _ keys.Store = KeyConnector{}
+type KeysConnector interface {
+	// Create creates a new key and stores it
+	Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
-func NewKeyConnector(store keys.Store, resolvr *policy.Resolver, logger log.Logger) *KeyConnector {
-	return &KeyConnector{
-		store:    store,
-		logger:   logger,
-		resolver: resolvr,
-	}
-}
+	// Import imports an externally created key and stores it
+	Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
-func (c KeyConnector) Info(ctx context.Context) (*entities.StoreInfo, error) {
-	result, err := c.store.Info(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// Get gets the public part of a stored key.
+	Get(ctx context.Context, id string) (*entities.Key, error)
 
-	c.logger.Debug("key store info retrieved successfully")
-	return result, nil
-}
+	// List lists keys
+	List(ctx context.Context) ([]string, error)
 
-func (c KeyConnector) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := c.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
-	logger.Debug("creating key")
+	// Update updates key tags
+	Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error)
 
-	result, err := c.store.Create(ctx, id, alg, attr)
-	if err != nil {
-		return nil, err
-	}
+	// Delete soft-deletes a key
+	Delete(ctx context.Context, id string) error
 
-	logger.Info("key created successfully")
-	return result, nil
-}
+	// GetDeleted gets a deleted key
+	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
 
-func (c KeyConnector) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := c.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
-	logger.Debug("importing key")
+	// ListDeleted lists deleted keys
+	ListDeleted(ctx context.Context) ([]string, error)
 
-	result, err := c.store.Import(ctx, id, privKey, alg, attr)
-	if err != nil {
-		return nil, err
-	}
+	// Restore restores a previously deleted secret
+	Restore(ctx context.Context, id string) error
 
-	logger.Info("key imported successfully")
-	return result, nil
-}
+	// Destroy destroys a key permanently
+	Destroy(ctx context.Context, id string) error
 
-func (c KeyConnector) Get(ctx context.Context, id string) (*entities.Key, error) {
-	logger := c.logger.With("id", id)
+	// Sign from any arbitrary data using the specified key
+	Sign(ctx context.Context, id string, data []byte) ([]byte, error)
 
-	result, err := c.store.Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
+	// Verify verifies the signature belongs to the corresponding key
+	Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error
 
-	logger.Debug("key retrieved successfully")
-	return result, nil
-}
+	// Encrypt encrypts any arbitrary data using a specified key
+	Encrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 
-func (c KeyConnector) List(ctx context.Context) ([]string, error) {
-	result, err := c.store.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	c.logger.Debug("keys listed successfully")
-	return result, nil
-}
-
-func (c KeyConnector) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	logger := c.logger.With("id", id)
-	logger.Debug("updating key")
-
-	result, err := c.store.Update(ctx, id, attr)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Info("key updated successfully")
-	return result, nil
-}
-
-func (c KeyConnector) Delete(ctx context.Context, id string) error {
-	logger := c.logger.With("id", id)
-	logger.Debug("deleting key")
-
-	err := c.store.Delete(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("key deleted successfully")
-	return nil
-}
-
-func (c KeyConnector) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
-	logger := c.logger.With("id", id)
-
-	result, err := c.store.GetDeleted(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Debug("deleted key retrieved successfully")
-	return result, nil
-}
-
-func (c KeyConnector) ListDeleted(ctx context.Context) ([]string, error) {
-	result, err := c.store.ListDeleted(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	c.logger.Debug("deleted keys listed successfully")
-	return result, nil
-}
-
-func (c KeyConnector) Undelete(ctx context.Context, id string) error {
-	logger := c.logger.With("id", id)
-	logger.Debug("restoring key")
-
-	err := c.store.Undelete(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("key restored successfully")
-	return nil
-}
-
-func (c KeyConnector) Destroy(ctx context.Context, id string) error {
-	logger := c.logger.With("id", id)
-	logger.Debug("destroying key")
-
-	err := c.store.Destroy(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("key was permanently deleted")
-	return nil
-}
-
-func (c KeyConnector) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
-	logger := c.logger.With("id", id)
-
-	result, err := c.store.Sign(ctx, id, data)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Debug("payload signed successfully")
-	return result, nil
-}
-
-func (c KeyConnector) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	err := c.store.Verify(ctx, pubKey, data, sig, algo)
-	if err != nil {
-		return err
-	}
-
-	c.logger.Debug("data verified successfully")
-	return nil
-}
-
-func (c KeyConnector) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
-	logger := c.logger.With("id", id)
-
-	result, err := c.store.Encrypt(ctx, id, data)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Debug("data encrypted successfully")
-	return result, nil
-}
-
-func (c KeyConnector) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
-	logger := c.logger.With("id", id)
-
-	result, err := c.store.Decrypt(ctx, id, data)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Debug("data decrypted successfully")
-	return result, nil
+	// Decrypt decrypts a single block of encrypted data.
+	Decrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 }

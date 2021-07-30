@@ -137,12 +137,9 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 func (s *Store) Delete(_ context.Context, id, version string) error {
 	logger := s.logger.With("id", id).With("version", version)
 
-	var callData = map[string][]string{}
-	if version != "" {
-		callData["versions"] = []string{version}
-	}
-
-	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
+	hashicorpSecretData, err := s.client.Read(s.pathData(id), map[string][]string{
+		"versions": {version},
+	})
 	if err != nil {
 		errMessage := "failed to get Hashicorp secret data for deletion"
 		logger.WithError(err).Error(errMessage)
@@ -154,12 +151,9 @@ func (s *Store) Delete(_ context.Context, id, version string) error {
 		return errors.NotFoundError(errMessage)
 	}
 
-	data := map[string][]string{}
-	if version != "" {
-		data["versions"] = []string{version}
-	}
-
-	err = s.client.Delete(s.pathData(id), data)
+	err = s.client.Delete(s.pathData(id), map[string][]string{
+		"versions": {version},
+	})
 	if err != nil {
 		errMessage := "failed to delete Hashicorp secret"
 		logger.WithError(err).Error(errMessage)

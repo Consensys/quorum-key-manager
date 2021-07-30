@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/mock"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
@@ -18,7 +20,6 @@ import (
 	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/manager/mock"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	mockkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +43,7 @@ type keysHandlerTestSuite struct {
 
 	ctrl         *gomock.Controller
 	storeManager *mockstoremanager.MockManager
-	keyStore     *mockkeys.MockStore
+	keyStore     *mock.MockKeysConnector
 	router       *mux.Router
 	ctx          context.Context
 }
@@ -56,7 +57,7 @@ func (s *keysHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
 	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
-	s.keyStore = mockkeys.NewMockStore(s.ctrl)
+	s.keyStore = mock.NewMockKeysConnector(s.ctrl)
 
 	s.router = mux.NewRouter()
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{

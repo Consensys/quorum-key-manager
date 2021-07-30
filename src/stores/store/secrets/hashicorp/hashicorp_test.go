@@ -309,17 +309,15 @@ func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 	})
 
 	s.Run("should fail with same NotFound if secret is not found by id ", func() {
-		data := map[string][]string{}
-		s.mockVault.EXPECT().Read(expectedPath, data).Return(nil, nil)
+		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(nil, nil)
 
 		err := s.secretStore.Delete(ctx, id, "")
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 
 	s.Run("should fail with same error if delete secret by id fails", func() {
-		data := map[string][]string{}
-		s.mockVault.EXPECT().Read(expectedPath, data).Return(&hashicorp.Secret{}, nil)
-		s.mockVault.EXPECT().Delete(expectedPath, data).Return(expectedErr)
+		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(&hashicorp.Secret{}, nil)
+		s.mockVault.EXPECT().Delete(expectedPath, gomock.Any()).Return(expectedErr)
 
 		err := s.secretStore.Delete(ctx, id, "")
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))

@@ -7,27 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/pkg/common"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/ethereum/go-ethereum/crypto"
 )
-
-func convertToAKVOps(ops []entities.CryptoOperation) []keyvault.JSONWebKeyOperation {
-	akvOps := []keyvault.JSONWebKeyOperation{}
-
-	for _, op := range ops {
-		switch op {
-		case entities.Encryption:
-			akvOps = append(akvOps, keyvault.Encrypt, keyvault.Decrypt)
-		case entities.Signing:
-			akvOps = append(akvOps, keyvault.Sign, keyvault.Verify)
-		}
-	}
-
-	return akvOps
-}
 
 func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	kAttr := &keyvault.KeyAttributes{}
@@ -36,19 +22,6 @@ func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 		kAttr.Expires = &ttl
 	}
 	return kAttr
-}
-
-func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities.Algorithm {
-	algo := &entities.Algorithm{}
-	if kty == keyvault.EC {
-		algo.Type = entities.Ecdsa
-	}
-
-	if crv == keyvault.P256K {
-		algo.EllipticCurve = entities.Secp256k1
-	}
-
-	return algo
 }
 
 func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
@@ -66,24 +39,28 @@ func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 
 func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
 	key := &entities.Key{
+		ID:        parseKeyID(res.Key.Kid),
 		PublicKey: pubKeyBytes(res.Key),
-		Algo:      algoFromAKVKeyTypeCrv(res.Key.Kty, res.Key.Crv),
+		Tags:      common.Tomapstr(res.Tags),
 		Metadata: &entities.Metadata{
-			Disabled:  !*res.Attributes.Enabled,
 			CreatedAt: time.Time(*res.Attributes.Created),
 			UpdatedAt: time.Time(*res.Attributes.Updated),
 		},
-		Tags: common.Tomapstr(res.Tags),
+		Algo: &entities.Algorithm{},
 	}
 
-	key.ID, key.Metadata.Version = parseKeyID(res.Key.Kid)
+	if res.Key.Kty == keyvault.EC {
+		key.Algo.Type = entities.Ecdsa
+	}
+
+	if res.Key.Crv == keyvault.P256K {
+		key.Algo.EllipticCurve = entities.Secp256k1
+	}
+
 	return key
 }
 
-func parseKeyID(kid *string) (id, version string) {
-	if kid == nil {
-		return "", ""
-	}
+func parseKeyID(kid *string) string {
 	// path.Base to only retrieve the secretVersion instead of https://<vaultName>.vault.azure.net/keys/<keyName>/<secretVersion>
 	chunks := strings.Split(*kid, "/")
 	var idx int
@@ -94,20 +71,10 @@ func parseKeyID(kid *string) (id, version string) {
 	}
 
 	if len(chunks) > idx+1 {
-		id = chunks[idx+1]
+		return chunks[idx+1]
 	}
-	if len(chunks) > idx+2 {
-		version = chunks[idx+2]
-	}
-	return id, version
-}
 
-func parseKeyDeleteBundleRes(res *keyvault.DeletedKeyBundle) *entities.Key {
-	return parseKeyBundleRes(&keyvault.KeyBundle{
-		Attributes: res.Attributes,
-		Key:        res.Key,
-		Tags:       res.Tags,
-	})
+	return ""
 }
 
 func decodePubKeyBase64(src string) ([]byte, error) {

@@ -1,16 +1,12 @@
 package acceptancetests
 
 import (
-	"encoding/hex"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database"
-	"math/big"
-	"time"
-
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
@@ -18,9 +14,11 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"math/big"
 )
 
 type eth1TestSuite struct {
@@ -39,35 +37,14 @@ func (s *eth1TestSuite) TearDownSuite() {
 	s.env.logger.Info("Deleting the following accounts", "addresses", accounts)
 	for _, address := range accounts {
 		err = s.store.Delete(ctx, address)
-		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-			err := s.db.ETH1Accounts().Delete(ctx, address)
-			require.NoError(s.T(), err)
-		}
+		require.NoError(s.T(), err)
 	}
 
 	for _, acc := range accounts {
-		maxTries := MaxRetries
-		for {
-			err := s.store.Destroy(ctx, acc)
-			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-				err := s.db.ETH1Accounts().Purge(ctx, acc)
-				require.NoError(s.T(), err)
-				break
-			}
-			if err != nil && !errors.IsStatusConflictError(err) {
-				break
-			}
-			if maxTries <= 0 {
-				if err != nil {
-					s.env.logger.Info("failed to destroy account", "account", acc)
-				}
-				break
-			}
-
-			maxTries -= 1
-			waitTime := time.Second * time.Duration(MaxRetries-maxTries)
-			s.env.logger.Debug("waiting for deletion to complete", "account", acc, "waitFor", waitTime.Seconds())
-			time.Sleep(waitTime)
+		err = s.store.Destroy(ctx, acc)
+		if err != nil {
+			s.env.logger.WithError(err).With("address", acc).Error("failed to destroy account")
+			break
 		}
 	}
 }
@@ -92,29 +69,29 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
 		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
-		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
 	})
 }
 
 func (s *eth1TestSuite) TestImport() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
-	privKey, _ := hex.DecodeString(privKeyECDSA)
-	id := s.newID("my-account-import")
-
-	account, err := s.store.Import(ctx, id, privKey, &entities.Attributes{
-		Tags: tags,
-	})
-	if err != nil && errors.IsNotSupportedError(err) {
-		return
-	}
+	privKey, err := crypto.GenerateKey()
 	require.NoError(s.T(), err)
 
 	s.Run("should create a new Ethereum Account successfully", func() {
+		id := s.newID("my-account-import")
+		account, err := s.store.Import(ctx, id, privKey.D.Bytes(), &entities.Attributes{
+			Tags: tags,
+		})
+		if err != nil && errors.IsNotSupportedError(err) {
+			return
+		}
+		require.NoError(s.T(), err)
+
 		assert.Equal(s.T(), account.KeyID, id)
-		assert.Equal(s.T(), "0x83a0254be47813BBff771F4562744676C4e793F0", account.Address.Hex())
-		assert.Equal(s.T(), "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2", hexutil.Encode(account.PublicKey))
-		assert.Equal(s.T(), "0x02555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f", hexutil.Encode(account.CompressedPublicKey))
+		assert.Equal(s.T(), crypto.PubkeyToAddress(privKey.PublicKey), account.Address)
+		assert.Equal(s.T(), crypto.FromECDSAPub(&privKey.PublicKey), account.PublicKey)
+		assert.Equal(s.T(), crypto.CompressPubkey(&privKey.PublicKey), account.CompressedPublicKey)
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
 		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
@@ -124,21 +101,23 @@ func (s *eth1TestSuite) TestImport() {
 	})
 
 	s.Run("should fail with StatusConflict if we violate a constraint (same address already exists)", func() {
-		account, err := s.store.Import(ctx, "my-account", privKey, &entities.Attributes{
+		id := s.newID("my-account-import-duplicate")
+		account, err := s.store.Import(ctx, id, privKey.D.Bytes(), &entities.Attributes{
 			Tags: tags,
 		})
 
 		require.Nil(s.T(), account)
-		assert.True(s.T(), errors.IsStatusConflictError(err))
+		assert.True(s.T(), errors.IsStatusConflictError(err) || errors.IsNotSupportedError(err))
 	})
 
 	s.Run("should fail with InvalidParameterError if private key is invalid", func() {
-		account, err := s.store.Import(ctx, "my-account", []byte("invalidPrivKey"), &entities.Attributes{
+		id := s.newID("my-account-import-failure")
+		account, err := s.store.Import(ctx, id, []byte("invalidPrivKey"), &entities.Attributes{
 			Tags: tags,
 		})
 
 		require.Nil(s.T(), account)
-		assert.True(s.T(), errors.IsInvalidParameterError(err))
+		assert.True(s.T(), errors.IsInvalidParameterError(err) || errors.IsNotSupportedError(err))
 	})
 }
 
@@ -164,7 +143,6 @@ func (s *eth1TestSuite) TestGet() {
 		assert.True(s.T(), retrievedAccount.Metadata.DeletedAt.IsZero())
 		assert.NotEmpty(s.T(), retrievedAccount.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), retrievedAccount.Metadata.UpdatedAt)
-		assert.Equal(s.T(), retrievedAccount.Metadata.UpdatedAt, retrievedAccount.Metadata.CreatedAt)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {

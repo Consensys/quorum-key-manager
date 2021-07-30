@@ -88,9 +88,7 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
-		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
-		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
@@ -145,9 +143,7 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
-		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
-		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
@@ -161,10 +157,18 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	})
 }
 
-func (s *hashicorpKeyStoreTestSuite) TestGet() {
+func (s *hashicorpKeyStoreTestSuite) TestUpdate() {
 	ctx := context.Background()
 	expectedPath := s.mountPoint + "/keys/" + id
-	attributes := testutils.FakeAttributes()
+	newAttributes := &entities.Attributes{
+		Tags: map[string]string{
+			"tag1": "newTagValue1",
+			"tag2": "newTagValue2",
+		},
+	}
+	expectedData := map[string]interface{}{
+		tagsLabel: newAttributes.Tags,
+	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
 			"id":         id,
@@ -172,8 +176,8 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 			"curve":      string(entities.Secp256k1),
 			"algorithm":  string(entities.Ecdsa),
 			"tags": map[string]interface{}{
-				"tag1": "tagValue1",
-				"tag2": "tagValue2",
+				"tag1": "newTagValue1",
+				"tag2": "newTagValue2",
 			},
 			"version":    json.Number("1"),
 			"created_at": time.Now().Format(time.RFC3339),
@@ -181,60 +185,22 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		},
 	}
 
-	s.Run("should get a key successfully without version", func() {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(hashicorpSecret, nil)
+	s.Run("should update a key successfully", func() {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
 
-		key, err := s.keyStore.Get(ctx, id)
-
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
-		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
-		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.False(s.T(), key.Metadata.Disabled)
-		assert.Equal(s.T(), "1", key.Metadata.Version)
-		assert.Equal(s.T(), attributes.Tags, key.Tags)
-		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
-		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
-	})
-
-	s.Run("should fail with same error if read fails", func() {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, expectedErr)
-
-		key, err := s.keyStore.Get(ctx, id)
-
-		assert.Nil(s.T(), key)
-		assert.True(s.T(), errors.IsHashicorpVaultError(err))
-	})
-}
-
-func (s *hashicorpKeyStoreTestSuite) TestList() {
-	ctx := context.Background()
-	expectedPath := s.mountPoint + "/keys"
-	expectedIds := []interface{}{"my-key1", "my-key2"}
-
-	s.Run("should list all secret ids successfully", func() {
-		hashicorpSecret := &hashicorp.Secret{
-			Data: map[string]interface{}{
-				"keys": expectedIds,
-			},
-		}
-
-		s.mockVault.EXPECT().List(expectedPath).Return(hashicorpSecret, nil)
-
-		ids, err := s.keyStore.List(ctx)
+		key, err := s.keyStore.Update(ctx, id, newAttributes)
 
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), []string{"my-key1", "my-key2"}, ids)
+		assert.Equal(s.T(), newAttributes.Tags, key.Tags)
 	})
 
-	s.Run("should fail with same error if read fails", func() {
-		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
+	s.Run("should fail with same error if write fails", func() {
+		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
 
-		key, err := s.keyStore.List(ctx)
+		key, err := s.keyStore.Update(ctx, id, newAttributes)
 
 		assert.Nil(s.T(), key)
-		assert.True(s.T(), errors.IsHashicorpVaultError(err))
+		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
@@ -255,7 +221,10 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			dataLabel: expectedData,
 		}).Return(hashicorpSecret, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, data)
+		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), expectedSignature, base64.URLEncoding.EncodeToString(signature))
@@ -266,9 +235,67 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			dataLabel: expectedData,
 		}).Return(nil, expectedErr)
 
-		signature, err := s.keyStore.Sign(ctx, id, data)
+		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
 
 		assert.Empty(s.T(), signature)
-		assert.True(s.T(), errors.IsHashicorpVaultError(err))
+		assert.Equal(s.T(), expectedErr, err)
+	})
+}
+
+func (s *hashicorpKeyStoreTestSuite) TestDestroy() {
+	ctx := context.Background()
+	expectedPath := s.mountPoint + "/keys/" + id + "/destroy"
+
+	s.Run("should sign payload successfully", func() {
+		s.mockVault.EXPECT().Delete(expectedPath, map[string][]string{}).Return(nil)
+
+		err := s.keyStore.Destroy(ctx, id)
+		assert.NoError(s.T(), err)
+	})
+
+	s.Run("should return same wrapped error if Delete fails", func() {
+		s.mockVault.EXPECT().Delete(expectedPath, map[string][]string{}).Return(expectedErr)
+
+		err := s.keyStore.Destroy(ctx, id)
+		assert.Equal(s.T(), expectedErr, err)
+	})
+}
+
+func (s *hashicorpKeyStoreTestSuite) TestDelete() {
+	ctx := context.Background()
+
+	s.Run("should return NotSupportedError", func() {
+		err := s.keyStore.Delete(ctx, id)
+		assert.Equal(s.T(), errors.ErrNotSupported, err)
+	})
+}
+
+func (s *hashicorpKeyStoreTestSuite) TestUndelete() {
+	ctx := context.Background()
+
+	s.Run("should return NotSupportedError", func() {
+		err := s.keyStore.Undelete(ctx, id)
+		assert.Equal(s.T(), errors.ErrNotSupported, err)
+	})
+}
+
+func (s *hashicorpKeyStoreTestSuite) TestEncrypt() {
+	ctx := context.Background()
+
+	s.Run("should return NotImplementedError", func() {
+		_, err := s.keyStore.Encrypt(ctx, id, []byte(""))
+		assert.Equal(s.T(), errors.ErrNotImplemented, err)
+	})
+}
+
+func (s *hashicorpKeyStoreTestSuite) TestDecrypt() {
+	ctx := context.Background()
+
+	s.Run("should return NotImplementedError", func() {
+		_, err := s.keyStore.Decrypt(ctx, id, []byte(""))
+		assert.Equal(s.T(), errors.ErrNotImplemented, err)
 	})
 }
