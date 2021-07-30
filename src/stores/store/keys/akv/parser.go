@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/base64"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"math/big"
 	"strings"
 	"time"
@@ -37,21 +36,24 @@ func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 
 }
 
-func parseKeyBundleRes(res *keyvault.KeyBundle) *models.Key {
-	key := &models.Key{
+func parseKeyBundleRes(res *keyvault.KeyBundle) *entities.Key {
+	key := &entities.Key{
 		ID:        parseKeyID(res.Key.Kid),
 		PublicKey: pubKeyBytes(res.Key),
 		Tags:      common.Tomapstr(res.Tags),
-		CreatedAt: time.Time(*res.Attributes.Created),
-		UpdatedAt: time.Time(*res.Attributes.Updated),
+		Metadata: &entities.Metadata{
+			CreatedAt: time.Time(*res.Attributes.Created),
+			UpdatedAt: time.Time(*res.Attributes.Updated),
+		},
+		Algo: &entities.Algorithm{},
 	}
 
 	if res.Key.Kty == keyvault.EC {
-		key.SigningAlgorithm = string(entities.Ecdsa)
+		key.Algo.Type = entities.Ecdsa
 	}
 
 	if res.Key.Crv == keyvault.P256K {
-		key.EllipticCurve = string(entities.Secp256k1)
+		key.Algo.EllipticCurve = entities.Secp256k1
 	}
 
 	return key

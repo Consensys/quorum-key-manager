@@ -6,16 +6,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"math/big"
-)
-
-const (
-	awsKeyID             = "aws-KeyId"
-	awsCustomKeyStoreID  = "aws-CustomKeyStoreId"
-	awsCloudHsmClusterID = "aws-CloudHsmClusterId"
-	awsAccountID         = "aws-AccountId"
-	awsARN               = "aws-ARN"
 )
 
 type publicKeyInfo struct {
@@ -28,17 +19,20 @@ type signatureInfo struct {
 	R, S *big.Int
 }
 
-func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*models.Key, error) {
-	key := &models.Key{
+func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*entities.Key, error) {
+	key := &entities.Key{
 		ID:          id,
 		Tags:        tags,
 		Annotations: parseAnnotations(*kmsPubKey.KeyId, kmsDescribe),
+		Metadata:    &entities.Metadata{},
 	}
 
 	switch {
 	case *kmsPubKey.KeyUsage == kms.KeyUsageTypeSignVerify && *kmsPubKey.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1:
-		key.SigningAlgorithm = string(entities.Ecdsa)
-		key.EllipticCurve = string(entities.Secp256k1)
+		key.Algo = &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		}
 
 		val := &publicKeyInfo{}
 		_, err := asn1.Unmarshal(kmsPubKey.PublicKey, val)
@@ -51,31 +45,31 @@ func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.Des
 	}
 
 	// createdAt field always provided
-	key.CreatedAt = *kmsDescribe.KeyMetadata.CreationDate
+	key.Metadata.CreatedAt = *kmsDescribe.KeyMetadata.CreationDate
 	if kmsDescribe.KeyMetadata.DeletionDate != nil {
-		key.DeletedAt = *kmsDescribe.KeyMetadata.DeletionDate
+		key.Metadata.DeletedAt = *kmsDescribe.KeyMetadata.DeletionDate
 	}
-	key.Disabled = !*kmsDescribe.KeyMetadata.Enabled
+	key.Metadata.Disabled = !*kmsDescribe.KeyMetadata.Enabled
 
 	return key, nil
 }
 
-func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]string {
-	annotations := make(map[string]string)
-
-	annotations[awsKeyID] = keyID
+func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) *entities.Annotation {
+	annotations := &entities.Annotation{
+		AWSKeyID: keyID,
+	}
 
 	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
-		annotations[awsCustomKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
+		annotations.AWSCustomKeyStoreID = *keyDesc.KeyMetadata.CustomKeyStoreId
 	}
 	if keyDesc.KeyMetadata.CloudHsmClusterId != nil {
-		annotations[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId
+		annotations.AWSCloudHsmClusterID = *keyDesc.KeyMetadata.CloudHsmClusterId
 	}
 	if keyDesc.KeyMetadata.AWSAccountId != nil {
-		annotations[awsAccountID] = *keyDesc.KeyMetadata.AWSAccountId
+		annotations.AWSAccountID = *keyDesc.KeyMetadata.AWSAccountId
 	}
 	if keyDesc.KeyMetadata.Arn != nil {
-		annotations[awsARN] = *keyDesc.KeyMetadata.Arn
+		annotations.AWSArn = *keyDesc.KeyMetadata.Arn
 	}
 
 	return annotations

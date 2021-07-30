@@ -61,13 +61,7 @@ func (s *Store) Create(ctx context.Context, id string, attr *entities.Attributes
 		return nil, err
 	}
 
-	account := parseKey(key, attr)
-	err = s.db.ETH1Accounts().Add(ctx, account)
-	if err != nil {
-		return nil, err
-	}
-
-	return account.ToEntity(), nil
+	return s.db.ETH1Accounts().Add(ctx, parseKey(key, attr))
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
@@ -76,36 +70,15 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, attr *ent
 		return nil, err
 	}
 
-	account := parseKey(key, attr)
-	err = s.db.ETH1Accounts().Add(ctx, account)
-	if err != nil {
-		return nil, err
-	}
-
-	return account.ToEntity(), nil
+	return s.db.ETH1Accounts().Add(ctx, parseKey(key, attr))
 }
 
 func (s *Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	account, err := s.db.ETH1Accounts().Get(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	return account.ToEntity(), nil
+	return s.db.ETH1Accounts().Get(ctx, addr)
 }
 
 func (s *Store) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
-	accModels, err := s.db.ETH1Accounts().GetAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	accounts := []*entities.ETH1Account{}
-	for _, accModel := range accModels {
-		accounts = append(accounts, accModel.ToEntity())
-	}
-
-	return accounts, nil
+	return s.db.ETH1Accounts().GetAll(ctx)
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
@@ -116,7 +89,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	}
 
 	for _, acc := range accountsRetrieved {
-		addresses = append(addresses, acc.Address)
+		addresses = append(addresses, acc.Address.Hex())
 	}
 
 	return addresses, nil
@@ -129,12 +102,7 @@ func (s *Store) Update(ctx context.Context, addr string, attr *entities.Attribut
 	}
 	account.Tags = attr.Tags
 
-	err = s.db.ETH1Accounts().Update(ctx, account)
-	if err != nil {
-		return nil, err
-	}
-
-	return account.ToEntity(), nil
+	return s.db.ETH1Accounts().Update(ctx, account)
 }
 
 func (s *Store) Delete(ctx context.Context, addr string) error {
@@ -149,12 +117,7 @@ func (s *Store) Delete(ctx context.Context, addr string) error {
 }
 
 func (s *Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
-	account, err := s.db.ETH1Accounts().GetDeleted(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	return account.ToEntity(), nil
+	return s.db.ETH1Accounts().GetDeleted(ctx, addr)
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
@@ -165,7 +128,7 @@ func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
 	}
 
 	for _, acc := range accountsRetrieved {
-		addresses = append(addresses, acc.Address)
+		addresses = append(addresses, acc.Address.Hex())
 	}
 
 	return addresses, nil

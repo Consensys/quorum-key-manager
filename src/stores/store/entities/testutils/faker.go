@@ -22,11 +22,12 @@ func FakeSecret() *entities.Secret {
 func FakeKey() *entities.Key {
 	pubKey, _ := base64.URLEncoding.DecodeString("BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=")
 	return &entities.Key{
-		ID:        "my-key-id",
-		PublicKey: pubKey,
-		Algo:      FakeAlgorithm(),
-		Metadata:  FakeMetadata(),
-		Tags:      FakeTags(),
+		ID:          "my-key-id",
+		PublicKey:   pubKey,
+		Algo:        FakeAlgorithm(),
+		Metadata:    FakeMetadata(),
+		Tags:        FakeTags(),
+		Annotations: FakeAnnotations(),
 	}
 }
 
@@ -72,5 +73,15 @@ func FakeTags() map[string]string {
 	return map[string]string{
 		"tag1": "tagValue1",
 		"tag2": "tagValue2",
+	}
+}
+
+func FakeAnnotations() *entities.Annotation {
+	return &entities.Annotation{
+		AWSKeyID:             "awsKeyID",
+		AWSCustomKeyStoreID:  "awsCustomKeyStoreID",
+		AWSCloudHsmClusterID: "awsCloudHsmClusterID",
+		AWSAccountID:         "awsAccountID",
+		AWSArn:               "awsARN",
 	}
 }

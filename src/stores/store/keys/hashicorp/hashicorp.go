@@ -3,7 +3,6 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"path"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -43,7 +42,7 @@ func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *St
 	}
 }
 
-func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -59,7 +58,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 	return parseResponse(res)
 }
 
-func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -76,7 +75,7 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 	return parseResponse(res)
 }
 
-func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys(id), map[string]interface{}{
 		tagsLabel: attr.Tags,
 	})

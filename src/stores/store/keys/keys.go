@@ -2,8 +2,6 @@ package keys
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
-
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
@@ -11,13 +9,13 @@ import (
 
 type Store interface {
 	// Create a new key and stores it
-	Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error)
+	Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Import imports an existing key and stores it
-	Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error)
+	Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Update updates the tags of a key
-	Update(ctx context.Context, id string, attr *entities.Attributes) (*models.Key, error)
+	Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error)
 
 	// Delete secret not permanently, by using Undelete() the secret can be retrieved
 	Delete(ctx context.Context, id string) error

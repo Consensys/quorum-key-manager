@@ -12,7 +12,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
+	models2 "github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -386,12 +386,12 @@ func (env *IntegrationEnvironment) createTables() error {
 		FKConstraints: true,
 	}
 
-	err = db.Model(&models.Key{}).CreateTable(opts)
+	err = db.Model(&models2.Key{}).CreateTable(opts)
 	if err != nil {
 		return err
 	}
 
-	err = db.Model(&models.ETH1Account{}).CreateTable(opts)
+	err = db.Model(&models2.ETH1Account{}).CreateTable(opts)
 	if err != nil {
 		return err
 	}

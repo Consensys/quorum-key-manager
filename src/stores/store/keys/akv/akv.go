@@ -3,7 +3,6 @@ package akv
 import (
 	"context"
 	"encoding/base64"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -28,7 +27,7 @@ func New(client akv.KeysClient, logger log.Logger) *Store {
 	}
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
 
@@ -52,7 +51,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	var pKeyD, pKeyX, pKeyY string
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
@@ -94,7 +93,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.UpdateKey(ctx, id, "", nil, nil, attr.Tags)
 	if err != nil {
 		errMessage := "failed to update AKV key"

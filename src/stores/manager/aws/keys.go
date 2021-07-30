@@ -16,7 +16,7 @@ type KeySpecs struct {
 	Debug     bool   `json:"debug"`
 }
 
-func NewKeyStore(specs *KeySpecs, db database.Database, logger log.Logger) (*aws.KeyStore, error) {
+func NewKeyStore(specs *KeySpecs, db database.Database, logger log.Logger) (*aws.Store, error) {
 	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
 	cli, err := client.NewKmsClient(cfg)
 	if err != nil {
@@ -25,6 +25,6 @@ func NewKeyStore(specs *KeySpecs, db database.Database, logger log.Logger) (*aws
 		return nil, errors.ConfigError(errMessage)
 	}
 
-	store := aws.New(cli, db, logger)
+	store := aws.New(cli, db.Keys(), logger)
 	return store, nil
 }

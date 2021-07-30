@@ -85,11 +85,11 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), string(entities.Ecdsa), key.SigningAlgorithm)
-		assert.Equal(s.T(), string(entities.Secp256k1), key.EllipticCurve)
-		assert.False(s.T(), key.Disabled)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
-		assert.True(s.T(), key.DeletedAt.IsZero())
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
 	s.Run("should fail with same error if write fails", func() {
@@ -140,11 +140,11 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), publicKey, base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), string(entities.Ecdsa), key.SigningAlgorithm)
-		assert.Equal(s.T(), string(entities.Secp256k1), key.EllipticCurve)
-		assert.False(s.T(), key.Disabled)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
-		assert.True(s.T(), key.DeletedAt.IsZero())
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
 	s.Run("should fail with same error if write fails", func() {

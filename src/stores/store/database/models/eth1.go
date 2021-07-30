@@ -19,6 +19,20 @@ type ETH1Account struct {
 	DeletedAt           time.Time `pg:",soft_delete"`
 }
 
+func NewETH1Account(account *entities.ETH1Account) *ETH1Account {
+	return &ETH1Account{
+		Address:             account.Address.Hex(),
+		KeyID:               account.KeyID,
+		PublicKey:           account.PublicKey,
+		CompressedPublicKey: account.CompressedPublicKey,
+		Tags:                account.Tags,
+		Disabled:            account.Metadata.Disabled,
+		CreatedAt:           account.Metadata.CreatedAt,
+		UpdatedAt:           account.Metadata.UpdatedAt,
+		DeletedAt:           account.Metadata.DeletedAt,
+	}
+}
+
 func (eth1 *ETH1Account) ToEntity() *entities.ETH1Account {
 	return &entities.ETH1Account{
 		Address:             common.HexToAddress(eth1.Address),

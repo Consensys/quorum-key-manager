@@ -14,11 +14,11 @@ func (c Connector) Create(ctx context.Context, id string, alg *entities.Algorith
 		return nil, err
 	}
 
-	err = c.db.Keys().Add(ctx, key)
+	key, err = c.db.Keys().Add(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
 	logger.Info("key created successfully")
-	return key.ToEntity(), nil
+	return key, nil
 }

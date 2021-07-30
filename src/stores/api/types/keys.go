@@ -1,6 +1,9 @@
 package types
 
-import "time"
+import (
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"time"
+)
 
 type CreateKeyRequest struct {
 	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1"`
@@ -32,16 +35,16 @@ type VerifyKeySignatureRequest struct {
 }
 
 type KeyResponse struct {
-	ID               string            `json:"id" example:"my-key"`
-	PublicKey        string            `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
-	Curve            string            `json:"curve" example:"secp256k1"`
-	SigningAlgorithm string            `json:"signingAlgorithm" example:"ecdsa"`
-	Tags             map[string]string `json:"tags,omitempty"`
-	Annotations      map[string]string `json:"annotations,omitempty"`
-	Disabled         bool              `json:"disabled" example:"false"`
-	CreatedAt        time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
-	UpdatedAt        time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
-	ExpireAt         time.Time         `json:"expireAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	DeletedAt        time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
-	DestroyedAt      time.Time         `json:"destroyedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
+	ID               string               `json:"id" example:"my-key"`
+	PublicKey        string               `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	Curve            string               `json:"curve" example:"secp256k1"`
+	SigningAlgorithm string               `json:"signingAlgorithm" example:"ecdsa"`
+	Tags             map[string]string    `json:"tags,omitempty"`
+	Annotations      *entities.Annotation `json:"annotations,omitempty"`
+	Disabled         bool                 `json:"disabled" example:"false"`
+	CreatedAt        time.Time            `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
+	UpdatedAt        time.Time            `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
+	ExpireAt         time.Time            `json:"expireAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
+	DeletedAt        time.Time            `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
+	DestroyedAt      time.Time            `json:"destroyedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
 }

@@ -14,7 +14,7 @@ func (c Connector) Get(ctx context.Context, id string) (*entities.Key, error) {
 	}
 
 	logger.Debug("key retrieved successfully")
-	return key.ToEntity(), nil
+	return key, nil
 }
 
 func (c Connector) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
@@ -26,5 +26,5 @@ func (c Connector) GetDeleted(ctx context.Context, id string) (*entities.Key, er
 	}
 
 	logger.Debug("deleted key retrieved successfully")
-	return key.ToEntity(), nil
+	return key, nil
 }

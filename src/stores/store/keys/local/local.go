@@ -6,7 +6,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/base64"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
 	"math/rand"
 	"time"
 
@@ -36,15 +35,15 @@ func New(secretStore secrets.Store, logger log.Logger) *Store {
 	}
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	return s.create(ctx, id, nil, alg, attr)
 }
 
-func (s *Store) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	return s.create(ctx, id, importedPrivKey, alg, attr)
 }
 
-func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.With("id", id).With("signing_algorithm", alg.Type).With("curve", alg.EllipticCurve)
 
 	var privKey []byte
@@ -76,22 +75,28 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	key := &models.Key{
-		ID:               id,
-		PublicKey:        pubKey,
-		SigningAlgorithm: string(alg.Type),
-		EllipticCurve:    string(alg.EllipticCurve),
-		Tags:             attr.Tags,
-	}
-	_, err := s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), &entities.Attributes{})
+	secret, err := s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), &entities.Attributes{})
 	if err != nil {
 		return nil, err
 	}
 
-	return key, nil
+	return &entities.Key{
+		ID:        id,
+		PublicKey: pubKey,
+		Algo: &entities.Algorithm{
+			Type:          alg.Type,
+			EllipticCurve: alg.EllipticCurve,
+		},
+		Metadata: &entities.Metadata{
+			Disabled:  false,
+			CreatedAt: secret.Metadata.CreatedAt,
+			UpdatedAt: secret.Metadata.UpdatedAt,
+		},
+		Tags: attr.Tags,
+	}, nil
 }
 
-func (s *Store) Update(_ context.Context, _ string, _ *entities.Attributes) (*models.Key, error) {
+func (s *Store) Update(_ context.Context, _ string, _ *entities.Attributes) (*entities.Key, error) {
 	return nil, errors.ErrNotSupported
 }
 

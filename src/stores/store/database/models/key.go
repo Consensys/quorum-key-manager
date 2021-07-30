@@ -12,11 +12,26 @@ type Key struct {
 	SigningAlgorithm string
 	EllipticCurve    string
 	Tags             map[string]string
-	Annotations      map[string]string
+	Annotations      *entities.Annotation
 	Disabled         bool
 	CreatedAt        time.Time `pg:"default:now()"`
 	UpdatedAt        time.Time `pg:"default:now()"`
 	DeletedAt        time.Time `pg:",soft_delete"`
+}
+
+func NewKey(key *entities.Key) *Key {
+	return &Key{
+		ID:               key.ID,
+		PublicKey:        key.PublicKey,
+		SigningAlgorithm: string(key.Algo.Type),
+		EllipticCurve:    string(key.Algo.EllipticCurve),
+		Tags:             key.Tags,
+		Annotations:      key.Annotations,
+		Disabled:         key.Metadata.Disabled,
+		CreatedAt:        key.Metadata.CreatedAt,
+		UpdatedAt:        key.Metadata.UpdatedAt,
+		DeletedAt:        key.Metadata.DeletedAt,
+	}
 }
 
 func (k *Key) ToEntity() *entities.Key {

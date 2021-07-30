@@ -17,14 +17,14 @@ func (c Connector) Update(ctx context.Context, id string, attr *entities.Attribu
 	key.Tags = attr.Tags
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		derr := c.db.Keys().Update(ctx, key)
-		if derr != nil {
-			return derr
+		key, err = c.db.Keys().Update(ctx, key)
+		if err != nil {
+			return err
 		}
 
-		_, derr = c.store.Update(ctx, id, attr)
-		if derr != nil {
-			return derr
+		_, err = c.store.Update(ctx, id, attr)
+		if err != nil {
+			return err
 		}
 
 		return nil
@@ -34,5 +34,5 @@ func (c Connector) Update(ctx context.Context, id string, attr *entities.Attribu
 	}
 
 	logger.Info("key updated successfully")
-	return key.ToEntity(), nil
+	return key, nil
 }

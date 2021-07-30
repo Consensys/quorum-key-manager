@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/store/models"
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 
 //go:generate mockgen -source=database.go -destination=mock/database.go -package=mock
@@ -14,25 +14,25 @@ type Database interface {
 }
 
 type ETH1Accounts interface {
-	Get(ctx context.Context, addr string) (*models.ETH1Account, error)
-	GetDeleted(ctx context.Context, addr string) (*models.ETH1Account, error)
-	GetAll(ctx context.Context) ([]*models.ETH1Account, error)
-	GetAllDeleted(ctx context.Context) ([]*models.ETH1Account, error)
-	Add(ctx context.Context, account *models.ETH1Account) error
-	Update(ctx context.Context, account *models.ETH1Account) error
+	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	GetAll(ctx context.Context) ([]*entities.ETH1Account, error)
+	GetAllDeleted(ctx context.Context) ([]*entities.ETH1Account, error)
+	Add(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error)
+	Update(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error)
 	Delete(ctx context.Context, addr string) error
-	Restore(ctx context.Context, account *models.ETH1Account) error
+	Restore(ctx context.Context, account *entities.ETH1Account) error
 	Purge(ctx context.Context, addr string) error
 }
 
 type Keys interface {
-	Get(ctx context.Context, id string) (*models.Key, error)
-	GetDeleted(ctx context.Context, id string) (*models.Key, error)
-	GetAll(ctx context.Context) ([]*models.Key, error)
-	GetAllDeleted(ctx context.Context) ([]*models.Key, error)
-	Add(ctx context.Context, key *models.Key) error
-	Update(ctx context.Context, key *models.Key) error
+	Get(ctx context.Context, id string) (*entities.Key, error)
+	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
+	GetAll(ctx context.Context) ([]*entities.Key, error)
+	GetAllDeleted(ctx context.Context) ([]*entities.Key, error)
+	Add(ctx context.Context, key *entities.Key) (*entities.Key, error)
+	Update(ctx context.Context, key *entities.Key) (*entities.Key, error)
 	Delete(ctx context.Context, id string) error
-	Restore(ctx context.Context, key *models.Key) error
+	Restore(ctx context.Context, key *entities.Key) error
 	Purge(ctx context.Context, id string) error
 }

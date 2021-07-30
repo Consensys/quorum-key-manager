@@ -7,7 +7,6 @@ package mock
 import (
 	context "context"
 	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	models "github.com/consensys/quorum-key-manager/src/stores/store/models"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -36,10 +35,10 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (m *MockStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, id, alg, attr)
-	ret0, _ := ret[0].(*models.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +50,10 @@ func (mr *MockStoreMockRecorder) Create(ctx, id, alg, attr interface{}) *gomock.
 }
 
 // Import mocks base method
-func (m *MockStore) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*models.Key, error) {
+func (m *MockStore) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Import", ctx, id, importedPrivKey, alg, attr)
-	ret0, _ := ret[0].(*models.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,10 +65,10 @@ func (mr *MockStoreMockRecorder) Import(ctx, id, importedPrivKey, alg, attr inte
 }
 
 // Update mocks base method
-func (m *MockStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*models.Key, error) {
+func (m *MockStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, id, attr)
-	ret0, _ := ret[0].(*models.Key)
+	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
