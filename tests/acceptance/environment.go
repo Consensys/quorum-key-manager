@@ -48,7 +48,7 @@ const (
 	HashicorpKeyMountPoint    = "orchestrate"
 	AKVKeyStoreName           = "AKVKeys"
 	AWSKeyStoreName           = "AWSKeys"
-	MaxRetries                = 10
+	MaxRetries                = 4
 )
 
 type IntegrationEnvironment struct {

@@ -2,6 +2,7 @@ package keys
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
@@ -24,7 +25,7 @@ func (c Connector) Update(ctx context.Context, id string, attr *entities.Attribu
 		}
 
 		_, err = c.store.Update(ctx, id, attr)
-		if err != nil {
+		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support updating, we only update in DB
 			return err
 		}
 

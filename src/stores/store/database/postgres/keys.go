@@ -97,7 +97,7 @@ func (d *Keys) Add(ctx context.Context, key *entities.Key) (*entities.Key, error
 	err := d.db.Insert(ctx, keyModel)
 	if err != nil {
 		errMessage := "failed to add key"
-		d.logger.WithError(err).Error(errMessage)
+		d.logger.With("id", key.ID).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -110,7 +110,7 @@ func (d *Keys) Update(ctx context.Context, key *entities.Key) (*entities.Key, er
 	err := d.db.UpdatePK(ctx, keyModel)
 	if err != nil {
 		errMessage := "failed to update key"
-		d.logger.WithError(err).Error(errMessage)
+		d.logger.With("id", key.ID).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -133,7 +133,7 @@ func (d *Keys) Restore(ctx context.Context, key *entities.Key) error {
 	_, err := d.Update(ctx, key)
 	if err != nil {
 		errMessage := "failed to restore key"
-		d.logger.WithError(err).Error(errMessage)
+		d.logger.With("id", key.ID).WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 

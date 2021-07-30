@@ -92,7 +92,7 @@ func (s *Store) Import(_ context.Context, _ string, _ []byte, _ *entities.Algori
 }
 
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	key, err := s.get(ctx, id)
+	key, err := s.db.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (s *Store) Undelete(_ context.Context, _ string) error {
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	key, err := s.get(ctx, id)
+	key, err := s.db.GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 }
 
 func (s *Store) Sign(ctx context.Context, id string, data []byte, _ *entities.Algorithm) ([]byte, error) {
-	key, err := s.get(ctx, id)
+	key, err := s.db.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -201,10 +201,6 @@ func (s *Store) listTags(ctx context.Context, keyID string) (map[string]string, 
 	}
 
 	return tags, nil
-}
-
-func (s *Store) get(ctx context.Context, id string) (*entities.Key, error) {
-	return s.db.Get(ctx, id)
 }
 
 func alias(id string) string {

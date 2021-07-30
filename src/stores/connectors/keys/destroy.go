@@ -2,8 +2,6 @@ package keys
 
 import (
 	"context"
-
-	"github.com/consensys/quorum-key-manager/src/stores/store/database"
 )
 
 func (c Connector) Destroy(ctx context.Context, id string) error {
@@ -15,14 +13,12 @@ func (c Connector) Destroy(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = c.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		derr := c.db.Keys().Purge(ctx, id)
-		if derr != nil {
-			return derr
-		}
+	err = c.store.Destroy(ctx, id)
+	if err != nil {
+		return err
+	}
 
-		return c.store.Destroy(ctx, id)
-	})
+	err = c.db.Keys().Purge(ctx, id)
 	if err != nil {
 		return err
 	}

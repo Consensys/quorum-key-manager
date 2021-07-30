@@ -29,6 +29,8 @@ func New(client akv.KeysClient, logger log.Logger) *Store {
 }
 
 func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+	logger := s.logger.With("id", id)
+
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
 
@@ -38,14 +40,14 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 		crv = keyvault.P256K
 	default:
 		errMessage := "invalid or not supported elliptic curve and signing algorithm for AKV key creation"
-		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
+		logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	res, err := s.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
 	if err != nil {
 		errMessage := "failed to create AKV key"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -53,6 +55,8 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+	logger := s.logger.With("id", id)
+
 	var pKeyD, pKeyX, pKeyY string
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
@@ -62,7 +66,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 		pKey, err := crypto.ToECDSA(privKey)
 		if err != nil {
 			errMessage := "invalid private key"
-			s.logger.WithError(err).Error(errMessage)
+			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
@@ -73,7 +77,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 		crv = keyvault.P256K
 	default:
 		errMessage := "invalid signing algorithm and curve combination for import"
-		s.logger.With("signing_algorithm", alg.Type, "elliptic_curve", alg.EllipticCurve).Error(errMessage)
+		logger.With("signing_algorithm", alg.Type, "elliptic_curve", alg.EllipticCurve).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
@@ -87,7 +91,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 	res, err := s.client.ImportKey(ctx, id, iWebKey, convertToAKVKeyAttr(attr), attr.Tags)
 	if err != nil {
 		errMessage := "failed to import AKV key"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -120,7 +124,7 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 	_, err := s.client.RecoverDeletedKey(ctx, id)
 	if err != nil {
 		errMessage := "failed to restore AKV key"
-		s.logger.WithError(err).Error(errMessage)
+		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -130,8 +134,8 @@ func (s *Store) Undelete(ctx context.Context, id string) error {
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	_, err := s.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
-		errMessage := "failed to permantently delete AKV key"
-		s.logger.WithError(err).Error(errMessage)
+		errMessage := "failed to permanently delete AKV key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -139,27 +143,29 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 }
 
 func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
+	logger := s.logger.With("id", id)
+
 	var akvAlgo keyvault.JSONWebKeySignatureAlgorithm
 	switch {
 	case algo.EllipticCurve == entities.Secp256k1 && algo.Type == entities.Ecdsa:
 		akvAlgo = keyvault.ES256K
 	default:
 		errMessage := "invalid elliptic curve and signing algorithm combination for signing"
-		s.logger.With("id", id, "signing_algorithm", algo.Type, "elliptic_curve", algo.EllipticCurve).Error(errMessage)
+		logger.With("signing_algorithm", algo.Type, "elliptic_curve", algo.EllipticCurve).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	b64Signature, err := s.client.Sign(ctx, id, "", akvAlgo, base64.StdEncoding.EncodeToString(data))
 	if err != nil {
 		errMessage := "failed to sign using AKV key"
-		s.logger.WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	signature, err := base64.RawURLEncoding.DecodeString(b64Signature)
 	if err != nil {
 		errMessage := "failed to decode signature from AKV vault"
-		s.logger.WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage)
 		return nil, errors.AKVError(errMessage)
 	}
 
