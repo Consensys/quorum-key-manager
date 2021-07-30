@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-func parseResponse(hashicorpSecret *api.Secret) (*entities.Key, error) {
+func parseAPISecretToKey(hashicorpSecret *api.Secret) (*entities.Key, error) {
 	pubKey, err := base64.URLEncoding.DecodeString(hashicorpSecret.Data[publicKeyLabel].(string))
 	if err != nil {
 		return nil, errors.HashicorpVaultError("failed to decode public key")

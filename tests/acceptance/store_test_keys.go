@@ -35,24 +35,26 @@ func (s *keysTestSuite) TearDownSuite() {
 	s.env.logger.Info("deleting the following keys", "keys", s.keyIds)
 	for _, id := range s.keyIds {
 		err := s.store.Delete(ctx, id)
-		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
+		if err != nil && (errors.IsNotSupportedError(err) || errors.IsNotImplementedError(err)) {
 			return
 		}
-
-		require.NoError(s.T(), err)
 	}
 
 	for _, id := range s.keyIds {
 		maxTries := MaxRetries
 		for {
 			err := s.store.Destroy(ctx, id)
-			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-				return
-			}
-
-			if err != nil && !errors.IsStatusConflictError(err) {
+			if err == nil {
 				break
 			}
+			if errors.IsNotSupportedError(err) || errors.IsNotImplementedError(err) {
+				return
+			}
+			if !errors.IsStatusConflictError(err) && !errors.IsNotFoundError(err){
+				break
+			}
+			
+
 			if maxTries <= 0 {
 				if err != nil {
 					s.env.logger.Info("failed to destroy key", "keyID", id)
@@ -358,7 +360,7 @@ func (s *keysTestSuite) TestSignVerify() {
 }
 
 func (s *keysTestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%d", name, common.RandInt(10000))
+	id := fmt.Sprintf("%s-%s", name, common.RandHexString(16))
 	s.keyIds = append(s.keyIds, id)
 
 	return id

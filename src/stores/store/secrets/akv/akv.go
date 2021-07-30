@@ -52,7 +52,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 }
 
 func (s *Store) List(ctx context.Context) ([]string, error) {
-	items, err := s.client.GetSecrets(ctx, 0)
+	items, err := s.client.ListSecrets(ctx, 0)
 	if err != nil {
 		errMessage := "failed to list AKV secrets"
 		s.logger.WithError(err).Error(errMessage)
@@ -69,7 +69,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	return list, nil
 }
 
-func (s *Store) Delete(ctx context.Context, id string) error {
+func (s *Store) Delete(ctx context.Context, id, _ string) error {
 	_, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to delete AKV secret"
@@ -80,19 +80,47 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) GetDeleted(ctx context.Context, id, _ string) (*entities.Secret, error) {
+	res, err := s.client.GetDeletedSecret(ctx, id)
+	if err != nil {
+		errMessage := "failed to get deleted AKV secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return parseDeletedSecretBundle(&res), nil
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+	items, err := s.client.ListDeletedSecrets(ctx, 0)
+	if err != nil {
+		errMessage := "failed to list deleted AKV secrets"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	var list = []string{}
+	for _, secret := range items {
+		// path.Base to only retrieve the secretName instead of https://<vaultName>.vault.azure.net/secrets/<secretName>
+		// See listSecrets function in https://github.com/Azure-Samples/azure-sdk-for-go-samples/blob/master/keyvault/examples/go-keyvault-msi-example.go
+		list = append(list, path.Base(*secret.ID))
+	}
+
+	return list, nil
 }
 
-func (s *Store) Undelete(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+func (s *Store) Restore(ctx context.Context, id, _ string) error {
+	_, err := s.client.RecoverSecret(ctx, id)
+	if err != nil {
+		errMessage := "failed to restore AKV secret"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }
 
-func (s *Store) Destroy(ctx context.Context, id string) error {
+func (s *Store) Destroy(ctx context.Context, id, version string) error {
 	_, err := s.client.PurgeDeletedSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to permanently delete AKV secret"

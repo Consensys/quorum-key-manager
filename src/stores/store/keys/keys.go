@@ -8,7 +8,7 @@ import (
 //go:generate mockgen -source=keys.go -destination=mock/keys.go -package=mock
 
 type Store interface {
-	// Create a new key and stores it
+	// Create creates a new key and stores it
 	Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Import imports an existing key and stores it

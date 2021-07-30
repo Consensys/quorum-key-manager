@@ -37,7 +37,7 @@ type Store interface {
 	// Update updates Ethereum account attributes
 	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error)
 
-	// Delete deletes an account temporarily, by using Undelete the account can be restored
+	// Delete deletes an account temporarily, by using Restore the account can be restored
 	Delete(ctx context.Context, addr string) error
 
 	// GetDeleted Gets a deleted Ethereum accounts
@@ -46,7 +46,7 @@ type Store interface {
 	// ListDeleted lists all deleted Ethereum accounts
 	ListDeleted(ctx context.Context) ([]string, error)
 
-	// Undelete restores a previously deleted Ethereum account
+	// Restore restores a previously deleted Ethereum account
 	Undelete(ctx context.Context, addr string) error
 
 	// Destroy destroys (purges) an Ethereum account permanently

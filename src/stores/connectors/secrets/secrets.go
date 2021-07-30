@@ -15,7 +15,7 @@ type SecretConnector struct {
 	resolver *policy.Resolver
 }
 
-var _ secrets.Store = SecretConnector{}
+var _ secrets.Store = &SecretConnector{}
 
 func NewSecretConnector(store secrets.Store, resolvr *policy.Resolver, logger log.Logger) *SecretConnector {
 	return &SecretConnector{
@@ -64,10 +64,10 @@ func (c SecretConnector) List(ctx context.Context) ([]string, error) {
 	return result, nil
 }
 
-func (c SecretConnector) Delete(ctx context.Context, id string) error {
-	logger := c.logger.With("id", id)
+func (c SecretConnector) Delete(ctx context.Context, id, version string) error {
+	logger := c.logger.With("id", id).With("version", version)
 
-	err := c.store.Delete(ctx, id)
+	err := c.store.Delete(ctx, id, version)
 	if err != nil {
 		return err
 	}
@@ -76,10 +76,10 @@ func (c SecretConnector) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c SecretConnector) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
-	logger := c.logger.With("id", id)
+func (c SecretConnector) GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error) {
+	logger := c.logger.With("id", id).With("version", version)
 
-	result, err := c.store.GetDeleted(ctx, id)
+	result, err := c.store.GetDeleted(ctx, id, version)
 	if err != nil {
 		return nil, err
 	}
@@ -100,10 +100,10 @@ func (c SecretConnector) ListDeleted(ctx context.Context) ([]string, error) {
 	return result, nil
 }
 
-func (c SecretConnector) Undelete(ctx context.Context, id string) error {
-	logger := c.logger.With("id", id)
+func (c SecretConnector) Restore(ctx context.Context, id, version string) error {
+	logger := c.logger.With("id", id).With("version", version)
 
-	err := c.store.Undelete(ctx, id)
+	err := c.store.Restore(ctx, id, version)
 	if err != nil {
 		return err
 	}
@@ -112,10 +112,10 @@ func (c SecretConnector) Undelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c SecretConnector) Destroy(ctx context.Context, id string) error {
+func (c SecretConnector) Destroy(ctx context.Context, id, version string) error {
 	logger := c.logger.With("id", id)
 
-	err := c.store.Destroy(ctx, id)
+	err := c.store.Destroy(ctx, id, version)
 	if err != nil {
 		return err
 	}

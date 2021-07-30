@@ -154,6 +154,132 @@ func (s *secretsHandlerTestSuite) TestGet() {
 	})
 }
 
+func (s *secretsHandlerTestSuite) TestGetDeleted() {
+	s.Run("should execute request successfully with version", func() {
+		version := "1"
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s&deleted=true", secretID, version), nil).WithContext(s.ctx)
+
+		secret := testutils2.FakeSecret()
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID, version).Return(secret, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		response := formatters.FormatSecretResponse(secret)
+		expectedBody, _ := json.Marshal(response)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request successfully without version", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?deleted=true", secretID), nil).WithContext(s.ctx)
+
+		secret := testutils2.FakeSecret()
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID, "").Return(secret, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		response := formatters.FormatSecretResponse(secret)
+		expectedBody, _ := json.Marshal(response)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
+	s.Run("should fail with correct error code if use case fails", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?deleted=true", secretID), nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().GetDeleted(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
+	})
+}
+
+func (s *secretsHandlerTestSuite) TestDelete() {
+	s.Run("should execute request successfully with version", func() {
+		version := "1"
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s", secretID, version), nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().Delete(gomock.Any(), secretID, version).Return(nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
+	})
+
+	s.Run("should fail with correct error code if use case fails", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
+	})
+}
+
+func (s *secretsHandlerTestSuite) TestRestore() {
+	s.Run("should execute request successfully with version", func() {
+		version := "1"
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/SecretStore/secrets/%s/restore?version=%s", secretID, version), nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().Restore(gomock.Any(), secretID, version).Return(nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
+	})
+
+	s.Run("should fail with correct error code if use case fails", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/SecretStore/secrets/%s/restore", secretID), nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().Restore(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
+	})
+}
+
+func (s *secretsHandlerTestSuite) TestDestroy() {
+	s.Run("should execute request successfully with version", func() {
+		version := "1"
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s/destroy?version=%s", secretID, version), nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().Destroy(gomock.Any(), secretID, version).Return(nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
+	})
+
+	s.Run("should fail with correct error code if use case fails", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s/destroy", secretID), nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().Destroy(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
+	})
+}
+
 func (s *secretsHandlerTestSuite) TestList() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
@@ -178,6 +304,36 @@ func (s *secretsHandlerTestSuite) TestList() {
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
+	})
+}
+
+func (s *secretsHandlerTestSuite) TestListDeleted() {
+	s.Run("should execute request successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets?deleted=true", nil).WithContext(s.ctx)
+
+		ids := []string{"secret1", "secret2"}
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().ListDeleted(gomock.Any()).Return(ids, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		expectedBody, _ := json.Marshal(ids)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
+	s.Run("should fail with correct error code if use case fails", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets?deleted=true", nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().ListDeleted(gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)

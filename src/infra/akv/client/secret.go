@@ -29,7 +29,7 @@ func (c *AKVClient) GetSecret(ctx context.Context, secretName, secretVersion str
 	return result, nil
 }
 
-func (c *AKVClient) GetSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error) {
+func (c *AKVClient) ListSecrets(ctx context.Context, maxResults int32) ([]keyvault.SecretItem, error) {
 	maxResultPtr := &maxResults
 	if maxResults == 0 {
 		maxResultPtr = nil
@@ -85,12 +85,57 @@ func (c *AKVClient) DeleteSecret(ctx context.Context, secretName string) (keyvau
 	return result, nil
 }
 
+func (c *AKVClient) RecoverSecret(ctx context.Context, secretName string) (keyvault.SecretBundle, error) {
+	result, err := c.client.RecoverDeletedSecret(ctx, c.cfg.Endpoint, secretName)
+	if err != nil {
+		return result, parseErrorResponse(err)
+	}
+
+	return result, nil
+}
+
 func (c *AKVClient) GetDeletedSecret(ctx context.Context, secretName string) (keyvault.DeletedSecretBundle, error) {
 	result, err := c.client.GetDeletedSecret(ctx, c.cfg.Endpoint, secretName)
 	if err != nil {
 		return result, parseErrorResponse(err)
 	}
 	return result, nil
+}
+
+func (c *AKVClient) ListDeletedSecrets(ctx context.Context, maxResults int32) ([]keyvault.DeletedSecretItem, error) {
+	maxResultPtr := &maxResults
+	if maxResults == 0 {
+		maxResultPtr = nil
+	}
+
+	res, err := c.client.GetDeletedSecrets(ctx, c.cfg.Endpoint, maxResultPtr)
+	if err != nil {
+		return nil, parseErrorResponse(err)
+	}
+
+	items := []keyvault.DeletedSecretItem{}
+	for {
+		items = append(items, res.Values()...)
+
+		if !res.NotDone() {
+			break
+		}
+
+		err := res.NextWithContext(ctx)
+		if err != nil {
+			return items, err
+		}
+
+		if maxResults != 0 && len(items) >= int(maxResults) {
+			break
+		}
+	}
+
+	if maxResults != 0 && len(items) > int(maxResults) {
+		return items[0:maxResults], nil
+	}
+
+	return items, nil
 }
 
 func (c *AKVClient) PurgeDeletedSecret(ctx context.Context, secretName string) (bool, error) {

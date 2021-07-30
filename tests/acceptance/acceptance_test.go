@@ -81,7 +81,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	testSuite.env = s.env
 	testSuite.store = akvsecret.New(s.env.akvClient, logger)
 	suite.Run(s.T(), testSuite)
-
+	
 	// AWS
 	logger = s.env.logger.WithComponent("Secrets-AWS")
 	testSuite = new(secretsTestSuite)
