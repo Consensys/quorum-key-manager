@@ -77,7 +77,7 @@ func (s *eth1StoreTestSuite) TestCreate() {
 			Tags:                attributes.Tags,
 		}
 		s.mockKeyStore.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(key, nil)
-		s.mockEth1Accounts.EXPECT().Add(ctx, expectedAccount).Return(nil)
+		s.mockEth1Accounts.EXPECT().Add(ctx, expectedAccount).Return(expectedAccount, nil)
 
 		account, err := s.eth1Store.Create(ctx, id, attributes)
 		assert.NoError(s.T(), err)
@@ -96,7 +96,7 @@ func (s *eth1StoreTestSuite) TestCreate() {
 	s.Run("should fail with same error if Add account fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockKeyStore.EXPECT().Create(ctx, id, eth1KeyAlgo, attributes).Return(key, nil)
-		s.mockEth1Accounts.EXPECT().Add(ctx, gomock.Any()).Return(expectedErr)
+		s.mockEth1Accounts.EXPECT().Add(ctx, gomock.Any()).Return(nil, expectedErr)
 
 		account, err := s.eth1Store.Create(ctx, id, attributes)
 		assert.Equal(s.T(), expectedErr, err)
@@ -119,7 +119,7 @@ func (s *eth1StoreTestSuite) TestImport() {
 			Tags:                attributes.Tags,
 		}
 		s.mockKeyStore.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(key, nil)
-		s.mockEth1Accounts.EXPECT().Add(ctx, expectedAccount).Return(nil)
+		s.mockEth1Accounts.EXPECT().Add(ctx, expectedAccount).Return(expectedAccount, nil)
 
 		account, err := s.eth1Store.Import(ctx, id, privKeyB, attributes)
 		assert.NoError(s.T(), err)
@@ -138,7 +138,7 @@ func (s *eth1StoreTestSuite) TestImport() {
 	s.Run("should fail with same error if Add account fails", func() {
 		expectedErr := fmt.Errorf("my error")
 		s.mockKeyStore.EXPECT().Import(ctx, id, privKeyB, eth1KeyAlgo, attributes).Return(key, nil)
-		s.mockEth1Accounts.EXPECT().Add(ctx, gomock.Any()).Return(expectedErr)
+		s.mockEth1Accounts.EXPECT().Add(ctx, gomock.Any()).Return(nil, expectedErr)
 
 		account, err := s.eth1Store.Import(ctx, id, privKeyB, attributes)
 		assert.Equal(s.T(), expectedErr, err)
@@ -222,7 +222,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 		expectedAccount.Tags = attributes.Tags
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockEth1Accounts.EXPECT().Update(ctx, &expectedAccount).Return(nil)
+		s.mockEth1Accounts.EXPECT().Update(ctx, &expectedAccount).Return(fakeAccount, nil)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.NoError(s.T(), err)
@@ -242,7 +242,7 @@ func (s *eth1StoreTestSuite) TestUpdate() {
 		expectedErr := fmt.Errorf("my error")
 
 		s.mockEth1Accounts.EXPECT().Get(ctx, address).Return(fakeAccount, nil)
-		s.mockEth1Accounts.EXPECT().Update(ctx, gomock.Any()).Return(expectedErr)
+		s.mockEth1Accounts.EXPECT().Update(ctx, gomock.Any()).Return(nil, expectedErr)
 
 		account, err := s.eth1Store.Update(ctx, address, attributes)
 		assert.Equal(s.T(), expectedErr, err)

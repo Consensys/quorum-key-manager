@@ -183,10 +183,10 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 	}
 
 	s.Run("should sign a sample message successfully when signature has smaller size", func() {
-		s.getKeyMockCalls(ctx)
-		s.mockKmsClient.EXPECT().Sign(gomock.Any(), keyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSmallerSign, nil)
+		s.mockKeys.EXPECT().Get(ctx, id).Return(key, nil)
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), key.Annotations.AWSKeyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSmallerSign, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, msg)
+		signature, err := s.keyStore.Sign(ctx, id, msg, algo)
 		assert.NoError(s.T(), err)
 
 		assert.Equal(s.T(), expectedSmallerSignature, signature)

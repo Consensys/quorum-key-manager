@@ -250,14 +250,14 @@ func (s *hashicorpKeyStoreTestSuite) TestDestroy() {
 	expectedPath := s.mountPoint + "/keys/" + id + "/destroy"
 
 	s.Run("should sign payload successfully", func() {
-		s.mockVault.EXPECT().Delete(expectedPath).Return(nil)
+		s.mockVault.EXPECT().Delete(expectedPath, map[string][]string{}).Return(nil)
 
 		err := s.keyStore.Destroy(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should return same wrapped error if Delete fails", func() {
-		s.mockVault.EXPECT().Delete(expectedPath).Return(expectedErr)
+		s.mockVault.EXPECT().Delete(expectedPath, map[string][]string{}).Return(expectedErr)
 
 		err := s.keyStore.Destroy(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)

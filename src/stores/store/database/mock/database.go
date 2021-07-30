@@ -161,11 +161,12 @@ func (mr *MockETH1AccountsMockRecorder) GetAllDeleted(ctx interface{}) *gomock.C
 }
 
 // Add mocks base method
-func (m *MockETH1Accounts) Add(ctx context.Context, account *entities.ETH1Account) error {
+func (m *MockETH1Accounts) Add(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", ctx, account)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.ETH1Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Add indicates an expected call of Add
@@ -175,11 +176,12 @@ func (mr *MockETH1AccountsMockRecorder) Add(ctx, account interface{}) *gomock.Ca
 }
 
 // Update mocks base method
-func (m *MockETH1Accounts) Update(ctx context.Context, account *entities.ETH1Account) error {
+func (m *MockETH1Accounts) Update(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, account)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.ETH1Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
@@ -314,11 +316,12 @@ func (mr *MockKeysMockRecorder) GetAllDeleted(ctx interface{}) *gomock.Call {
 }
 
 // Add mocks base method
-func (m *MockKeys) Add(ctx context.Context, key *entities.Key) error {
+func (m *MockKeys) Add(ctx context.Context, key *entities.Key) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", ctx, key)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Add indicates an expected call of Add
@@ -328,11 +331,12 @@ func (mr *MockKeysMockRecorder) Add(ctx, key interface{}) *gomock.Call {
 }
 
 // Update mocks base method
-func (m *MockKeys) Update(ctx context.Context, key *entities.Key) error {
+func (m *MockKeys) Update(ctx context.Context, key *entities.Key) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, key)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
