@@ -343,7 +343,7 @@ func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Tr
 	return signedRaw, nil
 }
 
-func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
+func (s *Store) ECRecover(_ context.Context, data, sig []byte) (string, error) {
 	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
 	if err != nil {
 		errMessage := "failed to recover public key, please verify your signature and payload"
@@ -355,7 +355,7 @@ func (s *Store) ECRevocer(_ context.Context, data, sig []byte) (string, error) {
 }
 
 func (s *Store) Verify(ctx context.Context, addr string, data, sig []byte) error {
-	recoveredAddress, err := s.ECRevocer(ctx, data, sig)
+	recoveredAddress, err := s.ECRecover(ctx, data, sig)
 	if err != nil {
 		return err
 	}

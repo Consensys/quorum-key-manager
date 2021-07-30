@@ -74,7 +74,7 @@ type Store interface {
 	SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error)
 
 	// ECRevocer returns the Ethereum address from a signature and data
-	ECRevocer(ctx context.Context, data, sig []byte) (string, error)
+	ECRecover(ctx context.Context, data, sig []byte) (string, error)
 
 	// Verify verifies that a signature belongs to a given address
 	Verify(ctx context.Context, addr string, data, sig []byte) error

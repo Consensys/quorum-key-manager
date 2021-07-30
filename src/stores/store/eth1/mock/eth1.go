@@ -99,9 +99,9 @@ func (mr *MockStoreMockRecorder) Destroy(ctx, addr interface{}) *gomock.Call {
 }
 
 // ECRevocer mocks base method.
-func (m *MockStore) ECRevocer(ctx context.Context, data, sig []byte) (string, error) {
+func (m *MockStore) ECRecover(ctx context.Context, data, sig []byte) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ECRevocer", ctx, data, sig)
+	ret := m.ctrl.Call(m, "ECRecover", ctx, data, sig)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -110,7 +110,7 @@ func (m *MockStore) ECRevocer(ctx context.Context, data, sig []byte) (string, er
 // ECRevocer indicates an expected call of ECRevocer.
 func (mr *MockStoreMockRecorder) ECRevocer(ctx, data, sig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRevocer", reflect.TypeOf((*MockStore)(nil).ECRevocer), ctx, data, sig)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockStore)(nil).ECRecover), ctx, data, sig)
 }
 
 // Encrypt mocks base method.

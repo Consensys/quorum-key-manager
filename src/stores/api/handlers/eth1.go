@@ -667,7 +667,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	address, err := eth1Store.ECRevocer(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
+	address, err := eth1Store.ECRecover(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

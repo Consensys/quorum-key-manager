@@ -258,8 +258,8 @@ func (c Eth1Connector) SignPrivate(ctx context.Context, addr string, tx *quorumt
 	return result, nil
 }
 
-func (c Eth1Connector) ECRevocer(ctx context.Context, data, sig []byte) (string, error) {
-	result, err := c.store.ECRevocer(ctx, data, sig)
+func (c Eth1Connector) ECRecover(ctx context.Context, data, sig []byte) (string, error) {
+	result, err := c.store.ECRecover(ctx, data, sig)
 	if err != nil {
 		return "", err
 	}

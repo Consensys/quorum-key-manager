@@ -214,7 +214,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
-		address, err := s.store.ECRevocer(ctx, payload, signature)
+		address, err := s.store.ECRecover(ctx, payload, signature)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), account.Address.Hex(), address)
 
