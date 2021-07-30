@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/models"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 )
@@ -60,13 +61,13 @@ func (s *aliasStoreTestSuite) TearDownSuite() {
 	s.env.Teardown(context.Background())
 }
 
-func (s *aliasStoreTestSuite) fakeAlias() aliasstore.Alias {
+func (s *aliasStoreTestSuite) fakeAlias() aliasmodels.Alias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
-	return aliasstore.Alias{
-		RegistryName: aliasstore.RegistryName("JPM-" + randID),
-		Key:          aliasstore.AliasKey("Goldman Sachs-" + randID),
-		Kind:         aliasstore.AliasKindArray,
+	return aliasmodels.Alias{
+		RegistryName: aliasmodels.RegistryName("JPM-" + randID),
+		Key:          aliasmodels.AliasKey("Goldman Sachs-" + randID),
+		Kind:         aliasmodels.AliasKindArray,
 		Value:        `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
 	}
 }
@@ -156,7 +157,7 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
-		newAlias.Kind = aliasstore.AliasKindString
+		newAlias.Kind = aliasmodels.AliasKindString
 		newAlias.Value = `SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`
 		err = s.store.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)

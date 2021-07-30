@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/models"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -18,7 +18,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	models2 "github.com/consensys/quorum-key-manager/src/stores/store/database/models"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
@@ -390,11 +389,9 @@ func (env *IntegrationEnvironment) createTables() error {
 		FKConstraints: true,
 	}
 	for _, v := range []interface{}{
-		&models.Key{},
-		&models.ETH1Account{},
 		&models2.Key{},
 		&models2.ETH1Account{},
-		&aliasstore.Alias{},
+		&aliasmodels.Alias{},
 	} {
 		err = db.Model(v).CreateTable(opts)
 
