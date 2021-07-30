@@ -69,6 +69,12 @@ func FakeSignHexPayloadRequest() *types.SignHexPayloadRequest {
 	}
 }
 
+func FakeSignEIP191MessageRequest() *types.SignMessagePayloadRequest {
+	return &types.SignMessagePayloadRequest{
+		Data: []byte("any message goes here"),
+	}
+}
+
 func FakeSignTypedDataRequest() *types.SignTypedDataRequest {
 	return &types.SignTypedDataRequest{
 		DomainSeparator: types.DomainSeparator{

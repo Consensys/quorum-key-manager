@@ -61,6 +61,9 @@ type Store interface {
 	// SignTypedData signs EIP-712 formatted data using the specified Ethereum account
 	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
 
+	// SignEIP191Data signs EIP-191 formatted data using the specified Ethereum account
+	SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, error)
+
 	// SignTransaction signs a public Ethereum transaction
 	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error)
 

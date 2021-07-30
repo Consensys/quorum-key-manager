@@ -28,6 +28,10 @@ type SignHexPayloadRequest struct {
 	Data hexutil.Bytes `json:"data" validate:"required" example:"0xfeee" swaggertype:"string"`
 }
 
+type SignMessagePayloadRequest struct {
+	Data hexutil.Bytes `json:"message" validate:"required" example:"any message" swaggertype:"string"`
+}
+
 type SignTypedDataRequest struct {
 	DomainSeparator DomainSeparator        `json:"domainSeparator" validate:"required"`
 	Types           map[string][]Type      `json:"types" validate:"required"`

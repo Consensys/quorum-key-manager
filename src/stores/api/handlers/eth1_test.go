@@ -323,6 +323,24 @@ func (s *eth1HandlerTestSuite) TestSignTypedData() {
 	})
 }
 
+func (s *eth1HandlerTestSuite) TestSignEIP191Data() {
+	s.Run("should execute request successfully", func() {
+		signEIP191Request := testutils.FakeSignEIP191MessageRequest()
+		requestBytes, _ := json.Marshal(signEIP191Request)
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-eip191-data", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+
+		signature := []byte("signature")
+		s.eth1Store.EXPECT().SignEIP191Data(gomock.Any(), accAddress, gomock.Any()).Return(signature, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		assert.Equal(s.T(), hexutil.Encode(signature), rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+}
+
 func (s *eth1HandlerTestSuite) TestSignTransaction() {
 	s.Run("should execute request successfully", func() {
 		signTransactionRequest := testutils.FakeSignETHTransactionRequest()

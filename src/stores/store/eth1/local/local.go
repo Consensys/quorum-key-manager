@@ -216,6 +216,12 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 	return s.Sign(ctx, addr, []byte(encodedData))
 }
 
+func (s *Store) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, error) {
+	encodedData := getEIP191EncodedData(addr, data)
+
+	return s.Sign(ctx, addr, []byte(encodedData))
+}
+
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
@@ -404,6 +410,13 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	}
 
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
+}
+
+// getEIP191EncodedData encodes the given message that can be later recovered
+// with the given validator. following EIP-171 spec version 0x0
+func getEIP191EncodedData(address string, msg []byte) string {
+	return fmt.Sprintf("\x19\x00%s%s", address, string(msg))
+
 }
 
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96

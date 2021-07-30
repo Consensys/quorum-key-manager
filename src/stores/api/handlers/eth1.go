@@ -43,6 +43,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
+	r.Methods(http.MethodPost).Path("/{address}/sign-eip191-data").HandlerFunc(h.signEIP191Data)
 	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
@@ -267,6 +268,46 @@ func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	signature, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
+}
+
+// @Summary Sign EIP 191 message with Ethereum Account
+// @Description Sign EIP 191 message using selected Ethereum Account
+// @Tags Ethereum Account
+// @Accept json
+// @Produce plain
+// @Param storeName path string true "Store Identifier"
+// @Param address path string true "Ethereum address"
+// @Param request body types.SignMessagePayloadRequest true "Sign message request"
+// @Success 200 {string} string "EIP 191 message signature"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 404 {object} ErrorResponse "Store/Account not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/eth1/{address}/sign-eip191-data [post]
+func (h *Eth1Handler) signEIP191Data(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	signPayloadReq := &types.SignMessagePayloadRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, signPayloadReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	signature, err := eth1Store.SignEIP191Data(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
