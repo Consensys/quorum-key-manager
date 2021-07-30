@@ -67,7 +67,6 @@ func (s *aliasStoreTestSuite) fakeAlias() aliasmodels.Alias {
 	return aliasmodels.Alias{
 		RegistryName: aliasmodels.RegistryName("JPM-" + randID),
 		Key:          aliasmodels.AliasKey("Goldman Sachs-" + randID),
-		Kind:         aliasmodels.AliasKindArray,
 		Value:        `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
 	}
 }
@@ -157,8 +156,7 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
-		newAlias.Kind = aliasmodels.AliasKindString
-		newAlias.Value = `SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`
+		newAlias.Value = `[ SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc= ]`
 		err = s.store.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)
 
