@@ -4,13 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +25,7 @@ const (
 type keysTestSuite struct {
 	suite.Suite
 	env    *IntegrationEnvironment
-	store  keys.Store
+	store  connectors.KeysConnector
 	keyIds []string
 }
 
@@ -50,10 +50,9 @@ func (s *keysTestSuite) TearDownSuite() {
 			if errors.IsNotSupportedError(err) || errors.IsNotImplementedError(err) {
 				return
 			}
-			if !errors.IsStatusConflictError(err) && !errors.IsNotFoundError(err){
+			if !errors.IsStatusConflictError(err) && !errors.IsNotFoundError(err) {
 				break
 			}
-			
 
 			if maxTries <= 0 {
 				if err != nil {

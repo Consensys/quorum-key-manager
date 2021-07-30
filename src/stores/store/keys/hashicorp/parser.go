@@ -2,8 +2,9 @@ package hashicorp
 
 import (
 	"encoding/base64"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 

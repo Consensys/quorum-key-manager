@@ -3,6 +3,7 @@ package akv
 import (
 	"context"
 	"encoding/base64"
+
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"

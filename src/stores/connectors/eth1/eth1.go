@@ -14,23 +14,23 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core"
 )
 
-type Eth1Connector struct {
+type Connector struct {
 	store    eth1.Store
 	logger   log.Logger
 	resolver *policy.Resolver
 }
 
-var _ eth1.Store = Eth1Connector{}
+var _ eth1.Store = Connector{}
 
-func NewEth1Connector(store eth1.Store, resolvr *policy.Resolver, logger log.Logger) *Eth1Connector {
-	return &Eth1Connector{
+func NewEth1Connector(store eth1.Store, resolvr *policy.Resolver, logger log.Logger) *Connector {
+	return &Connector{
 		store:    store,
 		logger:   logger,
 		resolver: resolvr,
 	}
 }
 
-func (c Eth1Connector) Info(ctx context.Context) (*entities.StoreInfo, error) {
+func (c Connector) Info(ctx context.Context) (*entities.StoreInfo, error) {
 	result, err := c.store.Info(ctx)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (c Eth1Connector) Info(ctx context.Context) (*entities.StoreInfo, error) {
 	return result, nil
 }
 
-func (c Eth1Connector) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
+func (c Connector) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("id", id)
 	logger.Debug("creating ethereum account")
 
@@ -53,7 +53,7 @@ func (c Eth1Connector) Create(ctx context.Context, id string, attr *entities.Att
 	return result, nil
 }
 
-func (c Eth1Connector) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
+func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("id", id)
 	logger.Debug("importing ethereum account")
 
@@ -66,7 +66,7 @@ func (c Eth1Connector) Import(ctx context.Context, id string, privKey []byte, at
 	return result, nil
 }
 
-func (c Eth1Connector) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
+func (c Connector) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.Get(ctx, addr)
@@ -78,7 +78,7 @@ func (c Eth1Connector) Get(ctx context.Context, addr string) (*entities.ETH1Acco
 	return result, nil
 }
 
-func (c Eth1Connector) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
+func (c Connector) GetAll(ctx context.Context) ([]*entities.ETH1Account, error) {
 	result, err := c.store.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (c Eth1Connector) GetAll(ctx context.Context) ([]*entities.ETH1Account, err
 	return result, nil
 }
 
-func (c Eth1Connector) List(ctx context.Context) ([]string, error) {
+func (c Connector) List(ctx context.Context) ([]string, error) {
 	result, err := c.store.List(ctx)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (c Eth1Connector) List(ctx context.Context) ([]string, error) {
 	return result, nil
 }
 
-func (c Eth1Connector) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
+func (c Connector) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("address", addr)
 	logger.Debug("updating ethereum account")
 
@@ -111,7 +111,7 @@ func (c Eth1Connector) Update(ctx context.Context, addr string, attr *entities.A
 	return result, nil
 }
 
-func (c Eth1Connector) Delete(ctx context.Context, addr string) error {
+func (c Connector) Delete(ctx context.Context, addr string) error {
 	logger := c.logger.With("address", addr)
 	logger.Debug("deleting ethereum account")
 
@@ -124,7 +124,7 @@ func (c Eth1Connector) Delete(ctx context.Context, addr string) error {
 	return nil
 }
 
-func (c Eth1Connector) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
+func (c Connector) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.GetDeleted(ctx, addr)
@@ -136,7 +136,7 @@ func (c Eth1Connector) GetDeleted(ctx context.Context, addr string) (*entities.E
 	return result, nil
 }
 
-func (c Eth1Connector) ListDeleted(ctx context.Context) ([]string, error) {
+func (c Connector) ListDeleted(ctx context.Context) ([]string, error) {
 	result, err := c.store.ListDeleted(ctx)
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func (c Eth1Connector) ListDeleted(ctx context.Context) ([]string, error) {
 	return result, nil
 }
 
-func (c Eth1Connector) Undelete(ctx context.Context, addr string) error {
+func (c Connector) Undelete(ctx context.Context, addr string) error {
 	logger := c.logger.With("address", addr)
 	logger.Debug("restoring ethereum account")
 
@@ -159,7 +159,7 @@ func (c Eth1Connector) Undelete(ctx context.Context, addr string) error {
 	return nil
 }
 
-func (c Eth1Connector) Destroy(ctx context.Context, addr string) error {
+func (c Connector) Destroy(ctx context.Context, addr string) error {
 	logger := c.logger.With("address", addr)
 	logger.Debug("destroying ethereum account")
 
@@ -172,7 +172,7 @@ func (c Eth1Connector) Destroy(ctx context.Context, addr string) error {
 	return nil
 }
 
-func (c Eth1Connector) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (c Connector) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.Sign(ctx, addr, data)
@@ -184,7 +184,7 @@ func (c Eth1Connector) Sign(ctx context.Context, addr string, data []byte) ([]by
 	return result, nil
 }
 
-func (c Eth1Connector) SignData(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (c Connector) SignData(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 	result, err := c.store.SignData(ctx, addr, data)
 	if err != nil {
@@ -196,7 +196,7 @@ func (c Eth1Connector) SignData(ctx context.Context, addr string, data []byte) (
 	return result, nil
 }
 
-func (c Eth1Connector) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
+func (c Connector) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.SignTypedData(ctx, addr, typedData)
@@ -208,7 +208,7 @@ func (c Eth1Connector) SignTypedData(ctx context.Context, addr string, typedData
 	return result, nil
 }
 
-func (c Eth1Connector) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
+func (c Connector) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.SignTransaction(ctx, addr, chainID, tx)
@@ -220,7 +220,7 @@ func (c Eth1Connector) SignTransaction(ctx context.Context, addr string, chainID
 	return result, nil
 }
 
-func (c Eth1Connector) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
+func (c Connector) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.SignEEA(ctx, addr, chainID, tx, args)
@@ -232,7 +232,7 @@ func (c Eth1Connector) SignEEA(ctx context.Context, addr string, chainID *big.In
 	return result, nil
 }
 
-func (c Eth1Connector) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
+func (c Connector) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.SignPrivate(ctx, addr, tx)
@@ -244,7 +244,7 @@ func (c Eth1Connector) SignPrivate(ctx context.Context, addr string, tx *quorumt
 	return result, nil
 }
 
-func (c Eth1Connector) ECRevocer(ctx context.Context, data, sig []byte) (string, error) {
+func (c Connector) ECRevocer(ctx context.Context, data, sig []byte) (string, error) {
 	result, err := c.store.ECRevocer(ctx, data, sig)
 	if err != nil {
 		return "", err
@@ -254,7 +254,7 @@ func (c Eth1Connector) ECRevocer(ctx context.Context, data, sig []byte) (string,
 	return result, nil
 }
 
-func (c Eth1Connector) Verify(ctx context.Context, addr string, data, sig []byte) error {
+func (c Connector) Verify(ctx context.Context, addr string, data, sig []byte) error {
 	err := c.store.Verify(ctx, addr, data, sig)
 	if err != nil {
 		return err
@@ -264,7 +264,7 @@ func (c Eth1Connector) Verify(ctx context.Context, addr string, data, sig []byte
 	return nil
 }
 
-func (c Eth1Connector) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
+func (c Connector) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
 	err := c.store.VerifyTypedData(ctx, addr, typedData, sig)
 	if err != nil {
 		return err
@@ -274,7 +274,7 @@ func (c Eth1Connector) VerifyTypedData(ctx context.Context, addr string, typedDa
 	return nil
 }
 
-func (c Eth1Connector) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (c Connector) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.Encrypt(ctx, addr, data)
@@ -286,7 +286,7 @@ func (c Eth1Connector) Encrypt(ctx context.Context, addr string, data []byte) ([
 	return result, nil
 }
 
-func (c Eth1Connector) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (c Connector) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	result, err := c.store.Decrypt(ctx, addr, data)

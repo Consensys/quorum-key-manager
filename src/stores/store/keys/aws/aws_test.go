@@ -3,9 +3,10 @@ package aws
 import (
 	"context"
 	"encoding/base64"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
 	"testing"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 

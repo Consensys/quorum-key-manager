@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"

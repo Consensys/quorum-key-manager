@@ -2,6 +2,7 @@ package connectors
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 )
 

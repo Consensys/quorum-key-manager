@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"testing"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
-	"testing"
 
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
 	mocksecrets "github.com/consensys/quorum-key-manager/src/stores/store/secrets/mock"
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
@@ -34,8 +34,6 @@ var expectedErr = errors.DependencyFailureError("error")
 type localKeyStoreTestSuite struct {
 	suite.Suite
 	keyStore        keys.Store
-	mockDB          *mock.MockDatabase
-	mockKeys        *mock.MockKeys
 	mockSecretStore *mocksecrets.MockStore
 }
 

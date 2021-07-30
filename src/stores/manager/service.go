@@ -3,11 +3,12 @@ package storemanager
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/consensys/quorum-key-manager/src/stores/connectors"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
 	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
-	"sync"
 
 	"github.com/consensys/quorum-key-manager/src/auth/policy"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"

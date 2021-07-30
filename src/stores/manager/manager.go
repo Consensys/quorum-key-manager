@@ -2,6 +2,7 @@ package storemanager
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/stores/connectors"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"

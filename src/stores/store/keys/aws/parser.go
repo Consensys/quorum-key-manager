@@ -4,9 +4,10 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"fmt"
+	"math/big"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"math/big"
 )
 
 type publicKeyInfo struct {

@@ -6,10 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/mock"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"

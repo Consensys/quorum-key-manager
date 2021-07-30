@@ -5,10 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"testing"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -231,14 +231,14 @@ func (s *akvKeyStoreTestSuite) TestDelete() {
 	ctx := context.Background()
 
 	s.Run("should sign payload successfully", func() {
-		s.mockVault.EXPECT().DeleteKey(gomock.Any(), id).Return(keyvault.DeletedKeyBundle{}, nil)
+		s.mockVault.EXPECT().DeleteKey(gomock.Any(), id).Return(akv.DeletedKeyBundle{}, nil)
 
 		err := s.keyStore.Delete(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should return same wrapped error if DeleteKey fails", func() {
-		s.mockVault.EXPECT().DeleteKey(gomock.Any(), id).Return(keyvault.DeletedKeyBundle{}, expectedErr)
+		s.mockVault.EXPECT().DeleteKey(gomock.Any(), id).Return(akv.DeletedKeyBundle{}, expectedErr)
 
 		err := s.keyStore.Delete(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
@@ -249,14 +249,14 @@ func (s *akvKeyStoreTestSuite) TestUndelete() {
 	ctx := context.Background()
 
 	s.Run("should sign payload successfully", func() {
-		s.mockVault.EXPECT().RecoverDeletedKey(gomock.Any(), id).Return(keyvault.KeyBundle{}, nil)
+		s.mockVault.EXPECT().RecoverDeletedKey(gomock.Any(), id).Return(akv.KeyBundle{}, nil)
 
 		err := s.keyStore.Undelete(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should return same wrapped error if RecoverDeletedKey fails", func() {
-		s.mockVault.EXPECT().RecoverDeletedKey(gomock.Any(), id).Return(keyvault.KeyBundle{}, expectedErr)
+		s.mockVault.EXPECT().RecoverDeletedKey(gomock.Any(), id).Return(akv.KeyBundle{}, expectedErr)
 
 		err := s.keyStore.Undelete(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
