@@ -9,20 +9,12 @@ type Alias struct {
 
 	Key          AliasKey     `pg:",pk"`
 	RegistryName RegistryName `pg:",pk"`
-	Kind         AliasKind
-	Value        AliasValue
+	// Value is a JSON array containing Tessera/Orion keys base64 encoded in strings.
+	Value AliasValue
 }
 
 type AliasKey string
 
 type AliasValue string
-
-type AliasKind string
-
-const (
-	AliasKindUnknown = ""
-	AliasKindString  = "string"
-	AliasKindArray   = "array"
-)
 
 type RegistryName string
