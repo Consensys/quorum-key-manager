@@ -98,7 +98,7 @@ func (mr *MockStoreMockRecorder) Destroy(ctx, addr interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockStore)(nil).Destroy), ctx, addr)
 }
 
-// ECRevocer mocks base method.
+// ECRecover mocks base method.
 func (m *MockStore) ECRecover(ctx context.Context, data, sig []byte) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ECRecover", ctx, data, sig)
@@ -107,8 +107,8 @@ func (m *MockStore) ECRecover(ctx context.Context, data, sig []byte) (string, er
 	return ret0, ret1
 }
 
-// ECRevocer indicates an expected call of ECRevocer.
-func (mr *MockStoreMockRecorder) ECRevocer(ctx, data, sig interface{}) *gomock.Call {
+// ECRecover indicates an expected call of ECRecover.
+func (mr *MockStoreMockRecorder) ECRecover(ctx, data, sig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockStore)(nil).ECRecover), ctx, data, sig)
 }
@@ -279,12 +279,13 @@ func (mr *MockStoreMockRecorder) SignEEA(ctx, addr, chainID, tx, args interface{
 }
 
 // SignEIP191Data mocks base method.
-func (m *MockStore) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (m *MockStore) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, []byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignEIP191Data", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].([]byte)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // SignEIP191Data indicates an expected call of SignEIP191Data.

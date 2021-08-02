@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -216,10 +217,15 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 	return s.Sign(ctx, addr, []byte(encodedData))
 }
 
-func (s *Store) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	encodedData := getEIP191EncodedData(addr, data)
+func (s *Store) SignEIP191Data(ctx context.Context, addr string, data []byte) (sig, msgHash []byte, err error) {
+	encodedData, msgHash, err := getEIP191EncodedData(addr, data)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return s.Sign(ctx, addr, []byte(encodedData))
+	sig, err = s.Sign(ctx, addr, encodedData)
+
+	return sig, msgHash, err
 }
 
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
@@ -413,10 +419,13 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 }
 
 // getEIP191EncodedData encodes the given message that can be later recovered
-// with the given validator. following EIP-171 spec version 0x0
-func getEIP191EncodedData(address string, msg []byte) string {
-	return fmt.Sprintf("\x19\x00%s%s", address, string(msg))
-
+// with the given validator. following EIP-191 spec version 0x0
+func getEIP191EncodedData(address string, msg []byte) (eipFormat, msgHash []byte, err error) {
+	hexAddress, err := hex.DecodeString(address)
+	if err != nil {
+		return nil, nil, err
+	}
+	return append([]byte{0x19, 0x00}, append(hexAddress, msg...)...), crypto.Keccak256(msg), nil
 }
 
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96

@@ -197,17 +197,17 @@ func (c Eth1Connector) SignData(ctx context.Context, addr string, data []byte) (
 
 }
 
-func (c Eth1Connector) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (c Eth1Connector) SignEIP191Data(ctx context.Context, addr string, data []byte) (sig, msgHash []byte, err error) {
 	logger := c.logger.With("address", addr)
 
-	result, err := c.store.SignEIP191Data(ctx, addr, data)
+	result, msgHash, err := c.store.SignEIP191Data(ctx, addr, data)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to sign data")
-		return nil, err
+		c.logger.WithError(err).Error("failed to sign EIP191 data")
+		return nil, nil, err
 	}
 
-	logger.Debug("data signed successfully")
-	return result, nil
+	logger.Debug("data EIP191 signed successfully")
+	return result, msgHash, nil
 }
 
 func (c Eth1Connector) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {

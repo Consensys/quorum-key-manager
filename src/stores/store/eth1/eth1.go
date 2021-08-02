@@ -62,7 +62,7 @@ type Store interface {
 	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
 
 	// SignEIP191Data signs EIP-191 formatted data using the specified Ethereum account
-	SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, error)
+	SignEIP191Data(ctx context.Context, addr string, data []byte) (sig []byte, msgHash []byte, err error)
 
 	// SignTransaction signs a public Ethereum transaction
 	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error)
@@ -73,7 +73,7 @@ type Store interface {
 	// SignPrivate signs a Quorum private transaction
 	SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error)
 
-	// ECRevocer returns the Ethereum address from a signature and data
+	// ECRecover returns the Ethereum address from a signature and data
 	ECRecover(ctx context.Context, data, sig []byte) (string, error)
 
 	// Verify verifies that a signature belongs to a given address
