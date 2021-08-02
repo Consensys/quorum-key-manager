@@ -29,7 +29,16 @@ type SignHexPayloadRequest struct {
 }
 
 type SignMessagePayloadRequest struct {
-	Data hexutil.Bytes `json:"message" validate:"required" example:"any message" swaggertype:"string"`
+	Data hexutil.Bytes `json:"message" validate:"required" example:"0xabcd1234" swaggertype:"string"`
+}
+
+type SignMessagePayloadResponse struct {
+	Message     string `json:"message" example:"any message goes here" swaggertype:"string"`
+	MessageHash string `json:"messageHash" example:"0xab12ff...." swaggertype:"string"`
+	V           string `json:"v" example:"0x1c" swaggertype:"string"`
+	R           string `json:"r" example:"0x6019a3c8..." swaggertype:"string"`
+	S           string `json:"s" example:"0x1a2bfe..." swaggertype:"string"`
+	Signature   string `json:"signature" example:"0x6019a3c8...1a2bfe...1c" swaggertype:"string"`
 }
 
 type SignTypedDataRequest struct {
