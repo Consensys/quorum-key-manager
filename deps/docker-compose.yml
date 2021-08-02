@@ -7,7 +7,6 @@ x-container-common: &container-common
 
 x-postgres-common: &postgres-common
   environment:
-    # update ./pgadmin/password as well when changing here
     POSTGRES_PASSWORD: postgres
 
 services:
@@ -25,10 +24,7 @@ services:
 volumes:
   db-data-api:
     driver: local
-  state-pgadmin:
-    driver: local
 
 networks:
   qkm:
-    external:
-      name: qkm
+    driver: bridge
