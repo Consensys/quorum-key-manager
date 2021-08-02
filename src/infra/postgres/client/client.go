@@ -128,11 +128,3 @@ func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, con
 	}
 	return nil
 }
-
-func (c *PostgresClient) CreateTable(ctx context.Context, model interface{}) error {
-	return c.db.ModelContext(ctx, model).CreateTable(nil)
-}
-
-func (c *PostgresClient) DropTable(ctx context.Context, model interface{}) error {
-	return c.db.ModelContext(ctx, model).DropTable(nil)
-}
