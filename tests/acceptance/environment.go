@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/models"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"

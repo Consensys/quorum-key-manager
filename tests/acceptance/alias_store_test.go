@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/models"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 )
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	goerrors "errors"
 
-	models "github.com/consensys/quorum-key-manager/src/aliases/models"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
+	models "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 

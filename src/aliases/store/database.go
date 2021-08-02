@@ -3,10 +3,10 @@ package aliasstore
 import (
 	"context"
 
-	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/models"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 )
 
-//go:generate mockgen -source=store.go -destination=mock/store.go -package=mock
+//go:generate mockgen -source=database.go -destination=mock/database.go -package=mock
 
 type Database interface {
 	Alias() Alias
