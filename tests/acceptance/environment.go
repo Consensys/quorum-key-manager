@@ -3,10 +3,6 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"strconv"
-	"time"
 
 	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
@@ -22,6 +18,10 @@ import (
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -388,6 +388,7 @@ func (env *IntegrationEnvironment) createTables() error {
 	opts := &orm.CreateTableOptions{
 		FKConstraints: true,
 	}
+	// we create tables for each model
 	for _, v := range []interface{}{
 		&models2.Key{},
 		&models2.ETH1Account{},

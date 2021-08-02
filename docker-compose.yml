@@ -76,7 +76,7 @@ networks:
       name: hashicorp
   qkm:
     external:
-      name: qkm
+      name: deps_qkm
 
 volumes:
   hashicorp-token:

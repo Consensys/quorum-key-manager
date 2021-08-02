@@ -6,9 +6,8 @@ import (
 	"os"
 
 	pgclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
-
 	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
 )
 
 const envVar = "TEST_DATA"

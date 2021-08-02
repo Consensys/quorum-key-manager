@@ -30,16 +30,14 @@ networks:
 	@docker network create --driver=bridge hashicorp || true
 	@docker network create --driver=bridge --subnet=172.16.237.0/24 besu || true
 	@docker network create --driver=bridge --subnet=172.16.238.0/24 quorum || true
-	@docker network create --driver=bridge qkm || true
 
 down-networks:
 	@docker network rm quorum || true
 	@docker network rm besu || true
 	@docker network rm hashicorp || true
-	@docker network rm qkm || true
 
 postgres:
-	@docker-compose -f deps/docker-compose.yml up -d $(DEPS_POSTGRES)
+	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_POSTGRES)
 
 postgres-down:
 	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0
@@ -51,7 +49,7 @@ down-deps: postgres-down hashicorp-down down-networks
 run-acceptance:
 	@go test -v -tags acceptance -count=1 ./tests/acceptance
 
-run-e2e: deps
+run-e2e:
 	@go test -v -tags e2e -count=1 ./tests/e2e
 
 gobuild:

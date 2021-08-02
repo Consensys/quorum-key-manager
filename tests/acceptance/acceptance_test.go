@@ -5,10 +5,6 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	"os"
-	"path"
-	"testing"
-
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -21,6 +17,9 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	"github.com/stretchr/testify/suite"
+	"os"
+	"path"
+	"testing"
 )
 
 type storeTestSuite struct {
