@@ -38,12 +38,12 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
 	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
 	r.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
-	r.Methods(http.MethodPost).Path("/{address}/sign-data").HandlerFunc(h.signData)
+	r.Methods(http.MethodPost).Path("/{address}/sign-hash").HandlerFunc(h.signData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
-	r.Methods(http.MethodPost).Path("/{address}/sign-eip191-data").HandlerFunc(h.signEIP191Data)
+	r.Methods(http.MethodPost).Path("/{address}/sign-data").HandlerFunc(h.signEIP191Data)
 	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
@@ -288,7 +288,7 @@ func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{address}/sign-eip191-data [post]
+// @Router /stores/{storeName}/eth1/{address}/sign-data [post]
 func (h *Eth1Handler) signEIP191Data(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -307,13 +307,13 @@ func (h *Eth1Handler) signEIP191Data(rw http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	signature, err := eth1Store.SignEIP191Data(ctx, getAddress(request), signPayloadReq.Data)
+	signature, msgHash, err := eth1Store.SignEIP191Data(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
+	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1SignDataResponse(signPayloadReq.Data, msgHash, signature))
 }
 
 // @Summary Sign Typed Data
