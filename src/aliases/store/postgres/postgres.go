@@ -49,7 +49,7 @@ func (s *Store) DeleteAlias(ctx context.Context, registryName models.RegistryNam
 
 func (s *Store) ListAliases(ctx context.Context, registry models.RegistryName) ([]models.Alias, error) {
 	als := []models.Alias{}
-	err := s.pgClient.SelectMany(ctx, &models.Alias{}, &als, "alias.registry_name = ?", registry)
+	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", registry)
 	return als, err
 }
 

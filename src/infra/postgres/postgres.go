@@ -12,13 +12,11 @@ type Client interface {
 	SelectDeletedPK(ctx context.Context, model ...interface{}) error
 	Select(ctx context.Context, model ...interface{}) error
 	SelectDeleted(ctx context.Context, model ...interface{}) error
+	SelectWhere(ctx context.Context, model interface{}, condition string, params ...interface{}) error
 	UpdatePK(ctx context.Context, model ...interface{}) error
 	DeletePK(ctx context.Context, model ...interface{}) error
 	ForceDeletePK(ctx context.Context, model ...interface{}) error
 	RunInTransaction(ctx context.Context, persist func(client Client) error) error
-
-	SelectMany(ctx context.Context, model interface{}, dst interface{}, condition string, params ...interface{}) error
-
 	CreateTable(ctx context.Context, model interface{}) error
 	DropTable(ctx context.Context, model interface{}) error
 }
