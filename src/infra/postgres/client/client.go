@@ -6,7 +6,6 @@ import (
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
@@ -46,9 +45,6 @@ func (c *PostgresClient) Insert(ctx context.Context, model ...interface{}) error
 
 func (c *PostgresClient) SelectPK(ctx context.Context, model ...interface{}) error {
 	err := c.db.ModelContext(ctx, model...).WherePK().Select()
-	if err == pg.ErrNoRows {
-		return errors.NotFoundError(err.Error())
-	}
 	if err != nil {
 		return parseErrorResponse(err)
 	}
@@ -84,24 +80,18 @@ func (c *PostgresClient) SelectDeleted(ctx context.Context, model ...interface{}
 }
 
 func (c *PostgresClient) UpdatePK(ctx context.Context, model ...interface{}) error {
-	res, err := c.db.ModelContext(ctx, model...).WherePK().Update()
+	_, err := c.db.ModelContext(ctx, model...).WherePK().Update()
 	if err != nil {
 		return parseErrorResponse(err)
-	}
-	if res.RowsAffected() != 1 {
-		return errors.NotFoundError("update not effected")
 	}
 
 	return nil
 }
 
 func (c *PostgresClient) DeletePK(ctx context.Context, model ...interface{}) error {
-	res, err := c.db.ModelContext(ctx, model...).WherePK().Delete()
+	_, err := c.db.ModelContext(ctx, model...).WherePK().Delete()
 	if err != nil {
 		return parseErrorResponse(err)
-	}
-	if res.RowsAffected() != 1 {
-		return errors.NotFoundError("update not effected")
 	}
 
 	return nil
