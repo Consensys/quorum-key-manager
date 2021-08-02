@@ -8,8 +8,12 @@ import (
 
 //go:generate mockgen -source=store.go -destination=mock/store.go -package=mock
 
-// Store handles the alias storing.
-type Store interface {
+type Database interface {
+	Alias() Alias
+}
+
+// Alias handles the alias storing.
+type Alias interface {
 	// CreateAlias creates an alias in the registry.
 	CreateAlias(ctx context.Context, registry aliasmodels.RegistryName, alias aliasmodels.Alias) error
 	// GetAlias gets an alias from the registry.

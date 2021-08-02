@@ -40,7 +40,7 @@ func TestAliasStore(t *testing.T) {
 type aliasStoreTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store aliasstore.Store
+	store aliasstore.Database
 	rand  *rand.Rand
 }
 
@@ -52,7 +52,7 @@ func (s *aliasStoreTestSuite) SetupSuite() {
 	}
 	s.env.logger.Info("setup test suite has completed")
 
-	s.store = aliaspg.New(s.env.postgresClient)
+	s.store = aliaspg.NewDatabase(s.env.postgresClient)
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	s.rand = rand.New(randSrc)
 }
@@ -74,7 +74,7 @@ func (s *aliasStoreTestSuite) fakeAlias() aliasmodels.Alias {
 func (s *aliasStoreTestSuite) TestCreateAlias() {
 	s.Run("should create an unique alias without error", func() {
 		in := s.fakeAlias()
-		err := s.store.CreateAlias(s.env.ctx, in.RegistryName, in)
+		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
 	})
 }
@@ -82,16 +82,16 @@ func (s *aliasStoreTestSuite) TestCreateAlias() {
 func (s *aliasStoreTestSuite) TestGetAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		_, err := s.store.GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		_, err := s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.Error(s.T(), err)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.CreateAlias(s.env.ctx, in.RegistryName, in)
+		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
 
-		got, err := s.store.GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		got, err := s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), &in, got)
 	})
@@ -100,22 +100,22 @@ func (s *aliasStoreTestSuite) TestGetAlias() {
 func (s *aliasStoreTestSuite) TestUpdateAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		err := s.store.UpdateAlias(s.env.ctx, in.RegistryName, in)
+		err := s.store.Alias().UpdateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.CreateAlias(s.env.ctx, in.RegistryName, in)
+		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
 
 		updated := in
 		updated.Value = `["SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`
 
-		err = s.store.UpdateAlias(s.env.ctx, in.RegistryName, updated)
+		err = s.store.Alias().UpdateAlias(s.env.ctx, in.RegistryName, updated)
 		require.NoError(s.T(), err)
 
-		got, err := s.store.GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		got, err := s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), &updated, got)
 	})
@@ -124,19 +124,19 @@ func (s *aliasStoreTestSuite) TestUpdateAlias() {
 func (s *aliasStoreTestSuite) TestDeleteAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		err := s.store.DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
+		err := s.store.Alias().DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.CreateAlias(s.env.ctx, in.RegistryName, in)
+		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
 
-		err = s.store.DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
+		err = s.store.Alias().DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 
-		_, err = s.store.GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		_, err = s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.Error(s.T(), err)
 	})
 }
@@ -144,23 +144,23 @@ func (s *aliasStoreTestSuite) TestDeleteAlias() {
 func (s *aliasStoreTestSuite) TestListAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		als, err := s.store.ListAliases(s.env.ctx, in.RegistryName)
+		als, err := s.store.Alias().ListAliases(s.env.ctx, in.RegistryName)
 		require.NoError(s.T(), err)
 		require.Len(s.T(), als, 0)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.CreateAlias(s.env.ctx, in.RegistryName, in)
+		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
 		newAlias.Value = `[ SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc= ]`
-		err = s.store.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
+		err = s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)
 
-		als, err := s.store.ListAliases(s.env.ctx, in.RegistryName)
+		als, err := s.store.Alias().ListAliases(s.env.ctx, in.RegistryName)
 		require.NoError(s.T(), err)
 		require.NotEmpty(s.T(), als)
 		require.Len(s.T(), als, 2)
