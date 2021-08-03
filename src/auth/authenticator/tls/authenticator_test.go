@@ -63,12 +63,12 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 
 }
 
-func TestNilAuthenticator(t *testing.T) {
+func TestAuthenticator(t *testing.T) {
 
 	auth, _ := NewAuthenticator(&Config{})
 
-	t.Run("should not instantiate when no cert provided", func(t *testing.T) {
-		assert.Nil(t, auth)
+	t.Run("should instantiate new authenticator", func(t *testing.T) {
+		assert.NotNil(t, auth)
 	})
 
 }
