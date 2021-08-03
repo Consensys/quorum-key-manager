@@ -1,4 +1,4 @@
-package aliasmanager
+package aliases
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 //go:generate mockgen -source=alias.go -destination=mock/alias.go -package=mock
 
-// Alias handles the alias storing.
+// Alias handles the aliases.
 type Alias interface {
 	// CreateAlias creates an alias in the registry.
 	CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error)

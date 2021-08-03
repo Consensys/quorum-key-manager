@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasmanager "github.com/consensys/quorum-key-manager/src/aliases/manager"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
@@ -40,7 +41,7 @@ func TestAliasStore(t *testing.T) {
 type aliasStoreTestSuite struct {
 	suite.Suite
 	env  *IntegrationEnvironment
-	srv  aliasmanager.Alias
+	srv  aliases.Alias
 	rand *rand.Rand
 }
 

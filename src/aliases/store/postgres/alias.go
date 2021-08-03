@@ -4,56 +4,74 @@ import (
 	"context"
 	goerrors "errors"
 
-	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
+	"github.com/consensys/quorum-key-manager/src/aliases"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
-var _ aliasstore.Alias = &Alias{}
+var _ aliases.Alias = &AliasStore{}
 
-// Alias stores the alias data in a postgres DB.
-type Alias struct {
+// AliasStore stores the alias data in a postgres DB.
+type AliasStore struct {
 	pgClient postgres.Client
 }
 
-func NewAlias(pgClient postgres.Client) *Alias {
-	return &Alias{
+func NewAlias(pgClient postgres.Client) *AliasStore {
+	return &AliasStore{
 		pgClient: pgClient,
 	}
 }
 
-func (s *Alias) CreateAlias(ctx context.Context, registryName aliasmodels.RegistryName, alias aliasmodels.Alias) (*aliasmodels.Alias, error) {
-	alias.RegistryName = registryName
-	err := s.pgClient.Insert(ctx, &alias)
+func (s *AliasStore) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+	a := aliasmodels.AliasFromEntity(alias)
+	a.RegistryName = aliasmodels.RegistryName(registry)
+
+	err := s.pgClient.Insert(ctx, &a)
 	if err != nil {
 		return nil, err
 	}
 	return &alias, nil
 }
 
-func (s *Alias) GetAlias(ctx context.Context, registryName aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) (*aliasmodels.Alias, error) {
-	alias := aliasmodels.Alias{Key: aliasKey, RegistryName: registryName}
-	err := s.pgClient.SelectPK(ctx, &alias)
-	return &alias, err
+func (s *AliasStore) GetAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) (*aliasent.Alias, error) {
+	a := aliasmodels.Alias{
+		Key:          aliasmodels.AliasKey(aliasKey),
+		RegistryName: aliasmodels.RegistryName(registry),
+	}
+	err := s.pgClient.SelectPK(ctx, &a)
+	return a.ToEntity(), err
 }
 
-func (s *Alias) UpdateAlias(ctx context.Context, registryName aliasmodels.RegistryName, alias aliasmodels.Alias) (*aliasmodels.Alias, error) {
-	alias.RegistryName = registryName
-	err := s.pgClient.UpdatePK(ctx, &alias)
-	return &alias, err
+func (s *AliasStore) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+	a := aliasmodels.AliasFromEntity(alias)
+	a.RegistryName = aliasmodels.RegistryName(registry)
+
+	err := s.pgClient.UpdatePK(ctx, &a)
+	return a.ToEntity(), err
 }
 
-func (s *Alias) DeleteAlias(ctx context.Context, registryName aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) error {
-	alias := aliasmodels.Alias{Key: aliasKey, RegistryName: registryName}
-	return s.pgClient.DeletePK(ctx, &alias)
+func (s *AliasStore) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
+	a := aliasmodels.Alias{
+		Key:          aliasmodels.AliasKey(aliasKey),
+		RegistryName: aliasmodels.RegistryName(registry),
+	}
+	return s.pgClient.DeletePK(ctx, &a)
 }
 
-func (s *Alias) ListAliases(ctx context.Context, registry aliasmodels.RegistryName) ([]aliasmodels.Alias, error) {
+func (s *AliasStore) ListAliases(ctx context.Context, registry aliasent.RegistryName) ([]aliasent.Alias, error) {
+	reg := aliasmodels.RegistryName(registry)
+
 	als := []aliasmodels.Alias{}
-	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", registry)
-	return als, err
+	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", reg)
+	if err != nil {
+		return nil, err
+	}
+
+	ents := aliasmodels.AliasesToEntity(als)
+	return ents, err
 }
 
-func (s *Alias) DeleteRegistry(ctx context.Context, registryName aliasmodels.RegistryName) error {
+func (s *AliasStore) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
 	return goerrors.New("not implemented")
 }
