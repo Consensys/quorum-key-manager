@@ -19,9 +19,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 
 	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
 
-	auth, _ := NewAuthenticator(&Config{
-		Certificates: []*x509.Certificate{aliceCert.Leaf},
-	})
+	auth, _ := NewAuthenticator(&Config{})
 
 	t.Run("should accept cert and extract ID successfully", func(t *testing.T) {
 
@@ -49,27 +47,13 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 
 	assert.NotEqualValues(t, aliceCert, eveCert)
 
-	auth, _ := NewAuthenticator(&Config{
-		Certificates: []*x509.Certificate{aliceCert.Leaf},
-	})
+	auth, _ := NewAuthenticator(&Config{})
 
-	t.Run("should reject cert and leave ID empty", func(t *testing.T) {
+	t.Run("should NOT reject cert and leave ID empty", func(t *testing.T) {
 
 		reqEve := httptest.NewRequest("GET", "https://test.url", nil)
 		reqEve.TLS = &tls.ConnectionState{}
-		reqEve.TLS.PeerCertificates = make([]*x509.Certificate, 1)
-		reqEve.TLS.PeerCertificates[0] = eveCert.Leaf
-
-		userInfo, err := auth.Authenticate(reqEve)
-
-		require.Error(t, err)
-		assert.Nil(t, userInfo)
-	})
-
-	t.Run("should return anonymous when client cert is missing", func(t *testing.T) {
-
-		reqEve := httptest.NewRequest("GET", "https://test.url", nil)
-		reqEve.TLS = &tls.ConnectionState{}
+		reqEve.TLS.PeerCertificates = nil
 
 		userInfo, err := auth.Authenticate(reqEve)
 
@@ -81,9 +65,7 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 
 func TestNilAuthenticator(t *testing.T) {
 
-	auth, _ := NewAuthenticator(&Config{
-		Certificates: []*x509.Certificate{},
-	})
+	auth, _ := NewAuthenticator(&Config{})
 
 	t.Run("should not instantiate when no cert provided", func(t *testing.T) {
 		assert.Nil(t, auth)

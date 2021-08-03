@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"net/http"
 )
 
 var encodedApikeySample1 = base64.StdEncoding.EncodeToString([]byte("apikey-sample1"))
@@ -29,7 +28,6 @@ type authTestSuite struct {
 	keyManagerClient *client.HTTPClient
 	cfg              *tests.Config
 }
-
 
 func (s *keysTestSuite) SetupSuite() {
 	if s.err != nil {
@@ -54,15 +52,6 @@ func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Add("Authorisation", fmt.Sprintf("Basic %s", encodedApikeySample1))
 	return http.DefaultTransport.RoundTrip(req)
 }
-
-func (s *authTestSuite) TestListWithMatchingAPIKey() {
-
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{Transport: &apiKeyTransport{}}, &client.Config{
-		URL: s.cfg.KeyManagerURL,
-	})
-
-	s.Run("should accept request successfully with correct APIKey", func() {
-func (s *authTestSuite) TestListWithMatchingCert() {
 
 func TestKeyManagerKeys(t *testing.T) {
 	s := new(keysTestSuite)
@@ -114,17 +103,6 @@ func (s *keysTestSuite) TestListWithMatchingCert() {
 	})
 }
 
-func (s *keysTestSuite) TestListWithWrongCert() {
-	keyID := "my-key-list"
-	request := &types.ImportKeyRequest{
-		Curve:            "secp256k1",
-		SigningAlgorithm: "ecdsa",
-		PrivateKey:       ecdsaPrivKey,
-		Tags: map[string]string{
-			"myTag0": "tag0",
-			"myTag1": "tag1",
-		},
-	}
 type wrongApiKeyTransport struct{}
 
 // RoundTrip overrides to inject Authorization header with wrong APIKey
@@ -132,14 +110,6 @@ func (t *wrongApiKeyTransport) RoundTrip(req *http.Request) (*http.Response, err
 	req.Header.Add("Authorisation", fmt.Sprintf("Basic %s", encodedApikeyWrongValue))
 	return http.DefaultTransport.RoundTrip(req)
 }
-
-func (s *authTestSuite) TestListWithWrongAPIKey() {
-
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{Transport: &wrongApiKeyTransport{}}, &client.Config{
-		URL: s.cfg.KeyManagerURL,
-	})
-
-	s.Run("should reject request with wrong APIKey", func() {
 
 func (s *authTestSuite) TestListWithWrongCert() {
 
@@ -159,6 +129,46 @@ func (s *authTestSuite) TestListWithWrongCert() {
 	)
 
 	s.Run("should reject request successfully", func() {
+		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
+		require.Empty(s.T(), ids)
+
+		httpError := err.(*client.ResponseError)
+		assert.Equal(s.T(), 401, httpError.StatusCode)
+	})
+}
+
+func (s *authTestSuite) TestListWithMatchingAPIKey() {
+
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{Transport: &apiKeyTransport{}}, &client.Config{
+		URL: s.cfg.KeyManagerURL,
+	})
+
+	s.Run("should accept request successfully with correct APIKey", func() {
+
+		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
+		require.Empty(s.T(), ids)
+
+		httpError := err.(*client.ResponseError)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
+	})
+}
+
+type wrongApiKeyTransport struct{}
+
+// RoundTrip overrides to inject Authorization header with wrong APIKey
+func (t *wrongApiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Add("Authorisation", fmt.Sprintf("Basic %s", encodedApikeyWrongValue))
+	return http.DefaultTransport.RoundTrip(req)
+}
+
+func (s *authTestSuite) TestListWithWrongAPIKey() {
+
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{Transport: &wrongApiKeyTransport{}}, &client.Config{
+		URL: s.cfg.KeyManagerURL,
+	})
+
+	s.Run("should reject request with wrong APIKey", func() {
+
 		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
 		require.Empty(s.T(), ids)
 

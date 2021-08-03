@@ -1,25 +1,18 @@
 package tls
 
 import (
-	"crypto/x509"
 	"net/http"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
 const AuthMode = "Tls"
 
 type Authenticator struct {
-	Certificates []*x509.Certificate
 }
 
 func NewAuthenticator(cfg *Config) (*Authenticator, error) {
-	if len(cfg.Certificates) == 0 {
-		return nil, nil
-	}
-
-	auth := &Authenticator{Certificates: cfg.Certificates}
+	auth := &Authenticator{}
 
 	return auth, nil
 }
@@ -29,23 +22,16 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 // Organization -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
+	// let go without error when no cert found
 	if len(req.TLS.PeerCertificates) == 0 {
 		return nil, nil
 	}
 	// first array element is the leaf
 	clientCert := *req.TLS.PeerCertificates[0]
-	// check this cert matches authenticator provided one
-	// using strict comparison
-	for _, authCert := range authenticator.Certificates {
-		if clientCert.Equal(authCert) {
-			return &types.UserInfo{
-				Username: clientCert.Subject.CommonName,
-				Groups:   clientCert.Subject.Organization,
-				AuthMode: AuthMode,
-			}, nil
-
-		}
-	}
-
-	return nil, errors.UnauthorizedError("no matching cert found")
+	// UserInfo returned is retrieved from cert contents
+	return &types.UserInfo{
+		Username: clientCert.Subject.CommonName,
+		Groups:   clientCert.Subject.Organization,
+		AuthMode: AuthMode,
+	}, nil
 }
