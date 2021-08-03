@@ -214,8 +214,8 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	}
 
 	// TLS part
-	var tlsCfg = &tls.Config{}
-	certsTLS := []*x509.Certificate{}
+	var tlsCfg *tls.Config
+	var certsTLS []*x509.Certificate
 
 	fileCertTLS, err := clientCertificate(vipr)
 	if err != nil {
@@ -284,7 +284,6 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, erro
 	csvFileName := vipr.GetString(authAPIKeyFileViperKey)
 	csvfile, err := os.Open(csvFileName)
 	if err != nil {
-		fmt.Print("file %v was not found ", csvFileName)
 		return nil, err
 	}
 	defer func(csvfile *os.File) {

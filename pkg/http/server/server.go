@@ -20,8 +20,8 @@ func NewTLS(cfg *Config) *http.Server {
 		IdleTimeout: cfg.IdleConnTimeout,
 		ReadTimeout: cfg.Timeout,
 	}
-	// This will require peer cert during TLS handshake
-	server.TLSConfig = &tls.Config{ClientAuth: tls.RequireAnyClientCert}
+	// This will NOT require peer cert during TLS handshake
+	server.TLSConfig = &tls.Config{ClientAuth: tls.VerifyClientCertIfGiven}
 	return server
 }
 

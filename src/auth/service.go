@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 	"net/http"
+
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 
 	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"

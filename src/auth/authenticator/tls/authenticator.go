@@ -23,11 +23,11 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
 	// let go without error when no cert found
-	if len(req.TLS.PeerCertificates) == 0 {
+	if req.TLS == nil || len(req.TLS.PeerCertificates) == 0 {
 		return nil, nil
 	}
 	// first array element is the leaf
-	clientCert := *req.TLS.PeerCertificates[0]
+	clientCert := req.TLS.PeerCertificates[0]
 	// UserInfo returned is retrieved from cert contents
 	return &types.UserInfo{
 		Username: clientCert.Subject.CommonName,
