@@ -53,7 +53,8 @@ run-e2e:
 	@go test -v -tags e2e -count=1 ./tests/e2e
 
 gobuild:
-	@GOOS=linux GOARCH=amd64 go build -i -o ./build/bin/key-manager
+	@GOOS=linux GOARCH=amd64 go build -o ./build/bin/key-manager
+	@GOOS=darwin GOARCH=arm64 go build -o ./build/bin/key-manager-darwin
 
 gobuild-dbg:
 	CGO_ENABLED=1 go build -gcflags=all="-N -l" -i -o ./build/bin/key-manager
