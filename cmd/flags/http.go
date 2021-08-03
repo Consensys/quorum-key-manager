@@ -100,7 +100,7 @@ const (
 	httpHostFlag      = "http-host"
 	httpHostViperKey  = "http.host"
 	httpHostDefault   = ""
-	httpHostEnv       = "HTTPS_HOST"
+	httpHostEnv       = "HTTP_HOST"
 	httpsHostFlag     = "https-host"
 	httpsHostViperKey = "https.host"
 	httpsHostDefault  = ""
