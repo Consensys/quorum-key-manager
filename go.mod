@@ -35,12 +35,13 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.5.4
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/justinas/alice v1.2.0
+	github.com/magefile/mage v1.10.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
-	github.com/sirupsen/logrus v1.4.1
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
@@ -55,6 +56,7 @@ require (
 	golang.org/x/sys v0.0.0-20210603125802-9665404d3644 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	golang.org/x/tools v0.1.2 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.0

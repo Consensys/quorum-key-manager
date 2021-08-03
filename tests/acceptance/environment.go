@@ -3,6 +3,8 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -51,6 +53,7 @@ const (
 	MaxRetries                = 4
 )
 
+// IntegrationEnvironment holds all connected clients needed to ready docker containers.
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
@@ -385,15 +388,17 @@ func (env *IntegrationEnvironment) createTables() error {
 	opts := &orm.CreateTableOptions{
 		FKConstraints: true,
 	}
+	// we create tables for each model
+	for _, v := range []interface{}{
+		&models2.Key{},
+		&models2.ETH1Account{},
+		&aliasent.Alias{},
+	} {
+		err = db.Model(v).CreateTable(opts)
 
-	err = db.Model(&models2.Key{}).CreateTable(opts)
-	if err != nil {
-		return err
-	}
-
-	err = db.Model(&models2.ETH1Account{}).CreateTable(opts)
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	env.logger.Info("tables created successgfully from models")

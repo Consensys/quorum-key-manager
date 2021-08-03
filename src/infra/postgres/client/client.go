@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 
+	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
-	"github.com/go-pg/pg/v10"
 )
 
 type PostgresClient struct {
@@ -119,4 +119,12 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 	}
 
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
+}
+
+func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+	err := c.db.ModelContext(ctx, model).Where(where, args...).Select()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	return nil
 }
