@@ -121,8 +121,8 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
 }
 
-func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, condition string, params ...interface{}) error {
-	err := c.db.ModelContext(ctx, model).Where(condition, params...).Select()
+func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+	err := c.db.ModelContext(ctx, model).Where(where, args...).Select()
 	if err != nil {
 		return parseErrorResponse(err)
 	}

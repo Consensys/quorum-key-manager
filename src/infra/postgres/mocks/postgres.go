@@ -35,20 +35,6 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// CreateTable mocks base method.
-func (m *MockClient) CreateTable(ctx context.Context, model interface{}) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTable", ctx, model)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateTable indicates an expected call of CreateTable.
-func (mr *MockClientMockRecorder) CreateTable(ctx, model interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTable", reflect.TypeOf((*MockClient)(nil).CreateTable), ctx, model)
-}
-
 // DeletePK mocks base method.
 func (m *MockClient) DeletePK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
@@ -66,20 +52,6 @@ func (mr *MockClientMockRecorder) DeletePK(ctx interface{}, model ...interface{}
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, model...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePK", reflect.TypeOf((*MockClient)(nil).DeletePK), varargs...)
-}
-
-// DropTable mocks base method.
-func (m *MockClient) DropTable(ctx context.Context, model interface{}) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DropTable", ctx, model)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DropTable indicates an expected call of DropTable.
-func (mr *MockClientMockRecorder) DropTable(ctx, model interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DropTable", reflect.TypeOf((*MockClient)(nil).DropTable), ctx, model)
 }
 
 // ForceDeletePK mocks base method.
@@ -191,25 +163,6 @@ func (mr *MockClientMockRecorder) SelectDeletedPK(ctx interface{}, model ...inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedPK", reflect.TypeOf((*MockClient)(nil).SelectDeletedPK), varargs...)
 }
 
-// SelectMany mocks base method.
-func (m *MockClient) SelectMany(ctx context.Context, model, dst interface{}, condition string, params ...interface{}) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, model, dst, condition}
-	for _, a := range params {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "SelectMany", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SelectMany indicates an expected call of SelectMany.
-func (mr *MockClientMockRecorder) SelectMany(ctx, model, dst, condition interface{}, params ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, model, dst, condition}, params...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectMany", reflect.TypeOf((*MockClient)(nil).SelectMany), varargs...)
-}
-
 // SelectPK mocks base method.
 func (m *MockClient) SelectPK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
@@ -227,6 +180,25 @@ func (mr *MockClientMockRecorder) SelectPK(ctx interface{}, model ...interface{}
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, model...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectPK", reflect.TypeOf((*MockClient)(nil).SelectPK), varargs...)
+}
+
+// SelectWhere mocks base method.
+func (m *MockClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, model, where}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SelectWhere", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SelectWhere indicates an expected call of SelectWhere.
+func (mr *MockClientMockRecorder) SelectWhere(ctx, model, where interface{}, args ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, model, where}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectWhere", reflect.TypeOf((*MockClient)(nil).SelectWhere), varargs...)
 }
 
 // UpdatePK mocks base method.
