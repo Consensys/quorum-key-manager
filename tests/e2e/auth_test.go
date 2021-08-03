@@ -111,32 +111,6 @@ func (t *wrongApiKeyTransport) RoundTrip(req *http.Request) (*http.Response, err
 	return http.DefaultTransport.RoundTrip(req)
 }
 
-func (s *authTestSuite) TestListWithWrongCert() {
-
-	cert, err := tls.LoadX509KeyPair("certs/wrong.crt", "certs/common.key")
-	if err != nil {
-		s.T().FailNow()
-	}
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates: []tls.Certificate{cert},
-			},
-		},
-	}, &client.Config{
-		URL: s.cfg.KeyManagerURL,
-	},
-	)
-
-	s.Run("should reject request successfully", func() {
-		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
-		require.Empty(s.T(), ids)
-
-		httpError := err.(*client.ResponseError)
-		assert.Equal(s.T(), 401, httpError.StatusCode)
-	})
-}
-
 func (s *authTestSuite) TestListWithMatchingAPIKey() {
 
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{Transport: &apiKeyTransport{}}, &client.Config{
