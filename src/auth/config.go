@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	OIDC *oidc.Config
-	TlsCfg *tls.Config
+	OIDC   *oidc.Config
+	TLS    *tls.Config
 	APIKEY *apikey.Config
 }
