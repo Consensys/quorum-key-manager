@@ -15,11 +15,11 @@ type Database interface {
 // Alias handles the alias storing.
 type Alias interface {
 	// CreateAlias creates an alias in the registry.
-	CreateAlias(ctx context.Context, registry aliasmodels.RegistryName, alias aliasmodels.Alias) error
+	CreateAlias(ctx context.Context, registry aliasmodels.RegistryName, alias aliasmodels.Alias) (*aliasmodels.Alias, error)
 	// GetAlias gets an alias from the registry.
 	GetAlias(ctx context.Context, registry aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) (*aliasmodels.Alias, error)
 	// UpdateAlias updates an alias in the registry.
-	UpdateAlias(ctx context.Context, registry aliasmodels.RegistryName, alias aliasmodels.Alias) error
+	UpdateAlias(ctx context.Context, registry aliasmodels.RegistryName, alias aliasmodels.Alias) (*aliasmodels.Alias, error)
 	// GetAlias deletes an alias from the registry.
 	DeleteAlias(ctx context.Context, registry aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) error
 

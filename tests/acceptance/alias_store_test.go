@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
-	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	aliasmanager "github.com/consensys/quorum-key-manager/src/aliases/manager"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 )
 
@@ -39,9 +39,9 @@ func TestAliasStore(t *testing.T) {
 
 type aliasStoreTestSuite struct {
 	suite.Suite
-	env   *IntegrationEnvironment
-	store aliasstore.Database
-	rand  *rand.Rand
+	env  *IntegrationEnvironment
+	srv  aliasmanager.Alias
+	rand *rand.Rand
 }
 
 func (s *aliasStoreTestSuite) SetupSuite() {
@@ -52,7 +52,8 @@ func (s *aliasStoreTestSuite) SetupSuite() {
 	}
 	s.env.logger.Info("setup test suite has completed")
 
-	s.store = aliaspg.NewDatabase(s.env.postgresClient)
+	store := aliaspg.NewDatabase(s.env.postgresClient)
+	s.srv = aliasmanager.New(store)
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	s.rand = rand.New(randSrc)
 }
@@ -61,12 +62,12 @@ func (s *aliasStoreTestSuite) TearDownSuite() {
 	s.env.Teardown(context.Background())
 }
 
-func (s *aliasStoreTestSuite) fakeAlias() aliasmodels.Alias {
+func (s *aliasStoreTestSuite) fakeAlias() aliasent.Alias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
-	return aliasmodels.Alias{
-		RegistryName: aliasmodels.RegistryName("JPM-" + randID),
-		Key:          aliasmodels.AliasKey("Goldman Sachs-" + randID),
+	return aliasent.Alias{
+		RegistryName: aliasent.RegistryName("JPM-" + randID),
+		Key:          aliasent.AliasKey("Goldman Sachs-" + randID),
 		Value:        `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
 	}
 }
@@ -74,24 +75,26 @@ func (s *aliasStoreTestSuite) fakeAlias() aliasmodels.Alias {
 func (s *aliasStoreTestSuite) TestCreateAlias() {
 	s.Run("should create an unique alias without error", func() {
 		in := s.fakeAlias()
-		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
+		out, err := s.srv.CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
+		require.Equal(s.T(), in, *out)
 	})
 }
 
 func (s *aliasStoreTestSuite) TestGetAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		_, err := s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		_, err := s.srv.GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.Error(s.T(), err)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
+		out, err := s.srv.CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
+		require.Equal(s.T(), in, *out)
 
-		got, err := s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		got, err := s.srv.GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), &in, got)
 	})
@@ -100,22 +103,24 @@ func (s *aliasStoreTestSuite) TestGetAlias() {
 func (s *aliasStoreTestSuite) TestUpdateAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		err := s.store.Alias().UpdateAlias(s.env.ctx, in.RegistryName, in)
+		out, err := s.srv.UpdateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
+		require.Equal(s.T(), in, *out)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
+		out, err := s.srv.CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
+		require.Equal(s.T(), in, *out)
 
 		updated := in
 		updated.Value = `["SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`
 
-		err = s.store.Alias().UpdateAlias(s.env.ctx, in.RegistryName, updated)
+		out, err = s.srv.UpdateAlias(s.env.ctx, in.RegistryName, updated)
 		require.NoError(s.T(), err)
 
-		got, err := s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		got, err := s.srv.GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), &updated, got)
 	})
@@ -124,19 +129,20 @@ func (s *aliasStoreTestSuite) TestUpdateAlias() {
 func (s *aliasStoreTestSuite) TestDeleteAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		err := s.store.Alias().DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
+		err := s.srv.DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
+		out, err := s.srv.CreateAlias(s.env.ctx, in.RegistryName, in)
+		require.NoError(s.T(), err)
+		require.Equal(s.T(), in, *out)
+
+		err = s.srv.DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.NoError(s.T(), err)
 
-		err = s.store.Alias().DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
-		require.NoError(s.T(), err)
-
-		_, err = s.store.Alias().GetAlias(s.env.ctx, in.RegistryName, in.Key)
+		_, err = s.srv.GetAlias(s.env.ctx, in.RegistryName, in.Key)
 		require.Error(s.T(), err)
 	})
 }
@@ -144,23 +150,25 @@ func (s *aliasStoreTestSuite) TestDeleteAlias() {
 func (s *aliasStoreTestSuite) TestListAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		als, err := s.store.Alias().ListAliases(s.env.ctx, in.RegistryName)
+		als, err := s.srv.ListAliases(s.env.ctx, in.RegistryName)
 		require.NoError(s.T(), err)
 		require.Len(s.T(), als, 0)
 	})
 
 	s.Run("just created alias", func() {
 		in := s.fakeAlias()
-		err := s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, in)
+		out, err := s.srv.CreateAlias(s.env.ctx, in.RegistryName, in)
 		require.NoError(s.T(), err)
+		require.Equal(s.T(), in, *out)
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
 		newAlias.Value = `[ SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc= ]`
-		err = s.store.Alias().CreateAlias(s.env.ctx, in.RegistryName, newAlias)
+		out, err = s.srv.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)
+		require.Equal(s.T(), newAlias, *out)
 
-		als, err := s.store.Alias().ListAliases(s.env.ctx, in.RegistryName)
+		als, err := s.srv.ListAliases(s.env.ctx, in.RegistryName)
 		require.NoError(s.T(), err)
 		require.NotEmpty(s.T(), als)
 		require.Len(s.T(), als, 2)

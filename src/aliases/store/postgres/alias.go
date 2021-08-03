@@ -5,7 +5,7 @@ import (
 	goerrors "errors"
 
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
-	models "github.com/consensys/quorum-key-manager/src/aliases/store/models"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
@@ -22,37 +22,38 @@ func NewAlias(pgClient postgres.Client) *Alias {
 	}
 }
 
-func (s *Alias) CreateAlias(ctx context.Context, registryName models.RegistryName, alias models.Alias) error {
+func (s *Alias) CreateAlias(ctx context.Context, registryName aliasmodels.RegistryName, alias aliasmodels.Alias) (*aliasmodels.Alias, error) {
 	alias.RegistryName = registryName
 	err := s.pgClient.Insert(ctx, &alias)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &alias, nil
 }
 
-func (s *Alias) GetAlias(ctx context.Context, registryName models.RegistryName, aliasKey models.AliasKey) (*models.Alias, error) {
-	a := models.Alias{Key: aliasKey, RegistryName: registryName}
-	err := s.pgClient.SelectPK(ctx, &a)
-	return &a, err
+func (s *Alias) GetAlias(ctx context.Context, registryName aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) (*aliasmodels.Alias, error) {
+	alias := aliasmodels.Alias{Key: aliasKey, RegistryName: registryName}
+	err := s.pgClient.SelectPK(ctx, &alias)
+	return &alias, err
 }
 
-func (s *Alias) UpdateAlias(ctx context.Context, registryName models.RegistryName, alias models.Alias) error {
+func (s *Alias) UpdateAlias(ctx context.Context, registryName aliasmodels.RegistryName, alias aliasmodels.Alias) (*aliasmodels.Alias, error) {
 	alias.RegistryName = registryName
-	return s.pgClient.UpdatePK(ctx, &alias)
+	err := s.pgClient.UpdatePK(ctx, &alias)
+	return &alias, err
 }
 
-func (s *Alias) DeleteAlias(ctx context.Context, registryName models.RegistryName, aliasKey models.AliasKey) error {
-	a := models.Alias{Key: aliasKey, RegistryName: registryName}
-	return s.pgClient.DeletePK(ctx, &a)
+func (s *Alias) DeleteAlias(ctx context.Context, registryName aliasmodels.RegistryName, aliasKey aliasmodels.AliasKey) error {
+	alias := aliasmodels.Alias{Key: aliasKey, RegistryName: registryName}
+	return s.pgClient.DeletePK(ctx, &alias)
 }
 
-func (s *Alias) ListAliases(ctx context.Context, registry models.RegistryName) ([]models.Alias, error) {
-	als := []models.Alias{}
+func (s *Alias) ListAliases(ctx context.Context, registry aliasmodels.RegistryName) ([]aliasmodels.Alias, error) {
+	als := []aliasmodels.Alias{}
 	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", registry)
 	return als, err
 }
 
-func (s *Alias) DeleteRegistry(ctx context.Context, registryName models.RegistryName) error {
+func (s *Alias) DeleteRegistry(ctx context.Context, registryName aliasmodels.RegistryName) error {
 	return goerrors.New("not implemented")
 }

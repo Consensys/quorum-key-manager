@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -392,7 +392,7 @@ func (env *IntegrationEnvironment) createTables() error {
 	for _, v := range []interface{}{
 		&models2.Key{},
 		&models2.ETH1Account{},
-		&aliasmodels.Alias{},
+		&aliasent.Alias{},
 	} {
 		err = db.Model(v).CreateTable(opts)
 
