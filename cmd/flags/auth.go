@@ -7,12 +7,13 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
@@ -21,7 +22,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-
 )
 
 const (
@@ -47,6 +47,9 @@ func init() {
 
 	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+
+	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
+	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
 
 	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsFileEnv)
 
@@ -208,7 +211,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		return nil, err
 	} else if fileAPIKeys != nil {
 		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
-		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
+	}
 
 	// TLS part
 	var tlsCfg = &tls.Config{}
@@ -225,10 +228,9 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 
 	return &auth.Config{OIDC: oidcCfg,
 		APIKEY: apiKeyCfg,
-		TLS: tlsCfg,
+		TLS:    tlsCfg,
 	}, nil
 
-}
 }
 
 func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
@@ -282,6 +284,7 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, erro
 	csvFileName := vipr.GetString(authAPIKeyFileViperKey)
 	csvfile, err := os.Open(csvFileName)
 	if err != nil {
+		fmt.Print("file %v was not found ", csvFileName)
 		return nil, err
 	}
 	defer func(csvfile *os.File) {
