@@ -267,7 +267,7 @@ func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, _, _, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
+	signature, err := eth1Store.SignHash(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

@@ -204,7 +204,7 @@ func (s *Store) Destroy(ctx context.Context, addr string) error {
 }
 
 func (s *Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	sig, _, _, err := s.SignData(ctx, addr, crypto.Keccak256(data))
+	sig, err := s.SignHash(ctx, addr, crypto.Keccak256(data))
 	return sig, err
 }
 
@@ -228,7 +228,7 @@ func (s *Store) SignEIP191Data(ctx context.Context, addr string, data []byte) (s
 func (s *Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
-	signature, _, _, err := s.SignData(ctx, addr, txData)
+	signature, err := s.SignHash(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	signature, _, _, err := s.SignData(ctx, addr, hash[:])
+	signature, err := s.SignHash(ctx, addr, hash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +324,7 @@ func (s *Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *
 func (s *Store) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
-	signature, _, _, err := s.SignData(ctx, addr, txData)
+	signature, err := s.SignHash(ctx, addr, txData)
 	if err != nil {
 		return nil, err
 	}
@@ -458,35 +458,35 @@ func eeaHash(object interface{}) (hash common.Hash, err error) {
 	return hash, nil
 }
 
-func (s *Store) SignData(ctx context.Context, addr string, data []byte) (sig, msg, msgHash []byte, err error) {
+func (s *Store) SignHash(ctx context.Context, addr string, hash []byte) (sig []byte, err error) {
 	account, err := s.Get(ctx, addr)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	signature, err := s.keyStore.Sign(ctx, account.KeyID, data)
+	signature, err := s.keyStore.Sign(ctx, account.KeyID, hash)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	// Recover the recID, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
 	for _, recID := range []byte{0, 1} {
 		appendedSignature := append(malleabilityECDSASignature(signature), recID)
-		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
+		recoveredPubKey, err := crypto.SigToPub(hash, appendedSignature)
 		if err != nil {
 			errMessage := "failed to recover public key candidate with appended recID"
 			s.logger.WithError(err).Error(errMessage, "recID", recID)
-			return nil, nil, nil, errors.InvalidParameterError(errMessage)
+			return nil, errors.InvalidParameterError(errMessage)
 		}
 
 		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), account.PublicKey) {
-			return appendedSignature, nil, nil, nil
+			return appendedSignature, nil
 		}
 	}
 
 	errMessage := "failed to compute recovery ID"
 	s.logger.Error(errMessage)
-	return nil, nil, nil, errors.DependencyFailureError(errMessage)
+	return nil, errors.DependencyFailureError(errMessage)
 }
 
 // Azure generates ECDSA signature whom does not prevent malleability

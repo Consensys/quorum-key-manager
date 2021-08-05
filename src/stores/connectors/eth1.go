@@ -184,16 +184,16 @@ func (c Eth1Connector) Sign(ctx context.Context, addr string, data []byte) ([]by
 	return result, nil
 }
 
-func (c Eth1Connector) SignData(ctx context.Context, addr string, data []byte) (sig, msg, msgHash []byte, err error) {
+func (c Eth1Connector) SignHash(ctx context.Context, addr string, data []byte) (sig []byte, err error) {
 	logger := c.logger.With("address", addr)
-	sig, msg, msgHash, err = c.store.SignData(ctx, addr, data)
+	sig, err = c.store.SignHash(ctx, addr, data)
 	if err != nil {
 		c.logger.WithError(err).Error("failed to sign data")
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	logger.Debug("data signed successfully")
-	return sig, msg, msgHash, nil
+	return sig, nil
 
 }
 

@@ -248,23 +248,6 @@ func (mr *MockStoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockStore)(nil).Sign), ctx, addr, data)
 }
 
-// SignData mocks base method.
-func (m *MockStore) SignData(ctx context.Context, addr string, data []byte) ([]byte, []byte, []byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignData", ctx, addr, data)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].([]byte)
-	ret2, _ := ret[2].([]byte)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
-}
-
-// SignData indicates an expected call of SignData.
-func (mr *MockStoreMockRecorder) SignData(ctx, addr, data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignData", reflect.TypeOf((*MockStore)(nil).SignData), ctx, addr, data)
-}
-
 // SignEEA mocks base method.
 func (m *MockStore) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types0.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
 	m.ctrl.T.Helper()
@@ -295,6 +278,21 @@ func (m *MockStore) SignEIP191Data(ctx context.Context, addr string, data []byte
 func (mr *MockStoreMockRecorder) SignEIP191Data(ctx, addr, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEIP191Data", reflect.TypeOf((*MockStore)(nil).SignEIP191Data), ctx, addr, data)
+}
+
+// SignHash mocks base method.
+func (m *MockStore) SignHash(ctx context.Context, addr string, data []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignHash", ctx, addr, data)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SignHash indicates an expected call of SignHash.
+func (mr *MockStoreMockRecorder) SignHash(ctx, addr, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignHash", reflect.TypeOf((*MockStore)(nil).SignHash), ctx, addr, data)
 }
 
 // SignPrivate mocks base method.
