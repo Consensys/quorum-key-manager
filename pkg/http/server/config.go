@@ -5,9 +5,14 @@ import (
 )
 
 type Config struct {
-	Host                  string
-	HealthzPort           uint32
-	Port                  uint32
+	Host        string
+	TLSHost     string
+	TLSPort     uint32
+	TLSKey      string
+	TLSCert     string
+	HealthzPort uint32
+	Port        uint32
+
 	Timeout               time.Duration
 	KeepAlive             time.Duration
 	IdleConnTimeout       time.Duration

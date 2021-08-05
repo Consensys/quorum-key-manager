@@ -13,6 +13,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
+
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth"
@@ -32,7 +34,11 @@ func init() {
 
 	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+
+	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
 	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
+
+	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsFileEnv)
 
 }
 
@@ -47,6 +53,13 @@ const (
 	authAPIKeyFileViperKey    = "auth.api.key.file"
 	authAPIKeyDefaultFileFlag = ""
 	authAPIKeyFileEnv         = "AUTH_API_KEY_FILE"
+)
+
+const (
+	authTLSCertsFileFlag     = "auth-tls-ca"
+	authTLSCertsFileViperKey = "auth.tls.ca"
+	authTLSCertsFileDefault  = ""
+	authTLSCertsFileEnv      = "AUTH_TLS_CA"
 )
 
 const (
@@ -84,6 +97,40 @@ const (
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
 
+func authTLSCertFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
+Environment variable: %q`, authTLSCertsFileEnv)
+	f.String(authTLSCertsFileFlag, authTLSCertsFileDefault, desc)
+	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
+}
+
+func clientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
+	caFile := vipr.GetString(authTLSCertsFileViperKey)
+	_, err := os.Stat(caFile)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
+		}
+		return nil, nil
+	}
+
+	caFileContent, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return nil, err
+	}
+
+	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
+	cert, err := x509.ParseCertificate(bCert[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return cert, nil
+}
+
 func authAPIKeyFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
 Environment variable: %q`, authAPIKeyFileEnv)
@@ -96,6 +143,7 @@ func AuthFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimGroups(f)
+	authTLSCertFile(f)
 	authAPIKeyFile(f)
 }
 
@@ -163,11 +211,24 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		return nil, err
 	} else if fileAPIKeys != nil {
 		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
-
 	}
+
+	// TLS part
+	var tlsCfg *tls.Config
+	var certsTLS []*x509.Certificate
+
+	fileCertTLS, err := clientCertificate(vipr)
+	if err != nil {
+		return nil, err
+	} else if fileCertTLS != nil {
+		certsTLS = append(certsTLS, fileCertTLS)
+	}
+
+	tlsCfg = tls.NewConfig(certsTLS...)
 
 	return &auth.Config{OIDC: oidcCfg,
 		APIKEY: apiKeyCfg,
+		TLS:    tlsCfg,
 	}, nil
 
 }
