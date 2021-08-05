@@ -267,7 +267,7 @@ func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
+	signature, _, _, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -307,13 +307,13 @@ func (h *Eth1Handler) signEIP191Data(rw http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	signature, msgHash, err := eth1Store.SignEIP191Data(ctx, getAddress(request), signPayloadReq.Data)
+	signature, msg, msgHash, err := eth1Store.SignEIP191Data(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1SignDataResponse(signPayloadReq.Data, msgHash, signature))
+	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1SignDataResponse(msg, msgHash, signature))
 }
 
 // @Summary Sign Typed Data

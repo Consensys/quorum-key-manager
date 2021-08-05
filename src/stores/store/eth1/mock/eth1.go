@@ -249,12 +249,14 @@ func (mr *MockStoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.Call 
 }
 
 // SignData mocks base method.
-func (m *MockStore) SignData(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (m *MockStore) SignData(ctx context.Context, addr string, data []byte) ([]byte, []byte, []byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignData", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].([]byte)
+	ret2, _ := ret[2].([]byte)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // SignData indicates an expected call of SignData.
@@ -279,13 +281,14 @@ func (mr *MockStoreMockRecorder) SignEEA(ctx, addr, chainID, tx, args interface{
 }
 
 // SignEIP191Data mocks base method.
-func (m *MockStore) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, []byte, error) {
+func (m *MockStore) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, []byte, []byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignEIP191Data", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].([]byte)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].([]byte)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // SignEIP191Data indicates an expected call of SignEIP191Data.

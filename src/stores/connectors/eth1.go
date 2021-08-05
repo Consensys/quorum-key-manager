@@ -184,30 +184,30 @@ func (c Eth1Connector) Sign(ctx context.Context, addr string, data []byte) ([]by
 	return result, nil
 }
 
-func (c Eth1Connector) SignData(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (c Eth1Connector) SignData(ctx context.Context, addr string, data []byte) (sig, msg, msgHash []byte, err error) {
 	logger := c.logger.With("address", addr)
-	result, err := c.store.SignData(ctx, addr, data)
+	sig, msg, msgHash, err = c.store.SignData(ctx, addr, data)
 	if err != nil {
 		c.logger.WithError(err).Error("failed to sign data")
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	logger.Debug("data signed successfully")
-	return result, nil
+	return sig, msg, msgHash, nil
 
 }
 
-func (c Eth1Connector) SignEIP191Data(ctx context.Context, addr string, data []byte) (sig, msgHash []byte, err error) {
+func (c Eth1Connector) SignEIP191Data(ctx context.Context, addr string, data []byte) (sig, msg, msgHash []byte, err error) {
 	logger := c.logger.With("address", addr)
 
-	result, msgHash, err := c.store.SignEIP191Data(ctx, addr, data)
+	sig, msg, msgHash, err = c.store.SignEIP191Data(ctx, addr, data)
 	if err != nil {
 		c.logger.WithError(err).Error("failed to sign EIP191 data")
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	logger.Debug("data EIP191 signed successfully")
-	return result, msgHash, nil
+	return sig, msg, msgHash, nil
 }
 
 func (c Eth1Connector) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {

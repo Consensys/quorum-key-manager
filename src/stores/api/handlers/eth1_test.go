@@ -337,7 +337,7 @@ func (s *eth1HandlerTestSuite) TestSignEIP191Data() {
 
 		signature, _ := hexutil.Decode(expectedSignature)
 		hash := []byte{0}
-		s.eth1Store.EXPECT().SignEIP191Data(gomock.Any(), accAddress, gomock.Any()).Return(signature, hash, nil)
+		s.eth1Store.EXPECT().SignEIP191Data(gomock.Any(), accAddress, gomock.Any()).Return(signature, []byte(signEIP191Request.Data), hash, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
