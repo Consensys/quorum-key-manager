@@ -104,7 +104,7 @@ Environment variable: %q`, authTLSCertsFileEnv)
 	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
 }
 
-func clientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
+func certPool(vipr *viper.Viper) (*x509.CertPool, error) {
 	caFile := vipr.GetString(authTLSCertsFileViperKey)
 	_, err := os.Stat(caFile)
 	if err != nil {
@@ -119,16 +119,10 @@ func clientCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 		return nil, err
 	}
 
-	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
-	if err != nil {
-		return nil, err
-	}
-	cert, err := x509.ParseCertificate(bCert[0])
-	if err != nil {
-		return nil, err
-	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caFileContent)
 
-	return cert, nil
+	return caCertPool, nil
 }
 
 func authAPIKeyFile(f *pflag.FlagSet) {
@@ -215,16 +209,12 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 
 	// TLS part
 	var tlsCfg *tls.Config
-	var certsTLS []*x509.Certificate
-
-	fileCertTLS, err := clientCertificate(vipr)
+	certPool, err := certPool(vipr)
 	if err != nil {
 		return nil, err
-	} else if fileCertTLS != nil {
-		certsTLS = append(certsTLS, fileCertTLS)
 	}
 
-	tlsCfg = tls.NewConfig(certsTLS...)
+	tlsCfg = tls.NewConfig(certPool)
 
 	return &auth.Config{OIDC: oidcCfg,
 		APIKEY: apiKeyCfg,
