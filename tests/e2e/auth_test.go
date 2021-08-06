@@ -75,9 +75,7 @@ func (s *authTestSuite) TestListWithMatchingCert() {
 		},
 	}
 	cert, err := tls.LoadX509KeyPair("certs/same.crt", "certs/common.key")
-	if err != nil {
-		s.T().FailNow()
-	}
+	require.NoError(s.T(), err)
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
