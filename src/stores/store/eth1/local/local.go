@@ -217,7 +217,7 @@ func (s *Store) SignTypedData(ctx context.Context, addr string, typedData *core.
 	return s.Sign(ctx, addr, []byte(encodedData))
 }
 
-func (s *Store) SignEIP191Data(ctx context.Context, addr string, data []byte) (sig, msg, msgHash []byte, err error) {
+func (s *Store) SignData(ctx context.Context, addr string, data []byte) (sig, msg, msgHash []byte, err error) {
 	eipFormattedMsg, msgHash := getEIP191EncodedData(data)
 
 	sig, err = s.Sign(ctx, addr, eipFormattedMsg)

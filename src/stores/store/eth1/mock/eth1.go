@@ -264,9 +264,9 @@ func (mr *MockStoreMockRecorder) SignEEA(ctx, addr, chainID, tx, args interface{
 }
 
 // SignEIP191Data mocks base method.
-func (m *MockStore) SignEIP191Data(ctx context.Context, addr string, data []byte) ([]byte, []byte, []byte, error) {
+func (m *MockStore) SignData(ctx context.Context, addr string, data []byte) ([]byte, []byte, []byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignEIP191Data", ctx, addr, data)
+	ret := m.ctrl.Call(m, "SignData", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].([]byte)
 	ret2, _ := ret[2].([]byte)
@@ -277,7 +277,7 @@ func (m *MockStore) SignEIP191Data(ctx context.Context, addr string, data []byte
 // SignEIP191Data indicates an expected call of SignEIP191Data.
 func (mr *MockStoreMockRecorder) SignEIP191Data(ctx, addr, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignEIP191Data", reflect.TypeOf((*MockStore)(nil).SignEIP191Data), ctx, addr, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignData", reflect.TypeOf((*MockStore)(nil).SignData), ctx, addr, data)
 }
 
 // SignHash mocks base method.
