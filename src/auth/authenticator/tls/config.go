@@ -5,8 +5,9 @@ import (
 )
 
 type Config struct {
+	CertPool *x509.CertPool
 }
 
-func NewConfig(certs ...*x509.Certificate) *Config {
-	return &Config{}
+func NewConfig(certPool *x509.CertPool) *Config {
+	return &Config{CertPool: certPool}
 }

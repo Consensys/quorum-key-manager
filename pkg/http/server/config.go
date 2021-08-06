@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/x509"
 	"time"
 )
 
@@ -10,6 +11,7 @@ type Config struct {
 	TLSPort     uint32
 	TLSKey      string
 	TLSCert     string
+	TLSCertPool *x509.CertPool
 	HealthzPort uint32
 	Port        uint32
 
