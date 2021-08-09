@@ -6,7 +6,7 @@ import (
 )
 
 type Database struct {
-	alias aliases.Alias
+	alias *AliasStore
 }
 
 func NewDatabase(pgClient postgres.Client) *Database {

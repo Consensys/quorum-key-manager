@@ -2,20 +2,23 @@ package api
 
 import (
 	"github.com/consensys/quorum-key-manager/src/aliases"
-	"github.com/consensys/quorum-key-manager/src/stores/api/handlers"
+	"github.com/consensys/quorum-key-manager/src/aliases/api/handlers"
 	"github.com/gorilla/mux"
 )
 
-type StoresAPI struct {
+type AliasAPI struct {
 	alias aliases.Alias
+
+	aliasHandler *handlers.AliasHandler
 }
 
-func New(m aliases.Alias) *StoresAPI {
-	return &StoresAPI{
-		alias: m,
+func New(alias aliases.Alias) *AliasAPI {
+	return &AliasAPI{
+		alias: alias,
 	}
 }
 
-func (api *StoresAPI) Register(r *mux.Router) {
-	handlers.NewAliasHandler(api.alias).Register(r)
+func (api *AliasAPI) Register(r *mux.Router) {
+	aliasSub := r.PathPrefix("/aliases").Subrouter()
+	handlers.NewAliasHandler(api.alias).Register(aliasSub)
 }

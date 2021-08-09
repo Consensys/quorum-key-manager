@@ -2,8 +2,8 @@ package aliaspg
 
 import (
 	"context"
-	goerrors "errors"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
@@ -73,5 +73,5 @@ func (s *AliasStore) ListAliases(ctx context.Context, registry aliasent.Registry
 }
 
 func (s *AliasStore) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
-	return goerrors.New("not implemented")
+	return errors.NotImplementedError("DeleteRegistry not implemented")
 }
