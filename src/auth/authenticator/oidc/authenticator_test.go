@@ -11,6 +11,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/pkg/tls/testutils"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,8 +22,8 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 	defer ctrl.Finish()
 
 	claimsCfg := &ClaimsConfig{
-		Username: "test.username",
-		Group:    "test.groups",
+		Username: "sub",
+		Claims:   "scope",
 	}
 
 	cert, _ := certificate.X509KeyPair([]byte(testutils.RSACertPEM), []byte(testutils.RSAKeyPEM))
@@ -34,10 +35,10 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 
 	t.Run("should accept token and extract claims successfully", func(t *testing.T) {
 		username := "username-auth"
-		groups := []string{"group1", "group2"}
+		claims := []string{"role1", "role2", "read:key", "write:key"}
 		token, _ := generator.GenerateAccessToken(map[string]interface{}{
-			"test.username": username,
-			"test.groups":   strings.Join(groups, ","),
+			"sub":   username,
+			"scope": strings.Join(claims, " "),
 		}, time.Second)
 
 		req := httptest.NewRequest("GET", "http://test.url", nil)
@@ -45,7 +46,8 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 		userInfo, err := auth.Authenticate(req)
 		require.NoError(t, err)
 		assert.Equal(t, username, userInfo.Username)
-		assert.Equal(t, groups, userInfo.Groups)
+		assert.Equal(t, []string{"role1", "role2"}, userInfo.Roles)
+		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
 	})
 
 	t.Run("should reject request for invalid token", func(t *testing.T) {

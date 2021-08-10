@@ -1,4 +1,4 @@
-package policy
+package manager
 
 import (
 	"context"
@@ -20,8 +20,8 @@ var authKinds = []manifest.Kind{
 type BaseManager struct {
 	manifests manifestsmanager.Manager
 
-	mux      sync.RWMutex
-	roles    map[string]*types.Role
+	mux   sync.RWMutex
+	roles map[string]*types.Role
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
@@ -76,7 +76,7 @@ func (mngr *BaseManager) UserPermissions(ctx context.Context, user *types.UserIn
 	if user == nil {
 		return permissions
 	}
-	
+
 	permissions = append(permissions, user.Permissions...)
 
 	for _, roleName := range user.Roles {
@@ -93,7 +93,6 @@ func (mngr *BaseManager) UserPermissions(ctx context.Context, user *types.UserIn
 	return permissions
 }
 
-
 func (mngr *BaseManager) Role(_ context.Context, name string) (*types.Role, error) {
 	return mngr.role(name)
 }
@@ -105,7 +104,6 @@ func (mngr *BaseManager) Roles(context.Context) ([]string, error) {
 	}
 	return roles, nil
 }
-
 
 func (mngr *BaseManager) role(name string) (*types.Role, error) {
 	if group, ok := mngr.roles[name]; ok {

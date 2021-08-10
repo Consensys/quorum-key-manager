@@ -18,7 +18,7 @@ const (
 )
 
 type Authenticator struct {
-	APIKeyFile map[string]UserNameAndGroups
+	APIKeyFile map[string]UserClaims
 	Hasher     *hash.Hash
 	B64Encoder *base64.Encoding
 }
@@ -64,16 +64,27 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	// search hex string hashes
 	strClientHash := hex.EncodeToString(clientAPIKeyHash)
 
-	// Now check either of lower or upper cases map keys is found
-	if userAndGroups, contains := authenticator.APIKeyFile[strClientHash]; contains {
-		return &types.UserInfo{
-			AuthMode: AuthMode,
-			Username: userAndGroups.UserName,
-			Groups:   userAndGroups.Groups,
-		}, nil
+	claims, ok := authenticator.APIKeyFile[strClientHash]
+	if !ok {
+		return nil, errors.UnauthorizedError("api-key does not match")
 	}
 
-	return nil, errors.UnauthorizedError("apikey does not match")
+	userInfo := &types.UserInfo{
+		AuthMode:    AuthMode,
+		Username:    claims.UserName,
+		Roles:       []string{},
+		Permissions: []types.Permission{},
+	}
+
+	for _, claim := range claims.Claims {
+		if strings.Contains(claim, ":") {
+			userInfo.Permissions = append(userInfo.Permissions, types.Permission(claim))
+		} else {
+			userInfo.Roles = append(userInfo.Roles, claim)
+		}
+	}
+
+	return userInfo, nil
 }
 
 func extractAPIKey(auth string, b64encoder *base64.Encoding) (apiKey string, err error) {

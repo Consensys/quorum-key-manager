@@ -9,7 +9,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	authmanager "github.com/consensys/quorum-key-manager/src/auth/policy"
+	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
@@ -40,7 +40,7 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 	}
 
 	// Load policy manager service
-	policyMngr := new(authmanager.Manager)
+	policyMngr := new(Manager)
 	err = a.Service(policyMngr)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 		if err != nil {
 			return nil, err
 		} else if apikeyAuth != nil {
-			logger.Info("APIKEY Authenticator is enabled")
+			logger.Info("API-KEY Authenticator is enabled")
 			auths = append(auths, apikeyAuth)
 		}
 	}

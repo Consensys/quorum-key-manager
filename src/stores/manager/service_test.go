@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	mock2 "github.com/consensys/quorum-key-manager/src/auth/policy/mock"
+	mock2 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database/mock"

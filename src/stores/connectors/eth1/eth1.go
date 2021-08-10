@@ -1,6 +1,7 @@
 package eth1
 
 import (
+	"github.com/consensys/quorum-key-manager/src/auth/manager"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -9,9 +10,10 @@ import (
 )
 
 type Connector struct {
-	store  stores.KeyStore
-	logger log.Logger
-	db     database.ETH1Accounts
+	store    stores.KeyStore
+	logger   log.Logger
+	db       database.ETH1Accounts
+	resolver *manager.Resolver
 }
 
 var _ stores.Eth1Store = Connector{}
@@ -21,11 +23,12 @@ var eth1Algo = &entities.Algorithm{
 	EllipticCurve: entities.Secp256k1,
 }
 
-func NewConnector(store stores.KeyStore, db database.ETH1Accounts, logger log.Logger) *Connector {
+func NewConnector(store stores.KeyStore, db database.ETH1Accounts, resolvr *manager.Resolver, logger log.Logger) *Connector {
 	return &Connector{
-		store:  store,
-		logger: logger,
-		db:     db,
+		store:    store,
+		logger:   logger,
+		db:       db,
+		resolver: resolvr,
 	}
 }
 

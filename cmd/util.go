@@ -100,7 +100,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 
 	token, err := generator.GenerateAccessToken(map[string]interface{}{
 		oidcCfg.Claims.Username: username,
-		oidcCfg.Claims.Group:    strings.Join(groups, ","),
+		oidcCfg.Claims.Claims:   strings.Join(groups, ","),
 	}, expiration)
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())

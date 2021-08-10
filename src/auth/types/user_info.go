@@ -16,10 +16,10 @@ type UserInfo struct {
 
 var AnonymousUser = &UserInfo{
 	Username: "user:anonymous",
-	Roles: []string{AnonymousRole},
+	Roles:    []string{AnonymousRole},
 }
 
 var AuthenticatedUser = &UserInfo{
 	Username: "user:authenticated",
-	Roles: []string{AnonymousRole},
+	Roles:    []string{AnonymousRole},
 }

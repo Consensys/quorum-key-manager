@@ -21,8 +21,8 @@ func TestJWTChecker_RSAToken(t *testing.T) {
 	ctx := context.Background()
 
 	claimsCfg := &ClaimsConfig{
-		Username: "test.username",
-		Group:    "test.groups",
+		Username: "sub",
+		Claims:   "scope",
 	}
 
 	cert, _ := certificate.X509KeyPair([]byte(testutils.RSACertPEM), []byte(testutils.RSAKeyPEM))
@@ -33,34 +33,34 @@ func TestJWTChecker_RSAToken(t *testing.T) {
 		username := "username1"
 		groups := []string{"group1", "group2"}
 		token, _ := generator.GenerateAccessToken(map[string]interface{}{
-			"test.username": username,
-			"test.groups":   strings.Join(groups, ","),
+			"sub": username,
+			"scope":   strings.Join(groups, " "),
 		}, time.Second)
 		claims, err := checker.Check(ctx, token)
 		require.NoError(t, err)
 		assert.Equal(t, username, claims.Username)
-		assert.Equal(t, groups, claims.Groups)
+		assert.Equal(t, groups, claims.Claims)
 	})
 
 	t.Run("should accept token and only username claims successfully", func(t *testing.T) {
 		username := "username2"
 		token, _ := generator.GenerateAccessToken(map[string]interface{}{
-			"test.username": username,
+			"sub": username,
 		}, time.Second)
 		claims, err := checker.Check(ctx, token)
 		require.NoError(t, err)
 		assert.Equal(t, username, claims.Username)
-		assert.Empty(t, claims.Groups)
+		assert.Empty(t, claims.Claims)
 	})
 
 	t.Run("should accept token and only groups claims successfully", func(t *testing.T) {
-		groups := []string{"group1", "group2"}
+		rolePermissions := []string{"role1", "role2", "read:key", "write:key"}
 		token, _ := generator.GenerateAccessToken(map[string]interface{}{
-			"test.groups": strings.Join(groups, ","),
+			"scope": strings.Join(rolePermissions, " "),
 		}, time.Second)
 		claims, err := checker.Check(ctx, token)
 		require.NoError(t, err)
-		assert.Equal(t, groups, claims.Groups)
+		assert.Equal(t, rolePermissions, claims.Claims)
 		assert.Empty(t, claims.Username)
 	})
 

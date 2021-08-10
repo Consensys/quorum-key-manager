@@ -11,15 +11,15 @@ type Config struct {
 
 type ClaimsConfig struct {
 	Username string
-	Group    string
+	Claims   string
 }
 
-func NewConfig(usernameClaim, groupClaims string, certs ...*x509.Certificate) *Config {
+func NewConfig(username, claims string, certs ...*x509.Certificate) *Config {
 	return &Config{
 		Certificates: certs,
 		Claims: &ClaimsConfig{
-			Username: usernameClaim,
-			Group:    groupClaims,
+			Username: username,
+			Claims:   claims,
 		},
 	}
 }

@@ -218,7 +218,7 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	return certs, nil
 }
 
-func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, error) {
+func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 	// Open the file
 	csvFileName := vipr.GetString(authAPIKeyFileViperKey)
 	if csvFileName == "" {
@@ -240,7 +240,7 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, erro
 	// ignore comments in file
 	r.Comment = csvCommentsMarker
 
-	retFile := make(map[string]apikey.UserNameAndGroups)
+	retFile := make(map[string]apikey.UserClaims)
 
 	// Iterate through the lines
 	for {
@@ -256,8 +256,8 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, erro
 			return nil, fmt.Errorf("invalid number of cells in file %s should be %d", csvfile.Name(), csvRowLen)
 		}
 
-		retFile[cells[0]] = apikey.UserNameAndGroups{UserName: cells[1],
-			Groups: strings.Split(cells[2], ","),
+		retFile[cells[0]] = apikey.UserClaims{UserName: cells[1],
+			Claims: strings.Split(cells[2], ","),
 		}
 	}
 

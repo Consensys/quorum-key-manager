@@ -1,4 +1,4 @@
-package policy
+package manager
 
 import (
 	"context"
@@ -76,16 +76,18 @@ func TestBaseManager(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "guest", guestRole.Name)
 	assert.Equal(t, []types.Permission{"read:secret", "read:nodes", "proxy:nodes"}, guestRole.Permissions)
-	
+
 	otherPermission := []types.Permission{"destroy:key"}
 	userInfo := &types.UserInfo{
-		Roles: []string{"signer", "admin"},
+		Roles:       []string{"signer", "admin"},
 		Permissions: []types.Permission{"destroy:key"},
 	}
 	signerRole, err := mngr.Role(context.TODO(), "signer")
+	require.NoError(t, err)
 	adminRole, err := mngr.Role(context.TODO(), "admin")
+	require.NoError(t, err)
+
 	permissions := mngr.UserPermissions(context.TODO(), userInfo)
-	require.NoError(t, err, "Policy1A should be stored")
 	assert.Equal(t, append(append(otherPermission, signerRole.Permissions...), adminRole.Permissions...), permissions)
 
 	err = manifests.Stop(context.TODO())

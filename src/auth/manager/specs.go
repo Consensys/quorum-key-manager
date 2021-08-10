@@ -1,4 +1,4 @@
-package policy
+package manager
 
 import (
 	"github.com/consensys/quorum-key-manager/src/auth/types"

@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/auth/manager"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	eth1connector "github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
 	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
+	meth1 "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
+	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
+	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 
-	"github.com/consensys/quorum-key-manager/src/auth/policy"
+	"github.com/consensys/quorum-key-manager/src/auth"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -18,9 +22,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
-	meth1 "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
-	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
-	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -28,7 +29,7 @@ const ID = "StoreManager"
 
 type BaseManager struct {
 	manifests     manifestsmanager.Manager
-	policyManager policy.Manager
+	policyManager auth.Manager
 
 	mux          sync.RWMutex
 	secrets      map[string]*storeBundle
@@ -52,7 +53,7 @@ type storeBundle struct {
 
 var _ stores.Manager = &BaseManager{}
 
-func New(manifests manifestsmanager.Manager, policyManager policy.Manager, db database.Database, logger log.Logger) *BaseManager {
+func New(manifests manifestsmanager.Manager, policyManager auth.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests:     manifests,
 		policyManager: policyManager,
@@ -127,9 +128,12 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 
 	if storeBundle, ok := m.secrets[storeName]; ok {
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
-			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			_, _ = policy.NewResolver(policies)
-			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), storeBundle.logger), nil
+			permissions := m.policyManager.UserPermissions(ctx, userInfo)
+			resolvr, err := manager.NewResolver(permissions)
+			if err != nil {
+				return nil, err
+			}
+			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -138,12 +142,17 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, _ *authtypes.UserInfo) (stores.KeyStore, error) {
+func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.KeyStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
+		permissions := m.policyManager.UserPermissions(ctx, userInfo)
+		resolvr, err := manager.NewResolver(permissions)
+		if err != nil {
+			return nil, err
+		}
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			return keysconnector.NewConnector(store, m.db.Keys(storeName), storeBundle.logger), nil
+			return keysconnector.NewConnector(store, m.db.Keys(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -161,9 +170,12 @@ func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *a
 func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			_, _ = policy.NewResolver(policies)
-			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), storeBundle.logger), nil
+			permissions := m.policyManager.UserPermissions(ctx, userInfo)
+			resolvr, err := manager.NewResolver(permissions)
+			if err != nil {
+				return nil, err
+			}
+			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
 

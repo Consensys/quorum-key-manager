@@ -38,16 +38,24 @@ func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) 
 		return nil, nil
 	}
 
-	claims, err := a.jwtChecker.Check(req.Context(), token)
+	jwtData, err := a.jwtChecker.Check(req.Context(), token)
 	if err != nil {
 		return nil, errors.UnauthorizedError(err.Error())
 	}
 
-	return &types.UserInfo{
-		Username: claims.Username,
-		Groups:   claims.Groups,
+	userInfo := &types.UserInfo{
+		Username: jwtData.Username,
 		AuthMode: AuthMode,
-	}, nil
+	}
+	for _, claim := range jwtData.Claims {
+		if strings.Contains(claim, ":") {
+			userInfo.Permissions = append(userInfo.Permissions, types.Permission(claim))
+		} else {
+			userInfo.Roles = append(userInfo.Roles, claim)
+		}
+	}
+
+	return userInfo, nil
 }
 
 func extractToken(prefix, auth string) (string, bool) {

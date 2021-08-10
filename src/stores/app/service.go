@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	authmanager "github.com/consensys/quorum-key-manager/src/auth/policy"
+	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
@@ -33,7 +33,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	}
 
 	// Load policy manager service
-	policyMngr := new(authmanager.Manager)
+	policyMngr := new(auth.Manager)
 	err = a.Service(policyMngr)
 	if err != nil {
 		return err
