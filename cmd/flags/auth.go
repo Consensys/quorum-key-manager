@@ -73,14 +73,14 @@ const (
 const (
 	authOIDCClaimUsernameFlag     = "auth-oidc-claim-username"
 	authOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
-	authOIDCClaimUsernameDefault  = "qkm.auth.username"
+	authOIDCClaimUsernameDefault  = "sub"
 	authOIDCClaimUsernameEnv      = "AUTH_OIDC_CLAIM_USERNAME"
 )
 
 const (
 	authOIDCClaimGroupFlag     = "auth-oidc-claim-groups"
 	authOIDCClaimGroupViperKey = "auth.oidc.claim.groups"
-	authOIDCClaimGroupDefault  = "qkm.auth.groups"
+	authOIDCClaimGroupDefault  = "scope"
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
 
