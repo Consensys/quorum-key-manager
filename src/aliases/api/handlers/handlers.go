@@ -196,7 +196,7 @@ func writeErrorResponse(w http.ResponseWriter, status int, err error) error {
 	}
 
 	// the: should we move that to a middleware?
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8;")
 	// the: should we use that in every API response?
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(status)

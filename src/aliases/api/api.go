@@ -1,4 +1,4 @@
-package api
+package aliasapi
 
 import (
 	"github.com/consensys/quorum-key-manager/src/aliases"
