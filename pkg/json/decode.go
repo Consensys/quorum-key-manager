@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/go-playground/validator/v10"
 )
 
 func UnmarshalBody(body io.Reader, req interface{}) error {
+	if body == nil {
+		return errors.InvalidFormatError("body is nil")
+	}
 	dec := json.NewDecoder(body)
 	dec.DisallowUnknownFields() // Force errors if unknown fields
 	err := dec.Decode(req)
