@@ -45,7 +45,7 @@ func TestEEASendTransaction(t *testing.T) {
 
 	tests := []*testHandlerCase{
 		{
-			desc:    "Transaction with Privacy Group ID",
+			desc:    "Transaction with Privacy Role ID",
 			handler: i,
 			reqBody: []byte(`{"jsonrpc":"2.0","method":"eea_sendTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","gas":"0x5208","gasPrice":"0x9184e72a000","privacyGroupId":"kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M="}],"id":"abcd"}`),
 			ctx:     ctx,

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
@@ -16,48 +17,37 @@ import (
 )
 
 var testManifest = []byte(`
-- kind: Group
-  version: 0.0.1
-  name: test-group1
+- kind: Role
+  name: anonymous
   specs:
-    policies:
-      - test-policy1A
-      - test-policy1B
-- kind: Group
-  version: 0.0.1
-  name: test-group2
+    permission:
+      - proxy:nodes
+      - read:nodes
+- kind: Role
+  name: guest
   specs:
-    policies:
-      - test-policy2A
-- kind: Policy
-  version: 0.0.1
-  name: test-policy1A
+    permission:
+      - read:secret
+      - read:nodes
+      - proxy:nodes
+- kind: Role
+  name: signer
   specs:
-    statements:
-      - name: DoAction1
-        effect: Allow
-        actions:
-          - Action1
-        resource:
-          - /path/to/resource
-      - name: DoAction23
-        effect: Allow
-        actions:
-          - Action3
-          - Action2
-        resource:
-          - /path/to/resource
-- kind: Policy
-  version: 0.0.1
-  name: test-policy2A
+    permission:
+      - read:eth1
+      - read:key
+      - sign:key
+      - sign:eth1
+- kind: Role
+  name: admin
   specs:
-    statements:
-      - name: DoAction3
-        effect: Allow
-        actions:
-          - Action3
-        resource:
-          - /path/to/resource
+    permission:
+      - read:eth1
+      - read:key
+      - sign:key
+      - sign:eth1
+      - create:eth1
+      - create:key
 `)
 
 func TestBaseManager(t *testing.T) {
@@ -82,25 +72,21 @@ func TestBaseManager(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verifies that objects have been properly loaded
-	group1, err := mngr.Group(context.TODO(), "test-group1")
-	require.NoError(t, err, "Group1 should be stored")
-	assert.Equal(t, "test-group1", group1.Name, "Group1 should have correct name")
-	assert.Equal(t, []string{"test-policy1A", "test-policy1B"}, group1.Policies, "Group1 should have correct policies")
-
-	group2, err := mngr.Group(context.TODO(), "test-group2")
-	require.NoError(t, err, "Group2 should be stored")
-	assert.Equal(t, "test-group2", group2.Name, "Group2 should have correct name")
-	assert.Equal(t, []string{"test-policy2A"}, group2.Policies, "Group2 should have correct policies")
-
-	policy1A, err := mngr.Policy(context.TODO(), "test-policy1A")
+	guestRole, err := mngr.Role(context.TODO(), "guest")
+	require.NoError(t, err)
+	assert.Equal(t, "guest", guestRole.Name)
+	assert.Equal(t, []types.Permission{"read:secret", "read:nodes", "proxy:nodes"}, guestRole.Permissions)
+	
+	otherPermission := []types.Permission{"destroy:key"}
+	userInfo := &types.UserInfo{
+		Roles: []string{"signer", "admin"},
+		Permissions: []types.Permission{"destroy:key"},
+	}
+	signerRole, err := mngr.Role(context.TODO(), "signer")
+	adminRole, err := mngr.Role(context.TODO(), "admin")
+	permissions := mngr.UserPermissions(context.TODO(), userInfo)
 	require.NoError(t, err, "Policy1A should be stored")
-	assert.Equal(t, "test-policy1A", policy1A.Name, "Policy1A should have correct name")
-	assert.Len(t, policy1A.Statements, 2, "Policy1A should have correct statements")
-
-	policy2A, err := mngr.Policy(context.TODO(), "test-policy2A")
-	require.NoError(t, err, "policy2A should be stored")
-	assert.Equal(t, "test-policy2A", policy2A.Name, "Policy2A should have correct name")
-	assert.Len(t, policy2A.Statements, 1, "Policy2A should have correct statements")
+	assert.Equal(t, append(append(otherPermission, signerRole.Permissions...), adminRole.Permissions...), permissions)
 
 	err = manifests.Stop(context.TODO())
 	require.NoError(t, err, "Stop manifests manager must not error")

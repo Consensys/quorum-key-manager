@@ -8,20 +8,18 @@ type UserInfo struct {
 	// Username identifies the user
 	Username string
 
-	// Groups indicates the user's membership to collection of users with specific permissions to access
-	Groups []string
+	// Roles indicates the user's membership to collection of users with specific permissions to access
+	Roles []string
+
+	Permissions []Permission
 }
 
 var AnonymousUser = &UserInfo{
 	Username: "user:anonymous",
-	Groups: []string{
-		"system:unauthenticated",
-	},
+	Roles: []string{AnonymousRole},
 }
 
 var AuthenticatedUser = &UserInfo{
 	Username: "user:authenticated",
-	Groups: []string{
-		"system:authenticated",
-	},
+	Roles: []string{AnonymousRole},
 }

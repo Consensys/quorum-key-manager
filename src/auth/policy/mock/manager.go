@@ -63,47 +63,47 @@ func (mr *MockManagerMockRecorder) Policy(ctx, name interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Policy", reflect.TypeOf((*MockManager)(nil).Policy), ctx, name)
 }
 
-// Policies mocks base method
+// Permissions mocks base method
 func (m *MockManager) Policies(arg0 context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Policies", arg0)
+	ret := m.ctrl.Call(m, "Permissions", arg0)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Policies indicates an expected call of Policies
+// Permissions indicates an expected call of Permissions
 func (mr *MockManagerMockRecorder) Policies(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Policies", reflect.TypeOf((*MockManager)(nil).Policies), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Permissions", reflect.TypeOf((*MockManager)(nil).Policies), arg0)
 }
 
-// Group mocks base method
-func (m *MockManager) Group(ctx context.Context, name string) (*types.Group, error) {
+// Role mocks base method
+func (m *MockManager) Group(ctx context.Context, name string) (*types.Role, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Group", ctx, name)
-	ret0, _ := ret[0].(*types.Group)
+	ret := m.ctrl.Call(m, "Role", ctx, name)
+	ret0, _ := ret[0].(*types.Role)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Group indicates an expected call of Group
+// Role indicates an expected call of Role
 func (mr *MockManagerMockRecorder) Group(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Group", reflect.TypeOf((*MockManager)(nil).Group), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Role", reflect.TypeOf((*MockManager)(nil).Group), ctx, name)
 }
 
-// Groups mocks base method
+// Roles mocks base method
 func (m *MockManager) Groups(arg0 context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Groups", arg0)
+	ret := m.ctrl.Call(m, "Roles", arg0)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Groups indicates an expected call of Groups
+// Roles indicates an expected call of Roles
 func (mr *MockManagerMockRecorder) Groups(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Groups", reflect.TypeOf((*MockManager)(nil).Groups), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Roles", reflect.TypeOf((*MockManager)(nil).Groups), arg0)
 }

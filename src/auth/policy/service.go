@@ -13,17 +13,15 @@ import (
 )
 
 var authKinds = []manifest.Kind{
-	GroupKind,
-	Kind,
+	RoleKind,
 }
 
-// BaseManager allow to manage Policies and Groups
+// BaseManager allow to manage Permissions and Roles
 type BaseManager struct {
 	manifests manifestsmanager.Manager
 
 	mux      sync.RWMutex
-	policies map[string]*types.Policy
-	groups   map[string]*types.Group
+	roles    map[string]*types.Role
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
@@ -34,8 +32,7 @@ type BaseManager struct {
 func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests: manifests,
-		policies:  make(map[string]*types.Policy),
-		groups:    make(map[string]*types.Group),
+		roles:     make(map[string]*types.Role),
 		mnfsts:    make(chan []manifestsmanager.Message),
 		logger:    logger,
 	}
@@ -45,7 +42,7 @@ func (mngr *BaseManager) Start(ctx context.Context) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
-	// Subscribe to manifest of Kind Group and Policy
+	// Subscribe to manifest of Kind Role and Policy
 	mngr.sub = mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
 
 	// Start loading manifest
@@ -73,72 +70,49 @@ func (mngr *BaseManager) Close() error {
 	return nil
 }
 
-func (mngr *BaseManager) UserPolicies(ctx context.Context, info *types.UserInfo) []types.Policy {
-	// Retrieve policies associated to user info
-	var policies []types.Policy
-	if info == nil {
-		return policies
+func (mngr *BaseManager) UserPermissions(ctx context.Context, user *types.UserInfo) []types.Permission {
+	// Retrieve permissions associated to user user
+	var permissions []types.Permission
+	if user == nil {
+		return permissions
 	}
+	
+	permissions = append(permissions, user.Permissions...)
 
-	for _, groupName := range info.Groups {
-		group, err := mngr.Group(ctx, groupName)
+	for _, roleName := range user.Roles {
+		role, err := mngr.Role(ctx, roleName)
 		if err != nil {
-			mngr.logger.WithError(err).With("group", groupName).Debug("could not load group")
+			mngr.logger.WithError(err).With("role", roleName).Debug("could not load role")
 			continue
 		}
 
-		for _, policyName := range group.Policies {
-			policy, err := mngr.Policy(ctx, policyName)
-			if err != nil {
-				mngr.logger.WithError(err).With("policy", groupName).Debug("could not load policy")
-				continue
-			}
-			policies = append(policies, *policy)
-		}
+		permissions = append(permissions, role.Permissions...)
 	}
 
 	// Create resolver
-	return policies
+	return permissions
 }
 
-func (mngr *BaseManager) policy(name string) (*types.Policy, error) {
-	if policy, ok := mngr.policies[name]; ok {
-		return policy, nil
+
+func (mngr *BaseManager) Role(_ context.Context, name string) (*types.Role, error) {
+	return mngr.role(name)
+}
+
+func (mngr *BaseManager) Roles(context.Context) ([]string, error) {
+	roles := make([]string, 0, len(mngr.roles))
+	for role := range mngr.roles {
+		roles = append(roles, role)
 	}
-
-	return nil, fmt.Errorf("policy %q not found", name)
+	return roles, nil
 }
 
-func (mngr *BaseManager) Policy(ctx context.Context, name string) (*types.Policy, error) {
-	return mngr.policy(name)
-}
 
-func (mngr *BaseManager) Policies(context.Context) ([]string, error) {
-	policies := make([]string, 0, len(mngr.policies))
-	for policy := range mngr.policies {
-		policies = append(policies, policy)
-	}
-	return policies, nil
-}
-
-func (mngr *BaseManager) group(name string) (*types.Group, error) {
-	if group, ok := mngr.groups[name]; ok {
+func (mngr *BaseManager) role(name string) (*types.Role, error) {
+	if group, ok := mngr.roles[name]; ok {
 		return group, nil
 	}
 
-	return nil, fmt.Errorf("group %q not found", name)
-}
-
-func (mngr *BaseManager) Group(ctx context.Context, name string) (*types.Group, error) {
-	return mngr.group(name)
-}
-
-func (mngr *BaseManager) Groups(context.Context) ([]string, error) {
-	groups := make([]string, 0, len(mngr.groups))
-	for group := range mngr.groups {
-		groups = append(groups, group)
-	}
-	return groups, nil
+	return nil, fmt.Errorf("role %q not found", name)
 }
 
 func (mngr *BaseManager) loadAll(ctx context.Context) {
@@ -155,21 +129,15 @@ func (mngr *BaseManager) load(_ context.Context, mnf *manifest.Manifest) error {
 
 	logger := mngr.logger.With("kind", mnf.Kind).With("name", mnf.Name)
 
+	// @TODO Implement support of "*" for permissions, ie: *:eth1, read:*
 	switch mnf.Kind {
-	case GroupKind:
-		err := mngr.loadGroup(mnf)
+	case RoleKind:
+		err := mngr.loadRole(mnf)
 		if err != nil {
-			logger.WithError(err).Error("could not load Group")
+			logger.WithError(err).Error("could not load Role")
 			return err
 		}
-		logger.Info("loaded Group")
-	case Kind:
-		err := mngr.loadPolicy(mnf)
-		if err != nil {
-			logger.WithError(err).Error("could not load Policy")
-			return err
-		}
-		logger.Info("loaded Policy")
+		logger.Info("loaded Role")
 	default:
 		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
 		logger.WithError(err).Error("error starting node")
@@ -179,37 +147,19 @@ func (mngr *BaseManager) load(_ context.Context, mnf *manifest.Manifest) error {
 	return nil
 }
 
-func (mngr *BaseManager) loadGroup(mnf *manifest.Manifest) error {
-	if _, ok := mngr.groups[mnf.Name]; ok {
-		return fmt.Errorf("group %q already exist", mnf.Name)
+func (mngr *BaseManager) loadRole(mnf *manifest.Manifest) error {
+	if _, ok := mngr.roles[mnf.Name]; ok {
+		return fmt.Errorf("role %q already exist", mnf.Name)
 	}
 
-	specs := new(GroupSpecs)
+	specs := new(RoleSpecs)
 	if err := mnf.UnmarshalSpecs(specs); err != nil {
-		return fmt.Errorf("invalid Group specs: %v", err)
+		return fmt.Errorf("invalid Role specs: %v", err)
 	}
 
-	mngr.groups[mnf.Name] = &types.Group{
-		Name:     mnf.Name,
-		Policies: specs.Policies,
-	}
-
-	return nil
-}
-
-func (mngr *BaseManager) loadPolicy(mnf *manifest.Manifest) error {
-	if _, ok := mngr.policies[mnf.Name]; ok {
-		return fmt.Errorf("policy %q already exist", mnf.Name)
-	}
-
-	specs := new(Specs)
-	if err := mnf.UnmarshalSpecs(specs); err != nil {
-		return fmt.Errorf("invalid Policy specs: %v", err)
-	}
-
-	mngr.policies[mnf.Name] = &types.Policy{
-		Name:       mnf.Name,
-		Statements: specs.Statements,
+	mngr.roles[mnf.Name] = &types.Role{
+		Name:        mnf.Name,
+		Permissions: specs.Permissions,
 	}
 
 	return nil

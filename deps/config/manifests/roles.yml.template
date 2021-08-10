@@ -1,0 +1,23 @@
+- kind: Role
+  name: anonymous
+  specs:
+    permission:
+      - proxy:nodes
+      - read:nodes
+- kind: Role
+  name: guest
+  specs:
+    permission:
+      - read:*
+- kind: Role
+  name: signer
+  specs:
+    permission:
+      - read:*
+      - sign:key
+      - sign:eth1
+- kind: Role
+  name: admin
+  specs:
+    permission:
+      - *:*

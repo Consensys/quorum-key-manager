@@ -5,14 +5,8 @@ import (
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
-var GroupKind manifest.Kind = "Group"
+var RoleKind manifest.Kind = "Role"
 
-type GroupSpecs struct {
-	Policies []string `json:"policies"`
-}
-
-var Kind manifest.Kind = "Policy"
-
-type Specs struct {
-	Statements []*types.Statement `json:"statements"`
+type RoleSpecs struct {
+	Permissions []types.Permission `json:"permission"`
 }

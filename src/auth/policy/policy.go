@@ -8,20 +8,14 @@ import (
 
 //go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
 
-// Manager allows to manage policies and groups
+// Manager allows to manage policies and roles
 type Manager interface {
-	// Policy returns policy
-	Policy(ctx context.Context, name string) (*types.Policy, error)
+	// Role returns role
+	Role(ctx context.Context, name string) (*types.Role, error)
 
-	// Policies returns all policies
-	Policies(context.Context) ([]string, error)
+	// Roles returns roles
+	Roles(context.Context) ([]string, error)
 
-	// Group returns group
-	Group(ctx context.Context, name string) (*types.Group, error)
-
-	// Groups returns groups
-	Groups(context.Context) ([]string, error)
-
-	// Extract User Policies from UserInfo
-	UserPolicies(ctx context.Context, info *types.UserInfo) []types.Policy
+	// Extract User Permissions from UserInfo
+	UserPermissions(ctx context.Context, info *types.UserInfo) []types.Permission
 }
