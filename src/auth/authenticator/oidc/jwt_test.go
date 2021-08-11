@@ -33,8 +33,8 @@ func TestJWTChecker_RSAToken(t *testing.T) {
 		username := "username1"
 		groups := []string{"group1", "group2"}
 		token, _ := generator.GenerateAccessToken(map[string]interface{}{
-			"sub": username,
-			"scope":   strings.Join(groups, " "),
+			"sub":   username,
+			"scope": strings.Join(groups, " "),
 		}, time.Second)
 		claims, err := checker.Check(ctx, token)
 		require.NoError(t, err)

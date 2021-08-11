@@ -8,7 +8,9 @@ import (
 	"time"
 
 	mock2 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database/mock"
 
@@ -25,7 +27,7 @@ var testManifest = []byte(`
   specs:
     mountPoint: secret
     address: http://hashicorp:8200
-    tokenPath: /vault/token/.root
+    token: fakeToken
     namespace: ''
 - kind: HashicorpKeys
   version: 0.0.1
@@ -33,24 +35,26 @@ var testManifest = []byte(`
   specs:
     mountPoint: orchestrate
     address: http://hashicorp:8200
-    tokenPath: /vault/token/.root
+    token: fakeToken
     namespace: ''
 - kind: AKVSecrets
   version: 0.0.1
   name: akv-secrets
+  allowedTenants: ['tenantOne']
   specs:
-    vaultName: quorumkeymanager
-    tenantID: 17255fb0-373b-4a1a-bd47-d211ab86df81
-    clientID: 8c925036-dd6f-4a1e-a315-5e6fab4f2f09
-    clientSecret: Cp1BSu50gx-._Q6UJQsSc2oQE-2b.cF.2y
+    vaultName: fakeVaultName
+    tenantID: fakeTenant
+    clientID: fakeClientID
+    clientSecret: fakeSecret
 - kind: AKVKeys
   version: 0.0.1
   name: akv-keys
+  allowedTenants: ['tenantOne', 'tenantTwo']
   specs:
     vaultName: quorumkeymanager
-    tenantID: 17255fb0-373b-4a1a-bd47-d211ab86df81
-    clientID: 8c925036-dd6f-4a1e-a315-5e6fab4f2f09
-    clientSecret: Cp1BSu50gx-._Q6UJQsSc2oQE-2b.cF.2y
+    tenantID: fakeTenant
+    clientID: fakeClientID
+    clientSecret: fakeSecret
 - kind: Eth1Account
   version: 0.0.1
   name: eth1-accounts
@@ -59,34 +63,20 @@ var testManifest = []byte(`
     specs:
       mountPoint: orchestrate
       address: http://hashicorp:8200
-      tokenPath: /vault/token/.root
+      token: fakeToken
       namespace: ''
-- kind: Node
-  name: quorum-node
-  version: 0.0.0
-  specs:
-    rpc:
-      addr: http://quorum1:8545
-    tessera:
-      addr: http://tessera1:9080
-- kind: Node
-  name: besu-node
-  version: 0.0.0
-  specs:
-    rpc:
-      addr: http://validator1:8545
 `)
 
 // This test ensure that we do not get any panic on stores manager process
 // Still this test can not ensure stores are properly created since we do not have access to dependencies
 // (should be responsibility of e2e and ATs)
-func TestBaseManager(t *testing.T) {
+func TestManagerService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockLogger := testutils.NewMockLogger(ctrl)
 	mockDB := mock.NewMockDatabase(ctrl)
-	mockPolicyMngr := mock2.NewMockManager(ctrl)
+	mockAuthMngr := mock2.NewMockManager(ctrl)
 
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
@@ -98,12 +88,23 @@ func TestBaseManager(t *testing.T) {
 	err = manifests.Start(context.TODO())
 	require.NoError(t, err, "Start manifests manager must not error")
 
-	mngr := New(manifests, mockPolicyMngr, mockDB, mockLogger)
+	mngr := New(manifests, mockAuthMngr, mockDB, mockLogger)
 	err = mngr.Start(context.TODO())
 	require.NoError(t, err, "Start manager manager must not error")
 
 	// Give some time to load manifests
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
+
+	stores, err := mngr.List(context.TODO(), "", &types.UserInfo{})
+	require.NoError(t, err)
+	assert.Contains(t, stores, "hashicorp-secrets")
+	assert.Contains(t, stores, "hashicorp-keys")
+	assert.Contains(t, stores, "eth1-accounts")
+
+	stores, err = mngr.List(context.TODO(), "", &types.UserInfo{Tenant: "tenantOne"})
+	require.NoError(t, err)
+	assert.Contains(t, stores, "akv-secrets")
+	assert.Contains(t, stores, "akv-keys")
 
 	err = manifests.Stop(context.TODO())
 	require.NoError(t, err, "Stop manifests manager must not error")

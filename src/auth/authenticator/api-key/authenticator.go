@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/utils"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
@@ -64,25 +65,19 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	// search hex string hashes
 	strClientHash := hex.EncodeToString(clientAPIKeyHash)
 
-	claims, ok := authenticator.APIKeyFile[strClientHash]
+	auth, ok := authenticator.APIKeyFile[strClientHash]
 	if !ok {
 		return nil, errors.UnauthorizedError("api-key does not match")
 	}
 
 	userInfo := &types.UserInfo{
 		AuthMode:    AuthMode,
-		Username:    claims.UserName,
 		Roles:       []string{},
 		Permissions: []types.Permission{},
 	}
 
-	for _, claim := range claims.Claims {
-		if strings.Contains(claim, ":") {
-			userInfo.Permissions = append(userInfo.Permissions, types.Permission(claim))
-		} else {
-			userInfo.Roles = append(userInfo.Roles, claim)
-		}
-	}
+	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(auth.UserName)
+	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(auth.Claims)
 
 	return userInfo, nil
 }

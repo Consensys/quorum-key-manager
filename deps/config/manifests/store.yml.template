@@ -1,6 +1,7 @@
 - kind: AKVSecrets
   version: 0.0.1
   name: akv-secrets
+  allowedTenants: ['{TENANT_ID1}', '{TENANT_ID2}']
   specs:
     vaultName: '{VAULT_NAME}'
     tenantID: '{TENANT_ID}'
@@ -9,6 +10,7 @@
 - kind: AKVKeys
   version: 0.0.1
   name: akv-keys
+  allowedTenants: ['{TENANT_ID1}', '{TENANT_ID2}']
   specs:
     vaultName: '{VAULT_NAME}'
     tenantID: '{TENANT_ID}'

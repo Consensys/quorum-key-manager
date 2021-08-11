@@ -6,6 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/utils"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
@@ -44,17 +45,11 @@ func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) 
 	}
 
 	userInfo := &types.UserInfo{
-		Username: jwtData.Username,
 		AuthMode: AuthMode,
 	}
-	for _, claim := range jwtData.Claims {
-		if strings.Contains(claim, ":") {
-			userInfo.Permissions = append(userInfo.Permissions, types.Permission(claim))
-		} else {
-			userInfo.Roles = append(userInfo.Roles, claim)
-		}
-	}
 
+	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(jwtData.Username)
+	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(jwtData.Claims)
 	return userInfo, nil
 }
 

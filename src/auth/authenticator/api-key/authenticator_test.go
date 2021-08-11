@@ -23,7 +23,7 @@ const (
 )
 
 var userAliceClaims = UserClaims{
-	UserName: "Alice",
+	UserName: "TenantOne|Alice",
 	Claims:   []string{"guest", "admin", "read:key", "write:key"},
 }
 
@@ -65,6 +65,7 @@ func TestAuthenticatorApiKey_sh256Hasher(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, "Alice", userInfo.Username)
+		assert.Equal(t, "TenantOne", userInfo.Tenant)
 		assert.Equal(t, []string{"guest", "admin"}, userInfo.Roles)
 		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
 

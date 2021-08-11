@@ -34,10 +34,9 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 	})
 
 	t.Run("should accept token and extract claims successfully", func(t *testing.T) {
-		username := "username-auth"
 		claims := []string{"role1", "role2", "read:key", "write:key"}
 		token, _ := generator.GenerateAccessToken(map[string]interface{}{
-			"sub":   username,
+			"sub":   "tenant|username",
 			"scope": strings.Join(claims, " "),
 		}, time.Second)
 
@@ -45,7 +44,8 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 		req.Header.Add("Authorization", fmt.Sprintf("%s %s", BearerSchema, token))
 		userInfo, err := auth.Authenticate(req)
 		require.NoError(t, err)
-		assert.Equal(t, username, userInfo.Username)
+		assert.Equal(t, "username", userInfo.Username)
+		assert.Equal(t, "tenant", userInfo.Tenant)
 		assert.Equal(t, []string{"role1", "role2"}, userInfo.Roles)
 		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
 	})
