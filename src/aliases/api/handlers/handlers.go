@@ -69,8 +69,10 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("alias:", alias)
-	err = jsonWrite(w, alias)
+	resp := types.CreateAliasResponse{
+		Alias: types.FromEntityAlias(*alias),
+	}
+	err = jsonWrite(w, resp)
 	if err != nil {
 		WriteHTTPErrorResponse(w, err)
 		return
@@ -120,8 +122,12 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	// - modify the UpdateAlias func to change the alias key (PK)
 	// - delete + create of the new alias
 	alias, err = h.alias.UpdateAlias(r.Context(), aliasent.RegistryName(regName), *alias)
+	if err != nil {
+		WriteHTTPErrorResponse(w, err)
+		return
+	}
 
-	err = jsonWrite(w, alias)
+	err = jsonWrite(w, types.UpdateAliasResponse{Value: types.AliasValue(alias.Value)})
 	if err != nil {
 		WriteHTTPErrorResponse(w, err)
 		return
@@ -139,6 +145,9 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 		WriteHTTPErrorResponse(w, err)
 		return
 	}
+
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
@@ -161,6 +170,7 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 
 func jsonWrite(w http.ResponseWriter, data interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8;")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	return json.NewEncoder(w).Encode(data)
 }
 

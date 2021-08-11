@@ -25,6 +25,15 @@ func ToEntityAlias(registry RegistryName, alias Alias) aliasent.Alias {
 	}
 }
 
+func FromEntityAliases(ents []aliasent.Alias) []Alias {
+	var als []Alias
+	for _, v := range ents {
+		als = append(als, FromEntityAlias(v))
+	}
+
+	return als
+}
+
 type AliasValue string
 
 type AliasKey string
