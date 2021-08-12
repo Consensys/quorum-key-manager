@@ -37,12 +37,12 @@ func (s *eth1TestSuite) TearDownSuite() {
 
 	s.env.logger.Info("Deleting the following accounts", "addresses", accounts)
 	for _, address := range accounts {
-		err = s.store.Delete(ctx, address.Hex())
+		err = s.store.Delete(ctx, address)
 		require.NoError(s.T(), err)
 	}
 
 	for _, acc := range accounts {
-		err = s.store.Destroy(ctx, acc.Hex())
+		err = s.store.Destroy(ctx, acc)
 		if err != nil {
 			s.env.logger.WithError(err).With("address", acc).Error("failed to destroy account")
 			break
@@ -133,7 +133,7 @@ func (s *eth1TestSuite) TestGet() {
 	require.NoError(s.T(), err)
 
 	s.Run("should get an Ethereum Account successfully", func() {
-		retrievedAccount, err := s.store.Get(ctx, account.Address.Hex())
+		retrievedAccount, err := s.store.Get(ctx, account.Address)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), retrievedAccount.KeyID, id)
@@ -147,7 +147,7 @@ func (s *eth1TestSuite) TestGet() {
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		retrievedAccount, err := s.store.Get(ctx, "invalidAccount")
+		retrievedAccount, err := s.store.Get(ctx, ethcommon.HexToAddress("invalidAddress"))
 		require.Nil(s.T(), retrievedAccount)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -189,20 +189,20 @@ func (s *eth1TestSuite) TestSignVerify() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign, recover an address and verify the signature successfully", func() {
-		signature, err := s.store.Sign(ctx, account.Address.Hex(), payload)
+		signature, err := s.store.Sign(ctx, account.Address, payload)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
 		address, err := s.store.ECRecover(ctx, payload, signature)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), account.Address.Hex(), address)
+		assert.Equal(s.T(), account.Address, address)
 
 		err = s.store.Verify(ctx, address, payload, signature)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signature, err := s.store.Sign(ctx, "invalidAccount", payload)
+		signature, err := s.store.Sign(ctx, ethcommon.HexToAddress("invalidAddress"), payload)
 		require.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -227,13 +227,13 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignTransaction(ctx, account.Address.Hex(), chainID, tx)
+		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signedRaw, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, tx)
+		signedRaw, err := s.store.SignTransaction(ctx, ethcommon.HexToAddress("invalidAddress"), chainID, tx)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -257,13 +257,13 @@ func (s *eth1TestSuite) TestSignPrivate() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignPrivate(ctx, account.Address.Hex(), tx)
+		signedRaw, err := s.store.SignPrivate(ctx, account.Address, tx)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signedRaw, err := s.store.SignPrivate(ctx, "invalidAccount", tx)
+		signedRaw, err := s.store.SignPrivate(ctx, ethcommon.HexToAddress("invalidAddress"), tx)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -296,13 +296,13 @@ func (s *eth1TestSuite) TestSignEEA() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignEEA(ctx, account.Address.Hex(), chainID, tx, privateArgs)
+		signedRaw, err := s.store.SignEEA(ctx, account.Address, chainID, tx, privateArgs)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signedRaw, err := s.store.SignEEA(ctx, "invalidAccount", chainID, tx, privateArgs)
+		signedRaw, err := s.store.SignEEA(ctx, ethcommon.HexToAddress("invalidAddress"), chainID, tx, privateArgs)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})

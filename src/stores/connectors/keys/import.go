@@ -17,6 +17,7 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, alg *e
 
 	key, err = c.db.Add(ctx, key)
 	if err != nil {
+		// @TODO Ensure key is destroyed if we fail to insert in DB
 		return nil, err
 	}
 

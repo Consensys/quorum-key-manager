@@ -27,59 +27,59 @@ type Eth1Store interface {
 	Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Get gets an Ethereum account
-	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	Get(ctx context.Context, addr common.Address) (*entities.ETH1Account, error)
 
 	// List lists all Ethereum account addresses
 	List(ctx context.Context) ([]common.Address, error)
 
 	// Update updates Ethereum account attributes
-	Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error)
+	Update(ctx context.Context, addr common.Address, attr *entities.Attributes) (*entities.ETH1Account, error)
 
 	// Delete deletes an account temporarily, by using Restore the account can be restored
-	Delete(ctx context.Context, addr string) error
+	Delete(ctx context.Context, addr common.Address) error
 
 	// GetDeleted Gets a deleted Ethereum accounts
-	GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error)
+	GetDeleted(ctx context.Context, addr common.Address) (*entities.ETH1Account, error)
 
 	// ListDeleted lists all deleted Ethereum accounts
 	ListDeleted(ctx context.Context) ([]common.Address, error)
 
 	// Restore restores a previously deleted Ethereum account
-	Restore(ctx context.Context, addr string) error
+	Restore(ctx context.Context, addr common.Address) error
 
 	// Destroy destroys (purges) an Ethereum account permanently
-	Destroy(ctx context.Context, addr string) error
+	Destroy(ctx context.Context, addr common.Address) error
 
 	// Sign signs a payload using the specified Ethereum account
-	Sign(ctx context.Context, addr string, data []byte) ([]byte, error)
+	Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
 
 	// SignHash signs a hash using the specified Ethereum account
-	SignHash(ctx context.Context, addr string, data []byte) ([]byte, error)
+	SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
 
 	// SignTypedData signs EIP-712 formatted data using the specified Ethereum account
-	SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error)
+	SignTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData) ([]byte, error)
 
 	// SignTransaction signs a public Ethereum transaction
-	SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error)
+	SignTransaction(ctx context.Context, addr common.Address, chainID *big.Int, tx *types.Transaction) ([]byte, error)
 
 	// SignEEA signs an EEA transaction
-	SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error)
+	SignEEA(ctx context.Context, addr common.Address, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error)
 
 	// SignPrivate signs a Quorum private transaction
-	SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error)
+	SignPrivate(ctx context.Context, addr common.Address, tx *quorumtypes.Transaction) ([]byte, error)
 
 	// ECRecover returns the Ethereum address from a signature and data
-	ECRecover(ctx context.Context, data, sig []byte) (string, error)
+	ECRecover(ctx context.Context, data, sig []byte) (common.Address, error)
 
 	// Verify verifies that a signature belongs to a given address
-	Verify(ctx context.Context, addr string, data, sig []byte) error
+	Verify(ctx context.Context, addr common.Address, data, sig []byte) error
 
 	// VerifyTypedData verifies that a typed data signature belongs to a given address
-	VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error
+	VerifyTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData, sig []byte) error
 
 	// Encrypt encrypts any arbitrary data using a specified account
-	Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error)
+	Encrypt(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
 
 	// Decrypt decrypts a single block of encrypted data.
-	Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error)
+	Decrypt(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
 }

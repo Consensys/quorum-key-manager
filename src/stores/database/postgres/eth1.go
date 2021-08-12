@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -138,14 +137,15 @@ func (ea *ETH1Accounts) Delete(ctx context.Context, addr string) error {
 	return nil
 }
 
-func (ea *ETH1Accounts) Restore(ctx context.Context, account *entities.ETH1Account) error {
-	accModel := models.NewETH1Account(account)
-	accModel.StoreID = ea.storeID
-	accModel.DeletedAt = time.Time{}
+func (ea *ETH1Accounts) Restore(ctx context.Context, addr string) error {
+	accModel := &models.ETH1Account{
+		Address: addr,
+		StoreID: ea.storeID,
+	}
 	err := ea.client.UndeletePK(ctx, accModel)
 	if err != nil {
 		errMessage := "failed to restore account"
-		ea.logger.With("address", account.Address).WithError(err).Error(errMessage)
+		ea.logger.With("address", addr).WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 

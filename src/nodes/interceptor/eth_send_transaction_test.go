@@ -70,7 +70,7 @@ func TestEthSendTransaction(t *testing.T) {
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
 				// Sign
-				accountsStore.EXPECT().SignTransaction(gomock.Any(), expectedFrom.Hex(), big.NewInt(1998), gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
+				accountsStore.EXPECT().SignTransaction(gomock.Any(), expectedFrom, big.NewInt(1998), gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
 
 				// SendRawTransaction
 				ethCaller.EXPECT().SendRawTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27")).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
@@ -107,7 +107,7 @@ func TestEthSendTransaction(t *testing.T) {
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 
 				// Sign
-				accountsStore.EXPECT().SignPrivate(gomock.Any(), expectedFrom.Hex(), gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
+				accountsStore.EXPECT().SignPrivate(gomock.Any(), expectedFrom, gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
 
 				expectedPrivateArgs := (&ethereum.PrivateArgs{}).WithPrivateFrom("GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=").WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
 				ethCaller.EXPECT().SendRawPrivateTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27"), expectedPrivateArgs).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)

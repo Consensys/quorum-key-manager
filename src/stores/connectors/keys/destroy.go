@@ -30,6 +30,10 @@ func (c Connector) Destroy(ctx context.Context, id string) error {
 		return nil
 	})
 
+	if err != nil {
+		return err
+	}
+
 	logger.Info("key was permanently deleted")
 	return nil
 }

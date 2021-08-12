@@ -219,17 +219,17 @@ func (mr *MockETH1AccountsMockRecorder) Delete(ctx, addr interface{}) *gomock.Ca
 }
 
 // Restore mocks base method
-func (m *MockETH1Accounts) Restore(ctx context.Context, account *entities.ETH1Account) error {
+func (m *MockETH1Accounts) Restore(ctx context.Context, addr string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Restore", ctx, account)
+	ret := m.ctrl.Call(m, "Restore", ctx, addr)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Restore indicates an expected call of Restore
-func (mr *MockETH1AccountsMockRecorder) Restore(ctx, account interface{}) *gomock.Call {
+func (mr *MockETH1AccountsMockRecorder) Restore(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockETH1Accounts)(nil).Restore), ctx, account)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockETH1Accounts)(nil).Restore), ctx, addr)
 }
 
 // Purge mocks base method
@@ -388,17 +388,17 @@ func (mr *MockKeysMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 }
 
 // Restore mocks base method
-func (m *MockKeys) Restore(ctx context.Context, key *entities.Key) error {
+func (m *MockKeys) Restore(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Restore", ctx, key)
+	ret := m.ctrl.Call(m, "Restore", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Restore indicates an expected call of Restore
-func (mr *MockKeysMockRecorder) Restore(ctx, key interface{}) *gomock.Call {
+func (mr *MockKeysMockRecorder) Restore(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockKeys)(nil).Restore), ctx, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockKeys)(nil).Restore), ctx, id)
 }
 
 // Purge mocks base method

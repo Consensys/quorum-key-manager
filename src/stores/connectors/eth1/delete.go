@@ -5,19 +5,20 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func (c Connector) Delete(ctx context.Context, addr string) error {
-	logger := c.logger.With("address", addr)
+func (c Connector) Delete(ctx context.Context, addr ethcommon.Address) error {
+	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("deleting ethereum account")
 
-	acc, err := c.db.Get(ctx, addr)
+	acc, err := c.db.Get(ctx, addr.Hex())
 	if err != nil {
 		return err
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-		err = c.db.Delete(ctx, addr)
+		err = c.db.Delete(ctx, addr.Hex())
 		if err != nil {
 			return err
 		}
@@ -29,6 +30,9 @@ func (c Connector) Delete(ctx context.Context, addr string) error {
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	logger.Info("ethereum account deleted successfully")
 	return nil

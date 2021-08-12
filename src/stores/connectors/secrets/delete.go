@@ -11,15 +11,14 @@ func (c Connector) Delete(ctx context.Context, id, version string) error {
 	logger := c.logger.With("id", id).With("version", version)
 
 	err := c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		derr := dbtx.Delete(ctx, id, version)
-
-		if derr != nil {
-			return derr
+		err := dbtx.Delete(ctx, id, version)
+		if err != nil {
+			return err
 		}
 
-		derr = c.store.Delete(ctx, id, version)
-		if derr != nil && !errors.IsNotSupportedError(derr) { // If the underlying store does not support deleting, we only delete in DB
-			return derr
+		err = c.store.Delete(ctx, id, version)
+		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support deleting, we only delete in DB
+			return err
 		}
 
 		return nil

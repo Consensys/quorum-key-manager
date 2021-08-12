@@ -95,7 +95,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Sign
-	sig, err := store.SignEEA(ctx, msg.From.Hex(), chainID, msg.TxData(), &msg.PrivateArgs)
+	sig, err := store.SignEEA(ctx, msg.From, chainID, msg.TxData(), &msg.PrivateArgs)
 	if err != nil {
 		return nil, err
 	}

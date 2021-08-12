@@ -21,7 +21,7 @@ var eth1Algo = &entities.Algorithm{
 	EllipticCurve: entities.Secp256k1,
 }
 
-func NewEth1Connector(store stores.KeyStore, db database.ETH1Accounts, logger log.Logger) *Connector {
+func NewConnector(store stores.KeyStore, db database.ETH1Accounts, logger log.Logger) *Connector {
 	return &Connector{
 		store:  store,
 		logger: logger,
@@ -29,7 +29,7 @@ func NewEth1Connector(store stores.KeyStore, db database.ETH1Accounts, logger lo
 	}
 }
 
-func parseKey(key *entities.Key, attr *entities.Attributes) *entities.ETH1Account {
+func newEth1Account(key *entities.Key, attr *entities.Attributes) *entities.ETH1Account {
 	pubKey, _ := crypto.UnmarshalPubkey(key.PublicKey)
 	return &entities.ETH1Account{
 		KeyID:               key.ID,

@@ -16,7 +16,7 @@ func (c Connector) Create(ctx context.Context, id string, attr *entities.Attribu
 		return nil, err
 	}
 	
-	acc, err := c.db.Add(ctx, parseKey(key, attr))
+	acc, err := c.db.Add(ctx, newEth1Account(key, attr))
 	if err != nil {
 		// @TODO Ensure key is destroyed if we fail to insert in DB 
 		return nil, err

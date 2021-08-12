@@ -2,8 +2,10 @@ package testutils
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
+	common2 "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -12,8 +14,8 @@ import (
 
 func FakeSecret() *entities.Secret {
 	return &entities.Secret{
-		ID:       "my-secret-id",
-		Value:    "my-secret-value",
+		ID:       fmt.Sprintf("my-secret-%d", common2.RandInt(100)),
+		Value:    fmt.Sprintf("my-secret-value-%s", common2.RandString(4)),
 		Tags:     FakeTags(),
 		Metadata: FakeMetadata(),
 	}
@@ -22,7 +24,7 @@ func FakeSecret() *entities.Secret {
 func FakeKey() *entities.Key {
 	pubKey, _ := base64.URLEncoding.DecodeString("BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=")
 	return &entities.Key{
-		ID:          "my-key-id",
+		ID:          fmt.Sprintf("my-key-%d", common2.RandInt(100)),
 		PublicKey:   pubKey,
 		Algo:        FakeAlgorithm(),
 		Metadata:    FakeMetadata(),
@@ -33,7 +35,7 @@ func FakeKey() *entities.Key {
 
 func FakeETH1Account() *entities.ETH1Account {
 	return &entities.ETH1Account{
-		KeyID:               "my-account",
+		KeyID:               fmt.Sprintf("my-account-%d", common2.RandInt(100)),
 		Address:             common.HexToAddress("0x83a0254be47813BBff771F4562744676C4e793F0"),
 		Metadata:            FakeMetadata(),
 		PublicKey:           hexutil.MustDecode("0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2"),

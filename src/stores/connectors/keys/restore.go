@@ -12,13 +12,13 @@ func (c Connector) Restore(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 	logger.Debug("restoring key")
 
-	key, err := c.db.GetDeleted(ctx, id)
+	_, err := c.db.GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Keys) error {
-		err = c.db.Restore(ctx, key)
+		err = c.db.Restore(ctx, id)
 		if err != nil {
 			return err
 		}

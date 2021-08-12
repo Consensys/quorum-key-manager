@@ -14,7 +14,7 @@ type Connector struct {
 
 var _ stores.SecretStore = &Connector{}
 
-func NewSecretConnector(store stores.SecretStore, db database.Secrets, logger log.Logger) *Connector {
+func NewConnector(store stores.SecretStore, db database.Secrets, logger log.Logger) *Connector {
 	return &Connector{
 		store:  store,
 		logger: logger,

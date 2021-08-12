@@ -146,7 +146,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	hashicorpStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewEth1Connector(hashicorpStore, db.ETH1Accounts(storeName), logger)
+	testSuite.store = eth1.NewConnector(hashicorpStore, db.ETH1Accounts(storeName), logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
@@ -156,7 +156,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	akvStore := akvkey.New(s.env.akvClient, logger)
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewEth1Connector(akvStore, db.ETH1Accounts(storeName), logger)
+	testSuite.store = eth1.NewConnector(akvStore, db.ETH1Accounts(storeName), logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
@@ -166,7 +166,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	awsStore := awskey.New(s.env.awsKmsClient, logger)
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewEth1Connector(awsStore, db.ETH1Accounts(storeName), logger)
+	testSuite.store = eth1.NewConnector(awsStore, db.ETH1Accounts(storeName), logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
@@ -177,7 +177,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	localStore := local.New(hashicorpSecretStore, logger)
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewEth1Connector(localStore, db.ETH1Accounts(storeName), logger)
+	testSuite.store = eth1.NewConnector(localStore, db.ETH1Accounts(storeName), logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 

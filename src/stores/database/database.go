@@ -24,7 +24,7 @@ type ETH1Accounts interface {
 	Add(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error)
 	Update(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error)
 	Delete(ctx context.Context, addr string) error
-	Restore(ctx context.Context, account *entities.ETH1Account) error
+	Restore(ctx context.Context, addr string) error
 	Purge(ctx context.Context, addr string) error
 }
 
@@ -37,7 +37,7 @@ type Keys interface {
 	Add(ctx context.Context, key *entities.Key) (*entities.Key, error)
 	Update(ctx context.Context, key *entities.Key) (*entities.Key, error)
 	Delete(ctx context.Context, id string) error
-	Restore(ctx context.Context, key *entities.Key) error
+	Restore(ctx context.Context, id string) error
 	Purge(ctx context.Context, id string) error
 }
 

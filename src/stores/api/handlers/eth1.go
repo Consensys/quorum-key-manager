@@ -635,7 +635,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_, _ = rw.Write([]byte(address))
+	_, _ = rw.Write([]byte(address.Hex()))
 }
 
 // @Summary Verify signature
@@ -668,7 +668,7 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	err = eth1Store.Verify(ctx, verifyReq.Address.Hex(), verifyReq.Data, verifyReq.Signature)
+	err = eth1Store.Verify(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -707,7 +707,7 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
-	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address.Hex(), typedData, verifyReq.Signature)
+	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address, typedData, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -716,9 +716,8 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-func getAddress(request *http.Request) string {
-	addr := ethcommon.HexToAddress(mux.Vars(request)["address"])
-	return addr.Hex()
+func getAddress(request *http.Request) ethcommon.Address {
+	return ethcommon.HexToAddress(mux.Vars(request)["address"])
 }
 
 func generateRandomKeyID() string {

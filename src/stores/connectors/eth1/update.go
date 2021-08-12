@@ -6,28 +6,28 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func (c Connector) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) Update(ctx context.Context, addr ethcommon.Address, attr *entities.Attributes) (*entities.ETH1Account, error) {
+	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("updating ethereum account")
 
-	acc, err := c.db.Get(ctx, addr)
+	acc, err := c.db.Get(ctx, addr.Hex())
 	if err != nil {
 		return nil, err
 	}
 	acc.Tags = attr.Tags
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-		var derr error
-		acc, derr = c.db.Update(ctx, acc)
-		if derr != nil {
-			return derr
+		acc, err = c.db.Update(ctx, acc)
+		if err != nil {
+			return err
 		}
 
-		_, derr = c.store.Update(ctx, addr, attr)
-		if derr != nil && !errors.IsNotSupportedError(derr) {
-			return derr
+		_, err = c.store.Update(ctx, addr.Hex(), attr)
+		if err != nil && !errors.IsNotSupportedError(err) {
+			return err
 		}
 
 		return nil

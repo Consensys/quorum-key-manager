@@ -15,7 +15,7 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *
 		return nil, err
 	}
 
-	acc, err := c.db.Add(ctx, parseKey(key, attr))
+	acc, err := c.db.Add(ctx, newEth1Account(key, attr))
 	if err != nil {
 		return nil, err
 	}

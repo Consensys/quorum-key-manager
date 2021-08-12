@@ -2,12 +2,14 @@ package eth1
 
 import (
 	"context"
+
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func (c Connector) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) Encrypt(ctx context.Context, addr ethcommon.Address, data []byte) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
 
-	acc, err := c.db.Get(ctx, addr)
+	acc, err := c.db.Get(ctx, addr.Hex())
 	if err != nil {
 		return nil, err
 	}

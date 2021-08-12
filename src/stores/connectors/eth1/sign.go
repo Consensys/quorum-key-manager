@@ -3,6 +3,7 @@ package eth1
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"encoding/base64"
 	"fmt"
 	"math/big"
@@ -12,6 +13,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -24,8 +26,8 @@ var (
 	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
 )
 
-func (c Connector) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
 
 	signature, err := c.sign(ctx, addr, crypto.Keccak256(data))
 	if err != nil {
@@ -36,8 +38,8 @@ func (c Connector) Sign(ctx context.Context, addr string, data []byte) ([]byte, 
 	return signature, nil
 }
 
-func (c Connector) SignHash(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
 
 	signature, err := c.sign(ctx, addr, data)
 	if err != nil {
@@ -48,8 +50,8 @@ func (c Connector) SignHash(ctx context.Context, addr string, data []byte) ([]by
 	return signature, nil
 }
 
-func (c Connector) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
 
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
@@ -65,8 +67,8 @@ func (c Connector) SignTypedData(ctx context.Context, addr string, typedData *co
 	return signature, nil
 }
 
-func (c Connector) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) SignTransaction(ctx context.Context, addr common.Address, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
 
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
@@ -93,8 +95,8 @@ func (c Connector) SignTransaction(ctx context.Context, addr string, chainID *bi
 	return signedRaw, nil
 }
 
-func (c Connector) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) SignEEA(ctx context.Context, addr common.Address, chainID *big.Int, tx *types.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
 
 	privateFromEncoded, err := base64.StdEncoding.DecodeString(*args.PrivateFrom)
 	if err != nil {
@@ -167,8 +169,8 @@ func (c Connector) SignEEA(ctx context.Context, addr string, chainID *big.Int, t
 	return signedRaw, nil
 }
 
-func (c Connector) SignPrivate(ctx context.Context, addr string, tx *quorumtypes.Transaction) ([]byte, error) {
-	logger := c.logger.With("address", addr)
+func (c Connector) SignPrivate(ctx context.Context, addr common.Address, tx *quorumtypes.Transaction) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
 
 	signer := quorumtypes.QuorumPrivateTxSigner{}
 	txData := signer.Hash(tx).Bytes()
@@ -195,8 +197,8 @@ func (c Connector) SignPrivate(ctx context.Context, addr string, tx *quorumtypes
 	return signedRaw, nil
 }
 
-func (c Connector) sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
-	acc, err := c.db.Get(ctx, addr)
+func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	acc, err := c.db.Get(ctx, addr.Hex())
 	if err != nil {
 		return nil, err
 	}
@@ -209,19 +211,24 @@ func (c Connector) sign(ctx context.Context, addr string, data []byte) ([]byte, 
 	// Recover the recID, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
 	for _, recID := range []byte{0, 1} {
 		appendedSignature := append(malleabilityECDSASignature(signature), recID)
-		recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
+		var recoveredPubKey *ecdsa.PublicKey
+		recoveredPubKey, err = crypto.SigToPub(data, appendedSignature)
 		if err != nil {
 			errMessage := "failed to recover public key candidate with appended recID"
 			c.logger.WithError(err).Error(errMessage, "recID", recID)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
+		recoveredPubKeyStr := hexutil.Encode(crypto.FromECDSAPub(recoveredPubKey))
+		c.logger.Debug(recoveredPubKeyStr)
 		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), acc.PublicKey) {
 			return appendedSignature, nil
 		}
 	}
 
-	return signature, nil
+	errMessage := "failed to recover public key candidate"
+	c.logger.WithError(err).Error(errMessage)
+	return nil, errors.InvalidParameterError(errMessage)
 }
 
 func eeaHash(object interface{}) (hash common.Hash, err error) {

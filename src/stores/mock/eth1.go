@@ -86,7 +86,7 @@ func (mr *MockEth1StoreMockRecorder) Import(ctx, id, privKey, attr interface{}) 
 }
 
 // Get mocks base method
-func (m *MockEth1Store) Get(ctx context.Context, addr string) (*entities.ETH1Account, error) {
+func (m *MockEth1Store) Get(ctx context.Context, addr common.Address) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, addr)
 	ret0, _ := ret[0].(*entities.ETH1Account)
@@ -116,7 +116,7 @@ func (mr *MockEth1StoreMockRecorder) List(ctx interface{}) *gomock.Call {
 }
 
 // Update mocks base method
-func (m *MockEth1Store) Update(ctx context.Context, addr string, attr *entities.Attributes) (*entities.ETH1Account, error) {
+func (m *MockEth1Store) Update(ctx context.Context, addr common.Address, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, addr, attr)
 	ret0, _ := ret[0].(*entities.ETH1Account)
@@ -131,7 +131,7 @@ func (mr *MockEth1StoreMockRecorder) Update(ctx, addr, attr interface{}) *gomock
 }
 
 // Delete mocks base method
-func (m *MockEth1Store) Delete(ctx context.Context, addr string) error {
+func (m *MockEth1Store) Delete(ctx context.Context, addr common.Address) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, addr)
 	ret0, _ := ret[0].(error)
@@ -145,7 +145,7 @@ func (mr *MockEth1StoreMockRecorder) Delete(ctx, addr interface{}) *gomock.Call 
 }
 
 // GetDeleted mocks base method
-func (m *MockEth1Store) GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error) {
+func (m *MockEth1Store) GetDeleted(ctx context.Context, addr common.Address) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeleted", ctx, addr)
 	ret0, _ := ret[0].(*entities.ETH1Account)
@@ -175,7 +175,7 @@ func (mr *MockEth1StoreMockRecorder) ListDeleted(ctx interface{}) *gomock.Call {
 }
 
 // Restore mocks base method
-func (m *MockEth1Store) Restore(ctx context.Context, addr string) error {
+func (m *MockEth1Store) Restore(ctx context.Context, addr common.Address) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Restore", ctx, addr)
 	ret0, _ := ret[0].(error)
@@ -189,7 +189,7 @@ func (mr *MockEth1StoreMockRecorder) Restore(ctx, addr interface{}) *gomock.Call
 }
 
 // Destroy mocks base method
-func (m *MockEth1Store) Destroy(ctx context.Context, addr string) error {
+func (m *MockEth1Store) Destroy(ctx context.Context, addr common.Address) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Destroy", ctx, addr)
 	ret0, _ := ret[0].(error)
@@ -203,7 +203,7 @@ func (mr *MockEth1StoreMockRecorder) Destroy(ctx, addr interface{}) *gomock.Call
 }
 
 // Sign mocks base method
-func (m *MockEth1Store) Sign(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (m *MockEth1Store) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
@@ -218,7 +218,7 @@ func (mr *MockEth1StoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.C
 }
 
 // SignHash mocks base method
-func (m *MockEth1Store) SignHash(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (m *MockEth1Store) SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignHash", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
@@ -233,7 +233,7 @@ func (mr *MockEth1StoreMockRecorder) SignHash(ctx, addr, data interface{}) *gomo
 }
 
 // SignTypedData mocks base method
-func (m *MockEth1Store) SignTypedData(ctx context.Context, addr string, typedData *core.TypedData) ([]byte, error) {
+func (m *MockEth1Store) SignTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTypedData", ctx, addr, typedData)
 	ret0, _ := ret[0].([]byte)
@@ -248,7 +248,7 @@ func (mr *MockEth1StoreMockRecorder) SignTypedData(ctx, addr, typedData interfac
 }
 
 // SignTransaction mocks base method
-func (m *MockEth1Store) SignTransaction(ctx context.Context, addr string, chainID *big.Int, tx *types0.Transaction) ([]byte, error) {
+func (m *MockEth1Store) SignTransaction(ctx context.Context, addr common.Address, chainID *big.Int, tx *types0.Transaction) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTransaction", ctx, addr, chainID, tx)
 	ret0, _ := ret[0].([]byte)
@@ -263,7 +263,7 @@ func (mr *MockEth1StoreMockRecorder) SignTransaction(ctx, addr, chainID, tx inte
 }
 
 // SignEEA mocks base method
-func (m *MockEth1Store) SignEEA(ctx context.Context, addr string, chainID *big.Int, tx *types0.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
+func (m *MockEth1Store) SignEEA(ctx context.Context, addr common.Address, chainID *big.Int, tx *types0.Transaction, args *ethereum.PrivateArgs) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignEEA", ctx, addr, chainID, tx, args)
 	ret0, _ := ret[0].([]byte)
@@ -278,7 +278,7 @@ func (mr *MockEth1StoreMockRecorder) SignEEA(ctx, addr, chainID, tx, args interf
 }
 
 // SignPrivate mocks base method
-func (m *MockEth1Store) SignPrivate(ctx context.Context, addr string, tx *types.Transaction) ([]byte, error) {
+func (m *MockEth1Store) SignPrivate(ctx context.Context, addr common.Address, tx *types.Transaction) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignPrivate", ctx, addr, tx)
 	ret0, _ := ret[0].([]byte)
@@ -293,10 +293,10 @@ func (mr *MockEth1StoreMockRecorder) SignPrivate(ctx, addr, tx interface{}) *gom
 }
 
 // ECRecover mocks base method
-func (m *MockEth1Store) ECRecover(ctx context.Context, data, sig []byte) (string, error) {
+func (m *MockEth1Store) ECRecover(ctx context.Context, data, sig []byte) (common.Address, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ECRecover", ctx, data, sig)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(common.Address)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -308,7 +308,7 @@ func (mr *MockEth1StoreMockRecorder) ECRecover(ctx, data, sig interface{}) *gomo
 }
 
 // Verify mocks base method
-func (m *MockEth1Store) Verify(ctx context.Context, addr string, data, sig []byte) error {
+func (m *MockEth1Store) Verify(ctx context.Context, addr common.Address, data, sig []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Verify", ctx, addr, data, sig)
 	ret0, _ := ret[0].(error)
@@ -322,7 +322,7 @@ func (mr *MockEth1StoreMockRecorder) Verify(ctx, addr, data, sig interface{}) *g
 }
 
 // VerifyTypedData mocks base method
-func (m *MockEth1Store) VerifyTypedData(ctx context.Context, addr string, typedData *core.TypedData, sig []byte) error {
+func (m *MockEth1Store) VerifyTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData, sig []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, addr, typedData, sig)
 	ret0, _ := ret[0].(error)
@@ -336,7 +336,7 @@ func (mr *MockEth1StoreMockRecorder) VerifyTypedData(ctx, addr, typedData, sig i
 }
 
 // Encrypt mocks base method
-func (m *MockEth1Store) Encrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (m *MockEth1Store) Encrypt(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Encrypt", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
@@ -351,7 +351,7 @@ func (mr *MockEth1StoreMockRecorder) Encrypt(ctx, addr, data interface{}) *gomoc
 }
 
 // Decrypt mocks base method
-func (m *MockEth1Store) Decrypt(ctx context.Context, addr string, data []byte) ([]byte, error) {
+func (m *MockEth1Store) Decrypt(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Decrypt", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)

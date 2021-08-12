@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -139,14 +138,11 @@ func (k *Keys) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (k *Keys) Restore(ctx context.Context, key *entities.Key) error {
-	keyModel := models.NewKey(key)
-	keyModel.StoreID = k.storeID
-	keyModel.DeletedAt = time.Time{}
-	err := k.client.UndeletePK(ctx, keyModel)
+func (k *Keys) Restore(ctx context.Context, id string) error {
+	err := k.client.UndeletePK(ctx, &models.Key{ID: id, StoreID: k.storeID})
 	if err != nil {
 		errMessage := "failed to restore key"
-		k.logger.With("id", key.ID).WithError(err).Error(errMessage)
+		k.logger.With("id", id).WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 

@@ -129,7 +129,7 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
 			policies := m.policyManager.UserPolicies(ctx, userInfo)
 			_, _ = policy.NewResolver(policies)
-			return secretsconnector.NewSecretConnector(store, m.db.Secrets(storeName), storeBundle.logger), nil
+			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), storeBundle.logger), nil
 		}
 	}
 
@@ -163,7 +163,7 @@ func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userIn
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
 			policies := m.policyManager.UserPolicies(ctx, userInfo)
 			_, _ = policy.NewResolver(policies)
-			return eth1connector.NewEth1Connector(store, m.db.ETH1Accounts(storeName), storeBundle.logger), nil
+			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), storeBundle.logger), nil
 		}
 	}
 
@@ -184,7 +184,7 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 			acc, err := m.getEth1Store(ctx, storeName, userInfo)
 			if err == nil {
 				// Check if account exists in store and returns it
-				_, err := acc.Get(ctx, addr.Hex())
+				_, err := acc.Get(ctx, addr)
 				if err == nil {
 					return acc, nil
 				}

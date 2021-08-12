@@ -5,19 +5,20 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func (c Connector) Restore(ctx context.Context, addr string) error {
-	logger := c.logger.With("address", addr)
+func (c Connector) Restore(ctx context.Context, addr ethcommon.Address) error {
+	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("restoring ethereum account")
 
-	acc, err := c.db.GetDeleted(ctx, addr)
+	acc, err := c.db.GetDeleted(ctx, addr.Hex())
 	if err != nil {
 		return err
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-		err = c.db.Restore(ctx, acc)
+		err = c.db.Restore(ctx, addr.Hex())
 		if err != nil {
 			return err
 		}
