@@ -141,7 +141,13 @@ func TestUpdateAlias(t *testing.T) {
 		err = json.Unmarshal(res, &resp)
 		require.NoError(t, err)
 
-		assert.Equal(t, types.UpdateAliasResponse{Value: types.AliasValue(c.value)}, resp)
+		assert.Equal(t, types.UpdateAliasResponse{
+			Alias: types.Alias{
+				Key:   types.AliasKey(c.key),
+				Value: types.AliasValue(c.value),
+			},
+		},
+			resp)
 	})
 
 	t.Run("non-existing alias", func(t *testing.T) {

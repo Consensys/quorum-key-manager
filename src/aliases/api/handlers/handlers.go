@@ -124,7 +124,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = jsonWrite(w, types.UpdateAliasResponse{Value: types.AliasValue(alias.Value)})
+	err = jsonWrite(w, types.UpdateAliasResponse{Alias: types.FromEntityAlias(*alias)})
 	if err != nil {
 		WriteHTTPErrorResponse(w, err)
 		return

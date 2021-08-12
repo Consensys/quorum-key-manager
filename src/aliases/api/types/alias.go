@@ -52,12 +52,10 @@ type GetAliasResponse struct {
 	Alias
 }
 
-// TODO the: declare all remaining types
-
 type UpdateAliasRequest struct {
 	Value AliasValue `json:"value"`
 }
 
 type UpdateAliasResponse struct {
-	Value AliasValue `json:"value"`
+	Alias
 }
