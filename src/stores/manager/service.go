@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/manager"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	eth1connector "github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
 	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 	meth1 "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
 	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
-
-	"github.com/consensys/quorum-key-manager/src/auth"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/database"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
@@ -126,15 +125,13 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 
 	if storeBundle, ok := m.secrets[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			return nil, err
+			m.logger.WithError(err).Warn("Access denied for username %s to SecretStore %s", storeName, userInfo.Username)
+			return nil, errors.NotFoundError("Eth1Store %s is not found", storeName)
 		}
 
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
 			permissions := m.policyManager.UserPermissions(ctx, userInfo)
-			resolvr, err := manager.NewResolver(permissions)
-			if err != nil {
-				return nil, err
-			}
+			resolvr := manager.NewResolver(permissions)
 			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
@@ -148,12 +145,14 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInf
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
-		permissions := m.policyManager.UserPermissions(ctx, userInfo)
-		resolvr, err := manager.NewResolver(permissions)
-		if err != nil {
-			return nil, err
+		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
+			m.logger.WithError(err).Warn("Access denied for username %s to KeyStore %s", userInfo.Username, storeName)
+			return nil, errors.NotFoundError("KeyStore %s is not found", storeName)
 		}
+
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
+			permissions := m.policyManager.UserPermissions(ctx, userInfo)
+			resolvr := manager.NewResolver(permissions)
 			return keysconnector.NewConnector(store, m.db.Keys(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
@@ -172,15 +171,13 @@ func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *a
 func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			return nil, err
+			m.logger.WithError(err).Warn("Access denied for username %s to Eth1Store %s", userInfo.Username, storeName)
+			return nil, errors.NotFoundError("Eth1Store %s is not found", storeName)
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
 			permissions := m.policyManager.UserPermissions(ctx, userInfo)
-			resolvr, err := manager.NewResolver(permissions)
-			if err != nil {
-				return nil, err
-			}
+			resolvr := manager.NewResolver(permissions)
 			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
