@@ -24,21 +24,21 @@ func NewAliasHandler(backend aliases.Alias) *AliasHandler {
 }
 
 func (h *AliasHandler) Register(r *mux.Router) {
-	registries := r.PathPrefix("/registries/{registry_name}").Subrouter()
-	registries.HandleFunc("", h.deleteRegistry).Methods(http.MethodDelete)
+	regRoute := r.PathPrefix("/registries/{registry_name}").Subrouter()
+	regRoute.HandleFunc("", h.deleteRegistry).Methods(http.MethodDelete)
 
-	aliases := registries.PathPrefix("/aliases").Subrouter()
-	aliases.HandleFunc("", h.createAlias).Methods(http.MethodPost)
-	aliases.HandleFunc("", h.listAliases).Methods(http.MethodGet)
-	aliases.HandleFunc("/{alias_key}", h.getAlias).Methods(http.MethodGet)
-	aliases.HandleFunc("/{alias_key}", h.updateAlias).Methods(http.MethodPut)
-	aliases.HandleFunc("/{alias_key}", h.deleteAlias).Methods(http.MethodDelete)
+	alRoute := regRoute.PathPrefix("/aliases").Subrouter()
+	alRoute.HandleFunc("", h.createAlias).Methods(http.MethodPost)
+	alRoute.HandleFunc("", h.listAliases).Methods(http.MethodGet)
+	alRoute.HandleFunc("/{alias_key}", h.getAlias).Methods(http.MethodGet)
+	alRoute.HandleFunc("/{alias_key}", h.updateAlias).Methods(http.MethodPut)
+	alRoute.HandleFunc("/{alias_key}", h.deleteAlias).Methods(http.MethodDelete)
 }
 
 func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
-	regName, _ := vars["registry_name"]
+	regName := vars["registry_name"]
 
 	err := h.alias.DeleteRegistry(r.Context(), aliasent.RegistryName(regName))
 	if err != nil {
@@ -50,7 +50,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
-	regName, _ := vars["registry_name"]
+	regName := vars["registry_name"]
 	rName := types.RegistryName(regName)
 
 	aliasReq := &types.CreateAliasRequest{}
@@ -79,8 +79,8 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
-	regName, _ := vars["registry_name"]
-	aliasKey, _ := vars["alias_key"]
+	regName := vars["registry_name"]
+	aliasKey := vars["alias_key"]
 
 	alias, err := h.alias.GetAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(aliasKey))
 	if err != nil {
@@ -99,8 +99,8 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
-	regName, _ := vars["registry_name"]
-	aliasKey, _ := vars["alias_key"]
+	regName := vars["registry_name"]
+	aliasKey := vars["alias_key"]
 
 	aliasReq := &types.UpdateAliasRequest{}
 	err := jsonutils.UnmarshalBody(r.Body, aliasReq)
@@ -134,8 +134,8 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
-	regName, _ := vars["registry_name"]
-	aliasKey, _ := vars["alias_key"]
+	regName := vars["registry_name"]
+	aliasKey := vars["alias_key"]
 
 	err := h.alias.DeleteAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(aliasKey))
 	if err != nil {
@@ -150,15 +150,15 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
-	regName, _ := vars["registry_name"]
+	regName := vars["registry_name"]
 
-	aliases, err := h.alias.ListAliases(r.Context(), aliasent.RegistryName(regName))
+	als, err := h.alias.ListAliases(r.Context(), aliasent.RegistryName(regName))
 	if err != nil {
 		WriteHTTPErrorResponse(w, err)
 		return
 	}
 
-	err = jsonWrite(w, aliases)
+	err = jsonWrite(w, als)
 	if err != nil {
 		WriteHTTPErrorResponse(w, err)
 		return

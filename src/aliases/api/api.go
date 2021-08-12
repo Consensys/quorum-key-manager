@@ -8,8 +8,6 @@ import (
 
 type AliasAPI struct {
 	alias aliases.Alias
-
-	aliasHandler *handlers.AliasHandler
 }
 
 func New(alias aliases.Alias) *AliasAPI {
