@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -82,7 +82,7 @@ func TestCreateAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
-		res, err := io.ReadAll(helper.rec.Body)
+		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 
 		var resp types.CreateAliasResponse
@@ -115,7 +115,7 @@ func TestCreateAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
-		res, err := io.ReadAll(helper.rec.Body)
+		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), `"code":"ST200"`)
 	})
@@ -144,7 +144,7 @@ func TestUpdateAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
-		res, err := io.ReadAll(helper.rec.Body)
+		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 
 		var resp types.UpdateAliasResponse
@@ -183,7 +183,7 @@ func TestUpdateAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
-		res, err := io.ReadAll(helper.rec.Body)
+		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), errors.NotFound)
 	})
@@ -222,7 +222,7 @@ func TestGetAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
-		res, err := io.ReadAll(helper.rec.Body)
+		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), errors.NotFound)
 	})
@@ -261,7 +261,7 @@ func TestDeleteAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
-		res, err := io.ReadAll(helper.rec.Body)
+		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), errors.NotFound)
 	})
@@ -284,7 +284,7 @@ func TestListAliases(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
-		res, err := io.ReadAll(helper.rec.Body)
+		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), errors.NotFound)
 	})
