@@ -10,7 +10,7 @@ import (
 	mock2 "github.com/consensys/quorum-key-manager/src/auth/policy/mock"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
+	"github.com/consensys/quorum-key-manager/src/stores/database/mock"
 
 	"github.com/golang/mock/gomock"
 

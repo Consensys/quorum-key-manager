@@ -6,7 +6,7 @@ import (
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	nodesapi "github.com/consensys/quorum-key-manager/src/nodes/api"
 	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes/manager"
-	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
+	"github.com/consensys/quorum-key-manager/src/stores"
 )
 
 func RegisterService(a *app.App, logger log.Logger) error {
@@ -18,7 +18,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	}
 
 	// Load stores service
-	s := new(storesmanager.Manager)
+	s := new(stores.Manager)
 	err = a.Service(s)
 	if err != nil {
 		return err

@@ -1,16 +1,16 @@
 package api
 
 import (
+	stores "github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/handlers"
-	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
 	"github.com/gorilla/mux"
 )
 
 type StoresAPI struct {
-	stores storesmanager.Manager
+	stores stores.Manager
 }
 
-func New(m storesmanager.Manager) *StoresAPI {
+func New(m stores.Manager) *StoresAPI {
 	return &StoresAPI{
 		stores: m,
 	}

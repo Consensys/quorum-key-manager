@@ -12,10 +12,10 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/gorilla/mux"
 )
 
@@ -24,11 +24,11 @@ const (
 )
 
 type Eth1Handler struct {
-	stores storesmanager.Manager
+	stores stores.Manager
 }
 
 // NewAccountsHandler creates a http.Handler to be served on /accounts
-func NewAccountsHandler(s storesmanager.Manager) *Eth1Handler {
+func NewAccountsHandler(s stores.Manager) *Eth1Handler {
 	return &Eth1Handler{
 		stores: s,
 	}
@@ -38,7 +38,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
 	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
 	r.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
-	r.Methods(http.MethodPost).Path("/{address}/sign-data").HandlerFunc(h.signData)
+	r.Methods(http.MethodPost).Path("/{address}/sign-hash").HandlerFunc(h.signHash)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
@@ -241,8 +241,8 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{address}/sign-data [post]
-func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
+// @Router /stores/{storeName}/eth1/{address}/sign-hash [post]
+func (h *Eth1Handler) signHash(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
@@ -266,7 +266,7 @@ func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
+	signature, err := eth1Store.SignHash(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -498,7 +498,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	getDeleted := request.URL.Query().Get("deleted")
-	var addresses []string
+	var addresses []ethcommon.Address
 	if getDeleted == "" {
 		addresses, err = eth1Store.List(ctx)
 	} else {
@@ -590,7 +590,7 @@ func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = eth1Store.Undelete(ctx, getAddress(request))
+	err = eth1Store.Restore(ctx, getAddress(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -629,7 +629,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	address, err := eth1Store.ECRevocer(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
+	address, err := eth1Store.ECRecover(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

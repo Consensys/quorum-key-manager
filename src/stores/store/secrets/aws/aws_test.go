@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
-	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
-
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +22,7 @@ var expectedErr = errors.AWSError("error")
 type awsSecretStoreTestSuite struct {
 	suite.Suite
 	mockVault   *mocks.MockSecretsManagerClient
-	secretStore secrets.Store
+	secretStore stores.SecretStore
 }
 
 func TestAwsSecretStore(t *testing.T) {
@@ -188,10 +187,9 @@ func (s *awsSecretStoreTestSuite) TestGetDeleted() {
 	s.Run("should fail with not implemented error", func() {
 		ctx := context.Background()
 		id := "some-id"
-		expectedError := errors.ErrNotImplemented
 		_, err := s.secretStore.GetDeleted(ctx, id, "")
 
-		assert.Equal(s.T(), err, expectedError)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }
 
@@ -292,9 +290,8 @@ func (s *awsSecretStoreTestSuite) TestList() {
 func (s *awsSecretStoreTestSuite) TestListDeleted() {
 	s.Run("should fail with not implemented error", func() {
 		ctx := context.Background()
-		expectedError := errors.ErrNotImplemented
 		_, err := s.secretStore.ListDeleted(ctx)
 
-		assert.Equal(s.T(), err, expectedError)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }

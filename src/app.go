@@ -10,8 +10,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/manifests"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/nodes"
-	"github.com/consensys/quorum-key-manager/src/stores"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/postgres"
+	stores "github.com/consensys/quorum-key-manager/src/stores/app"
 	"github.com/justinas/alice"
 )
 
@@ -27,20 +26,18 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	// Create app
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
-	// Create Postgres DB
-	postgresClient, err := client.NewClient(cfg.Postgres)
-	if err != nil {
-		return nil, err
-	}
-	db := postgres.New(logger, postgresClient)
-
 	// Register Service Configuration
-	err = a.RegisterServiceConfig(cfg.Manifests)
+	err := a.RegisterServiceConfig(cfg.Manifests)
 	if err != nil {
 		return nil, err
 	}
 
 	err = a.RegisterServiceConfig(cfg.Auth)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres})
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +53,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = stores.RegisterService(a, logger.WithComponent("stores"), db)
+	err = stores.RegisterService(a, logger.WithComponent("stores"))
 	if err != nil {
 		return nil, err
 	}

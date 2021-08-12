@@ -14,7 +14,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
 	"github.com/consensys/quorum-key-manager/src/nodes/node"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
-	storemanager "github.com/consensys/quorum-key-manager/src/stores/manager"
+	"github.com/consensys/quorum-key-manager/src/stores"
 )
 
 const NodeManagerID = "NodeManager"
@@ -33,7 +33,7 @@ type Manager interface {
 }
 
 type BaseManager struct {
-	stores    storemanager.Manager
+	stores    stores.Manager
 	manifests manifestsmanager.Manager
 
 	mux   sync.RWMutex
@@ -54,9 +54,9 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(stores storemanager.Manager, manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		stores:    stores,
+		stores:    smng,
 		manifests: manifests,
 		mnfsts:    make(chan []manifestsmanager.Message),
 		mux:       sync.RWMutex{},

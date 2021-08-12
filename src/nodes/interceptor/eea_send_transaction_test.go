@@ -11,7 +11,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
-	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/store/eth1/mock"
+	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )
@@ -21,7 +21,7 @@ func TestEEASendTransaction(t *testing.T) {
 	defer ctrl.Finish()
 
 	i, stores := newInterceptor(ctrl)
-	accountsStore := mockaccounts.NewMockStore(ctrl)
+	accountsStore := mockaccounts.NewMockEth1Store(ctrl)
 
 	userInfo := &types.UserInfo{
 		Username: "username",

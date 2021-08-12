@@ -5,28 +5,22 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/consensys/quorum-key-manager/src/stores/connectors"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	eth1connector "github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
 	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 
 	"github.com/consensys/quorum-key-manager/src/auth/policy"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/local"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	eth1store "github.com/consensys/quorum-key-manager/src/stores/store/eth1"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
-	"github.com/consensys/quorum-key-manager/src/stores/types"
+	meth1 "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
+	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
+	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -56,6 +50,8 @@ type storeBundle struct {
 	store    interface{}
 }
 
+var _ stores.Manager = &BaseManager{}
+
 func New(manifests manifestsmanager.Manager, policyManager policy.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests:     manifests,
@@ -71,14 +67,14 @@ func New(manifests manifestsmanager.Manager, policyManager policy.Manager, db da
 }
 
 var storeKinds = []manifest.Kind{
-	types.HashicorpSecrets,
-	types.HashicorpKeys,
-	types.AKVSecrets,
-	types.AKVKeys,
-	types.AWSSecrets,
-	types.AWSKeys,
-	types.LocalKeys,
-	types.Eth1Account,
+	stores.HashicorpSecrets,
+	stores.HashicorpKeys,
+	stores.AKVSecrets,
+	stores.AKVKeys,
+	stores.AWSSecrets,
+	stores.AWSKeys,
+	stores.LocalKeys,
+	stores.Eth1Account,
 }
 
 func (m *BaseManager) Start(_ context.Context) error {
@@ -125,64 +121,58 @@ func (m *BaseManager) loadAll() {
 	}
 }
 
-func (m *BaseManager) GetSecretStore(ctx context.Context, name string, userInfo *authtypes.UserInfo) (secrets.Store, error) {
+func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.SecretStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	if storeBundle, ok := m.secrets[name]; ok {
-		if store, ok := storeBundle.store.(secrets.Store); ok {
+	if storeBundle, ok := m.secrets[storeName]; ok {
+		if store, ok := storeBundle.store.(stores.SecretStore); ok {
 			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			resolvr, err := policy.NewResolver(policies)
-			if err != nil {
-				return nil, err
-			}
-			return secretsconnector.NewSecretConnector(store, resolvr, storeBundle.logger), nil
+			_, _ = policy.NewResolver(policies)
+			return secretsconnector.NewSecretConnector(store, m.db.Secrets(storeName), storeBundle.logger), nil
 		}
 	}
 
 	errMessage := "secret store was not found"
-	m.logger.Error(errMessage, "store_name", name)
+	m.logger.Error(errMessage, "store_name", storeName)
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetKeyStore(ctx context.Context, name string, userInfo *authtypes.UserInfo) (connectors.KeysConnector, error) {
+func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, _ *authtypes.UserInfo) (stores.KeyStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
-	if storeBundle, ok := m.keys[name]; ok {
-		if store, ok := storeBundle.store.(keys.Store); ok {
-			return keysconnector.NewConnector(store, m.db, storeBundle.logger), nil
+	if storeBundle, ok := m.keys[storeName]; ok {
+		if store, ok := storeBundle.store.(stores.KeyStore); ok {
+			return keysconnector.NewConnector(store, m.db.Keys(storeName), storeBundle.logger), nil
 		}
 	}
 
 	errMessage := "key store was not found"
-	m.logger.Error(errMessage, "store_name", name)
+	m.logger.Error(errMessage, "store_name", storeName)
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *authtypes.UserInfo) (eth1store.Store, error) {
+func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	return m.getEth1Store(ctx, name, userInfo)
 }
 
-func (m *BaseManager) getEth1Store(ctx context.Context, name string, userInfo *authtypes.UserInfo) (eth1store.Store, error) {
-	if storeBundle, ok := m.eth1Accounts[name]; ok {
-		if store, ok := storeBundle.store.(eth1store.Store); ok {
+func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
+	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
+		if store, ok := storeBundle.store.(stores.KeyStore); ok {
 			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			resolvr, err := policy.NewResolver(policies)
-			if err != nil {
-				return nil, err
-			}
-			return eth1.NewEth1Connector(store, resolvr, storeBundle.logger), nil
+			_, _ = policy.NewResolver(policies)
+			return eth1connector.NewEth1Connector(store, m.db.ETH1Accounts(storeName), storeBundle.logger), nil
 		}
 	}
 
 	errMessage := "account store was not found"
-	m.logger.Error(errMessage, "store_name", name)
+	m.logger.Error(errMessage, "store_name", storeName)
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtypes.UserInfo) (eth1store.Store, error) {
+func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -221,26 +211,26 @@ func (m *BaseManager) list(_ context.Context, kind manifest.Kind) []string {
 	case "":
 		storeNames = append(
 			append(m.storeNames(m.secrets, kind), m.storeNames(m.keys, kind)...), m.storeNames(m.eth1Accounts, kind)...)
-	case types.HashicorpSecrets, types.AKVSecrets, types.AWSSecrets:
+	case stores.HashicorpSecrets, stores.AKVSecrets, stores.AWSSecrets:
 		storeNames = m.storeNames(m.secrets, kind)
-	case types.AKVKeys, types.HashicorpKeys, types.AWSKeys:
+	case stores.AKVKeys, stores.HashicorpKeys, stores.AWSKeys:
 		storeNames = m.storeNames(m.keys, kind)
-	case types.Eth1Account:
+	case stores.Eth1Account:
 		storeNames = m.storeNames(m.eth1Accounts, kind)
 	}
 
 	return storeNames
 }
 
-func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.UserInfo) ([]*entities.ETH1Account, error) {
+func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.UserInfo) ([]ethcommon.Address, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	accs := []*entities.ETH1Account{}
+	accs := []ethcommon.Address{}
 	for _, storeName := range m.list(ctx, "") {
 		store, err := m.getEth1Store(ctx, storeName, userInfo)
 		if err == nil {
-			storeAccs, err := store.GetAll(ctx)
+			storeAccs, err := store.List(ctx)
 			if err == nil {
 				accs = append(accs, storeAccs...)
 			}
@@ -258,113 +248,113 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 	logger.Debug("loading store manifest")
 
 	switch mnf.Kind {
-	case types.HashicorpSecrets:
-		spec := &hashicorp.SecretSpecs{}
+	case stores.HashicorpSecrets:
+		spec := &msecrets.HashicorpSecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := hashicorp.NewSecretStore(spec, logger)
+		store, err := msecrets.NewHashicorpSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
 
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case types.HashicorpKeys:
-		spec := &hashicorp.KeySpecs{}
+	case stores.HashicorpKeys:
+		spec := &mkeys.HashicorpKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := hashicorp.NewKeyStore(spec, logger)
+		store, err := mkeys.NewHashicorpKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
 
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case types.AKVSecrets:
-		spec := &akv.SecretSpecs{}
+	case stores.AKVSecrets:
+		spec := &msecrets.AkvSecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal AKV secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := akv.NewSecretStore(spec, logger)
+		store, err := msecrets.NewAkvSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
 
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case types.AKVKeys:
-		spec := &akv.KeySpecs{}
+	case stores.AKVKeys:
+		spec := &mkeys.AkvKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal AKV key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := akv.NewKeyStore(spec, logger)
+		store, err := mkeys.NewAkvKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
 
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case types.AWSSecrets:
-		spec := &aws.SecretSpecs{}
+	case stores.AWSSecrets:
+		spec := &msecrets.AwsSecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal AWS secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := aws.NewSecretStore(spec, logger)
+		store, err := msecrets.NewAwsSecretStore(spec, logger)
 		if err != nil {
 			return err
 		}
 
 		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case types.AWSKeys:
-		spec := &aws.KeySpecs{}
+	case stores.AWSKeys:
+		spec := &mkeys.AwsKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal AWS key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := aws.NewKeyStore(spec, m.db, logger)
+		store, err := mkeys.NewAwsKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
 
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
-	case types.LocalKeys:
-		spec := &local.KeySpecs{}
+	case stores.LocalKeys:
+		spec := &mkeys.LocalKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal local key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewLocalKeys(spec, m.db, logger)
+		store, err := mkeys.NewLocalKeyStore(spec, logger)
 		if err != nil {
 			return err
 		}
 
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case types.Eth1Account:
-		spec := &local.Eth1Specs{}
+	case stores.Eth1Account:
+		spec := &meth1.LocalEth1Specs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal Eth1 store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := local.NewEth1(spec, m.db, logger)
+		store, err := meth1.NewLocalEth1(spec, logger)
 		if err != nil {
 			return err
 		}

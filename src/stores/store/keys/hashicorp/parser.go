@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 

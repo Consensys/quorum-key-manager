@@ -6,74 +6,54 @@ package mocks
 
 import (
 	context "context"
-	reflect "reflect"
-
 	postgres "github.com/consensys/quorum-key-manager/src/infra/postgres"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
-// MockClient is a mock of Client interface.
+// MockClient is a mock of Client interface
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
 }
 
-// MockClientMockRecorder is the mock recorder for MockClient.
+// MockClientMockRecorder is the mock recorder for MockClient
 type MockClientMockRecorder struct {
 	mock *MockClient
 }
 
-// NewMockClient creates a new mock instance.
+// NewMockClient creates a new mock instance
 func NewMockClient(ctrl *gomock.Controller) *MockClient {
 	mock := &MockClient{ctrl: ctrl}
 	mock.recorder = &MockClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// DeletePK mocks base method.
-func (m *MockClient) DeletePK(ctx context.Context, model ...interface{}) error {
+// QueryOne mocks base method
+func (m *MockClient) QueryOne(ctx context.Context, result, query interface{}, params ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range model {
+	varargs := []interface{}{ctx, result, query}
+	for _, a := range params {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "DeletePK", varargs...)
+	ret := m.ctrl.Call(m, "QueryOne", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeletePK indicates an expected call of DeletePK.
-func (mr *MockClientMockRecorder) DeletePK(ctx interface{}, model ...interface{}) *gomock.Call {
+// QueryOne indicates an expected call of QueryOne
+func (mr *MockClientMockRecorder) QueryOne(ctx, result, query interface{}, params ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, model...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePK", reflect.TypeOf((*MockClient)(nil).DeletePK), varargs...)
+	varargs := append([]interface{}{ctx, result, query}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryOne", reflect.TypeOf((*MockClient)(nil).QueryOne), varargs...)
 }
 
-// ForceDeletePK mocks base method.
-func (m *MockClient) ForceDeletePK(ctx context.Context, model ...interface{}) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range model {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "ForceDeletePK", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ForceDeletePK indicates an expected call of ForceDeletePK.
-func (mr *MockClientMockRecorder) ForceDeletePK(ctx interface{}, model ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, model...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeletePK", reflect.TypeOf((*MockClient)(nil).ForceDeletePK), varargs...)
-}
-
-// Insert mocks base method.
+// Insert mocks base method
 func (m *MockClient) Insert(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -85,85 +65,14 @@ func (m *MockClient) Insert(ctx context.Context, model ...interface{}) error {
 	return ret0
 }
 
-// Insert indicates an expected call of Insert.
+// Insert indicates an expected call of Insert
 func (mr *MockClientMockRecorder) Insert(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, model...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockClient)(nil).Insert), varargs...)
 }
 
-// RunInTransaction mocks base method.
-func (m *MockClient) RunInTransaction(ctx context.Context, persist func(postgres.Client) error) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunInTransaction", ctx, persist)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RunInTransaction indicates an expected call of RunInTransaction.
-func (mr *MockClientMockRecorder) RunInTransaction(ctx, persist interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockClient)(nil).RunInTransaction), ctx, persist)
-}
-
-// Select mocks base method.
-func (m *MockClient) Select(ctx context.Context, model ...interface{}) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range model {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Select", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Select indicates an expected call of Select.
-func (mr *MockClientMockRecorder) Select(ctx interface{}, model ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, model...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Select", reflect.TypeOf((*MockClient)(nil).Select), varargs...)
-}
-
-// SelectDeleted mocks base method.
-func (m *MockClient) SelectDeleted(ctx context.Context, model ...interface{}) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range model {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "SelectDeleted", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SelectDeleted indicates an expected call of SelectDeleted.
-func (mr *MockClientMockRecorder) SelectDeleted(ctx interface{}, model ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, model...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeleted", reflect.TypeOf((*MockClient)(nil).SelectDeleted), varargs...)
-}
-
-// SelectDeletedPK mocks base method.
-func (m *MockClient) SelectDeletedPK(ctx context.Context, model ...interface{}) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range model {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "SelectDeletedPK", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SelectDeletedPK indicates an expected call of SelectDeletedPK.
-func (mr *MockClientMockRecorder) SelectDeletedPK(ctx interface{}, model ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, model...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedPK", reflect.TypeOf((*MockClient)(nil).SelectDeletedPK), varargs...)
-}
-
-// SelectPK mocks base method.
+// SelectPK mocks base method
 func (m *MockClient) SelectPK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -175,14 +84,71 @@ func (m *MockClient) SelectPK(ctx context.Context, model ...interface{}) error {
 	return ret0
 }
 
-// SelectPK indicates an expected call of SelectPK.
+// SelectPK indicates an expected call of SelectPK
 func (mr *MockClientMockRecorder) SelectPK(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, model...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectPK", reflect.TypeOf((*MockClient)(nil).SelectPK), varargs...)
 }
 
-// SelectWhere mocks base method.
+// SelectDeletedPK mocks base method
+func (m *MockClient) SelectDeletedPK(ctx context.Context, model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SelectDeletedPK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SelectDeletedPK indicates an expected call of SelectDeletedPK
+func (mr *MockClientMockRecorder) SelectDeletedPK(ctx interface{}, model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedPK", reflect.TypeOf((*MockClient)(nil).SelectDeletedPK), varargs...)
+}
+
+// Select mocks base method
+func (m *MockClient) Select(ctx context.Context, model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Select", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Select indicates an expected call of Select
+func (mr *MockClientMockRecorder) Select(ctx interface{}, model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Select", reflect.TypeOf((*MockClient)(nil).Select), varargs...)
+}
+
+// SelectDeleted mocks base method
+func (m *MockClient) SelectDeleted(ctx context.Context, model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SelectDeleted", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SelectDeleted indicates an expected call of SelectDeleted
+func (mr *MockClientMockRecorder) SelectDeleted(ctx interface{}, model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeleted", reflect.TypeOf((*MockClient)(nil).SelectDeleted), varargs...)
+}
+
+// SelectWhere mocks base method
 func (m *MockClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, model, where}
@@ -194,28 +160,189 @@ func (m *MockClient) SelectWhere(ctx context.Context, model interface{}, where s
 	return ret0
 }
 
-// SelectWhere indicates an expected call of SelectWhere.
+// SelectWhere indicates an expected call of SelectWhere
 func (mr *MockClientMockRecorder) SelectWhere(ctx, model, where interface{}, args ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, model, where}, args...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectWhere", reflect.TypeOf((*MockClient)(nil).SelectWhere), varargs...)
 }
 
-// UpdatePK mocks base method.
-func (m *MockClient) UpdatePK(ctx context.Context, model ...interface{}) error {
+// SelectDeletedWhere mocks base method
+func (m *MockClient) SelectDeletedWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, model, where}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SelectDeletedWhere", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SelectDeletedWhere indicates an expected call of SelectDeletedWhere
+func (mr *MockClientMockRecorder) SelectDeletedWhere(ctx, model, where interface{}, args ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, model, where}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedWhere", reflect.TypeOf((*MockClient)(nil).SelectDeletedWhere), varargs...)
+}
+
+// UpdatePK mocks base method
+func (m *MockClient) UpdatePK(ctx context.Context, model interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePK", ctx, model)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePK indicates an expected call of UpdatePK
+func (mr *MockClientMockRecorder) UpdatePK(ctx, model interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePK", reflect.TypeOf((*MockClient)(nil).UpdatePK), ctx, model)
+}
+
+// UpdateWhere mocks base method
+func (m *MockClient) UpdateWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, model, where}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateWhere", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateWhere indicates an expected call of UpdateWhere
+func (mr *MockClientMockRecorder) UpdateWhere(ctx, model, where interface{}, params ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, model, where}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWhere", reflect.TypeOf((*MockClient)(nil).UpdateWhere), varargs...)
+}
+
+// DeletePK mocks base method
+func (m *MockClient) DeletePK(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
 	for _, a := range model {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "UpdatePK", varargs...)
+	ret := m.ctrl.Call(m, "DeletePK", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdatePK indicates an expected call of UpdatePK.
-func (mr *MockClientMockRecorder) UpdatePK(ctx interface{}, model ...interface{}) *gomock.Call {
+// DeletePK indicates an expected call of DeletePK
+func (mr *MockClientMockRecorder) DeletePK(ctx interface{}, model ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, model...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePK", reflect.TypeOf((*MockClient)(nil).UpdatePK), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePK", reflect.TypeOf((*MockClient)(nil).DeletePK), varargs...)
+}
+
+// DeleteWhere mocks base method
+func (m *MockClient) DeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, model, where}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteWhere", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteWhere indicates an expected call of DeleteWhere
+func (mr *MockClientMockRecorder) DeleteWhere(ctx, model, where interface{}, params ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, model, where}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWhere", reflect.TypeOf((*MockClient)(nil).DeleteWhere), varargs...)
+}
+
+// UndeletePK mocks base method
+func (m *MockClient) UndeletePK(ctx context.Context, model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UndeletePK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UndeletePK indicates an expected call of UndeletePK
+func (mr *MockClientMockRecorder) UndeletePK(ctx interface{}, model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UndeletePK", reflect.TypeOf((*MockClient)(nil).UndeletePK), varargs...)
+}
+
+// UndeleteWhere mocks base method
+func (m *MockClient) UndeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, model, where}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UndeleteWhere", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UndeleteWhere indicates an expected call of UndeleteWhere
+func (mr *MockClientMockRecorder) UndeleteWhere(ctx, model, where interface{}, params ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, model, where}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UndeleteWhere", reflect.TypeOf((*MockClient)(nil).UndeleteWhere), varargs...)
+}
+
+// ForceDeletePK mocks base method
+func (m *MockClient) ForceDeletePK(ctx context.Context, model ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ForceDeletePK", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ForceDeletePK indicates an expected call of ForceDeletePK
+func (mr *MockClientMockRecorder) ForceDeletePK(ctx interface{}, model ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, model...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeletePK", reflect.TypeOf((*MockClient)(nil).ForceDeletePK), varargs...)
+}
+
+// ForceDeleteWhere mocks base method
+func (m *MockClient) ForceDeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, model, where}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ForceDeleteWhere", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ForceDeleteWhere indicates an expected call of ForceDeleteWhere
+func (mr *MockClientMockRecorder) ForceDeleteWhere(ctx, model, where interface{}, params ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, model, where}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteWhere", reflect.TypeOf((*MockClient)(nil).ForceDeleteWhere), varargs...)
+}
+
+// RunInTransaction mocks base method
+func (m *MockClient) RunInTransaction(ctx context.Context, persist func(postgres.Client) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RunInTransaction", ctx, persist)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RunInTransaction indicates an expected call of RunInTransaction
+func (mr *MockClientMockRecorder) RunInTransaction(ctx, persist interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockClient)(nil).RunInTransaction), ctx, persist)
 }

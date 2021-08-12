@@ -6,16 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/database/mock"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/stores"
 
 	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -34,8 +32,7 @@ var expectedErr = errors.AWSError("error")
 type awsKeyStoreTestSuite struct {
 	suite.Suite
 	mockKmsClient *mocks.MockKmsClient
-	mockKeys      *mock.MockKeys
-	keyStore      keys.Store
+	keyStore      stores.KeyStore
 }
 
 func TestAWSKeyStore(t *testing.T) {
@@ -47,10 +44,8 @@ func (s *awsKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockKeys = mock.NewMockKeys(ctrl)
-
 	s.mockKmsClient = mocks.NewMockKmsClient(ctrl)
-	s.keyStore = New(s.mockKmsClient, s.mockKeys, testutils.NewMockLogger(ctrl))
+	s.keyStore = New(s.mockKmsClient, testutils.NewMockLogger(ctrl))
 }
 
 func (s *awsKeyStoreTestSuite) TestCreate() {
@@ -109,11 +104,11 @@ func (s *awsKeyStoreTestSuite) TestImport() {
 
 	s.Run("should return NotSupportedError", func() {
 		_, err := s.keyStore.Import(ctx, "my-id", []byte(""), testutils2.FakeAlgorithm(), testutils2.FakeAttributes())
-		assert.Equal(s.T(), errors.ErrNotSupported, err)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }
 
-func (s *awsKeyStoreTestSuite) TestSign() {
+func (s *awsKeyStoreTestSuite) TestSign_One() {
 	ctx := context.Background()
 	msg := []byte("some sample message")
 	/*
@@ -139,19 +134,41 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 	algo := testutils2.FakeAlgorithm()
 
 	retSign := kms.SignOutput{
-		KeyId:     aws.String(keyID),
+		KeyId:     aws.String(key.ID),
 		Signature: asn1Signature,
 	}
 
+	retDescribeKey := fakeDescribeKey(key.ID)
+
 	s.Run("should sign a sample message successfully", func() {
-		s.mockKeys.EXPECT().Get(ctx, id).Return(key, nil)
-		s.mockKmsClient.EXPECT().Sign(ctx, key.Annotations.AWSKeyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSign, nil)
-
-		signature, err := s.keyStore.Sign(ctx, id, msg, algo)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(key.ID)).Return(retDescribeKey, nil)
+		s.mockKmsClient.EXPECT().Sign(ctx, key.ID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSign, nil)
+		signature, err := s.keyStore.Sign(ctx, key.ID, msg, algo)
 		assert.NoError(s.T(), err)
-
 		assert.Equal(s.T(), expectedSignature, signature)
 	})
+
+	s.Run("should fail with same error if Get fails", func() {
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(key.ID)).Return(nil, expectedErr)
+		signature, err := s.keyStore.Sign(ctx, key.ID, msg, algo)
+		assert.Empty(s.T(), signature)
+		assert.Equal(s.T(), expectedErr, err)
+	})
+
+	s.Run("should fail with same error if Sign fails", func() {
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(key.ID)).Return(retDescribeKey, nil)
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), key.ID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(nil, expectedErr)
+
+		signature, err := s.keyStore.Sign(ctx, key.ID, msg, algo)
+		assert.Empty(s.T(), signature)
+
+		assert.Equal(s.T(), expectedErr, err)
+	})
+}
+
+func (s *awsKeyStoreTestSuite) TestSign_Two() {
+	ctx := context.Background()
+	msg := []byte("some sample message")
 
 	/*
 
@@ -178,87 +195,57 @@ func (s *awsKeyStoreTestSuite) TestSign() {
 	asn1SmallerSignature, _ := base64.StdEncoding.DecodeString("MEQCIQDtudqysJc4npK9OCT5whzsE/pZ2zc2DjV9djKcUd1YcwIfHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRlg==")
 	expectedSmallerSignature, _ := base64.StdEncoding.DecodeString("7bnasrCXOJ6SvTgk+cIc7BP6Wds3Ng41fXYynFHdWHMAHpxvfBLwuQGNu+RbrBq4Skhd9NDQJWo9D2tcsDWRlg==")
 
-	retSmallerSign := kms.SignOutput{
-		KeyId:     aws.String(keyID),
+	key := testutils2.FakeKey()
+	algo := testutils2.FakeAlgorithm()
+
+	retSign := kms.SignOutput{
+		KeyId:     aws.String(key.ID),
 		Signature: asn1SmallerSignature,
 	}
 
+	retDescribeKey := fakeDescribeKey(key.ID)
 	s.Run("should sign a sample message successfully when signature has smaller size", func() {
-		s.mockKeys.EXPECT().Get(ctx, id).Return(key, nil)
-		s.mockKmsClient.EXPECT().Sign(gomock.Any(), key.Annotations.AWSKeyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSmallerSign, nil)
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(key.ID)).Return(retDescribeKey, nil)
+		s.mockKmsClient.EXPECT().Sign(gomock.Any(), key.ID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(&retSign, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, msg, algo)
+		signature, err := s.keyStore.Sign(ctx, key.ID, msg, algo)
 		assert.NoError(s.T(), err)
 
 		assert.Equal(s.T(), expectedSmallerSignature, signature)
 	})
 
-	s.Run("should fail with same error if Get fails", func() {
-		s.mockKeys.EXPECT().Get(ctx, id).Return(nil, expectedErr)
-
-		signature, err := s.keyStore.Sign(ctx, id, msg, algo)
-		assert.Empty(s.T(), signature)
-
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if Sign fails", func() {
-		s.mockKeys.EXPECT().Get(ctx, id).Return(key, nil)
-		s.mockKmsClient.EXPECT().Sign(gomock.Any(), key.Annotations.AWSKeyID, msg, kms.SigningAlgorithmSpecEcdsaSha256).Return(nil, expectedErr)
-
-		signature, err := s.keyStore.Sign(ctx, id, msg, algo)
-		assert.Empty(s.T(), signature)
-
-		assert.Equal(s.T(), expectedErr, err)
-	})
 }
 
 func (s *awsKeyStoreTestSuite) TestDelete() {
 	ctx := context.Background()
 
-	s.Run("should return NotSupportedError", func() {
-		err := s.keyStore.Delete(ctx, "my-id")
-		assert.Equal(s.T(), errors.ErrNotSupported, err)
+	keyID := "my-key-id"
+	retDesc := fakeDescribeKey(keyID)
+
+	s.Run("should success to delete key", func() {
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(keyID)).Return(retDesc, nil)
+		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), keyID).Return(nil, nil)
+
+		err := s.keyStore.Delete(ctx, keyID)
+		assert.NoError(s.T(), err)
 	})
 }
 
-func (s *awsKeyStoreTestSuite) TestUndelete() {
+func (s *awsKeyStoreTestSuite) TestRestore() {
 	ctx := context.Background()
 
 	s.Run("should return NotSupportedError", func() {
-		err := s.keyStore.Undelete(ctx, "my-id")
-		assert.Equal(s.T(), errors.ErrNotSupported, err)
+		err := s.keyStore.Restore(ctx, "my-id")
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }
 
 func (s *awsKeyStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
-	key := testutils2.FakeKey()
 
-	s.Run("should destroy a key successfully", func() {
-		s.mockKeys.EXPECT().GetDeleted(gomock.Any(), id).Return(key, nil)
-		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), key.Annotations.AWSKeyID).Return(&kms.ScheduleKeyDeletionOutput{}, nil)
-
-		err := s.keyStore.Destroy(ctx, id)
-
-		assert.NoError(s.T(), err)
-	})
-
-	s.Run("should fail with same error if GetDeleted fails", func() {
-		s.mockKeys.EXPECT().GetDeleted(gomock.Any(), id).Return(nil, expectedErr)
-
-		err := s.keyStore.Destroy(ctx, id)
-
-		assert.Equal(s.T(), expectedErr, err)
-	})
-
-	s.Run("should fail with same error if DeleteKey fails", func() {
-		s.mockKeys.EXPECT().GetDeleted(gomock.Any(), id).Return(key, nil)
-		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), key.Annotations.AWSKeyID).Return(nil, expectedErr)
-
-		err := s.keyStore.Destroy(ctx, id)
-
-		assert.Equal(s.T(), expectedErr, err)
+	s.Run("should return NotSupportedError", func() {
+		err := s.keyStore.Destroy(ctx, "my-id")
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }
 

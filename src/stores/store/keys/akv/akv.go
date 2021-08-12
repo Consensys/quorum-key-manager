@@ -3,15 +3,17 @@ package akv
 import (
 	"context"
 	"encoding/base64"
+	"time"
 
+	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 type Store struct {
@@ -19,7 +21,7 @@ type Store struct {
 	logger log.Logger
 }
 
-var _ keys.Store = &Store{}
+var _ stores.KeyStore = &Store{}
 
 func New(client akv.KeysClient, logger log.Logger) *Store {
 	return &Store{
@@ -28,9 +30,11 @@ func New(client akv.KeysClient, logger log.Logger) *Store {
 	}
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
+	return nil, errors.ErrNotImplemented
+}
 
+func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
 
@@ -40,14 +44,14 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 		crv = keyvault.P256K
 	default:
 		errMessage := "invalid or not supported elliptic curve and signing algorithm for AKV key creation"
-		logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
+		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	res, err := s.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
 	if err != nil {
 		errMessage := "failed to create AKV key"
-		logger.WithError(err).Error(errMessage)
+		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -55,8 +59,6 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 }
 
 func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	logger := s.logger.With("id", id)
-
 	var pKeyD, pKeyX, pKeyY string
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
@@ -66,7 +68,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 		pKey, err := crypto.ToECDSA(privKey)
 		if err != nil {
 			errMessage := "invalid private key"
-			logger.WithError(err).Error(errMessage)
+			s.logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
@@ -77,7 +79,7 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 		crv = keyvault.P256K
 	default:
 		errMessage := "invalid signing algorithm and curve combination for import"
-		logger.With("signing_algorithm", alg.Type, "elliptic_curve", alg.EllipticCurve).Error(errMessage)
+		s.logger.With("signing_algorithm", alg.Type, "elliptic_curve", alg.EllipticCurve).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
@@ -91,15 +93,46 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 	res, err := s.client.ImportKey(ctx, id, iWebKey, convertToAKVKeyAttr(attr), attr.Tags)
 	if err != nil {
 		errMessage := "failed to import AKV key"
-		logger.WithError(err).Error(errMessage)
+		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return parseKeyBundleRes(&res), nil
 }
 
+func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
+	res, err := s.client.GetKey(ctx, id, "")
+	if err != nil {
+		errMessage := "failed to get AKV key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return parseKeyBundleRes(&res), nil
+}
+
+func (s *Store) List(ctx context.Context) ([]string, error) {
+	res, err := s.client.GetKeys(ctx, 0)
+	if err != nil {
+		errMessage := "failed to list AKV keys"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	kIDs := []string{}
+	for _, kItem := range res {
+		kID, _ := parseKeyID(kItem.Kid)
+		kIDs = append(kIDs, kID)
+	}
+
+	return kIDs, nil
+}
+
 func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	res, err := s.client.UpdateKey(ctx, id, "", nil, nil, attr.Tags)
+	expireAt := date.NewUnixTimeFromNanoseconds(time.Now().Add(attr.TTL).UnixNano())
+	res, err := s.client.UpdateKey(ctx, id, "", &keyvault.KeyAttributes{
+		Expires: &expireAt,
+	}, convertToAKVOps(attr.Operations), attr.Tags)
 	if err != nil {
 		errMessage := "failed to update AKV key"
 		s.logger.With("id", id).WithError(err).Error(errMessage)
@@ -120,11 +153,39 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Undelete(ctx context.Context, id string) error {
+func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
+	res, err := s.client.GetDeletedKey(ctx, id)
+	if err != nil {
+		errMessage := "failed to get deleted AKV key"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return parseKeyDeleteBundleRes(&res), nil
+}
+
+func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
+	res, err := s.client.GetDeletedKeys(ctx, 0)
+	if err != nil {
+		errMessage := "failed to list deleted AKV keys"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	kIds := []string{}
+	for _, kItem := range res {
+		kID, _ := parseKeyID(kItem.Kid)
+		kIds = append(kIds, kID)
+	}
+
+	return kIds, nil
+}
+
+func (s *Store) Restore(ctx context.Context, id string) error {
 	_, err := s.client.RecoverDeletedKey(ctx, id)
 	if err != nil {
 		errMessage := "failed to restore AKV key"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
+		s.logger.WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -135,7 +196,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	_, err := s.client.PurgeDeletedKey(ctx, id)
 	if err != nil {
 		errMessage := "failed to permanently delete AKV key"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
+		s.logger.WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 
@@ -170,6 +231,12 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	}
 
 	return signature, nil
+}
+
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	err := errors.NotSupportedError("verify signature is not supported")
+	s.logger.Warn(err.Error())
+	return err
 }
 
 func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {

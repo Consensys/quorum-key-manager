@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 func FormatKeyResponse(key *entities.Key) *types.KeyResponse {

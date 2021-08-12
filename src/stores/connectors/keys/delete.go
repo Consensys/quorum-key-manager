@@ -5,15 +5,15 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/database"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
 
 func (c Connector) Delete(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 	logger.Debug("deleting key")
 
-	err := c.db.RunInTransaction(ctx, func(dbtx database.Database) error {
-		err := dbtx.Keys().Delete(ctx, id)
+	err := c.db.RunInTransaction(ctx, func(dbtx database.Keys) error {
+		err := dbtx.Delete(ctx, id)
 		if err != nil {
 			return err
 		}

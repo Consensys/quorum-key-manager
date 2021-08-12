@@ -8,7 +8,7 @@ import (
 	context "context"
 	kms "github.com/aws/aws-sdk-go/service/kms"
 	secretsmanager "github.com/aws/aws-sdk-go/service/secretsmanager"
-	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	entities "github.com/consensys/quorum-key-manager/src/stores/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

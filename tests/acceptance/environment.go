@@ -14,7 +14,9 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	models2 "github.com/consensys/quorum-key-manager/src/stores/store/database/models"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	models2 "github.com/consensys/quorum-key-manager/src/stores/database/models"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -29,8 +31,6 @@ import (
 	keymanager "github.com/consensys/quorum-key-manager/src"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
-	hashicorpmanager "github.com/consensys/quorum-key-manager/src/stores/manager/hashicorp"
-	"github.com/consensys/quorum-key-manager/src/stores/types"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
@@ -137,9 +137,9 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
 	tmpYml, err := newTmpManifestYml(
 		&manifest.Manifest{
-			Kind: types.HashicorpKeys,
+			Kind: stores.HashicorpKeys,
 			Name: HashicorpKeyStoreName,
-			Specs: &hashicorpmanager.KeySpecs{
+			Specs: &keys.HashicorpKeySpecs{
 				MountPoint: HashicorpKeyMountPoint,
 				Address:    hashicorpAddr,
 				TokenPath:  tmpTokenFile,
@@ -147,12 +147,12 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 			},
 		},
 		&manifest.Manifest{
-			Kind:  types.AKVKeys,
+			Kind:  stores.AKVKeys,
 			Name:  AKVKeyStoreName,
 			Specs: testCfg.AkvKeySpecs(),
 		},
 		&manifest.Manifest{
-			Kind:  types.AWSKeys,
+			Kind:  stores.AWSKeys,
 			Name:  AWSKeyStoreName,
 			Specs: testCfg.AwsKeySpecs(),
 		},
@@ -390,6 +390,7 @@ func (env *IntegrationEnvironment) createTables() error {
 	}
 	// we create tables for each model
 	for _, v := range []interface{}{
+		&models2.Secret{},
 		&models2.Key{},
 		&models2.ETH1Account{},
 		&aliasent.Alias{},
@@ -401,6 +402,6 @@ func (env *IntegrationEnvironment) createTables() error {
 		}
 	}
 
-	env.logger.Info("tables created successgfully from models")
+	env.logger.Info("tables created successfully from models")
 	return nil
 }

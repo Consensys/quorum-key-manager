@@ -37,10 +37,7 @@ func newManifestsConfig(vipr *viper.Viper) (*manifestsmanager.Config, error) {
 	manifestPath := vipr.GetString(manifestPathKey)
 	_, err := os.Stat(manifestPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("cannot read manifest path %s", manifestPath)
-		}
-		return nil, err
+		return nil, fmt.Errorf("cannot read manifest path %s: %w", manifestPath, err)
 	}
 
 	return &manifestsmanager.Config{

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,24 +22,24 @@ const (
 
 type keysTestSuite struct {
 	suite.Suite
-	env       *IntegrationEnvironment
-	connector connectors.KeysConnector
+	env   *IntegrationEnvironment
+	store stores.KeyStore
 }
 
 func (s *keysTestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	keyIds, err := s.connector.List(ctx)
+	keyIds, err := s.store.List(ctx)
 	require.NoError(s.T(), err)
 	s.env.logger.Info("deleting the following keys", "keys", keyIds)
 
 	for _, id := range keyIds {
-		err = s.connector.Delete(ctx, id)
+		err = s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
 	}
 
 	for _, id := range keyIds {
-		err = s.connector.Destroy(ctx, id)
+		err = s.store.Destroy(ctx, id)
 		if err == nil {
 			break
 		}
@@ -53,7 +53,7 @@ func (s *keysTestSuite) TestCreate() {
 		id := s.newID("my-key-create")
 		tags := testutils.FakeTags()
 
-		key, err := s.connector.Create(ctx, id, &entities.Algorithm{
+		key, err := s.store.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, &entities.Attributes{
@@ -79,7 +79,7 @@ func (s *keysTestSuite) TestCreate() {
 		id := "my-key"
 		tags := testutils.FakeTags()
 
-		key, err := s.connector.Create(ctx, id, &entities.Algorithm{
+		key, err := s.store.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: "invalidCurve",
 		}, &entities.Attributes{
@@ -99,7 +99,7 @@ func (s *keysTestSuite) TestImport() {
 		id := fmt.Sprintf("%s-%d", "my-key-ecdsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
-		key, err := s.connector.Import(ctx, id, privKey, &entities.Algorithm{
+		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, &entities.Attributes{
@@ -127,7 +127,7 @@ func (s *keysTestSuite) TestImport() {
 		id := fmt.Sprintf("%s-%d", "my-key-eddsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyEDDSA)
 
-		key, err := s.connector.Import(ctx, id, privKey, &entities.Algorithm{
+		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Bn254,
 		}, &entities.Attributes{
@@ -157,7 +157,7 @@ func (s *keysTestSuite) TestImport() {
 		id := "my-key"
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
-		key, err := s.connector.Import(ctx, id, privKey, &entities.Algorithm{
+		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: "invalidCurve",
 		}, &entities.Attributes{
@@ -177,7 +177,7 @@ func (s *keysTestSuite) TestGet() {
 	id := s.newID("my-key-get")
 	tags := testutils.FakeTags()
 
-	_, err := s.connector.Create(ctx, id, &entities.Algorithm{
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
@@ -186,7 +186,7 @@ func (s *keysTestSuite) TestGet() {
 	require.NoError(s.T(), err)
 
 	s.Run("should get a key pair successfully", func() {
-		keyRetrieved, err := s.connector.Get(ctx, id)
+		keyRetrieved, err := s.store.Get(ctx, id)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, keyRetrieved.ID)
@@ -202,7 +202,7 @@ func (s *keysTestSuite) TestGet() {
 	})
 
 	s.Run("should fail and parse the error code correctly", func() {
-		keyRetrieved, getErr := s.connector.Get(ctx, "invalidID")
+		keyRetrieved, getErr := s.store.Get(ctx, "invalidID")
 
 		require.Nil(s.T(), keyRetrieved)
 		assert.True(s.T(), errors.IsNotFoundError(getErr))
@@ -214,7 +214,7 @@ func (s *keysTestSuite) TestList() {
 	tags := testutils.FakeTags()
 	id := s.newID("my-key-list")
 
-	_, err := s.connector.Create(ctx, id, &entities.Algorithm{
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
@@ -223,7 +223,7 @@ func (s *keysTestSuite) TestList() {
 	require.NoError(s.T(), err)
 
 	s.Run("should list all key pairs", func() {
-		ids, err := s.connector.List(ctx)
+		ids, err := s.store.List(ctx)
 		require.NoError(s.T(), err)
 		assert.Contains(s.T(), ids, id)
 	})
@@ -233,7 +233,7 @@ func (s *keysTestSuite) TestUpdate() {
 	ctx := s.env.ctx
 	id := s.newID("my-key-update")
 	tags := testutils.FakeTags()
-	_, err := s.connector.Create(ctx, id, &entities.Algorithm{
+	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
 	}, &entities.Attributes{
@@ -248,7 +248,7 @@ func (s *keysTestSuite) TestUpdate() {
 			"newTag2": "tagValue2",
 		}
 
-		updatedKey, err := s.connector.Update(ctx, id, &entities.Attributes{
+		updatedKey, err := s.store.Update(ctx, id, &entities.Attributes{
 			Tags: newTags,
 		})
 
@@ -267,7 +267,7 @@ func (s *keysTestSuite) TestUpdate() {
 	})
 
 	s.Run("should fail and parse the error code correctly", func() {
-		updatedKey, err := s.connector.Update(ctx, "invalidID", &entities.Attributes{
+		updatedKey, err := s.store.Update(ctx, "invalidID", &entities.Attributes{
 			Tags: testutils.FakeTags(),
 		})
 
@@ -283,7 +283,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	s.Run("should sign and verify a message successfully: ECDSA/Secp256k1", func() {
 		id := s.newID("mykey-sign-ecdsa")
 		payload := crypto.Keccak256([]byte("my data to sign"))
-		key, err := s.connector.Create(ctx, id, &entities.Algorithm{
+		key, err := s.store.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, &entities.Attributes{
@@ -291,10 +291,10 @@ func (s *keysTestSuite) TestSignVerify() {
 		})
 		require.NoError(s.T(), err)
 
-		signature, err := s.connector.Sign(ctx, id, payload)
+		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
-		err = s.connector.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
+		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		})
@@ -304,7 +304,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	s.Run("should sign and verify a message successfully: EDDSA/BN254", func() {
 		id := fmt.Sprintf("mykey-sign-eddsa-%d", common.RandInt(1000))
 		payload := []byte("my data to sign")
-		key, err := s.connector.Create(ctx, id, &entities.Algorithm{
+		key, err := s.store.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Bn254,
 		}, &entities.Attributes{
@@ -315,10 +315,10 @@ func (s *keysTestSuite) TestSignVerify() {
 		}
 		require.NoError(s.T(), err)
 
-		signature, err := s.connector.Sign(ctx, id, payload)
+		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
-		err = s.connector.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
+		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
 			Type:          key.Algo.Type,
 			EllipticCurve: key.Algo.EllipticCurve,
 		})
@@ -326,7 +326,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	})
 
 	s.Run("should fail and parse the error code correctly", func() {
-		signature, signErr := s.connector.Sign(ctx, "invalidID", crypto.Keccak256([]byte("my data to sign")))
+		signature, signErr := s.store.Sign(ctx, "invalidID", crypto.Keccak256([]byte("my data to sign")), nil)
 
 		require.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsNotFoundError(signErr))

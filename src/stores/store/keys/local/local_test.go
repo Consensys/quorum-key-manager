@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,6 @@ import (
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mocksecrets "github.com/consensys/quorum-key-manager/src/stores/store/secrets/mock"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 )
@@ -33,7 +33,7 @@ var expectedErr = errors.DependencyFailureError("error")
 
 type localKeyStoreTestSuite struct {
 	suite.Suite
-	keyStore        keys.Store
+	keyStore        stores.KeyStore
 	mockSecretStore *mocksecrets.MockStore
 }
 
@@ -264,14 +264,14 @@ func (s *localKeyStoreTestSuite) TestUndelete() {
 	s.Run("should delete a key successfully", func() {
 		s.mockSecretStore.EXPECT().Restore(ctx, id, "1").Return(nil)
 
-		err := s.keyStore.Undelete(ctx, id)
+		err := s.keyStore.Restore(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if Delete Secret fails", func() {
 		s.mockSecretStore.EXPECT().Restore(ctx, id, "1").Return(expectedErr)
 
-		err := s.keyStore.Undelete(ctx, id)
+		err := s.keyStore.Restore(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
 	})
 }

@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 type CreateKeyRequest struct {

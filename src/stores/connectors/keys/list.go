@@ -4,7 +4,7 @@ import "context"
 
 func (c Connector) List(ctx context.Context) ([]string, error) {
 	ids := []string{}
-	keysRetrieved, err := c.db.Keys().GetAll(ctx)
+	keysRetrieved, err := c.db.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (c Connector) List(ctx context.Context) ([]string, error) {
 
 func (c Connector) ListDeleted(ctx context.Context) ([]string, error) {
 	ids := []string{}
-	keysRetrieved, err := c.db.Keys().GetAllDeleted(ctx)
+	keysRetrieved, err := c.db.GetAllDeleted(ctx)
 	if err != nil {
 		return nil, err
 	}

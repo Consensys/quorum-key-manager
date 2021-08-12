@@ -104,9 +104,8 @@ func (s *aliasStoreTestSuite) TestGetAlias() {
 func (s *aliasStoreTestSuite) TestUpdateAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
-		out, err := s.srv.UpdateAlias(s.env.ctx, in.RegistryName, in)
-		require.NoError(s.T(), err)
-		require.Equal(s.T(), in, *out)
+		_, err := s.srv.UpdateAlias(s.env.ctx, in.RegistryName, in)
+		require.Error(s.T(), err)
 	})
 
 	s.Run("just created alias", func() {
@@ -131,7 +130,7 @@ func (s *aliasStoreTestSuite) TestDeleteAlias() {
 	s.Run("non existing alias", func() {
 		in := s.fakeAlias()
 		err := s.srv.DeleteAlias(s.env.ctx, in.RegistryName, in.Key)
-		require.NoError(s.T(), err)
+		require.Error(s.T(), err)
 	})
 
 	s.Run("just created alias", func() {

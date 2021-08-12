@@ -7,8 +7,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 const (
@@ -20,7 +20,7 @@ type Store struct {
 	logger log.Logger
 }
 
-var _ secrets.Store = &Store{}
+var _ stores.SecretStore = &Store{}
 
 func New(client aws.SecretsManagerClient, logger log.Logger) *Store {
 	return &Store{
@@ -130,12 +130,16 @@ func (s *Store) Delete(ctx context.Context, id, _ string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(_ context.Context, id, _ string) (*entities.Secret, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) GetDeleted(_ context.Context, _, _ string) (*entities.Secret, error) {
+	err := errors.NotSupportedError("get deleted secret is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
 }
 
 func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+	err := errors.NotSupportedError("list deleted secret is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
 }
 
 func (s *Store) Restore(ctx context.Context, id, version string) error {

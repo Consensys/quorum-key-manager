@@ -14,13 +14,13 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
 
-	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/manager/mock"
-	mocketh1 "github.com/consensys/quorum-key-manager/src/stores/store/eth1/mock"
+	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/suite"
@@ -41,7 +41,7 @@ type eth1HandlerTestSuite struct {
 
 	ctrl         *gomock.Controller
 	storeManager *mockstoremanager.MockManager
-	eth1Store    *mocketh1.MockStore
+	eth1Store    *mockstoremanager.MockEth1Store
 	router       *mux.Router
 	ctx          context.Context
 }
@@ -55,7 +55,7 @@ func (s *eth1HandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
 	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
-	s.eth1Store = mocketh1.NewMockStore(s.ctrl)
+	s.eth1Store = mockstoremanager.NewMockEth1Store(s.ctrl)
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: eth1UserInfo,
 	})
@@ -467,12 +467,15 @@ func (s *eth1HandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1", eth1StoreName), nil).WithContext(s.ctx)
 
-		accs := []string{"my-account1", "my-account2"}
-		s.eth1Store.EXPECT().List(gomock.Any()).Return(accs, nil)
+		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73"
+		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec8"
+		s.eth1Store.EXPECT().List(gomock.Any()).Return([]ethcommon.Address{
+			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
+		}, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		assert.Equal(s.T(), "[\"my-account1\",\"my-account2\"]\n", rw.Body.String())
+		assert.Equal(s.T(), fmt.Sprintf("[\"%s\",\"%s\"]\n", acc1, acc2), rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
@@ -480,12 +483,15 @@ func (s *eth1HandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/eth1?deleted=true", eth1StoreName), nil).WithContext(s.ctx)
 
-		accs := []string{"my-account1", "my-account2"}
-		s.eth1Store.EXPECT().ListDeleted(gomock.Any()).Return(accs, nil)
+		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd74"
+		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec9"
+		s.eth1Store.EXPECT().ListDeleted(gomock.Any()).Return([]ethcommon.Address{
+			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
+		}, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		assert.Equal(s.T(), "[\"my-account1\",\"my-account2\"]\n", rw.Body.String())
+		assert.Equal(s.T(), fmt.Sprintf("[\"%s\",\"%s\"]\n", acc1, acc2), rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
@@ -556,7 +562,7 @@ func (s *eth1HandlerTestSuite) TestRestore() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
-		s.eth1Store.EXPECT().Undelete(gomock.Any(), accAddress).Return(nil)
+		s.eth1Store.EXPECT().Restore(gomock.Any(), accAddress).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -569,7 +575,7 @@ func (s *eth1HandlerTestSuite) TestRestore() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/eth1/%s/restore", eth1StoreName, accAddress), nil).WithContext(s.ctx)
 
-		s.eth1Store.EXPECT().Undelete(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
+		s.eth1Store.EXPECT().Restore(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
@@ -584,7 +590,7 @@ func (s *eth1HandlerTestSuite) TestECRecover() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/ec-recover", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.eth1Store.EXPECT().ECRevocer(gomock.Any(), ecRecoverRequest.Data, ecRecoverRequest.Signature).Return("0xaddress", nil)
+		s.eth1Store.EXPECT().ECRecover(gomock.Any(), ecRecoverRequest.Data, ecRecoverRequest.Signature).Return("0xaddress", nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -600,7 +606,7 @@ func (s *eth1HandlerTestSuite) TestECRecover() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/ec-recover", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.eth1Store.EXPECT().ECRevocer(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.HashicorpVaultError("error"))
+		s.eth1Store.EXPECT().ECRecover(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)

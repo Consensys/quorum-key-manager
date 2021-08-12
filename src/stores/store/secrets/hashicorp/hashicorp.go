@@ -2,15 +2,15 @@ package hashicorp
 
 import (
 	"context"
+	"encoding/json"
 	"path"
 	"strconv"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
-
-	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 const (
@@ -27,7 +27,7 @@ type Store struct {
 	logger     log.Logger
 }
 
-var _ secrets.Store = &Store{}
+var _ stores.SecretStore = &Store{}
 
 func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *Store {
 	return &Store{
@@ -44,7 +44,7 @@ func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.With("id", id)
 
-	_, err := s.client.Write(s.pathData(id), map[string]interface{}{
+	secretItem, err := s.client.Write(s.pathData(id), map[string]interface{}{
 		dataLabel: map[string]interface{}{
 			valueLabel: value,
 			tagsLabel:  attr.Tags,
@@ -56,7 +56,7 @@ func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attrib
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return s.Get(ctx, id, "")
+	return s.Get(ctx, id, string(secretItem.Data[versionLabel].(json.Number)))
 }
 
 func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, error) {
@@ -135,8 +135,13 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 }
 
 func (s *Store) Delete(_ context.Context, id, version string) error {
-	logger := s.logger.With("id", id).With("version", version)
+	if version == "" {
+		err := errors.NotSupportedError("secret version must be specified to delete")
+		s.logger.Warn(err.Error())
+		return err
+	}
 
+	logger := s.logger.With("id", id).With("version", version)
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), map[string][]string{
 		"versions": {version},
 	})
@@ -164,14 +169,24 @@ func (s *Store) Delete(_ context.Context, id, version string) error {
 }
 
 func (s *Store) GetDeleted(_ context.Context, _, _ string) (*entities.Secret, error) {
-	return nil, errors.ErrNotSupported
+	err := errors.NotSupportedError("get deleted secret is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
 }
 
 func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
-	return nil, errors.ErrNotSupported
+	err := errors.NotSupportedError("list deleted secret is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
 }
 
 func (s *Store) Restore(_ context.Context, id, version string) error {
+	if version == "" {
+		err := errors.NotSupportedError("secret version must be specified to restore")
+		s.logger.Warn(err.Error())
+		return err
+	}
+
 	logger := s.logger.With("id", id).With("version", version)
 
 	err := s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
@@ -188,8 +203,13 @@ func (s *Store) Restore(_ context.Context, id, version string) error {
 }
 
 func (s *Store) Destroy(_ context.Context, id, version string) error {
-	logger := s.logger.With("id", id)
+	if version == "" {
+		err := errors.NotSupportedError("secret version must be specified to destroy")
+		s.logger.Warn(err.Error())
+		return err
+	}
 
+	logger := s.logger.With("id", id)
 	err := s.client.WritePost(s.pathDestroyID(id), map[string][]string{
 		"versions": {version},
 	})

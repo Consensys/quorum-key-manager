@@ -2,14 +2,16 @@ package acceptancetests
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -18,13 +20,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"math/big"
 )
 
 type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store eth1.Store
+	store stores.Eth1Store
 	db    database.Database // TODO: Remove when Delete and Destroy functions are implemented in all stores
 }
 
@@ -36,12 +37,12 @@ func (s *eth1TestSuite) TearDownSuite() {
 
 	s.env.logger.Info("Deleting the following accounts", "addresses", accounts)
 	for _, address := range accounts {
-		err = s.store.Delete(ctx, address)
+		err = s.store.Delete(ctx, address.Hex())
 		require.NoError(s.T(), err)
 	}
 
 	for _, acc := range accounts {
-		err = s.store.Destroy(ctx, acc)
+		err = s.store.Destroy(ctx, acc.Hex())
 		if err != nil {
 			s.env.logger.WithError(err).With("address", acc).Error("failed to destroy account")
 			break
@@ -172,8 +173,8 @@ func (s *eth1TestSuite) TestList() {
 		addresses, err := s.store.List(ctx)
 		require.NoError(s.T(), err)
 
-		assert.Contains(s.T(), addresses, account1.Address.Hex())
-		assert.Contains(s.T(), addresses, account2.Address.Hex())
+		assert.Contains(s.T(), addresses, account1.Address)
+		assert.Contains(s.T(), addresses, account2.Address)
 	})
 }
 
@@ -192,7 +193,7 @@ func (s *eth1TestSuite) TestSignVerify() {
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
-		address, err := s.store.ECRevocer(ctx, payload, signature)
+		address, err := s.store.ECRecover(ctx, payload, signature)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), account.Address.Hex(), address)
 
