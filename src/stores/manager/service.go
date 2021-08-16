@@ -146,7 +146,7 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInf
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
-		if err := userInfo. CheckAccess(storeBundle.manifest); err != nil {
+		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
 			errMsg := fmt.Sprintf("cannot access KeyStore %s", storeName)
 			m.logger.WithError(err).Warn(errMsg)
 			return nil, errors.FromError(err).SetMessage(errMsg)

@@ -28,6 +28,7 @@ func TestGetSecret(t *testing.T) {
 		secret := testutils2.FakeSecret()
 
 		db.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
+		store.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
 
 		rSecret, err := connector.Get(ctx, secret.ID, secret.Metadata.Version)
 

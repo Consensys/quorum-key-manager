@@ -151,7 +151,7 @@ func (c *PostgresClient) DeletePK(ctx context.Context, model ...interface{}) err
 		return parseErrorResponse(err)
 	}
 	if r.RowsAffected() == 0 {
-		return errors.NotFoundError("no rows were deleted")
+		return errors.NotFoundError("no rows were deleted with PK")
 	}
 
 	return nil
@@ -163,14 +163,14 @@ func (c *PostgresClient) DeleteWhere(ctx context.Context, model interface{}, whe
 		return parseErrorResponse(err)
 	}
 	if r.RowsAffected() == 0 {
-		return errors.NotFoundError("no matched rows were deleted")
+		return errors.NotFoundError("no matched rows were deleted using where condition")
 	}
 
 	return nil
 }
 
 func (c *PostgresClient) UndeletePK(ctx context.Context, model ...interface{}) error {
-	q := c.db.ModelContext(ctx, model...).WherePK()
+	q := c.db.ModelContext(ctx, model...).AllWithDeleted().WherePK()
 	if q.TableModel().Table().SoftDeleteField == nil {
 		return errors.PostgresError("models does not support soft-delete")
 	}
@@ -180,14 +180,14 @@ func (c *PostgresClient) UndeletePK(ctx context.Context, model ...interface{}) e
 		return parseErrorResponse(err)
 	}
 	if r.RowsAffected() == 0 {
-		return errors.NotFoundError("no rows were deleted")
+		return errors.NotFoundError("no rows were undeleted using PK")
 	}
 
 	return nil
 }
 
 func (c *PostgresClient) UndeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
-	q := c.db.ModelContext(ctx, model).Where(where, params...)
+	q := c.db.ModelContext(ctx, model).AllWithDeleted().Where(where, params...)
 	if q.TableModel().Table().SoftDeleteField == nil {
 		return errors.PostgresError("model does not support soft-delete")
 	}
@@ -197,7 +197,7 @@ func (c *PostgresClient) UndeleteWhere(ctx context.Context, model interface{}, w
 		return parseErrorResponse(err)
 	}
 	if r.RowsAffected() == 0 {
-		return errors.NotFoundError("no rows were deleted")
+		return errors.NotFoundError("no rows were undeleted using where condition")
 	}
 
 	return nil

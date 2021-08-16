@@ -40,7 +40,7 @@ func (s Secrets) RunInTransaction(ctx context.Context, persist func(dbtx databas
 func (s *Secrets) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	var err error
 	if version == "" {
-		version, err = s.GetLatestVersion(ctx, id, true)
+		version, err = s.GetLatestVersion(ctx, id, false)
 		if err != nil {
 			return nil, err
 		}
@@ -82,10 +82,10 @@ func (s *Secrets) GetLatestVersion(ctx context.Context, id string, isDeleted boo
 	var err error
 	if !isDeleted {
 		err = s.client.QueryOne(ctx, &version,
-			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at not null ORDER BY created_at DESC LIMIT 1", id, s.storeID)
+			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1", id, s.storeID)
 	} else {
 		err = s.client.QueryOne(ctx, &version,
-			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at is not null ORDER BY created_at DESC LIMIT 1", id, s.storeID)
+			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT 1", id, s.storeID)
 	}
 
 	if err != nil {
@@ -181,7 +181,7 @@ func (s *Secrets) Delete(ctx context.Context, id, version string) error {
 func (s *Secrets) Restore(ctx context.Context, id, version string) error {
 	var err error
 	if version == "" {
-		err = s.client.UndeleteWhere(ctx, &models.Secret{ID: id, StoreID: s.storeID}, "id = ? AND store_id = ?", s.storeID)
+		err = s.client.UndeleteWhere(ctx, &models.Secret{}, "id = ? AND store_id = ?", s.storeID)
 	} else {
 		err = s.client.UndeletePK(ctx, &models.Secret{ID: id, Version: version, StoreID: s.storeID})
 	}

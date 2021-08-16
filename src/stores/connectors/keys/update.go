@@ -25,7 +25,7 @@ func (c Connector) Update(ctx context.Context, id string, attr *entities.Attribu
 			return err
 		}
 
-		key, err = c.store.Update(ctx, id, attr)
+		_, err = c.store.Update(ctx, id, attr)
 		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support updating, we only update in DB
 			return err
 		}

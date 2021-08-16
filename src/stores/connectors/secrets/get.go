@@ -10,7 +10,12 @@ func (c Connector) Get(ctx context.Context, id, version string) (*entities.Secre
 	logger := c.logger.With("id", id)
 
 	var err error
-	secret, err := c.db.Get(ctx, id, version)
+	_, err = c.db.Get(ctx, id, version)
+	if err != nil {
+		return nil, err
+	}
+	
+	secret, err := c.store.Get(ctx, id, version)
 	if err != nil {
 		return nil, err
 	}
