@@ -15,10 +15,9 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
-	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/manager/mock"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	testutils2 "github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	mockkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/mock"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
+	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +41,7 @@ type keysHandlerTestSuite struct {
 
 	ctrl         *gomock.Controller
 	storeManager *mockstoremanager.MockManager
-	keyStore     *mockkeys.MockStore
+	keyStore     *mockstoremanager.MockKeyStore
 	router       *mux.Router
 	ctx          context.Context
 }
@@ -56,7 +55,7 @@ func (s *keysHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
 	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
-	s.keyStore = mockkeys.NewMockStore(s.ctrl)
+	s.keyStore = mockstoremanager.NewMockKeyStore(s.ctrl)
 
 	s.router = mux.NewRouter()
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
@@ -241,7 +240,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		signature := []byte("signature")
-		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, signPayloadRequest.Data).Return(signature, nil)
+		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, signPayloadRequest.Data, gomock.Any()).Return(signature, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -258,7 +257,7 @@ func (s *keysHandlerTestSuite) TestSign() {
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
-		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
+		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)

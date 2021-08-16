@@ -4,8 +4,8 @@ import "strings"
 
 const (
 	Internal          = "IN000"
-	Config            = Internal + "IN100"
-	DependencyFailure = Internal + "IN200"
+	Config            = "IN100"
+	DependencyFailure = "IN200"
 )
 
 //nolint

@@ -4,13 +4,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"time"
-
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,46 +22,26 @@ const (
 
 type keysTestSuite struct {
 	suite.Suite
-	env    *IntegrationEnvironment
-	store  keys.Store
-	keyIds []string
+	env   *IntegrationEnvironment
+	store stores.KeyStore
 }
 
 func (s *keysTestSuite) TearDownSuite() {
 	ctx := s.env.ctx
 
-	s.env.logger.Info("deleting the following keys", "keys", s.keyIds)
-	for _, id := range s.keyIds {
-		err := s.store.Delete(ctx, id)
-		if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-			return
-		}
+	keyIds, err := s.store.List(ctx)
+	require.NoError(s.T(), err)
+	s.env.logger.Info("deleting the following keys", "keys", keyIds)
 
+	for _, id := range keyIds {
+		err = s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
 	}
 
-	for _, id := range s.keyIds {
-		maxTries := MaxRetries
-		for {
-			err := s.store.Destroy(ctx, id)
-			if err != nil && errors.IsNotSupportedError(err) || err != nil && errors.IsNotImplementedError(err) {
-				return
-			}
-
-			if err != nil && !errors.IsStatusConflictError(err) {
-				break
-			}
-			if maxTries <= 0 {
-				if err != nil {
-					s.env.logger.Info("failed to destroy key", "keyID", id)
-				}
-				break
-			}
-
-			maxTries -= 1
-			waitTime := time.Second * time.Duration(MaxRetries-maxTries)
-			s.env.logger.Debug("waiting for deletion to complete", "keyID", id, "waitFor", waitTime.Seconds())
-			time.Sleep(waitTime)
+	for _, id := range keyIds {
+		err = s.store.Destroy(ctx, id)
+		if err == nil {
+			break
 		}
 	}
 }
@@ -131,7 +109,6 @@ func (s *keysTestSuite) TestImport() {
 			return
 		}
 		require.NoError(s.T(), err)
-		s.keyIds = append(s.keyIds, id)
 
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
@@ -147,7 +124,7 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.Run("should import a new key pair successfully: EDDSA/BN254", func() {
-		id := "my-key-eddsa-import"
+		id := fmt.Sprintf("%s-%d", "my-key-eddsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyEDDSA)
 
 		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
@@ -314,7 +291,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		})
 		require.NoError(s.T(), err)
 
-		signature, err := s.store.Sign(ctx, id, payload)
+		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
 		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
@@ -337,9 +314,8 @@ func (s *keysTestSuite) TestSignVerify() {
 			return
 		}
 		require.NoError(s.T(), err)
-		s.keyIds = append(s.keyIds, id)
 
-		signature, err := s.store.Sign(ctx, id, payload)
+		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
 		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
@@ -350,7 +326,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	})
 
 	s.Run("should fail and parse the error code correctly", func() {
-		signature, signErr := s.store.Sign(ctx, "invalidID", crypto.Keccak256([]byte("my data to sign")))
+		signature, signErr := s.store.Sign(ctx, "invalidID", crypto.Keccak256([]byte("my data to sign")), nil)
 
 		require.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsNotFoundError(signErr))
@@ -358,8 +334,5 @@ func (s *keysTestSuite) TestSignVerify() {
 }
 
 func (s *keysTestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%s", name, common.RandHexString(16))
-	s.keyIds = append(s.keyIds, id)
-
-	return id
+	return fmt.Sprintf("%s-%s", name, common.RandHexString(16))
 }

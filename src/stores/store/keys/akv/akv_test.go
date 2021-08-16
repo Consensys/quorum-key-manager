@@ -10,13 +10,13 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores"
 
 	akv "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +39,7 @@ var (
 type akvKeyStoreTestSuite struct {
 	suite.Suite
 	mockVault *mocks.MockKeysClient
-	keyStore  keys.Store
+	keyStore  stores.KeyStore
 }
 
 func TestHashicorpKeyStore(t *testing.T) {
@@ -228,7 +228,10 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
 		s.mockVault.EXPECT().Sign(gomock.Any(), id, "", akv.ES256K, b64Payload).Return(b64Sig, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, payload)
+		signature, err := s.keyStore.Sign(ctx, id, payload, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)

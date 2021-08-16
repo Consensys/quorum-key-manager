@@ -8,20 +8,20 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/gorilla/mux"
 )
 
 type KeysHandler struct {
-	stores storesmanager.Manager
+	stores stores.Manager
 }
 
 // NewKeysHandler creates a http.Handler to be served on /keys
-func NewKeysHandler(s storesmanager.Manager) *KeysHandler {
+func NewKeysHandler(s stores.Manager) *KeysHandler {
 	return &KeysHandler{
 		stores: s,
 	}
@@ -74,7 +74,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 
 	key, err := keyStore.Create(
 		ctx,
-		mux.Vars(request)["id"],
+		getID(request),
 		&entities.Algorithm{
 			Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
 			EllipticCurve: entities.Curve(createKeyRequest.Curve),
@@ -123,7 +123,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 
 	key, err := keyStore.Import(
 		ctx,
-		mux.Vars(request)["id"],
+		getID(request),
 		importKeyRequest.PrivateKey,
 		&entities.Algorithm{
 			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
@@ -170,7 +170,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := keyStore.Sign(ctx, getID(request), signPayloadRequest.Data)
+	signature, err := keyStore.Sign(ctx, getID(request), signPayloadRequest.Data, nil)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -278,7 +278,7 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = keyStore.Undelete(ctx, getID(request))
+	err = keyStore.Restore(ctx, getID(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

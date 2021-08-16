@@ -311,13 +311,13 @@ func TestAuthenticatorNoAPIKey(t *testing.T) {
 		B64Encoder: b64Encoder,
 	})
 
-	t.Run("should reject apikey and return error", func(t *testing.T) {
+	t.Run("should not reject missing apikey", func(t *testing.T) {
 
 		reqAlice := httptest.NewRequest("GET", "https://test.url", nil)
 
 		userInfo, err := auth.Authenticate(reqAlice)
 
-		require.Error(t, err)
+		require.NoError(t, err)
 		assert.Nil(t, userInfo)
 
 	})

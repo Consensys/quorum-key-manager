@@ -8,15 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-)
-
-const (
-	awsKeyID             = "aws-KeyId"
-	awsCustomKeyStoreID  = "aws-CustomKeyStoreId"
-	awsCloudHsmClusterID = "aws-CloudHsmClusterId"
-	awsAccountID         = "aws-AccountId"
-	awsARN               = "aws-ARN"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 type publicKeyInfo struct {
@@ -84,22 +76,22 @@ func parseMetadata(describedKey *kms.DescribeKeyOutput) *entities.Metadata {
 	}
 }
 
-func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) map[string]string {
-	annotations := make(map[string]string)
-
-	annotations[awsKeyID] = keyID
+func parseAnnotations(keyID string, keyDesc *kms.DescribeKeyOutput) *entities.Annotation {
+	annotations := &entities.Annotation{
+		AWSKeyID: keyID,
+	}
 
 	if keyDesc.KeyMetadata.CustomKeyStoreId != nil {
-		annotations[awsCustomKeyStoreID] = *keyDesc.KeyMetadata.CustomKeyStoreId
+		annotations.AWSCustomKeyStoreID = *keyDesc.KeyMetadata.CustomKeyStoreId
 	}
 	if keyDesc.KeyMetadata.CloudHsmClusterId != nil {
-		annotations[awsCloudHsmClusterID] = *keyDesc.KeyMetadata.CloudHsmClusterId
+		annotations.AWSCloudHsmClusterID = *keyDesc.KeyMetadata.CloudHsmClusterId
 	}
 	if keyDesc.KeyMetadata.AWSAccountId != nil {
-		annotations[awsAccountID] = *keyDesc.KeyMetadata.AWSAccountId
+		annotations.AWSAccountID = *keyDesc.KeyMetadata.AWSAccountId
 	}
 	if keyDesc.KeyMetadata.Arn != nil {
-		annotations[awsARN] = *keyDesc.KeyMetadata.Arn
+		annotations.AWSArn = *keyDesc.KeyMetadata.Arn
 	}
 
 	return annotations

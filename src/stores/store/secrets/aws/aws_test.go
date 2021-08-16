@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
-	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
-
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +22,7 @@ var expectedErr = errors.AWSError("error")
 type awsSecretStoreTestSuite struct {
 	suite.Suite
 	mockVault   *mocks.MockSecretsManagerClient
-	secretStore secrets.Store
+	secretStore stores.SecretStore
 }
 
 func TestAwsSecretStore(t *testing.T) {
@@ -188,26 +187,23 @@ func (s *awsSecretStoreTestSuite) TestGetDeleted() {
 	s.Run("should fail with not implemented error", func() {
 		ctx := context.Background()
 		id := "some-id"
-		expectedError := errors.ErrNotImplemented
-		_, err := s.secretStore.GetDeleted(ctx, id)
+		_, err := s.secretStore.GetDeleted(ctx, id, "")
 
-		assert.Equal(s.T(), err, expectedError)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }
 
 func (s *awsSecretStoreTestSuite) TestDeleted() {
 	ctx := context.Background()
 	id := "my-secret-deleted"
-	destroy := false
-
 	deleteOutput := &secretsmanager.DeleteSecretOutput{
 		Name: &id,
 	}
 
 	s.Run("should delete secret successfully", func() {
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
+		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id).Return(deleteOutput, nil)
 
-		err := s.secretStore.Delete(ctx, id)
+		err := s.secretStore.Delete(ctx, id, "")
 		assert.NoError(s.T(), err)
 	})
 }
@@ -215,24 +211,23 @@ func (s *awsSecretStoreTestSuite) TestDeleted() {
 func (s *awsSecretStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 	id := "my-secret"
-	destroy := true
 
 	deleteOutput := &secretsmanager.DeleteSecretOutput{
 		Name: &id,
 	}
 
 	s.Run("should destroy secret successfully", func() {
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(deleteOutput, nil)
+		s.mockVault.EXPECT().DestroySecret(gomock.Any(), id).Return(deleteOutput, nil)
 
-		err := s.secretStore.Destroy(ctx, id)
+		err := s.secretStore.Destroy(ctx, id, "")
 
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if DeleteSecret fails", func() {
-		s.mockVault.EXPECT().DeleteSecret(gomock.Any(), id, destroy).Return(nil, expectedErr)
+		s.mockVault.EXPECT().DestroySecret(gomock.Any(), id).Return(nil, expectedErr)
 
-		err := s.secretStore.Destroy(ctx, id)
+		err := s.secretStore.Destroy(ctx, id, "")
 
 		assert.Error(s.T(), err)
 		assert.True(s.T(), errors.IsAWSError(err))
@@ -295,9 +290,8 @@ func (s *awsSecretStoreTestSuite) TestList() {
 func (s *awsSecretStoreTestSuite) TestListDeleted() {
 	s.Run("should fail with not implemented error", func() {
 		ctx := context.Background()
-		expectedError := errors.ErrNotImplemented
 		_, err := s.secretStore.ListDeleted(ctx)
 
-		assert.Equal(s.T(), err, expectedError)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }

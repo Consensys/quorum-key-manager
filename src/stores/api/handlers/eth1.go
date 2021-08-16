@@ -12,10 +12,10 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/gorilla/mux"
 )
 
@@ -24,11 +24,11 @@ const (
 )
 
 type Eth1Handler struct {
-	stores storesmanager.Manager
+	stores stores.Manager
 }
 
 // NewAccountsHandler creates a http.Handler to be served on /accounts
-func NewAccountsHandler(s storesmanager.Manager) *Eth1Handler {
+func NewAccountsHandler(s stores.Manager) *Eth1Handler {
 	return &Eth1Handler{
 		stores: s,
 	}
@@ -242,7 +242,7 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{address}/sign-data [post]
+// @Router /stores/{storeName}/eth1/{address}/sign-hash [post]
 func (h *Eth1Handler) signHash(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -307,13 +307,13 @@ func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, msg, msgHash, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
+	signature, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1SignDataResponse(msg, msgHash, signature))
+	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
 // @Summary Sign Typed Data
@@ -485,6 +485,7 @@ func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *ht
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
+// @Param deleted query bool false "filter by deleted accounts"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Success 200 {object} types.Eth1AccountResponse "Ethereum Account data"
@@ -521,6 +522,8 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Accept json
 // @Produce json
 // @Param storeName path string true "Store Identifier"
+// @Param deleted query bool false "filter by deleted accounts"
+// @Param chain_uuid query string false "Chain UUID"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Success 200 {array} []types.Eth1AccountResponse "Ethereum Account list"
 // @Router /stores/{storeName}/eth1 [get]
@@ -536,7 +539,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	getDeleted := request.URL.Query().Get("deleted")
-	var addresses []string
+	var addresses []ethcommon.Address
 	if getDeleted == "" {
 		addresses, err = eth1Store.List(ctx)
 	} else {
@@ -628,7 +631,7 @@ func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = eth1Store.Undelete(ctx, getAddress(request))
+	err = eth1Store.Restore(ctx, getAddress(request))
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -673,7 +676,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_, _ = rw.Write([]byte(address))
+	_, _ = rw.Write([]byte(address.Hex()))
 }
 
 // @Summary Verify signature
@@ -706,7 +709,7 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	err = eth1Store.Verify(ctx, verifyReq.Address.Hex(), verifyReq.Data, verifyReq.Signature)
+	err = eth1Store.Verify(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -745,7 +748,7 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
-	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address.Hex(), typedData, verifyReq.Signature)
+	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address, typedData, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -754,9 +757,8 @@ func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-func getAddress(request *http.Request) string {
-	addr := ethcommon.HexToAddress(mux.Vars(request)["address"])
-	return addr.Hex()
+func getAddress(request *http.Request) ethcommon.Address {
+	return ethcommon.HexToAddress(mux.Vars(request)["address"])
 }
 
 func generateRandomKeyID() string {

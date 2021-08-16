@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/stores"
 
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +32,7 @@ type hashicorpKeyStoreTestSuite struct {
 	suite.Suite
 	mockVault  *mocks.MockVaultClient
 	mountPoint string
-	keyStore   keys.Store
+	keyStore   stores.KeyStore
 }
 
 func TestHashicorpKeyStore(t *testing.T) {
@@ -88,7 +88,6 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
-		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
 		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -145,7 +144,6 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
-		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
 		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -192,7 +190,6 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
-		assert.Equal(s.T(), "1", key.Metadata.Version)
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
 		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -255,7 +252,10 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			dataLabel: expectedData,
 		}).Return(hashicorpSecret, nil)
 
-		signature, err := s.keyStore.Sign(ctx, id, data)
+		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), expectedSignature, base64.URLEncoding.EncodeToString(signature))
@@ -266,7 +266,10 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 			dataLabel: expectedData,
 		}).Return(nil, expectedErr)
 
-		signature, err := s.keyStore.Sign(ctx, id, data)
+		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
 
 		assert.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))

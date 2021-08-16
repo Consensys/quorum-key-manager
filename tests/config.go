@@ -3,24 +3,26 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
 	"os"
 
-	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
+	pgclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )
 
 const envVar = "TEST_DATA"
 
 type Config struct {
-	AkvClient            *akvClient `json:"akv_client"`
-	AwsClient            *awsClient `json:"aws_client"`
-	KeyManagerURL        string     `json:"key_manager_url"`
-	HealthKeyManagerURL  string     `json:"health_key_manager_url"`
-	HashicorpSecretStore string     `json:"hashicorp_secret_store"`
-	HashicorpKeyStore    string     `json:"hashicorp_key_store"`
-	Eth1Store            string     `json:"eth1_store"`
-	QuorumNodeID         string     `json:"quorum_node_id"`
-	BesuNodeID           string     `json:"besu_node_id"`
+	AkvClient            *akvClient       `json:"akv_client"`
+	AwsClient            *awsClient       `json:"aws_client"`
+	KeyManagerURL        string           `json:"key_manager_url"`
+	HealthKeyManagerURL  string           `json:"health_key_manager_url"`
+	HashicorpSecretStore string           `json:"hashicorp_secret_store"`
+	HashicorpKeyStore    string           `json:"hashicorp_key_store"`
+	Eth1Store            string           `json:"eth1_store"`
+	QuorumNodeID         string           `json:"quorum_node_id"`
+	BesuNodeID           string           `json:"besu_node_id"`
+	Postgres             *pgclient.Config `json:"postgres"`
 }
 
 type akvClient struct {
@@ -50,8 +52,8 @@ func NewConfig() (*Config, error) {
 	return cfg, nil
 }
 
-func (c *Config) AkvSecretSpecs() *akv.SecretSpecs {
-	return &akv.SecretSpecs{
+func (c *Config) AkvSecretSpecs() *secrets.AkvSecretSpecs {
+	return &secrets.AkvSecretSpecs{
 		ClientID:     c.AkvClient.ClientID,
 		TenantID:     c.AkvClient.TenantID,
 		VaultName:    c.AkvClient.VaultName,
@@ -59,8 +61,8 @@ func (c *Config) AkvSecretSpecs() *akv.SecretSpecs {
 	}
 }
 
-func (c *Config) AkvKeySpecs() *akv.KeySpecs {
-	return &akv.KeySpecs{
+func (c *Config) AkvKeySpecs() *keys.AkvKeySpecs {
+	return &keys.AkvKeySpecs{
 		ClientID:     c.AkvClient.ClientID,
 		TenantID:     c.AkvClient.TenantID,
 		VaultName:    c.AkvClient.VaultName,
@@ -68,16 +70,16 @@ func (c *Config) AkvKeySpecs() *akv.KeySpecs {
 	}
 }
 
-func (c *Config) AwsSecretSpecs() *aws.SecretSpecs {
-	return &aws.SecretSpecs{
+func (c *Config) AwsSecretSpecs() *secrets.AwsSecretSpecs {
+	return &secrets.AwsSecretSpecs{
 		Region:    c.AwsClient.Region,
 		AccessID:  c.AwsClient.AccessID,
 		SecretKey: c.AwsClient.SecretKey,
 	}
 }
 
-func (c *Config) AwsKeySpecs() *aws.KeySpecs {
-	return &aws.KeySpecs{
+func (c *Config) AwsKeySpecs() *keys.AwsKeySpecs {
+	return &keys.AwsKeySpecs{
 		Region:    c.AwsClient.Region,
 		AccessID:  c.AwsClient.AccessID,
 		SecretKey: c.AwsClient.SecretKey,

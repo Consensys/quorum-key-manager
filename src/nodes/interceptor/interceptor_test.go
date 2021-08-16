@@ -10,7 +10,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/manager/mock"
+	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

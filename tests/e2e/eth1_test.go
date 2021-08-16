@@ -82,11 +82,9 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
 		assert.NotEmpty(s.T(), acc.UpdatedAt)
-		assert.True(s.T(), acc.ExpireAt.IsZero())
 		assert.True(s.T(), acc.DeletedAt.IsZero())
-		assert.True(s.T(), acc.DestroyedAt.IsZero())
 	})
-	
+
 	s.Run("should create a new account with random keyID successfully", func() {
 		request := testutils.FakeCreateEth1AccountRequest()
 		request.KeyID = ""
@@ -102,9 +100,7 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
 		assert.NotEmpty(s.T(), acc.UpdatedAt)
-		assert.True(s.T(), acc.ExpireAt.IsZero())
 		assert.True(s.T(), acc.DeletedAt.IsZero())
-		assert.True(s.T(), acc.DestroyedAt.IsZero())
 	})
 
 	s.Run("should parse errors successfully", func() {
@@ -156,9 +152,7 @@ func (s *eth1TestSuite) TestImport() {
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
 		assert.NotEmpty(s.T(), acc.UpdatedAt)
-		assert.True(s.T(), acc.ExpireAt.IsZero())
 		assert.True(s.T(), acc.DeletedAt.IsZero())
-		assert.True(s.T(), acc.DestroyedAt.IsZero())
 	})
 
 	s.Run("should parse errors successfully", func() {
@@ -304,9 +298,7 @@ func (s *eth1TestSuite) TestGet() {
 		assert.Equal(s.T(), s.mainAccount.Disabled, retrievedAcc.Disabled)
 		assert.Equal(s.T(), s.mainAccount.CreatedAt, retrievedAcc.CreatedAt)
 		assert.Equal(s.T(), s.mainAccount.UpdatedAt, retrievedAcc.UpdatedAt)
-		assert.Equal(s.T(), s.mainAccount.ExpireAt, retrievedAcc.ExpireAt)
 		assert.Equal(s.T(), s.mainAccount.DeletedAt, retrievedAcc.DeletedAt)
-		assert.Equal(s.T(), s.mainAccount.DestroyedAt, retrievedAcc.DestroyedAt)
 	})
 
 	s.Run("should fail if account does not exist", func() {

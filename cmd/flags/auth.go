@@ -156,7 +156,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
-	// Api-KEY part
+	// API-KEY part
 	var apiKeyCfg = &apikey.Config{}
 	fileAPIKeys, err := apiKeyCsvFile(vipr)
 	if err != nil {
@@ -221,10 +221,14 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, error) {
 	// Open the file
 	csvFileName := vipr.GetString(authAPIKeyFileViperKey)
+	if csvFileName == "" {
+		return nil, nil
+	}
 	csvfile, err := os.Open(csvFileName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot read api-key filepath %s: %w", csvFileName, err)
 	}
+
 	defer func(csvfile *os.File) {
 		_ = csvfile.Close()
 	}(csvfile)

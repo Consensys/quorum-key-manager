@@ -26,7 +26,7 @@ func NewKmsClient(cfg *Config) (*AwsKmsClient, error) {
 	}, nil
 }
 
-func (c *AwsKmsClient) CreateKey(ctx context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
+func (c *AwsKmsClient) CreateKey(_ context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
 	// Always create with same usage for key now (sign & verify)
 	keyUsage := kms.KeyUsageTypeSignVerify
 
@@ -50,7 +50,7 @@ func (c *AwsKmsClient) CreateKey(ctx context.Context, id, keyType string, tags [
 	return out, nil
 }
 
-func (c *AwsKmsClient) GetPublicKey(ctx context.Context, keyID string) (*kms.GetPublicKeyOutput, error) {
+func (c *AwsKmsClient) GetPublicKey(_ context.Context, keyID string) (*kms.GetPublicKeyOutput, error) {
 	out, err := c.client.GetPublicKey(&kms.GetPublicKeyInput{
 		KeyId: &keyID,
 	})
@@ -61,7 +61,7 @@ func (c *AwsKmsClient) GetPublicKey(ctx context.Context, keyID string) (*kms.Get
 	return out, nil
 }
 
-func (c *AwsKmsClient) DescribeKey(ctx context.Context, id string) (*kms.DescribeKeyOutput, error) {
+func (c *AwsKmsClient) DescribeKey(_ context.Context, id string) (*kms.DescribeKeyOutput, error) {
 	out, err := c.client.DescribeKey(&kms.DescribeKeyInput{KeyId: &id})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
@@ -70,7 +70,7 @@ func (c *AwsKmsClient) DescribeKey(ctx context.Context, id string) (*kms.Describ
 	return out, nil
 }
 
-func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
+func (c *AwsKmsClient) ListKeys(_ context.Context, limit int64, marker string) (*kms.ListKeysOutput, error) {
 	input := &kms.ListKeysInput{}
 	if limit > 0 {
 		input.Limit = &limit
@@ -87,7 +87,7 @@ func (c *AwsKmsClient) ListKeys(ctx context.Context, limit int64, marker string)
 	return outListKeys, nil
 }
 
-func (c *AwsKmsClient) GetAlias(ctx context.Context, keyID string) (string, error) {
+func (c *AwsKmsClient) GetAlias(_ context.Context, keyID string) (string, error) {
 	out, err := c.client.ListAliases(&kms.ListAliasesInput{
 		KeyId: aws.String(keyID),
 		Limit: aws.Int64(1),
@@ -104,7 +104,7 @@ func (c *AwsKmsClient) GetAlias(ctx context.Context, keyID string) (string, erro
 	return "", nil
 }
 
-func (c *AwsKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
+func (c *AwsKmsClient) ListTags(_ context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
 	input := &kms.ListResourceTagsInput{KeyId: &id}
 	if len(marker) > 0 {
 		input.Marker = &marker
@@ -118,7 +118,7 @@ func (c *AwsKmsClient) ListTags(ctx context.Context, id, marker string) (*kms.Li
 	return tags, nil
 }
 
-func (c *AwsKmsClient) Sign(ctx context.Context, keyID string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error) {
+func (c *AwsKmsClient) Sign(_ context.Context, keyID string, msg []byte, signingAlgorithm string) (*kms.SignOutput, error) {
 	// Message type is always digest
 	msgType := kms.MessageTypeDigest
 	out, err := c.client.Sign(&kms.SignInput{
@@ -134,7 +134,7 @@ func (c *AwsKmsClient) Sign(ctx context.Context, keyID string, msg []byte, signi
 	return out, nil
 }
 
-func (c *AwsKmsClient) DeleteKey(ctx context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error) {
+func (c *AwsKmsClient) DeleteKey(_ context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error) {
 	out, err := c.client.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
 		KeyId: &keyID,
 	})
@@ -145,7 +145,7 @@ func (c *AwsKmsClient) DeleteKey(ctx context.Context, keyID string) (*kms.Schedu
 	return out, nil
 }
 
-func (c *AwsKmsClient) RestoreKey(ctx context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error) {
+func (c *AwsKmsClient) RestoreKey(_ context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error) {
 	out, err := c.client.CancelKeyDeletion(&kms.CancelKeyDeletionInput{
 		KeyId: &keyID,
 	})
@@ -156,7 +156,7 @@ func (c *AwsKmsClient) RestoreKey(ctx context.Context, keyID string) (*kms.Cance
 	return out, nil
 }
 
-func (c *AwsKmsClient) TagResource(ctx context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error) {
+func (c *AwsKmsClient) TagResource(_ context.Context, keyID string, tags []*kms.Tag) (*kms.TagResourceOutput, error) {
 	outTagResource, err := c.client.TagResource(&kms.TagResourceInput{
 		KeyId: &keyID,
 		Tags:  tags,
@@ -168,7 +168,7 @@ func (c *AwsKmsClient) TagResource(ctx context.Context, keyID string, tags []*km
 	return outTagResource, nil
 }
 
-func (c *AwsKmsClient) UntagResource(ctx context.Context, keyID string, tagKeys []*string) (*kms.UntagResourceOutput, error) {
+func (c *AwsKmsClient) UntagResource(_ context.Context, keyID string, tagKeys []*string) (*kms.UntagResourceOutput, error) {
 	outUntagResource, err := c.client.UntagResource(&kms.UntagResourceInput{
 		KeyId:   &keyID,
 		TagKeys: tagKeys,

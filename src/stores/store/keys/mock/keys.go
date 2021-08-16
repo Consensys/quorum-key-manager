@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	entities "github.com/consensys/quorum-key-manager/src/stores/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,22 +34,7 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 	return m.recorder
 }
 
-// Info mock base method
-func (m *MockStore) Info(arg0 context.Context) (*entities.StoreInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Info", arg0)
-	ret0, _ := ret[0].(*entities.StoreInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Info indicates an expected call of Info
-func (mr *MockStoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockStore)(nil).Info), arg0)
-}
-
-// Create mock base method
+// Create mocks base method
 func (m *MockStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, id, alg, attr)
@@ -64,52 +49,22 @@ func (mr *MockStoreMockRecorder) Create(ctx, id, alg, attr interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockStore)(nil).Create), ctx, id, alg, attr)
 }
 
-// Import mock base method
-func (m *MockStore) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+// Import mocks base method
+func (m *MockStore) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Import", ctx, id, privKey, alg, attr)
+	ret := m.ctrl.Call(m, "Import", ctx, id, importedPrivKey, alg, attr)
 	ret0, _ := ret[0].(*entities.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Import indicates an expected call of Import
-func (mr *MockStoreMockRecorder) Import(ctx, id, privKey, alg, attr interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Import(ctx, id, importedPrivKey, alg, attr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Import", reflect.TypeOf((*MockStore)(nil).Import), ctx, id, privKey, alg, attr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Import", reflect.TypeOf((*MockStore)(nil).Import), ctx, id, importedPrivKey, alg, attr)
 }
 
-// Get mock base method
-func (m *MockStore) Get(ctx context.Context, id string) (*entities.Key, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(*entities.Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get
-func (mr *MockStoreMockRecorder) Get(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), ctx, id)
-}
-
-// List mock base method
-func (m *MockStore) List(ctx context.Context) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List
-func (mr *MockStoreMockRecorder) List(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockStore)(nil).List), ctx)
-}
-
-// Update mock base method
+// Update mocks base method
 func (m *MockStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, id, attr)
@@ -124,7 +79,7 @@ func (mr *MockStoreMockRecorder) Update(ctx, id, attr interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStore)(nil).Update), ctx, id, attr)
 }
 
-// Delete mock base method
+// Delete mocks base method
 func (m *MockStore) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, id)
@@ -138,51 +93,21 @@ func (mr *MockStoreMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), ctx, id)
 }
 
-// GetDeleted mock base method
-func (m *MockStore) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
+// Restore mocks base method
+func (m *MockStore) Restore(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDeleted", ctx, id)
-	ret0, _ := ret[0].(*entities.Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetDeleted indicates an expected call of GetDeleted
-func (mr *MockStoreMockRecorder) GetDeleted(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeleted", reflect.TypeOf((*MockStore)(nil).GetDeleted), ctx, id)
-}
-
-// ListDeleted mock base method
-func (m *MockStore) ListDeleted(ctx context.Context) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListDeleted", ctx)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListDeleted indicates an expected call of ListDeleted
-func (mr *MockStoreMockRecorder) ListDeleted(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeleted", reflect.TypeOf((*MockStore)(nil).ListDeleted), ctx)
-}
-
-// Undelete mock base method
-func (m *MockStore) Undelete(ctx context.Context, id string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Undelete", ctx, id)
+	ret := m.ctrl.Call(m, "Restore", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Undelete indicates an expected call of Undelete
+// Restore indicates an expected call of Restore
 func (mr *MockStoreMockRecorder) Undelete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Undelete", reflect.TypeOf((*MockStore)(nil).Undelete), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockStore)(nil).Restore), ctx, id)
 }
 
-// Destroy mock base method
+// Destroy mocks base method
 func (m *MockStore) Destroy(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Destroy", ctx, id)
@@ -196,36 +121,22 @@ func (mr *MockStoreMockRecorder) Destroy(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockStore)(nil).Destroy), ctx, id)
 }
 
-// Sign mock base method
-func (m *MockStore) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
+// Sign mocks base method
+func (m *MockStore) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Sign", ctx, id, data)
+	ret := m.ctrl.Call(m, "Sign", ctx, id, data, algo)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Sign indicates an expected call of Sign
-func (mr *MockStoreMockRecorder) Sign(ctx, id, data interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Sign(ctx, id, data, algo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockStore)(nil).Sign), ctx, id, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockStore)(nil).Sign), ctx, id, data, algo)
 }
 
-// Verify mock base method
-func (m *MockStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", ctx, pubKey, data, sig, algo)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Verify indicates an expected call of Verify
-func (mr *MockStoreMockRecorder) Verify(ctx, pubKey, data, sig, algo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockStore)(nil).Verify), ctx, pubKey, data, sig, algo)
-}
-
-// Encrypt mock base method
+// Encrypt mocks base method
 func (m *MockStore) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Encrypt", ctx, id, data)
@@ -240,7 +151,7 @@ func (mr *MockStoreMockRecorder) Encrypt(ctx, id, data interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockStore)(nil).Encrypt), ctx, id, data)
 }
 
-// Decrypt mock base method
+// Decrypt mocks base method
 func (m *MockStore) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Decrypt", ctx, id, data)

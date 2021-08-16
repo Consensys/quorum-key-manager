@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/vault/api"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 func formatHashicorpSecret(id, value string, tags map[string]string, metadata *entities.Metadata) *entities.Secret {

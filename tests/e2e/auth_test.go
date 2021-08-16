@@ -5,6 +5,7 @@ package e2e
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/stretchr/testify/assert"

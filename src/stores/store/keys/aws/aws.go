@@ -8,31 +8,33 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 const (
 	aliasPrefix = "alias"
 )
 
-type KeyStore struct {
+type Store struct {
 	client aws.KmsClient
 	logger log.Logger
 }
 
-func New(client aws.KmsClient, logger log.Logger) *KeyStore {
-	return &KeyStore{
+var _ stores.KeyStore = &Store{}
+
+func New(client aws.KmsClient, logger log.Logger) *Store {
+	return &Store{
 		client: client,
 		logger: logger,
 	}
 }
 
-func (s *KeyStore) Info(context.Context) (*entities.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	var keyType string
 
 	switch {
@@ -62,11 +64,13 @@ func (s *KeyStore) Create(ctx context.Context, id string, alg *entities.Algorith
 // Import an externally created key and stores it
 // this feature is not supported by AWS kms
 // always returns errors.ErrNotSupported
-func (s *KeyStore) Import(_ context.Context, _ string, _ []byte, _ *entities.Algorithm, _ *entities.Attributes) (*entities.Key, error) {
-	return nil, errors.ErrNotSupported
+func (s *Store) Import(_ context.Context, _ string, _ []byte, _ *entities.Algorithm, _ *entities.Attributes) (*entities.Key, error) {
+	err := errors.NotSupportedError("import secret is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
 }
 
-func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
+func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 
 	outDescribe, err := s.client.DescribeKey(ctx, alias(id))
@@ -102,7 +106,7 @@ func (s *KeyStore) Get(ctx context.Context, id string) (*entities.Key, error) {
 	return key, nil
 }
 
-func (s *KeyStore) List(ctx context.Context) ([]string, error) {
+func (s *Store) List(ctx context.Context) ([]string, error) {
 	var ids []string
 	nextMarker := ""
 
@@ -138,13 +142,13 @@ func (s *KeyStore) List(ctx context.Context) ([]string, error) {
 	return ids, nil
 }
 
-func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
+	logger := s.logger.With("id", id)
 	key, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	keyID := key.Annotations[awsKeyID]
-	logger := s.logger.With("id", id, "key_id", keyID)
+	keyID := key.Annotations.AWSKeyID
 
 	tagKeys := make([]*string, len(key.Tags))
 	i := 0
@@ -172,78 +176,101 @@ func (s *KeyStore) Update(ctx context.Context, id string, attr *entities.Attribu
 	return key, nil
 }
 
-func (s *KeyStore) Delete(ctx context.Context, id string) error {
-	key, err := s.Get(ctx, id)
+func (s *Store) Delete(ctx context.Context, id string) error {
+	logger := s.logger.With("id", id)
+	keyID, err := s.getAWSKeyID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.client.DeleteKey(ctx, key.Annotations[awsKeyID])
+	_, err = s.client.DeleteKey(ctx, keyID)
 	if err != nil {
 		errMessage := "failed to delete AWS key"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil
 }
 
-func (s *KeyStore) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
-	return nil, errors.ErrNotSupported
+func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
+	err := errors.NotSupportedError("get deleted key is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
 }
 
-func (s *KeyStore) ListDeleted(_ context.Context) ([]string, error) {
-	return nil, errors.ErrNotSupported
+func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
+	err := errors.NotSupportedError("list deleted keys is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
 }
 
-func (s *KeyStore) Undelete(ctx context.Context, id string) error {
-	return errors.ErrNotImplemented
+func (s *Store) Restore(_ context.Context, _ string) error {
+	err := errors.NotSupportedError("restore key is not supported")
+	s.logger.Warn(err.Error())
+	return err
 }
 
 // Destroy destroys an externally created key and stores it
 // this feature is not supported by AWS kms
 // always returns errors.ErrNotSupported
-func (s *KeyStore) Destroy(_ context.Context, _ string) error {
-	return errors.ErrNotSupported
+func (s *Store) Destroy(_ context.Context, _ string) error {
+	err := errors.NotSupportedError("destroy key is not supported")
+	s.logger.Warn(err.Error())
+	return err
 }
 
-func (s *KeyStore) Sign(ctx context.Context, id string, data []byte) ([]byte, error) {
-	key, err := s.Get(ctx, id)
+func (s *Store) Sign(ctx context.Context, id string, data []byte, _ *entities.Algorithm) ([]byte, error) {
+	logger := s.logger.With("id", id)
+	keyID, err := s.getAWSKeyID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Only sign with ECDSA, extract the algorithm from the key when more keys are available
-	outSignature, err := s.client.Sign(ctx, key.Annotations[awsKeyID], data, kms.SigningAlgorithmSpecEcdsaSha256)
+	outSignature, err := s.client.Sign(ctx, keyID, data, kms.SigningAlgorithmSpecEcdsaSha256)
 	if err != nil {
 		errMessage := "failed to sign using AWS key"
-		s.logger.With("id", id).WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	signature, err := parseSignature(outSignature)
 	if err != nil {
 		errMessage := "failed to parse signature from AWS"
-		s.logger.With("id", id, "signature", signature).WithError(err).Error(errMessage)
+		logger.WithError(err).Error(errMessage)
 		return nil, errors.AWSError(errMessage)
 	}
 
 	return signature, nil
 }
 
-func (s *KeyStore) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	return keys.VerifySignature(s.logger, pubKey, data, sig, algo)
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	err := errors.NotSupportedError("verify signature is not supported")
+	s.logger.Warn(err.Error())
+	return err
 }
 
-func (s *KeyStore) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *KeyStore) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *KeyStore) listTags(ctx context.Context, keyID string) (map[string]string, error) {
+func (s *Store) getAWSKeyID(ctx context.Context, id string) (string, error) {
+	outDescribe, err := s.client.DescribeKey(ctx, alias(id))
+	if err != nil {
+		errMessage := "failed to get AWS keyID"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return "", errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return *outDescribe.KeyMetadata.KeyId, nil
+}
+
+func (s *Store) listTags(ctx context.Context, keyID string) (map[string]string, error) {
 	tags := make(map[string]string)
 
 	nextMarker := ""
