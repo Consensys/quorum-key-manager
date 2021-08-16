@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/kms"
 
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )

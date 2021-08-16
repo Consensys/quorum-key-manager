@@ -2,15 +2,15 @@ package formatters
 
 import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 func FormatSecretResponse(secret *entities.Secret) *types.SecretResponse {
 	return &types.SecretResponse{
 		ID:          secret.ID,
+		Version:     secret.Metadata.Version,
 		Value:       secret.Value,
 		Tags:        secret.Tags,
-		Version:     secret.Metadata.Version,
 		Disabled:    secret.Metadata.Disabled,
 		CreatedAt:   secret.Metadata.CreatedAt,
 		UpdatedAt:   secret.Metadata.UpdatedAt,

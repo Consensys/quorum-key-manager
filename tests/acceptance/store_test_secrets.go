@@ -7,9 +7,9 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/akv"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +20,7 @@ import (
 type secretsTestSuite struct {
 	suite.Suite
 	env       *IntegrationEnvironment
-	store     secrets.Store
+	store     stores.SecretStore
 	secretIDs []string
 }
 
@@ -168,7 +168,7 @@ func (s *secretsTestSuite) TestDelete() {
 
 /* TODO: For some reason these tests fail for AKV
 func (s *secretsTestSuite) TestGetDeleted() {
-	// Skip not supported secret connector types
+	// Skip not supported secret store types
 	if _, ok := s.store.(*hashicorp.Store); ok {
 		return
 	}
@@ -231,7 +231,7 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 }
 
 func (s *secretsTestSuite) TestListDeleted() {
-	// Skip not supported secret connector types
+	// Skip not supported secret store types
 	if _, ok := s.store.(*hashicorp.Store); ok {
 		return
 	}

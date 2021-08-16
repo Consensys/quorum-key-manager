@@ -8,20 +8,20 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/gorilla/mux"
 )
 
 type KeysHandler struct {
-	stores storesmanager.Manager
+	stores stores.Manager
 }
 
 // NewKeysHandler creates a http.Handler to be served on /keys
-func NewKeysHandler(s storesmanager.Manager) *KeysHandler {
+func NewKeysHandler(s stores.Manager) *KeysHandler {
 	return &KeysHandler{
 		stores: s,
 	}
@@ -170,7 +170,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := keyStore.Sign(ctx, getID(request), signPayloadRequest.Data)
+	signature, err := keyStore.Sign(ctx, getID(request), signPayloadRequest.Data, nil)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

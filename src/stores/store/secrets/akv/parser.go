@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 func parseDeletedSecretBundle(secretBundle *keyvault.DeletedSecretBundle) *entities.Secret {

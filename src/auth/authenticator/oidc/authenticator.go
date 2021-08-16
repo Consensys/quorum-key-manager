@@ -33,6 +33,7 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// Extract Access Token from context
 	token, ok := extractToken(BearerSchema, req.Header.Get("Authorization"))
+	// In case of no credentials are sent we authenticate with Anonymous user
 	if !ok {
 		return nil, nil
 	}

@@ -33,6 +33,16 @@ x-qkm-common: &qkm-common
   DB_HOST: postgres
 
 services:
+  migration:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+    restart: "no"
+    command: migrate
+    volumes:
+      - ./build/bin/key-manager:/bin/main:ro
+    
   key-manager:
     <<: *container-common
     environment:
@@ -45,6 +55,8 @@ services:
       - 8080:8080
       - 8081:8081
     restart: "no"
+    depends_on:
+      - migration
     command: run
     volumes:
       - ./build/bin/key-manager:/bin/main:ro

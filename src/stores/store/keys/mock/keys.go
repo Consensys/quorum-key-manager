@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	entities "github.com/consensys/quorum-key-manager/src/stores/store/entities"
+	entities "github.com/consensys/quorum-key-manager/src/stores/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -93,18 +93,18 @@ func (mr *MockStoreMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), ctx, id)
 }
 
-// Undelete mocks base method
-func (m *MockStore) Undelete(ctx context.Context, id string) error {
+// Restore mocks base method
+func (m *MockStore) Restore(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Undelete", ctx, id)
+	ret := m.ctrl.Call(m, "Restore", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Undelete indicates an expected call of Undelete
+// Restore indicates an expected call of Restore
 func (mr *MockStoreMockRecorder) Undelete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Undelete", reflect.TypeOf((*MockStore)(nil).Undelete), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockStore)(nil).Restore), ctx, id)
 }
 
 // Destroy mocks base method

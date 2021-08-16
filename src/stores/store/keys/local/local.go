@@ -10,29 +10,44 @@ import (
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/stores"
 
 	"github.com/consensys/gnark-crypto/crypto/hash"
 	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 type Store struct {
-	secretStore secrets.Store
+	secretStore stores.SecretStore
 	logger      log.Logger
 }
 
-var _ keys.Store = &Store{}
+var _ stores.KeyStore = &Store{}
 
-func New(secretStore secrets.Store, logger log.Logger) *Store {
+func New(secretStore stores.SecretStore, logger log.Logger) *Store {
 	return &Store{
 		secretStore: secretStore,
 		logger:      logger,
 	}
+}
+
+func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
+	return nil, errors.ErrNotImplemented
+}
+
+func (s *Store) List(_ context.Context) ([]string, error) {
+	return nil, errors.ErrNotImplemented
+}
+
+func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
+	return nil, errors.ErrNotImplemented
+}
+
+func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
@@ -104,7 +119,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	return s.secretStore.Delete(ctx, id, "1")
 }
 
-func (s *Store) Undelete(ctx context.Context, id string) error {
+func (s *Store) Restore(ctx context.Context, id string) error {
 	return s.secretStore.Restore(ctx, id, "1")
 }
 
@@ -137,6 +152,10 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 		logger.With("algorithm", algo.Type, "curve", algo.EllipticCurve).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
+}
+
+func (s *Store) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	return errors.ErrNotSupported
 }
 
 func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {

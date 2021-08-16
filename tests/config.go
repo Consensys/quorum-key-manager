@@ -6,8 +6,8 @@ import (
 	"os"
 
 	pgclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/akv"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/aws"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )
 
 const envVar = "TEST_DATA"
@@ -52,8 +52,8 @@ func NewConfig() (*Config, error) {
 	return cfg, nil
 }
 
-func (c *Config) AkvSecretSpecs() *akv.SecretSpecs {
-	return &akv.SecretSpecs{
+func (c *Config) AkvSecretSpecs() *secrets.AkvSecretSpecs {
+	return &secrets.AkvSecretSpecs{
 		ClientID:     c.AkvClient.ClientID,
 		TenantID:     c.AkvClient.TenantID,
 		VaultName:    c.AkvClient.VaultName,
@@ -61,8 +61,8 @@ func (c *Config) AkvSecretSpecs() *akv.SecretSpecs {
 	}
 }
 
-func (c *Config) AkvKeySpecs() *akv.KeySpecs {
-	return &akv.KeySpecs{
+func (c *Config) AkvKeySpecs() *keys.AkvKeySpecs {
+	return &keys.AkvKeySpecs{
 		ClientID:     c.AkvClient.ClientID,
 		TenantID:     c.AkvClient.TenantID,
 		VaultName:    c.AkvClient.VaultName,
@@ -70,16 +70,16 @@ func (c *Config) AkvKeySpecs() *akv.KeySpecs {
 	}
 }
 
-func (c *Config) AwsSecretSpecs() *aws.SecretSpecs {
-	return &aws.SecretSpecs{
+func (c *Config) AwsSecretSpecs() *secrets.AwsSecretSpecs {
+	return &secrets.AwsSecretSpecs{
 		Region:    c.AwsClient.Region,
 		AccessID:  c.AwsClient.AccessID,
 		SecretKey: c.AwsClient.SecretKey,
 	}
 }
 
-func (c *Config) AwsKeySpecs() *aws.KeySpecs {
-	return &aws.KeySpecs{
+func (c *Config) AwsKeySpecs() *keys.AwsKeySpecs {
+	return &keys.AwsKeySpecs{
 		Region:    c.AwsClient.Region,
 		AccessID:  c.AwsClient.AccessID,
 		SecretKey: c.AwsClient.SecretKey,

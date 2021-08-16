@@ -8,17 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
-
 	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/consensys/quorum-key-manager/src/stores"
 
 	akv "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -38,15 +36,13 @@ var (
 	base64PubKeyY = "CXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI"
 )
 
-var expectedErr = errors.AKVError("error")
-
 type akvKeyStoreTestSuite struct {
 	suite.Suite
 	mockVault *mocks.MockKeysClient
-	keyStore  keys.Store
+	keyStore  stores.KeyStore
 }
 
-func TestAKVKeyStore(t *testing.T) {
+func TestHashicorpKeyStore(t *testing.T) {
 	s := new(akvKeyStoreTestSuite)
 	suite.Run(t, s)
 }
@@ -93,6 +89,7 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
 	})
 }
 
@@ -138,6 +135,64 @@ func (s *akvKeyStoreTestSuite) TestImport() {
 		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
+	})
+}
+
+func (s *akvKeyStoreTestSuite) TestGet() {
+	ctx := context.Background()
+	attributes := testutils.FakeAttributes()
+	version := "1234"
+
+	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
+	akvKey := akv.KeyBundle{
+		Attributes: &akv.KeyAttributes{
+			Enabled: common.ToPtr(true).(*bool),
+			Created: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
+			Updated: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
+		},
+		Tags: common.Tomapstrptr(attributes.Tags),
+		Key: &akv.JSONWebKey{
+			Kid: &akvKeyID,
+			Crv: akv.P256K,
+			Kty: akv.EC,
+			X:   &base64PubKeyX,
+			Y:   &base64PubKeyY,
+		},
+	}
+
+	s.Run("should get a key successfully", func() {
+		s.mockVault.EXPECT().GetKey(gomock.Any(), id, "").Return(akvKey, nil)
+
+		key, err := s.keyStore.Get(ctx, id)
+
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
+		assert.Equal(s.T(), attributes.Tags, key.Tags)
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
+	})
+}
+
+func (s *akvKeyStoreTestSuite) TestList() {
+	ctx := context.Background()
+	expectedIds := []interface{}{"my-key1", "my-key2"}
+	kIds := []string{"myvault.com/keys/" + expectedIds[0].(string), "myvault.com/keys/" + expectedIds[1].(string)}
+
+	s.Run("should list all secret ids successfully", func() {
+		keyList := []akv.KeyItem{{Kid: &kIds[0]}, {Kid: &kIds[1]}}
+
+		s.mockVault.EXPECT().GetKeys(gomock.Any(), gomock.Any()).Return(keyList, nil)
+
+		ids, err := s.keyStore.List(ctx)
+
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), []string{"my-key1", "my-key2"}, ids)
 	})
 }
 
@@ -180,121 +235,5 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
-	})
-}
-
-func (s *akvKeyStoreTestSuite) TestUpdate() {
-	ctx := context.Background()
-	version := "1234"
-	newAttributes := &entities.Attributes{
-		Tags: map[string]string{
-			"tag1": "newTagValue1",
-			"tag2": "newTagValue2",
-		},
-	}
-	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
-
-	newAkvKey := akv.KeyBundle{
-		Attributes: &akv.KeyAttributes{
-			Enabled: common.ToPtr(true).(*bool),
-			Created: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
-			Updated: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
-		},
-		Tags: common.Tomapstrptr(newAttributes.Tags),
-		Key: &akv.JSONWebKey{
-			Kid: &akvKeyID,
-			Crv: akv.P256K,
-			Kty: akv.EC,
-			X:   &base64PubKeyX,
-			Y:   &base64PubKeyY,
-		},
-	}
-
-	s.Run("should sign payload successfully", func() {
-		s.mockVault.EXPECT().UpdateKey(gomock.Any(), id, "", nil, nil, newAttributes.Tags).Return(newAkvKey, nil)
-
-		key, err := s.keyStore.Update(ctx, id, newAttributes)
-
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), newAttributes.Tags, key.Tags)
-	})
-
-	s.Run("should return same wrapped error if UpdateKey fails", func() {
-		s.mockVault.EXPECT().UpdateKey(gomock.Any(), id, "", nil, nil, newAttributes.Tags).Return(akv.KeyBundle{}, expectedErr)
-
-		_, err := s.keyStore.Update(ctx, id, newAttributes)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-}
-
-func (s *akvKeyStoreTestSuite) TestDelete() {
-	ctx := context.Background()
-
-	s.Run("should sign payload successfully", func() {
-		s.mockVault.EXPECT().DeleteKey(gomock.Any(), id).Return(akv.DeletedKeyBundle{}, nil)
-
-		err := s.keyStore.Delete(ctx, id)
-		assert.NoError(s.T(), err)
-	})
-
-	s.Run("should return same wrapped error if DeleteKey fails", func() {
-		s.mockVault.EXPECT().DeleteKey(gomock.Any(), id).Return(akv.DeletedKeyBundle{}, expectedErr)
-
-		err := s.keyStore.Delete(ctx, id)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-}
-
-func (s *akvKeyStoreTestSuite) TestUndelete() {
-	ctx := context.Background()
-
-	s.Run("should sign payload successfully", func() {
-		s.mockVault.EXPECT().RecoverDeletedKey(gomock.Any(), id).Return(akv.KeyBundle{}, nil)
-
-		err := s.keyStore.Undelete(ctx, id)
-		assert.NoError(s.T(), err)
-	})
-
-	s.Run("should return same wrapped error if RecoverDeletedKey fails", func() {
-		s.mockVault.EXPECT().RecoverDeletedKey(gomock.Any(), id).Return(akv.KeyBundle{}, expectedErr)
-
-		err := s.keyStore.Undelete(ctx, id)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-}
-
-func (s *akvKeyStoreTestSuite) TestDestroy() {
-	ctx := context.Background()
-
-	s.Run("should sign payload successfully", func() {
-		s.mockVault.EXPECT().PurgeDeletedKey(gomock.Any(), id).Return(true, nil)
-
-		err := s.keyStore.Destroy(ctx, id)
-		assert.NoError(s.T(), err)
-	})
-
-	s.Run("should return same wrapped error if PurgeDeletedKey fails", func() {
-		s.mockVault.EXPECT().PurgeDeletedKey(gomock.Any(), id).Return(false, expectedErr)
-
-		err := s.keyStore.Destroy(ctx, id)
-		assert.Equal(s.T(), expectedErr, err)
-	})
-}
-
-func (s *akvKeyStoreTestSuite) TestEncrypt() {
-	ctx := context.Background()
-
-	s.Run("should return NotImplementedError", func() {
-		_, err := s.keyStore.Encrypt(ctx, id, []byte(""))
-		assert.Equal(s.T(), errors.ErrNotImplemented, err)
-	})
-}
-
-func (s *akvKeyStoreTestSuite) TestDecrypt() {
-	ctx := context.Background()
-
-	s.Run("should return NotImplementedError", func() {
-		_, err := s.keyStore.Decrypt(ctx, id, []byte(""))
-		assert.Equal(s.T(), errors.ErrNotImplemented, err)
 	})
 }

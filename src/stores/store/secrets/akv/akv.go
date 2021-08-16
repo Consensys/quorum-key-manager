@@ -7,8 +7,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 type Store struct {
@@ -16,7 +16,7 @@ type Store struct {
 	logger log.Logger
 }
 
-var _ secrets.Store = &Store{}
+var _ stores.SecretStore = &Store{}
 
 func New(client akv.SecretClient, logger log.Logger) *Store {
 	return &Store{

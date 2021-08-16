@@ -29,6 +29,7 @@ func newRunCommand() *cobra.Command {
 	flags.ManifestFlags(runCmd.Flags())
 	flags.LoggerFlags(runCmd.Flags())
 	flags.AuthFlags(runCmd.Flags())
+	flags.PGFlags(runCmd.Flags())
 
 	return runCmd
 }

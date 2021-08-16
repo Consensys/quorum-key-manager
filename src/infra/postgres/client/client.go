@@ -2,7 +2,9 @@ package client
 
 import (
 	"context"
+	"time"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 
@@ -32,6 +34,15 @@ func NewClient(cfg *Config) (*PostgresClient, error) {
 
 func (c *PostgresClient) Config() *Config {
 	return c.cfg
+}
+
+func (c *PostgresClient) QueryOne(ctx context.Context, result, query interface{}, params ...interface{}) error {
+	_, err := c.db.QueryOneContext(ctx, pg.Scan(result), query, params...)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
 }
 
 func (c *PostgresClient) Insert(ctx context.Context, model ...interface{}) error {
@@ -79,28 +90,138 @@ func (c *PostgresClient) SelectDeleted(ctx context.Context, model ...interface{}
 	return nil
 }
 
-func (c *PostgresClient) UpdatePK(ctx context.Context, model ...interface{}) error {
-	_, err := c.db.ModelContext(ctx, model...).WherePK().Update()
+func (c *PostgresClient) SelectDeletedWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+	err := c.db.ModelContext(ctx, model).Deleted().Where(where, args...).Select()
 	if err != nil {
 		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+	err := c.db.ModelContext(ctx, model).Where(where, args...).Select()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	return nil
+}
+
+func (c *PostgresClient) UpdatePK(ctx context.Context, model interface{}) error {
+	q := c.db.ModelContext(ctx, model)
+	r, err := q.WherePK().UpdateNotZero()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no rows were updated")
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) UpdateWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	q := c.db.ModelContext(ctx, model)
+	r, err := q.Where(where, params...).UpdateNotZero()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no matched rows were updated")
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) Delete(ctx context.Context, model ...interface{}) error {
+	r, err := c.db.ModelContext(ctx, model...).Delete()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no rows were deleted")
 	}
 
 	return nil
 }
 
 func (c *PostgresClient) DeletePK(ctx context.Context, model ...interface{}) error {
-	_, err := c.db.ModelContext(ctx, model...).WherePK().Delete()
+	r, err := c.db.ModelContext(ctx, model...).WherePK().Delete()
 	if err != nil {
 		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no rows were deleted")
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) DeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	r, err := c.db.ModelContext(ctx, model).Where(where, params...).Delete()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no matched rows were deleted")
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) UndeletePK(ctx context.Context, model ...interface{}) error {
+	q := c.db.ModelContext(ctx, model...).WherePK()
+	if q.TableModel().Table().SoftDeleteField == nil {
+		return errors.PostgresError("models does not support soft-delete")
+	}
+
+	r, err := q.Set("? = ?", q.TableModel().Table().SoftDeleteField.Column, time.Time{}).UpdateNotZero()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no rows were deleted")
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) UndeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	q := c.db.ModelContext(ctx, model).Where(where, params...)
+	if q.TableModel().Table().SoftDeleteField == nil {
+		return errors.PostgresError("model does not support soft-delete")
+	}
+
+	r, err := q.Set("? = ?", q.TableModel().Table().SoftDeleteField.Column, time.Time{}).UpdateNotZero()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no rows were deleted")
 	}
 
 	return nil
 }
 
 func (c *PostgresClient) ForceDeletePK(ctx context.Context, model ...interface{}) error {
-	_, err := c.db.ModelContext(ctx, model...).WherePK().ForceDelete()
+	r, err := c.db.ModelContext(ctx, model...).WherePK().ForceDelete()
 	if err != nil {
 		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no rows were force deleted")
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) ForceDeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
+	r, err := c.db.ModelContext(ctx, model).Where(where, params...).ForceDelete()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+	if r.RowsAffected() == 0 {
+		return errors.NotFoundError("no matched  rows were force")
 	}
 
 	return nil
@@ -119,12 +240,4 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 	}
 
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
-}
-
-func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
-	err := c.db.ModelContext(ctx, model).Where(where, args...).Select()
-	if err != nil {
-		return parseErrorResponse(err)
-	}
-	return nil
 }

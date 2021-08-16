@@ -12,14 +12,9 @@ func (i *Interceptor) ethAccounts(ctx context.Context) ([]ethcommon.Address, err
 	i.logger.Debug("listing ETH accounts")
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	storeAccounts, err := i.stores.ListAllAccounts(ctx, userInfo)
+	addresses, err := i.stores.ListAllAccounts(ctx, userInfo)
 	if err != nil {
 		return nil, err
-	}
-
-	addresses := []ethcommon.Address{}
-	for _, storeAccount := range storeAccounts {
-		addresses = append(addresses, storeAccount.Address)
 	}
 
 	i.logger.Debug("ETH accounts fetched successfully")

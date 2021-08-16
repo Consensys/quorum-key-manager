@@ -40,6 +40,11 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 // ? -> Username
 // ? -> Groups
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
+	// In case of no credentials are sent we authenticate with Anonymous user
+	if req.Header.Get("Authorization") == "" {
+		return nil, nil
+	}
+
 	// extract ApiKey
 	clientAPIKey, err := extractAPIKey(req.Header.Get("Authorization"), authenticator.B64Encoder)
 	if err != nil {

@@ -2,14 +2,16 @@ package acceptancetests
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
-	"github.com/consensys/quorum-key-manager/src/stores/store/database"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/store/eth1"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -18,13 +20,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"math/big"
 )
 
 type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
-	store eth1.Store
+	store stores.Eth1Store
 	db    database.Database // TODO: Remove when Delete and Destroy functions are implemented in all stores
 }
 
@@ -132,7 +133,7 @@ func (s *eth1TestSuite) TestGet() {
 	require.NoError(s.T(), err)
 
 	s.Run("should get an Ethereum Account successfully", func() {
-		retrievedAccount, err := s.store.Get(ctx, account.Address.Hex())
+		retrievedAccount, err := s.store.Get(ctx, account.Address)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), retrievedAccount.KeyID, id)
@@ -146,7 +147,7 @@ func (s *eth1TestSuite) TestGet() {
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		retrievedAccount, err := s.store.Get(ctx, "invalidAccount")
+		retrievedAccount, err := s.store.Get(ctx, ethcommon.HexToAddress("invalidAddress"))
 		require.Nil(s.T(), retrievedAccount)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -172,8 +173,8 @@ func (s *eth1TestSuite) TestList() {
 		addresses, err := s.store.List(ctx)
 		require.NoError(s.T(), err)
 
-		assert.Contains(s.T(), addresses, account1.Address.Hex())
-		assert.Contains(s.T(), addresses, account2.Address.Hex())
+		assert.Contains(s.T(), addresses, account1.Address)
+		assert.Contains(s.T(), addresses, account2.Address)
 	})
 }
 
@@ -188,20 +189,20 @@ func (s *eth1TestSuite) TestSignVerify() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign, recover an address and verify the signature successfully", func() {
-		signature, err := s.store.Sign(ctx, account.Address.Hex(), payload)
+		signature, err := s.store.Sign(ctx, account.Address, payload)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
-		address, err := s.store.ECRevocer(ctx, payload, signature)
+		address, err := s.store.ECRecover(ctx, payload, signature)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), account.Address.Hex(), address)
+		assert.Equal(s.T(), account.Address, address)
 
 		err = s.store.Verify(ctx, address, payload, signature)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signature, err := s.store.Sign(ctx, "invalidAccount", payload)
+		signature, err := s.store.Sign(ctx, ethcommon.HexToAddress("invalidAddress"), payload)
 		require.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -226,13 +227,13 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignTransaction(ctx, account.Address.Hex(), chainID, tx)
+		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signedRaw, err := s.store.SignTransaction(ctx, "invalidAccount", chainID, tx)
+		signedRaw, err := s.store.SignTransaction(ctx, ethcommon.HexToAddress("invalidAddress"), chainID, tx)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -256,13 +257,13 @@ func (s *eth1TestSuite) TestSignPrivate() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignPrivate(ctx, account.Address.Hex(), tx)
+		signedRaw, err := s.store.SignPrivate(ctx, account.Address, tx)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signedRaw, err := s.store.SignPrivate(ctx, "invalidAccount", tx)
+		signedRaw, err := s.store.SignPrivate(ctx, ethcommon.HexToAddress("invalidAddress"), tx)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -295,13 +296,13 @@ func (s *eth1TestSuite) TestSignEEA() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign a transaction successfully", func() {
-		signedRaw, err := s.store.SignEEA(ctx, account.Address.Hex(), chainID, tx, privateArgs)
+		signedRaw, err := s.store.SignEEA(ctx, account.Address, chainID, tx, privateArgs)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signedRaw, err := s.store.SignEEA(ctx, "invalidAccount", chainID, tx, privateArgs)
+		signedRaw, err := s.store.SignEEA(ctx, ethcommon.HexToAddress("invalidAddress"), chainID, tx, privateArgs)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})

@@ -8,8 +8,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores/store/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 const (
@@ -32,7 +32,7 @@ type Store struct {
 	logger     log.Logger
 }
 
-var _ keys.Store = &Store{}
+var _ stores.KeyStore = &Store{}
 
 func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *Store {
 	return &Store{
@@ -40,6 +40,10 @@ func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *St
 		mountPoint: mountPoint,
 		logger:     logger,
 	}
+}
+
+func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
+	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
@@ -75,6 +79,50 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 	return parseAPISecretToKey(res)
 }
 
+func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
+	logger := s.logger.With("id", id)
+
+	res, err := s.client.Read(s.pathKeys(id), nil)
+	if err != nil {
+		errMessage := "failed to get Hashicorp key"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	if res.Data["error"] != nil {
+		errMessage := "could not find key pair"
+		logger.Error(errMessage)
+		return nil, errors.NotFoundError(errMessage)
+	}
+
+	return parseAPISecretToKey(res)
+}
+
+func (s *Store) List(_ context.Context) ([]string, error) {
+	res, err := s.client.List(s.pathKeys(""))
+	if err != nil {
+		errMessage := "failed to list Hashicorp keys"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	if res == nil || res.Data == nil || res.Data["keys"] == nil {
+		return []string{}, nil
+	}
+
+	keyIds, ok := res.Data["keys"].([]interface{})
+	if !ok {
+		return []string{}, nil
+	}
+
+	var ids = []string{}
+	for _, id := range keyIds {
+		ids = append(ids, id.(string))
+	}
+
+	return ids, nil
+}
+
 func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys(id), map[string]interface{}{
 		tagsLabel: attr.Tags,
@@ -89,11 +137,27 @@ func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) 
 }
 
 func (s *Store) Delete(_ context.Context, _ string) error {
-	return errors.ErrNotSupported
+	err := errors.NotSupportedError("delete key is not supported")
+	s.logger.Warn(err.Error())
+	return err
 }
 
-func (s *Store) Undelete(_ context.Context, _ string) error {
-	return errors.ErrNotSupported
+func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
+	err := errors.NotSupportedError("get deleted key is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
+}
+
+func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
+	err := errors.NotSupportedError("list deleted keys is not supported")
+	s.logger.Warn(err.Error())
+	return nil, err
+}
+
+func (s *Store) Restore(_ context.Context, _ string) error {
+	err := errors.NotSupportedError("restore key is not supported")
+	s.logger.Warn(err.Error())
+	return err
 }
 
 func (s *Store) Destroy(_ context.Context, id string) error {
@@ -127,6 +191,12 @@ func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities.Algo
 	}
 
 	return signature, nil
+}
+
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	err := errors.NotSupportedError("verify signature is not supported")
+	s.logger.Warn(err.Error())
+	return err
 }
 
 func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
