@@ -125,7 +125,7 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 
 	if storeBundle, ok := m.secrets[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("SecretStore %s is not found", storeName)
+			errMsg := fmt.Sprintf("cannot access SecretStore %s", storeName)
 			m.logger.WithError(err).Warn(errMsg)
 			return nil, errors.FromError(err).SetMessage(errMsg)
 		}
@@ -146,8 +146,8 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInf
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
-		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("KeyStore %s is not found", storeName)
+		if err := userInfo. CheckAccess(storeBundle.manifest); err != nil {
+			errMsg := fmt.Sprintf("cannot access KeyStore %s", storeName)
 			m.logger.WithError(err).Warn(errMsg)
 			return nil, errors.FromError(err).SetMessage(errMsg)
 		}
@@ -173,7 +173,7 @@ func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *a
 func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("Eth1Store %s is not found", storeName)
+			errMsg := fmt.Sprintf("cannot access Eth1Store %s", storeName)
 			m.logger.WithError(err).Warn(errMsg)
 			return nil, errors.FromError(err).SetMessage(errMsg)
 		}

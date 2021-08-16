@@ -7,24 +7,24 @@ import (
 
 type Permission string
 
-const ReadSecret Permission = "read:secret"
-const SetSecret Permission = "set:secret"
-const DeleteSecret Permission = "delete:secret"
-const DestroySecret Permission = "destroy:secret"
+const ReadSecret Permission = "read:secrets"
+const SetSecret Permission = "set:secrets"
+const DeleteSecret Permission = "delete:secrets"
+const DestroySecret Permission = "destroy:secrets"
 
-const ReadKey Permission = "read:key"
-const SetKey Permission = "set:key"
-const DeleteKey Permission = "delete:key"
-const DestroyKey Permission = "destroy:key"
-const SignKey Permission = "sign:key"
-const EncryptKey Permission = "encrypt:key"
+const ReadKey Permission = "read:keys"
+const SetKey Permission = "set:keys"
+const DeleteKey Permission = "delete:keys"
+const DestroyKey Permission = "destroy:keys"
+const SignKey Permission = "sign:keys"
+const EncryptKey Permission = "encrypt:keys"
 
-const ReadEth1 Permission = "read:eth1"
-const SetEth1 Permission = "set:eth1"
-const DeleteEth1 Permission = "delete:eth1"
-const DestroyEth1 Permission = "destroy:eth1"
-const SignEth1 Permission = "sign:eth1"
-const EncryptEth1 Permission = "encrypt:eth1"
+const ReadEth1 Permission = "read:eth1accounts"
+const SetEth1 Permission = "set:eth1accounts"
+const DeleteEth1 Permission = "delete:eth1accounts"
+const DestroyEth1 Permission = "destroy:eth1accounts"
+const SignEth1 Permission = "sign:eth1accounts"
+const EncryptEth1 Permission = "encrypt:eth1accounts"
 
 func ListPermissions() []Permission {
 	return []Permission{

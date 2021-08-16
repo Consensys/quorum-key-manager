@@ -27,27 +27,27 @@ var testManifest = []byte(`
   name: guest
   specs:
     permission:
-      - read:secret
+      - read:secrets
       - read:nodes
       - proxy:nodes
 - kind: Role
   name: signer
   specs:
     permission:
-      - read:eth1
-      - read:key
-      - sign:key
-      - sign:eth1
+      - read:eth1accounts
+      - read:keys
+      - sign:keys
+      - sign:eth1accounts
 - kind: Role
   name: admin
   specs:
     permission:
-      - read:eth1
-      - read:key
-      - sign:key
-      - sign:eth1
-      - create:eth1
-      - create:key
+      - read:eth1accounts
+      - read:keys
+      - sign:keys
+      - sign:eth1accounts
+      - create:eth1accounts
+      - create:keys
 `)
 
 func TestBaseManager(t *testing.T) {
@@ -75,12 +75,12 @@ func TestBaseManager(t *testing.T) {
 	guestRole, err := mngr.Role(context.TODO(), "guest")
 	require.NoError(t, err)
 	assert.Equal(t, "guest", guestRole.Name)
-	assert.Equal(t, []types.Permission{"read:secret", "read:nodes", "proxy:nodes"}, guestRole.Permissions)
+	assert.Equal(t, []types.Permission{"read:secrets", "read:nodes", "proxy:nodes"}, guestRole.Permissions)
 
-	otherPermission := []types.Permission{"destroy:key"}
+	otherPermission := []types.Permission{"destroy:keys"}
 	userInfo := &types.UserInfo{
 		Roles:       []string{"signer", "admin"},
-		Permissions: []types.Permission{"destroy:key"},
+		Permissions: []types.Permission{"destroy:keys"},
 	}
 	signerRole, err := mngr.Role(context.TODO(), "signer")
 	require.NoError(t, err)

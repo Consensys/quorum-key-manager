@@ -13,6 +13,6 @@ func TestListWildcardPermission(t *testing.T) {
 	list = ListWildcardPermission("read:*")
 	assert.Equal(t, list, []Permission{ReadSecret, ReadKey, ReadEth1})
 
-	list = ListWildcardPermission("*:eth1")
+	list = ListWildcardPermission("*:eth1accounts")
 	assert.Equal(t, list, []Permission{ReadEth1, SetEth1, DeleteEth1, DestroyEth1, SignEth1, EncryptEth1})
 }

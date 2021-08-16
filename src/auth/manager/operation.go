@@ -9,10 +9,11 @@ var ActionSign OpAction = "sign"
 var ActionDelete OpAction = "delete"
 var ActionDestroy OpAction = "destroy"
 
-var ResourceKey OpResource = "key"
-var ResourceSecret OpResource = "secret"
-var ResourceEth OpResource = "eth1"
-var ResourceNode OpResource = "node"
+var ResourceKey OpResource = "keys"
+var ResourceSecret OpResource = "secrets"
+var ResourceEth1Account OpResource = "eth1accounts"
+var ResourceStores OpResource = "stores"
+var ResourceNode OpResource = "nodes"
 
 type Operation struct {
 	Action   OpAction

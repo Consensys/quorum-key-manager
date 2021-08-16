@@ -29,7 +29,7 @@ func (ui *UserInfo) CheckAccess(mnf *manifest.Manifest) error {
 	}
 
 	if ui.Tenant == "" {
-		return errors.NotFoundError("missing credentials")
+		return errors.UnauthorizedError("missing credentials")
 	}
 
 	for _, t := range mnf.AllowedTenants {

@@ -116,7 +116,7 @@ func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.U
 	defer m.mux.RUnlock()
 	if nodeBundle, ok := m.nodes[name]; ok {
 		if err := userInfo.CheckAccess(nodeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("node %s is not found", name)
+			errMsg := fmt.Sprintf("cannot access node %s", name)
 			m.logger.WithError(err).Warn(errMsg)
 			return nil, errors.FromError(err).SetMessage(errMsg)
 		}
