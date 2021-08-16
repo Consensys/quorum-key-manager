@@ -23,7 +23,7 @@ func TestSetSecret(t *testing.T) {
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should set secret successfully", func(t *testing.T) {
 		secret := testutils2.FakeSecret()

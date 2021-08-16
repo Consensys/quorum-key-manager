@@ -23,7 +23,7 @@ func TestListSecret(t *testing.T) {
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should list deleted secret successfully", func(t *testing.T) {
 		secretOne := testutils2.FakeSecret()
@@ -58,7 +58,7 @@ func TestListDeletedSecret(t *testing.T) {
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should list deleted secret successfully", func(t *testing.T) {
 		secretOne := testutils2.FakeSecret()

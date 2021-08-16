@@ -23,7 +23,7 @@ func TestCreateKey(t *testing.T) {
 	db := mock2.NewMockKeys(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should create key successfully", func(t *testing.T) {
 		key := testutils2.FakeKey()

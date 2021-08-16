@@ -1,8 +1,7 @@
 package types
 
 import (
-	"fmt"
-
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
@@ -30,7 +29,7 @@ func (ui *UserInfo) CheckAccess(mnf *manifest.Manifest) error {
 	}
 
 	if ui.Tenant == "" {
-		return fmt.Errorf("missing credentials")
+		return errors.NotFoundError("missing credentials")
 	}
 
 	for _, t := range mnf.AllowedTenants {
@@ -39,7 +38,7 @@ func (ui *UserInfo) CheckAccess(mnf *manifest.Manifest) error {
 		}
 	}
 
-	return fmt.Errorf("tenant %s does not have access", ui.Tenant)
+	return errors.NotFoundError("tenant %s does not have access to %s", ui.Tenant, mnf.Name)
 }
 
 var AnonymousUser = &UserInfo{

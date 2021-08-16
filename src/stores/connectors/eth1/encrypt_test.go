@@ -24,7 +24,7 @@ func TestEncryptKey(t *testing.T) {
 
 	data := []byte("0x123")
 	result := []byte("0x456")
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should encrypt data successfully", func(t *testing.T) {
 		acc := testutils2.FakeETH1Account()

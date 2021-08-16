@@ -7,8 +7,6 @@ import (
 
 type Permission string
 
-// @TODO Add static list of permissions
-
 const ReadSecret Permission = "read:secret"
 const SetSecret Permission = "set:secret"
 const DeleteSecret Permission = "delete:secret"
@@ -16,7 +14,7 @@ const DestroySecret Permission = "destroy:secret"
 
 const ReadKey Permission = "read:key"
 const SetKey Permission = "set:key"
-const DeleteKey Permission = "delete:keys"
+const DeleteKey Permission = "delete:key"
 const DestroyKey Permission = "destroy:key"
 const SignKey Permission = "sign:key"
 const EncryptKey Permission = "encrypt:key"

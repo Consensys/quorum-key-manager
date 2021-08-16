@@ -27,8 +27,8 @@ import (
 const ID = "StoreManager"
 
 type BaseManager struct {
-	manifests     manifestsmanager.Manager
-	policyManager auth.Manager
+	manifests   manifestsmanager.Manager
+	authManager auth.Manager
 
 	mux          sync.RWMutex
 	secrets      map[string]*storeBundle
@@ -52,15 +52,15 @@ type storeBundle struct {
 
 func New(manifests manifestsmanager.Manager, authMngr auth.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests:     manifests,
-		policyManager: authMngr,
-		mux:           sync.RWMutex{},
-		secrets:       make(map[string]*storeBundle),
-		keys:          make(map[string]*storeBundle),
-		eth1Accounts:  make(map[string]*storeBundle),
-		mnfsts:        make(chan []manifestsmanager.Message),
-		logger:        logger,
-		db:            db,
+		manifests:    manifests,
+		authManager:  authMngr,
+		mux:          sync.RWMutex{},
+		secrets:      make(map[string]*storeBundle),
+		keys:         make(map[string]*storeBundle),
+		eth1Accounts: make(map[string]*storeBundle),
+		mnfsts:       make(chan []manifestsmanager.Message),
+		logger:       logger,
+		db:           db,
 	}
 }
 
@@ -125,12 +125,13 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 
 	if storeBundle, ok := m.secrets[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			m.logger.WithError(err).Warn("Access denied for username %s to SecretStore %s", storeName, userInfo.Username)
-			return nil, errors.NotFoundError("Eth1Store %s is not found", storeName)
+			errMsg := fmt.Sprintf("SecretStore %s is not found", storeName)
+			m.logger.WithError(err).Warn(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
 		}
 
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
-			permissions := m.policyManager.UserPermissions(ctx, userInfo)
+			permissions := m.authManager.UserPermissions(ctx, userInfo)
 			resolvr := manager.NewResolver(permissions)
 			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), resolvr, storeBundle.logger), nil
 		}
@@ -146,12 +147,13 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInf
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			m.logger.WithError(err).Warn("Access denied for username %s to KeyStore %s", userInfo.Username, storeName)
-			return nil, errors.NotFoundError("KeyStore %s is not found", storeName)
+			errMsg := fmt.Sprintf("KeyStore %s is not found", storeName)
+			m.logger.WithError(err).Warn(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			permissions := m.policyManager.UserPermissions(ctx, userInfo)
+			permissions := m.authManager.UserPermissions(ctx, userInfo)
 			resolvr := manager.NewResolver(permissions)
 			return keysconnector.NewConnector(store, m.db.Keys(storeName), resolvr, storeBundle.logger), nil
 		}
@@ -171,12 +173,13 @@ func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *a
 func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			m.logger.WithError(err).Warn("Access denied for username %s to Eth1Store %s", userInfo.Username, storeName)
-			return nil, errors.NotFoundError("Eth1Store %s is not found", storeName)
+			errMsg := fmt.Sprintf("Eth1Store %s is not found", storeName)
+			m.logger.WithError(err).Warn(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			permissions := m.policyManager.UserPermissions(ctx, userInfo)
+			permissions := m.authManager.UserPermissions(ctx, userInfo)
 			resolvr := manager.NewResolver(permissions)
 			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), resolvr, storeBundle.logger), nil
 		}
