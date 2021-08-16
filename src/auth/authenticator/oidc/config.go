@@ -10,16 +10,16 @@ type Config struct {
 }
 
 type ClaimsConfig struct {
-	Username string
-	Claims   string
+	Subject string
+	Scope   string
 }
 
-func NewConfig(username, claims string, certs ...*x509.Certificate) *Config {
+func NewConfig(subject, scope string, certs ...*x509.Certificate) *Config {
 	return &Config{
 		Certificates: certs,
 		Claims: &ClaimsConfig{
-			Username: username,
-			Claims:   claims,
+			Subject: subject,
+			Scope:   scope,
 		},
 	}
 }

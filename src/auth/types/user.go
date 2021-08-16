@@ -13,7 +13,7 @@ type UserInfo struct {
 	// Tenant belonged by the user
 	Tenant string
 
-	// Username identifies the user
+	// Subject identifies the user
 	Username string
 
 	// Roles indicates the user's membership

@@ -21,8 +21,8 @@ func TestJWTChecker_RSAToken(t *testing.T) {
 	ctx := context.Background()
 
 	claimsCfg := &ClaimsConfig{
-		Username: "sub",
-		Claims:   "scope",
+		Subject: "sub",
+		Scope:   "scope",
 	}
 
 	cert, _ := certificate.X509KeyPair([]byte(testutils.RSACertPEM), []byte(testutils.RSAKeyPEM))

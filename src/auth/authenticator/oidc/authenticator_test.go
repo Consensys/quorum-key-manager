@@ -22,8 +22,8 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 	defer ctrl.Finish()
 
 	claimsCfg := &ClaimsConfig{
-		Username: "sub",
-		Claims:   "scope",
+		Subject: "sub",
+		Scope:   "scope",
 	}
 
 	cert, _ := certificate.X509KeyPair([]byte(testutils.RSACertPEM), []byte(testutils.RSAKeyPEM))

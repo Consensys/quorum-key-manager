@@ -14,7 +14,7 @@ func (c Connector) Get(ctx context.Context, id, version string) (*entities.Secre
 	if err != nil {
 		return nil, err
 	}
-	
+
 	secret, err := c.store.Get(ctx, id, version)
 	if err != nil {
 		return nil, err

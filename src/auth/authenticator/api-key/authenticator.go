@@ -38,7 +38,7 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 }
 
 // Authenticate checks APIKEY hashes retrieve user Info
-// ? -> Username
+// ? -> Subject
 // ? -> Roles
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// In case of no credentials are sent we authenticate with Anonymous user

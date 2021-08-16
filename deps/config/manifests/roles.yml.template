@@ -14,8 +14,8 @@
   specs:
     permission:
       - read:*
-      - sign:key
-      - sign:eth1
+      - sign:keys
+      - sign:eth1accounts
 - kind: Role
   name: admin
   specs:
