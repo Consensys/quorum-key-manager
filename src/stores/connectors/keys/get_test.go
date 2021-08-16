@@ -22,7 +22,7 @@ func TestGetKey(t *testing.T) {
 	db := mock2.NewMockKeys(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should get key successfully", func(t *testing.T) {
 		key := testutils2.FakeKey()
@@ -57,7 +57,7 @@ func TestGetDeletedKey(t *testing.T) {
 	db := mock2.NewMockKeys(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should get deleted key successfully", func(t *testing.T) {
 		key := testutils2.FakeKey()

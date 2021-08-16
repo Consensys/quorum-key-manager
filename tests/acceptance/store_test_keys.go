@@ -253,6 +253,7 @@ func (s *keysTestSuite) TestUpdate() {
 		})
 
 		require.NoError(s.T(), err)
+		require.NotNil(s.T(), updatedKey)
 
 		assert.Equal(s.T(), id, updatedKey.ID)
 		assert.Equal(s.T(), newTags, updatedKey.Tags)

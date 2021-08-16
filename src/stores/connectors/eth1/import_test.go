@@ -23,7 +23,7 @@ func TestImportKey(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 	privKey := []byte("0xABCD")
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should import key successfully", func(t *testing.T) {
 		acc := testutils2.FakeETH1Account()

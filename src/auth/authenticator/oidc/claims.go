@@ -11,7 +11,7 @@ type Claims struct {
 	jwt.MapClaims
 
 	Username string   `json:"username"`
-	Groups   []string `json:"groups"`
+	Claims   []string `json:"claims"`
 
 	cfg *ClaimsConfig
 }
@@ -30,21 +30,21 @@ func (c *Claims) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if raw, ok := objmap[c.cfg.Username]; ok {
+	if raw, ok := objmap[c.cfg.Subject]; ok {
 		err = json.Unmarshal(*raw, &c.Username)
 		if err != nil {
 			return err
 		}
 	}
 
-	if raw, ok := objmap[c.cfg.Group]; ok {
-		var groups string
-		err = json.Unmarshal(*raw, &groups)
+	if raw, ok := objmap[c.cfg.Scope]; ok {
+		var claims string
+		err = json.Unmarshal(*raw, &claims)
 		if err != nil {
 			return err
 		}
 
-		c.Groups = strings.Split(groups, ",")
+		c.Claims = strings.Split(claims, " ")
 	}
 
 	return nil

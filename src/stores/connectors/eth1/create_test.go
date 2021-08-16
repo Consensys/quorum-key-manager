@@ -22,7 +22,7 @@ func TestCreateKey(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should create eth1Account successfully", func(t *testing.T) {
 		acc := testutils2.FakeETH1Account()

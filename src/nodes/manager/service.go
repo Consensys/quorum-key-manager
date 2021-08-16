@@ -6,6 +6,7 @@ import (
 	"sort"
 	"sync"
 
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -20,17 +21,6 @@ import (
 const NodeManagerID = "NodeManager"
 
 var NodeKind manifest.Kind = "Node"
-
-//go:generate mockgen -source=manager.go -destination=mock/manager.go -package=mock
-
-// Manager allows to manage multiple stores
-type Manager interface {
-	// Node return by name
-	Node(ctx context.Context, name string) (node.Node, error)
-
-	// List stores
-	List(ctx context.Context) ([]string, error)
-}
 
 type BaseManager struct {
 	stores    stores.Manager
@@ -121,27 +111,38 @@ func (m *BaseManager) loadAll(ctx context.Context) {
 	}
 }
 
-func (m *BaseManager) Node(_ context.Context, name string) (node.Node, error) {
+func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.UserInfo) (node.Node, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if nodeBundle, ok := m.nodes[name]; ok {
+		if err := userInfo.CheckAccess(nodeBundle.manifest); err != nil {
+			errMsg := fmt.Sprintf("cannot access node '%s'", name)
+			m.logger.WithError(err).Warn(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
+		}
 		return nodeBundle.node, nodeBundle.err
 	}
 
 	// This piece of code is here to make sure it is possible to retrieve a default node
 	for _, nodeBundle := range m.nodes {
+		if err := userInfo.CheckAccess(nodeBundle.manifest); err != nil {
+			continue
+		}
 		return nodeBundle.node, nodeBundle.err
 	}
 
 	return nil, errors.NotFoundError("node not found")
 }
 
-func (m *BaseManager) List(_ context.Context) ([]string, error) {
+func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
 	nodeNames := []string{}
-	for name := range m.nodes {
+	for name, nodeBundle := range m.nodes {
+		if err := userInfo.CheckAccess(nodeBundle.manifest); err != nil {
+			continue
+		}
 		nodeNames = append(nodeNames, name)
 	}
 

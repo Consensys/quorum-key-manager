@@ -32,7 +32,7 @@ func TestSign(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 	data := []byte("my data to sign")
 
 	t.Run("should sign successfully", func(t *testing.T) {
@@ -134,7 +134,7 @@ func TestSignHash(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	data := crypto.Keccak256([]byte("data to sign"))
 	R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
@@ -188,7 +188,7 @@ func TestSignTransaction(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	acc := testutils2.FakeETH1Account()
 	chainID := big.NewInt(1)
@@ -242,7 +242,7 @@ func TestSignPrivate(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	acc := testutils2.FakeETH1Account()
 	tx := quorumtypes.NewTransaction(
@@ -295,7 +295,7 @@ func TestSignEEA(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	acc := testutils2.FakeETH1Account()
 	chainID := big.NewInt(1)

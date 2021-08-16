@@ -22,12 +22,13 @@ func TestGetSecret(t *testing.T) {
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should get secret successfully", func(t *testing.T) {
 		secret := testutils2.FakeSecret()
 
 		db.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
+		store.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
 
 		rSecret, err := connector.Get(ctx, secret.ID, secret.Metadata.Version)
 
@@ -57,7 +58,7 @@ func TestGetDeletedSecret(t *testing.T) {
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should get deleted secret successfully", func(t *testing.T) {
 		secret := testutils2.FakeSecret()

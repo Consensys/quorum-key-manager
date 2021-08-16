@@ -24,7 +24,8 @@ func (h *testHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
 	userInfo := UserInfoContextFromContext(req.Context())
 	if h.userInfo != nil {
 		require.NotNil(h.t, h.userInfo)
-		assert.Equal(h.t, h.userInfo.Groups, userInfo.Groups)
+		assert.Equal(h.t, h.userInfo.Permissions, userInfo.Permissions)
+		assert.Equal(h.t, h.userInfo.Roles, userInfo.Roles)
 		assert.Equal(h.t, h.userInfo.Username, userInfo.Username)
 	} else {
 		require.Nil(h.t, h.userInfo)
@@ -54,11 +55,13 @@ func TestMiddleware(t *testing.T) {
 	t.Run("authentication accepted", func(t *testing.T) {
 		user := &types.UserInfo{
 			Username: "test-username",
-			Groups: []string{
-				"group-test1",
-				"group-test2",
+			Roles: []string{
+				"role1",
+				"role2",
 			},
+			Permissions: []types.Permission{"read:key", "write:key"},
 		}
+
 		h := mid.Then(&testHandler{t, user})
 		auth1.EXPECT().Authenticate(gomock.Any()).Return(user, nil)
 		req, _ := http.NewRequest(http.MethodGet, "", nil)

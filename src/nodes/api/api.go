@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes/manager"
 	"github.com/gorilla/mux"
 )
@@ -61,8 +62,11 @@ func stripNodePrefix(h http.Handler) http.Handler {
 }
 
 func (h *NodesAPI) serveHTTPDownstream(rw http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	nodeName := mux.Vars(req)["nodeName"]
-	n, err := h.nodes.Node(req.Context(), nodeName)
+
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	n, err := h.nodes.Node(req.Context(), nodeName, userInfo)
 	if err != nil {
 		http.NotFound(rw, req)
 		return

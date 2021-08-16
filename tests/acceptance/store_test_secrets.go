@@ -11,7 +11,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/akv"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -25,24 +24,20 @@ type secretsTestSuite struct {
 }
 
 func (s *secretsTestSuite) TearDownSuite() {
-	version := ""
-	if _, ok := s.store.(*hashicorp.Store); ok {
-		version = "1"
-	}
-
 	ctx := s.env.ctx
 
-	s.env.logger.Info("Deleting the following secrets", "secrets", s.secretIDs)
+	s.env.logger.Info("deleting the following secrets", "secrets", s.secretIDs)
 	for _, id := range s.secretIDs {
-		err := s.store.Delete(ctx, id, version)
-		require.NoError(s.T(), err)
+		err := s.store.Delete(ctx, id, "")
+		if err != nil {
+			s.env.logger.With("secretID", id).Error("failed to delete secret")
+		}
 	}
 
 	for _, id := range s.secretIDs {
-		err := s.store.Destroy(ctx, id, version)
-		if err == nil {
+		err := s.store.Destroy(ctx, id, "")
+		if err != nil {
 			s.env.logger.With("secretID", id).Error("failed to destroy secret")
-			break
 		}
 	}
 }
@@ -108,8 +103,8 @@ func (s *secretsTestSuite) TestGet() {
 	require.NoError(s.T(), setErr)
 	version := secret.Metadata.Version
 
-	s.Run("should get latest secret successfully if no version is specified", func() {
-		secret, err := s.store.Get(ctx, id, "")
+	s.Run("should get secret successfully", func() {
+		secret, err := s.store.Get(ctx, id, version)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, secret.ID)
@@ -123,8 +118,8 @@ func (s *secretsTestSuite) TestGet() {
 		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 
-	s.Run("should get specific secret version", func() {
-		secret, err := s.store.Get(ctx, id, version)
+	s.Run("should get latest secret version if no version is specified", func() {
+		secret, err := s.store.Get(ctx, id, "")
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), version, secret.Metadata.Version)
 	})
@@ -166,17 +161,7 @@ func (s *secretsTestSuite) TestDelete() {
 	})
 }
 
-/* TODO: For some reason these tests fail for AKV
 func (s *secretsTestSuite) TestGetDeleted() {
-	// Skip not supported secret store types
-	if _, ok := s.store.(*hashicorp.Store); ok {
-		return
-	}
-
-	if _, ok := s.store.(*aws.Store); ok {
-		return
-	}
-
 	ctx := s.env.ctx
 	id := fmt.Sprintf("%s-%s", "my-deleted-secret", common.RandString(10))
 	value := "my-deleted-secret-value"
@@ -231,15 +216,6 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 }
 
 func (s *secretsTestSuite) TestListDeleted() {
-	// Skip not supported secret store types
-	if _, ok := s.store.(*hashicorp.Store); ok {
-		return
-	}
-
-	if _, ok := s.store.(*aws.Store); ok {
-		return
-	}
-
 	ctx := s.env.ctx
 	id := s.newID("my-deleted-secret-list")
 	id2 := s.newID("my-deleted-secret-list-2")
@@ -264,7 +240,7 @@ func (s *secretsTestSuite) TestListDeleted() {
 		assert.Contains(s.T(), ids, id2)
 	})
 }
-*/
+
 
 func (s *secretsTestSuite) newID(name string) string {
 	id := fmt.Sprintf("%s-%s", name, common.RandString(10))
