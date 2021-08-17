@@ -23,7 +23,7 @@ func TestDeleteKey(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	db.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, persist func(dbtx database.ETH1Accounts) error) error {

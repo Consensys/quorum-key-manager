@@ -3,13 +3,15 @@ package auth
 import (
 	"net/http"
 
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
+
 	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	authmanager "github.com/consensys/quorum-key-manager/src/auth/policy"
+	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
@@ -40,7 +42,7 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 	}
 
 	// Load policy manager service
-	policyMngr := new(authmanager.Manager)
+	policyMngr := new(Manager)
 	err = a.Service(policyMngr)
 	if err != nil {
 		return nil, err
@@ -56,13 +58,22 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 			auths = append(auths, oidcAuth)
 		}
 	}
+	if cfg.TLS != nil {
+		tlsAuth, err := tls.NewAuthenticator(cfg.TLS)
+		if err != nil {
+			return nil, err
+		} else if tlsAuth != nil {
+			logger.Info("TLS Authenticator is enabled")
+			auths = append(auths, tlsAuth)
+		}
+	}
 
 	if cfg.APIKEY != nil {
 		apikeyAuth, err := apikey.NewAuthenticator(cfg.APIKEY)
 		if err != nil {
 			return nil, err
 		} else if apikeyAuth != nil {
-			logger.Info("APIKEY Authenticator is enabled")
+			logger.Info("API-KEY Authenticator is enabled")
 			auths = append(auths, apikeyAuth)
 		}
 	}

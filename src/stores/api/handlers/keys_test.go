@@ -32,8 +32,9 @@ const (
 )
 
 var keyUserInfo = &types.UserInfo{
-	Username: "username",
-	Groups:   []string{"group1", "group2"},
+	Username:    "username",
+	Roles:       []string{"role1", "role2"},
+	Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
 }
 
 type keysHandlerTestSuite struct {

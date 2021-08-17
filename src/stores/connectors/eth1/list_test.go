@@ -24,7 +24,7 @@ func TestListEth1Accounts(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should list eth1Accounts successfully", func(t *testing.T) {
 		accOne := testutils2.FakeETH1Account()
@@ -59,7 +59,7 @@ func TestListDeletedEth1Accounts(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should list deleted eth1Accounts successfully", func(t *testing.T) {
 		accOne := testutils2.FakeETH1Account()

@@ -25,7 +25,7 @@ func TestSignKey(t *testing.T) {
 	data := []byte("0x123")
 	result := []byte("0x456")
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should sign data successfully", func(t *testing.T) {
 		key := testutils2.FakeKey()

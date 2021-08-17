@@ -5,30 +5,30 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/auth"
+	"github.com/consensys/quorum-key-manager/src/auth/manager"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	eth1connector "github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
 	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
-
-	"github.com/consensys/quorum-key-manager/src/auth/policy"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
+	meth1 "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
+	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
+	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
-	meth1 "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
-	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
-	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 const ID = "StoreManager"
 
 type BaseManager struct {
-	manifests     manifestsmanager.Manager
-	policyManager policy.Manager
+	manifests   manifestsmanager.Manager
+	authManager auth.Manager
 
 	mux          sync.RWMutex
 	secrets      map[string]*storeBundle
@@ -50,19 +50,17 @@ type storeBundle struct {
 	store    interface{}
 }
 
-var _ stores.Manager = &BaseManager{}
-
-func New(manifests manifestsmanager.Manager, policyManager policy.Manager, db database.Database, logger log.Logger) *BaseManager {
+func New(manifests manifestsmanager.Manager, authMngr auth.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests:     manifests,
-		policyManager: policyManager,
-		mux:           sync.RWMutex{},
-		secrets:       make(map[string]*storeBundle),
-		keys:          make(map[string]*storeBundle),
-		eth1Accounts:  make(map[string]*storeBundle),
-		mnfsts:        make(chan []manifestsmanager.Message),
-		logger:        logger,
-		db:            db,
+		manifests:    manifests,
+		authManager:  authMngr,
+		mux:          sync.RWMutex{},
+		secrets:      make(map[string]*storeBundle),
+		keys:         make(map[string]*storeBundle),
+		eth1Accounts: make(map[string]*storeBundle),
+		mnfsts:       make(chan []manifestsmanager.Message),
+		logger:       logger,
+		db:           db,
 	}
 }
 
@@ -126,10 +124,16 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 	defer m.mux.RUnlock()
 
 	if storeBundle, ok := m.secrets[storeName]; ok {
+		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
+			errMsg := fmt.Sprintf("cannot access SecretStore '%s'", storeName)
+			m.logger.WithError(err).Warn(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
+		}
+
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
-			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			_, _ = policy.NewResolver(policies)
-			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), storeBundle.logger), nil
+			permissions := m.authManager.UserPermissions(ctx, userInfo)
+			resolvr := manager.NewResolver(permissions)
+			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -138,12 +142,20 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, _ *authtypes.UserInfo) (stores.KeyStore, error) {
+func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.KeyStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
+		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
+			errMsg := fmt.Sprintf("cannot access KeyStore '%s'", storeName)
+			m.logger.WithError(err).Warn(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
+		}
+
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			return keysconnector.NewConnector(store, m.db.Keys(storeName), storeBundle.logger), nil
+			permissions := m.authManager.UserPermissions(ctx, userInfo)
+			resolvr := manager.NewResolver(permissions)
+			return keysconnector.NewConnector(store, m.db.Keys(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -160,10 +172,16 @@ func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *a
 
 func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
+		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
+			errMsg := fmt.Sprintf("cannot access Eth1Store '%s'", storeName)
+			m.logger.WithError(err).Warn(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
+		}
+
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			policies := m.policyManager.UserPolicies(ctx, userInfo)
-			_, _ = policy.NewResolver(policies)
-			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), storeBundle.logger), nil
+			permissions := m.authManager.UserPermissions(ctx, userInfo)
+			resolvr := manager.NewResolver(permissions)
+			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), resolvr, storeBundle.logger), nil
 		}
 	}
 
@@ -176,18 +194,24 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	for _, storeName := range m.list(ctx, "") {
+	for _, storeName := range m.list(ctx, stores.Eth1Account, userInfo) {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
 			acc, err := m.getEth1Store(ctx, storeName, userInfo)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = acc.Get(ctx, addr)
 			if err == nil {
 				// Check if account exists in store and returns it
 				_, err := acc.Get(ctx, addr)
 				if err == nil {
 					return acc, nil
 				}
+				return acc, nil
 			}
 		}
 	}
@@ -197,26 +221,25 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 	return nil, errors.InvalidParameterError(errMessage)
 }
 
-func (m *BaseManager) List(ctx context.Context, kind manifest.Kind, _ *authtypes.UserInfo) ([]string, error) {
+func (m *BaseManager) List(ctx context.Context, kind manifest.Kind, userInfo *authtypes.UserInfo) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	// TODO Filter available store using userInfo groups
-	return m.list(ctx, kind), nil
+	return m.list(ctx, kind, userInfo), nil
 }
 
-func (m *BaseManager) list(_ context.Context, kind manifest.Kind) []string {
+func (m *BaseManager) list(_ context.Context, kind manifest.Kind, userInfo *authtypes.UserInfo) []string {
 	storeNames := []string{}
 	switch kind {
 	case "":
 		storeNames = append(
-			append(m.storeNames(m.secrets, kind), m.storeNames(m.keys, kind)...), m.storeNames(m.eth1Accounts, kind)...)
+			append(m.listStores(m.secrets, kind, userInfo), m.listStores(m.keys, kind, userInfo)...), m.listStores(m.eth1Accounts, kind, userInfo)...)
 	case stores.HashicorpSecrets, stores.AKVSecrets, stores.AWSSecrets:
-		storeNames = m.storeNames(m.secrets, kind)
+		storeNames = m.listStores(m.secrets, kind, userInfo)
 	case stores.AKVKeys, stores.HashicorpKeys, stores.AWSKeys:
-		storeNames = m.storeNames(m.keys, kind)
+		storeNames = m.listStores(m.keys, kind, userInfo)
 	case stores.Eth1Account:
-		storeNames = m.storeNames(m.eth1Accounts, kind)
+		storeNames = m.listStores(m.eth1Accounts, kind, userInfo)
 	}
 
 	return storeNames
@@ -227,14 +250,17 @@ func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.U
 	defer m.mux.RUnlock()
 
 	accs := []ethcommon.Address{}
-	for _, storeName := range m.list(ctx, "") {
+	for _, storeName := range m.list(ctx, stores.Eth1Account, userInfo) {
 		store, err := m.getEth1Store(ctx, storeName, userInfo)
-		if err == nil {
-			storeAccs, err := store.List(ctx)
-			if err == nil {
-				accs = append(accs, storeAccs...)
-			}
+		if err != nil {
+			return nil, err
 		}
+
+		storeAccs, err := store.List(ctx)
+		if err != nil {
+			return nil, err
+		}
+		accs = append(accs, storeAccs...)
 	}
 
 	return accs, nil
@@ -370,10 +396,14 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 	return nil
 }
 
-func (m *BaseManager) storeNames(list map[string]*storeBundle, kind manifest.Kind) []string {
+func (m *BaseManager) listStores(list map[string]*storeBundle, kind manifest.Kind, userInfo *authtypes.UserInfo) []string {
 	var storeNames []string
-	for k, store := range list {
-		if kind == "" || store.manifest.Kind == kind {
+	for k, storeBundle := range list {
+		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
+			continue
+		}
+
+		if kind == "" || storeBundle.manifest.Kind == kind {
 			storeNames = append(storeNames, k)
 		}
 	}

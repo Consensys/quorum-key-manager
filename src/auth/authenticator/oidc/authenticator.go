@@ -6,6 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/utils"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
@@ -38,16 +39,18 @@ func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) 
 		return nil, nil
 	}
 
-	claims, err := a.jwtChecker.Check(req.Context(), token)
+	jwtData, err := a.jwtChecker.Check(req.Context(), token)
 	if err != nil {
 		return nil, errors.UnauthorizedError(err.Error())
 	}
 
-	return &types.UserInfo{
-		Username: claims.Username,
-		Groups:   claims.Groups,
+	userInfo := &types.UserInfo{
 		AuthMode: AuthMode,
-	}, nil
+	}
+
+	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(jwtData.Subject)
+	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(jwtData.Scope)
+	return userInfo, nil
 }
 
 func extractToken(prefix, auth string) (string, bool) {

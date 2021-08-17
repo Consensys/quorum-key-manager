@@ -6,6 +6,7 @@ package mock
 
 import (
 	context "context"
+	types "github.com/consensys/quorum-key-manager/src/auth/types"
 	node "github.com/consensys/quorum-key-manager/src/nodes/node"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -34,32 +35,32 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// Node mock base method
-func (m *MockManager) Node(ctx context.Context, name string) (node.Node, error) {
+// Node mocks base method
+func (m *MockManager) Node(ctx context.Context, name string, userInfo *types.UserInfo) (node.Node, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Node", ctx, name)
+	ret := m.ctrl.Call(m, "Node", ctx, name, userInfo)
 	ret0, _ := ret[0].(node.Node)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Node indicates an expected call of Node
-func (mr *MockManagerMockRecorder) Node(ctx, name interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) Node(ctx, name, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Node", reflect.TypeOf((*MockManager)(nil).Node), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Node", reflect.TypeOf((*MockManager)(nil).Node), ctx, name, userInfo)
 }
 
-// List mock base method
-func (m *MockManager) List(ctx context.Context) ([]string, error) {
+// List mocks base method
+func (m *MockManager) List(ctx context.Context, userInfo *types.UserInfo) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
+	ret := m.ctrl.Call(m, "List", ctx, userInfo)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockManagerMockRecorder) List(ctx interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) List(ctx, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List), ctx, userInfo)
 }

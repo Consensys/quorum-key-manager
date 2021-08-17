@@ -13,6 +13,8 @@ import (
 	"os"
 	"strings"
 
+	authtls "github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
+
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth"
@@ -32,7 +34,11 @@ func init() {
 
 	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+
+	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
 	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
+
+	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsFileEnv)
 
 }
 
@@ -47,6 +53,13 @@ const (
 	authAPIKeyFileViperKey    = "auth.api.key.file"
 	authAPIKeyDefaultFileFlag = ""
 	authAPIKeyFileEnv         = "AUTH_API_KEY_FILE"
+)
+
+const (
+	authTLSCertsFileFlag     = "auth-tls-ca"
+	authTLSCertsFileViperKey = "auth.tls.ca"
+	authTLSCertsFileDefault  = ""
+	authTLSCertsFileEnv      = "AUTH_TLS_CA"
 )
 
 const (
@@ -73,16 +86,23 @@ const (
 const (
 	authOIDCClaimUsernameFlag     = "auth-oidc-claim-username"
 	authOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
-	authOIDCClaimUsernameDefault  = "qkm.auth.username"
+	authOIDCClaimUsernameDefault  = "sub"
 	authOIDCClaimUsernameEnv      = "AUTH_OIDC_CLAIM_USERNAME"
 )
 
 const (
 	authOIDCClaimGroupFlag     = "auth-oidc-claim-groups"
 	authOIDCClaimGroupViperKey = "auth.oidc.claim.groups"
-	authOIDCClaimGroupDefault  = "qkm.auth.groups"
+	authOIDCClaimGroupDefault  = "scope"
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
+
+func authTLSCertFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
+Environment variable: %q`, authTLSCertsFileEnv)
+	f.String(authTLSCertsFileFlag, authTLSCertsFileDefault, desc)
+	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
+}
 
 func authAPIKeyFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
@@ -96,6 +116,7 @@ func AuthFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimGroups(f)
+	authTLSCertFile(f)
 	authAPIKeyFile(f)
 }
 
@@ -136,17 +157,17 @@ Environment variable: %q`, authOIDCCACertFileEnv)
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
-	// OIDC part
+	// OIDC
 	certsOIDC := []*x509.Certificate{}
 
-	fileCertOIDC, err := fileCertificate(vipr)
+	fileCertOIDC, err := oidcCert(vipr)
 	if err != nil {
 		return nil, err
 	} else if fileCertOIDC != nil {
 		certsOIDC = append(certsOIDC, fileCertOIDC)
 	}
 
-	issuerCerts, err := issuerCertificates(vipr)
+	issuerCerts, err := oidcIssuerURL(vipr)
 	if err != nil {
 		return nil, err
 	} else if issuerCerts != nil {
@@ -156,30 +177,41 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
-	// API-KEY part
+	// API-KEY
 	var apiKeyCfg = &apikey.Config{}
 	fileAPIKeys, err := apiKeyCsvFile(vipr)
 	if err != nil {
 		return nil, err
 	} else if fileAPIKeys != nil {
 		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
-
 	}
 
-	return &auth.Config{OIDC: oidcCfg,
+	// TLS
+	var tlsCfg *authtls.Config
+	tlsAuthCAs, err := tlsAuthCerts(vipr)
+	if err != nil {
+		return nil, err
+	}
+
+	tlsCfg = authtls.NewConfig(tlsAuthCAs)
+
+	return &auth.Config{
+		OIDC:   oidcCfg,
 		APIKEY: apiKeyCfg,
+		TLS:    tlsCfg,
 	}, nil
 
 }
 
-func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
+func oidcCert(vipr *viper.Viper) (*x509.Certificate, error) {
 	caFile := vipr.GetString(authOIDCCACertFileViperKey)
+	if caFile == "" {
+		return nil, nil
+	}
+
 	_, err := os.Stat(caFile)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
-		}
-		return nil, nil
+		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
 	}
 
 	caFileContent, err := ioutil.ReadFile(caFile)
@@ -199,7 +231,7 @@ func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	return cert, nil
 }
 
-func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
+func oidcIssuerURL(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	issuerServer := vipr.GetString(authOIDCIssuerURLViperKey)
 	if issuerServer == "" {
 		return nil, nil
@@ -218,7 +250,7 @@ func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	return certs, nil
 }
 
-func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, error) {
+func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 	// Open the file
 	csvFileName := vipr.GetString(authAPIKeyFileViperKey)
 	if csvFileName == "" {
@@ -240,7 +272,7 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, erro
 	// ignore comments in file
 	r.Comment = csvCommentsMarker
 
-	retFile := make(map[string]apikey.UserNameAndGroups)
+	retFile := make(map[string]apikey.UserClaims)
 
 	// Iterate through the lines
 	for {
@@ -256,10 +288,37 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserNameAndGroups, erro
 			return nil, fmt.Errorf("invalid number of cells in file %s should be %d", csvfile.Name(), csvRowLen)
 		}
 
-		retFile[cells[0]] = apikey.UserNameAndGroups{UserName: cells[1],
-			Groups: strings.Split(cells[2], ","),
+		retFile[cells[0]] = apikey.UserClaims{UserName: cells[1],
+			Claims: strings.Split(cells[2], ","),
 		}
 	}
 
 	return retFile, nil
+}
+
+func tlsAuthCerts(vipr *viper.Viper) ([]*x509.Certificate, error) {
+	caFile := vipr.GetString(authTLSCertsFileViperKey)
+	if caFile == "" {
+		return nil, nil
+	}
+	_, err := os.Stat(caFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
+	}
+
+	caFileContent, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return nil, err
+	}
+
+	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
+	cert, err := x509.ParseCertificate(bCert[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return []*x509.Certificate{cert}, nil
 }

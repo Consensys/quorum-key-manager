@@ -39,13 +39,18 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 
 	if info != nil {
 		// If authentication succeeded then sets the system:authenticated group
-		info.Groups = append(types.AuthenticatedUser.Groups, info.Groups...)
+		info.Permissions = append(types.AuthenticatedUser.Permissions, info.Permissions...)
+		info.Roles = append(types.AuthenticatedUser.Roles, info.Roles...)
 	} else {
 		// If no authentication then sets info to anonymous user
 		info = types.AnonymousUser
 	}
 
-	mid.logger.With("groups", info.Groups).Debug("request successfully authenticated")
+	mid.logger.With("username", info.Username).
+		With("tenant", info.Tenant).
+		With("roles", info.Roles).
+		With("permissions", info.Permissions).
+		Debug("request successfully authenticated")
 
 	ctx = WithUserContext(ctx, NewUserContext(info))
 

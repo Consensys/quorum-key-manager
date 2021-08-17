@@ -1,0 +1,164 @@
+package manager
+
+import (
+	"context"
+	"fmt"
+	"sync"
+
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
+	"github.com/consensys/quorum-key-manager/src/auth/types"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+)
+
+var authKinds = []manifest.Kind{
+	RoleKind,
+}
+
+// BaseManager allow to manage Permissions and Roles
+type BaseManager struct {
+	manifests manifestsmanager.Manager
+
+	mux   sync.RWMutex
+	roles map[string]*types.Role
+
+	sub    manifestsmanager.Subscription
+	mnfsts chan []manifestsmanager.Message
+
+	logger log.Logger
+}
+
+func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
+	return &BaseManager{
+		manifests: manifests,
+		roles:     make(map[string]*types.Role),
+		mnfsts:    make(chan []manifestsmanager.Message),
+		logger:    logger,
+	}
+}
+
+func (mngr *BaseManager) Start(ctx context.Context) error {
+	mngr.mux.Lock()
+	defer mngr.mux.Unlock()
+
+	// Subscribe to manifest of Kind Role and Policy
+	mngr.sub = mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
+
+	// Start loading manifest
+	go mngr.loadAll(ctx)
+
+	return nil
+}
+
+func (mngr *BaseManager) Stop(context.Context) error {
+	mngr.mux.Lock()
+	defer mngr.mux.Unlock()
+
+	if mngr.sub != nil {
+		_ = mngr.sub.Unsubscribe()
+	}
+	close(mngr.mnfsts)
+	return nil
+}
+
+func (mngr *BaseManager) Error() error {
+	return nil
+}
+
+func (mngr *BaseManager) Close() error {
+	return nil
+}
+
+func (mngr *BaseManager) UserPermissions(ctx context.Context, user *types.UserInfo) []types.Permission {
+	// Retrieve permissions associated to user user
+	var permissions []types.Permission
+	if user == nil {
+		return permissions
+	}
+
+	permissions = append(permissions, user.Permissions...)
+
+	for _, roleName := range user.Roles {
+		role, err := mngr.Role(ctx, roleName)
+		if err != nil {
+			mngr.logger.WithError(err).With("role", roleName).Debug("could not load role")
+			continue
+		}
+
+		permissions = append(permissions, role.Permissions...)
+	}
+
+	// Create resolver
+	return permissions
+}
+
+func (mngr *BaseManager) Role(_ context.Context, name string) (*types.Role, error) {
+	return mngr.role(name)
+}
+
+func (mngr *BaseManager) Roles(context.Context) ([]string, error) {
+	roles := make([]string, 0, len(mngr.roles))
+	for role := range mngr.roles {
+		roles = append(roles, role)
+	}
+	return roles, nil
+}
+
+func (mngr *BaseManager) role(name string) (*types.Role, error) {
+	if group, ok := mngr.roles[name]; ok {
+		return group, nil
+	}
+
+	return nil, fmt.Errorf("role %q not found", name)
+}
+
+func (mngr *BaseManager) loadAll(ctx context.Context) {
+	for mnfsts := range mngr.mnfsts {
+		for _, mnf := range mnfsts {
+			_ = mngr.load(ctx, mnf.Manifest)
+		}
+	}
+}
+
+func (mngr *BaseManager) load(_ context.Context, mnf *manifest.Manifest) error {
+	mngr.mux.Lock()
+	defer mngr.mux.Unlock()
+
+	logger := mngr.logger.With("kind", mnf.Kind).With("name", mnf.Name)
+
+	// @TODO Implement support of "*" for permissions, ie: *:eth1, read:*
+	switch mnf.Kind {
+	case RoleKind:
+		err := mngr.loadRole(mnf)
+		if err != nil {
+			logger.WithError(err).Error("could not load Role")
+			return err
+		}
+		logger.Info("loaded Role")
+	default:
+		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
+		logger.WithError(err).Error("error starting node")
+		return err
+	}
+
+	return nil
+}
+
+func (mngr *BaseManager) loadRole(mnf *manifest.Manifest) error {
+	if _, ok := mngr.roles[mnf.Name]; ok {
+		return fmt.Errorf("role %q already exist", mnf.Name)
+	}
+
+	specs := new(RoleSpecs)
+	if err := mnf.UnmarshalSpecs(specs); err != nil {
+		return fmt.Errorf("invalid Role specs: %v", err)
+	}
+
+	mngr.roles[mnf.Name] = &types.Role{
+		Name:        mnf.Name,
+		Permissions: specs.Permissions,
+	}
+
+	return nil
+}

@@ -25,7 +25,7 @@ func TestRecover(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 	acc := testutils2.FakeETH1Account()
 	acc.Address = common.HexToAddress("0x6436Bd740B732b90a9f7bc3065d6c3eDa57D9785")
 

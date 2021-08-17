@@ -24,7 +24,7 @@ func TestDecryptKey(t *testing.T) {
 	data := []byte("0x123")
 	result := []byte("0x456")
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	t.Run("should decrypt data successfully", func(t *testing.T) {
 		key := testutils2.FakeKey()

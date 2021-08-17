@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
+	"net"
 	"net/http"
 	"reflect"
 	"sync"
@@ -30,7 +32,7 @@ type App struct {
 	// logger logger object
 	logger log.Logger
 
-	// server processing entrying HTTP request
+	// server processing HTTP(s) requests
 	server  *http.Server
 	healthz *http.Server
 	router  *gorillamux.Router
@@ -221,13 +223,39 @@ func (app *App) startServer() {
 	}
 
 	go func() {
-		app.logger.Info("started API server", "addr", app.server.Addr)
-		app.errors <- app.server.ListenAndServe()
+		ln, err := net.Listen("tcp", app.server.Addr)
+		if err != nil {
+			app.logger.WithError(err).Info("failed to start API server")
+			app.errors <- err
+		}
+
+		var apiErr error
+		if app.cfg.HTTP.TLSConfig != nil {
+			tlsListener := tls.NewListener(ln, app.cfg.HTTP.TLSConfig)
+			app.logger.Info("API SSL server started ", "addr", app.server.Addr)
+			apiErr = app.server.Serve(tlsListener)
+		} else {
+			app.logger.Info("API server started", "addr", app.server.Addr)
+			apiErr = app.server.Serve(ln)
+		}
+
+		if apiErr != nil && apiErr != context.Canceled && apiErr.Error() != http.ErrServerClosed.Error() {
+			app.logger.Debug("API server exited gracefully", "addr", app.server.Addr)
+		} else {
+			app.logger.WithError(apiErr).Error("API server exited with errors")
+			app.errors <- apiErr
+		}
 	}()
 
 	go func() {
-		app.logger.Info("started Health server", "addr", app.healthz.Addr)
-		app.errors <- app.healthz.ListenAndServe()
+		app.logger.Info("Health server started", "addr", app.healthz.Addr)
+		healthErr := app.healthz.ListenAndServe()
+		if healthErr != nil && healthErr != context.Canceled && healthErr != http.ErrServerClosed {
+			app.logger.Debug("Health server exited gracefully", "addr", app.server.Addr)
+		} else {
+			app.logger.WithError(healthErr).Error("Health server exited with errors")
+			app.errors <- healthErr
+		}
 	}()
 
 	app.logger.Debug("servers (API and Health) have started")

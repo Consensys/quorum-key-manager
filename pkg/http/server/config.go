@@ -2,12 +2,17 @@ package server
 
 import (
 	"time"
+
+	"crypto/tls"
 )
 
 type Config struct {
-	Host                  string
-	HealthzPort           uint32
-	Port                  uint32
+	Host        string
+	HealthzPort uint32
+	Port        uint32
+
+	TLSConfig *tls.Config
+
 	Timeout               time.Duration
 	KeepAlive             time.Duration
 	IdleConnTimeout       time.Duration

@@ -32,7 +32,7 @@ func TestSignMessage(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 	data := hexutil.MustDecode("0xfeaa")
 	fmt.Println(hexutil.Encode(data))
 	expectedData := fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", 2, "0xfeaa")
@@ -123,7 +123,7 @@ func TestSignTransaction(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	acc := testutils2.FakeETH1Account()
 	chainID := big.NewInt(1)
@@ -177,7 +177,7 @@ func TestSignPrivate(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	acc := testutils2.FakeETH1Account()
 	tx := quorumtypes.NewTransaction(
@@ -230,7 +230,7 @@ func TestSignEEA(t *testing.T) {
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, logger)
+	connector := NewConnector(store, db, nil, logger)
 
 	acc := testutils2.FakeETH1Account()
 	chainID := big.NewInt(1)

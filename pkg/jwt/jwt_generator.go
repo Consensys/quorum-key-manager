@@ -24,7 +24,7 @@ func (j *TokenGenerator) GenerateAccessToken(claims map[string]interface{}, ttl 
 		Issuer:    "quorum-key-manager",
 		IssuedAt:  time.Now().UTC().Unix(),
 		NotBefore: time.Now().UTC().Unix(),
-		Subject:   "test-token",
+		Subject:   "",
 		ExpiresAt: time.Now().UTC().Add(ttl).Unix(),
 	}
 
