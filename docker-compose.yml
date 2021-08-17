@@ -52,10 +52,11 @@ services:
       <<: *qkm-common
       AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/cert.pem}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
-      TLS_SERVER_KEY: ${TLS_SERVER_KEY-/tls/localhost.key}
-      TLS_SERVER_CERT: ${TLS_SERVER_CERT-/tls/localhost.crt}
-      AUTH_TLS_CA: ${AUTH_TLS_CA-/certificates/ca.crt}
-      AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-/apikey/sample.csv}
+      HTTP_SERVER_SSL: ${HTTP_SERVER_SSL-}
+      HTTP_SERVER_KEY: ${HTTP_SERVER_KEY-}
+      HTTP_SERVER_CERT: ${HTTP_SERVER_CERT-}
+      AUTH_TLS_CA: ${AUTH_TLS_CA-}
+      AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
     ports:
       - 8080:8080
       - 8081:8081

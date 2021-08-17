@@ -3,6 +3,7 @@ package tls
 import (
 	"net/http"
 
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator/utils"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
@@ -29,9 +30,12 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	// first array element is the leaf
 	clientCert := req.TLS.PeerCertificates[0]
 	// UserInfo returned is retrieved from cert contents
-	return &types.UserInfo{
+	userInfo := &types.UserInfo{
 		Username: clientCert.Subject.CommonName,
-		Groups:   clientCert.Subject.Organization,
 		AuthMode: AuthMode,
-	}, nil
+	}
+	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(clientCert.Subject.CommonName)
+	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(clientCert.Subject.Organization)
+
+	return userInfo, nil
 }

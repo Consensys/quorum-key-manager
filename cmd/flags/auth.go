@@ -104,27 +104,6 @@ Environment variable: %q`, authTLSCertsFileEnv)
 	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
 }
 
-func certPool(vipr *viper.Viper) (*x509.CertPool, error) {
-	caFile := vipr.GetString(authTLSCertsFileViperKey)
-	_, err := os.Stat(caFile)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
-		}
-		return nil, nil
-	}
-
-	caFileContent, err := ioutil.ReadFile(caFile)
-	if err != nil {
-		return nil, err
-	}
-
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caFileContent)
-
-	return caCertPool, nil
-}
-
 func authAPIKeyFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
 Environment variable: %q`, authAPIKeyFileEnv)
@@ -178,7 +157,7 @@ Environment variable: %q`, authOIDCCACertFileEnv)
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
-	// OIDC part
+	// OIDC 
 	certsOIDC := []*x509.Certificate{}
 
 	fileCertOIDC, err := fileCertificate(vipr)
@@ -198,7 +177,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
-	// API-KEY part
+	// API-KEY 
 	var apiKeyCfg = &apikey.Config{}
 	fileAPIKeys, err := apiKeyCsvFile(vipr)
 	if err != nil {
@@ -207,9 +186,9 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
 	}
 
-	// TLS part
+	// TLS 
 	var tlsCfg *tls.Config
-	certPool, err := certPool(vipr)
+	certPool, err := clientCAPool(vipr)
 	if err != nil {
 		return nil, err
 	}
@@ -313,4 +292,25 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 	}
 
 	return retFile, nil
+}
+
+func clientCAPool(vipr *viper.Viper) (*x509.CertPool, error) {
+	caFile := vipr.GetString(authTLSCertsFileViperKey)
+	if caFile == "" {
+		return nil, nil
+	}
+	_, err := os.Stat(caFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
+	}
+
+	caFileContent, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caFileContent)
+
+	return caCertPool, nil
 }

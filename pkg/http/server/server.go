@@ -1,37 +1,34 @@
 package server
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net/http"
 )
 
 func New(cfg *Config) *http.Server {
-	return &http.Server{
+	server := &http.Server{
 		Addr:        fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		IdleTimeout: cfg.IdleConnTimeout,
 		ReadTimeout: cfg.Timeout,
 	}
-}
-
-func NewTLS(cfg *Config) *http.Server {
-	server := &http.Server{
-		Addr:        fmt.Sprintf("%s:%d", cfg.TLSHost, cfg.TLSPort),
-		IdleTimeout: cfg.IdleConnTimeout,
-		ReadTimeout: cfg.Timeout,
+	
+	if cfg.TLSConfig != nil {
+		server.TLSConfig = cfg.TLSConfig 
 	}
-
-	// This will NOT require peer cert during TLS handshake
-	server.TLSConfig = &tls.Config{
-		ClientAuth: tls.VerifyClientCertIfGiven,
-		ClientCAs:  cfg.TLSCertPool}
+	
 	return server
 }
 
 func NewHealthz(cfg *Config) *http.Server {
-	return &http.Server{
+	server := &http.Server{
 		Addr:        fmt.Sprintf("%s:%d", cfg.Host, cfg.HealthzPort),
 		IdleTimeout: cfg.IdleConnTimeout,
 		ReadTimeout: cfg.Timeout,
 	}
+	
+	if cfg.TLSConfig != nil {
+		server.TLSConfig = cfg.TLSConfig 
+	}
+	
+	return server
 }

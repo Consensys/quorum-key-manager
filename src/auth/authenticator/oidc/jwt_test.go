@@ -38,8 +38,8 @@ func TestJWTChecker_RSAToken(t *testing.T) {
 		}, time.Second)
 		claims, err := checker.Check(ctx, token)
 		require.NoError(t, err)
-		assert.Equal(t, username, claims.Username)
-		assert.Equal(t, groups, claims.Claims)
+		assert.Equal(t, username, claims.Subject)
+		assert.Equal(t, groups, claims.Scope)
 	})
 
 	t.Run("should accept token and only username claims successfully", func(t *testing.T) {
@@ -49,8 +49,8 @@ func TestJWTChecker_RSAToken(t *testing.T) {
 		}, time.Second)
 		claims, err := checker.Check(ctx, token)
 		require.NoError(t, err)
-		assert.Equal(t, username, claims.Username)
-		assert.Empty(t, claims.Claims)
+		assert.Equal(t, username, claims.Subject)
+		assert.Empty(t, claims.Scope)
 	})
 
 	t.Run("should accept token and only groups claims successfully", func(t *testing.T) {
@@ -60,8 +60,8 @@ func TestJWTChecker_RSAToken(t *testing.T) {
 		}, time.Second)
 		claims, err := checker.Check(ctx, token)
 		require.NoError(t, err)
-		assert.Equal(t, rolePermissions, claims.Claims)
-		assert.Empty(t, claims.Username)
+		assert.Equal(t, rolePermissions, claims.Scope)
+		assert.Empty(t, claims.Subject)
 	})
 
 	t.Run("should reject invalid token successfully", func(t *testing.T) {

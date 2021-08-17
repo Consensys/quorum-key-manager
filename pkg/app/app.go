@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
+	"net"
 	"net/http"
 	"reflect"
 	"sync"
@@ -30,11 +32,8 @@ type App struct {
 	// logger logger object
 	logger log.Logger
 
-	// server processing HTTP requests
+	// server processing HTTP(s) requests
 	server *http.Server
-	// server processing HTTPS requests
-	tlsServer *http.Server
-	// server processing HTTP, health related requests
 	healthz *http.Server
 	router  *gorillamux.Router
 
@@ -58,10 +57,6 @@ func New(cfg *Config, logger log.Logger) *App {
 	apiServer := server.New(cfg.HTTP)
 	apiServer.Handler = router
 
-	apiTLSServer := server.NewTLS(cfg.HTTP)
-
-	apiTLSServer.Handler = router
-
 	// Create Healthz server
 	healthzServer := server.NewHealthz(cfg.HTTP)
 	healthzServer.Handler = server.NewHealthzHandler()
@@ -70,7 +65,6 @@ func New(cfg *Config, logger log.Logger) *App {
 		cfg:            cfg,
 		logger:         logger,
 		server:         apiServer,
-		tlsServer:      apiTLSServer,
 		healthz:        healthzServer,
 		errors:         make(chan error),
 		router:         router,
@@ -226,29 +220,32 @@ func (app *App) startServer() {
 	// Wrap handler into middleware
 	if app.middleware != nil {
 		app.server.Handler = app.middleware(app.server.Handler)
-		app.tlsServer.Handler = app.middleware(app.tlsServer.Handler)
 	}
 
 	go func() {
-		app.logger.Info("starting API server", "addr", app.server.Addr)
-		apiErr := app.server.ListenAndServe()
-		if apiErr == nil {
-			app.logger.Debug("started API server successfully", "addr", app.server.Addr)
-		} else {
-			app.logger.WithError(apiErr).Info("failed to start API server")
+		ln, err := net.Listen("tcp", app.server.Addr)
+		if err != nil {
+			app.logger.WithError(err).Info("failed to start API server")
+			app.errors <- err
 		}
-		app.errors <- apiErr
-	}()
 
-	go func() {
-		app.logger.Info("starting API TLS server", "addr", app.tlsServer.Addr, "cert", app.cfg.HTTP.TLSCert, "key", app.cfg.HTTP.TLSKey)
-		tlsErr := app.tlsServer.ListenAndServeTLS(app.cfg.HTTP.TLSCert, app.cfg.HTTP.TLSKey)
-		if tlsErr == nil {
-			app.logger.Debug("started API TLS server successfully", "addr", app.server.Addr)
+		var apiErr error
+		if app.cfg.HTTP.TLSConfig != nil {
+			tlsListener := tls.NewListener(ln, app.cfg.HTTP.TLSConfig)
+			app.logger.Info("started API SSL server", "addr", app.server.Addr)
+			apiErr = app.server.Serve(tlsListener)
 		} else {
-			app.logger.WithError(tlsErr).Error("failed to start API TLS server")
+			app.logger.Info("started API server", "addr", app.server.Addr)
+			apiErr = app.server.Serve(ln)
 		}
-		app.errors <- tlsErr
+
+		if apiErr == nil {
+			app.logger.Debug("API server exited", "addr", app.server.Addr)
+		} else {
+			app.logger.WithError(apiErr).Error("API server exited with errors")
+		}
+
+		app.errors <- apiErr
 	}()
 
 	go func() {
@@ -262,7 +259,7 @@ func (app *App) startServer() {
 		app.errors <- healthErr
 	}()
 
-	app.logger.Debug("servers (API, TLS and Health) have started")
+	app.logger.Debug("servers (API and Health) have started")
 }
 
 func (app *App) stopServer(ctx context.Context) error {
@@ -277,12 +274,7 @@ func (app *App) stopServer(ctx context.Context) error {
 		return err
 	}
 
-	if err := app.tlsServer.Shutdown(ctx); err != nil {
-		app.logger.WithError(err).Error("tls api server could not shut down")
-		return err
-	}
-
-	app.logger.Info("servers (API, TLS and Health) gracefully shut down")
+	app.logger.Info("servers (API and Health) gracefully shut down")
 	return nil
 }
 

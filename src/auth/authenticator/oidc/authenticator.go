@@ -48,8 +48,8 @@ func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) 
 		AuthMode: AuthMode,
 	}
 
-	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(jwtData.Username)
-	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(jwtData.Claims)
+	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(jwtData.Subject)
+	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(jwtData.Scope)
 	return userInfo, nil
 }
 

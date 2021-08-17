@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"crypto/tls"
 	"fmt"
 
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
@@ -18,54 +19,22 @@ func init() {
 	viper.SetDefault(httpHostViperKey, httpHostDefault)
 	_ = viper.BindEnv(httpHostViperKey, httpHostEnv)
 
-	viper.SetDefault(httpsPortViperKey, httpsPortDefault)
-	_ = viper.BindEnv(httpsPortViperKey, httpsPortEnv)
+	viper.SetDefault(enableHTTPSViperKey, enableHTTPSDefault)
+	_ = viper.BindEnv(enableHTTPSViperKey, enableHTTPSEnv)
 
-	viper.SetDefault(httpsHostViperKey, httpsHostDefault)
-	_ = viper.BindEnv(httpsHostViperKey, httpsHostEnv)
+	viper.SetDefault(httpServerKeyViperKey, httpServerKeyDefault)
+	_ = viper.BindEnv(httpServerKeyViperKey, httpServerKeyEnv)
 
-	viper.SetDefault(tlsServerKeyViperKey, tlsServerKeyDefault)
-	_ = viper.BindEnv(tlsServerKeyViperKey, tlsServerKeyEnv)
-
-	viper.SetDefault(tlsServerCertViperKey, tlsServerCertDefault)
-	_ = viper.BindEnv(tlsServerCertViperKey, tlsServerCertEnv)
+	viper.SetDefault(httpServerCertViperKey, httpServerCertDefault)
+	_ = viper.BindEnv(httpServerCertViperKey, httpServerCertEnv)
 
 }
 
 const (
-	tlsServerKeyFlag      = "tls-server-key"
-	tlsServerKeyViperKey  = "tls.server.key"
-	tlsServerKeyDefault   = "/tls/localhost.key"
-	tlsServerKeyEnv       = "TLS_SERVER-KEY"
-	tlsServerCertFlag     = "tls-server-cert"
-	tlsServerCertViperKey = "tls.server.cert"
-	tlsServerCertDefault  = "/tls/localhost.crt"
-	tlsServerCertEnv      = "TLS_SERVER-CERT"
-)
-
-func tlsServerKey(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`TLS key file location
-Environment variable: %q`, tlsServerKeyEnv)
-	f.String(tlsServerKeyFlag, tlsServerKeyDefault, desc)
-	_ = viper.BindPFlag(tlsServerKeyViperKey, f.Lookup(tlsServerKeyFlag))
-}
-
-func tlsServerCert(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`TLS cert file location
-Environment variable: %q`, tlsServerCertEnv)
-	f.String(tlsServerCertFlag, tlsServerCertDefault, desc)
-	_ = viper.BindPFlag(tlsServerCertViperKey, f.Lookup(tlsServerCertFlag))
-}
-
-const (
-	httpPortFlag      = "http-port"
-	httpPortViperKey  = "http.port"
-	httpPortDefault   = 8080
-	httpPortEnv       = "HTTP_PORT"
-	httpsPortFlag     = "https-port"
-	httpsPortViperKey = "https.port"
-	httpsPortDefault  = 8443
-	httpsPortEnv      = "HTTPS_PORT"
+	httpPortFlag     = "http-port"
+	httpPortViperKey = "http.port"
+	httpPortDefault  = 8080
+	httpPortEnv      = "HTTP_PORT"
 )
 
 func httpPort(f *pflag.FlagSet) {
@@ -73,13 +42,6 @@ func httpPort(f *pflag.FlagSet) {
 Environment variable: %q`, httpPortEnv)
 	f.Uint32(httpPortFlag, httpPortDefault, desc)
 	_ = viper.BindPFlag(httpPortViperKey, f.Lookup(httpPortFlag))
-}
-
-func httpsPort(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Port to expose API HTTPS service
-Environment variable: %q`, httpsPortEnv)
-	f.Uint32(httpsPortFlag, httpsPortDefault, desc)
-	_ = viper.BindPFlag(httpsPortViperKey, f.Lookup(httpsPortFlag))
 }
 
 const (
@@ -97,14 +59,10 @@ Environment variable: %q`, healthPortEnv)
 }
 
 const (
-	httpHostFlag      = "http-host"
-	httpHostViperKey  = "http.host"
-	httpHostDefault   = ""
-	httpHostEnv       = "HTTP_HOST"
-	httpsHostFlag     = "https-host"
-	httpsHostViperKey = "https.host"
-	httpsHostDefault  = ""
-	httpsHostEnv      = "HTTPS_HOST"
+	httpHostFlag     = "http-host"
+	httpHostViperKey = "http.host"
+	httpHostDefault  = ""
+	httpHostEnv      = "HTTP_HOST"
 )
 
 // Hostname register a flag for HTTP server address
@@ -115,12 +73,47 @@ Environment variable: %q`, httpHostEnv)
 	_ = viper.BindPFlag(httpHostViperKey, f.Lookup(httpHostFlag))
 }
 
-// Hostname register a flag for HTTPS server address
-func httpsHost(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Host to expose HTTPS service
-Environment variable: %q`, httpsHostEnv)
-	f.String(httpsHostFlag, httpsHostDefault, desc)
-	_ = viper.BindPFlag(httpsHostViperKey, f.Lookup(httpHostFlag))
+const (
+	enableHTTPSFlag     = "enable-https"
+	enableHTTPSViperKey = "enable.https"
+	enableHTTPSDefault  = false
+	enableHTTPSEnv      = "HTTP_SERVER_SSL"
+)
+
+// Hostname register a flag for HTTP server address
+func enableHTTPs(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Enable https server
+Environment variable: %q`, enableHTTPSEnv)
+	f.Bool(enableHTTPSFlag, enableHTTPSDefault, desc)
+	_ = viper.BindPFlag(enableHTTPSViperKey, f.Lookup(enableHTTPSFlag))
+}
+
+const (
+	httpServerKeyFlag     = "tls-server-key"
+	httpServerKeyViperKey = "tls.server.key"
+	httpServerKeyDefault  = ""
+	httpServerKeyEnv      = "HTTP_SERVER_KEY"
+)
+
+func httpServerKey(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS key file location
+Environment variable: %q`, httpServerKeyEnv)
+	f.String(httpServerKeyFlag, httpServerKeyDefault, desc)
+	_ = viper.BindPFlag(httpServerKeyViperKey, f.Lookup(httpServerKeyFlag))
+}
+
+const (
+	httpServerCertFlag     = "tls-server-cert"
+	httpServerCertViperKey = "tls.server.cert"
+	httpServerCertDefault  = ""
+	httpServerCertEnv      = "HTTP_SERVER_CERT"
+)
+
+func httpServerCert(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS cert file location
+Environment variable: %q`, httpServerCertEnv)
+	f.String(httpServerCertFlag, httpServerCertDefault, desc)
+	_ = viper.BindPFlag(httpServerCertViperKey, f.Lookup(httpServerCertFlag))
 }
 
 // Flags register flags for HashiCorp Hashicorp
@@ -128,21 +121,36 @@ func HTTPFlags(f *pflag.FlagSet) {
 	httpHost(f)
 	httpPort(f)
 	healthPort(f)
-	httpsHost(f)
-	httpsPort(f)
-	tlsServerCert(f)
-	tlsServerKey(f)
+	enableHTTPs(f)
+	httpServerCert(f)
+	httpServerKey(f)
 }
 
-func newHTTPConfig(vipr *viper.Viper) *server.Config {
+func newHTTPConfig(vipr *viper.Viper) (*server.Config, error) {
 	cfg := server.NewDefaultConfig()
 	cfg.Port = vipr.GetUint32(httpPortViperKey)
 	cfg.HealthzPort = vipr.GetUint32(healthPortViperKey)
 	cfg.Host = vipr.GetString(httpHostViperKey)
-	cfg.TLSPort = vipr.GetUint32(httpsPortViperKey)
-	cfg.TLSHost = vipr.GetString(httpsHostViperKey)
-	cfg.TLSCert = vipr.GetString(tlsServerCertViperKey)
-	cfg.TLSKey = vipr.GetString(tlsServerKeyViperKey)
 
-	return cfg
+	isSSL := vipr.GetBool(enableHTTPSViperKey)
+	if isSSL {
+		cfg.TLSConfig = &tls.Config{
+			ClientAuth: tls.VerifyClientCertIfGiven,
+		}
+		certFile := vipr.GetString(httpServerCertViperKey)
+		keyFile := vipr.GetString(httpServerKeyViperKey)
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read http ssl certificates '%s' or '%s': %w", certFile, keyFile, err)
+		}
+		
+		clientCAPool, err := clientCAPool(vipr)
+		if clientCAPool != nil {
+			cfg.TLSConfig.ClientCAs = clientCAPool
+		}
+		
+		cfg.TLSConfig.Certificates = append(cfg.TLSConfig.Certificates, cert)
+	}
+
+	return cfg, nil
 }
