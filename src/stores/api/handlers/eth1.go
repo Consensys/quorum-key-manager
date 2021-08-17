@@ -44,9 +44,9 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/{address}/sign-message").HandlerFunc(h.signMessage)
 	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
-	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
-	r.Methods(http.MethodPost).Path("/verify-message-signature").HandlerFunc(h.verifyMessageSignature)
-	r.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
+	r.Methods(http.MethodPost).Path("/verify").HandlerFunc(h.verify)
+	r.Methods(http.MethodPost).Path("/verify-message").HandlerFunc(h.verifyMessage)
+	r.Methods(http.MethodPost).Path("/verify-typed-data").HandlerFunc(h.verifyTypedData)
 
 	r.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
 
@@ -603,8 +603,8 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/verify-signature [post]
-func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Request) {
+// @Router /stores/{storeName}/eth1/verify [post]
+func (h *Eth1Handler) verify(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
@@ -641,8 +641,8 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/verify-message-signature [post]
-func (h *Eth1Handler) verifyMessageSignature(rw http.ResponseWriter, request *http.Request) {
+// @Router /stores/{storeName}/eth1/verify-message [post]
+func (h *Eth1Handler) verifyMessage(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
@@ -679,8 +679,8 @@ func (h *Eth1Handler) verifyMessageSignature(rw http.ResponseWriter, request *ht
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/verify-typed-data-signature [post]
-func (h *Eth1Handler) verifyTypedDataSignature(rw http.ResponseWriter, request *http.Request) {
+// @Router /stores/{storeName}/eth1/verify-typed-data [post]
+func (h *Eth1Handler) verifyTypedData(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
