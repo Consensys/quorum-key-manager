@@ -23,6 +23,18 @@ var (
 	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
 )
 
+func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	logger := c.logger.With("address", addr.Hex())
+
+	signature, err := c.sign(ctx, addr, crypto.Keccak256(data))
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debug("signed payload successfully")
+	return signature, nil
+}
+
 func (c Connector) SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 

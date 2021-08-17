@@ -178,9 +178,9 @@ func (s *eth1TestSuite) TestList() {
 	})
 }
 
-func (s *eth1TestSuite) TestSignVerify() {
+func (s *eth1TestSuite) TestSignMessageVerify() {
 	ctx := s.env.ctx
-	payload := []byte("my data to sign")
+	payload := "my data to sign"
 	id := s.newID("my-account-sign")
 
 	account, err := s.store.Create(ctx, id, &entities.Attributes{
@@ -189,20 +189,16 @@ func (s *eth1TestSuite) TestSignVerify() {
 	require.NoError(s.T(), err)
 
 	s.Run("should sign, recover an address and verify the signature successfully", func() {
-		signature, err := s.store.Sign(ctx, account.Address, payload)
+		signature, err := s.store.SignMessage(ctx, account.Address, payload)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
-		address, err := s.store.ECRecover(ctx, payload, signature)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), account.Address, address)
-
-		err = s.store.Verify(ctx, address, payload, signature)
+		err = s.store.VerifyMessage(ctx, account.Address, payload, signature)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
-		signature, err := s.store.Sign(ctx, ethcommon.HexToAddress("invalidAddress"), payload)
+		signature, err := s.store.SignMessage(ctx, ethcommon.HexToAddress("invalidAddress"), payload)
 		require.Empty(s.T(), signature)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})

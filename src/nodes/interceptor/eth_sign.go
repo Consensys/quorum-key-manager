@@ -19,7 +19,7 @@ func (i *Interceptor) ethSign(ctx context.Context, from ethcommon.Address, data 
 		return nil, err
 	}
 
-	sig, err := store.SignMessage(ctx, from, data.String())
+	sig, err := store.Sign(ctx, from, data)
 	if err != nil {
 		return nil, err
 	}

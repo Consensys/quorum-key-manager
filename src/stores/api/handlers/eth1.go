@@ -45,6 +45,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
+	r.Methods(http.MethodPost).Path("/verify-message-signature").HandlerFunc(h.verifyMessageSignature)
 	r.Methods(http.MethodPost).Path("/verify-typed-data-signature").HandlerFunc(h.verifyTypedDataSignature)
 
 	r.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
@@ -622,6 +623,44 @@ func (h *Eth1Handler) verifySignature(rw http.ResponseWriter, request *http.Requ
 	}
 
 	err = eth1Store.Verify(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	rw.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary Verify message signature
+// @Description Verify signature of a message
+// @Tags Ethereum
+// @Accept json
+// @Param storeName path string true "Store Identifier"
+// @Param address path string true "Ethereum address"
+// @Param request body types.VerifyEth1SignatureRequest true "Ethereum signature verify request"
+// @Success 204 "Successful verification"
+// @Failure 422 {object} ErrorResponse "Cannot verify signature"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /stores/{storeName}/eth1/verify-message-signature [post]
+func (h *Eth1Handler) verifyMessageSignature(rw http.ResponseWriter, request *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	ctx := request.Context()
+
+	verifyReq := &types.VerifyEth1SignatureRequest{}
+	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	userInfo := authenticator.UserInfoContextFromContext(ctx)
+	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
+	if err != nil {
+		WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	err = eth1Store.VerifyMessage(ctx, verifyReq.Address, verifyReq.Data.String(), verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

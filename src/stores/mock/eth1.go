@@ -202,6 +202,21 @@ func (mr *MockEth1StoreMockRecorder) Destroy(ctx, addr interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockEth1Store)(nil).Destroy), ctx, addr)
 }
 
+// Sign mocks base method
+func (m *MockEth1Store) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sign", ctx, addr, data)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Sign indicates an expected call of Sign
+func (mr *MockEth1StoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockEth1Store)(nil).Sign), ctx, addr, data)
+}
+
 // SignMessage mocks base method
 func (m *MockEth1Store) SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error) {
 	m.ctrl.T.Helper()
@@ -304,6 +319,20 @@ func (m *MockEth1Store) Verify(ctx context.Context, addr common.Address, data, s
 func (mr *MockEth1StoreMockRecorder) Verify(ctx, addr, data, sig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockEth1Store)(nil).Verify), ctx, addr, data, sig)
+}
+
+// VerifyMessage mocks base method
+func (m *MockEth1Store) VerifyMessage(ctx context.Context, addr common.Address, data string, sig []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyMessage", ctx, addr, data, sig)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyMessage indicates an expected call of VerifyMessage
+func (mr *MockEth1StoreMockRecorder) VerifyMessage(ctx, addr, data, sig interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockEth1Store)(nil).VerifyMessage), ctx, addr, data, sig)
 }
 
 // VerifyTypedData mocks base method

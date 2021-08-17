@@ -24,6 +24,16 @@ func (c Connector) Verify(ctx context.Context, addr ethcommon.Address, data, sig
 	return nil
 }
 
+func (c Connector) VerifyMessage(ctx context.Context, addr ethcommon.Address, data string, sig []byte) error {
+	err := c.Verify(ctx, addr, []byte(getEIP191EncodedData(data)), sig)
+	if err != nil {
+		return err
+	}
+
+	c.logger.Debug("message signature verified successfully")
+	return nil
+}
+
 func (c Connector) VerifyTypedData(ctx context.Context, addr ethcommon.Address, typedData *core.TypedData, sig []byte) error {
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
@@ -32,6 +42,11 @@ func (c Connector) VerifyTypedData(ctx context.Context, addr ethcommon.Address, 
 		return errors.InvalidParameterError(errMessage)
 	}
 
-	c.logger.Debug("typed data verified successfully")
-	return c.Verify(ctx, addr, []byte(encodedData), sig)
+	err = c.Verify(ctx, addr, []byte(encodedData), sig)
+	if err != nil {
+		return err
+	}
+
+	c.logger.Debug("typed data signature verified successfully")
+	return nil
 }

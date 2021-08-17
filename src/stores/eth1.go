@@ -50,6 +50,9 @@ type Eth1Store interface {
 	// Destroy destroys (purges) an Ethereum account permanently
 	Destroy(ctx context.Context, addr common.Address) error
 
+	// Sign signs data using the specified Ethereum account (not exposed in the API)
+	Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
+
 	// SignMessage signs EIP-191 formatted data using the specified Ethereum account
 	SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error)
 
@@ -70,6 +73,9 @@ type Eth1Store interface {
 
 	// Verify verifies that a signature belongs to a given address
 	Verify(ctx context.Context, addr common.Address, data, sig []byte) error
+
+	// VerifyMessage verifies that a message signature belongs to a given address
+	VerifyMessage(ctx context.Context, addr common.Address, data string, sig []byte) error
 
 	// VerifyTypedData verifies that a typed data signature belongs to a given address
 	VerifyTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData, sig []byte) error
