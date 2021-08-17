@@ -33,13 +33,14 @@ func TestSignMessage(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 
 	connector := NewConnector(store, db, logger)
-	data := "my data to sign"
-	expectedData := fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", 15, data)
+	data := hexutil.MustDecode("0xfeaa")
+	fmt.Println(hexutil.Encode(data))
+	expectedData := fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", 2, "0xfeaa")
 
 	t.Run("should sign successfully", func(t *testing.T) {
 		acc := testutils2.FakeETH1Account()
 		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
-		acc.PublicKey = hexutil.MustDecode("0x04d3dbfaf4d49cc1bcaae16dc0afc8f46897d3ff5c86b538a3e54f3de4748cdeb4565860d7a47113bd23b215ec76f613438c488984342ef65d338ec7c50fd73c0e")
+		acc.PublicKey = hexutil.MustDecode("0x0450705848a88e7957b69e41362c52591fd6621c1d0945633b3dd5b420f7e67fd75e2c9a7f0a26927e4a04b48face723f3533da64d9fcc8d616b085bb5f0afa189")
 
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignature, nil)
@@ -57,13 +58,13 @@ func TestSignMessage(t *testing.T) {
 		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
 		S2 := new(big.Int).Add(S, secp256k1N)
 		ecdsaSignatureMalleable := append(R.Bytes(), S2.Bytes()...)
-		acc.PublicKey = hexutil.MustDecode("0x048dbf1d83d2e74f0ce2572080620760b3937c3112d8081bca09b8038b4a2ab7826038bf59233b8b2d6343a0d60c8806b9cc1c674c6919cd94eada424be58d6aa8")
+		acc.PublicKey = hexutil.MustDecode("0x0486f304bd499166d7a453d4d952366bd4a9a0292bbf9ef662dccf70a2619cae6016808dae5f00a7301793101132a36e476527e34822e6850c0712d8c7cb526715")
 
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignatureMalleable, nil)
 
-		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + "00"
+		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + "01"
 		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.NoError(t, err)

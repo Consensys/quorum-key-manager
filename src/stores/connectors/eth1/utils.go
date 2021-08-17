@@ -3,6 +3,8 @@ package eth1
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/signer/core"
 )
@@ -21,6 +23,6 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-func getEIP191EncodedData(msg string) string {
-	return fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", len(msg), msg)
+func getEIP191EncodedData(msg []byte) string {
+	return fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", len(msg), hexutil.Encode(msg))
 }

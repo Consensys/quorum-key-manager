@@ -613,7 +613,7 @@ func (s *eth1HandlerTestSuite) TestVerifySignature() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Verify(gomock.Any(), verifyRequest.Address, verifyRequest.Data, verifyRequest.Signature).Return(nil)
 
@@ -629,7 +629,7 @@ func (s *eth1HandlerTestSuite) TestVerifySignature() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
@@ -645,7 +645,7 @@ func (s *eth1HandlerTestSuite) TestVerifyTypedDataSignature() {
 		expectedTypedData := formatters.FormatSignTypedDataRequest(&verifyRequest.TypedData)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), verifyRequest.Address, expectedTypedData, verifyRequest.Signature).Return(nil)
 
@@ -661,7 +661,7 @@ func (s *eth1HandlerTestSuite) TestVerifyTypedDataSignature() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data-signature", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/verify-typed-data", eth1StoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().VerifyTypedData(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 

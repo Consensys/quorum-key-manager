@@ -24,7 +24,7 @@ func (c Connector) Verify(ctx context.Context, addr ethcommon.Address, data, sig
 	return nil
 }
 
-func (c Connector) VerifyMessage(ctx context.Context, addr ethcommon.Address, data string, sig []byte) error {
+func (c Connector) VerifyMessage(ctx context.Context, addr ethcommon.Address, data, sig []byte) error {
 	err := c.Verify(ctx, addr, []byte(getEIP191EncodedData(data)), sig)
 	if err != nil {
 		return err

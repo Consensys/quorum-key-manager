@@ -218,7 +218,7 @@ func (mr *MockEth1StoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.C
 }
 
 // SignMessage mocks base method
-func (m *MockEth1Store) SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error) {
+func (m *MockEth1Store) SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignMessage", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
@@ -322,7 +322,7 @@ func (mr *MockEth1StoreMockRecorder) Verify(ctx, addr, data, sig interface{}) *g
 }
 
 // VerifyMessage mocks base method
-func (m *MockEth1Store) VerifyMessage(ctx context.Context, addr common.Address, data string, sig []byte) error {
+func (m *MockEth1Store) VerifyMessage(ctx context.Context, addr common.Address, data, sig []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMessage", ctx, addr, data, sig)
 	ret0, _ := ret[0].(error)

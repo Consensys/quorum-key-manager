@@ -54,7 +54,7 @@ type Eth1Store interface {
 	Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
 
 	// SignMessage signs EIP-191 formatted data using the specified Ethereum account
-	SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error)
+	SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
 
 	// SignTypedData signs EIP-712 formatted data using the specified Ethereum account
 	SignTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData) ([]byte, error)
@@ -75,7 +75,7 @@ type Eth1Store interface {
 	Verify(ctx context.Context, addr common.Address, data, sig []byte) error
 
 	// VerifyMessage verifies that a message signature belongs to a given address
-	VerifyMessage(ctx context.Context, addr common.Address, data string, sig []byte) error
+	VerifyMessage(ctx context.Context, addr common.Address, data, sig []byte) error
 
 	// VerifyTypedData verifies that a typed data signature belongs to a given address
 	VerifyTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData, sig []byte) error

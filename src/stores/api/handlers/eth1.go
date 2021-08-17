@@ -220,7 +220,7 @@ func (h *Eth1Handler) signMessage(rw http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	signature, err := eth1Store.SignMessage(ctx, getAddress(request), signPayloadReq.Message.String())
+	signature, err := eth1Store.SignMessage(ctx, getAddress(request), signPayloadReq.Message)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -660,7 +660,7 @@ func (h *Eth1Handler) verifyMessage(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	err = eth1Store.VerifyMessage(ctx, verifyReq.Address, verifyReq.Data.String(), verifyReq.Signature)
+	err = eth1Store.VerifyMessage(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

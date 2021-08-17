@@ -180,7 +180,7 @@ func (s *eth1TestSuite) TestList() {
 
 func (s *eth1TestSuite) TestSignMessageVerify() {
 	ctx := s.env.ctx
-	payload := "my data to sign"
+	payload := hexutil.MustDecode("0xfeaa")
 	id := s.newID("my-account-sign")
 
 	account, err := s.store.Create(ctx, id, &entities.Attributes{

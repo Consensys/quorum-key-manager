@@ -35,7 +35,7 @@ func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) (
 	return signature, nil
 }
 
-func (c Connector) SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error) {
+func (c Connector) SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(getEIP191EncodedData(data))))
