@@ -2,7 +2,10 @@ package flags
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	"github.com/spf13/pflag"
@@ -136,21 +139,48 @@ func newHTTPConfig(vipr *viper.Viper) (*server.Config, error) {
 	if isSSL {
 		cfg.TLSConfig = &tls.Config{
 			ClientAuth: tls.VerifyClientCertIfGiven,
+			InsecureSkipVerify: true,
 		}
+
 		certFile := vipr.GetString(httpServerCertViperKey)
 		keyFile := vipr.GetString(httpServerKeyViperKey)
-		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		
+		var err error
+		cfg.TLSConfig.Certificates = make([]tls.Certificate, 1)
+		cfg.TLSConfig.Certificates[0], err = tls.LoadX509KeyPair(certFile, keyFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read http ssl certificates '%s' or '%s': %w", certFile, keyFile, err)
 		}
-		
+
 		clientCAPool, err := clientCAPool(vipr)
-		if clientCAPool != nil {
+		if err != nil {
+			return nil, err
+		} else if clientCAPool != nil {
+			// clientCAPool.AppendCertsFromPEM(cert.Certificate[0])
 			cfg.TLSConfig.ClientCAs = clientCAPool
 		}
-		
-		cfg.TLSConfig.Certificates = append(cfg.TLSConfig.Certificates, cert)
 	}
 
 	return cfg, nil
+}
+
+func clientCAPool(vipr *viper.Viper) (*x509.CertPool, error) {
+	caFile := vipr.GetString(authTLSCertsFileViperKey)
+	if caFile == "" {
+		return nil, nil
+	}
+	_, err := os.Stat(caFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read client CA file. %s", err.Error())
+	}
+
+	caFileContent, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caFileContent)
+
+	return caCertPool, nil
 }

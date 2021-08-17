@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
+	authtls "github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
@@ -160,14 +160,14 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	// OIDC 
 	certsOIDC := []*x509.Certificate{}
 
-	fileCertOIDC, err := fileCertificate(vipr)
+	fileCertOIDC, err := oidcCert(vipr)
 	if err != nil {
 		return nil, err
 	} else if fileCertOIDC != nil {
 		certsOIDC = append(certsOIDC, fileCertOIDC)
 	}
 
-	issuerCerts, err := issuerCertificates(vipr)
+	issuerCerts, err := oidcIssuerURl(vipr)
 	if err != nil {
 		return nil, err
 	} else if issuerCerts != nil {
@@ -187,29 +187,31 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	}
 
 	// TLS 
-	var tlsCfg *tls.Config
-	certPool, err := clientCAPool(vipr)
+	var tlsCfg *authtls.Config
+	tlsAuthCAs, err := tlsAuthCerts(vipr)
 	if err != nil {
 		return nil, err
 	}
 
-	tlsCfg = tls.NewConfig(certPool)
+	tlsCfg = authtls.NewConfig(tlsAuthCAs)
 
-	return &auth.Config{OIDC: oidcCfg,
+	return &auth.Config{
+		OIDC: oidcCfg,
 		APIKEY: apiKeyCfg,
 		TLS:    tlsCfg,
 	}, nil
 
 }
 
-func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
+func oidcCert(vipr *viper.Viper) (*x509.Certificate, error) {
 	caFile := vipr.GetString(authOIDCCACertFileViperKey)
+	if caFile == "" {
+		return nil, nil
+	}
+
 	_, err := os.Stat(caFile)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
-		}
-		return nil, nil
+		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
 	}
 
 	caFileContent, err := ioutil.ReadFile(caFile)
@@ -229,7 +231,7 @@ func fileCertificate(vipr *viper.Viper) (*x509.Certificate, error) {
 	return cert, nil
 }
 
-func issuerCertificates(vipr *viper.Viper) ([]*x509.Certificate, error) {
+func oidcIssuerURl(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	issuerServer := vipr.GetString(authOIDCIssuerURLViperKey)
 	if issuerServer == "" {
 		return nil, nil
@@ -294,7 +296,7 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 	return retFile, nil
 }
 
-func clientCAPool(vipr *viper.Viper) (*x509.CertPool, error) {
+func tlsAuthCerts(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	caFile := vipr.GetString(authTLSCertsFileViperKey)
 	if caFile == "" {
 		return nil, nil
@@ -303,14 +305,20 @@ func clientCAPool(vipr *viper.Viper) (*x509.CertPool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
 	}
-
+	
 	caFileContent, err := ioutil.ReadFile(caFile)
 	if err != nil {
 		return nil, err
 	}
+	
+	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
+	if err != nil {
+		return nil, err
+	}
+	cert, err := x509.ParseCertificate(bCert[0])
+	if err != nil {
+		return nil, err
+	}
 
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caFileContent)
-
-	return caCertPool, nil
+	return []*x509.Certificate{cert}, nil
 }

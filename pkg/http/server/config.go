@@ -34,17 +34,3 @@ func NewDefaultConfig() *Config {
 		KeepAlive:             30 * time.Second,
 	}
 }
-
-func NewDefaultTLSConfig() *Config {
-	return &Config{
-		Host:                  "localhost",
-		Port:                  8443,
-		HealthzPort:           8444,
-		MaxIdleConnsPerHost:   200,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		Timeout:               30 * time.Second,
-		KeepAlive:             30 * time.Second,
-	}
-}

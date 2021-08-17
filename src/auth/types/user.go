@@ -44,6 +44,7 @@ func (ui *UserInfo) CheckAccess(mnf *manifest.Manifest) error {
 var AnonymousUser = &UserInfo{
 	Username: "anonymous",
 	Roles:    []string{AnonymousRole},
+	Permissions: []Permission{},
 }
 
 var AuthenticatedUser = &UserInfo{
