@@ -16,9 +16,14 @@ func NewAppConfig(vipr *viper.Viper) (*app.Config, error) {
 		return nil, err
 	}
 
+	httpCfg, err := newHTTPConfig(vipr)
+	if err != nil {
+		return nil, err
+	}
+
 	return &app.Config{
 		Logger:    NewLoggerConfig(vipr),
-		HTTP:      newHTTPConfig(vipr),
+		HTTP:      httpCfg,
 		Manifests: manifestCfg,
 		Auth:      authCfg,
 		Postgres:  NewPostgresConfig(vipr),

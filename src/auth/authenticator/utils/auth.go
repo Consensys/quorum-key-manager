@@ -22,13 +22,18 @@ func ExtractRolesAndPermission(claims []string) ([]string, []types.Permission) {
 	permissions := []types.Permission{}
 
 	for _, claim := range claims {
-		if strings.Contains(claim, ":") {
+		switch {
+		case strings.Contains(claim, " "):
+			subRoles, subPermissions := ExtractRolesAndPermission(strings.Split(claim, " "))
+			permissions = append(permissions, subPermissions...)
+			roles = append(roles, subRoles...)
+		case strings.Contains(claim, ":"):
 			if strings.Contains(claim, "*") {
 				permissions = append(permissions, types.ListWildcardPermission(claim)...)
 			} else {
 				permissions = append(permissions, types.Permission(claim))
 			}
-		} else {
+		default:
 			roles = append(roles, claim)
 		}
 	}

@@ -46,7 +46,11 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 		info = types.AnonymousUser
 	}
 
-	mid.logger.With("permissions", info.Permissions).Debug("request successfully authenticated")
+	mid.logger.With("username", info.Username).
+		With("tenant", info.Tenant).
+		With("roles", info.Roles).
+		With("permissions", info.Permissions).
+		Debug("request successfully authenticated")
 
 	ctx = WithUserContext(ctx, NewUserContext(info))
 
