@@ -84,7 +84,7 @@ const (
 )
 
 // Hostname register a flag for HTTP server address
-func enableHTTPs(f *pflag.FlagSet) {
+func enableHTTPS(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Enable https server
 Environment variable: %q`, enableHTTPSEnv)
 	f.Bool(enableHTTPSFlag, enableHTTPSDefault, desc)
@@ -124,7 +124,7 @@ func HTTPFlags(f *pflag.FlagSet) {
 	httpHost(f)
 	httpPort(f)
 	healthPort(f)
-	enableHTTPs(f)
+	enableHTTPS(f)
 	httpServerCert(f)
 	httpServerKey(f)
 }
@@ -138,13 +138,13 @@ func newHTTPConfig(vipr *viper.Viper) (*server.Config, error) {
 	isSSL := vipr.GetBool(enableHTTPSViperKey)
 	if isSSL {
 		cfg.TLSConfig = &tls.Config{
-			ClientAuth: tls.VerifyClientCertIfGiven,
+			ClientAuth:         tls.VerifyClientCertIfGiven,
 			InsecureSkipVerify: true,
 		}
 
 		certFile := vipr.GetString(httpServerCertViperKey)
 		keyFile := vipr.GetString(httpServerKeyViperKey)
-		
+
 		var err error
 		cfg.TLSConfig.Certificates = make([]tls.Certificate, 1)
 		cfg.TLSConfig.Certificates[0], err = tls.LoadX509KeyPair(certFile, keyFile)
@@ -156,7 +156,6 @@ func newHTTPConfig(vipr *viper.Viper) (*server.Config, error) {
 		if err != nil {
 			return nil, err
 		} else if clientCAPool != nil {
-			// clientCAPool.AppendCertsFromPEM(cert.Certificate[0])
 			cfg.TLSConfig.ClientCAs = clientCAPool
 		}
 	}

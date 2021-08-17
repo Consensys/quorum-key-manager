@@ -33,7 +33,7 @@ type App struct {
 	logger log.Logger
 
 	// server processing HTTP(s) requests
-	server *http.Server
+	server  *http.Server
 	healthz *http.Server
 	router  *gorillamux.Router
 

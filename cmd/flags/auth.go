@@ -157,7 +157,7 @@ Environment variable: %q`, authOIDCCACertFileEnv)
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
-	// OIDC 
+	// OIDC
 	certsOIDC := []*x509.Certificate{}
 
 	fileCertOIDC, err := oidcCert(vipr)
@@ -167,7 +167,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certsOIDC = append(certsOIDC, fileCertOIDC)
 	}
 
-	issuerCerts, err := oidcIssuerURl(vipr)
+	issuerCerts, err := oidcIssuerURL(vipr)
 	if err != nil {
 		return nil, err
 	} else if issuerCerts != nil {
@@ -177,7 +177,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
 		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
 
-	// API-KEY 
+	// API-KEY
 	var apiKeyCfg = &apikey.Config{}
 	fileAPIKeys, err := apiKeyCsvFile(vipr)
 	if err != nil {
@@ -186,7 +186,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		apiKeyCfg = apikey.NewConfig(fileAPIKeys, base64.StdEncoding, sha256.New())
 	}
 
-	// TLS 
+	// TLS
 	var tlsCfg *authtls.Config
 	tlsAuthCAs, err := tlsAuthCerts(vipr)
 	if err != nil {
@@ -196,7 +196,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	tlsCfg = authtls.NewConfig(tlsAuthCAs)
 
 	return &auth.Config{
-		OIDC: oidcCfg,
+		OIDC:   oidcCfg,
 		APIKEY: apiKeyCfg,
 		TLS:    tlsCfg,
 	}, nil
@@ -231,7 +231,7 @@ func oidcCert(vipr *viper.Viper) (*x509.Certificate, error) {
 	return cert, nil
 }
 
-func oidcIssuerURl(vipr *viper.Viper) ([]*x509.Certificate, error) {
+func oidcIssuerURL(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	issuerServer := vipr.GetString(authOIDCIssuerURLViperKey)
 	if issuerServer == "" {
 		return nil, nil
@@ -305,12 +305,12 @@ func tlsAuthCerts(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
 	}
-	
+
 	caFileContent, err := ioutil.ReadFile(caFile)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
 	if err != nil {
 		return nil, err

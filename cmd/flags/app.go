@@ -15,7 +15,7 @@ func NewAppConfig(vipr *viper.Viper) (*app.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	httpCfg, err := newHTTPConfig(vipr)
 	if err != nil {
 		return nil, err

@@ -5,5 +5,5 @@ import (
 )
 
 type Config struct {
-	HTTP  *server.Config
+	HTTP *server.Config
 }

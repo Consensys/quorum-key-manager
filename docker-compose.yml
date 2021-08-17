@@ -7,8 +7,6 @@ x-default-variables: &default-variables
   TEST_DATA: ${TEST_DATA-}
   HTTP_PORT: ${HTTP_PORT-}
   HTTP_HOST: ${HTTP_HOST-0.0.0.0}
-  HTTPS_PORT: ${HTTPS_PORT-}
-  HTTPS_HOST: ${HTTPS_HOST-0.0.0.0}
   HEALTH_PORT: ${HEALTH_PORT-}
   DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-}
   DB_TLS_CERT: ${DB_TLS_CERT-}

@@ -11,7 +11,7 @@ type Config struct {
 	HealthzPort uint32
 	Port        uint32
 
-	TLSConfig   *tls.Config
+	TLSConfig *tls.Config
 
 	Timeout               time.Duration
 	KeepAlive             time.Duration

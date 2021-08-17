@@ -29,18 +29,18 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
 	// let go without error when no cert found
-	if req.TLS == nil || req.TLS.PeerCertificates == nil || len(req.TLS.PeerCertificates) == 0{
+	if req.TLS == nil || req.TLS.PeerCertificates == nil || len(req.TLS.PeerCertificates) == 0 {
 		return nil, nil
 	}
 
 	// first array element is the leaf
 	clientCert := req.TLS.PeerCertificates[0]
-	
+
 	isAllowed := false
 	for _, cert := range auth.certs {
 		if cert.Equal(clientCert) {
 			isAllowed = true
-		} 
+		}
 	}
 
 	if !isAllowed {

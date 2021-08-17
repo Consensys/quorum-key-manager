@@ -11,11 +11,11 @@ func New(cfg *Config) *http.Server {
 		IdleTimeout: cfg.IdleConnTimeout,
 		ReadTimeout: cfg.Timeout,
 	}
-	
+
 	if cfg.TLSConfig != nil {
-		server.TLSConfig = cfg.TLSConfig 
+		server.TLSConfig = cfg.TLSConfig
 	}
-	
+
 	return server
 }
 
@@ -25,10 +25,10 @@ func NewHealthz(cfg *Config) *http.Server {
 		IdleTimeout: cfg.IdleConnTimeout,
 		ReadTimeout: cfg.Timeout,
 	}
-	
+
 	if cfg.TLSConfig != nil {
-		server.TLSConfig = cfg.TLSConfig 
+		server.TLSConfig = cfg.TLSConfig
 	}
-	
+
 	return server
 }
