@@ -21,6 +21,6 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
-func getEIP191EncodedData(msg []byte) string {
-	return fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", len(msg), string(msg))
+func getEIP191EncodedData(msg string) string {
+	return fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", len(msg), msg)
 }

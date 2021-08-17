@@ -50,14 +50,8 @@ type Eth1Store interface {
 	// Destroy destroys (purges) an Ethereum account permanently
 	Destroy(ctx context.Context, addr common.Address) error
 
-	// Sign signs a payload using the specified Ethereum account
-	Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
-
-	// SignHash signs a hash using the specified Ethereum account
-	SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
-
-	// SignData signs EIP-191 formatted data using the specified Ethereum account
-	SignData(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
+	// SignMessage signs EIP-191 formatted data using the specified Ethereum account
+	SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error)
 
 	// SignTypedData signs EIP-712 formatted data using the specified Ethereum account
 	SignTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData) ([]byte, error)

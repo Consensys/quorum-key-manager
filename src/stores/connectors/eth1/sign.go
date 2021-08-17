@@ -11,7 +11,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -24,31 +23,7 @@ var (
 	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
 )
 
-func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
-	logger := c.logger.With("address", addr.Hex())
-
-	signature, err := c.sign(ctx, addr, crypto.Keccak256(data))
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Debug("signed payload successfully")
-	return signature, nil
-}
-
-func (c Connector) SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
-	logger := c.logger.With("address", addr.Hex())
-
-	signature, err := c.sign(ctx, addr, data)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Debug("signed hashed payload successfully")
-	return signature, nil
-}
-
-func (c Connector) SignData(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+func (c Connector) SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
 	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(getEIP191EncodedData(data))))
@@ -56,7 +31,7 @@ func (c Connector) SignData(ctx context.Context, addr common.Address, data []byt
 		return nil, err
 	}
 
-	logger.Debug("signed data (eip-191) successfully")
+	logger.Debug("message signed successfully (eip-191)")
 	return signature, nil
 }
 
@@ -65,7 +40,9 @@ func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typed
 
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to format typed data"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(encodedData)))
@@ -73,7 +50,7 @@ func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typed
 		return nil, err
 	}
 
-	logger.Debug("signed typed data (eip-712) successfully")
+	logger.Debug("typed data signed successfully (eip-712) ")
 	return signature, nil
 }
 
@@ -229,15 +206,13 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
-		recoveredPubKeyStr := hexutil.Encode(crypto.FromECDSAPub(recoveredPubKey))
-		c.logger.Debug(recoveredPubKeyStr)
 		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), acc.PublicKey) {
 			return appendedSignature, nil
 		}
 	}
 
 	errMessage := "failed to recover public key candidate"
-	c.logger.WithError(err).Error(errMessage)
+	c.logger.Error(errMessage)
 	return nil, errors.InvalidParameterError(errMessage)
 }
 

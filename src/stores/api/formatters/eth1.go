@@ -3,8 +3,6 @@ package formatters
 import (
 	"math/big"
 
-	"github.com/consensys/quorum/common/hexutil"
-
 	common2 "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -101,16 +99,5 @@ func FormatEth1AccResponse(eth1Acc *entities.ETH1Account) *types.Eth1AccountResp
 		UpdatedAt:           eth1Acc.Metadata.UpdatedAt,
 		DeletedAt:           eth1Acc.Metadata.DeletedAt,
 		Disabled:            eth1Acc.Metadata.Disabled,
-	}
-}
-
-func FormatEth1SignDataResponse(message, hash, signature []byte) *types.SignMessagePayloadResponse {
-	return &types.SignMessagePayloadResponse{
-		Message:     string(message),
-		MessageHash: string(hash),
-		R:           hexutil.Encode(signature[:32]),
-		S:           hexutil.Encode(signature[32:64]),
-		V:           hexutil.Encode([]byte{signature[64]}),
-		Signature:   hexutil.Encode(signature),
 	}
 }

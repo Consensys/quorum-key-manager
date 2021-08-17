@@ -37,13 +37,11 @@ func NewAccountsHandler(s stores.Manager) *Eth1Handler {
 func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
 	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
-	r.Methods(http.MethodPost).Path("/{address}/sign").HandlerFunc(h.sign)
-	r.Methods(http.MethodPost).Path("/{address}/sign-hash").HandlerFunc(h.signHash)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
-	r.Methods(http.MethodPost).Path("/{address}/sign-data").HandlerFunc(h.signData)
+	r.Methods(http.MethodPost).Path("/{address}/sign-message").HandlerFunc(h.signMessage)
 	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
@@ -190,24 +188,24 @@ func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEth1AccResponse(eth1Acc))
 }
 
-// @Summary Sign payload with Ethereum Account
-// @Description Sign random hexadecimal payload using selected Ethereum Account
+// @Summary Sign a message
+// @Description Sign a message using an existing Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Param request body types.SignHexPayloadRequest true "Sign payload request"
+// @Param request body types.SignMessageRequest true "Sign message request"
 // @Success 200 {string} string "Signed payload signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{address}/sign [post]
-func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
+// @Router /stores/{storeName}/eth1/{address}/sign-message [post]
+func (h *Eth1Handler) signMessage(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	signPayloadReq := &types.SignHexPayloadRequest{}
+	signPayloadReq := &types.SignMessageRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signPayloadReq)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
@@ -221,93 +219,7 @@ func (h *Eth1Handler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	signature, err := eth1Store.Sign(ctx, getAddress(request), signPayloadReq.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
-}
-
-// @Summary Sign hashed payload with Ethereum Account
-// @Description Sign Keccak256 payload using selected Ethereum Account
-// @Tags Ethereum Account
-// @Accept json
-// @Produce plain
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
-// @Param request body types.SignHexPayloadRequest true "Sign payload request"
-// @Success 200 {string} string "Signed payload signature"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 404 {object} ErrorResponse "Store/Account not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{address}/sign-hash [post]
-func (h *Eth1Handler) signHash(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	signPayloadReq := &types.SignHexPayloadRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, signPayloadReq)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	if len(signPayloadReq.Data) != 32 {
-		errMsg := "expected data size of 32 bytes"
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(errMsg))
-		return
-	}
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	signature, err := eth1Store.SignHash(ctx, getAddress(request), signPayloadReq.Data)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
-}
-
-// @Summary Sign EIP 191 message with Ethereum Account
-// @Description Sign EIP 191 message using selected Ethereum Account
-// @Tags Ethereum Account
-// @Accept json
-// @Produce plain
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
-// @Param request body types.SignMessagePayloadRequest true "Sign message request"
-// @Success 200 {string} string "EIP 191 message signature"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 404 {object} ErrorResponse "Store/Account not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/eth1/{address}/sign-data [post]
-func (h *Eth1Handler) signData(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	signPayloadReq := &types.SignMessagePayloadRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, signPayloadReq)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	signature, err := eth1Store.SignData(ctx, getAddress(request), signPayloadReq.Data)
+	signature, err := eth1Store.SignMessage(ctx, getAddress(request), signPayloadReq.Message.String())
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSign(t *testing.T) {
+func TestSignMessage(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -33,41 +33,38 @@ func TestSign(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 
 	connector := NewConnector(store, db, logger)
-	data := []byte("my data to sign")
+	data := "my data to sign"
+	expectedData := fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", 15, data)
 
 	t.Run("should sign successfully", func(t *testing.T) {
-		R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
-		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
-		ecdsaSignature := append(R.Bytes(), S.Bytes()...)
 		acc := testutils2.FakeETH1Account()
-		acc.PublicKey = hexutil.MustDecode("0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2")
+		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
+		acc.PublicKey = hexutil.MustDecode("0x04d3dbfaf4d49cc1bcaae16dc0afc8f46897d3ff5c86b538a3e54f3de4748cdeb4565860d7a47113bd23b215ec76f613438c488984342ef65d338ec7c50fd73c0e")
 
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
+		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignature, nil)
 
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256(data), eth1Algo).Return(ecdsaSignature, nil)
-
-		expectedSignature := hexutil.Encode(ecdsaSignature) + "01"
-		signature, err := connector.Sign(ctx, acc.Address, data)
+		expectedSignature := hexutil.Encode(ecdsaSignature) + "00"
+		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.NoError(t, err)
 		assert.Equal(t, hexutil.Encode(signature), expectedSignature)
 	})
 
 	t.Run("should sign and convert malleable signature successfully", func(t *testing.T) {
+		acc := testutils2.FakeETH1Account()
 		R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
 		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
 		S2 := new(big.Int).Add(S, secp256k1N)
-		ecdsaSignature := append(R.Bytes(), S2.Bytes()...)
-
-		acc := testutils2.FakeETH1Account()
-		acc.PublicKey = hexutil.MustDecode("0x04dd96deb946664c74c06b85ce2b930e95af35da101ca30127d1f5a49d2aaceabd3362079cb54084efcde74cff86f2514ffdfcc3b08360ba6a4b9267940582a1e7")
+		ecdsaSignatureMalleable := append(R.Bytes(), S2.Bytes()...)
+		acc.PublicKey = hexutil.MustDecode("0x048dbf1d83d2e74f0ce2572080620760b3937c3112d8081bca09b8038b4a2ab7826038bf59233b8b2d6343a0d60c8806b9cc1c674c6919cd94eada424be58d6aa8")
 
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256(data), eth1Algo).Return(ecdsaSignature, nil)
+		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignatureMalleable, nil)
 
 		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + "00"
-		signature, err := connector.Sign(ctx, acc.Address, data)
+		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.NoError(t, err)
 		assert.Equal(t, hexutil.Encode(signature), expectedSignature)
@@ -82,99 +79,36 @@ func TestSign(t *testing.T) {
 
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256(data), eth1Algo).Return(ecdsaSignature, nil)
+		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignature, nil)
 
-		_, err := connector.Sign(ctx, acc.Address, data)
+		_, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.Error(t, err)
 		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 
 	t.Run("should fail to sign if db fails", func(t *testing.T) {
-		expectedErr := errors.PostgresError("cannot connect")
+		expectedErr := fmt.Errorf("my error")
 		acc := testutils2.FakeETH1Account()
-		key := testutils2.FakeKey()
-		attributes := testutils2.FakeAttributes()
-		key.ID = acc.KeyID
-		acc.Tags = attributes.Tags
 
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
-		_, err := connector.Sign(ctx, acc.Address, data)
+		_, err := connector.SignMessage(ctx, acc.Address, data)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to sign if store fails", func(t *testing.T) {
-		expectedErr := errors.UnauthorizedError("no authorized")
+		expectedErr := fmt.Errorf("my error")
 		acc := testutils2.FakeETH1Account()
-		key := testutils2.FakeKey()
-		attributes := testutils2.FakeAttributes()
-		key.ID = acc.KeyID
-		acc.Tags = attributes.Tags
 
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
+		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(nil, expectedErr)
 
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256(data), eth1Algo).Return(nil, expectedErr)
-
-		_, err := connector.Sign(ctx, acc.Address, data)
+		_, err := connector.SignMessage(ctx, acc.Address, data)
 
 		assert.Error(t, err)
-		assert.Equal(t, err, expectedErr)
-	})
-}
-
-func TestSignHash(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	store := mock.NewMockKeyStore(ctrl)
-	db := mock2.NewMockETH1Accounts(ctrl)
-	logger := testutils.NewMockLogger(ctrl)
-
-	connector := NewConnector(store, db, logger)
-
-	data := crypto.Keccak256([]byte("data to sign"))
-	R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
-	S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
-	ecdsaSignature := append(R.Bytes(), S.Bytes()...)
-
-	acc := testutils2.FakeETH1Account()
-	acc.PublicKey = hexutil.MustDecode("0x04852df0d835ba5093cb171a0d72ec63c4858869a7bb7b1d619968d426cb4912c0b264d604e55b81f7f41f511cf2c1096b28144e8d96a7d2aa425c56ab874099cb")
-
-	t.Run("should sign hash successfully", func(t *testing.T) {
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, data, eth1Algo).Return(ecdsaSignature, nil)
-		signature, err := connector.SignHash(ctx, acc.Address, data)
-
-		expectedSignature := hexutil.Encode(ecdsaSignature) + "01"
-		require.NoError(t, err)
-		assert.Equal(t, hexutil.Encode(signature), expectedSignature)
-	})
-
-	t.Run("should fail to sign hash if db fails", func(t *testing.T) {
-		expectedErr := errors.PostgresError("cannot connect")
-
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
-
-		_, err := connector.SignHash(ctx, acc.Address, data)
-
-		require.Error(t, err)
-		assert.Equal(t, err, expectedErr)
-	})
-
-	t.Run("should fail to sign hash if store fails", func(t *testing.T) {
-		expectedErr := errors.UnauthorizedError("not authorized")
-
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, data, eth1Algo).Return(nil, expectedErr)
-
-		_, err := connector.SignHash(ctx, acc.Address, data)
-
-		require.Error(t, err)
 		assert.Equal(t, err, expectedErr)
 	})
 }

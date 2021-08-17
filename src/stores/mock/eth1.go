@@ -202,49 +202,19 @@ func (mr *MockEth1StoreMockRecorder) Destroy(ctx, addr interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockEth1Store)(nil).Destroy), ctx, addr)
 }
 
-// Sign mocks base method
-func (m *MockEth1Store) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+// SignMessage mocks base method
+func (m *MockEth1Store) SignMessage(ctx context.Context, addr common.Address, data string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Sign", ctx, addr, data)
+	ret := m.ctrl.Call(m, "SignMessage", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Sign indicates an expected call of Sign
-func (mr *MockEth1StoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.Call {
+// SignMessage indicates an expected call of SignMessage
+func (mr *MockEth1StoreMockRecorder) SignMessage(ctx, addr, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockEth1Store)(nil).Sign), ctx, addr, data)
-}
-
-// SignHash mocks base method
-func (m *MockEth1Store) SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignHash", ctx, addr, data)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SignHash indicates an expected call of SignHash
-func (mr *MockEth1StoreMockRecorder) SignHash(ctx, addr, data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignHash", reflect.TypeOf((*MockEth1Store)(nil).SignHash), ctx, addr, data)
-}
-
-// SignData mocks base method
-func (m *MockEth1Store) SignData(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignData", ctx, addr, data)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SignData indicates an expected call of SignData
-func (mr *MockEth1StoreMockRecorder) SignData(ctx, addr, data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignData", reflect.TypeOf((*MockEth1Store)(nil).SignData), ctx, addr, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignMessage", reflect.TypeOf((*MockEth1Store)(nil).SignMessage), ctx, addr, data)
 }
 
 // SignTypedData mocks base method

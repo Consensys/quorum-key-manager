@@ -260,38 +260,6 @@ func (s *eth1HandlerTestSuite) TestUpdate() {
 	})
 }
 
-func (s *eth1HandlerTestSuite) TestSign() {
-	s.Run("should execute request successfully", func() {
-		signRequest := testutils.FakeSignHexPayloadRequest()
-		requestBytes, _ := json.Marshal(signRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		signature := []byte("signature")
-		s.eth1Store.EXPECT().Sign(gomock.Any(), ethcommon.HexToAddress(accAddress), signRequest.Data).Return(signature, nil)
-
-		s.router.ServeHTTP(rw, httpRequest)
-
-		assert.Equal(s.T(), hexutil.Encode(signature), rw.Body.String())
-		assert.Equal(s.T(), http.StatusOK, rw.Code)
-	})
-
-	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.Run("should fail with correct error code if use case fails", func() {
-		signRequest := testutils.FakeSignHexPayloadRequest()
-		requestBytes, _ := json.Marshal(signRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.eth1Store.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
-	})
-}
-
 func (s *eth1HandlerTestSuite) TestSignTypedData() {
 	s.Run("should execute request successfully", func() {
 		signTypedDataRequest := testutils.FakeSignTypedDataRequest()
@@ -325,28 +293,26 @@ func (s *eth1HandlerTestSuite) TestSignTypedData() {
 	})
 }
 
-func (s *eth1HandlerTestSuite) TestSignEIP191Data() {
+func (s *eth1HandlerTestSuite) TestSignMessage() {
 	s.Run("should execute request successfully", func() {
-		signEIP191Request := testutils.FakeSignEIP191MessageRequest()
+		signEIP191Request := testutils.FakeSignMessageRequest()
 		requestBytes, _ := json.Marshal(signEIP191Request)
 
 		expectedSignature := "0xb91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a0291c"
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-data", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/eth1/%s/sign-message", eth1StoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		signature, _ := hexutil.Decode(expectedSignature)
-		s.eth1Store.EXPECT().SignData(gomock.Any(), accAddress, gomock.Any()).Return(signature, nil)
+		s.eth1Store.EXPECT().SignMessage(gomock.Any(), ethcommon.HexToAddress(accAddress), gomock.Any()).Return(signature, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		res := &apiTypes.SignMessagePayloadResponse{}
+		res := &apiTypes.SignMessageRequest{}
 
 		_ = json.Unmarshal(rw.Body.Bytes(), res)
 
-		assert.Equal(s.T(), res.Signature, expectedSignature)
-		assert.Equal(s.T(), res.V, "0x1c")
-		assert.Equal(s.T(), res.Message, string(signEIP191Request.Data))
+		assert.Equal(s.T(), hexutil.Encode(signature), rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 }
