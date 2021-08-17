@@ -23,9 +23,8 @@ type UpdateEth1AccountRequest struct {
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
-type SignHexPayloadRequest struct {
-	// required to be hex value
-	Data hexutil.Bytes `json:"data" validate:"required" example:"0xfeee" swaggertype:"string"`
+type SignMessageRequest struct {
+	Message hexutil.Bytes `json:"message" validate:"required" example:"0xfeade..." swaggertype:"string"`
 }
 
 type SignTypedDataRequest struct {

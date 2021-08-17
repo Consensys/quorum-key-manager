@@ -5,15 +5,12 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
-	"fmt"
 	"math/big"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	quorumtypes "github.com/consensys/quorum/core/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -38,15 +35,15 @@ func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) (
 	return signature, nil
 }
 
-func (c Connector) SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
-	logger := c.logger.With("address", addr.Hex())
+func (c Connector) SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	logger := c.logger.With("address", addr)
 
-	signature, err := c.sign(ctx, addr, data)
+	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(getEIP191EncodedData(data))))
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debug("signed hashed payload successfully")
+	logger.Debug("message signed successfully (eip-191)")
 	return signature, nil
 }
 
@@ -55,7 +52,9 @@ func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typed
 
 	encodedData, err := getEIP712EncodedData(typedData)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to format typed data"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(encodedData)))
@@ -63,7 +62,7 @@ func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typed
 		return nil, err
 	}
 
-	logger.Debug("signed hashed payload successfully")
+	logger.Debug("typed data signed successfully (eip-712) ")
 	return signature, nil
 }
 
@@ -219,15 +218,13 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
-		recoveredPubKeyStr := hexutil.Encode(crypto.FromECDSAPub(recoveredPubKey))
-		c.logger.Debug(recoveredPubKeyStr)
 		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), acc.PublicKey) {
 			return appendedSignature, nil
 		}
 	}
 
 	errMessage := "failed to recover public key candidate"
-	c.logger.WithError(err).Error(errMessage)
+	c.logger.Error(errMessage)
 	return nil, errors.InvalidParameterError(errMessage)
 }
 
@@ -265,20 +262,6 @@ func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (i
 	}
 
 	return privateRecipientEncoded, nil
-}
-
-func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
-	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
-	if err != nil {
-		return "", err
-	}
-
-	domainSeparatorHash, err := typedData.HashStruct(formatters.EIP712DomainLabel, typedData.Domain.Map())
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("\x19\x01%s%s", domainSeparatorHash, typedDataHash), nil
 }
 
 // Azure generates ECDSA signature that does not prevent malleability

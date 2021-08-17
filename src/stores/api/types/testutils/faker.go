@@ -63,9 +63,9 @@ func FakeUpdateEth1AccountRequest() *types.UpdateEth1AccountRequest {
 	}
 }
 
-func FakeSignHexPayloadRequest() *types.SignHexPayloadRequest {
-	return &types.SignHexPayloadRequest{
-		Data: hexutil.MustDecode("0xfeee"),
+func FakeSignMessageRequest() *types.SignMessageRequest {
+	return &types.SignMessageRequest{
+		Message: []byte("any message goes here"),
 	}
 }
 

@@ -217,19 +217,19 @@ func (mr *MockEth1StoreMockRecorder) Sign(ctx, addr, data interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockEth1Store)(nil).Sign), ctx, addr, data)
 }
 
-// SignHash mocks base method
-func (m *MockEth1Store) SignHash(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+// SignMessage mocks base method
+func (m *MockEth1Store) SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignHash", ctx, addr, data)
+	ret := m.ctrl.Call(m, "SignMessage", ctx, addr, data)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SignHash indicates an expected call of SignHash
-func (mr *MockEth1StoreMockRecorder) SignHash(ctx, addr, data interface{}) *gomock.Call {
+// SignMessage indicates an expected call of SignMessage
+func (mr *MockEth1StoreMockRecorder) SignMessage(ctx, addr, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignHash", reflect.TypeOf((*MockEth1Store)(nil).SignHash), ctx, addr, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignMessage", reflect.TypeOf((*MockEth1Store)(nil).SignMessage), ctx, addr, data)
 }
 
 // SignTypedData mocks base method
@@ -319,6 +319,20 @@ func (m *MockEth1Store) Verify(ctx context.Context, addr common.Address, data, s
 func (mr *MockEth1StoreMockRecorder) Verify(ctx, addr, data, sig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockEth1Store)(nil).Verify), ctx, addr, data, sig)
+}
+
+// VerifyMessage mocks base method
+func (m *MockEth1Store) VerifyMessage(ctx context.Context, addr common.Address, data, sig []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyMessage", ctx, addr, data, sig)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyMessage indicates an expected call of VerifyMessage
+func (mr *MockEth1StoreMockRecorder) VerifyMessage(ctx, addr, data, sig interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockEth1Store)(nil).VerifyMessage), ctx, addr, data, sig)
 }
 
 // VerifyTypedData mocks base method
