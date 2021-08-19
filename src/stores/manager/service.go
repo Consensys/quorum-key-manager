@@ -3,10 +3,10 @@ package storemanager
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"sync"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
-	"github.com/consensys/quorum-key-manager/src/auth/manager"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -119,7 +119,7 @@ func (m *BaseManager) loadAll() {
 	}
 }
 
-func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.SecretStore, error) {
+func (m *BaseManager) GetSecretStore(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.SecretStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -131,9 +131,12 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 		}
 
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
-			permissions := m.authManager.UserPermissions(ctx, userInfo)
-			resolvr := manager.NewResolver(permissions)
-			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), resolvr, storeBundle.logger), nil
+			return secretsconnector.NewConnector(
+				store,
+				m.db.Secrets(storeName),
+				authorizator.New(userInfo, storeBundle.logger),
+				storeBundle.logger,
+			), nil
 		}
 	}
 
@@ -142,7 +145,7 @@ func (m *BaseManager) GetSecretStore(ctx context.Context, storeName string, user
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.KeyStore, error) {
+func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.KeyStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
@@ -153,9 +156,12 @@ func (m *BaseManager) GetKeyStore(ctx context.Context, storeName string, userInf
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			permissions := m.authManager.UserPermissions(ctx, userInfo)
-			resolvr := manager.NewResolver(permissions)
-			return keysconnector.NewConnector(store, m.db.Keys(storeName), resolvr, storeBundle.logger), nil
+			return keysconnector.NewConnector(
+				store,
+				m.db.Keys(storeName),
+				authorizator.New(userInfo, storeBundle.logger),
+				storeBundle.logger,
+			), nil
 		}
 	}
 
@@ -170,7 +176,7 @@ func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *a
 	return m.getEth1Store(ctx, name, userInfo)
 }
 
-func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
+func (m *BaseManager) getEth1Store(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
 		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
 			errMsg := fmt.Sprintf("cannot access Eth1Store '%s'", storeName)
@@ -179,9 +185,12 @@ func (m *BaseManager) getEth1Store(ctx context.Context, storeName string, userIn
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			permissions := m.authManager.UserPermissions(ctx, userInfo)
-			resolvr := manager.NewResolver(permissions)
-			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), resolvr, storeBundle.logger), nil
+			return eth1connector.NewConnector(
+				store,
+				m.db.ETH1Accounts(storeName),
+				authorizator.New(userInfo, storeBundle.logger),
+				storeBundle.logger,
+			), nil
 		}
 	}
 

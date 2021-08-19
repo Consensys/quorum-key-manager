@@ -2,15 +2,22 @@ package secrets
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
 
 func (c Connector) Delete(ctx context.Context, id, version string) error {
-	logger := c.logger.With("id", id).With("version", version)
+	logger := c.logger.With("id", id, "version", version)
+	logger.Debug("deleting secret")
 
-	err := c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret})
+	if err != nil {
+		return err
+	}
+
+	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
 		err := dbtx.Delete(ctx, id, version)
 		if err != nil {
 			return err

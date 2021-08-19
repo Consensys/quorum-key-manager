@@ -1,4 +1,4 @@
-package manager
+package types
 
 type OpAction string
 type OpResource string
@@ -7,6 +7,7 @@ var ActionRead OpAction = "read"
 var ActionWrite OpAction = "write"
 var ActionSign OpAction = "sign"
 var ActionDelete OpAction = "delete"
+var ActionRestore OpAction = "restore"
 var ActionDestroy OpAction = "destroy"
 
 var ResourceKey OpResource = "keys"

@@ -9,9 +9,6 @@ import (
 //go:generate mockgen -source=secrets.go -destination=mock/secrets.go -package=mock
 
 type SecretStore interface {
-	// Info returns store information
-	Info(context.Context) (*entities.StoreInfo, error)
-
 	// Set secret
 	Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error)
 

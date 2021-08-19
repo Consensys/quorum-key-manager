@@ -40,21 +40,6 @@ func (m *MockEth1Store) EXPECT() *MockEth1StoreMockRecorder {
 	return m.recorder
 }
 
-// Info mocks base method
-func (m *MockEth1Store) Info(arg0 context.Context) (*entities.StoreInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Info", arg0)
-	ret0, _ := ret[0].(*entities.StoreInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Info indicates an expected call of Info
-func (mr *MockEth1StoreMockRecorder) Info(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockEth1Store)(nil).Info), arg0)
-}
-
 // Create mocks base method
 func (m *MockEth1Store) Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	m.ctrl.T.Helper()

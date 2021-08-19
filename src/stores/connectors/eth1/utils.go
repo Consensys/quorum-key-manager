@@ -2,6 +2,8 @@ package eth1
 
 import (
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -25,4 +27,20 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 
 func getEIP191EncodedData(msg []byte) string {
 	return fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", len(msg), hexutil.Encode(msg))
+}
+
+func newEth1Account(key *entities.Key, attr *entities.Attributes) *entities.ETH1Account {
+	pubKey, _ := crypto.UnmarshalPubkey(key.PublicKey)
+	return &entities.ETH1Account{
+		KeyID:               key.ID,
+		Address:             crypto.PubkeyToAddress(*pubKey),
+		Tags:                attr.Tags,
+		PublicKey:           key.PublicKey,
+		CompressedPublicKey: crypto.CompressPubkey(pubKey),
+		Metadata: &entities.Metadata{
+			Disabled:  key.Metadata.Disabled,
+			CreatedAt: key.Metadata.CreatedAt,
+			UpdatedAt: key.Metadata.UpdatedAt,
+		},
+	}
 }

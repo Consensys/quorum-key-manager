@@ -16,7 +16,6 @@ var authKinds = []manifest.Kind{
 	RoleKind,
 }
 
-// BaseManager allow to manage Permissions and Roles
 type BaseManager struct {
 	manifests manifestsmanager.Manager
 
@@ -38,7 +37,7 @@ func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	}
 }
 
-func (mngr *BaseManager) Start(ctx context.Context) error {
+func (mngr *BaseManager) Start(_ context.Context) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
@@ -46,7 +45,7 @@ func (mngr *BaseManager) Start(ctx context.Context) error {
 	mngr.sub = mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
 
 	// Start loading manifest
-	go mngr.loadAll(ctx)
+	go mngr.loadAll()
 
 	return nil
 }
@@ -70,8 +69,7 @@ func (mngr *BaseManager) Close() error {
 	return nil
 }
 
-func (mngr *BaseManager) UserPermissions(ctx context.Context, user *types.UserInfo) []types.Permission {
-	// Retrieve permissions associated to user user
+func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permission {
 	var permissions []types.Permission
 	if user == nil {
 		return permissions
@@ -80,7 +78,7 @@ func (mngr *BaseManager) UserPermissions(ctx context.Context, user *types.UserIn
 	permissions = append(permissions, user.Permissions...)
 
 	for _, roleName := range user.Roles {
-		role, err := mngr.Role(ctx, roleName)
+		role, err := mngr.Role(roleName)
 		if err != nil {
 			mngr.logger.WithError(err).With("role", roleName).Debug("could not load role")
 			continue
@@ -89,15 +87,14 @@ func (mngr *BaseManager) UserPermissions(ctx context.Context, user *types.UserIn
 		permissions = append(permissions, role.Permissions...)
 	}
 
-	// Create resolver
 	return permissions
 }
 
-func (mngr *BaseManager) Role(_ context.Context, name string) (*types.Role, error) {
+func (mngr *BaseManager) Role(name string) (*types.Role, error) {
 	return mngr.role(name)
 }
 
-func (mngr *BaseManager) Roles(context.Context) ([]string, error) {
+func (mngr *BaseManager) Roles() ([]string, error) {
 	roles := make([]string, 0, len(mngr.roles))
 	for role := range mngr.roles {
 		roles = append(roles, role)
@@ -113,15 +110,15 @@ func (mngr *BaseManager) role(name string) (*types.Role, error) {
 	return nil, fmt.Errorf("role %q not found", name)
 }
 
-func (mngr *BaseManager) loadAll(ctx context.Context) {
+func (mngr *BaseManager) loadAll() {
 	for mnfsts := range mngr.mnfsts {
 		for _, mnf := range mnfsts {
-			_ = mngr.load(ctx, mnf.Manifest)
+			_ = mngr.load(mnf.Manifest)
 		}
 	}
 }
 
-func (mngr *BaseManager) load(_ context.Context, mnf *manifest.Manifest) error {
+func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
