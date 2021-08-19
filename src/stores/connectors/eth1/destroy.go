@@ -2,6 +2,7 @@ package eth1
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -11,6 +12,11 @@ import (
 func (c Connector) Destroy(ctx context.Context, addr ethcommon.Address) error {
 	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("destroying ethereum account")
+
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account})
+	if err != nil {
+		return err
+	}
 
 	acc, err := c.db.GetDeleted(ctx, addr.Hex())
 	if err != nil {

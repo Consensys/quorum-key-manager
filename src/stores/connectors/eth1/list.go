@@ -2,11 +2,17 @@ package eth1
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/ethereum/go-ethereum/common"
 )
 
 func (c Connector) List(ctx context.Context) ([]common.Address, error) {
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account})
+	if err != nil {
+		return nil, err
+	}
+
 	accs, err := c.db.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -22,6 +28,11 @@ func (c Connector) List(ctx context.Context) ([]common.Address, error) {
 }
 
 func (c Connector) ListDeleted(ctx context.Context) ([]common.Address, error) {
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account})
+	if err != nil {
+		return nil, err
+	}
+
 	accs, err := c.db.GetAllDeleted(ctx)
 	if err != nil {
 		return nil, err

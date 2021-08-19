@@ -9,10 +9,10 @@ import (
 )
 
 type Connector struct {
-	store  stores.KeyStore
-	logger log.Logger
-	db     database.ETH1Accounts
-	auth   auth.Authorizator
+	store        stores.KeyStore
+	logger       log.Logger
+	db           database.ETH1Accounts
+	authorizator auth.Authorizator
 }
 
 var _ stores.Eth1Store = Connector{}
@@ -22,11 +22,11 @@ var eth1Algo = &entities.Algorithm{
 	EllipticCurve: entities.Secp256k1,
 }
 
-func NewConnector(store stores.KeyStore, db database.ETH1Accounts, auth auth.Authorizator, logger log.Logger) *Connector {
+func NewConnector(store stores.KeyStore, db database.ETH1Accounts, authorizator auth.Authorizator, logger log.Logger) *Connector {
 	return &Connector{
-		store:  store,
-		logger: logger,
-		db:     db,
-		auth:   auth,
+		store:        store,
+		logger:       logger,
+		db:           db,
+		authorizator: authorizator,
 	}
 }

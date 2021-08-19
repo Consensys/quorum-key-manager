@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"math/big"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -71,6 +72,7 @@ func (c Connector) SignTransaction(ctx context.Context, addr common.Address, cha
 
 	signer := types.NewEIP155Signer(chainID)
 	txData := signer.Hash(tx).Bytes()
+
 	signature, err := c.sign(ctx, addr, txData)
 	if err != nil {
 		return nil, err
@@ -197,6 +199,11 @@ func (c Connector) SignPrivate(ctx context.Context, addr common.Address, tx *quo
 }
 
 func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	err := c.authorizator.Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account})
+	if err != nil {
+		return nil, err
+	}
+
 	acc, err := c.db.Get(ctx, addr.Hex())
 	if err != nil {
 		return nil, err
