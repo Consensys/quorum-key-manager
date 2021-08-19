@@ -2,6 +2,7 @@ package keys
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
@@ -12,6 +13,11 @@ import (
 func (c Connector) Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
 	logger := c.logger.With("id", id)
 	logger.Debug("updating key")
+
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey})
+	if err != nil {
+		return nil, err
+	}
 
 	key, err := c.db.Get(ctx, id)
 	if err != nil {

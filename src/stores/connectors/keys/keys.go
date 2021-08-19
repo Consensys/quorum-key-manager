@@ -1,7 +1,7 @@
 package keys
 
 import (
-	"github.com/consensys/quorum-key-manager/src/auth/manager"
+	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 
@@ -9,19 +9,19 @@ import (
 )
 
 type Connector struct {
-	store   stores.KeyStore
-	db      database.Keys
-	logger  log.Logger
-	resolvr *manager.Resolver
+	store        stores.KeyStore
+	db           database.Keys
+	logger       log.Logger
+	authorizator auth.Authorizator
 }
 
 var _ stores.KeyStore = Connector{}
 
-func NewConnector(store stores.KeyStore, db database.Keys, resolvr *manager.Resolver, logger log.Logger) *Connector {
+func NewConnector(store stores.KeyStore, db database.Keys, authorizator auth.Authorizator, logger log.Logger) *Connector {
 	return &Connector{
-		store:   store,
-		db:      db,
-		logger:  logger,
-		resolvr: resolvr,
+		store:        store,
+		db:           db,
+		logger:       logger,
+		authorizator: authorizator,
 	}
 }

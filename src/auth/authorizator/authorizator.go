@@ -32,7 +32,7 @@ func (auth *Authorizator) Check(ops ...*types.Operation) error {
 		if _, ok := auth.permissions[permission]; !ok {
 			errMessage := "user is not authorized to perform this operation"
 			auth.logger.With("permission", permission).Error(errMessage)
-			return errors.UnauthorizedError(errMessage)
+			return errors.ForbiddenError(errMessage)
 		}
 	}
 

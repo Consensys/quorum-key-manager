@@ -15,6 +15,7 @@ const (
 	NotImplemented   = "IR300"
 	InvalidFormat    = "IR400"
 	InvalidParameter = "IR500"
+	Forbidden        = "IR600"
 )
 
 // HashicorpVaultError is raised when failing to perform on Hashicorp Vault
@@ -79,6 +80,15 @@ func UnauthorizedError(format string, a ...interface{}) *Error {
 
 func IsUnauthorizedError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), Unauthorized)
+}
+
+// ForbiddenError is raised when the user cannot perform a given operation (missing permission)
+func ForbiddenError(format string, a ...interface{}) *Error {
+	return Errorf(Forbidden, format, a...)
+}
+
+func IsForbiddenError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), Forbidden)
 }
 
 // NotSupportedError is raised when operation is not supported

@@ -6,8 +6,8 @@ type OpResource string
 var ActionRead OpAction = "read"
 var ActionWrite OpAction = "write"
 var ActionSign OpAction = "sign"
+var ActionEncrypt OpAction = "encrypt"
 var ActionDelete OpAction = "delete"
-var ActionRestore OpAction = "restore"
 var ActionDestroy OpAction = "destroy"
 
 var ResourceKey OpResource = "keys"

@@ -12,7 +12,7 @@ func (c Connector) Restore(ctx context.Context, id, version string) error {
 	logger := c.logger.With("id", id, "version", version)
 	logger.Debug("restoring secret")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionRestore, Resource: types.ResourceSecret})
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret})
 	if err != nil {
 		return err
 	}

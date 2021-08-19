@@ -2,6 +2,7 @@ package keys
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
@@ -9,9 +10,12 @@ import (
 func (c Connector) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
 	logger := c.logger.With("id", id)
 
-	var result []byte
-	var err error
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey})
+	if err != nil {
+		return nil, err
+	}
 
+	var result []byte
 	if algo != nil {
 		result, err = c.store.Sign(ctx, id, data, algo)
 	} else {
