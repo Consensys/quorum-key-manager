@@ -27,7 +27,7 @@ func (c Connector) Update(ctx context.Context, id string, attr *entities.Attribu
 	key.Tags = attr.Tags
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Keys) error {
-		key, err = c.db.Update(ctx, key)
+		key, err = dbtx.Update(ctx, key)
 		if err != nil {
 			return err
 		}

@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	eth1StoreName = "Eth1Store"
+	eth1StoreName = "Eth1Stores"
 	accAddress    = "0x7E654d251Da770A068413677967F6d3Ea2FeA9E4"
 )
 
@@ -79,7 +79,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Stores/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -104,7 +104,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Stores/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -125,7 +125,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 
 	s.Run("should execute request with no request body successfully", func() {
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", nil).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Stores/eth1", nil).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -145,7 +145,7 @@ func (s *eth1HandlerTestSuite) TestCreate() {
 		requestBytes, _ := json.Marshal(createEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Stores/eth1", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
@@ -160,7 +160,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Stores/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -186,7 +186,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Stores/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		acc := testutils2.FakeETH1Account()
 
@@ -212,7 +212,7 @@ func (s *eth1HandlerTestSuite) TestImport() {
 		requestBytes, _ := json.Marshal(importEth1AccountRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Store/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/Eth1Stores/eth1/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		s.eth1Store.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 

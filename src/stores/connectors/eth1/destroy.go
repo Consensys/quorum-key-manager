@@ -25,7 +25,7 @@ func (c Connector) Destroy(ctx context.Context, addr ethcommon.Address) error {
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-		err = c.db.Purge(ctx, addr.Hex())
+		err = dbtx.Purge(ctx, addr.Hex())
 		if err != nil {
 			return err
 		}

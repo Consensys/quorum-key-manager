@@ -24,7 +24,7 @@ func (c Connector) Restore(ctx context.Context, id, version string) error {
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		err = c.db.Restore(ctx, secret.ID, version)
+		err = dbtx.Restore(ctx, secret.ID, version)
 		if err != nil {
 			return err
 		}

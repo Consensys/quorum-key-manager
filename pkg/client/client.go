@@ -12,10 +12,10 @@ import (
 type SecretsClient interface {
 	SetSecret(ctx context.Context, storeName, id string, request *types.SetSecretRequest) (*types.SecretResponse, error)
 	GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error)
-	GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error)
-	DeleteSecret(ctx context.Context, storeName, id string) error
-	RestoreSecret(ctx context.Context, storeName, id string) error
-	DestroySecret(ctx context.Context, storeName, id string) error
+	GetDeletedSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error)
+	DeleteSecret(ctx context.Context, storeName, id, version string) error
+	RestoreSecret(ctx context.Context, storeName, id, version string) error
+	DestroySecret(ctx context.Context, storeName, id, version string) error
 	ListSecrets(ctx context.Context, storeName string) ([]string, error)
 	ListDeletedSecrets(ctx context.Context, storeName string) ([]string, error)
 }
@@ -27,6 +27,10 @@ type KeysClient interface {
 	VerifyKeySignature(ctx context.Context, storeName string, request *types.VerifyKeySignatureRequest) error
 	GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error)
 	ListKeys(ctx context.Context, storeName string) ([]string, error)
+	DeleteKey(ctx context.Context, storeName, id string) error
+	GetDeletedKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error)
+	ListDeletedKeys(ctx context.Context, storeName string) ([]string, error)
+	RestoreKey(ctx context.Context, storeName, id string) error
 	DestroyKey(ctx context.Context, storeName, id string) error
 }
 

@@ -24,7 +24,7 @@ func (c Connector) Destroy(ctx context.Context, id, version string) error {
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		err = c.db.Purge(ctx, id, version)
+		err = dbtx.Purge(ctx, id, version)
 		if err != nil {
 			return err
 		}

@@ -210,13 +210,13 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 	id := mux.Vars(request)["id"]
 	version := request.URL.Query().Get("version")
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	err = keyStore.Destroy(ctx, id, version)
+	err = secretStore.Destroy(ctx, id, version)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
@@ -245,13 +245,13 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 	version := request.URL.Query().Get("version")
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	err = keyStore.Restore(ctx, id, version)
+	err = secretStore.Restore(ctx, id, version)
 	if err != nil {
 		WriteHTTPErrorResponse(rw, err)
 		return

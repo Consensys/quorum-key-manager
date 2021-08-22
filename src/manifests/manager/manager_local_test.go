@@ -84,7 +84,7 @@ func TestLocalManager(t *testing.T) {
 
 	assertMessage(t, []Message{
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindA",
 				Name:  "test-1.1",
@@ -93,7 +93,7 @@ func TestLocalManager(t *testing.T) {
 			Action: CreateAction,
 		},
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-1.2",
@@ -102,7 +102,7 @@ func TestLocalManager(t *testing.T) {
 			Action: CreateAction,
 		},
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-2.1",
@@ -114,7 +114,7 @@ func TestLocalManager(t *testing.T) {
 
 	assertMessage(t, []Message{
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-1.2",
@@ -123,7 +123,7 @@ func TestLocalManager(t *testing.T) {
 			Action: CreateAction,
 		},
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-2.1",
@@ -132,7 +132,7 @@ func TestLocalManager(t *testing.T) {
 			Action: CreateAction,
 		},
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindC",
 				Name:  "test-2.2",
@@ -144,7 +144,7 @@ func TestLocalManager(t *testing.T) {
 
 	assertMessage(t, []Message{
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindA",
 				Name:  "test-1.1",
@@ -153,7 +153,7 @@ func TestLocalManager(t *testing.T) {
 			Action: CreateAction,
 		},
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-1.2",
@@ -162,7 +162,7 @@ func TestLocalManager(t *testing.T) {
 			Action: CreateAction,
 		},
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
 				Name:  "test-2.1",
@@ -171,7 +171,7 @@ func TestLocalManager(t *testing.T) {
 			Action: CreateAction,
 		},
 		Message{
-			Loader: "LocalManager",
+			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindC",
 				Name:  "test-2.2",
