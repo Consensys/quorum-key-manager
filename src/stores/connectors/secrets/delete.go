@@ -21,17 +21,16 @@ func (c Connector) Delete(ctx context.Context, id, version string) error {
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
 		derr := dbtx.Delete(ctx, id, version)
 		if derr != nil {
-			return err
+			return derr
 		}
 
 		derr = c.store.Delete(ctx, id, version)
 		if derr != nil && !errors.IsNotSupportedError(derr) { // If the underlying store does not support deleting, we only delete in DB
-			return err
+			return derr
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}

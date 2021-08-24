@@ -2,6 +2,9 @@ package keys
 
 import (
 	"context"
+	"fmt"
+	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -19,11 +22,16 @@ func TestUpdateKey(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	key := testutils2.FakeKey()
+	attributes := testutils2.FakeAttributes()
+	expectedErr := fmt.Errorf("error")
+
 	store := mock.NewMockKeyStore(ctrl)
 	db := mock2.NewMockKeys(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
+	auth := mock3.NewMockAuthorizator(ctrl)
 
-	connector := NewConnector(store, db, nil, logger)
+	connector := NewConnector(store, db, auth, logger)
 
 	db.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, persist func(dbtx database.Keys) error) error {
@@ -31,31 +39,26 @@ func TestUpdateKey(t *testing.T) {
 		}).AnyTimes()
 
 	t.Run("should update key successfully", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := testutils2.FakeAttributes()
-		key.Tags = attributes.Tags
+		updatedKey := testutils2.FakeKey()
+		updatedKey.Tags = attributes.Tags
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
-
-		db.EXPECT().Update(gomock.Any(), key).Return(key, nil)
-
-		store.EXPECT().Update(gomock.Any(), key.ID, attributes).Return(key, nil)
+		db.EXPECT().Update(gomock.Any(), key).Return(updatedKey, nil)
+		store.EXPECT().Update(gomock.Any(), key.ID, attributes).Return(updatedKey, nil)
 
 		rKey, err := connector.Update(ctx, key.ID, attributes)
 
 		assert.NoError(t, err)
-		assert.Equal(t, rKey, key)
+		assert.Equal(t, rKey, updatedKey)
 	})
 
 	t.Run("should update key successfully, ignoring not supported error", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := testutils2.FakeAttributes()
 		rErr := errors.NotSupportedError("not supported")
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
-
 		db.EXPECT().Update(gomock.Any(), key).Return(key, nil)
-
 		store.EXPECT().Update(gomock.Any(), key.ID, attributes).Return(nil, rErr)
 
 		_, err := connector.Update(ctx, key.ID, attributes)
@@ -63,11 +66,17 @@ func TestUpdateKey(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should fail to update key if key is not found", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := testutils2.FakeAttributes()
-		expectedErr := errors.NotFoundError("not found")
+	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(expectedErr)
 
+		_, err := connector.Update(ctx, key.ID, attributes)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
+	})
+
+	t.Run("should fail to update key if key is not found", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, expectedErr)
 
 		_, err := connector.Update(ctx, key.ID, attributes)
@@ -77,12 +86,8 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if db fail to update", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := testutils2.FakeAttributes()
-		expectedErr := errors.PostgresError("cannot connect")
-
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
-
 		db.EXPECT().Update(gomock.Any(), key).Return(nil, expectedErr)
 
 		_, err := connector.Update(ctx, key.ID, attributes)
@@ -92,14 +97,9 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if store fail to update", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := testutils2.FakeAttributes()
-		expectedErr := errors.UnauthorizedError("not authorized")
-
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
-
 		db.EXPECT().Update(gomock.Any(), key).Return(key, nil)
-
 		store.EXPECT().Update(gomock.Any(), key.ID, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Update(ctx, key.ID, attributes)

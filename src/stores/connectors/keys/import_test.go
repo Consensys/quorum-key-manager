@@ -2,12 +2,13 @@ package keys
 
 import (
 	"context"
+	"fmt"
+	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
@@ -19,19 +20,21 @@ func TestImportKey(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	privKey := []byte("0xABCD")
+	key := testutils2.FakeKey()
+	attributes := testutils2.FakeAttributes()
+	expectedErr := fmt.Errorf("error")
+
 	store := mock.NewMockKeyStore(ctrl)
 	db := mock2.NewMockKeys(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
-	privKey := []byte("0xABCD")
+	auth := mock3.NewMockAuthorizator(ctrl)
 
-	connector := NewConnector(store, db, nil, logger)
+	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should import key successfully", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := &entities.Attributes{}
-
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, key.Algo, attributes).Return(key, nil)
-
 		db.EXPECT().Add(gomock.Any(), key).Return(key, nil)
 
 		rKey, err := connector.Import(ctx, key.ID, privKey, key.Algo, attributes)
@@ -40,11 +43,17 @@ func TestImportKey(t *testing.T) {
 		assert.Equal(t, rKey, key)
 	})
 
-	t.Run("should fail to delete key if store fail to import", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := &entities.Attributes{}
-		expectedErr := errors.UnauthorizedError("not authorized")
+	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(expectedErr)
 
+		_, err := connector.Import(ctx, key.ID, privKey, key.Algo, attributes)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
+	})
+
+	t.Run("should fail to delete key if store fail to import", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, key.Algo, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, key.Algo, attributes)
@@ -54,12 +63,8 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should fail to import key if db fail to add", func(t *testing.T) {
-		key := testutils2.FakeKey()
-		attributes := &entities.Attributes{}
-		expectedErr := errors.NotFoundError("not found")
-
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, key.Algo, attributes).Return(key, nil)
-
 		db.EXPECT().Add(gomock.Any(), key).Return(nil, expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, key.Algo, attributes)

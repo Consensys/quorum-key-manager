@@ -2,6 +2,9 @@ package secrets
 
 import (
 	"context"
+	"fmt"
+	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -22,8 +25,10 @@ func TestDeleteSecret(t *testing.T) {
 	store := mock.NewMockSecretStore(ctrl)
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
+	auth := mock3.NewMockAuthorizator(ctrl)
+	expectedErr := fmt.Errorf("error")
 
-	connector := NewConnector(store, db, nil, logger)
+	connector := NewConnector(store, db, auth, logger)
 
 	db.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, persist func(dbtx database.Secrets) error) error {
@@ -33,8 +38,8 @@ func TestDeleteSecret(t *testing.T) {
 	t.Run("should delete secret successfully", func(t *testing.T) {
 		secret := testutils2.FakeSecret()
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
-
 		store.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
 
 		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
@@ -46,8 +51,8 @@ func TestDeleteSecret(t *testing.T) {
 		secret := testutils2.FakeSecret()
 		rErr := errors.NotSupportedError("not supported")
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
-
 		store.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(rErr)
 
 		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
@@ -55,29 +60,36 @@ func TestDeleteSecret(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
+		secret := testutils2.FakeSecret()
+
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(expectedErr)
+
+		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
+
+		assert.Equal(t, err, expectedErr)
+	})
+
 	t.Run("should fail to delete secret if db fail to delete", func(t *testing.T) {
 		secret := testutils2.FakeSecret()
-		expectedErr := errors.NotFoundError("not found")
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)
 
 		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
 
-		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to delete secret if store fail to delete", func(t *testing.T) {
 		secret := testutils2.FakeSecret()
-		expectedErr := errors.UnauthorizedError("not authorized")
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
-
 		store.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)
 
 		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
 
-		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
 	})
 }

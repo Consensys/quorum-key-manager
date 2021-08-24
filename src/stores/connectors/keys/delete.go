@@ -22,12 +22,12 @@ func (c Connector) Delete(ctx context.Context, id string) error {
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Keys) error {
 		derr := dbtx.Delete(ctx, id)
 		if derr != nil {
-			return err
+			return derr
 		}
 
 		derr = c.store.Delete(ctx, id)
 		if derr != nil && !errors.IsNotSupportedError(derr) { // If the underlying store does not support deleting, we only delete in DB
-			return err
+			return derr
 		}
 
 		return nil

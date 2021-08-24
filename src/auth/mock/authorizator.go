@@ -33,20 +33,20 @@ func (m *MockAuthorizator) EXPECT() *MockAuthorizatorMockRecorder {
 	return m.recorder
 }
 
-// IsAuthorized mocks base method
-func (m *MockAuthorizator) IsAuthorized(ops ...*types.Operation) bool {
+// Check mocks base method
+func (m *MockAuthorizator) Check(ops ...*types.Operation) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range ops {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "IsAuthorized", varargs...)
-	ret0, _ := ret[0].(bool)
+	ret := m.ctrl.Call(m, "Check", varargs...)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// IsAuthorized indicates an expected call of IsAuthorized
-func (mr *MockAuthorizatorMockRecorder) IsAuthorized(ops ...interface{}) *gomock.Call {
+// Check indicates an expected call of Check
+func (mr *MockAuthorizatorMockRecorder) Check(ops ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAuthorized", reflect.TypeOf((*MockAuthorizator)(nil).IsAuthorized), ops...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockAuthorizator)(nil).Check), ops...)
 }
