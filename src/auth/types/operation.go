@@ -9,6 +9,7 @@ var ActionSign OpAction = "sign"
 var ActionEncrypt OpAction = "encrypt"
 var ActionDelete OpAction = "delete"
 var ActionDestroy OpAction = "destroy"
+var ActionProxy OpAction = "proxy"
 
 var ResourceKey OpResource = "keys"
 var ResourceSecret OpResource = "secrets"

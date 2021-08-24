@@ -370,7 +370,7 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 			return err
 		}
 
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store}
+		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case stores.LocalKeys:
 		spec := &mkeys.LocalKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {

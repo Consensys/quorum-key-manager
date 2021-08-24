@@ -85,6 +85,9 @@ func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permissio
 		}
 
 		permissions = append(permissions, role.Permissions...)
+		for _, p := range role.Permissions {
+			permissions = append(permissions, types.ListWildcardPermission(string(p))...)
+		}
 	}
 
 	return permissions

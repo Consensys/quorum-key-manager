@@ -75,11 +75,11 @@ services:
     <<: *container-common
     environment:
       <<: *default-variables
-      AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-/certificates/key.pem}
+      AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-/certificates/auth.key}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/certificates:/certificates:ro
-    command: utils generate-jwt --username=${USERNAME-username} --groups=${GROUPS-admin,user} --expiration=${EXPIRATION-24h}
+    command: utils generate-jwt --sub=${SUB-tenant0|username} --scope=${SCOPE-"admin"} --expiration=${EXPIRATION-24h}
     restart: "no"
 
 networks:
