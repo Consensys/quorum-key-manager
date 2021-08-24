@@ -3,9 +3,10 @@ package secrets
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
-	"testing"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
