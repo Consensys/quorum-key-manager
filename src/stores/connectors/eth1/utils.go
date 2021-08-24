@@ -2,6 +2,7 @@ package eth1
 
 import (
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/ethereum/go-ethereum/crypto"
 

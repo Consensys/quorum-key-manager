@@ -2,6 +2,7 @@ package authorizator
 
 import (
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
@@ -13,9 +14,9 @@ type Authorizator struct {
 	permissions map[types.Permission]bool // We use a map to avoid iterating an array, the boolean is irrelevant and always true
 }
 
-func New(userInfo *types.UserInfo, logger log.Logger) *Authorizator {
+func New(permissions []types.Permission, logger log.Logger) *Authorizator {
 	pMap := map[types.Permission]bool{}
-	for _, p := range userInfo.Permissions {
+	for _, p := range permissions {
 		pMap[p] = true
 	}
 

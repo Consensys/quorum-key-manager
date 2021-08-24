@@ -3,8 +3,9 @@ package storemanager
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"sync"
+
+	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
@@ -131,10 +132,11 @@ func (m *BaseManager) GetSecretStore(_ context.Context, storeName string, userIn
 		}
 
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
+			permissions := m.authManager.UserPermissions(userInfo)
 			return secretsconnector.NewConnector(
 				store,
 				m.db.Secrets(storeName),
-				authorizator.New(userInfo, storeBundle.logger),
+				authorizator.New(permissions, storeBundle.logger),
 				storeBundle.logger,
 			), nil
 		}
@@ -156,10 +158,11 @@ func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, userInfo 
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
+			permissions := m.authManager.UserPermissions(userInfo)
 			return keysconnector.NewConnector(
 				store,
 				m.db.Keys(storeName),
-				authorizator.New(userInfo, storeBundle.logger),
+				authorizator.New(permissions, storeBundle.logger),
 				storeBundle.logger,
 			), nil
 		}
@@ -185,10 +188,11 @@ func (m *BaseManager) getEth1Store(_ context.Context, storeName string, userInfo
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
+			permissions := m.authManager.UserPermissions(userInfo)
 			return eth1connector.NewConnector(
 				store,
 				m.db.ETH1Accounts(storeName),
-				authorizator.New(userInfo, storeBundle.logger),
+				authorizator.New(permissions, storeBundle.logger),
 				storeBundle.logger,
 			), nil
 		}

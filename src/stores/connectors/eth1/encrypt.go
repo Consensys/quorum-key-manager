@@ -2,6 +2,7 @@ package eth1
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"

@@ -2,6 +2,7 @@ package eth1
 
 import (
 	"context"
+
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"

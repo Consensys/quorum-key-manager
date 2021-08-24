@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"

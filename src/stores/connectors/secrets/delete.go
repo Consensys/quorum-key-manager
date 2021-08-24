@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -18,13 +19,13 @@ func (c Connector) Delete(ctx context.Context, id, version string) error {
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		err := dbtx.Delete(ctx, id, version)
-		if err != nil {
+		derr := dbtx.Delete(ctx, id, version)
+		if derr != nil {
 			return err
 		}
 
-		err = c.store.Delete(ctx, id, version)
-		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support deleting, we only delete in DB
+		derr = c.store.Delete(ctx, id, version)
+		if derr != nil && !errors.IsNotSupportedError(derr) { // If the underlying store does not support deleting, we only delete in DB
 			return err
 		}
 
