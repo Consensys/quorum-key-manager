@@ -34,6 +34,7 @@ func TestGetSecret(t *testing.T) {
 	t.Run("should get secret successfully", func(t *testing.T) {
 		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
+		store.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
 
 		rSecret, err := connector.Get(ctx, secret.ID, secret.Metadata.Version)
 
@@ -53,6 +54,17 @@ func TestGetSecret(t *testing.T) {
 	t.Run("should fail to get secret if db fails", func(t *testing.T) {
 		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, expectedErr)
+
+		_, err := connector.Get(ctx, secret.ID, secret.Metadata.Version)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
+	})
+
+	t.Run("should fail to get secret value", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
+		store.EXPECT().Get(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, expectedErr)
 
 		_, err := connector.Get(ctx, secret.ID, secret.Metadata.Version)
 
