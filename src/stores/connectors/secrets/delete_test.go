@@ -22,11 +22,12 @@ func TestDeleteSecret(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	expectedErr := fmt.Errorf("error")
+
 	store := mock.NewMockSecretStore(ctrl)
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 	auth := mock3.NewMockAuthorizator(ctrl)
-	expectedErr := fmt.Errorf("error")
 
 	connector := NewConnector(store, db, auth, logger)
 
