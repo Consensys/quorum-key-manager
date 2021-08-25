@@ -235,9 +235,12 @@ func (s *eth1TestSuite) TestSignTypedData() {
 
 		assert.NotNil(s.T(), signature)
 
+		hexSig, err := hexutil.Decode(signature)
+		require.NoError(s.T(), err)
+		
 		err = s.keyManagerClient.VerifyTypedDataSignature(s.ctx, s.storeName, &types.VerifyTypedDataRequest{
 			TypedData: *request,
-			Signature: hexutil.MustDecode(signature),
+			Signature: hexSig,
 			Address:   s.signAccount.Address,
 		})
 		require.NoError(s.T(), err)

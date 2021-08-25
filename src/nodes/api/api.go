@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes/manager"
 	"github.com/gorilla/mux"
 )
@@ -68,7 +69,7 @@ func (h *NodesAPI) serveHTTPDownstream(rw http.ResponseWriter, req *http.Request
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	n, err := h.nodes.Node(req.Context(), nodeName, userInfo)
 	if err != nil {
-		http.NotFound(rw, req)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

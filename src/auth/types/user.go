@@ -18,6 +18,10 @@ type UserInfo struct {
 	Permissions []Permission
 }
 
+var WildcardUser = &UserInfo{
+	Permissions: ListPermissions(),
+}
+
 var AnonymousUser = &UserInfo{
 	Username:    "anonymous",
 	Roles:       []string{AnonymousRole},
