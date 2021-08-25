@@ -11,7 +11,7 @@ import (
 func (c Connector) Encrypt(ctx context.Context, addr ethcommon.Address, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account})
 	if err != nil {
 		return nil, err
 	}

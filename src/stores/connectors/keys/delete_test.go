@@ -39,7 +39,7 @@ func TestDeleteKey(t *testing.T) {
 		}).AnyTimes()
 
 	t.Run("should delete key successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Delete(gomock.Any(), key.ID).Return(nil)
 
@@ -51,7 +51,7 @@ func TestDeleteKey(t *testing.T) {
 	t.Run("should delete key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Delete(gomock.Any(), key.ID).Return(rErr)
 
@@ -61,7 +61,7 @@ func TestDeleteKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(expectedErr)
 
 		err := connector.Delete(ctx, key.ID)
 
@@ -70,7 +70,7 @@ func TestDeleteKey(t *testing.T) {
 	})
 
 	t.Run("should fail to delete key if db fail to delete", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), key.ID).Return(expectedErr)
 
 		err := connector.Delete(ctx, key.ID)
@@ -80,7 +80,7 @@ func TestDeleteKey(t *testing.T) {
 	})
 
 	t.Run("should fail to delete key if store fail to delete", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Delete(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Delete(gomock.Any(), key.ID).Return(expectedErr)
 

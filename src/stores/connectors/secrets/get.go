@@ -11,7 +11,7 @@ import (
 func (c Connector) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := c.logger.With("id", id, "version", version)
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (c Connector) Get(ctx context.Context, id, version string) (*entities.Secre
 func (c Connector) GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := c.logger.With("id", id, "version", version)
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
 	if err != nil {
 		return nil, err
 	}

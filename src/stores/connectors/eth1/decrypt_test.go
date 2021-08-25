@@ -36,7 +36,7 @@ func TestDecryptKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should decrypt data successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Decrypt(gomock.Any(), key.ID, data).Return(result, nil)
 
@@ -47,7 +47,7 @@ func TestDecryptKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(expectedErr)
 
 		_, err := connector.Decrypt(ctx, acc.Address, data)
 
@@ -56,7 +56,7 @@ func TestDecryptKey(t *testing.T) {
 	})
 
 	t.Run("should fail to decrypt data if db fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
 		_, err := connector.Decrypt(ctx, acc.Address, data)
@@ -66,7 +66,7 @@ func TestDecryptKey(t *testing.T) {
 	})
 
 	t.Run("should fail to decrypt data if store fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Decrypt(gomock.Any(), key.ID, data).Return(nil, expectedErr)
 

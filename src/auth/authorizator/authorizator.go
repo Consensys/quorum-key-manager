@@ -12,9 +12,10 @@ import (
 type Authorizator struct {
 	logger      log.Logger
 	permissions map[types.Permission]bool // We use a map to avoid iterating an array, the boolean is irrelevant and always true
+	tenant      string
 }
 
-func New(permissions []types.Permission, logger log.Logger) *Authorizator {
+func New(permissions []types.Permission, tenant string, logger log.Logger) *Authorizator {
 	pMap := map[types.Permission]bool{}
 	for _, p := range permissions {
 		pMap[p] = true
@@ -22,12 +23,12 @@ func New(permissions []types.Permission, logger log.Logger) *Authorizator {
 
 	return &Authorizator{
 		permissions: pMap,
+		tenant:      tenant,
 		logger:      logger,
 	}
 }
 
-// Check checks whether an operation is authorized or not
-func (auth *Authorizator) Check(ops ...*types.Operation) error {
+func (auth *Authorizator) CheckPermission(ops ...*types.Operation) error {
 	for _, op := range ops {
 		permission := buildPermission(op.Action, op.Resource)
 		if _, ok := auth.permissions[permission]; !ok {
@@ -38,6 +39,28 @@ func (auth *Authorizator) Check(ops ...*types.Operation) error {
 	}
 
 	return nil
+}
+
+func (auth *Authorizator) CheckAccess(allowedTenants []string) error {
+	if len(allowedTenants) == 0 {
+		return nil
+	}
+
+	if auth.tenant == "" {
+		errMessage := "missing tenant in credentials"
+		auth.logger.Error(errMessage)
+		return errors.UnauthorizedError(errMessage)
+	}
+
+	for _, t := range allowedTenants {
+		if t == auth.tenant {
+			return nil
+		}
+	}
+
+	errMessage := "resource not found"
+	auth.logger.With("tenant", auth.tenant, "allowed_tenants", allowedTenants).Error(errMessage)
+	return errors.NotFoundError(errMessage)
 }
 
 func buildPermission(action types.OpAction, resource types.OpResource) types.Permission {

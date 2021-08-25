@@ -12,7 +12,7 @@ func (c Connector) Create(ctx context.Context, id string, alg *entities.Algorith
 	logger := c.logger.With("id", id, "algorithm", alg.Type, "curve", alg.EllipticCurve)
 	logger.Debug("creating key")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey})
 	if err != nil {
 		return nil, err
 	}

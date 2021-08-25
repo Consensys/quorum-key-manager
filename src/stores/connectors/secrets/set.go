@@ -12,7 +12,7 @@ func (c Connector) Set(ctx context.Context, id, value string, attr *entities.Att
 	logger := c.logger.With("id", id)
 	logger.Debug("creating secret")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret})
 	if err != nil {
 		return nil, err
 	}

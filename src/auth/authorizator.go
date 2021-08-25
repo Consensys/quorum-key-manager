@@ -6,5 +6,6 @@ import "github.com/consensys/quorum-key-manager/src/auth/types"
 
 // Authorizator allows managing authorizations given a set of permissions
 type Authorizator interface {
-	Check(ops ...*types.Operation) error
+	CheckPermission(ops ...*types.Operation) error
+	CheckAccess(allowedTenants []string) error
 }

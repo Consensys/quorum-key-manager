@@ -125,20 +125,15 @@ func (m *BaseManager) GetSecretStore(_ context.Context, storeName string, userIn
 	defer m.mux.RUnlock()
 
 	if storeBundle, ok := m.secrets[storeName]; ok {
-		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("cannot access SecretStore '%s'", storeName)
-			m.logger.WithError(err).Warn(errMsg)
-			return nil, errors.FromError(err).SetMessage(errMsg)
+		permissions := m.authManager.UserPermissions(userInfo)
+		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
+
+		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
+			return nil, err
 		}
 
 		if store, ok := storeBundle.store.(stores.SecretStore); ok {
-			permissions := m.authManager.UserPermissions(userInfo)
-			return secretsconnector.NewConnector(
-				store,
-				m.db.Secrets(storeName),
-				authorizator.New(permissions, storeBundle.logger),
-				storeBundle.logger,
-			), nil
+			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), resolver, storeBundle.logger), nil
 		}
 	}
 
@@ -151,20 +146,15 @@ func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, userInfo 
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if storeBundle, ok := m.keys[storeName]; ok {
-		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("cannot access KeyStore '%s'", storeName)
-			m.logger.WithError(err).Warn(errMsg)
-			return nil, errors.FromError(err).SetMessage(errMsg)
+		permissions := m.authManager.UserPermissions(userInfo)
+		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
+
+		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
+			return nil, err
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			permissions := m.authManager.UserPermissions(userInfo)
-			return keysconnector.NewConnector(
-				store,
-				m.db.Keys(storeName),
-				authorizator.New(permissions, storeBundle.logger),
-				storeBundle.logger,
-			), nil
+			return keysconnector.NewConnector(store, m.db.Keys(storeName), resolver, storeBundle.logger), nil
 		}
 	}
 
@@ -181,20 +171,15 @@ func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *a
 
 func (m *BaseManager) getEth1Store(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
 	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
-		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("cannot access Eth1Store '%s'", storeName)
-			m.logger.WithError(err).Warn(errMsg)
-			return nil, errors.FromError(err).SetMessage(errMsg)
+		permissions := m.authManager.UserPermissions(userInfo)
+		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
+
+		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
+			return nil, err
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			permissions := m.authManager.UserPermissions(userInfo)
-			return eth1connector.NewConnector(
-				store,
-				m.db.ETH1Accounts(storeName),
-				authorizator.New(permissions, storeBundle.logger),
-				storeBundle.logger,
-			), nil
+			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), resolver, storeBundle.logger), nil
 		}
 	}
 
@@ -219,7 +204,7 @@ func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Add
 
 			_, err = acc.Get(ctx, addr)
 			if err == nil {
-				// Check if account exists in store and returns it
+				// CheckPermission if account exists in store and returns it
 				_, err := acc.Get(ctx, addr)
 				if err == nil {
 					return acc, nil
@@ -412,7 +397,10 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 func (m *BaseManager) listStores(list map[string]*storeBundle, kind manifest.Kind, userInfo *authtypes.UserInfo) []string {
 	var storeNames []string
 	for k, storeBundle := range list {
-		if err := userInfo.CheckAccess(storeBundle.manifest); err != nil {
+		permissions := m.authManager.UserPermissions(userInfo)
+		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
+
+		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
 			continue
 		}
 

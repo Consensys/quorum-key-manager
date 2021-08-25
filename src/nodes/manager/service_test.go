@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/mock"
+
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
@@ -100,7 +102,10 @@ func TestManager(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mngr := New(nil, nil, testutils.NewMockLogger(ctrl))
+	mockAuthManager := mock.NewMockManager(ctrl)
+	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
+
+	mngr := New(nil, nil, mockAuthManager, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)
 	require.NoError(t, err, "Load must not error")
@@ -122,8 +127,4 @@ func TestManager(t *testing.T) {
 	l, err = mngr.List(context.Background(), &types.UserInfo{Tenant: "tenantOne"})
 	require.NoError(t, err, "List must not error")
 	require.Contains(t, l, "node-test3")
-
-	n, err = mngr.Node(context.Background(), "", &types.UserInfo{})
-	require.NoError(t, err, "Default node must not error")
-	require.NotNil(t, n, "Default node must not be nil")
 }

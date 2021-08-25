@@ -200,7 +200,7 @@ func (c Connector) SignPrivate(ctx context.Context, addr common.Address, tx *quo
 }
 
 func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
-	err := c.authorizator.Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account})
 	if err != nil {
 		return nil, err
 	}

@@ -47,7 +47,7 @@ func TestSignMessage(t *testing.T) {
 		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
 		acc.PublicKey = hexutil.MustDecode("0x0450705848a88e7957b69e41362c52591fd6621c1d0945633b3dd5b420f7e67fd75e2c9a7f0a26927e4a04b48face723f3533da64d9fcc8d616b085bb5f0afa189")
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignature, nil)
 
@@ -66,7 +66,7 @@ func TestSignMessage(t *testing.T) {
 		ecdsaSignatureMalleable := append(R.Bytes(), S2.Bytes()...)
 		acc.PublicKey = hexutil.MustDecode("0x0486f304bd499166d7a453d4d952366bd4a9a0292bbf9ef662dccf70a2619cae6016808dae5f00a7301793101132a36e476527e34822e6850c0712d8c7cb526715")
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignatureMalleable, nil)
 
@@ -84,7 +84,7 @@ func TestSignMessage(t *testing.T) {
 		acc := testutils2.FakeETH1Account()
 		acc.PublicKey = hexutil.MustDecode("0x148a6e95f1f0f5d1b0aa4cc16a4b9d8bcfc666a538eb49af436e92285673a56830a57bf228fa5e4fff9445ed51b7923153519b316c4d71bea83911cae1c5952a91")
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(ecdsaSignature, nil)
 
@@ -97,7 +97,7 @@ func TestSignMessage(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		acc := testutils2.FakeETH1Account()
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
 
 		_, err := connector.SignMessage(ctx, acc.Address, data)
 
@@ -108,7 +108,7 @@ func TestSignMessage(t *testing.T) {
 	t.Run("should fail to sign if db fails", func(t *testing.T) {
 		acc := testutils2.FakeETH1Account()
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
 		_, err := connector.SignMessage(ctx, acc.Address, data)
@@ -120,7 +120,7 @@ func TestSignMessage(t *testing.T) {
 	t.Run("should fail to sign if store fails", func(t *testing.T) {
 		acc := testutils2.FakeETH1Account()
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), eth1Algo).Return(nil, expectedErr)
 
@@ -158,7 +158,7 @@ func TestSignTransaction(t *testing.T) {
 	ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
 
 	t.Run("should sign a payload successfully with appended V value", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(ctx, acc.KeyID, types.NewEIP155Signer(chainID).Hash(tx).Bytes(), eth1Algo).Return(ecdsaSignature, nil)
 
@@ -168,7 +168,7 @@ func TestSignTransaction(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
 
 		signedRaw, err := connector.SignTransaction(ctx, acc.Address, chainID, tx)
 		assert.Equal(t, expectedErr, err)
@@ -176,7 +176,7 @@ func TestSignTransaction(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if db fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(nil, expectedErr)
 
 		signedRaw, err := connector.SignTransaction(ctx, acc.Address, chainID, tx)
@@ -185,7 +185,7 @@ func TestSignTransaction(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if store fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(ctx, acc.KeyID, gomock.Any(), eth1Algo).Return(nil, expectedErr)
 
@@ -221,7 +221,7 @@ func TestSignPrivate(t *testing.T) {
 	ecdsaSignature := hexutil.MustDecode("0x80365b013992519479ddd83584039d66851da560dbbe67f59ab9bdcd97b6250355e93d2c8050fb413956298c10eb7b8b2c8d76f4be261e458e4987cc5fed9f01")
 
 	t.Run("should sign a payload successfully with appended V value", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(ctx, acc.KeyID, quorumtypes.QuorumPrivateTxSigner{}.Hash(tx).Bytes(), eth1Algo).Return(ecdsaSignature, nil)
 
@@ -231,7 +231,7 @@ func TestSignPrivate(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
 
 		signedRaw, err := connector.SignPrivate(ctx, acc.Address, tx)
 		assert.Equal(t, expectedErr, err)
@@ -239,7 +239,7 @@ func TestSignPrivate(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if db fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(nil, expectedErr)
 
 		signedRaw, err := connector.SignPrivate(ctx, acc.Address, tx)
@@ -248,7 +248,7 @@ func TestSignPrivate(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if store fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(ctx, acc.KeyID, gomock.Any(), eth1Algo).Return(nil, expectedErr)
 
@@ -293,7 +293,7 @@ func TestSignEEA(t *testing.T) {
 	ecdsaSignature := hexutil.MustDecode("0x6854034c21ebb5a6d4aa9a9c1462862b1e4af355383413a0dcfbba309f56ed0220c0ebc19f159ce83c24dde6f1b2d424025e45bc8b00be3e2fd4367949d4f0b3")
 
 	t.Run("should sign a payload with privacyFor successfully with appended V value", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(ctx, acc.KeyID,
 			hexutil.MustDecode("0x5749cc0adae7a54f9c5148a9e21719a2b472dec7b7ae7c1d68bf35e2e161f94d"),
@@ -305,7 +305,7 @@ func TestSignEEA(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
 
 		signedRaw, err := connector.SignEEA(ctx, acc.Address, chainID, tx, privateArgs)
 		assert.Equal(t, expectedErr, err)
@@ -313,7 +313,7 @@ func TestSignEEA(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if Get account fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(nil, expectedErr)
 
 		signedRaw, err := connector.SignEEA(ctx, acc.Address, chainID, tx, privateArgs)
@@ -322,7 +322,7 @@ func TestSignEEA(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if Sign fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(ctx, acc.KeyID, gomock.Any(), eth1Algo).Return(nil, expectedErr)
 

@@ -7,7 +7,7 @@ import (
 )
 
 func (c Connector) List(ctx context.Context) ([]string, error) {
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (c Connector) List(ctx context.Context) ([]string, error) {
 }
 
 func (c Connector) ListDeleted(ctx context.Context) ([]string, error) {
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
 	if err != nil {
 		return nil, err
 	}

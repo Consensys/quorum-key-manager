@@ -14,7 +14,7 @@ func (c Connector) Destroy(ctx context.Context, addr ethcommon.Address) error {
 	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("destroying ethereum account")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account})
 	if err != nil {
 		return err
 	}

@@ -36,7 +36,7 @@ func TestCreateKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should create eth1Account successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
 		store.EXPECT().Create(gomock.Any(), key.ID, eth1Algo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), newEth1Account(key, attributes)).Return(acc, nil)
 
@@ -47,7 +47,7 @@ func TestCreateKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(expectedErr)
 
 		_, err := connector.Create(ctx, key.ID, attributes)
 
@@ -56,7 +56,7 @@ func TestCreateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to create eth1Account if store fail to create", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
 		store.EXPECT().Create(gomock.Any(), key.ID, eth1Algo, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Create(ctx, key.ID, attributes)
@@ -66,7 +66,7 @@ func TestCreateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to create eth1Account if db fail to add", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
 		store.EXPECT().Create(gomock.Any(), key.ID, eth1Algo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), newEth1Account(key, attributes)).Return(acc, expectedErr)
 
