@@ -26,6 +26,8 @@ const DestroyEth1 Permission = "destroy:eth1accounts"
 const SignEth1 Permission = "sign:eth1accounts"
 const EncryptEth1 Permission = "encrypt:eth1accounts"
 
+const ProxyNode Permission = "proxy:nodes"
+
 func ListPermissions() []Permission {
 	return []Permission{
 		ReadSecret,
@@ -44,6 +46,7 @@ func ListPermissions() []Permission {
 		DestroyEth1,
 		SignEth1,
 		EncryptEth1,
+		ProxyNode,
 	}
 }
 
