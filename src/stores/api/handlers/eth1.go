@@ -7,6 +7,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -76,14 +77,14 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 	createReq := &types.CreateEth1AccountRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, createReq)
 	if err != nil && err.Error() != "EOF" {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(request.Context()), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -96,7 +97,7 @@ func (h *Eth1Handler) create(rw http.ResponseWriter, request *http.Request) {
 
 	eth1Acc, err := eth1Store.Create(ctx, keyID, &entities.Attributes{Tags: createReq.Tags})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -122,14 +123,14 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 	importReq := &types.ImportEth1AccountRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, importReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -142,7 +143,7 @@ func (h *Eth1Handler) importAccount(rw http.ResponseWriter, request *http.Reques
 
 	eth1Acc, err := eth1Store.Import(ctx, keyID, importReq.PrivateKey, &entities.Attributes{Tags: importReq.Tags})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -169,20 +170,20 @@ func (h *Eth1Handler) update(rw http.ResponseWriter, request *http.Request) {
 	updateReq := &types.UpdateEth1AccountRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, updateReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	eth1Acc, err := eth1Store.Update(ctx, getAddress(request), &entities.Attributes{Tags: updateReq.Tags})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -209,20 +210,20 @@ func (h *Eth1Handler) signMessage(rw http.ResponseWriter, request *http.Request)
 	signPayloadReq := &types.SignMessageRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signPayloadReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	signature, err := eth1Store.SignMessage(ctx, getAddress(request), signPayloadReq.Message)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -249,21 +250,21 @@ func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Reques
 	signTypedDataReq := &types.SignTypedDataRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signTypedDataReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(signTypedDataReq)
 	signature, err := eth1Store.SignTypedData(ctx, getAddress(request), typedData)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -290,20 +291,20 @@ func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Requ
 	signTransactionReq := &types.SignETHTransactionRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signTransactionReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	signature, err := eth1Store.SignTransaction(ctx, getAddress(request), signTransactionReq.ChainID.ToInt(), formatters.FormatTransaction(signTransactionReq))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -330,21 +331,21 @@ func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.R
 	signEEAReq := &types.SignEEATransactionRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signEEAReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	tx, privateArgs := formatters.FormatEEATransaction(signEEAReq)
 	signature, err := eth1Store.SignEEA(ctx, getAddress(request), signEEAReq.ChainID.ToInt(), tx, privateArgs)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -371,20 +372,20 @@ func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *ht
 	signPrivateReq := &types.SignQuorumPrivateTransactionRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signPrivateReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	signature, err := eth1Store.SignPrivate(ctx, getAddress(request), formatters.FormatPrivateTransaction(signPrivateReq))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -410,7 +411,7 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -422,7 +423,7 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 		eth1Acc, err = eth1Store.GetDeleted(ctx, getAddress(request))
 	}
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -447,7 +448,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -459,7 +460,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 		addresses, err = eth1Store.ListDeleted(ctx)
 	}
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -482,13 +483,13 @@ func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 	userCtx := authenticator.UserContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = eth1Store.Delete(ctx, getAddress(request))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -511,13 +512,13 @@ func (h *Eth1Handler) destroy(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = eth1Store.Destroy(ctx, getAddress(request))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -540,13 +541,13 @@ func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = eth1Store.Restore(ctx, getAddress(request))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -572,20 +573,20 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 	ecRecoverReq := &types.ECRecoverRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, ecRecoverReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	address, err := eth1Store.ECRecover(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -611,20 +612,20 @@ func (h *Eth1Handler) verify(rw http.ResponseWriter, request *http.Request) {
 	verifyReq := &types.VerifyEth1SignatureRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = eth1Store.Verify(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -649,20 +650,20 @@ func (h *Eth1Handler) verifyMessage(rw http.ResponseWriter, request *http.Reques
 	verifyReq := &types.VerifyEth1SignatureRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = eth1Store.VerifyMessage(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -687,21 +688,21 @@ func (h *Eth1Handler) verifyTypedData(rw http.ResponseWriter, request *http.Requ
 	verifyReq := &types.VerifyTypedDataRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	eth1Store, err := h.stores.GetEth1Store(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
 	err = eth1Store.VerifyTypedData(ctx, verifyReq.Address, typedData, verifyReq.Signature)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

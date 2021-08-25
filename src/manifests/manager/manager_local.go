@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const ManagerID = "LocalManager"
+const ManagerID = "LocalManifestManager"
 
 type Config struct {
 	Path string

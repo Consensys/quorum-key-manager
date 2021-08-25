@@ -23,25 +23,6 @@ type secretsTestSuite struct {
 	secretIDs []string
 }
 
-func (s *secretsTestSuite) TearDownSuite() {
-	ctx := s.env.ctx
-
-	s.env.logger.Info("deleting the following secrets", "secrets", s.secretIDs)
-	for _, id := range s.secretIDs {
-		err := s.store.Delete(ctx, id, "")
-		if err != nil {
-			s.env.logger.With("secretID", id).Error("failed to delete secret")
-		}
-	}
-
-	for _, id := range s.secretIDs {
-		err := s.store.Destroy(ctx, id, "")
-		if err != nil {
-			s.env.logger.With("secretID", id).Error("failed to destroy secret")
-		}
-	}
-}
-
 func (s *secretsTestSuite) TestSet() {
 	ctx := s.env.ctx
 

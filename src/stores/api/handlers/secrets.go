@@ -7,6 +7,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -55,14 +56,14 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	setSecretRequest := &types.SetSecretRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, setSecretRequest)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -70,7 +71,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		Tags: setSecretRequest.Tags,
 	})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -100,7 +101,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -113,7 +114,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -138,7 +139,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -150,7 +151,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 		ids, err = secretStore.ListDeleted(ctx)
 	}
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -179,13 +180,13 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = secretStore.Delete(ctx, id, version)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -210,15 +211,15 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 	id := mux.Vars(request)["id"]
 	version := request.URL.Query().Get("version")
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	err = keyStore.Destroy(ctx, id, version)
+	err = secretStore.Destroy(ctx, id, version)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -245,15 +246,15 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 	version := request.URL.Query().Get("version")
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	err = keyStore.Restore(ctx, id, version)
+	err = secretStore.Restore(ctx, id, version)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

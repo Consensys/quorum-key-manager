@@ -26,28 +26,7 @@ type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.Eth1Store
-	db    database.Database // TODO: Remove when Delete and Destroy functions are implemented in all stores
-}
-
-func (s *eth1TestSuite) TearDownSuite() {
-	ctx := s.env.ctx
-
-	accounts, err := s.store.List(ctx)
-	require.NoError(s.T(), err)
-
-	s.env.logger.Info("Deleting the following accounts", "addresses", accounts)
-	for _, address := range accounts {
-		err = s.store.Delete(ctx, address)
-		require.NoError(s.T(), err)
-	}
-
-	for _, acc := range accounts {
-		err = s.store.Destroy(ctx, acc)
-		if err != nil {
-			s.env.logger.WithError(err).With("address", acc).Error("failed to destroy account")
-			break
-		}
-	}
+	db    database.Database
 }
 
 func (s *eth1TestSuite) TestCreate() {

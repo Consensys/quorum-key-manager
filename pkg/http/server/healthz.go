@@ -48,7 +48,11 @@ func (s *HealthzHandler) AddReadinessCheck(name string, check CheckFunc) {
 func (s *HealthzHandler) collectChecks(checks map[string]CheckFunc, resultsOut map[string]string, statusOut *int) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
 	for name, check := range checks {
+		if _, ok := resultsOut[name]; ok {
+			continue
+		}
 		if err := check(); err != nil {
 			*statusOut = http.StatusServiceUnavailable
 			resultsOut[name] = err.Error()

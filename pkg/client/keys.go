@@ -83,6 +83,24 @@ func (c *HTTPClient) GetKey(ctx context.Context, storeName, id string) (*types.K
 	return key, nil
 }
 
+func (c *HTTPClient) GetDeletedKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+	key := &types.KeyResponse{}
+	reqURL := fmt.Sprintf("%s/%s/%s?deleted=true", withURLStore(c.config.URL, storeName), keysPath, id)
+
+	response, err := getRequest(ctx, c.client, reqURL)
+	if err != nil {
+		return nil, err
+	}
+
+	defer closeResponse(response)
+	err = parseResponse(response, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
+}
+
 func (c *HTTPClient) UpdateKey(ctx context.Context, storeName, id string, req *types.UpdateKeyRequest) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
 	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), keysPath, id)
@@ -104,6 +122,23 @@ func (c *HTTPClient) UpdateKey(ctx context.Context, storeName, id string, req *t
 func (c *HTTPClient) ListKeys(ctx context.Context, storeName string) ([]string, error) {
 	var ids []string
 	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), keysPath)
+	response, err := getRequest(ctx, c.client, reqURL)
+	if err != nil {
+		return nil, err
+	}
+
+	defer closeResponse(response)
+	err = parseResponse(response, &ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
+
+func (c *HTTPClient) ListDeletedKeys(ctx context.Context, storeName string) ([]string, error) {
+	var ids []string
+	reqURL := fmt.Sprintf("%s/%s?deleted=true", withURLStore(c.config.URL, storeName), keysPath)
 	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return nil, err

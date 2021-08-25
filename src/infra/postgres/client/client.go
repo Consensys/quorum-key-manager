@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/go-pg/pg/v10"
@@ -175,7 +174,7 @@ func (c *PostgresClient) UndeletePK(ctx context.Context, model ...interface{}) e
 		return errors.PostgresError("models does not support soft-delete")
 	}
 
-	r, err := q.Set("? = ?", q.TableModel().Table().SoftDeleteField.Column, time.Time{}).UpdateNotZero()
+	r, err := q.Set("? = ?", q.TableModel().Table().SoftDeleteField.Column, nil).UpdateNotZero()
 	if err != nil {
 		return parseErrorResponse(err)
 	}
@@ -192,7 +191,7 @@ func (c *PostgresClient) UndeleteWhere(ctx context.Context, model interface{}, w
 		return errors.PostgresError("model does not support soft-delete")
 	}
 
-	r, err := q.Set("? = ?", q.TableModel().Table().SoftDeleteField.Column, time.Time{}).UpdateNotZero()
+	r, err := q.Set("? = ?", q.TableModel().Table().SoftDeleteField.Column, nil).UpdateNotZero()
 	if err != nil {
 		return parseErrorResponse(err)
 	}

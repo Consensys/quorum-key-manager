@@ -26,26 +26,6 @@ type keysTestSuite struct {
 	store stores.KeyStore
 }
 
-func (s *keysTestSuite) TearDownSuite() {
-	ctx := s.env.ctx
-
-	keyIds, err := s.store.List(ctx)
-	require.NoError(s.T(), err)
-	s.env.logger.Info("deleting the following keys", "keys", keyIds)
-
-	for _, id := range keyIds {
-		err = s.store.Delete(ctx, id)
-		require.NoError(s.T(), err)
-	}
-
-	for _, id := range keyIds {
-		err = s.store.Destroy(ctx, id)
-		if err == nil {
-			break
-		}
-	}
-}
-
 func (s *keysTestSuite) TestCreate() {
 	ctx := s.env.ctx
 

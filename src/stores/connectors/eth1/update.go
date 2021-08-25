@@ -27,7 +27,7 @@ func (c Connector) Update(ctx context.Context, addr ethcommon.Address, attr *ent
 	acc.Tags = attr.Tags
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-		acc, err = c.db.Update(ctx, acc)
+		acc, err = dbtx.Update(ctx, acc)
 		if err != nil {
 			return err
 		}

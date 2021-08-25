@@ -25,7 +25,7 @@ func (c Connector) Restore(ctx context.Context, id string) error {
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Keys) error {
-		err = c.db.Restore(ctx, id)
+		err = dbtx.Restore(ctx, id)
 		if err != nil {
 			return err
 		}

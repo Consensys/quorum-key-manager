@@ -4,15 +4,17 @@ package acceptancetests
 
 import (
 	"context"
+	"math/rand"
+	"os"
+	"testing"
+	"time"
+	
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
-	"os"
-	"path"
-	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/infra/akv"
-	"github.com/consensys/quorum-key-manager/src/infra/aws"
+	aliasmanager "github.com/consensys/quorum-key-manager/src/aliases/manager"
+	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
@@ -82,22 +84,6 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	testSuite.env = s.env
 	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger), db.Secrets(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
-
-	// AKV
-	// storeName = "Secrets-AKV"
-	// logger = s.env.logger.WithComponent(storeName)
-	// testSuite = new(secretsTestSuite)
-	// testSuite.env = s.env
-	// testSuite.store = secrets.NewConnector(akvsecret.New(s.env.akvClient, logger), db.Secrets(storeName), nil, logger)
-	// suite.Run(s.T(), testSuite)
-
-	// AWS
-	// storeName = "Secrets-AWS"
-	// logger = s.env.logger.WithComponent(storeName)
-	// testSuite = new(secretsTestSuite)
-	// testSuite.env = s.env
-	// testSuite.store = secrets.NewConnector(awssecret.New(s.env.awsSecretsClient, logger), db.Secrets(storeName), nil, logger)
-	// suite.Run(s.T(), testSuite)
 }
 
 func (s *storeTestSuite) TestKeyManager_Keys() {
@@ -116,22 +102,6 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	testSuite.env = s.env
 	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db.Keys(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
-
-	// AKV
-	// storeName = "Keys-AKV"
-	// logger = s.env.logger.WithComponent(storeName)
-	// testSuite = new(keysTestSuite)
-	// testSuite.env = s.env
-	// testSuite.store = keys.NewConnector(akvkey.New(s.env.akvClient, logger), db.Keys(storeName), nil, logger)
-	// suite.Run(s.T(), testSuite)
-	//
-	// // AWS
-	// storeName = "Keys-AKV"
-	// logger = s.env.logger.WithComponent(storeName)
-	// testSuite = new(keysTestSuite)
-	// testSuite.env = s.env
-	// testSuite.store = keys.NewConnector(awskey.New(s.env.awsKmsClient, logger), db.Keys(storeName), nil, logger)
-	// suite.Run(s.T(), testSuite)
 
 	// Local
 	storeName = "Keys-Local"
@@ -162,26 +132,6 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
-	// AKV
-	// storeName = "Eth1-AKV"
-	// logger = s.env.logger.WithComponent(storeName)
-	// akvStore := akvkey.New(s.env.akvClient, logger)
-	// testSuite = new(eth1TestSuite)
-	// testSuite.env = s.env
-	// testSuite.store = eth1.NewConnector(akvStore, db.ETH1Accounts(storeName), nil, logger)
-	// testSuite.db = db
-	// suite.Run(s.T(), testSuite)
-	//
-	// // AWS
-	// storeName = "Eth1-AWS"
-	// logger = s.env.logger.WithComponent(storeName)
-	// awsStore := awskey.New(s.env.awsKmsClient, logger)
-	// testSuite = new(eth1TestSuite)
-	// testSuite.env = s.env
-	// testSuite.store = eth1.NewConnector(awsStore, db.ETH1Accounts(storeName), nil, logger)
-	// testSuite.db = db
-	// suite.Run(s.T(), testSuite)
-
 	// Local
 	storeName = "Eth1-Local-Hashicorp"
 	logger = s.env.logger.WithComponent(storeName)
@@ -195,50 +145,16 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 
 }
 
-// Please keep this function to clean the keys
-func cleanAKVKeys(ctx context.Context, akvClient akv.Client) error {
-	kItems, err := akvClient.GetKeys(ctx, 0)
-	if err != nil {
-		return err
+func (s *storeTestSuite) TestKeyManagerAliases() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
 	}
 
-	for len(kItems) != 0 {
-		for _, kItem := range kItems {
-			_, err = akvClient.DeleteKey(ctx, path.Base(*kItem.Kid))
-			if err != nil {
-				return err
-			}
-		}
-
-		kItems, err = akvClient.GetKeys(ctx, 0)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Please keep this function to clean the keys
-func cleanAWSKeys(ctx context.Context, awsClient aws.KmsClient) error {
-	kItems, err := awsClient.ListKeys(ctx, 0, "")
-	if err != nil {
-		return err
-	}
-
-	for *kItems.Truncated {
-		for _, kItem := range kItems.Keys {
-			_, err = awsClient.DeleteKey(ctx, *kItem.KeyId)
-			if err != nil {
-				continue
-			}
-		}
-
-		kItems, err = awsClient.ListKeys(ctx, 0, *kItems.NextMarker)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	testSuite := new(aliasStoreTestSuite)
+	testSuite.env = s.env
+	testSuite.srv = aliasmanager.New(aliaspg.NewDatabase(s.env.postgresClient))
+	randSrc := rand.NewSource(time.Now().UnixNano())
+	testSuite.rand = rand.New(randSrc)
+	suite.Run(s.T(), testSuite)
 }

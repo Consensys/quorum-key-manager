@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
+
+const ID = "AuthManager"
 
 var authKinds = []manifest.Kind{
 	RoleKind,
@@ -26,6 +29,8 @@ type BaseManager struct {
 	mnfsts chan []manifestsmanager.Message
 
 	logger log.Logger
+	err    error
+	isLive bool
 }
 
 func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
@@ -40,6 +45,9 @@ func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 func (mngr *BaseManager) Start(_ context.Context) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
+	defer func() {
+		mngr.isLive = true
+	}()
 
 	// Subscribe to manifest of Kind Role and Policy
 	mngr.sub = mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
@@ -53,19 +61,20 @@ func (mngr *BaseManager) Start(_ context.Context) error {
 func (mngr *BaseManager) Stop(context.Context) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
+	defer close(mngr.mnfsts)
 
 	if mngr.sub != nil {
 		_ = mngr.sub.Unsubscribe()
 	}
-	close(mngr.mnfsts)
 	return nil
 }
 
 func (mngr *BaseManager) Error() error {
-	return nil
+	return mngr.err
 }
 
 func (mngr *BaseManager) Close() error {
+	close(mngr.mnfsts)
 	return nil
 }
 
@@ -80,6 +89,7 @@ func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permissio
 	for _, roleName := range user.Roles {
 		role, err := mngr.Role(roleName)
 		if err != nil {
+			mngr.err = errors.CombineErrors(mngr.err, err)
 			mngr.logger.WithError(err).With("role", roleName).Debug("could not load role")
 			continue
 		}
@@ -127,7 +137,6 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 
 	logger := mngr.logger.With("kind", mnf.Kind).With("name", mnf.Name)
 
-	// @TODO Implement support of "*" for permissions, ie: *:eth1, read:*
 	switch mnf.Kind {
 	case RoleKind:
 		err := mngr.loadRole(mnf)
@@ -161,4 +170,19 @@ func (mngr *BaseManager) loadRole(mnf *manifest.Manifest) error {
 	}
 
 	return nil
+}
+
+func (mngr *BaseManager) ID() string { return ID }
+func (mngr *BaseManager) CheckLiveness() error {
+	if mngr.isLive {
+		return nil
+	}
+
+	errMessage := fmt.Sprintf("service %s is not live", mngr.ID())
+	mngr.logger.Error(errMessage, "id", mngr.ID())
+	return errors.HealthcheckError(errMessage)
+}
+
+func (mngr *BaseManager) CheckReadiness() error {
+	return mngr.Error()
 }
