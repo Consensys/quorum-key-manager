@@ -34,7 +34,7 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
 }
 
-// @Summary Creates a secret
+// @Summary Create a secret
 // @Description Create new secret on selected Store
 // @Tags Secrets
 // @Accept json
@@ -77,8 +77,8 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatSecretResponse(secret))
 }
 
-// @Summary Gets a secret by id
-// @Description Retrieves secret information by ID
+// @Summary Get a secret by id
+// @Description Retrieve secret information by ID
 // @Tags Secrets
 // @Accept json
 // @Produce json
@@ -157,7 +157,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(ids)
 }
 
-// @Summary Deletes a secret by id
+// @Summary Delete a secret by id
 // @Description Soft delete secret by id. It can be recovered
 // @Tags Secrets
 // @Accept json
@@ -192,8 +192,8 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Destroys a secret by ID
-// @Description Permanently deletes a secret by ID
+// @Summary Destroy a secret by ID
+// @Description Permanently delete a secret by ID
 // @Tags Secrets
 // @Accept json
 // @Produce json
@@ -225,8 +225,8 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Restores a soft-deleted secret
-// @Description Restores a previously soft-deleted secret by ID
+// @Summary Restore a soft-deleted secret
+// @Description Restore a previously soft-deleted secret by ID
 // @Tags Secrets
 // @Accept json
 // @Produce json
