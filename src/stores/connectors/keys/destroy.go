@@ -13,7 +13,7 @@ func (c Connector) Destroy(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 	logger.Debug("destroying key")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey})
 	if err != nil {
 		return err
 	}

@@ -32,15 +32,15 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	// Load policy manager service
-	policyMngr := new(auth.Manager)
-	err = a.Service(policyMngr)
+	// Load auth manager service
+	authManager := new(auth.Manager)
+	err = a.Service(authManager)
 	if err != nil {
 		return err
 	}
 
 	// Create and register the stores service
-	stores := storesmanager.New(*m, *policyMngr, db, logger)
+	stores := storesmanager.New(*m, *authManager, db, logger)
 	err = a.RegisterService(stores)
 	if err != nil {
 		return err

@@ -33,20 +33,34 @@ func (m *MockAuthorizator) EXPECT() *MockAuthorizatorMockRecorder {
 	return m.recorder
 }
 
-// Check mocks base method
-func (m *MockAuthorizator) Check(ops ...*types.Operation) error {
+// CheckPermission mocks base method
+func (m *MockAuthorizator) CheckPermission(ops ...*types.Operation) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range ops {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "Check", varargs...)
+	ret := m.ctrl.Call(m, "CheckPermission", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Check indicates an expected call of Check
-func (mr *MockAuthorizatorMockRecorder) Check(ops ...interface{}) *gomock.Call {
+// CheckPermission indicates an expected call of CheckPermission
+func (mr *MockAuthorizatorMockRecorder) CheckPermission(ops ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockAuthorizator)(nil).Check), ops...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckPermission", reflect.TypeOf((*MockAuthorizator)(nil).CheckPermission), ops...)
+}
+
+// CheckAccess mocks base method
+func (m *MockAuthorizator) CheckAccess(allowedTenants []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckAccess", allowedTenants)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckAccess indicates an expected call of CheckAccess
+func (mr *MockAuthorizatorMockRecorder) CheckAccess(allowedTenants interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAccess", reflect.TypeOf((*MockAuthorizator)(nil).CheckAccess), allowedTenants)
 }

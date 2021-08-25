@@ -12,7 +12,7 @@ func (c Connector) Create(ctx context.Context, id string, attr *entities.Attribu
 	logger := c.logger.With("id", id)
 	logger.Debug("creating ethereum account")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account})
 	if err != nil {
 		return nil, err
 	}

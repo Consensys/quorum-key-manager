@@ -39,7 +39,7 @@ func TestRestoreKey(t *testing.T) {
 		}).AnyTimes()
 
 	t.Run("should restore eth1Account successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), acc.KeyID).Return(nil)
@@ -52,7 +52,7 @@ func TestRestoreKey(t *testing.T) {
 	t.Run("should restore eth1Account successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), acc.KeyID).Return(rErr)
@@ -63,7 +63,7 @@ func TestRestoreKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(expectedErr)
 
 		err := connector.Restore(ctx, acc.Address)
 
@@ -72,7 +72,7 @@ func TestRestoreKey(t *testing.T) {
 	})
 
 	t.Run("should fail to restore eth1Account if eth1Account is not deleted", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
 		err := connector.Restore(ctx, acc.Address)
@@ -82,7 +82,7 @@ func TestRestoreKey(t *testing.T) {
 	})
 
 	t.Run("should fail to restore key if db fail to restore", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(expectedErr)
 
@@ -93,7 +93,7 @@ func TestRestoreKey(t *testing.T) {
 	})
 
 	t.Run("should fail to restore key if store fail to restore", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), acc.KeyID).Return(expectedErr)

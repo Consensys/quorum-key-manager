@@ -39,7 +39,7 @@ func TestRestoreSecret(t *testing.T) {
 		}).AnyTimes()
 
 	t.Run("should restore secret successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
 		db.EXPECT().Restore(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
@@ -52,7 +52,7 @@ func TestRestoreSecret(t *testing.T) {
 	t.Run("should restore secret successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
 		db.EXPECT().Restore(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), secret.ID, secret.Metadata.Version).Return(rErr)
@@ -63,7 +63,7 @@ func TestRestoreSecret(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(expectedErr)
 
 		err := connector.Restore(ctx, secret.ID, secret.Metadata.Version)
 
@@ -72,7 +72,7 @@ func TestRestoreSecret(t *testing.T) {
 	})
 
 	t.Run("should fail to restore secret if secret is not deleted", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, expectedErr)
 
 		err := connector.Restore(ctx, secret.ID, secret.Metadata.Version)
@@ -82,7 +82,7 @@ func TestRestoreSecret(t *testing.T) {
 	})
 
 	t.Run("should fail to restore secret if db fail to restore", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
 		db.EXPECT().Restore(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)
 
@@ -93,7 +93,7 @@ func TestRestoreSecret(t *testing.T) {
 	})
 
 	t.Run("should fail to restore secret if store fail to restore", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
 		db.EXPECT().Restore(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)

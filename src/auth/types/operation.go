@@ -14,7 +14,7 @@ var ActionProxy OpAction = "proxy"
 var ResourceKey OpResource = "keys"
 var ResourceSecret OpResource = "secrets"
 var ResourceEth1Account OpResource = "eth1accounts"
-var ResourceStores OpResource = "stores"
+var ResourceStore OpResource = "stores"
 var ResourceNode OpResource = "nodes"
 
 type Operation struct {

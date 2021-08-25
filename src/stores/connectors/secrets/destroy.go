@@ -13,7 +13,7 @@ func (c Connector) Destroy(ctx context.Context, id, version string) error {
 	logger := c.logger.With("id", id, "version", version)
 	logger.Debug("permanently deleting secret")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret})
 	if err != nil {
 		return err
 	}

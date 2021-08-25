@@ -12,7 +12,7 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *
 	logger := c.logger.With("id", id)
 	logger.Debug("importing ethereum account")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account})
 	if err != nil {
 		return nil, err
 	}

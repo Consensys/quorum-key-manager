@@ -35,7 +35,7 @@ func TestSignKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should sign data successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Sign(gomock.Any(), key.ID, data, algo).Return(result, nil)
 
 		rResult, err := connector.Sign(ctx, key.ID, data, algo)
@@ -45,7 +45,7 @@ func TestSignKey(t *testing.T) {
 	})
 
 	t.Run("should sign data with key algo successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Get(ctx, key.ID).Return(key, nil)
 		store.EXPECT().Sign(ctx, key.ID, data, key.Algo).Return(result, nil)
 
@@ -56,7 +56,7 @@ func TestSignKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.Sign(ctx, key.ID, data, algo)
 
@@ -65,7 +65,7 @@ func TestSignKey(t *testing.T) {
 	})
 
 	t.Run("should fail to sign data if sign fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Sign(gomock.Any(), key.ID, data, algo).Return(nil, expectedErr)
 
 		_, err := connector.Sign(ctx, key.ID, data, algo)
@@ -75,7 +75,7 @@ func TestSignKey(t *testing.T) {
 	})
 
 	t.Run("should fail to sign data if db fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, expectedErr)
 
 		_, err := connector.Sign(ctx, key.ID, data, nil)

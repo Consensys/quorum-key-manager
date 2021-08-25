@@ -100,7 +100,7 @@ func TestManager(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mngr := New(nil, nil, testutils.NewMockLogger(ctrl))
+	mngr := New(nil, nil, nil, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)
 	require.NoError(t, err, "Load must not error")

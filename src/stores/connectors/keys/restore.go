@@ -14,7 +14,7 @@ func (c Connector) Restore(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 	logger.Debug("restoring key")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey})
 	if err != nil {
 		return err
 	}
