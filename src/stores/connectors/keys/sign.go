@@ -11,7 +11,7 @@ import (
 func (c Connector) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
 	logger := c.logger.With("id", id)
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey})
 	if err != nil {
 		return nil, err
 	}

@@ -35,7 +35,7 @@ func TestListSecret(t *testing.T) {
 		secretOne := testutils2.FakeSecret()
 		secretTwo := testutils2.FakeSecret()
 
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetAll(gomock.Any()).Return([]*entities.Secret{secretOne, secretTwo}, nil)
 
 		secretIDs, err := connector.List(ctx)
@@ -45,7 +45,7 @@ func TestListSecret(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
 
 		_, err := connector.List(ctx)
 
@@ -54,7 +54,7 @@ func TestListSecret(t *testing.T) {
 	})
 
 	t.Run("should fail to list deleted secret if db fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetAll(gomock.Any()).Return(nil, expectedErr)
 
 		_, err := connector.List(ctx)
@@ -82,7 +82,7 @@ func TestListDeletedSecret(t *testing.T) {
 		secretOne := testutils2.FakeSecret()
 		secretTwo := testutils2.FakeSecret()
 
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetAllDeleted(gomock.Any()).Return([]*entities.Secret{secretOne, secretTwo}, nil)
 
 		secretIDs, err := connector.ListDeleted(ctx)
@@ -92,7 +92,7 @@ func TestListDeletedSecret(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
 
 		_, err := connector.ListDeleted(ctx)
 
@@ -101,7 +101,7 @@ func TestListDeletedSecret(t *testing.T) {
 	})
 
 	t.Run("should fail to list deleted secret if db fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetAllDeleted(gomock.Any()).Return(nil, expectedErr)
 
 		_, err := connector.ListDeleted(ctx)

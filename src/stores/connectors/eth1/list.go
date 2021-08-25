@@ -9,7 +9,7 @@ import (
 )
 
 func (c Connector) List(ctx context.Context) ([]common.Address, error) {
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account})
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (c Connector) List(ctx context.Context) ([]common.Address, error) {
 }
 
 func (c Connector) ListDeleted(ctx context.Context) ([]common.Address, error) {
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account})
 	if err != nil {
 		return nil, err
 	}

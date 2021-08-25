@@ -34,7 +34,7 @@ func TestEncrypt(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should encrypt data successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Encrypt(gomock.Any(), key.ID, data).Return(result, nil)
 
 		rResult, err := connector.Encrypt(ctx, key.ID, data)
@@ -44,7 +44,7 @@ func TestEncrypt(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.Encrypt(ctx, key.ID, data)
 
@@ -53,7 +53,7 @@ func TestEncrypt(t *testing.T) {
 	})
 
 	t.Run("should fail to encrypt data if encrypt fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Encrypt(gomock.Any(), key.ID, data).Return(nil, expectedErr)
 
 		_, err := connector.Encrypt(ctx, key.ID, data)

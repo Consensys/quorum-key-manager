@@ -37,7 +37,7 @@ func TestImportKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should import key successfully", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, eth1Algo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), newEth1Account(key, attributes)).Return(acc, nil)
 
@@ -48,7 +48,7 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, attributes)
 
@@ -57,7 +57,7 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should fail to create eth1Account if store fail to create", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, eth1Algo, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, attributes)
@@ -67,7 +67,7 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should fail to create eth1Account if db fail to add", func(t *testing.T) {
-		auth.EXPECT().Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, eth1Algo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), newEth1Account(key, attributes)).Return(acc, expectedErr)
 

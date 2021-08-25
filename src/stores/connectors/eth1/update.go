@@ -15,7 +15,7 @@ func (c Connector) Update(ctx context.Context, addr ethcommon.Address, attr *ent
 	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("updating ethereum account")
 
-	err := c.authorizator.Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account})
 	if err != nil {
 		return nil, err
 	}

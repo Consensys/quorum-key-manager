@@ -12,7 +12,7 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, alg *e
 	logger := c.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("importing key")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey})
 	if err != nil {
 		return nil, err
 	}

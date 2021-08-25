@@ -77,6 +77,7 @@ func TestManagerService(t *testing.T) {
 	mockLogger := testutils.NewMockLogger(ctrl)
 	mockDB := mock.NewMockDatabase(ctrl)
 	mockAuthMngr := mock2.NewMockManager(ctrl)
+	mockAuthMngr.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)

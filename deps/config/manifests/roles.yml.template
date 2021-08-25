@@ -3,7 +3,6 @@
   specs:
     permission:
       - proxy:nodes
-      - read:nodes
 - kind: Role
   name: guest
   specs:

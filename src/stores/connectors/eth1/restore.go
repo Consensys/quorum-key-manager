@@ -14,7 +14,7 @@ func (c Connector) Restore(ctx context.Context, addr ethcommon.Address) error {
 	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("restoring ethereum account")
 
-	err := c.authorizator.Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account})
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account})
 	if err != nil {
 		return err
 	}

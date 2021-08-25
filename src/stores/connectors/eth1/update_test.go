@@ -43,7 +43,7 @@ func TestUpdateKey(t *testing.T) {
 	t.Run("should update eth1Account successfully", func(t *testing.T) {
 		key := testutils2.FakeKey()
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Update(gomock.Any(), acc).Return(acc, nil)
 		store.EXPECT().Update(gomock.Any(), acc.Address.Hex(), attributes).Return(key, nil)
@@ -57,7 +57,7 @@ func TestUpdateKey(t *testing.T) {
 	t.Run("should update key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Update(gomock.Any(), acc).Return(acc, nil)
 		store.EXPECT().Update(gomock.Any(), acc.Address.Hex(), attributes).Return(nil, rErr)
@@ -68,7 +68,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(expectedErr)
 
 		_, err := connector.Update(ctx, acc.Address, attributes)
 
@@ -77,7 +77,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if key is not found", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
 		_, err := connector.Update(ctx, acc.Address, attributes)
@@ -87,7 +87,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if db fail to update", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Update(gomock.Any(), acc).Return(nil, expectedErr)
 
@@ -98,7 +98,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if store fail to update", func(t *testing.T) {
-		auth.EXPECT().Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Update(gomock.Any(), acc).Return(acc, nil)
 		store.EXPECT().Update(gomock.Any(), acc.Address.Hex(), attributes).Return(nil, expectedErr)
