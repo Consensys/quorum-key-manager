@@ -8,42 +8,45 @@ import (
 type Permission string
 
 const ReadSecret Permission = "read:secrets"
-const SetSecret Permission = "set:secrets"
+const WriteSecret Permission = "write:secrets"
 const DeleteSecret Permission = "delete:secrets"
 const DestroySecret Permission = "destroy:secrets"
 
 const ReadKey Permission = "read:keys"
-const SetKey Permission = "set:keys"
+const WriteKey Permission = "write:keys"
 const DeleteKey Permission = "delete:keys"
 const DestroyKey Permission = "destroy:keys"
 const SignKey Permission = "sign:keys"
 const EncryptKey Permission = "encrypt:keys"
 
 const ReadEth1 Permission = "read:eth1accounts"
-const SetEth1 Permission = "set:eth1accounts"
+const WriteEth1 Permission = "write:eth1accounts"
 const DeleteEth1 Permission = "delete:eth1accounts"
 const DestroyEth1 Permission = "destroy:eth1accounts"
 const SignEth1 Permission = "sign:eth1accounts"
 const EncryptEth1 Permission = "encrypt:eth1accounts"
 
+const ProxyNode Permission = "proxy:nodes"
+
 func ListPermissions() []Permission {
 	return []Permission{
 		ReadSecret,
-		SetSecret,
+		WriteSecret,
 		DeleteSecret,
 		DestroySecret,
 		ReadKey,
-		SetKey,
+		WriteKey,
 		DeleteKey,
 		DestroyKey,
 		SignKey,
 		EncryptKey,
 		ReadEth1,
-		SetEth1,
+		WriteEth1,
 		DeleteEth1,
 		DestroyEth1,
 		SignEth1,
 		EncryptEth1,
+		ProxyNode,
 	}
 }
 

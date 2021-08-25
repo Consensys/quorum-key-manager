@@ -3,12 +3,19 @@ package eth1
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/auth/types"
+
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("id", id)
 	logger.Debug("importing ethereum account")
+
+	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account})
+	if err != nil {
+		return nil, err
+	}
 
 	key, err := c.store.Import(ctx, id, privKey, eth1Algo, attr)
 	if err != nil {
@@ -20,9 +27,6 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *
 		return nil, err
 	}
 
-	logger.With("address", acc.Address).
-		With("key_id", acc.KeyID).
-		Info("ethereum account imported successfully")
-
+	logger.With("address", acc.Address, "key_id", acc.KeyID).Info("ethereum account imported successfully")
 	return acc, nil
 }

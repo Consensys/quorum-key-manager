@@ -4,7 +4,8 @@ package acceptancetests
 
 import (
 	"context"
-	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"os"
 	"path"
 	"testing"
@@ -72,13 +73,14 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Secrets-DB"), s.env.postgresClient)
+	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
 	storeName := "Secrets-Hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
 	testSuite := new(secretsTestSuite)
 	testSuite.env = s.env
-	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger), db.Secrets(storeName), nil, logger)
+	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger), db.Secrets(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 
 	// AKV
@@ -105,13 +107,14 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Keys-DB"), s.env.postgresClient)
+	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
 	storeName := "Keys-Hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
 	testSuite := new(keysTestSuite)
 	testSuite.env = s.env
-	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db.Keys(storeName), nil, logger)
+	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db.Keys(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 
 	// AKV
@@ -121,7 +124,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	// testSuite.env = s.env
 	// testSuite.store = keys.NewConnector(akvkey.New(s.env.akvClient, logger), db.Keys(storeName), nil, logger)
 	// suite.Run(s.T(), testSuite)
-	// 
+	//
 	// // AWS
 	// storeName = "Keys-AKV"
 	// logger = s.env.logger.WithComponent(storeName)
@@ -136,7 +139,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
-	testSuite.store = keys.NewConnector(local.New(hashicorpSecretStore, logger), db.Keys(storeName), nil, logger)
+	testSuite.store = keys.NewConnector(local.New(hashicorpSecretStore, logger), db.Keys(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 }
 
@@ -147,6 +150,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Eth1-DB"), s.env.postgresClient)
+	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
 	storeName := "Eth1-Hashicorp"
@@ -154,7 +158,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	hashicorpStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewConnector(hashicorpStore, db.ETH1Accounts(storeName), nil, logger)
+	testSuite.store = eth1.NewConnector(hashicorpStore, db.ETH1Accounts(storeName), auth, logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
@@ -167,7 +171,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	// testSuite.store = eth1.NewConnector(akvStore, db.ETH1Accounts(storeName), nil, logger)
 	// testSuite.db = db
 	// suite.Run(s.T(), testSuite)
-	// 
+	//
 	// // AWS
 	// storeName = "Eth1-AWS"
 	// logger = s.env.logger.WithComponent(storeName)
@@ -185,7 +189,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	localStore := local.New(hashicorpSecretStore, logger)
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewConnector(localStore, db.ETH1Accounts(storeName), nil, logger)
+	testSuite.store = eth1.NewConnector(localStore, db.ETH1Accounts(storeName), auth, logger)
 	testSuite.db = db
 	suite.Run(s.T(), testSuite)
 
@@ -223,7 +227,6 @@ func cleanAWSKeys(ctx context.Context, awsClient aws.KmsClient) error {
 	}
 
 	for *kItems.Truncated {
-		fmt.Println(len(kItems.Keys), *kItems.NextMarker)
 		for _, kItem := range kItems.Keys {
 			_, err = awsClient.DeleteKey(ctx, *kItem.KeyId)
 			if err != nil {

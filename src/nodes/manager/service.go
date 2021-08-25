@@ -6,6 +6,9 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/auth"
+	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
+
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
@@ -23,8 +26,9 @@ const NodeManagerID = "NodeManager"
 var NodeKind manifest.Kind = "Node"
 
 type BaseManager struct {
-	stores    stores.Manager
-	manifests manifestsmanager.Manager
+	stores      stores.Manager
+	manifests   manifestsmanager.Manager
+	authManager auth.Manager
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
@@ -44,14 +48,15 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(smng stores.Manager, manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		stores:    smng,
-		manifests: manifests,
-		mnfsts:    make(chan []manifestsmanager.Message),
-		mux:       sync.RWMutex{},
-		nodes:     make(map[string]*nodeBundle),
-		logger:    logger,
+		stores:      smng,
+		manifests:   manifests,
+		mnfsts:      make(chan []manifestsmanager.Message),
+		mux:         sync.RWMutex{},
+		nodes:       make(map[string]*nodeBundle),
+		authManager: authManager,
+		logger:      logger,
 	}
 }
 
@@ -115,19 +120,19 @@ func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.U
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if nodeBundle, ok := m.nodes[name]; ok {
-		if err := userInfo.CheckAccess(nodeBundle.manifest); err != nil {
-			errMsg := fmt.Sprintf("cannot access node '%s'", name)
-			m.logger.WithError(err).Warn(errMsg)
-			return nil, errors.FromError(err).SetMessage(errMsg)
-		}
-		return nodeBundle.node, nodeBundle.err
-	}
+		permissions := m.authManager.UserPermissions(userInfo)
+		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
 
-	// This piece of code is here to make sure it is possible to retrieve a default node
-	for _, nodeBundle := range m.nodes {
-		if err := userInfo.CheckAccess(nodeBundle.manifest); err != nil {
-			continue
+		err := resolver.CheckAccess(nodeBundle.manifest.AllowedTenants)
+		if err != nil {
+			return nil, err
 		}
+
+		err = resolver.CheckPermission(&authtypes.Operation{Action: authtypes.ActionProxy, Resource: authtypes.ResourceNode})
+		if err != nil {
+			return nil, err
+		}
+
 		return nodeBundle.node, nodeBundle.err
 	}
 
@@ -140,7 +145,10 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 
 	nodeNames := []string{}
 	for name, nodeBundle := range m.nodes {
-		if err := userInfo.CheckAccess(nodeBundle.manifest); err != nil {
+		permissions := m.authManager.UserPermissions(userInfo)
+		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
+
+		if err := resolver.CheckAccess(nodeBundle.manifest.AllowedTenants); err != nil {
 			continue
 		}
 		nodeNames = append(nodeNames, name)

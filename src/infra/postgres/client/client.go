@@ -233,7 +233,7 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 		return persist(&c)
 	}
 
-	// Check whether we already are in a tx or not to allow for nested DB transactions
+	// CheckPermission whether we already are in a tx or not to allow for nested DB transactions
 	dbtx, isTx := c.db.(*pg.Tx)
 	if isTx {
 		return dbtx.RunInTransaction(ctx, persistFunc)

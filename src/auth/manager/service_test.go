@@ -22,13 +22,11 @@ var testManifest = []byte(`
   specs:
     permission:
       - proxy:nodes
-      - read:nodes
 - kind: Role
   name: guest
   specs:
     permission:
       - read:secrets
-      - read:nodes
       - proxy:nodes
 - kind: Role
   name: signer
@@ -72,22 +70,22 @@ func TestBaseManager(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verifies that objects have been properly loaded
-	guestRole, err := mngr.Role(context.TODO(), "guest")
+	guestRole, err := mngr.Role("guest")
 	require.NoError(t, err)
 	assert.Equal(t, "guest", guestRole.Name)
-	assert.Equal(t, []types.Permission{"read:secrets", "read:nodes", "proxy:nodes"}, guestRole.Permissions)
+	assert.Equal(t, []types.Permission{"read:secrets", "proxy:nodes"}, guestRole.Permissions)
 
 	otherPermission := []types.Permission{"destroy:keys"}
 	userInfo := &types.UserInfo{
 		Roles:       []string{"signer", "admin"},
 		Permissions: []types.Permission{"destroy:keys"},
 	}
-	signerRole, err := mngr.Role(context.TODO(), "signer")
+	signerRole, err := mngr.Role("signer")
 	require.NoError(t, err)
-	adminRole, err := mngr.Role(context.TODO(), "admin")
+	adminRole, err := mngr.Role("admin")
 	require.NoError(t, err)
 
-	permissions := mngr.UserPermissions(context.TODO(), userInfo)
+	permissions := mngr.UserPermissions(userInfo)
 	assert.Equal(t, append(append(otherPermission, signerRole.Permissions...), adminRole.Permissions...), permissions)
 
 	err = manifests.Stop(context.TODO())
