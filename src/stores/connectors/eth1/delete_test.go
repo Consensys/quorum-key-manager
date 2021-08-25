@@ -2,7 +2,11 @@ package eth1
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -19,11 +23,17 @@ func TestDeleteKey(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	expectedErr := fmt.Errorf("error")
+	acc := testutils2.FakeETH1Account()
+	key := testutils2.FakeKey()
+	key.ID = acc.KeyID
+
 	store := mock.NewMockKeyStore(ctrl)
 	db := mock2.NewMockETH1Accounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
+	auth := mock3.NewMockAuthorizator(ctrl)
 
-	connector := NewConnector(store, db, nil, logger)
+	connector := NewConnector(store, db, auth, logger)
 
 	db.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, persist func(dbtx database.ETH1Accounts) error) error {
@@ -31,14 +41,9 @@ func TestDeleteKey(t *testing.T) {
 		}).AnyTimes()
 
 	t.Run("should delete eth1Account successfully", func(t *testing.T) {
-		acc := testutils2.FakeETH1Account()
-		key := testutils2.FakeKey()
-		key.ID = acc.KeyID
-
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-
 		db.EXPECT().Delete(gomock.Any(), acc.Address.Hex()).Return(nil)
-
 		store.EXPECT().Delete(gomock.Any(), key.ID).Return(nil)
 
 		err := connector.Delete(ctx, acc.Address)
@@ -48,14 +53,10 @@ func TestDeleteKey(t *testing.T) {
 
 	t.Run("should delete key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
-		acc := testutils2.FakeETH1Account()
-		key := testutils2.FakeKey()
-		key.ID = acc.KeyID
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-
 		db.EXPECT().Delete(gomock.Any(), acc.Address.Hex()).Return(nil)
-
 		store.EXPECT().Delete(gomock.Any(), key.ID).Return(rErr)
 
 		err := connector.Delete(ctx, acc.Address)
@@ -63,12 +64,17 @@ func TestDeleteKey(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should fail to delete key if db fail to get", func(t *testing.T) {
-		expectedErr := errors.NotFoundError("not found")
-		acc := testutils2.FakeETH1Account()
-		key := testutils2.FakeKey()
-		key.ID = acc.KeyID
+	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(expectedErr)
 
+		err := connector.Delete(ctx, acc.Address)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
+	})
+
+	t.Run("should fail to delete key if db fail to get", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, expectedErr)
 
 		err := connector.Delete(ctx, acc.Address)
@@ -78,13 +84,8 @@ func TestDeleteKey(t *testing.T) {
 	})
 
 	t.Run("should fail to delete key if db fail to delete", func(t *testing.T) {
-		expectedErr := errors.PostgresError("cannot connect")
-		acc := testutils2.FakeETH1Account()
-		key := testutils2.FakeKey()
-		key.ID = acc.KeyID
-
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-
 		db.EXPECT().Delete(gomock.Any(), acc.Address.Hex()).Return(expectedErr)
 
 		err := connector.Delete(ctx, acc.Address)
@@ -94,15 +95,9 @@ func TestDeleteKey(t *testing.T) {
 	})
 
 	t.Run("should fail to delete key if store fail to delete", func(t *testing.T) {
-		expectedErr := errors.UnauthorizedError("not authorized")
-		acc := testutils2.FakeETH1Account()
-		key := testutils2.FakeKey()
-		key.ID = acc.KeyID
-
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-
 		db.EXPECT().Delete(gomock.Any(), acc.Address.Hex()).Return(nil)
-
 		store.EXPECT().Delete(gomock.Any(), key.ID).Return(expectedErr)
 
 		err := connector.Delete(ctx, acc.Address)

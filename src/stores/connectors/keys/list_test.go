@@ -2,9 +2,12 @@ package keys
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
+	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
+
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -19,16 +22,20 @@ func TestListKey(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	expectedErr := fmt.Errorf("error")
+
 	store := mock.NewMockKeyStore(ctrl)
 	db := mock2.NewMockKeys(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
+	auth := mock3.NewMockAuthorizator(ctrl)
 
-	connector := NewConnector(store, db, nil, logger)
+	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should list keys successfully", func(t *testing.T) {
 		keyOne := testutils2.FakeKey()
 		keyTwo := testutils2.FakeKey()
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().GetAll(gomock.Any()).Return([]*entities.Key{keyOne, keyTwo}, nil)
 
 		keyIDs, err := connector.List(ctx)
@@ -37,9 +44,17 @@ func TestListKey(t *testing.T) {
 		assert.Equal(t, keyIDs, []string{keyOne.ID, keyTwo.ID})
 	})
 
-	t.Run("should fail to list keys if db fails", func(t *testing.T) {
-		expectedErr := errors.PostgresError("cannot connect")
+	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(expectedErr)
 
+		_, err := connector.List(ctx)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
+	})
+
+	t.Run("should fail to list keys if db fails", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().GetAll(gomock.Any()).Return(nil, expectedErr)
 
 		_, err := connector.List(ctx)
@@ -54,16 +69,20 @@ func TestListDeletedKey(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	expectedErr := fmt.Errorf("error")
+
 	store := mock.NewMockKeyStore(ctrl)
 	db := mock2.NewMockKeys(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
+	auth := mock3.NewMockAuthorizator(ctrl)
 
-	connector := NewConnector(store, db, nil, logger)
+	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should list deleted key successfully", func(t *testing.T) {
 		keyOne := testutils2.FakeKey()
 		keyTwo := testutils2.FakeKey()
 
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().GetAllDeleted(gomock.Any()).Return([]*entities.Key{keyOne, keyTwo}, nil)
 
 		keyIDs, err := connector.ListDeleted(ctx)
@@ -72,9 +91,17 @@ func TestListDeletedKey(t *testing.T) {
 		assert.Equal(t, keyIDs, []string{keyOne.ID, keyTwo.ID})
 	})
 
-	t.Run("should fail to list deleted key if db fails", func(t *testing.T) {
-		expectedErr := errors.PostgresError("cannot connect")
+	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(expectedErr)
 
+		_, err := connector.ListDeleted(ctx)
+
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
+	})
+
+	t.Run("should fail to list deleted key if db fails", func(t *testing.T) {
+		auth.EXPECT().Check(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
 		db.EXPECT().GetAllDeleted(gomock.Any()).Return(nil, expectedErr)
 
 		_, err := connector.ListDeleted(ctx)

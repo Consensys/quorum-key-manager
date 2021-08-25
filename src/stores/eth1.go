@@ -17,9 +17,6 @@ import (
 //go:generate mockgen -source=eth1.go -destination=mock/eth1.go -package=mock
 
 type Eth1Store interface {
-	// Info returns store information
-	Info(context.Context) (*entities.StoreInfo, error)
-
 	// Create creates an Ethereum account
 	Create(ctx context.Context, id string, attr *entities.Attributes) (*entities.ETH1Account, error)
 

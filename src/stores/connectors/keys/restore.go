@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/auth/types"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -12,7 +14,12 @@ func (c Connector) Restore(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 	logger.Debug("restoring key")
 
-	_, err := c.db.GetDeleted(ctx, id)
+	err := c.authorizator.Check(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey})
+	if err != nil {
+		return err
+	}
+
+	_, err = c.db.GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}

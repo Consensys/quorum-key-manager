@@ -3,6 +3,8 @@ package eth1
 import (
 	"context"
 
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -12,6 +14,11 @@ import (
 func (c Connector) Update(ctx context.Context, addr ethcommon.Address, attr *entities.Attributes) (*entities.ETH1Account, error) {
 	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("updating ethereum account")
+
+	err := c.authorizator.Check(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account})
+	if err != nil {
+		return nil, err
+	}
 
 	acc, err := c.db.Get(ctx, addr.Hex())
 	if err != nil {
