@@ -73,7 +73,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Secrets-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), s.env.logger)
+	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
 	storeName := "Secrets-Hashicorp"
@@ -107,7 +107,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Keys-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), s.env.logger)
+	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
 	storeName := "Keys-Hashicorp"
@@ -124,7 +124,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	// testSuite.env = s.env
 	// testSuite.store = keys.NewConnector(akvkey.New(s.env.akvClient, logger), db.Keys(storeName), nil, logger)
 	// suite.Run(s.T(), testSuite)
-	// 
+	//
 	// // AWS
 	// storeName = "Keys-AKV"
 	// logger = s.env.logger.WithComponent(storeName)
@@ -150,7 +150,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Eth1-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), s.env.logger)
+	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
 	storeName := "Eth1-Hashicorp"
@@ -171,7 +171,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	// testSuite.store = eth1.NewConnector(akvStore, db.ETH1Accounts(storeName), nil, logger)
 	// testSuite.db = db
 	// suite.Run(s.T(), testSuite)
-	// 
+	//
 	// // AWS
 	// storeName = "Eth1-AWS"
 	// logger = s.env.logger.WithComponent(storeName)
