@@ -8,6 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -61,14 +62,14 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	createKeyRequest := &types.CreateKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, createKeyRequest)
 	if err != nil && err.Error() != "EOF" {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userCtx := authenticator.UserContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -83,7 +84,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 			Tags: createKeyRequest.Tags,
 		})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -110,14 +111,14 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	importKeyRequest := &types.ImportKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, importKeyRequest)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -133,7 +134,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 			Tags: importKeyRequest.Tags,
 		})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -159,20 +160,20 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	signPayloadRequest := &types.SignBase64PayloadRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signPayloadRequest)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	signature, err := keyStore.Sign(ctx, getID(request), signPayloadRequest.Data, nil)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -197,7 +198,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -209,7 +210,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 		key, err = keyStore.GetDeleted(ctx, getID(request))
 	}
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -234,14 +235,14 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 	updateRequest := &types.UpdateKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, updateRequest)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -249,7 +250,7 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 		Tags: updateRequest.Tags,
 	})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -274,13 +275,13 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = keyStore.Restore(ctx, getID(request))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -303,7 +304,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -315,7 +316,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 		ids, err = keyStore.ListDeleted(ctx)
 	}
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -339,13 +340,13 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = keyStore.Delete(ctx, getID(request))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -369,13 +370,13 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = keyStore.Destroy(ctx, getID(request))
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -400,14 +401,14 @@ func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Requ
 	verifyReq := &types.VerifyKeySignatureRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -416,7 +417,7 @@ func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Requ
 		EllipticCurve: entities.Curve(verifyReq.Curve),
 	})
 	if err != nil {
-		WriteHTTPErrorResponse(rw, err)
+		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

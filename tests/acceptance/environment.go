@@ -3,12 +3,12 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"time"
 
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/consensys/quorum-key-manager/src/infra/akv"
-	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
-	"github.com/consensys/quorum-key-manager/src/infra/aws"
-	awsclient "github.com/consensys/quorum-key-manager/src/infra/aws/client"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -20,10 +20,6 @@ import (
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
-	"io/ioutil"
-	"os"
-	"strconv"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -58,9 +54,6 @@ type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
 	hashicorpClient   hashicorp.VaultClient
-	awsSecretsClient  aws.SecretsManagerClient
-	awsKmsClient      aws.KmsClient
-	akvClient         akv.Client
 	dockerClient      *docker.Client
 	postgresClient    *postgresclient.PostgresClient
 	keyManager        *app.App
@@ -146,16 +139,6 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 				Namespace:  "",
 			},
 		},
-		&manifest.Manifest{
-			Kind:  stores.AKVKeys,
-			Name:  AKVKeyStoreName,
-			Specs: testCfg.AkvKeySpecs(),
-		},
-		&manifest.Manifest{
-			Kind:  stores.AWSKeys,
-			Name:  AWSKeyStoreName,
-			Specs: testCfg.AwsKeySpecs(),
-		},
 	)
 
 	if err != nil {
@@ -191,30 +174,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 	hashicorpClient.SetToken(hashicorpContainer.RootToken)
-
-	akvClient, err := client.NewClient(client.NewConfig(
-		testCfg.AkvClient.VaultName,
-		testCfg.AkvClient.TenantID,
-		testCfg.AkvClient.ClientID,
-		testCfg.AkvClient.ClientSecret,
-	))
-	if err != nil {
-		logger.WithError(err).Error("cannot initialize akv client")
-		return nil, err
-	}
-
-	awsConfig := awsclient.NewConfig(testCfg.AwsClient.Region, testCfg.AwsClient.AccessID, testCfg.AwsClient.SecretKey, false)
-	awsSecretsClient, err := awsclient.NewSecretsClient(awsConfig)
-	if err != nil {
-		logger.WithError(err).Error("cannot initialize AWS Secret client")
-		return nil, err
-	}
-	awsKeysClient, err := awsclient.NewKmsClient(awsConfig)
-	if err != nil {
-		logger.WithError(err).Error("cannot initialize AWS KMS client")
-		return nil, err
-	}
-
+	
 	postgresClient, err := postgresclient.NewClient(postgresCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Postgres client")
@@ -226,9 +186,6 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		ctx:               ctx,
 		logger:            logger,
 		hashicorpClient:   hashicorpClient,
-		akvClient:         akvClient,
-		awsSecretsClient:  awsSecretsClient,
-		awsKmsClient:      awsKeysClient,
 		dockerClient:      dockerClient,
 		postgresClient:    postgresClient,
 		keyManager:        keyManager,

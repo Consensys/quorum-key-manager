@@ -239,7 +239,7 @@ func (app *App) startServer() {
 			apiErr = app.server.Serve(ln)
 		}
 
-		if apiErr != nil && apiErr != context.Canceled && apiErr.Error() != http.ErrServerClosed.Error() {
+		if apiErr != nil && apiErr != context.Canceled && apiErr != http.ErrServerClosed {
 			app.logger.Debug("API server exited gracefully", "addr", app.server.Addr)
 		} else {
 			app.logger.WithError(apiErr).Error("API server exited with errors")

@@ -11,12 +11,14 @@ import (
 // Middleware synchronize authentication
 type Middleware struct {
 	authenticator Authenticator
+	authEnabled   bool
 	logger        log.Logger
 }
 
 func NewMiddleware(logger log.Logger, authenticators ...Authenticator) *Middleware {
 	return &Middleware{
 		authenticator: First(authenticators...),
+		authEnabled:   len(authenticators) > 0,
 		logger:        logger,
 	}
 }
@@ -29,6 +31,11 @@ func (mid *Middleware) Then(h http.Handler) http.Handler {
 
 func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next http.Handler) {
 	ctx := req.Context()
+	if !mid.authEnabled {
+		ctx = WithUserContext(ctx, NewUserContext(types.WildcardUser))
+		next.ServeHTTP(rw, req.WithContext(ctx))
+		return
+	}
 
 	// Authenticate request
 	info, err := mid.authenticator.Authenticate(req)

@@ -37,6 +37,7 @@ type BaseManager struct {
 	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
+	err    error
 
 	logger log.Logger
 }
@@ -91,7 +92,11 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 		wg.Add(1)
 		go func(name string, n *nodeBundle) {
 			err := n.stop(ctx)
-			m.logger.WithError(err).Error("error closing node", "name", name)
+			if err != nil {
+				m.logger.WithError(err).Error("node closed with errors", "name", name)
+			} else {
+				m.logger.Info("node closed successfully", "name", name)
+			}
 			wg.Done()
 		}(name, n)
 	}
@@ -105,13 +110,15 @@ func (m *BaseManager) Close() error {
 }
 
 func (m *BaseManager) Error() error {
-	return nil
+	return m.err
 }
 
 func (m *BaseManager) loadAll(ctx context.Context) {
 	for mnfsts := range m.mnfsts {
 		for _, mnf := range mnfsts {
-			_ = m.load(ctx, mnf.Manifest)
+			if err := m.load(ctx, mnf.Manifest); err != nil {
+				m.err = err
+			}
 		}
 	}
 }

@@ -2,21 +2,21 @@
   name: anonymous
   specs:
     permission:
-      - proxy:nodes
+      - "read:nodes"
 - kind: Role
   name: guest
   specs:
     permission:
-      - read:*
+      - "read:*"
 - kind: Role
   name: signer
   specs:
     permission:
-      - read:*
-      - sign:keys
-      - sign:eth1accounts
+      - "read:*"
+      - "sign:keys"
+      - "sign:eth1accounts"
 - kind: Role
   name: admin
   specs:
     permission:
-      - *:*
+      - "*:*"
