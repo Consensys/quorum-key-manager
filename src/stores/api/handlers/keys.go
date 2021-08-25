@@ -42,7 +42,7 @@ func (h *KeysHandler) Register(r *mux.Router) {
 }
 
 // @Summary Create key
-// @Description Create Key with a specific Curve and Signing algorithm
+// @Description Create a private Key using the specified Curve and Signing algorithm
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -91,7 +91,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Import Key
-// @Description Import Key with a specific Curve and Signing algorithm
+// @Description Import a private Key using the specified Curve and Signing algorithm
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -141,7 +141,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Sign random payload
-// @Description Sign random payload using a selected key
+// @Description Sign a random payload using the selected key
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -180,7 +180,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Get key by ID
-// @Description Retrieve key object by identifier
+// @Description Retrieve a key object by identifier
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -216,8 +216,8 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
-// @Summary Updates a key
-// @Description Updates the tags of a key by ID
+// @Summary Update a key
+// @Description Update the tags of a key by ID
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -256,8 +256,8 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
 }
 
-// @Summary Restores a soft-deleted key
-// @Description Restores a previously soft-deleted key by ID
+// @Summary Restore a soft-deleted key
+// @Description Restore a previously soft-deleted key by ID
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -322,8 +322,8 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(ids)
 }
 
-// @Summary Soft-deletes Key
-// @Description Deletes a Key by ID. The key can be recovered
+// @Summary Soft-delete Key
+// @Description Delete a Key by ID. The key can be recovered
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -352,8 +352,8 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Destroys a Key
-// @Description Permanently deletes a Key by ID
+// @Summary Destroy a Key
+// @Description Permanently delete a Key by ID
 // @Tags Keys
 // @Accept json
 // @Produce json

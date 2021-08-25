@@ -58,7 +58,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 }
 
 // @Summary Create Ethereum Account
-// @Description Creates a new ECDSA Secp256k1 key representing an Ethereum Account
+// @Description Create a new ECDSA Secp256k1 key representing an Ethereum Account
 // @Tags Ethereum Account
 // @Accept  json
 // @Produce  json
@@ -271,7 +271,7 @@ func (h *Eth1Handler) signTypedData(rw http.ResponseWriter, request *http.Reques
 }
 
 // @Summary Sign Ethereum transaction
-// @Description Sign Ethereum transaction using selected Ethereum Account
+// @Description Sign an Ethereum transaction using the selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
@@ -311,7 +311,7 @@ func (h *Eth1Handler) signTransaction(rw http.ResponseWriter, request *http.Requ
 }
 
 // @Summary Sign EEA transaction
-// @Description Sign EEA transaction using selected Ethereum Account
+// @Description Sign an EEA transaction using the selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
@@ -352,7 +352,7 @@ func (h *Eth1Handler) signEEATransaction(rw http.ResponseWriter, request *http.R
 }
 
 // @Summary Sign Quorum private transaction
-// @Description Sign Quorum private transaction using selected Ethereum Account
+// @Description Sign a Quorum private transaction using the selected Ethereum Account
 // @Tags Ethereum Account
 // @Accept json
 // @Produce plain
@@ -392,7 +392,7 @@ func (h *Eth1Handler) signPrivateTransaction(rw http.ResponseWriter, request *ht
 }
 
 // @Summary Get Ethereum Account
-// @Description Fetch Ethereum Account data by its address
+// @Description Fetch an Ethereum Account data by its address
 // @Tags Ethereum Account
 // @Accept json
 // @Produce json
@@ -430,7 +430,7 @@ func (h *Eth1Handler) getOne(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary List Ethereum Accounts
-// @Description List of addresses of stored Ethereum Accounts
+// @Description List Ethereum Accounts located in the Store
 // @Tags Ethereum Account
 // @Accept json
 // @Produce json
@@ -467,7 +467,7 @@ func (h *Eth1Handler) list(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Delete Ethereum Account
-// @Description Soft delete Ethereum Account, can be recovered
+// @Description Soft delete an Ethereum Account, can be recovered
 // @Tags Ethereum Account
 // @Accept json
 // @Param storeName path string true "Store Identifier"
@@ -496,7 +496,7 @@ func (h *Eth1Handler) delete(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Destroy Ethereum Account
-// @Description Hard delete Ethereum Account, cannot be recovered
+// @Description Hard delete an Ethereum Account, cannot be recovered
 // @Tags Ethereum Account
 // @Accept json
 // @Param storeName path string true "Store Identifier"
@@ -554,7 +554,7 @@ func (h *Eth1Handler) restore(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary EC Recover
-// @Description Recover Ethereum transaction sender
+// @Description Recover an Ethereum transaction sender from a signature
 // @Tags Ethereum
 // @Accept json
 // @Produce plain
@@ -593,7 +593,7 @@ func (h *Eth1Handler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Verify signature
-// @Description Verify signature of an Ethereum signature
+// @Description Verify the signature of an Ethereum signature
 // @Tags Ethereum
 // @Accept json
 // @Param storeName path string true "Store Identifier"
@@ -632,7 +632,7 @@ func (h *Eth1Handler) verify(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Verify message signature
-// @Description Verify signature of a message
+// @Description Verify the signature of a message
 // @Tags Ethereum
 // @Accept json
 // @Param storeName path string true "Store Identifier"
@@ -670,7 +670,7 @@ func (h *Eth1Handler) verifyMessage(rw http.ResponseWriter, request *http.Reques
 }
 
 // @Summary Verify typed data signature
-// @Description Verify signature of an ethereum type data signing
+// @Description Verify the signature of an Ethereum typed data signing
 // @Tags Ethereum
 // @Accept json
 // @Param storeName path string true "Store Identifier"
