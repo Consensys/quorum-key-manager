@@ -164,6 +164,7 @@ jobs:
           command: |
             set +e
             echo "$MANIFEST_B64" | base64 --decode > ./deps/config/manifest.yml
+            make deps
             make up
             echo "Wait 10 seconds for services to boot up correctly..."
             sleep 10
