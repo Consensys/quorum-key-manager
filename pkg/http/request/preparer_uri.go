@@ -21,11 +21,13 @@ func ExtractURI(reset bool) Preparer {
 		if req.URL.Path != u.Path {
 			req.URL.RawPath = path.Join(fistNotEmpty(req.URL.RawPath, req.URL.Path), fistNotEmpty(u.RawPath, u.Path))
 			req.URL.Path = path.Join(req.URL.Path, u.Path)
+			
 		}
 
 		req.URL.RawQuery = u.RawQuery
 		if reset {
 			req.RequestURI = ""
+			req.Host = ""
 		}
 
 		return req, nil

@@ -21,8 +21,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const MAX_RETRIES = 5
-
 type secretsTestSuite struct {
 	suite.Suite
 	err              error

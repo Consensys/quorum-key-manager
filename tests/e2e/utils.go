@@ -6,6 +6,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/client"
 )
 
+const MAX_RETRIES = 5
+
 type callFunc func() error
 type logFunc func(format string, args ...interface{})
 

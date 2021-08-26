@@ -101,7 +101,7 @@ func DownstreamError(err error) *ErrorMsg {
 	}
 }
 
-func InvalidDownstreamHTTPStatuError(code int) *ErrorMsg {
+func InvalidDownstreamHTTPStatusError(code int) *ErrorMsg {
 	text := http.StatusText(code)
 	return &ErrorMsg{
 		Code:    -32001,
