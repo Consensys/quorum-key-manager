@@ -8,7 +8,7 @@ import (
 )
 
 func FormatKeyResponse(key *entities.Key) *types.KeyResponse {
-	return &types.KeyResponse{
+	resp := &types.KeyResponse{
 		ID:               key.ID,
 		PublicKey:        base64.StdEncoding.EncodeToString(key.PublicKey),
 		Curve:            string(key.Algo.EllipticCurve),
@@ -18,8 +18,11 @@ func FormatKeyResponse(key *entities.Key) *types.KeyResponse {
 		Disabled:         key.Metadata.Disabled,
 		CreatedAt:        key.Metadata.CreatedAt,
 		UpdatedAt:        key.Metadata.UpdatedAt,
-		ExpireAt:         key.Metadata.ExpireAt,
-		DeletedAt:        key.Metadata.DeletedAt,
-		DestroyedAt:      key.Metadata.DestroyedAt,
 	}
+
+	if !key.Metadata.DeletedAt.IsZero() {
+		resp.DeletedAt = &key.Metadata.DeletedAt
+	}
+
+	return resp
 }

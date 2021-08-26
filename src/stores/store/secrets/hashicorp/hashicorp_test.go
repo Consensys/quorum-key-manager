@@ -231,7 +231,6 @@ func (s *hashicorpSecretStoreTestSuite) TestGet() {
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), secret.Metadata.Version, version)
 		assert.NotEmpty(s.T(), secret.Metadata.DeletedAt)
-		assert.Equal(s.T(), secret.Metadata.DestroyedAt, secret.Metadata.DeletedAt)
 	})
 
 	s.Run("should fail with same error if read data fails", func() {
