@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -18,13 +20,18 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, alg *e
 	}
 
 	key, err := c.store.Import(ctx, id, privKey, alg, attr)
+	if err != nil && errors.IsAlreadyExistsError(err) {
+		key, err = c.store.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	key, err = c.db.Add(ctx, key)
 	if err != nil {
-		// @TODO Ensure key is destroyed if we fail to insert in DB
 		return nil, err
 	}
 

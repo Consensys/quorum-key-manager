@@ -43,7 +43,7 @@ func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-message").HandlerFunc(h.signMessage)
-	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
+	r.Methods(http.MethodPost).Path("/{address}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
 	r.Methods(http.MethodPost).Path("/verify").HandlerFunc(h.verify)
 	r.Methods(http.MethodPost).Path("/verify-message").HandlerFunc(h.verifyMessage)

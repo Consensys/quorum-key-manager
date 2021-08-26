@@ -3,6 +3,8 @@ package secrets
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -18,13 +20,18 @@ func (c Connector) Set(ctx context.Context, id, value string, attr *entities.Att
 	}
 
 	secret, err := c.store.Set(ctx, id, value, attr)
+	if err != nil && errors.IsAlreadyExistsError(err) {
+		secret, err = c.store.Get(ctx, id, "")
+		if err != nil {
+			return nil, err
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = c.db.Add(ctx, secret)
 	if err != nil {
-		// @TODO Ensure secret is destroyed if we fail to insert in DB
 		return nil, err
 	}
 

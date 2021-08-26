@@ -34,7 +34,7 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 	r.Methods(http.MethodPatch).Path("/{id}").HandlerFunc(h.update)
-	r.Methods(http.MethodPut).Path("/{id}/restore").HandlerFunc(h.restore)
+	r.Methods(http.MethodPost).Path("/{id}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.create)
 

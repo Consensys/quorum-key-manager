@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
@@ -35,6 +37,18 @@ func TestCreateKey(t *testing.T) {
 	t.Run("should create key successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
 		store.EXPECT().Create(gomock.Any(), key.ID, key.Algo, attributes).Return(key, nil)
+		db.EXPECT().Add(gomock.Any(), key).Return(key, nil)
+
+		rKey, err := connector.Create(ctx, key.ID, key.Algo, attributes)
+
+		assert.NoError(t, err)
+		assert.Equal(t, rKey, key)
+	})
+
+	t.Run("should create key successfully if it already exists in the vault", func(t *testing.T) {
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		store.EXPECT().Create(gomock.Any(), key.ID, key.Algo, attributes).Return(nil, errors.AlreadyExistsError("error"))
+		store.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), key).Return(key, nil)
 
 		rKey, err := connector.Create(ctx, key.ID, key.Algo, attributes)

@@ -3,6 +3,8 @@ package eth1
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -18,6 +20,12 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *
 	}
 
 	key, err := c.store.Import(ctx, id, privKey, eth1Algo, attr)
+	if err != nil && errors.IsAlreadyExistsError(err) {
+		key, err = c.store.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
