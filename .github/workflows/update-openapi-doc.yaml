@@ -26,6 +26,7 @@ jobs:
         run: |
           make install-swag
           export PATH=$(go env GOPATH)/bin:$PATH
+          GO111MODULE=off swag --version
           make gen-swagger
 
       - name: Install dependencies
