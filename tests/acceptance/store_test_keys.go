@@ -7,6 +7,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -24,6 +25,7 @@ type keysTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.KeyStore
+	db    database.Keys
 }
 
 func (s *keysTestSuite) TestCreate() {
@@ -40,6 +42,43 @@ func (s *keysTestSuite) TestCreate() {
 			Tags: tags,
 		})
 
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), id, key.ID)
+		assert.NotNil(s.T(), key.PublicKey)
+		assert.Equal(s.T(), tags, key.Tags)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
+		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
+		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), key.Metadata.Disabled)
+	})
+
+	s.Run("should create a new key pair successfully", func() {
+		id := s.newID("my-key-create")
+		tags := testutils.FakeTags()
+
+		key, err := s.store.Create(ctx, id, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		}, &entities.Attributes{
+			Tags: tags,
+		})
+		require.NoError(s.T(), err)
+
+		err = s.db.Delete(ctx, id)
+		require.NoError(s.T(), err)
+		err = s.db.Purge(ctx, id)
+		require.NoError(s.T(), err)
+
+		key, err = s.store.Create(ctx, id, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		}, &entities.Attributes{
+			Tags: tags,
+		})
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, key.ID)

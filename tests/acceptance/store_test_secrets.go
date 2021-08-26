@@ -60,6 +60,8 @@ func (s *secretsTestSuite) TestSet() {
 		})
 		require.NoError(s.T(), err)
 
+		err = s.db.Delete(ctx, id, secret.Metadata.Version)
+		require.NoError(s.T(), err)
 		err = s.db.Purge(ctx, id, secret.Metadata.Version)
 		require.NoError(s.T(), err)
 

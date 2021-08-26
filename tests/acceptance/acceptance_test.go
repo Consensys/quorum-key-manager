@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 	"time"
-	
+
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
@@ -82,6 +82,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	logger := s.env.logger.WithComponent(storeName)
 	testSuite := new(secretsTestSuite)
 	testSuite.env = s.env
+	testSuite.db = db.Secrets(storeName)
 	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger), db.Secrets(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 }
@@ -100,6 +101,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	logger := s.env.logger.WithComponent(storeName)
 	testSuite := new(keysTestSuite)
 	testSuite.env = s.env
+	testSuite.db = db.Keys(storeName)
 	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db.Keys(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 
@@ -108,6 +110,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	logger = s.env.logger.WithComponent(storeName)
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
+	testSuite.db = db.Keys(storeName)
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
 	testSuite.store = keys.NewConnector(local.New(hashicorpSecretStore, logger), db.Keys(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
@@ -129,7 +132,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite := new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.NewConnector(hashicorpStore, db.ETH1Accounts(storeName), auth, logger)
-	testSuite.db = db
+	testSuite.db = db.ETH1Accounts(storeName)
 	suite.Run(s.T(), testSuite)
 
 	// Local
@@ -140,9 +143,8 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth1.NewConnector(localStore, db.ETH1Accounts(storeName), auth, logger)
-	testSuite.db = db
+	testSuite.db = db.ETH1Accounts(storeName)
 	suite.Run(s.T(), testSuite)
-
 }
 
 func (s *storeTestSuite) TestKeyManagerAliases() {

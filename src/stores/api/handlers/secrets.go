@@ -28,7 +28,7 @@ func NewSecretsHandler(s stores.Manager) *SecretsHandler {
 
 func (h *SecretsHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodDelete).Path("/{id}/destroy").HandlerFunc(h.destroy)
-	r.Methods(http.MethodPost).Path("/{id}/restore").HandlerFunc(h.restore)
+	r.Methods(http.MethodPut).Path("/{id}/restore").HandlerFunc(h.restore)
 	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.set)
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
