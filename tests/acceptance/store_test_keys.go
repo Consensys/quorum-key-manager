@@ -52,11 +52,10 @@ func (s *keysTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.False(s.T(), key.Metadata.Disabled)
 	})
 
-	s.Run("should create a new key pair successfully", func() {
+	s.Run("should create a new key pair successfully if it already exists in the Vault", func() {
 		id := s.newID("my-key-create")
 		tags := testutils.FakeTags()
 
@@ -89,7 +88,6 @@ func (s *keysTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.False(s.T(), key.Metadata.Disabled)
 	})
 

@@ -1,8 +1,8 @@
 package eth1
 
-import "C"
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 

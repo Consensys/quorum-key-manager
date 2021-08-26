@@ -46,7 +46,6 @@ func (s *secretsTestSuite) TestSet() {
 		assert.NotNil(s.T(), secret.Metadata.CreatedAt)
 		assert.NotNil(s.T(), secret.Metadata.UpdatedAt)
 		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
 		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 
@@ -77,7 +76,6 @@ func (s *secretsTestSuite) TestSet() {
 		assert.NotNil(s.T(), secret.Metadata.CreatedAt)
 		assert.NotNil(s.T(), secret.Metadata.UpdatedAt)
 		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
 		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 }
