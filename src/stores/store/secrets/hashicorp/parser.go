@@ -40,11 +40,6 @@ func formatHashicorpSecretMetadata(secret *api.Secret, version string) (*entitie
 
 		metadata.DeletedAt = deletionTime
 		metadata.Disabled = true
-
-		// If secret has been destroyed, deletion time is the destroyed time
-		if secretVersion["destroyed"].(bool) {
-			metadata.DestroyedAt = deletionTime
-		}
 	}
 
 	var err error

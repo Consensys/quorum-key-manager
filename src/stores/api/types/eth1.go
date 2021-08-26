@@ -98,7 +98,7 @@ type Eth1AccountResponse struct {
 	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0x6019a3c8..." swaggertype:"string"`
 	CreatedAt           time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
 	UpdatedAt           time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
-	DeletedAt           time.Time         `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
+	DeletedAt           *time.Time        `json:"deletedAt,omitempty" example:"2020-07-09T12:35:42.115395Z"`
 	KeyID               string            `json:"keyId" example:"my-key-id"`
 	Tags                map[string]string `json:"tags,omitempty"`
 	Address             common.Address    `json:"address" example:"0x664895b5fE3ddf049d2Fb508cfA03923859763C6" swaggertype:"string"`

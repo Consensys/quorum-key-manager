@@ -89,7 +89,7 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 }
 
 func FormatEth1AccResponse(eth1Acc *entities.ETH1Account) *types.Eth1AccountResponse {
-	return &types.Eth1AccountResponse{
+	resp := &types.Eth1AccountResponse{
 		KeyID:               eth1Acc.KeyID,
 		Address:             eth1Acc.Address,
 		PublicKey:           eth1Acc.PublicKey,
@@ -97,7 +97,12 @@ func FormatEth1AccResponse(eth1Acc *entities.ETH1Account) *types.Eth1AccountResp
 		Tags:                eth1Acc.Tags,
 		CreatedAt:           eth1Acc.Metadata.CreatedAt,
 		UpdatedAt:           eth1Acc.Metadata.UpdatedAt,
-		DeletedAt:           eth1Acc.Metadata.DeletedAt,
 		Disabled:            eth1Acc.Metadata.Disabled,
 	}
+
+	if !eth1Acc.Metadata.DeletedAt.IsZero() {
+		resp.DeletedAt = &eth1Acc.Metadata.DeletedAt
+	}
+
+	return resp
 }
