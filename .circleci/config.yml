@@ -163,8 +163,9 @@ jobs:
           name: e2e tests
           command: |
             set +e
-            echo "$MANIFEST_B64" | base64 --decode > ./deps/config/manifest.yml
-            make up
+            echo "$MANIFEST_B64" | base64 --decode > ./deps/config/manifests/manifest.yml
+            make deps
+            make dev
             echo "Wait 10 seconds for services to boot up correctly..."
             sleep 10
             make run-e2e

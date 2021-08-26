@@ -9,6 +9,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -134,6 +135,7 @@ func (s *secretsTestSuite) TestGetSecret() {
 
 	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.storeName, secretID, request)
 	require.NoError(s.T(), err)
+	time.Sleep(time.Second)
 
 	secret2, err := s.keyManagerClient.SetSecret(s.ctx, s.storeName, secretID, request)
 	require.NoError(s.T(), err)
