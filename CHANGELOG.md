@@ -1,5 +1,15 @@
 # Quorum Key Manager Release Notes
 
+## v21.7.0-alpha.2 (2021-08-26)
+### 🆕 Features
+* Support for authorization using OIDC, TLS and API-KEY
+* Support for authentication based on roles and permissions
+* Usage Postgres DB to resources public information
+
+### 🛠 Bug fixes
+* Behaviour alignment over every support key vault
+* Keys and secrets were not available after restoring
+
 ## v21.7.0-alpha.1 (2021-07-06)
 ### 🆕 Features
 Initial release of the Quorum Key Manager
