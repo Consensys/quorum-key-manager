@@ -120,7 +120,7 @@ install-swag:
 	@GO111MODULE=off go get -u github.com/swaggo/swag/cmd/swag
 
 install-swagger:
-	@bash ./scripts/install_swagger.go
+	@bash ./scripts/install_swagger.sh
 
 check-swagger:
 	@which swagger || make install-swagger
