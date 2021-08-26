@@ -41,7 +41,7 @@ func (c *HTTPClient) Do(reqMsg *RequestMsg) (*ResponseMsg, error) {
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, InvalidDownstreamHTTPStatuError(resp.StatusCode)
+		return nil, InvalidDownstreamHTTPStatusError(resp.StatusCode)
 	}
 
 	// Create response and reads body

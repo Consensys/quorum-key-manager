@@ -28,8 +28,37 @@ type jsonRPCTestSuite struct {
 	err              error
 	ctx              context.Context
 	keyManagerClient *client.HTTPClient
-	cfg              *tests.Config
 	acc              *types.Eth1AccountResponse
+	storeName        string
+	QuorumNodeID     string
+	BesuNodeID       string
+}
+
+func TestJSONRpcHTTP(t *testing.T) {
+	s := new(jsonRPCTestSuite)
+
+	s.ctx = context.Background()
+	sig := common.NewSignalListener(func(signal os.Signal) {
+		s.err = fmt.Errorf("interrupt signal was caught")
+		t.FailNow()
+	})
+	defer sig.Close()
+
+	var cfg *tests.Config
+	cfg, s.err = tests.NewConfig()
+
+	if s.err != nil {
+		return
+	}
+
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+		URL: cfg.KeyManagerURL,
+	})
+
+	s.BesuNodeID = cfg.BesuNodeID
+	s.QuorumNodeID = cfg.QuorumNodeID
+	s.storeName = cfg.Eth1Stores[0]
+	suite.Run(t, s)
 }
 
 func (s *jsonRPCTestSuite) SetupSuite() {
@@ -37,12 +66,8 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		s.T().Error(s.err)
 	}
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
-		URL: s.cfg.KeyManagerURL,
-	})
-
 	var err error
-	s.acc, err = s.keyManagerClient.CreateEth1Account(s.ctx, s.cfg.Eth1Stores[0], &types.CreateEth1AccountRequest{
+	s.acc, err = s.keyManagerClient.CreateEth1Account(s.ctx, s.storeName, &types.CreateEth1AccountRequest{
 		KeyID: fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
 	})
 
@@ -56,27 +81,16 @@ func (s *jsonRPCTestSuite) TearDownSuite() {
 		s.T().Error(s.err)
 	}
 
-	// @TODO validate error once hashicorp support destroy keys
-	_ = s.keyManagerClient.DestroyKey(s.ctx, s.cfg.Eth1Stores[0], s.acc.KeyID)
-}
-
-func TestJSONRpcHTTP(t *testing.T) {
-	s := new(jsonRPCTestSuite)
-
-	s.ctx = context.Background()
-	sig := common.NewSignalListener(func(signal os.Signal) {
-		s.err = fmt.Errorf("interrupt signal was caught")
-		t.FailNow()
-	})
-	defer sig.Close()
-
-	s.cfg, s.err = tests.NewConfig()
-	suite.Run(t, s)
+	_ = s.keyManagerClient.DeleteEth1Account(s.ctx, s.storeName, s.acc.Address.Hex())
+	errMsg := fmt.Sprintf("failed to destroy eth1Account {Address: %s}", s.acc.Address.Hex())
+	_ = retryOn(func() error {
+		return s.keyManagerClient.DestroyEth1Account(s.ctx, s.storeName, s.acc.Address.Hex())
+	}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
 }
 
 func (s *jsonRPCTestSuite) TestCallForwarding() {
 	s.Run("should forward call eth_blockNumber and retrieve block number successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_blockNumber")
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_blockNumber")
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
 
@@ -92,7 +106,7 @@ func (s *jsonRPCTestSuite) TestEthSign() {
 	dataToSign := "0xa2"
 
 	s.Run("should call eth_sign and sign data successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sign", s.acc.Address, dataToSign)
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sign", s.acc.Address, dataToSign)
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
 
@@ -103,13 +117,13 @@ func (s *jsonRPCTestSuite) TestEthSign() {
 	})
 
 	s.Run("should call eth_sign and fail to sign with an invalid account", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sign", "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852", dataToSign)
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sign", "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852", dataToSign)
 		require.NoError(s.T(), err)
 		require.Error(s.T(), resp.Error)
 	})
 
 	s.Run("should call eth_sign and fail to sign without an invalid data", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sign", s.acc.Address, "noExpectedHexData")
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sign", s.acc.Address, "noExpectedHexData")
 		require.NoError(s.T(), err)
 		require.Error(s.T(), resp.Error)
 	})
@@ -117,7 +131,7 @@ func (s *jsonRPCTestSuite) TestEthSign() {
 
 func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 	s.Run("should call eth_signTransaction successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_signTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_signTransaction", map[string]interface{}{
 			"data":     "0xa2",
 			"from":     s.acc.Address,
 			"to":       "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
@@ -130,7 +144,7 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 	})
 
 	s.Run("should call eth_signTransaction and fail to sign with an invalid account", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sign", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sign", map[string]interface{}{
 			"data":     "0xa2",
 			"from":     "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852",
 			"to":       "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
@@ -143,7 +157,7 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 	})
 
 	s.Run("should call eth_signTransaction and fail to sign with an invalid args", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sign", "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sign", "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852", map[string]interface{}{
 			"data":  "0xa2",
 			"from":  s.acc.Address,
 			"to":    "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
@@ -158,7 +172,7 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 	toAddr := "0xd46e8dd67c5d32be8058bb8eb970870f07244567"
 	s.Run("should call eth_sendTransaction, successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data": "0xa2",
 			"from": s.acc.Address,
 			"to":   toAddr,
@@ -171,13 +185,13 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
-		tx, err := s.retrieveTransaction(s.ctx, s.cfg.QuorumNodeID, result)
+		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})
 
 	s.Run("should call eth_sendTransaction and fail if an invalid account", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data": "0xa2",
 			"from": "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852",
 			"to":   toAddr,
@@ -189,7 +203,7 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 	})
 
 	s.Run("should call eth_sendTransaction and fail if an invalid args", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"from": s.acc.Address,
 		})
 
@@ -202,7 +216,7 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 	toAddr := "0xd46e8dd67c5d32be8058bb8eb970870f07244567"
 
 	s.Run("should call eth_sendTransaction, for private Quorum Tx, successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
 			"from":        s.acc.Address,
 			"to":          toAddr,
@@ -216,13 +230,13 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
-		tx, err := s.retrieveTransaction(s.ctx, s.cfg.QuorumNodeID, result)
+		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})
 
 	s.Run("should call eth_sendTransaction and fail if invalid account", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
 			"from":        "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852",
 			"to":          toAddr,
@@ -236,7 +250,7 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 	})
 
 	s.Run("should call eth_sendTransaction and fail if invalid args", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
 			"from":        s.acc.Address,
 			"to":          toAddr,
@@ -252,7 +266,7 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 
 func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 	s.Run("should call eea_sendTransaction successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
 			"from":        s.acc.Address,
 			"to":          "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
@@ -266,14 +280,14 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
-		tx, err := s.retrieveTransaction(s.ctx, s.cfg.BesuNodeID, result)
+		tx, err := s.retrieveTransaction(s.ctx, s.BesuNodeID, result)
 		require.NoError(s.T(), err)
 		// Sent to precompiled besu contract
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), "0x000000000000000000000000000000000000007e")
 	})
 
 	s.Run("should call eea_sendTransaction and fail if invalid account", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
 			"from":        "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852",
 			"to":          "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
@@ -286,7 +300,7 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 	})
 
 	s.Run("should call eea_sendTransaction and fail if invalid args", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+		resp, err := s.keyManagerClient.Call(s.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
 			"from":        s.acc.Address,
 			"to":          "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
@@ -300,7 +314,7 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 
 func (s *jsonRPCTestSuite) TestEthAccounts() {
 	s.Run("should call eth_accounts successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.cfg.QuorumNodeID, "eth_accounts")
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_accounts")
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
 		accs := []string{}
