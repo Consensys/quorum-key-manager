@@ -108,9 +108,6 @@ func (s *keysTestSuite) TestCreate() {
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
-		assert.True(s.T(), key.ExpireAt.IsZero())
-		assert.True(s.T(), key.DeletedAt.IsZero())
-		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
 	s.RunT("should create a new key successfully: BN254/EDDSA", func() {
@@ -135,9 +132,6 @@ func (s *keysTestSuite) TestCreate() {
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
-		assert.True(s.T(), key.ExpireAt.IsZero())
-		assert.True(s.T(), key.DeletedAt.IsZero())
-		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
 	s.RunT("should parse errors successfully", func() {
@@ -219,9 +213,6 @@ func (s *keysTestSuite) TestImport() {
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
-		assert.True(s.T(), key.ExpireAt.IsZero())
-		assert.True(s.T(), key.DeletedAt.IsZero())
-		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
 	s.RunT("should create a new key successfully: BN254/EDDSA", func() {
@@ -247,9 +238,6 @@ func (s *keysTestSuite) TestImport() {
 		assert.False(s.T(), key.Disabled)
 		assert.NotEmpty(s.T(), key.CreatedAt)
 		assert.NotEmpty(s.T(), key.UpdatedAt)
-		assert.True(s.T(), key.ExpireAt.IsZero())
-		assert.True(s.T(), key.DeletedAt.IsZero())
-		assert.True(s.T(), key.DestroyedAt.IsZero())
 	})
 
 	s.RunT("should fail with bad request if curve is not supported", func() {
@@ -316,9 +304,6 @@ func (s *keysTestSuite) TestGetKey() {
 		assert.False(s.T(), keyRetrieved.Disabled)
 		assert.NotEmpty(s.T(), keyRetrieved.CreatedAt)
 		assert.NotEmpty(s.T(), keyRetrieved.UpdatedAt)
-		assert.True(s.T(), keyRetrieved.ExpireAt.IsZero())
-		assert.True(s.T(), keyRetrieved.DeletedAt.IsZero())
-		assert.True(s.T(), keyRetrieved.DestroyedAt.IsZero())
 	})
 }
 

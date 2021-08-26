@@ -114,7 +114,6 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
 		assert.NotEmpty(s.T(), acc.UpdatedAt)
-		assert.True(s.T(), acc.DeletedAt.IsZero())
 	})
 
 	s.Run("should create a new account with random keyID successfully", func() {
@@ -132,7 +131,6 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
 		assert.NotEmpty(s.T(), acc.UpdatedAt)
-		assert.True(s.T(), acc.DeletedAt.IsZero())
 	})
 
 	s.Run("should parse errors successfully", func() {
@@ -184,7 +182,6 @@ func (s *eth1TestSuite) TestImport() {
 		assert.False(s.T(), acc.Disabled)
 		assert.NotEmpty(s.T(), acc.CreatedAt)
 		assert.NotEmpty(s.T(), acc.UpdatedAt)
-		assert.True(s.T(), acc.DeletedAt.IsZero())
 	})
 
 	s.Run("should parse errors successfully", func() {

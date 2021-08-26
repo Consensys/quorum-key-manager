@@ -102,9 +102,6 @@ func (s *secretsTestSuite) TestSet() {
 		assert.False(s.T(), secret.Disabled)
 		assert.NotEmpty(s.T(), secret.CreatedAt)
 		assert.NotEmpty(s.T(), secret.UpdatedAt)
-		assert.True(s.T(), secret.ExpireAt.IsZero())
-		assert.True(s.T(), secret.DeletedAt.IsZero())
-		assert.True(s.T(), secret.DestroyedAt.IsZero())
 	})
 
 	s.RunT("should parse errors successfully", func() {
@@ -152,9 +149,6 @@ func (s *secretsTestSuite) TestGetSecret() {
 		assert.False(s.T(), secretRetrieved.Disabled)
 		assert.NotEmpty(s.T(), secretRetrieved.CreatedAt)
 		assert.NotEmpty(s.T(), secretRetrieved.UpdatedAt)
-		assert.True(s.T(), secretRetrieved.ExpireAt.IsZero())
-		assert.True(s.T(), secretRetrieved.DeletedAt.IsZero())
-		assert.True(s.T(), secretRetrieved.DestroyedAt.IsZero())
 	})
 
 	s.RunT("should get the latest version of a secret successfully", func() {
