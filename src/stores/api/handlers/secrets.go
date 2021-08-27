@@ -44,9 +44,9 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.SetSecretRequest true "Create Secret request"
 // @Success 200 {object} types.SecretResponse "Secret data"
-// @Failure 400 {object} http2.ErrorResponse "Invalid request format"
-// @Failure 404 {object} http2.ErrorResponse "Store not found"
-// @Failure 500 {object} http2.ErrorResponse "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 404 {object} ErrorResponse "Store not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id} [post]
 func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -88,8 +88,8 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 // @Param version query string false "secret version"
 // @Param deleted query bool false "filter by deleted accounts"
 // @Success 200 {object} types.SecretResponse "Secret object"
-// @Failure 404 {object} http2.ErrorResponse "Store/Secret not found"
-// @Failure 500 {object} http2.ErrorResponse "Internal server error"
+// @Failure 404 {object} ErrorResponse "Store/Secret not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id} [get]
 func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -129,8 +129,8 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Param deleted query bool false "filter by deleted accounts"
 // @Param storeName path string true "Store Identifier"
 // @Success 200 {array} []types.SecretResponse "List of Secret IDs"
-// @Failure 404 {object} http2.ErrorResponse "Store not found"
-// @Failure 500 {object} http2.ErrorResponse "Internal server error"
+// @Failure 404 {object} ErrorResponse "Store not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets [get]
 func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -167,8 +167,8 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 // @Param id path string true "Secret Identifier"
 // @Param version query string false "secret version"
 // @Success 204 "Deleted successfully"
-// @Failure 404 {object} http2.ErrorResponse "Store/Secret not found"
-// @Failure 500 {object} http2.ErrorResponse "Internal server error"
+// @Failure 404 {object} ErrorResponse "Store/Secret not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id} [delete]
 func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -202,8 +202,8 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Param id path string true "Key identifier"
 // @Param version query string false "secret version"
 // @Success 204 "Destroyed successfully"
-// @Failure 404 {object} http2.ErrorResponse "Store/Secret not found"
-// @Failure 500 {object} http2.ErrorResponse "Internal server error"
+// @Failure 404 {object} ErrorResponse "Store/Secret not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id}/destroy [delete]
 func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
@@ -235,8 +235,8 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 // @Param id path string true "Secret identifier"
 // @Param version query string false "secret version"
 // @Success 204 "Restored successfully"
-// @Failure 404 {object} http2.ErrorResponse "Store/Secret not found"
-// @Failure 500 {object} http2.ErrorResponse "Internal server error"
+// @Failure 404 {object} ErrorResponse "Store/Secret not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id}/restore [put]
 func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")

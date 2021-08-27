@@ -31,7 +31,6 @@ func init() {
 
 	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
 	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-
 	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
 
@@ -130,9 +129,9 @@ Environment variable: %q`, authOIDCCAKeyFileEnv)
 
 func authOIDCCAFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`OpenID Connect CA Key filepath.
-Environment variable: %q`, authOIDCClaimUsernameEnv)
-	f.String(authOIDCClaimUsernameFlag, authOIDCClaimUsernameDefault, desc)
-	_ = viper.BindPFlag(authOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
+Environment variable: %q`, authOIDCCACertFileEnv)
+	f.String(authOIDCCACertFileFlag, authOIDCCACertFileDefault, desc)
+	_ = viper.BindPFlag(authOIDCCACertFileViperKey, f.Lookup(authOIDCCACertFileFlag))
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
@@ -144,16 +143,16 @@ Environment variable: %q`, authOIDCIssuerURLEnv)
 
 func AuthOIDCClaimUsername(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for username.
-Environment variable: %q`, authOIDCClaimGroupEnv)
-	f.String(authOIDCClaimGroupFlag, authOIDCClaimGroupDefault, desc)
-	_ = viper.BindPFlag(authOIDCClaimGroupViperKey, f.Lookup(authOIDCClaimGroupFlag))
+Environment variable: %q`, authOIDCClaimUsernameEnv)
+	f.String(authOIDCClaimUsernameFlag, authOIDCClaimUsernameDefault, desc)
+	_ = viper.BindPFlag(authOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
 }
 
 func AuthOIDCClaimGroups(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for groups.
-Environment variable: %q`, authOIDCCACertFileEnv)
-	f.String(authOIDCCACertFileFlag, authOIDCCACertFileDefault, desc)
-	_ = viper.BindPFlag(authOIDCCACertFileViperKey, f.Lookup(authOIDCCACertFileFlag))
+Environment variable: %q`, authOIDCClaimGroupEnv)
+	f.String(authOIDCClaimGroupFlag, authOIDCClaimGroupDefault, desc)
+	_ = viper.BindPFlag(authOIDCClaimGroupViperKey, f.Lookup(authOIDCClaimGroupFlag))
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
