@@ -344,8 +344,9 @@ func (s *secretsTestSuite) TestListDeletedSecrets() {
 		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, "inexistentStoreName")
 		require.Empty(s.T(), ids)
 
-		httpError := err.(*client.ResponseError)
-		assert.Equal(s.T(), 404, httpError.StatusCode)
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), http.StatusNotFound, httpError.StatusCode)
 	})
 }
 

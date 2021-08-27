@@ -99,6 +99,7 @@ func (s *keysTestSuite) TestCreate() {
 
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
 		require.NoError(s.T(), err)
+		defer s.queueToDelete(key)
 
 		assert.NotEmpty(s.T(), key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
@@ -122,7 +123,15 @@ func (s *keysTestSuite) TestCreate() {
 		}
 
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
+		// Ignoring not supported errors 
+		if err != nil {
+			httpError, ok := err.(*client.ResponseError)
+			require.True(s.T(), ok)
+			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+			return
+		}
 		require.NoError(s.T(), err)
+		defer s.queueToDelete(key)
 
 		assert.NotEmpty(s.T(), key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
@@ -204,6 +213,7 @@ func (s *keysTestSuite) TestImport() {
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
 		require.NoError(s.T(), err)
+		defer s.queueToDelete(key)
 
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R/EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a+S2RklJRFjjoLf+LI=", key.PublicKey)
 		assert.Equal(s.T(), request.SigningAlgorithm, key.SigningAlgorithm)
@@ -228,6 +238,13 @@ func (s *keysTestSuite) TestImport() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+		// Ignoring not supported errors 
+		if err != nil {
+			httpError, ok := err.(*client.ResponseError)
+			require.True(s.T(), ok)
+			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+			return
+		}
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "X9Yz/5+O42+eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", key.PublicKey)
@@ -293,6 +310,7 @@ func (s *keysTestSuite) TestGetKey() {
 
 	key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
 	require.NoError(s.T(), err)
+	defer s.queueToDelete(key)
 
 	s.RunT("should get a key successfully", func() {
 		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.storeName, key.ID)
@@ -336,7 +354,6 @@ func (s *keysTestSuite) TestDeleteKey() {
 }
 
 func (s *keysTestSuite) TestGetDeletedKey() {
-	keyID := fmt.Sprintf("my-get-key-%d", common.RandInt(1000))
 	request := &types.CreateKeyRequest{
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -346,14 +363,14 @@ func (s *keysTestSuite) TestGetDeletedKey() {
 		},
 	}
 
-	key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
-	require.NoError(s.T(), err)
-
-	err = s.keyManagerClient.DeleteKey(s.ctx, s.storeName, key.ID)
-	assert.NoError(s.T(), err)
-	defer s.queueToDestroy(key)
-
 	s.RunT("should get deleted key successfully", func() {
+		keyID := fmt.Sprintf("my-get-key-%d", common.RandInt(1000))
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
+		require.NoError(s.T(), err)
+
+		err = s.keyManagerClient.DeleteKey(s.ctx, s.storeName, key.ID)
+		assert.NoError(s.T(), err)
+		defer s.queueToDestroy(key)
 		keyRetrieved, err := s.keyManagerClient.GetDeletedKey(s.ctx, s.storeName, key.ID)
 		require.NoError(s.T(), err)
 
@@ -391,7 +408,7 @@ func (s *keysTestSuite) TestRestoreKey() {
 		err := retryOn(func() error {
 			return s.keyManagerClient.RestoreKey(s.ctx, s.storeName, key.ID)
 		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
-		
+
 		require.NoError(s.T(), err)
 
 		_, err = s.keyManagerClient.GetKey(s.ctx, s.storeName, key.ID)
@@ -413,7 +430,6 @@ func (s *keysTestSuite) TestRestoreKey() {
 }
 
 func (s *keysTestSuite) TestDestroyKey() {
-	keyID := fmt.Sprintf("my-restore-key-%d", common.RandInt(1000))
 	request := &types.CreateKeyRequest{
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -423,31 +439,32 @@ func (s *keysTestSuite) TestDestroyKey() {
 		},
 	}
 
-	key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
-	require.NoError(s.T(), err)
-
-	err = s.keyManagerClient.DeleteKey(s.ctx, s.storeName, key.ID)
-	assert.NoError(s.T(), err)
-
 	s.RunT("should destroy deleted key successfully", func() {
+		keyID := fmt.Sprintf("my-restore-key-%d", common.RandInt(1000))
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
+		require.NoError(s.T(), err)
+
+		err = s.keyManagerClient.DeleteKey(s.ctx, s.storeName, key.ID)
+		assert.NoError(s.T(), err)
+
 		errMsg := fmt.Sprintf("failed to destroy key {ID: %s}", key.ID)
-		err := retryOn(func() error {
+		err = retryOn(func() error {
 			return s.keyManagerClient.DestroyKey(s.ctx, s.storeName, key.ID)
 		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
-		
+
 		require.NoError(s.T(), err)
 
 		_, err = s.keyManagerClient.GetDeletedKey(s.ctx, s.storeName, key.ID)
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
-		assert.Equal(s.T(), 404, httpError.StatusCode)
+		assert.Equal(s.T(), http.StatusNotFound, httpError.StatusCode)
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		err := s.keyManagerClient.RestoreKey(s.ctx, s.storeName, "invalidID")
+		err := s.keyManagerClient.DestroyKey(s.ctx, s.storeName, "invalidID")
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
-		assert.Equal(s.T(), 404, httpError.StatusCode)
+		assert.Equal(s.T(), http.StatusNotFound, httpError.StatusCode)
 	})
 }
 
@@ -465,6 +482,7 @@ func (s *keysTestSuite) TestListKeys() {
 
 	key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
 	require.NoError(s.T(), err)
+	defer s.queueToDelete(key)
 
 	s.RunT("should get all key ids successfully", func() {
 		ids, err := s.keyManagerClient.ListKeys(s.ctx, s.storeName)
@@ -532,6 +550,13 @@ func (s *keysTestSuite) TestSignVerify() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+		// Ignoring not supported errors 
+		if err != nil {
+			httpError, ok := err.(*client.ResponseError)
+			require.True(s.T(), ok)
+			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+			return
+		}
 		require.NoError(s.T(), err)
 		defer s.queueToDelete(key)
 
@@ -540,8 +565,6 @@ func (s *keysTestSuite) TestSignVerify() {
 		}
 		signature, err := s.keyManagerClient.SignKey(s.ctx, s.storeName, key.ID, requestSign)
 		require.NoError(s.T(), err)
-
-		assert.Equal(s.T(), "YzQeLIN0Sd43Nbb0QCsVSqChGNAuRaKzEfujnERAJd0523aZyz2KXK93KKh+d4ws3MxAhc8qNG43wYI97Fzi7Q==", signature)
 
 		sigB, err := base64.StdEncoding.DecodeString(signature)
 		require.NoError(s.T(), err)
@@ -567,6 +590,13 @@ func (s *keysTestSuite) TestSignVerify() {
 			PrivateKey:       eddsaPrivKey,
 		}
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+		// Ignoring not supported errors 
+		if err != nil {
+			httpError, ok := err.(*client.ResponseError)
+			require.True(s.T(), ok)
+			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+			return
+		}
 		require.NoError(s.T(), err)
 		defer s.queueToDelete(key)
 

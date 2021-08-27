@@ -38,14 +38,15 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
 
+	logger := s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type)
 	switch {
 	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
 		kty = keyvault.EC
 		crv = keyvault.P256K
 	default:
-		errMessage := "invalid or not supported elliptic curve and signing algorithm for AKV key creation"
-		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
+		errMessage := "not supported elliptic curve and signing algorithm in AKV for creation"
+		logger.Error(errMessage)
+		return nil, errors.NotSupportedError(errMessage)
 	}
 
 	res, err := s.client.CreateKey(ctx, id, kty, crv, convertToAKVKeyAttr(attr), nil, attr.Tags)
@@ -78,9 +79,9 @@ func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *enti
 		kty = keyvault.EC
 		crv = keyvault.P256K
 	default:
-		errMessage := "invalid signing algorithm and curve combination for import"
+		errMessage := "not supported signing algorithm and curve combination for import"
 		s.logger.With("signing_algorithm", alg.Type, "elliptic_curve", alg.EllipticCurve).Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
+		return nil, errors.NotSupportedError(errMessage)
 	}
 
 	iWebKey := &keyvault.JSONWebKey{
