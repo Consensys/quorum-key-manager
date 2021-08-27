@@ -22,9 +22,6 @@ func (c Connector) Create(ctx context.Context, id string, alg *entities.Algorith
 	key, err := c.store.Create(ctx, id, alg, attr)
 	if err != nil && errors.IsAlreadyExistsError(err) {
 		key, err = c.store.Get(ctx, id)
-		if err != nil {
-			return nil, err
-		}
 	}
 	if err != nil {
 		return nil, err

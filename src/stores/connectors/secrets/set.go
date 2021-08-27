@@ -22,9 +22,6 @@ func (c Connector) Set(ctx context.Context, id, value string, attr *entities.Att
 	secret, err := c.store.Set(ctx, id, value, attr)
 	if err != nil && errors.IsAlreadyExistsError(err) {
 		secret, err = c.store.Get(ctx, id, "")
-		if err != nil {
-			return nil, err
-		}
 	}
 	if err != nil {
 		return nil, err

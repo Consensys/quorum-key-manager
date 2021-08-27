@@ -21,9 +21,6 @@ func (c Connector) Create(ctx context.Context, id string, attr *entities.Attribu
 	key, err := c.store.Create(ctx, id, eth1Algo, attr)
 	if err != nil && errors.IsAlreadyExistsError(err) {
 		key, err = c.store.Get(ctx, id)
-		if err != nil {
-			return nil, err
-		}
 	}
 	if err != nil {
 		return nil, err
