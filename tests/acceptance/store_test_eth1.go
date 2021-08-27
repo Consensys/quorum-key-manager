@@ -26,7 +26,7 @@ type eth1TestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.Eth1Store
-	db    database.Database
+	db    database.ETH1Accounts
 }
 
 func (s *eth1TestSuite) TestCreate() {
@@ -36,6 +36,34 @@ func (s *eth1TestSuite) TestCreate() {
 	s.Run("should create a new Ethereum Account successfully", func() {
 		id := s.newID("my-account-create")
 		account, err := s.store.Create(ctx, id, &entities.Attributes{
+			Tags: tags,
+		})
+		require.NoError(s.T(), err)
+
+		assert.NotEmpty(s.T(), account.Address)
+		assert.NotEmpty(s.T(), account.PublicKey)
+		assert.NotEmpty(s.T(), account.CompressedPublicKey)
+		assert.Equal(s.T(), account.KeyID, id)
+		assert.Equal(s.T(), account.Tags, tags)
+		assert.False(s.T(), account.Metadata.Disabled)
+		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
+		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
+	})
+
+	s.Run("should create a new Ethereum Account successfully", func() {
+		id := s.newID("my-account-create")
+		account, err := s.store.Create(ctx, id, &entities.Attributes{
+			Tags: tags,
+		})
+		require.NoError(s.T(), err)
+
+		err = s.db.Delete(ctx, account.Address.Hex())
+		require.NoError(s.T(), err)
+		err = s.db.Purge(ctx, account.Address.Hex())
+		require.NoError(s.T(), err)
+
+		account, err = s.store.Create(ctx, id, &entities.Attributes{
 			Tags: tags,
 		})
 		require.NoError(s.T(), err)

@@ -3,6 +3,7 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -20,6 +21,7 @@ type secretsTestSuite struct {
 	suite.Suite
 	env       *IntegrationEnvironment
 	store     stores.SecretStore
+	db        database.Secrets
 	secretIDs []string
 }
 
@@ -44,7 +46,36 @@ func (s *secretsTestSuite) TestSet() {
 		assert.NotNil(s.T(), secret.Metadata.CreatedAt)
 		assert.NotNil(s.T(), secret.Metadata.UpdatedAt)
 		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
-		assert.True(s.T(), secret.Metadata.ExpireAt.IsZero())
+		assert.False(s.T(), secret.Metadata.Disabled)
+	})
+
+	s.Run("should create a new secret successfully if it already exists in the Vault", func() {
+		id := s.newID("my-secret")
+		value := "my-secret-value"
+		tags := testutils.FakeTags()
+
+		secret, err := s.store.Set(ctx, id, value, &entities.Attributes{
+			Tags: tags,
+		})
+		require.NoError(s.T(), err)
+
+		err = s.db.Delete(ctx, id, secret.Metadata.Version)
+		require.NoError(s.T(), err)
+		err = s.db.Purge(ctx, id, secret.Metadata.Version)
+		require.NoError(s.T(), err)
+
+		secret, err = s.store.Set(ctx, id, value, &entities.Attributes{
+			Tags: tags,
+		})
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), id, secret.ID)
+		assert.Equal(s.T(), value, secret.Value)
+		assert.Equal(s.T(), tags, secret.Tags)
+		assert.NotEmpty(s.T(), secret.Metadata.Version)
+		assert.NotNil(s.T(), secret.Metadata.CreatedAt)
+		assert.NotNil(s.T(), secret.Metadata.UpdatedAt)
+		assert.True(s.T(), secret.Metadata.DeletedAt.IsZero())
 		assert.False(s.T(), secret.Metadata.Disabled)
 	})
 }
@@ -219,7 +250,6 @@ func (s *secretsTestSuite) TestListDeleted() {
 		assert.Contains(s.T(), ids, id2)
 	})
 }
-
 
 func (s *secretsTestSuite) newID(name string) string {
 	id := fmt.Sprintf("%s-%s", name, common.RandString(10))

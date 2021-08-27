@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
@@ -16,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestImportKey(t *testing.T) {
+func TestImport(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -36,9 +38,21 @@ func TestImportKey(t *testing.T) {
 
 	connector := NewConnector(store, db, auth, logger)
 
-	t.Run("should import key successfully", func(t *testing.T) {
+	t.Run("should import eth1 account successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, eth1Algo, attributes).Return(key, nil)
+		db.EXPECT().Add(gomock.Any(), newEth1Account(key, attributes)).Return(acc, nil)
+
+		rAcc, err := connector.Import(ctx, key.ID, privKey, attributes)
+
+		assert.NoError(t, err)
+		assert.Equal(t, rAcc, acc)
+	})
+
+	t.Run("should import eth1 account successfully if it already exists in the vault", func(t *testing.T) {
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEth1Account}).Return(nil)
+		store.EXPECT().Import(gomock.Any(), key.ID, privKey, eth1Algo, attributes).Return(nil, errors.AlreadyExistsError("error"))
+		store.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), newEth1Account(key, attributes)).Return(acc, nil)
 
 		rAcc, err := connector.Import(ctx, key.ID, privKey, attributes)
