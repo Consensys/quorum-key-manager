@@ -194,8 +194,8 @@ func (c *HTTPClient) ECRecover(ctx context.Context, storeName string, req *types
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) VerifyEth1Signature(ctx context.Context, storeName string, req *types.VerifyEth1SignatureRequest) error {
-	reqURL := fmt.Sprintf("%s/%s/verify-signature", withURLStore(c.config.URL, storeName), eth1Path)
+func (c *HTTPClient) Verify(ctx context.Context, storeName string, req *types.VerifyRequest) error {
+	reqURL := fmt.Sprintf("%s/%s/verify", withURLStore(c.config.URL, storeName), eth1Path)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return err
@@ -205,8 +205,19 @@ func (c *HTTPClient) VerifyEth1Signature(ctx context.Context, storeName string, 
 	return parseEmptyBodyResponse(response)
 }
 
-func (c *HTTPClient) VerifyTypedDataSignature(ctx context.Context, storeName string, req *types.VerifyTypedDataRequest) error {
-	reqURL := fmt.Sprintf("%s/%s/verify-typed-data-signature", withURLStore(c.config.URL, storeName), eth1Path)
+func (c *HTTPClient) VerifyMessage(ctx context.Context, storeName string, req *types.VerifyRequest) error {
+	reqURL := fmt.Sprintf("%s/%s/verify-message", withURLStore(c.config.URL, storeName), eth1Path)
+	response, err := postRequest(ctx, c.client, reqURL, req)
+	if err != nil {
+		return err
+	}
+
+	defer closeResponse(response)
+	return parseEmptyBodyResponse(response)
+}
+
+func (c *HTTPClient) VerifyTypedData(ctx context.Context, storeName string, req *types.VerifyTypedDataRequest) error {
+	reqURL := fmt.Sprintf("%s/%s/verify-typed-data", withURLStore(c.config.URL, storeName), eth1Path)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return err
