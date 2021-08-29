@@ -19,7 +19,7 @@ func (c Connector) Create(ctx context.Context, id string, alg *entities.Algorith
 		return nil, err
 	}
 
-	if !isSupportedAlgo(alg){
+	if !isSupportedAlgo(alg) {
 		errMessage := "invalid or not supported elliptic curve and signing algorithm combination for creation"
 		logger.Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)

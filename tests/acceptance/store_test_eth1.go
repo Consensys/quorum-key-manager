@@ -46,7 +46,6 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.Equal(s.T(), account.KeyID, id)
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
-		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
 		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
 	})
@@ -74,7 +73,6 @@ func (s *eth1TestSuite) TestCreate() {
 		assert.Equal(s.T(), account.KeyID, id)
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
-		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
 		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
 	})
@@ -102,10 +100,8 @@ func (s *eth1TestSuite) TestImport() {
 		assert.Equal(s.T(), crypto.CompressPubkey(&privKey.PublicKey), account.CompressedPublicKey)
 		assert.Equal(s.T(), account.Tags, tags)
 		assert.False(s.T(), account.Metadata.Disabled)
-		assert.True(s.T(), account.Metadata.DeletedAt.IsZero())
 		assert.NotEmpty(s.T(), account.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), account.Metadata.UpdatedAt)
-		assert.Equal(s.T(), account.Metadata.UpdatedAt, account.Metadata.CreatedAt)
 	})
 
 	s.Run("should fail with StatusConflict if we violate a constraint (same address already exists)", func() {

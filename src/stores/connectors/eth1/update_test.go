@@ -46,7 +46,7 @@ func TestUpdateKey(t *testing.T) {
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Update(gomock.Any(), acc).Return(acc, nil)
-		store.EXPECT().Update(gomock.Any(), acc.Address.Hex(), attributes).Return(key, nil)
+		store.EXPECT().Update(gomock.Any(), acc.KeyID, attributes).Return(key, nil)
 
 		rAcc, err := connector.Update(ctx, acc.Address, attributes)
 
@@ -60,7 +60,7 @@ func TestUpdateKey(t *testing.T) {
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Update(gomock.Any(), acc).Return(acc, nil)
-		store.EXPECT().Update(gomock.Any(), acc.Address.Hex(), attributes).Return(nil, rErr)
+		store.EXPECT().Update(gomock.Any(), acc.KeyID, attributes).Return(nil, rErr)
 
 		_, err := connector.Update(ctx, acc.Address, attributes)
 
@@ -101,7 +101,7 @@ func TestUpdateKey(t *testing.T) {
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionWrite, Resource: authtypes.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Update(gomock.Any(), acc).Return(acc, nil)
-		store.EXPECT().Update(gomock.Any(), acc.Address.Hex(), attributes).Return(nil, expectedErr)
+		store.EXPECT().Update(gomock.Any(), acc.KeyID, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Update(ctx, acc.Address, attributes)
 

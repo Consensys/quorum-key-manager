@@ -18,8 +18,8 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, alg *e
 	if err != nil {
 		return nil, err
 	}
-	
-	if !isSupportedAlgo(alg){
+
+	if !isSupportedAlgo(alg) {
 		errMessage := "invalid or not supported elliptic curve and signing algorithm combination for importing"
 		logger.Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
