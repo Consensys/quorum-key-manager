@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -68,18 +69,26 @@ func generateJWT(keyFile, scope, sub string) (string, error) {
 	}, time.Hour)
 }
 
-type AuthHeadersTransport struct {
-	token string
+type TestHttpTransport struct {
+	token            string
+	defaultTransport http.RoundTripper
 }
 
-// NewAuthHeadersTransport creates a new transport to attach context authentication values into request headers
-func NewAuthHeadersTransport(token string) http.RoundTripper {
-	return &AuthHeadersTransport{
+func NewTestHttpTransport(token string) http.RoundTripper {
+	return &TestHttpTransport{
 		token: token,
+		defaultTransport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
 	}
 }
 
-func (t *AuthHeadersTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", t.token))
-	return http.DefaultTransport.RoundTrip(req)
+func (t *TestHttpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if t.token != "" {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", t.token))
+	}
+
+	return t.defaultTransport.RoundTrip(req)
 }

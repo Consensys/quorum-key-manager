@@ -65,7 +65,7 @@ func TestKeyManagerSecrets(t *testing.T) {
 	}
 	
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
-		Transport: NewAuthHeadersTransport(token),
+		Transport: NewTestHttpTransport(token),
 	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})

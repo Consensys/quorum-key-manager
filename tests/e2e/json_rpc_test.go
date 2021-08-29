@@ -58,7 +58,7 @@ func TestJSONRpcHTTP(t *testing.T) {
 		return
 	}
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
-		Transport: NewAuthHeadersTransport(token),
+		Transport: NewTestHttpTransport(token),
 	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
