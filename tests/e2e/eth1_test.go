@@ -72,7 +72,15 @@ func TestKeyManagerEth1(t *testing.T) {
 	s.deleteQueue = &sync.WaitGroup{}
 	s.destroyQueue = &sync.WaitGroup{}
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+	var token string
+	token, s.err = generateJWT("./certificates/auth.key","*:*", "e2e|eth1_test")
+	if s.err != nil {
+		t.Errorf("failed to generate jwt. %s", s.err)
+		return
+	}
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: NewAuthHeadersTransport(token),
+	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
 

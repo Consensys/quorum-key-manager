@@ -29,10 +29,10 @@ func init() {
 	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 
-	viper.SetDefault(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
-	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
-	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+	viper.SetDefault(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
+	_ = viper.BindEnv(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
+	viper.SetDefault(AuthOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
+	_ = viper.BindEnv(AuthOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
 
 	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
 	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
@@ -84,14 +84,14 @@ const (
 
 const (
 	authOIDCClaimUsernameFlag     = "auth-oidc-claim-username"
-	authOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
+	AuthOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
 	authOIDCClaimUsernameDefault  = "sub"
 	authOIDCClaimUsernameEnv      = "AUTH_OIDC_CLAIM_USERNAME"
 )
 
 const (
 	authOIDCClaimGroupFlag     = "auth-oidc-claim-groups"
-	authOIDCClaimGroupViperKey = "auth.oidc.claim.groups"
+	AuthOIDCClaimGroupViperKey = "auth.oidc.claim.groups"
 	authOIDCClaimGroupDefault  = "scope"
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
@@ -145,14 +145,14 @@ func AuthOIDCClaimUsername(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for username.
 Environment variable: %q`, authOIDCClaimUsernameEnv)
 	f.String(authOIDCClaimUsernameFlag, authOIDCClaimUsernameDefault, desc)
-	_ = viper.BindPFlag(authOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
+	_ = viper.BindPFlag(AuthOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
 }
 
 func AuthOIDCClaimGroups(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for groups.
 Environment variable: %q`, authOIDCClaimGroupEnv)
 	f.String(authOIDCClaimGroupFlag, authOIDCClaimGroupDefault, desc)
-	_ = viper.BindPFlag(authOIDCClaimGroupViperKey, f.Lookup(authOIDCClaimGroupFlag))
+	_ = viper.BindPFlag(AuthOIDCClaimGroupViperKey, f.Lookup(authOIDCClaimGroupFlag))
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
@@ -173,8 +173,8 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		certsOIDC = append(certsOIDC, issuerCerts...)
 	}
 
-	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
-		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
+	oidcCfg := oidc.NewConfig(vipr.GetString(AuthOIDCClaimUsernameViperKey),
+		vipr.GetString(AuthOIDCClaimGroupViperKey), certsOIDC...)
 
 	// API-KEY
 	var apiKeyCfg = &apikey.Config{}

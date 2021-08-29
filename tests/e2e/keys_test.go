@@ -70,7 +70,15 @@ func TestKeyManagerKeys(t *testing.T) {
 	s.deleteQueue = &sync.WaitGroup{}
 	s.destroyQueue = &sync.WaitGroup{}
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+	var token string
+	token, s.err = generateJWT("./certificates/auth.key", "*:*", "e2e|keys_test")
+	if s.err != nil {
+		t.Errorf("failed to generate jwt. %s", s.err)
+		return
+	}
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: NewAuthHeadersTransport(token),
+	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
 
@@ -212,6 +220,13 @@ func (s *keysTestSuite) TestImport() {
 		}
 
 		key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+		// Ignoring not supported errors 
+		if err != nil {
+			httpError, ok := err.(*client.ResponseError)
+			require.True(s.T(), ok)
+			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+			return
+		}
 		require.NoError(s.T(), err)
 		defer s.queueToDelete(key)
 
@@ -309,8 +324,15 @@ func (s *keysTestSuite) TestGetKey() {
 	}
 
 	key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
-	require.NoError(s.T(), err)
+	// Ignoring not supported errors 
+	if err != nil {
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+		return
+	}
 	defer s.queueToDelete(key)
+	require.NoError(s.T(), err)
 
 	s.RunT("should get a key successfully", func() {
 		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.storeName, key.ID)
@@ -481,6 +503,13 @@ func (s *keysTestSuite) TestListKeys() {
 	}
 
 	key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+	// Ignoring not supported errors 
+	if err != nil {
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+		return
+	}
 	require.NoError(s.T(), err)
 	defer s.queueToDelete(key)
 
@@ -514,6 +543,13 @@ func (s *keysTestSuite) TestListDeletedKeys() {
 	}
 
 	key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+	// Ignoring not supported errors 
+	if err != nil {
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+		return
+	}
 	require.NoError(s.T(), err)
 
 	err = s.keyManagerClient.DeleteKey(s.ctx, s.storeName, key.ID)

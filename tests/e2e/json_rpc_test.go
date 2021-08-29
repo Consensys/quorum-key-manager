@@ -51,7 +51,15 @@ func TestJSONRpcHTTP(t *testing.T) {
 		return
 	}
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+	var token string
+	token, s.err = generateJWT("./certificates/auth.key","*:*", "e2e|json_rpc_test")
+	if s.err != nil {
+		t.Errorf("failed to generate jwt. %s", s.err)
+		return
+	}
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: NewAuthHeadersTransport(token),
+	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
 
