@@ -77,7 +77,12 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = aliasmgr.RegisterService(a, postgresClient)
+	err = a.RegisterServiceConfig(&aliasmgr.Config{Postgres: cfg.Postgres})
+	if err != nil {
+		return nil, err
+	}
+
+	err = aliasmgr.RegisterService(a, logger.WithComponent("aliases"))
 	if err != nil {
 		return nil, err
 	}
