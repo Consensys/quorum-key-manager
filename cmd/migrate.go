@@ -1,23 +1,22 @@
 package cmd
 
 import (
-	"os"
-
+	"fmt"
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
-	models2 "github.com/consensys/quorum-key-manager/src/stores/database/models"
-	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
 func newMigrateCommand() *cobra.Command {
-	runCmd := &cobra.Command{
+	migrateCmd := &cobra.Command{
 		Use:   "migrate",
 		Short: "Run migration",
-		RunE:  migrateCmd,
+		RunE:  migrateUp,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			preRunBindFlags(viper.GetViper(), cmd.Flags(), "key-manager")
 		},
@@ -27,16 +26,18 @@ func newMigrateCommand() *cobra.Command {
 		},
 	}
 
-	flags.LoggerFlags(runCmd.Flags())
-	flags.PGFlags(runCmd.Flags())
+	flags.LoggerFlags(migrateCmd.Flags())
+	flags.PGFlags(migrateCmd.Flags())
+	flags.MigrationFlags(migrateCmd.Flags())
 
-	return runCmd
+	return migrateCmd
 }
 
-func migrateCmd(cmd *cobra.Command, _ []string) error {
+func migrateUp(_ *cobra.Command, _ []string) error {
 	vipr := viper.GetViper()
 	pgCfg := flags.NewPostgresConfig(vipr)
 	logCfg := flags.NewLoggerConfig(vipr)
+	migrationsSourceURL := flags.NewMigrationsConfig(vipr)
 
 	logger, err := zap.NewLogger(logCfg)
 	if err != nil {
@@ -44,28 +45,20 @@ func migrateCmd(cmd *cobra.Command, _ []string) error {
 	}
 	defer syncZapLogger(logger)
 
-	pgOpt, err := pgCfg.ToPGOptions()
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", pgCfg.User, pgCfg.Password, pgCfg.Host, pgCfg.Port, pgCfg.Database)
+	migrationsURL := fmt.Sprintf("file://%s", migrationsSourceURL)
+	m, err := migrate.New(migrationsURL, dbURL)
 	if err != nil {
+		errMessage := "failed to create migration instance"
+		logger.WithError(err).Error(errMessage)
 		return err
 	}
 
-	db := pg.Connect(pgOpt)
-	defer db.Close()
-
-	opts := &orm.CreateTableOptions{
-		FKConstraints: true,
-	}
-	// we create tables for each model
-	for _, v := range []interface{}{
-		&models2.Secret{},
-		&models2.Key{},
-		&models2.ETH1Account{},
-		&aliasent.Alias{},
-	} {
-		err = db.Model(v).CreateTable(opts)
-		if err != nil {
-			return err
-		}
+	err = m.Up()
+	if err != nil {
+		errMessage := "failed to execute migrations"
+		logger.WithError(err).Error(errMessage)
+		return err
 	}
 
 	logger.Info("migration executed successfully")

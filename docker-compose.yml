@@ -38,11 +38,13 @@ services:
     environment:
       <<: *default-variables
       <<: *qkm-common
+      MIGRATION_SOURCE_URL: ${MIGRATION_SOURCE_URL-}
     restart: "no"
     command: migrate
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-    
+      - ./deps/config/migrations:/migrations:ro
+
   key-manager:
     <<: *container-common
     environment:
