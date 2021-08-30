@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" //nolint
+	_ "github.com/golang-migrate/migrate/v4/source/file" //nolint
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 func newMigrateCommand() *cobra.Command {
@@ -28,7 +29,6 @@ func newMigrateCommand() *cobra.Command {
 
 	flags.LoggerFlags(migrateCmd.Flags())
 	flags.PGFlags(migrateCmd.Flags())
-	flags.MigrationFlags(migrateCmd.Flags())
 
 	return migrateCmd
 }
@@ -37,7 +37,6 @@ func migrateUp(_ *cobra.Command, _ []string) error {
 	vipr := viper.GetViper()
 	pgCfg := flags.NewPostgresConfig(vipr)
 	logCfg := flags.NewLoggerConfig(vipr)
-	migrationsSourceURL := flags.NewMigrationsConfig(vipr)
 
 	logger, err := zap.NewLogger(logCfg)
 	if err != nil {
@@ -46,8 +45,7 @@ func migrateUp(_ *cobra.Command, _ []string) error {
 	defer syncZapLogger(logger)
 
 	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", pgCfg.User, pgCfg.Password, pgCfg.Host, pgCfg.Port, pgCfg.Database)
-	migrationsURL := fmt.Sprintf("file://%s", migrationsSourceURL)
-	m, err := migrate.New(migrationsURL, dbURL)
+	m, err := migrate.New("file:///migrations", dbURL)
 	if err != nil {
 		errMessage := "failed to create migration instance"
 		logger.WithError(err).Error(errMessage)
