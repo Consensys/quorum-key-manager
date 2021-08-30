@@ -32,7 +32,7 @@ func (c Connector) Update(ctx context.Context, addr ethcommon.Address, attr *ent
 			return err
 		}
 
-		_, err = c.store.Update(ctx, addr.Hex(), attr)
+		_, err = c.store.Update(ctx, acc.KeyID, attr)
 		if err != nil && !errors.IsNotSupportedError(err) {
 			return err
 		}

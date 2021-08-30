@@ -51,7 +51,15 @@ func TestJSONRpcHTTP(t *testing.T) {
 		return
 	}
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+	var token string
+	token, s.err = generateJWT("./certificates/auth.key","*:*", "e2e|json_rpc_test")
+	if s.err != nil {
+		t.Errorf("failed to generate jwt. %s", s.err)
+		return
+	}
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: NewTestHttpTransport(token, "",nil),
+	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
 
@@ -66,13 +74,12 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		s.T().Error(s.err)
 	}
 
-	var err error
-	s.acc, err = s.keyManagerClient.CreateEth1Account(s.ctx, s.storeName, &types.CreateEth1AccountRequest{
+	s.acc, s.err = s.keyManagerClient.CreateEth1Account(s.ctx, s.storeName, &types.CreateEth1AccountRequest{
 		KeyID: fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
 	})
 
-	if err != nil {
-		require.NoError(s.T(), err)
+	if s.err != nil {
+		s.T().Error(s.err)
 	}
 }
 

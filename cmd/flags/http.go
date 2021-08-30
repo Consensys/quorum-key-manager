@@ -138,8 +138,7 @@ func newHTTPConfig(vipr *viper.Viper) (*server.Config, error) {
 	isSSL := vipr.GetBool(enableHTTPSViperKey)
 	if isSSL {
 		cfg.TLSConfig = &tls.Config{
-			ClientAuth:         tls.VerifyClientCertIfGiven,
-			InsecureSkipVerify: true,
+			ClientAuth: tls.VerifyClientCertIfGiven,
 		}
 
 		certFile := vipr.GetString(httpServerCertViperKey)

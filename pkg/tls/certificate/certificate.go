@@ -5,6 +5,7 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
@@ -97,6 +98,28 @@ func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (tls.Certificate, error) {
 	return cert, nil
 }
 
+func GenerateCertificate(keyPEMBlock []byte, template *x509.Certificate) (*tls.Certificate, error) {
+	privKey, err := ParsePrivateKey(keyPEMBlock)
+	if err != nil {
+		return nil, err
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, ParsePublicKey(privKey), privKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var cert tls.Certificate
+	cert.Certificate = [][]byte{certBytes}
+	// Set certificate leaf
+	cert.Leaf, err = x509.ParseCertificate(certBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cert, nil
+}
+
 func Decode(block []byte, typ string) ([][]byte, error) {
 	var (
 		certs [][]byte
@@ -163,6 +186,17 @@ func decodeBase64(data []byte) ([]byte, error) {
 	resultData = resultData[:n]
 
 	return resultData, nil
+}
+
+func ParsePublicKey(priv interface{}) interface{} {
+	switch k := priv.(type) {
+	case *rsa.PrivateKey:
+		return &k.PublicKey
+	case *ecdsa.PrivateKey:
+		return &k.PublicKey
+	default:
+		return nil
+	}
 }
 
 // Attempt to parse the given private key DER block. OpenSSL 0.9.8 generates

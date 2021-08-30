@@ -81,7 +81,7 @@ type ECRecoverRequest struct {
 	Signature hexutil.Bytes `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
 }
 
-type VerifyEth1SignatureRequest struct {
+type VerifyRequest struct {
 	Data      hexutil.Bytes  `json:"data" validate:"required" example:"0xfeaeee..." swaggertype:"string"`
 	Signature hexutil.Bytes  `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
 	Address   common.Address `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`

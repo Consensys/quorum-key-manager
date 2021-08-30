@@ -20,7 +20,7 @@ type ErrorResponse struct {
 
 func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {
 	switch {
-	case errors.IsAlreadyExistsError(err):
+	case errors.IsAlreadyExistsError(err) || errors.IsStatusConflictError(err):
 		writeErrorResponse(rw, http.StatusConflict, err)
 	case errors.IsNotFoundError(err):
 		writeErrorResponse(rw, http.StatusNotFound, err)
