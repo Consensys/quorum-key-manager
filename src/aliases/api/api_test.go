@@ -204,6 +204,20 @@ func TestGetAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, c.status, helper.rec.Code)
+		res, err := ioutil.ReadAll(helper.rec.Body)
+		require.NoError(t, err)
+
+		var resp types.GetAliasResponse
+		err = json.Unmarshal(res, &resp)
+		require.NoError(t, err)
+
+		assert.Equal(t, types.GetAliasResponse{
+			Alias: types.Alias{
+				Key:   types.AliasKey(c.key),
+				Value: types.AliasValue(c.value),
+			},
+		}, resp)
+
 	})
 
 	t.Run("non-existing alias", func(t *testing.T) {
