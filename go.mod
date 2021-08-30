@@ -1,6 +1,6 @@
 module github.com/consensys/quorum-key-manager
 
-go 1.16
+go 1.15
 
 require (
 	github.com/Azure/azure-sdk-for-go v52.5.0+incompatible

@@ -42,7 +42,7 @@ services:
     command: migrate
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config/migrations:/migrations:ro
+      - ./deps/migrations:/migrations:ro
 
   key-manager:
     <<: *container-common
