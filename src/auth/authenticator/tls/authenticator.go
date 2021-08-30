@@ -52,7 +52,7 @@ func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, erro
 		AuthMode: AuthMode,
 	}
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(clientCert.Subject.CommonName)
-	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(clientCert.Subject.Organization)
+	userInfo.Permissions = utils.ExtractPermissions(clientCert.Subject.Organization)
 
 	return userInfo, nil
 }
