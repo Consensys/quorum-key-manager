@@ -28,8 +28,8 @@ func (h *AliasHandler) Register(r *mux.Router) {
 	regRoute.HandleFunc("", h.deleteRegistry).Methods(http.MethodDelete)
 
 	alRoute := regRoute.PathPrefix("/aliases").Subrouter()
-	alRoute.HandleFunc("", h.createAlias).Methods(http.MethodPost)
 	alRoute.HandleFunc("", h.listAliases).Methods(http.MethodGet)
+	alRoute.HandleFunc("/{alias_key}", h.createAlias).Methods(http.MethodPost)
 	alRoute.HandleFunc("/{alias_key}", h.getAlias).Methods(http.MethodGet)
 	alRoute.HandleFunc("/{alias_key}", h.updateAlias).Methods(http.MethodPut)
 	alRoute.HandleFunc("/{alias_key}", h.deleteAlias).Methods(http.MethodDelete)
@@ -52,13 +52,17 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	// should always exists in this subrouter
 	regName := vars["registry_name"]
 	rName := types.RegistryName(regName)
+	aliasKey := vars["alias_key"]
+	aKey := types.AliasKey(aliasKey)
 
-	aliasReq := &types.CreateAliasRequest{}
-	err := jsonutils.UnmarshalBody(r.Body, aliasReq)
+	var aliasReq types.CreateAliasRequest
+	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
 	}
+	// we force the key from the path
+	aliasReq.Key = aKey
 
 	alias, err := h.alias.CreateAlias(r.Context(), aliasent.RegistryName(regName), types.ToEntityAlias(rName, aliasReq.Alias))
 	if err != nil {

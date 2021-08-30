@@ -76,7 +76,7 @@ func TestCreateAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().CreateAlias(gomock.Any(), ent.RegistryName, ent).Return(&ent, nil)
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases", c.reg)
+		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := http.NewRequestWithContext(helper.ctx, "POST", path, &b)
 		require.NoError(t, err)
 
@@ -109,7 +109,7 @@ func TestCreateAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().CreateAlias(gomock.Any(), ent.RegistryName, ent).Return(nil, errors.AlreadyExistsError(""))
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases", c.reg)
+		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := http.NewRequestWithContext(helper.ctx, "POST", path, &b)
 		require.NoError(t, err)
 
