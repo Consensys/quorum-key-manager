@@ -57,7 +57,16 @@ func TestKeyManagerSecrets(t *testing.T) {
 	s.deleteQueue = &sync.WaitGroup{}
 	s.destroyQueue = &sync.WaitGroup{}
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+	var token string
+	token, s.err = generateJWT("./certificates/auth.key", "*:*", "e2e|secrets_test")
+	if s.err != nil {
+		t.Errorf("failed to generate jwt. %s", s.err)
+		return
+	}
+
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: NewTestHttpTransport(token, "", nil),
+	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
 
@@ -344,8 +353,9 @@ func (s *secretsTestSuite) TestListDeletedSecrets() {
 		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, "inexistentStoreName")
 		require.Empty(s.T(), ids)
 
-		httpError := err.(*client.ResponseError)
-		assert.Equal(s.T(), 404, httpError.StatusCode)
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), http.StatusNotFound, httpError.StatusCode)
 	})
 }
 

@@ -11,16 +11,18 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
-	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/tests"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -71,7 +73,15 @@ func TestKeyManagerEth1(t *testing.T) {
 	s.deleteQueue = &sync.WaitGroup{}
 	s.destroyQueue = &sync.WaitGroup{}
 
-	s.keyManagerClient = client.NewHTTPClient(&http.Client{}, &client.Config{
+	var token string
+	token, s.err = generateJWT("./certificates/auth.key", "*:*", "e2e|eth1_test")
+	if s.err != nil {
+		t.Errorf("failed to generate jwt. %s", s.err)
+		return
+	}
+	s.keyManagerClient = client.NewHTTPClient(&http.Client{
+		Transport: NewTestHttpTransport(token, "", nil),
+	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
 
@@ -140,29 +150,30 @@ func (s *eth1TestSuite) TestCreate() {
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(s.T(), 404, httpError.StatusCode)
+		assert.Equal(s.T(), http.StatusNotFound, httpError.StatusCode)
 	})
 }
 
-// func (s *eth1TestSuite) TestUpdate() {
-// 	request := testutils.FakeCreateEth1AccountRequest()
-// 	request.KeyID = "my-account-create"
-// 
-// 	acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.storeName, request)
-// 	require.NoError(s.T(), err)
-// 
-// 	s.Run("should update an existing account successfully", func() {
-// 		newTags := map[string]string{
-// 			"tagnew": "valuenew",
-// 		}
-// 		acc2, err := s.keyManagerClient.UpdateEth1Account(s.ctx, s.storeName, acc.Address.String(), &types.UpdateEth1AccountRequest{
-// 			Tags: newTags,
-// 		})
-// 
-// 		require.NoError(s.T(), err)
-// 		assert.Equal(s.T(), newTags, acc2.Tags)
-// 	})
-// }
+func (s *eth1TestSuite) TestUpdate() {
+	request := testutils.FakeCreateEth1AccountRequest()
+	request.KeyID = "my-account-create"
+
+	acc, err := s.keyManagerClient.CreateEth1Account(s.ctx, s.storeName, request)
+	require.NoError(s.T(), err)
+	defer s.queueToDelete(acc)
+
+	s.Run("should update an existing account successfully", func() {
+		newTags := map[string]string{
+			"tagnew": "valuenew",
+		}
+		acc2, err := s.keyManagerClient.UpdateEth1Account(s.ctx, s.storeName, acc.Address.Hex(), &types.UpdateEth1AccountRequest{
+			Tags: newTags,
+		})
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), newTags, acc2.Tags)
+	})
+}
 
 func (s *eth1TestSuite) TestImport() {
 	s.Run("should import an account successfully", func() {
@@ -195,33 +206,36 @@ func (s *eth1TestSuite) TestImport() {
 	})
 }
 
-// func (s *eth1TestSuite) TestSign() {
-// 	s.Run("should sign a payload successfully and verify it", func() {
-// 		request := testutils.FakeSignMessageRequest()
-// 
-// 		signature, err := s.keyManagerClient.SignEth1(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
-// 		require.NoError(s.T(), err)
-// 
-// 		assert.NotNil(s.T(), signature)
-// 
-// 		err = s.keyManagerClient.VerifyEth1Signature(s.ctx, s.storeName, &types.VerifyEth1SignatureRequest{
-// 			Data:      request.Data,
-// 			Signature: hexutil.MustDecode(signature),
-// 			Address:   s.signAccount.Address,
-// 		})
-// 		require.NoError(s.T(), err)
-// 	})
-// 
-// 	s.Run("should parse errors successfully", func() {
-// 		request := testutils.FakeSignHexPayloadRequest()
-// 
-// 		signature, err := s.keyManagerClient.SignEth1(s.ctx, "inexistentStoreName", s.signAccount.Address.Hex(), request)
-// 		require.Empty(s.T(), signature)
-// 
-// 		httpError := err.(*client.ResponseError)
-// 		assert.Equal(s.T(), 404, httpError.StatusCode)
-// 	})
-// }
+func (s *eth1TestSuite) TestSign() {
+	s.Run("should sign a payload successfully and verify it", func() {
+		request := testutils.FakeSignMessageRequest()
+
+		signature, err := s.keyManagerClient.SignMessage(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
+		require.NoError(s.T(), err)
+
+		assert.NotNil(s.T(), signature)
+
+		hexSig, err := hexutil.Decode(signature)
+		require.NoError(s.T(), err)
+
+		err = s.keyManagerClient.VerifyMessage(s.ctx, s.storeName, &types.VerifyRequest{
+			Data:      request.Message,
+			Signature: hexSig,
+			Address:   s.signAccount.Address,
+		})
+		require.NoError(s.T(), err)
+	})
+
+	s.Run("should parse errors successfully", func() {
+		request := testutils.FakeSignMessageRequest()
+
+		signature, err := s.keyManagerClient.SignMessage(s.ctx, "inexistentStoreName", s.signAccount.Address.Hex(), request)
+		require.Empty(s.T(), signature)
+
+		httpError := err.(*client.ResponseError)
+		assert.Equal(s.T(), 404, httpError.StatusCode)
+	})
+}
 
 func (s *eth1TestSuite) TestSignTypedData() {
 	s.Run("should sign typed data successfully and verify it", func() {
@@ -234,13 +248,13 @@ func (s *eth1TestSuite) TestSignTypedData() {
 
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
-		
-		err = s.keyManagerClient.VerifyTypedDataSignature(s.ctx, s.storeName, &types.VerifyTypedDataRequest{
+
+		err = s.keyManagerClient.VerifyTypedData(s.ctx, s.storeName, &types.VerifyTypedDataRequest{
 			TypedData: *request,
 			Signature: hexSig,
 			Address:   s.signAccount.Address,
 		})
-		// require.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 	})
 
 	s.Run("should parse errors successfully", func() {
@@ -258,10 +272,26 @@ func (s *eth1TestSuite) TestSignTransaction() {
 	s.Run("should sign transaction successfully", func() {
 		request := testutils.FakeSignETHTransactionRequest()
 
-		signature, err := s.keyManagerClient.SignTransaction(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
+		signedTx, err := s.keyManagerClient.SignTransaction(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
 		require.NoError(s.T(), err)
+		assert.NotNil(s.T(), signedTx)
 
-		assert.NotNil(s.T(), signature)
+		signer := ethtypes.NewEIP155Signer(request.ChainID.ToInt())
+
+		tx := formatters.FormatTransaction(request)
+		txData := signer.Hash(tx).Bytes()
+
+		err = rlp.DecodeBytes(hexutil.MustDecode(signedTx), &tx)
+		require.NoError(s.T(), err)
+		v_, r_, s_ := tx.RawSignatureValues()
+		sig := append(append(r_.Bytes(), s_.Bytes()...), v_.Bytes()...)
+
+		err = s.keyManagerClient.Verify(s.ctx, s.storeName, &types.VerifyRequest{
+			Data:      txData,
+			Signature: sig,
+			Address:   s.signAccount.Address,
+		})
+		// require.NoError(s.T(), err)
 	})
 
 	s.Run("should parse errors successfully", func() {
@@ -328,9 +358,6 @@ func (s *eth1TestSuite) TestGetEth1Account() {
 		assert.Equal(s.T(), s.signAccount.KeyID, retrievedAcc.KeyID)
 		assert.Equal(s.T(), s.signAccount.Tags, retrievedAcc.Tags)
 		assert.Equal(s.T(), s.signAccount.Disabled, retrievedAcc.Disabled)
-		// assert.Equal(s.T(), s.signAccount.CreatedAt, retrievedAcc.CreatedAt)
-		// assert.Equal(s.T(), s.signAccount.UpdatedAt, retrievedAcc.UpdatedAt)
-		// assert.Equal(s.T(), s.signAccount.DeletedAt, retrievedAcc.DeletedAt)
 	})
 
 	s.Run("should fail if account does not exist", func() {
@@ -365,4 +392,32 @@ func (s *eth1TestSuite) TestListEth1Accounts() {
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
 	})
+}
+
+func (s *eth1TestSuite) queueToDelete(accR *types.Eth1AccountResponse) {
+	s.deleteQueue.Add(1)
+	go func() {
+		err := s.keyManagerClient.DeleteEth1Account(s.ctx, s.storeName, accR.Address.Hex())
+		if err != nil {
+			s.T().Logf("failed to delete eth1 account {Address: %s}", accR.Address.String())
+		} else {
+			s.queueToDestroy(accR)
+		}
+		s.deleteQueue.Done()
+	}()
+}
+
+func (s *eth1TestSuite) queueToDestroy(accR *types.Eth1AccountResponse) {
+	s.destroyQueue.Add(1)
+	go func() {
+		errMsg := fmt.Sprintf("failed to destroy eth1 account {Address: %s}", accR.Address.String())
+		err := retryOn(func() error {
+			return s.keyManagerClient.DestroyEth1Account(s.ctx, s.storeName, accR.Address.Hex())
+		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+
+		if err != nil {
+			s.T().Logf(errMsg)
+		}
+		s.destroyQueue.Done()
+	}()
 }

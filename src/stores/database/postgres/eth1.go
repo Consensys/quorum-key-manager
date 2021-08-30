@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -101,6 +102,8 @@ func (ea *ETH1Accounts) GetAllDeleted(ctx context.Context) ([]*entities.ETH1Acco
 func (ea *ETH1Accounts) Add(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error) {
 	accModel := models.NewETH1Account(account)
 	accModel.StoreID = ea.storeID
+	accModel.CreatedAt = time.Now()
+	accModel.UpdatedAt = time.Now()
 
 	err := ea.client.Insert(ctx, accModel)
 	if err != nil {
@@ -115,6 +118,7 @@ func (ea *ETH1Accounts) Add(ctx context.Context, account *entities.ETH1Account) 
 func (ea *ETH1Accounts) Update(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error) {
 	accModel := models.NewETH1Account(account)
 	accModel.StoreID = ea.storeID
+	accModel.UpdatedAt = time.Now()
 
 	err := ea.client.UpdatePK(ctx, accModel)
 	if err != nil {

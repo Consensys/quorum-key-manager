@@ -27,7 +27,3 @@ var AnonymousUser = &UserInfo{
 	Roles:       []string{AnonymousRole},
 	Permissions: []Permission{},
 }
-
-var AuthenticatedUser = &UserInfo{
-	Roles: []string{AnonymousRole},
-}
