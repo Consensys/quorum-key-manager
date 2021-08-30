@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"github.com/golang-jwt/jwt"
 	"strings"
+
+	"github.com/golang-jwt/jwt"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
