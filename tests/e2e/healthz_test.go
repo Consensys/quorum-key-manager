@@ -53,6 +53,10 @@ func TestHealthz(t *testing.T) {
 	defer sig.Close()
 
 	s.cfg, s.err = tests.NewConfig()
+	if s.err != nil {
+		t.Error(s.err)
+		return
+	}
 	suite.Run(t, s)
 }
 
