@@ -24,6 +24,7 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 	claimsCfg := &ClaimsConfig{
 		Subject: "sub",
 		Scope:   "scope",
+		Roles:   "qkm-user-roles",
 	}
 
 	cert, _ := certificate.X509KeyPair([]byte(testutils.RSACertPEM), []byte(testutils.RSAKeyPEM))
@@ -34,10 +35,12 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 	})
 
 	t.Run("should accept token and extract claims successfully", func(t *testing.T) {
-		claims := []string{"role1", "role2", "read:key", "write:key"}
+		claims := []string{"read:key", "write:key"}
+		roles := []string{"operator", "signer"}
 		token, _ := generator.GenerateAccessToken(map[string]interface{}{
-			"sub":   "tenant|username",
-			"scope": strings.Join(claims, " "),
+			claimsCfg.Subject: "tenant|username",
+			claimsCfg.Scope:   strings.Join(claims, " "),
+			claimsCfg.Roles:   strings.Join(roles, ","),
 		}, time.Second)
 
 		req := httptest.NewRequest("GET", "http://test.url", nil)
@@ -46,7 +49,7 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "username", userInfo.Username)
 		assert.Equal(t, "tenant", userInfo.Tenant)
-		assert.Equal(t, []string{"role1", "role2"}, userInfo.Roles)
+		assert.Equal(t, []string{"operator", "signer"}, userInfo.Roles)
 		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
 	})
 

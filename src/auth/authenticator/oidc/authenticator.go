@@ -49,7 +49,9 @@ func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) 
 	}
 
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(jwtData.Subject)
-	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(jwtData.Scope)
+	userInfo.Permissions = utils.ExtractPermissions(jwtData.Scope)
+	rolesClaim := a.jwtChecker.claimsCfg.Roles
+	userInfo.Roles = utils.ExtractClaimFromMap(rolesClaim, &jwtData.MapClaims)
 	return userInfo, nil
 }
 

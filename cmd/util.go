@@ -18,6 +18,7 @@ import (
 var (
 	sub        string
 	scope      []string
+	roles      []string
 	expiration time.Duration
 )
 
@@ -40,10 +41,12 @@ func newUtilCommand() *cobra.Command {
 	flags.LoggerFlags(generateJWTCmd.Flags())
 	flags.AuthOIDCClaimUsername(generateJWTCmd.Flags())
 	flags.AuthOIDCClaimGroups(generateJWTCmd.Flags())
+	flags.AuthOIDCClaimRoles(generateJWTCmd.Flags())
 	flags.AuthOIDCCertKeyFile(generateJWTCmd.Flags())
 
 	generateJWTCmd.Flags().StringVar(&sub, "sub", "", "username and tenant added in claims")
-	generateJWTCmd.Flags().StringArrayVar(&scope, "scope", []string{}, "roles and permissions added in claims")
+	generateJWTCmd.Flags().StringArrayVar(&scope, "scope", []string{}, "permissions added in claims")
+	generateJWTCmd.Flags().StringArrayVar(&roles, "qkm-user-roles", []string{}, "roles added in claims")
 	generateJWTCmd.Flags().DurationVar(&expiration, "expiration", time.Hour, "token expiration time")
 
 	utilCmd.AddCommand(generateJWTCmd)
@@ -101,6 +104,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	token, err := generator.GenerateAccessToken(map[string]interface{}{
 		oidcCfg.Claims.Subject: sub,
 		oidcCfg.Claims.Scope:   strings.Join(scope, " "),
+		oidcCfg.Claims.Roles:   strings.Join(roles, ","),
 	}, expiration)
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())

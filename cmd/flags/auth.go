@@ -33,6 +33,8 @@ func init() {
 	_ = viper.BindEnv(authOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
 	viper.SetDefault(authOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
 	_ = viper.BindEnv(authOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+	viper.SetDefault(authOIDCClaimRolesViperKey, authOIDCClaimRolesDefault)
+	_ = viper.BindEnv(authOIDCClaimRolesViperKey, authOIDCClaimRolesEnv)
 
 	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
 	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
@@ -96,6 +98,13 @@ const (
 	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
 )
 
+const (
+	authOIDCClaimRolesFlag     = "auth-oidc-claim-roles"
+	authOIDCClaimRolesViperKey = "auth.oidc.claim.roles"
+	authOIDCClaimRolesDefault  = "qkm-user-roles"
+	authOIDCClaimRolesEnv      = "AUTH_OIDC_CLAIM_ROLES"
+)
+
 func authTLSCertFile(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
 Environment variable: %q`, authTLSCertsFileEnv)
@@ -115,6 +124,7 @@ func AuthFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimGroups(f)
+	AuthOIDCClaimRoles(f)
 	authTLSCertFile(f)
 	authAPIKeyFile(f)
 }
@@ -155,6 +165,13 @@ Environment variable: %q`, authOIDCClaimGroupEnv)
 	_ = viper.BindPFlag(authOIDCClaimGroupViperKey, f.Lookup(authOIDCClaimGroupFlag))
 }
 
+func AuthOIDCClaimRoles(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Token path claims for groups.
+Environment variable: %q`, authOIDCClaimGroupEnv)
+	f.String(authOIDCClaimRolesFlag, authOIDCClaimRolesDefault, desc)
+	_ = viper.BindPFlag(authOIDCClaimRolesViperKey, f.Lookup(authOIDCClaimRolesFlag))
+}
+
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	// OIDC
 	certsOIDC := []*x509.Certificate{}
@@ -174,7 +191,8 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	}
 
 	oidcCfg := oidc.NewConfig(vipr.GetString(authOIDCClaimUsernameViperKey),
-		vipr.GetString(authOIDCClaimGroupViperKey), certsOIDC...)
+		vipr.GetString(authOIDCClaimGroupViperKey),
+		vipr.GetString(authOIDCClaimRolesViperKey), certsOIDC...)
 
 	// API-KEY
 	var apiKeyCfg = &apikey.Config{}
