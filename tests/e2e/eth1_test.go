@@ -20,8 +20,9 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	types2 "github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -73,13 +74,13 @@ func TestKeyManagerEth1(t *testing.T) {
 	s.destroyQueue = &sync.WaitGroup{}
 
 	var token string
-	token, s.err = generateJWT("./certificates/auth.key","*:*", "e2e|eth1_test")
+	token, s.err = generateJWT("./certificates/auth.key", "*:*", "e2e|eth1_test")
 	if s.err != nil {
 		t.Errorf("failed to generate jwt. %s", s.err)
 		return
 	}
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
-		Transport: NewTestHttpTransport(token),
+		Transport: NewTestHttpTransport(token, "", nil),
 	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
@@ -149,7 +150,7 @@ func (s *eth1TestSuite) TestCreate() {
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
-		assert.Equal(s.T(), 404, httpError.StatusCode)
+		assert.Equal(s.T(), http.StatusNotFound, httpError.StatusCode)
 	})
 }
 
@@ -216,7 +217,7 @@ func (s *eth1TestSuite) TestSign() {
 
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
-		
+
 		err = s.keyManagerClient.VerifyMessage(s.ctx, s.storeName, &types.VerifyRequest{
 			Data:      request.Message,
 			Signature: hexSig,
@@ -275,18 +276,19 @@ func (s *eth1TestSuite) TestSignTransaction() {
 		require.NoError(s.T(), err)
 		assert.NotNil(s.T(), signedTx)
 
+		signer := ethtypes.NewEIP155Signer(request.ChainID.ToInt())
+
 		tx := formatters.FormatTransaction(request)
-		signer := types2.NewEIP155Signer(request.ChainID.ToInt())
 		txData := signer.Hash(tx).Bytes()
-		// 
-		// err = rlp.DecodeBytes(hexutil.MustDecode(signedTx), &tx)
-		// require.NoError(s.T(), err)
-		// msg, err := tx.AsMessage(signer)
-		// require.NoError(s.T(), err)
-		
+
+		err = rlp.DecodeBytes(hexutil.MustDecode(signedTx), &tx)
+		require.NoError(s.T(), err)
+		v_, r_, s_ := tx.RawSignatureValues()
+		sig := append(append(r_.Bytes(), s_.Bytes()...), v_.Bytes()...)
+
 		err = s.keyManagerClient.Verify(s.ctx, s.storeName, &types.VerifyRequest{
 			Data:      txData,
-			Signature: hexutil.MustDecode(signedTx),
+			Signature: sig,
 			Address:   s.signAccount.Address,
 		})
 		// require.NoError(s.T(), err)

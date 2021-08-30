@@ -257,12 +257,10 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 	}
 	csvfile, err := os.Open(csvFileName)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read api-key filepath %s: %w", csvFileName, err)
+		return nil, fmt.Errorf("cannot read api-key csv file '%s': %w", csvFileName, err)
 	}
 
-	defer func(csvfile *os.File) {
-		_ = csvfile.Close()
-	}(csvfile)
+	defer csvfile.Close()
 
 	// Parse the file
 	r := csv.NewReader(csvfile)
@@ -287,8 +285,9 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 			return nil, fmt.Errorf("invalid number of cells in file %s should be %d", csvfile.Name(), csvRowLen)
 		}
 
-		retFile[cells[0]] = apikey.UserClaims{UserName: cells[1],
-			Claims: strings.Split(cells[2], ","),
+		retFile[cells[0]] = apikey.UserClaims{
+			UserName: cells[1],
+			Claims:   strings.Split(cells[2], ","),
 		}
 	}
 

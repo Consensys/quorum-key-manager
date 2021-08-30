@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -69,26 +70,56 @@ func generateJWT(keyFile, scope, sub string) (string, error) {
 	}, time.Hour)
 }
 
-type TestHttpTransport struct {
-	token            string
-	defaultTransport http.RoundTripper
+func generateAPIKey(key string) string {
+	return base64.StdEncoding.EncodeToString([]byte(key))
 }
 
-func NewTestHttpTransport(token string) http.RoundTripper {
-	return &TestHttpTransport{
-		token: token,
-		defaultTransport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
+func generateClientCert(certFile, keyFile string) (*tls.Certificate, error) {
+	curDir, _ := os.Getwd()
+	cert, err := tls.LoadX509KeyPair(path.Join(curDir, certFile), path.Join(curDir, keyFile))
+	if err != nil {
+		return nil, err
+	}
+	return &cert, nil
+}
+
+type testHttpTransport struct {
+	token  string
+	apiKey string
+	cert   *tls.Certificate
+}
+
+func NewTestHttpTransport(token, apiKey string, cert *tls.Certificate) http.RoundTripper {
+	return &testHttpTransport{
+		token:  token,
+		apiKey: apiKey,
+		cert:   cert,
+	}
+}
+
+func (t *testHttpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	defaultTransport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
 		},
 	}
-}
 
-func (t *TestHttpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if t.token != "" {
+	switch {
+	case t.cert != nil:
+		defaultTransport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+				Certificates:       []tls.Certificate{*t.cert},
+				GetClientCertificate: func(info *tls.CertificateRequestInfo) (*tls.Certificate, error) {
+					return t.cert, nil
+				},
+			},
+		}
+	case t.token != "":
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", t.token))
+	case t.apiKey != "":
+		req.Header.Add("Authorization", fmt.Sprintf("Basic %s", t.apiKey))
 	}
 
-	return t.defaultTransport.RoundTrip(req)
+	return defaultTransport.RoundTrip(req)
 }

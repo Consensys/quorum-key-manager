@@ -32,7 +32,7 @@ func (s *healthzTestSuite) SetupSuite() {
 	}
 
 	s.client = &http.Client{
-		Transport: NewTestHttpTransport(""),
+		Transport: NewTestHttpTransport("", "", nil),
 	}
 }
 

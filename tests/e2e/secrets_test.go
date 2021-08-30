@@ -56,16 +56,16 @@ func TestKeyManagerSecrets(t *testing.T) {
 
 	s.deleteQueue = &sync.WaitGroup{}
 	s.destroyQueue = &sync.WaitGroup{}
-	
+
 	var token string
-	token, s.err = generateJWT("./certificates/auth.key","*:*", "e2e|secrets_test")
+	token, s.err = generateJWT("./certificates/auth.key", "*:*", "e2e|secrets_test")
 	if s.err != nil {
 		t.Errorf("failed to generate jwt. %s", s.err)
 		return
 	}
-	
+
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
-		Transport: NewTestHttpTransport(token),
+		Transport: NewTestHttpTransport(token, "", nil),
 	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})

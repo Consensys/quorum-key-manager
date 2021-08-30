@@ -77,7 +77,7 @@ func TestKeyManagerKeys(t *testing.T) {
 		return
 	}
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
-		Transport: NewTestHttpTransport(token),
+		Transport: NewTestHttpTransport(token, "",nil),
 	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
@@ -593,7 +593,6 @@ func (s *keysTestSuite) TestSignVerify() {
 			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
 			return
 		}
-		require.NoError(s.T(), err)
 		defer s.queueToDelete(key)
 
 		requestSign := &types.SignBase64PayloadRequest{
