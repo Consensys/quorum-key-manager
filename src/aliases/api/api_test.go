@@ -81,7 +81,7 @@ func TestCreateAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)
-		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, c.status, helper.rec.Code)
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 
@@ -114,7 +114,7 @@ func TestCreateAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)
-		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, c.status, helper.rec.Code)
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), `"code":"ST200"`)
@@ -182,7 +182,7 @@ func TestUpdateAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)
-		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, c.status, helper.rec.Code)
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), errors.NotFound)
@@ -203,7 +203,7 @@ func TestGetAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)
-		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, c.status, helper.rec.Code)
 	})
 
 	t.Run("non-existing alias", func(t *testing.T) {
@@ -221,7 +221,7 @@ func TestGetAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)
-		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, c.status, helper.rec.Code)
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), errors.NotFound)
@@ -260,7 +260,7 @@ func TestDeleteAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)
-		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, c.status, helper.rec.Code)
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 		assert.Contains(t, string(res), errors.NotFound)
@@ -335,7 +335,7 @@ func TestListAliases(t *testing.T) {
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)
-		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, c.status, helper.rec.Code)
 
 		var als []types.Alias
 		err = json.Unmarshal(helper.rec.Body.Bytes(), &als)
