@@ -1,11 +1,11 @@
 package authenticator
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/stretchr/testify/require"
 
@@ -43,7 +43,7 @@ func TestMiddleware(t *testing.T) {
 
 	t.Run("authentication rejected", func(t *testing.T) {
 		h := mid.Then(&testHandler{t, nil})
-		auth1.EXPECT().Authenticate(gomock.Any()).Return(nil, fmt.Errorf("test invalid auth"))
+		auth1.EXPECT().Authenticate(gomock.Any()).Return(nil, errors.UnauthorizedError("no authorized"))
 
 		req, _ := http.NewRequest(http.MethodGet, "", nil)
 		rec := httptest.NewRecorder()

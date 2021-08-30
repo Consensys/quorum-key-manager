@@ -31,7 +31,9 @@ func (s *healthzTestSuite) SetupSuite() {
 		s.T().Error(s.err)
 	}
 
-	s.client = &http.Client{}
+	s.client = &http.Client{
+		Transport: NewTestHttpTransport("", "", nil),
+	}
 }
 
 func (s *healthzTestSuite) TearDownSuite() {

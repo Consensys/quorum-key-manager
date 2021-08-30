@@ -49,8 +49,9 @@ type Eth1Client interface {
 	DestroyEth1Account(ctx context.Context, storeName, address string) error
 	RestoreEth1Account(ctx context.Context, storeName, address string) error
 	ECRecover(ctx context.Context, storeName string, request *types.ECRecoverRequest) (string, error)
-	VerifyEth1Signature(ctx context.Context, storeName string, request *types.VerifyEth1SignatureRequest) error
-	VerifyTypedDataSignature(ctx context.Context, storeName string, request *types.VerifyTypedDataRequest) error
+	Verify(ctx context.Context, storeName string, request *types.VerifyRequest) error
+	VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error
+	VerifyTypedData(ctx context.Context, storeName string, request *types.VerifyTypedDataRequest) error
 }
 
 type JSONRPC interface {

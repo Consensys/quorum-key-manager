@@ -89,7 +89,6 @@ func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permissio
 	for _, roleName := range user.Roles {
 		role, err := mngr.Role(roleName)
 		if err != nil {
-			mngr.err = errors.CombineErrors(mngr.err, err)
 			mngr.logger.WithError(err).With("role", roleName).Debug("could not load role")
 			continue
 		}

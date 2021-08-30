@@ -43,7 +43,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 	default:
 		errMessage := "invalid or not supported elliptic curve and signing algorithm for AWS key creation"
 		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
+		return nil, errors.NotSupportedError(errMessage)
 	}
 
 	_, err := s.client.CreateKey(ctx, alias(id), keyType, toTags(attr.Tags))

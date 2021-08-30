@@ -37,23 +37,20 @@ func NewAccountsHandler(s stores.Manager) *Eth1Handler {
 
 func (h *Eth1Handler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
+	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
+	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
+	r.Methods(http.MethodPost).Path("/verify").HandlerFunc(h.verify)
+	r.Methods(http.MethodPost).Path("/verify-message").HandlerFunc(h.verifyMessage)
+	r.Methods(http.MethodPost).Path("/verify-typed-data").HandlerFunc(h.verifyTypedData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-typed-data").HandlerFunc(h.signTypedData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-message").HandlerFunc(h.signMessage)
 	r.Methods(http.MethodPut).Path("/{address}/restore").HandlerFunc(h.restore)
-	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
-	r.Methods(http.MethodPost).Path("/verify").HandlerFunc(h.verify)
-	r.Methods(http.MethodPost).Path("/verify-message").HandlerFunc(h.verifyMessage)
-	r.Methods(http.MethodPost).Path("/verify-typed-data").HandlerFunc(h.verifyTypedData)
-
 	r.Methods(http.MethodPatch).Path("/{address}").HandlerFunc(h.update)
-
-	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodGet).Path("/{address}").HandlerFunc(h.getOne)
-
 	r.Methods(http.MethodDelete).Path("/{address}").HandlerFunc(h.delete)
 	r.Methods(http.MethodDelete).Path("/{address}/destroy").HandlerFunc(h.destroy)
 }
@@ -609,7 +606,7 @@ func (h *Eth1Handler) verify(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	verifyReq := &types.VerifyEth1SignatureRequest{}
+	verifyReq := &types.VerifyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
@@ -647,7 +644,7 @@ func (h *Eth1Handler) verifyMessage(rw http.ResponseWriter, request *http.Reques
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	verifyReq := &types.VerifyEth1SignatureRequest{}
+	verifyReq := &types.VerifyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))

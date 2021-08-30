@@ -37,19 +37,14 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 	return auth, nil
 }
 
-// Authenticate checks APIKEY hashes retrieve user Info
-// ? -> Subject
-// ? -> Roles
 func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// In case of no credentials are sent we authenticate with Anonymous user
 	if req.Header.Get("Authorization") == "" {
 		return nil, nil
 	}
 
-	// extract ApiKey
 	clientAPIKey, err := extractAPIKey(req.Header.Get("Authorization"), authenticator.B64Encoder)
 	if err != nil {
-		// could not be decoded
 		return nil, errors.UnauthorizedError(err.Error())
 	}
 
@@ -57,17 +52,14 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 	h.Reset()
 	_, err = h.Write([]byte(clientAPIKey))
 	if err != nil {
-		// could not be written
 		return nil, errors.UnauthorizedError(err.Error())
 	}
 	clientAPIKeyHash := h.Sum(nil)
 
-	// search hex string hashes
 	strClientHash := hex.EncodeToString(clientAPIKeyHash)
-
 	auth, ok := authenticator.APIKeyFile[strClientHash]
 	if !ok {
-		return nil, errors.UnauthorizedError("api-key does not match")
+		return nil, errors.UnauthorizedError("invalid api-key")
 	}
 
 	userInfo := &types.UserInfo{
@@ -84,12 +76,12 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 
 func extractAPIKey(auth string, b64encoder *base64.Encoding) (apiKey string, err error) {
 	if len(auth) <= len(BasicSchema) || !strings.EqualFold(auth[:len(BasicSchema)], BasicSchema) {
-		return "", fmt.Errorf("apikey was not provided")
+		return "", fmt.Errorf("api-key was not provided")
 	}
 	b64EncodedAPIKey := auth[len(BasicSchema)+1:]
 	decodedAPIKey, err := b64encoder.DecodeString(b64EncodedAPIKey)
 	if err != nil {
-		return "", fmt.Errorf("apikey encoding is not supported")
+		return "", fmt.Errorf("api-key encoding is not supported")
 	}
 	return string(decodedAPIKey), nil
 }
