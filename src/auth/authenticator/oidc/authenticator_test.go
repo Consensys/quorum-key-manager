@@ -53,6 +53,41 @@ func TestAuthenticator_RSAToken(t *testing.T) {
 		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
 	})
 
+	t.Run("should accept token even if roles claim does not match or is absent", func(t *testing.T) {
+		claims := []string{"read:key", "write:key"}
+		roles := []string{"operator", "signer"}
+		// roles claim does not match here
+		token, _ := generator.GenerateAccessToken(map[string]interface{}{
+			claimsCfg.Subject: "tenant|username",
+			claimsCfg.Scope:   strings.Join(claims, " "),
+			"wrong-roles":     strings.Join(roles, ","),
+		}, time.Second)
+
+		req := httptest.NewRequest("GET", "http://test.url", nil)
+		req.Header.Add("Authorization", fmt.Sprintf("%s %s", BearerSchema, token))
+		userInfo, err := auth.Authenticate(req)
+		require.NoError(t, err)
+		assert.Equal(t, "username", userInfo.Username)
+		assert.Equal(t, "tenant", userInfo.Tenant)
+		assert.Nil(t, userInfo.Roles)
+		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
+
+		// roles claim is gone away now
+		token, _ = generator.GenerateAccessToken(map[string]interface{}{
+			claimsCfg.Subject: "tenant|username",
+			claimsCfg.Scope:   strings.Join(claims, " "),
+		}, time.Second)
+
+		req = httptest.NewRequest("GET", "http://test.url", nil)
+		req.Header.Add("Authorization", fmt.Sprintf("%s %s", BearerSchema, token))
+		userInfo, err = auth.Authenticate(req)
+		require.NoError(t, err)
+		assert.Equal(t, "username", userInfo.Username)
+		assert.Equal(t, "tenant", userInfo.Tenant)
+		assert.Nil(t, userInfo.Roles)
+		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
+	})
+
 	t.Run("should reject request for invalid token", func(t *testing.T) {
 		token := "invalid-auth-token"
 		req := httptest.NewRequest("GET", "http://test.url", nil)
