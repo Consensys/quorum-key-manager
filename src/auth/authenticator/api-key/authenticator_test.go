@@ -24,12 +24,14 @@ const (
 
 var userAliceClaims = UserClaims{
 	UserName: "TenantOne|Alice",
-	Claims:   []string{"guest", "admin", "read:key", "write:key"},
+	Claims:   []string{"read:key", "write:key"},
+	Roles:    []string{"guest", "admin"},
 }
 
 var userBobClaims = UserClaims{
 	UserName: "Bob",
-	Claims:   []string{"signer", "reader", "read:secret", "write:secret"},
+	Claims:   []string{"read:secret", "write:secret"},
+	Roles:    []string{"signer", "reader"},
 }
 
 func TestAuthenticatorApiKey_sh256Hasher(t *testing.T) {

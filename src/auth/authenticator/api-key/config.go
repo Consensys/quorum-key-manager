@@ -14,6 +14,7 @@ type Config struct {
 type UserClaims struct {
 	UserName string
 	Claims   []string
+	Roles    []string
 }
 
 func NewConfig(apiKeyFile map[string]UserClaims, b64Encoder *base64.Encoding, hasher hash.Hash) *Config {

@@ -46,7 +46,11 @@ func init() {
 const (
 	csvSeparator      = ';'
 	csvCommentsMarker = '#'
-	csvRowLen         = 3
+	csvRowLen         = 4
+	csvHashOffset     = 0
+	csvUserOffset     = 1
+	csvClaimsOffset   = 2
+	csvRolesOffset    = 3
 )
 
 const (
@@ -192,7 +196,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 
 	oidcCfg := oidc.NewConfig(vipr.GetString(AuthOIDCClaimUsernameViperKey),
 		vipr.GetString(AuthOIDCClaimGroupViperKey),
-		vipr.GetString(authOIDCClaimRolesViperKey),certsOIDC...)
+		vipr.GetString(authOIDCClaimRolesViperKey), certsOIDC...)
 
 	// API-KEY
 	var apiKeyCfg = &apikey.Config{}
@@ -303,9 +307,10 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 			return nil, fmt.Errorf("invalid number of cells in file %s should be %d", csvfile.Name(), csvRowLen)
 		}
 
-		retFile[cells[0]] = apikey.UserClaims{
-			UserName: cells[1],
-			Claims:   strings.Split(cells[2], ","),
+		retFile[cells[csvHashOffset]] = apikey.UserClaims{
+			UserName: cells[csvUserOffset],
+			Claims:   strings.Split(cells[csvClaimsOffset], ","),
+			Roles:    strings.Split(cells[csvRolesOffset], ","),
 		}
 	}
 

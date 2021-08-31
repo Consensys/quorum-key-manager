@@ -70,6 +70,7 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(auth.UserName)
 	userInfo.Permissions = utils.ExtractPermissions(auth.Claims)
+	userInfo.Roles = auth.Roles
 
 	return userInfo, nil
 }
