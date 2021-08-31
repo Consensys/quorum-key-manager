@@ -20,7 +20,7 @@ func init() {
 
 var ethSrv = new(ethService)
 
-// ethService is a jsonrpc.Caller which methods are meant to be automatically populed using jsonrpc.ProvideCaller
+// ethService is a jsonrpc.Caller which methods are meant to be automatically populated using jsonrpc.ProvideCaller
 type ethService struct {
 	ChainID                   func(jsonrpc.Client) func(context.Context) (*hexutil.Big, error)                                    `method:"eth_chainId"`
 	GasPrice                  func(jsonrpc.Client) func(context.Context) (*hexutil.Big, error)                                    `namespace:"eth"`

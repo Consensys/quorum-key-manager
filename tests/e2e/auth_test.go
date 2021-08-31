@@ -62,7 +62,7 @@ func TestAuth(t *testing.T) {
 	var token string
 	token, s.err = generateJWT("./certificates/auth.key", "*:*", "e2e|auth_test")
 	if s.err != nil {
-		s.T().Errorf("failed to generate jwt. %s", s.err)
+		t.Errorf("failed to generate jwt. %s", s.err)
 		return
 	}
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
