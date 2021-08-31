@@ -39,7 +39,7 @@ services:
       <<: *default-variables
       <<: *qkm-common
     restart: "no"
-    command: migrate
+    command: migrate up
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro

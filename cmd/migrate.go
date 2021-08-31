@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"os"
+
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
@@ -18,7 +19,6 @@ func newMigrateCommand() *cobra.Command {
 	migrateCmd := &cobra.Command{
 		Use:   "migrate",
 		Short: "Run migration",
-		RunE:  migrateUp,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			preRunBindFlags(viper.GetViper(), cmd.Flags(), "key-manager")
 		},
@@ -34,8 +34,8 @@ func newMigrateCommand() *cobra.Command {
 	// Register Up command
 	upCmd := &cobra.Command{
 		Use:   "up [target]",
-		Short: "Upgrade database",
-		Long:  "Runs all available migrations or up to [target] if argument is provided",
+		Short: "Executes all migrations",
+		Long:  "Executes all available migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return migrateUp()
 		},
@@ -72,7 +72,7 @@ func migrateUp() error {
 		return err
 	}
 
-	m, err := initMigrations(viper, logger)
+	m, err := initMigrations(vipr, logger)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func migrateDown() error {
 		return err
 	}
 
-	m, err := initMigrations(viper, logger)
+	m, err := initMigrations(vipr, logger)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func migrateReset() error {
 		return err
 	}
 
-	m, err := initMigrations(viper, logger)
+	m, err := initMigrations(vipr, logger)
 	if err != nil {
 		return err
 	}
