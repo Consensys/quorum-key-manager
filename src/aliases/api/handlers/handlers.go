@@ -72,9 +72,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
 	regName := vars["registry_name"]
-	rName := types.RegistryName(regName)
 	aliasKey := vars["alias_key"]
-	aKey := types.AliasKey(aliasKey)
 
 	var aliasReq types.CreateAliasRequest
 	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
@@ -83,9 +81,10 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// we force the key from the path
-	aliasReq.Key = aKey
+	aliasReq.Key = types.AliasKey(aliasKey)
 
-	alias, err := h.alias.CreateAlias(r.Context(), aliasent.RegistryName(regName), types.ToEntityAlias(rName, aliasReq.Alias))
+	eAlias := types.ToEntityAlias(types.RegistryName(regName), aliasReq.Alias)
+	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
 	if err != nil {
 		WriteHTTPErrorResponse(w, err)
 		return
@@ -148,8 +147,8 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	aliasKey := vars["alias_key"]
 
-	aliasReq := &types.UpdateAliasRequest{}
-	err := jsonutils.UnmarshalBody(r.Body, aliasReq)
+	var aliasReq types.UpdateAliasRequest
+	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
