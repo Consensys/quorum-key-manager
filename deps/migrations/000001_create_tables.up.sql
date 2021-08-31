@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS secrets (
-    pk INTEGER PRIMARY KEY,
+    pk SERIAL PRIMARY KEY,
     id TEXT NOT NULL,
     version TEXT NOT NULL,
     store_id TEXT NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS secrets (
 );
 
 CREATE TABLE IF NOT EXISTS keys (
-    pk INTEGER PRIMARY KEY,
+    pk SERIAL PRIMARY KEY,
     id TEXT NOT NULL,
     store_id TEXT NOT NULL,
     public_key BYTEA NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS keys (
 );
 
 CREATE TABLE IF NOT EXISTS eth_accounts (
-    pk INTEGER PRIMARY KEY,
+    pk SERIAL PRIMARY KEY,
     address TEXT NOT NULL,
     store_id TEXT NOT NULL,
     key_id TEXT NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS eth_accounts (
 );
 
 CREATE TABLE IF NOT EXISTS aliases (
-    pk INTEGER PRIMARY KEY,
+    pk SERIAL PRIMARY KEY,
     key TEXT NOT NULL,
     registry_name TEXT NOT NULL,
     value TEXT NOT NULL,
