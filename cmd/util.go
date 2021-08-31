@@ -46,7 +46,7 @@ func newUtilCommand() *cobra.Command {
 
 	generateJWTCmd.Flags().StringVar(&sub, "sub", "", "username and tenant added in claims")
 	generateJWTCmd.Flags().StringArrayVar(&scope, "scope", []string{}, "permissions added in claims")
-	generateJWTCmd.Flags().StringArrayVar(&roles, "qkm-user-roles", []string{}, "roles added in claims")
+	generateJWTCmd.Flags().StringArrayVar(&roles, flags.AuthOIDCClaimRolesDefault, []string{}, "roles added in claims")
 	generateJWTCmd.Flags().DurationVar(&expiration, "expiration", time.Hour, "token expiration time")
 
 	utilCmd.AddCommand(generateJWTCmd)

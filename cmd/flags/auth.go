@@ -33,7 +33,7 @@ func init() {
 	_ = viper.BindEnv(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
 	viper.SetDefault(AuthOIDCClaimPermissionsViperKey, authOIDCClaimPermissionsDefault)
 	_ = viper.BindEnv(AuthOIDCClaimPermissionsViperKey, authOIDCClaimPermissionsEnv)
-	viper.SetDefault(authOIDCClaimRolesViperKey, authOIDCClaimRolesDefault)
+	viper.SetDefault(authOIDCClaimRolesViperKey, AuthOIDCClaimRolesDefault)
 	_ = viper.BindEnv(authOIDCClaimRolesViperKey, authOIDCClaimRolesEnv)
 
 	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
@@ -105,7 +105,7 @@ const (
 const (
 	authOIDCClaimRolesFlag     = "auth-oidc-claim-roles"
 	authOIDCClaimRolesViperKey = "auth.oidc.claim.roles"
-	authOIDCClaimRolesDefault  = "qkm-user-roles"
+	AuthOIDCClaimRolesDefault  = "qkm.roles"
 	authOIDCClaimRolesEnv      = "AUTH_OIDC_CLAIM_ROLES"
 )
 
@@ -172,7 +172,7 @@ Environment variable: %q`, authOIDCClaimPermissionsEnv)
 func AuthOIDCClaimRoles(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for roles.
 Environment variable: %q`, authOIDCClaimPermissionsEnv)
-	f.String(authOIDCClaimRolesFlag, authOIDCClaimRolesDefault, desc)
+	f.String(authOIDCClaimRolesFlag, AuthOIDCClaimRolesDefault, desc)
 	_ = viper.BindPFlag(authOIDCClaimRolesViperKey, f.Lookup(authOIDCClaimRolesFlag))
 }
 
