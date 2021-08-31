@@ -1,16 +1,17 @@
 package aliasapi
 
 import (
-	"github.com/consensys/quorum-key-manager/src/aliases"
-	"github.com/consensys/quorum-key-manager/src/aliases/api/handlers"
 	"github.com/gorilla/mux"
+
+	"github.com/consensys/quorum-key-manager/src/aliases/api/handlers"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
 type AliasAPI struct {
-	alias aliases.Alias
+	alias aliasent.AliasBackend
 }
 
-func New(alias aliases.Alias) *AliasAPI {
+func New(alias aliasent.AliasBackend) *AliasAPI {
 	return &AliasAPI{
 		alias: alias,
 	}

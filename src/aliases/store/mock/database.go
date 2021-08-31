@@ -7,7 +7,7 @@ package mock
 import (
 	reflect "reflect"
 
-	aliases "github.com/consensys/quorum-key-manager/src/aliases"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,10 +35,10 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 }
 
 // Alias mocks base method.
-func (m *MockDatabase) Alias() aliases.Alias {
+func (m *MockDatabase) Alias() aliasent.AliasBackend {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Alias")
-	ret0, _ := ret[0].(aliases.Alias)
+	ret0, _ := ret[0].(aliasent.AliasBackend)
 	return ret0
 }
 

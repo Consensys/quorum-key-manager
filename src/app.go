@@ -4,6 +4,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/pkg/http/middleware"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasmgr "github.com/consensys/quorum-key-manager/src/aliases/manager"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -82,7 +83,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = aliasmgr.RegisterService(a, logger.WithComponent("aliases"))
+	err = aliases.RegisterService(a, logger.WithComponent("aliases"))
 	if err != nil {
 		return nil, err
 	}
