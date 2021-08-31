@@ -390,7 +390,7 @@ func TestJSONHeader(t *testing.T) {
 			helper.mock.EXPECT().ListAliases(gomock.Any(), gomock.Any()).AnyTimes().Return([]aliasent.Alias{ent}, nil)
 
 			helper.router.ServeHTTP(helper.rec, r)
-			assert.Contains(t, helper.rec.Result().Header.Values("Content-Type"), "application/json; charset=UTF-8;")
+			assert.Contains(t, helper.rec.Result().Header.Values("Content-Type"), "application/json;")
 			assert.Contains(t, helper.rec.Result().Header.Values("X-Content-Type-Options"), "nosniff")
 		})
 	}
@@ -416,6 +416,6 @@ func newJSONRequest(ctx context.Context, method, path string, body io.Reader) (*
 	if err != nil {
 		return nil, err
 	}
-	r.Header["Content-Type"] = []string{"application/json; charset=UTF-8"}
+	r.Header["Content-Type"] = []string{"application/json;"}
 	return r, nil
 }
