@@ -8,6 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/gorilla/mux"
 )
 
@@ -51,7 +52,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 
 	err := h.alias.DeleteRegistry(r.Context(), aliasent.RegistryName(regName))
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 }
@@ -77,7 +78,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	var aliasReq types.CreateAliasRequest
 	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
-		WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
 	}
 	// we force the key from the path
@@ -86,7 +87,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	eAlias := types.ToEntityAlias(types.RegistryName(regName), aliasReq.Alias)
 	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
@@ -95,7 +96,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	}
 	err = jsonWrite(w, resp)
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 }
@@ -117,13 +118,13 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 
 	alias, err := h.alias.GetAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(aliasKey))
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	err = jsonWrite(w, alias)
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 }
@@ -150,7 +151,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	var aliasReq types.UpdateAliasRequest
 	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
-		WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
@@ -165,13 +166,13 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	// - delete + create of the new alias
 	alias, err = h.alias.UpdateAlias(r.Context(), aliasent.RegistryName(regName), *alias)
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	err = jsonWrite(w, types.UpdateAliasResponse{Alias: types.FromEntityAlias(*alias)})
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 }
@@ -194,7 +195,7 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 
 	err := h.alias.DeleteAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(aliasKey))
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
@@ -218,13 +219,13 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 
 	als, err := h.alias.ListAliases(r.Context(), aliasent.RegistryName(regName))
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	err = jsonWrite(w, als)
 	if err != nil {
-		WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 }
