@@ -21,12 +21,12 @@ import (
 	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/consensys/quorum-key-manager/src/aliases/mock"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
 )
 
 type apiHelper struct {
 	ctx     context.Context
-	mock    *mock.MockAlias
+	mock    *mock.MockAliasBackend
 	rec     *httptest.ResponseRecorder
 	router  *mux.Router
 	handler *aliasapi.AliasAPI
@@ -34,7 +34,7 @@ type apiHelper struct {
 
 func newAPIHelper(t *testing.T) *apiHelper {
 	ctrl := gomock.NewController(t)
-	store := mock.NewMockAlias(ctrl)
+	store := mock.NewMockAliasBackend(ctrl)
 	handler := aliasapi.New(store)
 	router := mux.NewRouter()
 	handler.Register(router)
