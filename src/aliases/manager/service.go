@@ -28,7 +28,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	api := aliasapi.New(db.Alias(), logger)
+	api := aliasapi.New(db.Alias())
 	api.Register(a.Router())
 
 	return nil
