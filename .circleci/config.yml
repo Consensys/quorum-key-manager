@@ -164,10 +164,9 @@ jobs:
           command: |
             set +e
             echo "$MANIFEST_B64" | base64 --decode > ./deps/config/manifests/manifest.yml
-            make deps
-            make dev
-            echo "Wait 10 seconds for services to boot up correctly..."
-            sleep 10
+            make up
+            echo "Wait 20 seconds for services to boot up correctly..."
+            sleep 20
             make run-e2e
 
   push-dev-image:
@@ -264,8 +263,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-#              only: main
-              only: /.*/
+              only: main
           requires:
             - acceptance
             - test
