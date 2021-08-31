@@ -1,23 +1,24 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
-	models2 "github.com/consensys/quorum-key-manager/src/stores/database/models"
-	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" //nolint
+	_ "github.com/golang-migrate/migrate/v4/source/file"       //nolint
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 func newMigrateCommand() *cobra.Command {
-	runCmd := &cobra.Command{
+	migrateCmd := &cobra.Command{
 		Use:   "migrate",
 		Short: "Run migration",
-		RunE:  migrateCmd,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			preRunBindFlags(viper.GetViper(), cmd.Flags(), "key-manager")
 		},
@@ -27,47 +28,127 @@ func newMigrateCommand() *cobra.Command {
 		},
 	}
 
-	flags.LoggerFlags(runCmd.Flags())
-	flags.PGFlags(runCmd.Flags())
+	flags.LoggerFlags(migrateCmd.Flags())
+	flags.PGFlags(migrateCmd.Flags())
 
-	return runCmd
+	// Register Up command
+	upCmd := &cobra.Command{
+		Use:   "up [target]",
+		Short: "Executes all migrations",
+		Long:  "Executes all available migrations",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrateUp()
+		},
+	}
+	migrateCmd.AddCommand(upCmd)
+
+	// Register Down command
+	downCmd := &cobra.Command{
+		Use:   "down",
+		Short: "Reverts last migration",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrateDown()
+		},
+	}
+	migrateCmd.AddCommand(downCmd)
+
+	// Register Reset command
+	resetCmd := &cobra.Command{
+		Use:   "reset",
+		Short: "Reverts all migrations",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return migrateReset()
+		},
+	}
+	migrateCmd.AddCommand(resetCmd)
+
+	return migrateCmd
 }
 
-func migrateCmd(cmd *cobra.Command, _ []string) error {
+func migrateUp() error {
 	vipr := viper.GetViper()
-	pgCfg := flags.NewPostgresConfig(vipr)
-	logCfg := flags.NewLoggerConfig(vipr)
-
-	logger, err := zap.NewLogger(logCfg)
-	if err != nil {
-		return err
-	}
-	defer syncZapLogger(logger)
-
-	pgOpt, err := pgCfg.ToPGOptions()
+	logger, err := initLogger(vipr)
 	if err != nil {
 		return err
 	}
 
-	db := pg.Connect(pgOpt)
-	defer db.Close()
-
-	opts := &orm.CreateTableOptions{
-		FKConstraints: true,
+	m, err := initMigrations(vipr, logger)
+	if err != nil {
+		return err
 	}
-	// we create tables for each model
-	for _, v := range []interface{}{
-		&models2.Secret{},
-		&models2.Key{},
-		&models2.ETH1Account{},
-		&aliasent.Alias{},
-	} {
-		err = db.Model(v).CreateTable(opts)
-		if err != nil {
-			return err
-		}
+
+	err = m.Up()
+	if err != nil {
+		errMessage := "failed to execute migrations"
+		logger.WithError(err).Error(errMessage)
+		return err
 	}
 
 	logger.Info("migration executed successfully")
 	return nil
+}
+
+func migrateDown() error {
+	vipr := viper.GetViper()
+	logger, err := initLogger(vipr)
+	if err != nil {
+		return err
+	}
+
+	m, err := initMigrations(vipr, logger)
+	if err != nil {
+		return err
+	}
+
+	err = m.Steps(-1)
+	if err != nil {
+		errMessage := "failed to downgrade migrations"
+		logger.WithError(err).Error(errMessage)
+		return err
+	}
+
+	logger.Info("migration executed successfully")
+	return nil
+}
+
+func migrateReset() error {
+	vipr := viper.GetViper()
+	logger, err := initLogger(vipr)
+	if err != nil {
+		return err
+	}
+
+	m, err := initMigrations(vipr, logger)
+	if err != nil {
+		return err
+	}
+
+	err = m.Down()
+	if err != nil {
+		errMessage := "failed to reset all migrations"
+		logger.WithError(err).Error(errMessage)
+		return err
+	}
+
+	logger.Info("migration executed successfully")
+	return nil
+}
+
+func initMigrations(vipr *viper.Viper, logger log.Logger) (*migrate.Migrate, error) {
+	pgCfg := flags.NewPostgresConfig(vipr)
+
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", pgCfg.User, pgCfg.Password, pgCfg.Host, pgCfg.Port, pgCfg.Database)
+	m, err := migrate.New("file:///migrations", dbURL)
+	if err != nil {
+		errMessage := "failed to create migration instance"
+		logger.WithError(err).Error(errMessage)
+		return nil, err
+	}
+
+	return m, nil
+}
+
+func initLogger(vipr *viper.Viper) (log.Logger, error) {
+	logCfg := flags.NewLoggerConfig(vipr)
+	return zap.NewLogger(logCfg)
 }
