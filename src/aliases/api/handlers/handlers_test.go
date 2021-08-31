@@ -1,4 +1,4 @@
-package aliasapi_test
+package handlers_test
 
 import (
 	"bytes"
