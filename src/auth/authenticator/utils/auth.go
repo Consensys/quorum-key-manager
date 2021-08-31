@@ -3,8 +3,6 @@ package utils
 import (
 	"strings"
 
-	"github.com/golang-jwt/jwt"
-
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 
@@ -40,14 +38,6 @@ func ExtractPermissions(claims []string) []types.Permission {
 	return permissions
 }
 
-func ExtractClaimFromMap(claim string, claims *jwt.MapClaims) []string {
-	var roles []string
-
-	for tokenClaim, claimValue := range *claims {
-		if tokenClaim == claim {
-			roles = strings.Split(claimValue.(string), ",")
-		}
-	}
-
-	return roles
+func ExtractRoles(roles string) []string {
+	return strings.Split(roles, ",")
 }
