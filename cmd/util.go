@@ -40,7 +40,7 @@ func newUtilCommand() *cobra.Command {
 
 	flags.LoggerFlags(generateJWTCmd.Flags())
 	flags.AuthOIDCClaimUsername(generateJWTCmd.Flags())
-	flags.AuthOIDCClaimGroups(generateJWTCmd.Flags())
+	flags.AuthOIDCClaimPermissions(generateJWTCmd.Flags())
 	flags.AuthOIDCClaimRoles(generateJWTCmd.Flags())
 	flags.AuthOIDCCertKeyFile(generateJWTCmd.Flags())
 
