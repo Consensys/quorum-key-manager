@@ -259,6 +259,7 @@ func TestDeleteAlias(t *testing.T) {
 
 		helper.router.ServeHTTP(helper.rec, r)
 		assert.Equal(t, helper.rec.Code, c.status)
+		assert.Equal(t, helper.rec.Header().Get("X-Content-Type-Options"), "nosniff")
 	})
 	t.Run("non-existing alias", func(t *testing.T) {
 		t.Parallel()
