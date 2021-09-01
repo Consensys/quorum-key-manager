@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/pkg/tls"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -237,7 +235,7 @@ Environment variable: %q`, dbTLSCAEnv)
 }
 
 func NewPostgresConfig(vipr *viper.Viper) *postgresclient.Config {
-	cfg := &postgresclient.Config{
+	return &postgresclient.Config{
 		Host:              vipr.GetString(DBHostViperKey),
 		Port:              vipr.GetString(DBPortViperKey),
 		User:              vipr.GetString(DBUserViperKey),
@@ -248,25 +246,8 @@ func NewPostgresConfig(vipr *viper.Viper) *postgresclient.Config {
 		SSLMode:           vipr.GetString(DBTLSSSLModeViperKey),
 		KeepAliveInterval: vipr.GetDuration(DBKeepAliveKey),
 		DialTimeout:       time.Second * 10, // Using double of default PG value
-		TLS:               &tls.Option{},
+		TLSCert:           vipr.GetString(DBTLSCertViperKey),
+		TLSKey:            vipr.GetString(DBTLSKeyViperKey),
+		TLSCA:             vipr.GetString(DBTLSCAViperKey),
 	}
-
-	if vipr.GetString(DBTLSCertViperKey) != "" {
-		cfg.TLS = &tls.Option{
-			Certificates: []*certificate.KeyPair{
-				{
-					Cert: []byte(vipr.GetString(DBTLSCertViperKey)),
-					Key:  []byte(vipr.GetString(DBTLSKeyViperKey)),
-				},
-			},
-		}
-	}
-
-	if vipr.GetString(DBTLSCAViperKey) != "" {
-		cfg.TLS.CAs = [][]byte{
-			[]byte(vipr.GetString(DBTLSCAViperKey)),
-		}
-	}
-
-	return cfg
 }

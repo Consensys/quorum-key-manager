@@ -29,6 +29,9 @@ type Config struct {
 	TLS               *tls.Option   `json:"tls"`
 	ApplicationName   string        `json:"application_name"`
 	SSLMode           string        `json:"ssl_mode"`
+	TLSCert           string        `json:"tls_cert"`
+	TLSKey            string        `json:"tls_key"`
+	TLSCA             string        `json:"tls_ca"`
 }
 
 func (cfg *Config) ToPGOptions() (*pg.Options, error) {

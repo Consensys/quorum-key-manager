@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -84,7 +85,7 @@ func migrateUp() error {
 		return err
 	}
 
-	logger.Info("migration executed successfully")
+	logger.Info("migrations executed successfully")
 	return nil
 }
 
@@ -107,7 +108,7 @@ func migrateDown() error {
 		return err
 	}
 
-	logger.Info("migration executed successfully")
+	logger.Info("migration down successfully")
 	return nil
 }
 
@@ -130,15 +131,21 @@ func migrateReset() error {
 		return err
 	}
 
-	logger.Info("migration executed successfully")
+	logger.Info("migrations reset successfully")
 	return nil
 }
 
 func initMigrations(vipr *viper.Viper, logger log.Logger) (*migrate.Migrate, error) {
 	pgCfg := flags.NewPostgresConfig(vipr)
 
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", pgCfg.User, pgCfg.Password, pgCfg.Host, pgCfg.Port, pgCfg.Database)
-	m, err := migrate.New("file:///migrations", dbURL)
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?", pgCfg.User, pgCfg.Password, pgCfg.Host, pgCfg.Port, pgCfg.Database)
+	params := url.Values{}
+	params.Add("sslmode", pgCfg.SSLMode)
+	params.Add("sslcert", pgCfg.TLSCert)
+	params.Add("sslkey", pgCfg.TLSKey)
+	params.Add("sslrootcert", pgCfg.TLSCA)
+
+	m, err := migrate.New("file:///migrations", dbURL+params.Encode())
 	if err != nil {
 		errMessage := "failed to create migration instance"
 		logger.WithError(err).Error(errMessage)

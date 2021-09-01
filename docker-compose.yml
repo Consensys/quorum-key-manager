@@ -43,6 +43,7 @@ services:
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro
+      - ./deps/config/certificates:/certificates
 
   key-manager:
     <<: *container-common
