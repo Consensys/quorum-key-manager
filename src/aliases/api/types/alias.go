@@ -9,7 +9,7 @@ type Alias struct {
 	registryName RegistryName
 }
 
-func FromEntityAlias(ent aliasent.Alias) Alias {
+func FormatEntityAlias(ent aliasent.Alias) Alias {
 	return Alias{
 		registryName: RegistryName(ent.RegistryName),
 		Key:          AliasKey(ent.Key),
@@ -17,7 +17,7 @@ func FromEntityAlias(ent aliasent.Alias) Alias {
 	}
 }
 
-func ToEntityAlias(registry RegistryName, alias Alias) aliasent.Alias {
+func FormatAlias(registry RegistryName, alias Alias) aliasent.Alias {
 	return aliasent.Alias{
 		RegistryName: aliasent.RegistryName(registry),
 		Key:          aliasent.AliasKey(alias.Key),
@@ -25,10 +25,10 @@ func ToEntityAlias(registry RegistryName, alias Alias) aliasent.Alias {
 	}
 }
 
-func FromEntityAliases(ents []aliasent.Alias) []Alias {
+func FormatEntityAliases(ents []aliasent.Alias) []Alias {
 	var als []Alias
 	for _, v := range ents {
-		als = append(als, FromEntityAlias(v))
+		als = append(als, FormatEntityAlias(v))
 	}
 
 	return als

@@ -324,7 +324,7 @@ func TestListAliases(t *testing.T) {
 		err = json.Unmarshal(helper.rec.Body.Bytes(), &als)
 		require.NoError(t, err)
 
-		alses := types.FromEntityAliases(ents)
+		alses := types.FormatEntityAliases(ents)
 		assert.Equal(t, als, alses)
 
 	})
@@ -356,7 +356,7 @@ func TestListAliases(t *testing.T) {
 		var als []types.Alias
 		err = json.Unmarshal(helper.rec.Body.Bytes(), &als)
 		require.NoError(t, err)
-		assert.Equal(t, als, types.FromEntityAliases(ents))
+		assert.Equal(t, als, types.FormatEntityAliases(ents))
 	})
 }
 

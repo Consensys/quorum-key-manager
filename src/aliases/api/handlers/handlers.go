@@ -83,7 +83,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	// we force the key from the path
 	aliasReq.Key = types.AliasKey(aliasKey)
 
-	eAlias := types.ToEntityAlias(types.RegistryName(regName), aliasReq.Alias)
+	eAlias := types.FormatAlias(types.RegistryName(regName), aliasReq.Alias)
 	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -91,7 +91,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := types.CreateAliasResponse{
-		Alias: types.FromEntityAlias(*alias),
+		Alias: types.FormatEntityAlias(*alias),
 	}
 	err = jsonWrite(w, resp)
 	if err != nil {
@@ -169,7 +169,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = jsonWrite(w, types.UpdateAliasResponse{Alias: types.FromEntityAlias(*alias)})
+	err = jsonWrite(w, types.UpdateAliasResponse{Alias: types.FormatEntityAlias(*alias)})
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
