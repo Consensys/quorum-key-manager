@@ -98,6 +98,26 @@ func (s *Secrets) GetLatestVersion(ctx context.Context, id string, isDeleted boo
 	return version, nil
 }
 
+func (s *Secrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
+	var versions []string
+	var err error
+	if !isDeleted {
+		err = s.client.Query(ctx, &versions,
+			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NULL ORDER BY created_at DESC", id, s.storeID)
+	} else {
+		err = s.client.Query(ctx, &versions,
+			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NOT NULL ORDER BY created_at DESC", id, s.storeID)
+	}
+
+	if err != nil {
+		errMessage := "failed to list secret versions"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return versions, nil
+}
+
 func (s *Secrets) GetAll(ctx context.Context) ([]*entities.Secret, error) {
 	var itemModels []*models.Secret
 

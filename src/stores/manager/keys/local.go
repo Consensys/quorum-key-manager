@@ -3,6 +3,7 @@ package keys
 import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
@@ -16,7 +17,7 @@ type LocalKeySpecs struct {
 	Specs       interface{}
 }
 
-func NewLocalKeyStore(specs *LocalKeySpecs, logger log.Logger) (*localkeys.Store, error) {
+func NewLocalKeyStore(specs *LocalKeySpecs, db database.Secrets, logger log.Logger) (*localkeys.Store, error) {
 	var secretStore stores.SecretStore
 	var err error
 
@@ -28,7 +29,7 @@ func NewLocalKeyStore(specs *LocalKeySpecs, logger log.Logger) (*localkeys.Store
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
-		secretStore, err = msecrets.NewHashicorpSecretStore(spec, logger)
+		secretStore, err = msecrets.NewHashicorpSecretStore(spec, db, logger)
 	case stores.AKVSecrets:
 		spec := &msecrets.AkvSecretSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {

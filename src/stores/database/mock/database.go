@@ -482,6 +482,21 @@ func (mr *MockSecretsMockRecorder) GetLatestVersion(ctx, id, isDeleted interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestVersion", reflect.TypeOf((*MockSecrets)(nil).GetLatestVersion), ctx, id, isDeleted)
 }
 
+// ListVersions mocks base method
+func (m *MockSecrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListVersions", ctx, id, isDeleted)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListVersions indicates an expected call of ListVersions
+func (mr *MockSecretsMockRecorder) ListVersions(ctx, id, isDeleted interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListVersions", reflect.TypeOf((*MockSecrets)(nil).ListVersions), ctx, id, isDeleted)
+}
+
 // GetDeleted mocks base method
 func (m *MockSecrets) GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error) {
 	m.ctrl.T.Helper()

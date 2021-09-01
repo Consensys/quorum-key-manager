@@ -3,6 +3,7 @@ package secrets
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -10,6 +11,14 @@ import (
 
 func (c Connector) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := c.logger.With("id", id, "version", version)
+
+	if version == "" {
+		var err error
+		version, err = c.db.GetLatestVersion(ctx, id, false)
+		errMsg := "failed to fetch latest secret version"
+		logger.WithError(err).Error(errMsg)
+		return nil, errors.FromError(err).SetMessage(errMsg)
+	}
 
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
 	if err != nil {
@@ -31,15 +40,15 @@ func (c Connector) Get(ctx context.Context, id, version string) (*entities.Secre
 	return secret, nil
 }
 
-func (c Connector) GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error) {
-	logger := c.logger.With("id", id, "version", version)
+func (c Connector) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
+	logger := c.logger.With("id", id)
 
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
 	if err != nil {
 		return nil, err
 	}
 
-	secret, err := c.db.GetDeleted(ctx, id, version)
+	secret, err := c.db.GetDeleted(ctx, id, "")
 	if err != nil {
 		return nil, err
 	}

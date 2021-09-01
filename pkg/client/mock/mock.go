@@ -66,60 +66,60 @@ func (mr *MockSecretsClientMockRecorder) GetSecret(ctx, storeName, id, version i
 }
 
 // GetDeletedSecret mocks base method
-func (m *MockSecretsClient) GetDeletedSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetDeletedSecret indicates an expected call of GetDeletedSecret
-func (mr *MockSecretsClientMockRecorder) GetDeletedSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsClientMockRecorder) GetDeletedSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedSecret", reflect.TypeOf((*MockSecretsClient)(nil).GetDeletedSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedSecret", reflect.TypeOf((*MockSecretsClient)(nil).GetDeletedSecret), ctx, storeName, id)
 }
 
 // DeleteSecret mocks base method
-func (m *MockSecretsClient) DeleteSecret(ctx context.Context, storeName, id, version string) error {
+func (m *MockSecretsClient) DeleteSecret(ctx context.Context, storeName, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "DeleteSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteSecret indicates an expected call of DeleteSecret
-func (mr *MockSecretsClientMockRecorder) DeleteSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsClientMockRecorder) DeleteSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockSecretsClient)(nil).DeleteSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockSecretsClient)(nil).DeleteSecret), ctx, storeName, id)
 }
 
 // RestoreSecret mocks base method
-func (m *MockSecretsClient) RestoreSecret(ctx context.Context, storeName, id, version string) error {
+func (m *MockSecretsClient) RestoreSecret(ctx context.Context, storeName, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RestoreSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "RestoreSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RestoreSecret indicates an expected call of RestoreSecret
-func (mr *MockSecretsClientMockRecorder) RestoreSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsClientMockRecorder) RestoreSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockSecretsClient)(nil).RestoreSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockSecretsClient)(nil).RestoreSecret), ctx, storeName, id)
 }
 
 // DestroySecret mocks base method
-func (m *MockSecretsClient) DestroySecret(ctx context.Context, storeName, id, version string) error {
+func (m *MockSecretsClient) DestroySecret(ctx context.Context, storeName, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DestroySecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "DestroySecret", ctx, storeName, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DestroySecret indicates an expected call of DestroySecret
-func (mr *MockSecretsClientMockRecorder) DestroySecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsClientMockRecorder) DestroySecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroySecret", reflect.TypeOf((*MockSecretsClient)(nil).DestroySecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroySecret", reflect.TypeOf((*MockSecretsClient)(nil).DestroySecret), ctx, storeName, id)
 }
 
 // ListSecrets mocks base method
@@ -262,6 +262,64 @@ func (m *MockKeysClient) ListKeys(ctx context.Context, storeName string) ([]stri
 func (mr *MockKeysClientMockRecorder) ListKeys(ctx, storeName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKeysClient)(nil).ListKeys), ctx, storeName)
+}
+
+// DeleteKey mocks base method
+func (m *MockKeysClient) DeleteKey(ctx context.Context, storeName, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteKey", ctx, storeName, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteKey indicates an expected call of DeleteKey
+func (mr *MockKeysClientMockRecorder) DeleteKey(ctx, storeName, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKey", reflect.TypeOf((*MockKeysClient)(nil).DeleteKey), ctx, storeName, id)
+}
+
+// GetDeletedKey mocks base method
+func (m *MockKeysClient) GetDeletedKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeletedKey", ctx, storeName, id)
+	ret0, _ := ret[0].(*types.KeyResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeletedKey indicates an expected call of GetDeletedKey
+func (mr *MockKeysClientMockRecorder) GetDeletedKey(ctx, storeName, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedKey", reflect.TypeOf((*MockKeysClient)(nil).GetDeletedKey), ctx, storeName, id)
+}
+
+// ListDeletedKeys mocks base method
+func (m *MockKeysClient) ListDeletedKeys(ctx context.Context, storeName string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListDeletedKeys", ctx, storeName)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListDeletedKeys indicates an expected call of ListDeletedKeys
+func (mr *MockKeysClientMockRecorder) ListDeletedKeys(ctx, storeName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeletedKeys", reflect.TypeOf((*MockKeysClient)(nil).ListDeletedKeys), ctx, storeName)
+}
+
+// RestoreKey mocks base method
+func (m *MockKeysClient) RestoreKey(ctx context.Context, storeName, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreKey", ctx, storeName, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RestoreKey indicates an expected call of RestoreKey
+func (mr *MockKeysClientMockRecorder) RestoreKey(ctx, storeName, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreKey", reflect.TypeOf((*MockKeysClient)(nil).RestoreKey), ctx, storeName, id)
 }
 
 // DestroyKey mocks base method
@@ -517,9 +575,23 @@ func (m *MockEth1Client) Verify(ctx context.Context, storeName string, request *
 }
 
 // Verify indicates an expected call of Verify
-func (mr *MockEth1ClientMockRecorder) VerifyEth1Signature(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) Verify(ctx, storeName, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockEth1Client)(nil).Verify), ctx, storeName, request)
+}
+
+// VerifyMessage mocks base method
+func (m *MockEth1Client) VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyMessage", ctx, storeName, request)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyMessage indicates an expected call of VerifyMessage
+func (mr *MockEth1ClientMockRecorder) VerifyMessage(ctx, storeName, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockEth1Client)(nil).VerifyMessage), ctx, storeName, request)
 }
 
 // VerifyTypedData mocks base method
@@ -531,7 +603,7 @@ func (m *MockEth1Client) VerifyTypedData(ctx context.Context, storeName string, 
 }
 
 // VerifyTypedData indicates an expected call of VerifyTypedData
-func (mr *MockEth1ClientMockRecorder) VerifyTypedDataSignature(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockEth1ClientMockRecorder) VerifyTypedData(ctx, storeName, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockEth1Client)(nil).VerifyTypedData), ctx, storeName, request)
 }
@@ -633,60 +705,60 @@ func (mr *MockKeyManagerClientMockRecorder) GetSecret(ctx, storeName, id, versio
 }
 
 // GetDeletedSecret mocks base method
-func (m *MockKeyManagerClient) GetDeletedSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetDeletedSecret indicates an expected call of GetDeletedSecret
-func (mr *MockKeyManagerClientMockRecorder) GetDeletedSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) GetDeletedSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetDeletedSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetDeletedSecret), ctx, storeName, id)
 }
 
 // DeleteSecret mocks base method
-func (m *MockKeyManagerClient) DeleteSecret(ctx context.Context, storeName, id, version string) error {
+func (m *MockKeyManagerClient) DeleteSecret(ctx context.Context, storeName, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "DeleteSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteSecret indicates an expected call of DeleteSecret
-func (mr *MockKeyManagerClientMockRecorder) DeleteSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) DeleteSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteSecret), ctx, storeName, id)
 }
 
 // RestoreSecret mocks base method
-func (m *MockKeyManagerClient) RestoreSecret(ctx context.Context, storeName, id, version string) error {
+func (m *MockKeyManagerClient) RestoreSecret(ctx context.Context, storeName, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RestoreSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "RestoreSecret", ctx, storeName, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RestoreSecret indicates an expected call of RestoreSecret
-func (mr *MockKeyManagerClientMockRecorder) RestoreSecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) RestoreSecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).RestoreSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).RestoreSecret), ctx, storeName, id)
 }
 
 // DestroySecret mocks base method
-func (m *MockKeyManagerClient) DestroySecret(ctx context.Context, storeName, id, version string) error {
+func (m *MockKeyManagerClient) DestroySecret(ctx context.Context, storeName, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DestroySecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "DestroySecret", ctx, storeName, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DestroySecret indicates an expected call of DestroySecret
-func (mr *MockKeyManagerClientMockRecorder) DestroySecret(ctx, storeName, id, version interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) DestroySecret(ctx, storeName, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroySecret", reflect.TypeOf((*MockKeyManagerClient)(nil).DestroySecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroySecret", reflect.TypeOf((*MockKeyManagerClient)(nil).DestroySecret), ctx, storeName, id)
 }
 
 // ListSecrets mocks base method
@@ -806,6 +878,64 @@ func (m *MockKeyManagerClient) ListKeys(ctx context.Context, storeName string) (
 func (mr *MockKeyManagerClientMockRecorder) ListKeys(ctx, storeName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockKeyManagerClient)(nil).ListKeys), ctx, storeName)
+}
+
+// DeleteKey mocks base method
+func (m *MockKeyManagerClient) DeleteKey(ctx context.Context, storeName, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteKey", ctx, storeName, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteKey indicates an expected call of DeleteKey
+func (mr *MockKeyManagerClientMockRecorder) DeleteKey(ctx, storeName, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKey", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteKey), ctx, storeName, id)
+}
+
+// GetDeletedKey mocks base method
+func (m *MockKeyManagerClient) GetDeletedKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeletedKey", ctx, storeName, id)
+	ret0, _ := ret[0].(*types.KeyResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeletedKey indicates an expected call of GetDeletedKey
+func (mr *MockKeyManagerClientMockRecorder) GetDeletedKey(ctx, storeName, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeletedKey", reflect.TypeOf((*MockKeyManagerClient)(nil).GetDeletedKey), ctx, storeName, id)
+}
+
+// ListDeletedKeys mocks base method
+func (m *MockKeyManagerClient) ListDeletedKeys(ctx context.Context, storeName string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListDeletedKeys", ctx, storeName)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListDeletedKeys indicates an expected call of ListDeletedKeys
+func (mr *MockKeyManagerClientMockRecorder) ListDeletedKeys(ctx, storeName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeletedKeys", reflect.TypeOf((*MockKeyManagerClient)(nil).ListDeletedKeys), ctx, storeName)
+}
+
+// RestoreKey mocks base method
+func (m *MockKeyManagerClient) RestoreKey(ctx context.Context, storeName, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreKey", ctx, storeName, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RestoreKey indicates an expected call of RestoreKey
+func (mr *MockKeyManagerClientMockRecorder) RestoreKey(ctx, storeName, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreKey", reflect.TypeOf((*MockKeyManagerClient)(nil).RestoreKey), ctx, storeName, id)
 }
 
 // DestroyKey mocks base method
@@ -1038,9 +1168,23 @@ func (m *MockKeyManagerClient) Verify(ctx context.Context, storeName string, req
 }
 
 // Verify indicates an expected call of Verify
-func (mr *MockKeyManagerClientMockRecorder) VerifyEth1Signature(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) Verify(ctx, storeName, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockKeyManagerClient)(nil).Verify), ctx, storeName, request)
+}
+
+// VerifyMessage mocks base method
+func (m *MockKeyManagerClient) VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyMessage", ctx, storeName, request)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyMessage indicates an expected call of VerifyMessage
+func (mr *MockKeyManagerClientMockRecorder) VerifyMessage(ctx, storeName, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyMessage), ctx, storeName, request)
 }
 
 // VerifyTypedData mocks base method
@@ -1052,7 +1196,7 @@ func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, storeName st
 }
 
 // VerifyTypedData indicates an expected call of VerifyTypedData
-func (mr *MockKeyManagerClientMockRecorder) VerifyTypedDataSignature(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) VerifyTypedData(ctx, storeName, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyTypedData), ctx, storeName, request)
 }

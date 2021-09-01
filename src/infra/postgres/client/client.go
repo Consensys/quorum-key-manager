@@ -44,6 +44,15 @@ func (c *PostgresClient) QueryOne(ctx context.Context, result, query interface{}
 	return nil
 }
 
+func (c *PostgresClient) Query(ctx context.Context, result, query interface{}, params ...interface{}) error {
+	_, err := c.db.QueryContext(ctx, pg.Scan(result), query, params...)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
 func (c *PostgresClient) Insert(ctx context.Context, model ...interface{}) error {
 	_, err := c.db.ModelContext(ctx, model...).Insert()
 	if err != nil {

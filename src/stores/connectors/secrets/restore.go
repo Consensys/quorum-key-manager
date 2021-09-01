@@ -9,11 +9,16 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
 
-func (c Connector) Restore(ctx context.Context, id, version string) error {
-	logger := c.logger.With("id", id, "version", version)
+func (c Connector) Restore(ctx context.Context, id string) error {
+	logger := c.logger.With("id", id)
 	logger.Debug("restoring secret")
 
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret})
+	if err != nil {
+		return err
+	}
+	
+	version, err := c.db.GetLatestVersion(ctx, id, false)
 	if err != nil {
 		return err
 	}
@@ -23,17 +28,18 @@ func (c Connector) Restore(ctx context.Context, id, version string) error {
 		return nil
 	}
 
-	secret, err := c.db.GetDeleted(ctx, id, version)
+	secret, err := c.db.GetDeleted(ctx, id, "")
 	if err != nil {
 		return err
 	}
+
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		err = dbtx.Restore(ctx, secret.ID, version)
+		err = dbtx.Restore(ctx, secret.ID, "")
 		if err != nil {
 			return err
 		}
 
-		err = c.store.Restore(ctx, secret.ID, version)
+		err = c.store.Restore(ctx, secret.ID)
 		if err != nil && !errors.IsNotSupportedError(err) {
 			return err
 		}

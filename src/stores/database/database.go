@@ -45,6 +45,7 @@ type Secrets interface {
 	RunInTransaction(ctx context.Context, persistFunc func(dbtx Secrets) error) error
 	Get(ctx context.Context, id, version string) (*entities.Secret, error)
 	GetLatestVersion(ctx context.Context, id string, isDeleted bool) (string, error)
+	ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error)
 	GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error)
 	GetAll(ctx context.Context) ([]*entities.Secret, error)
 	GetAllDeleted(ctx context.Context) ([]*entities.Secret, error)
