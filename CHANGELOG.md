@@ -5,6 +5,7 @@
 * Support for authorization using OIDC, TLS and API-KEY
 * Support for authentication based on roles and permissions
 * Usage Postgres DB to resources public information
+* Support for PostgreSQL migrations through command line
 
 ### 🛠 Bug fixes
 * Behaviour alignment over every support key vault
