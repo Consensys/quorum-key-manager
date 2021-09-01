@@ -136,7 +136,12 @@ func migrateReset() error {
 }
 
 func initMigrations(vipr *viper.Viper, logger log.Logger) (*migrate.Migrate, error) {
-	pgCfg := flags.NewPostgresConfig(vipr)
+	pgCfg, err := flags.NewPostgresConfig(vipr)
+	if err != nil {
+		errMessage := "failed to extract postgres configuration"
+		logger.WithError(err).Error(errMessage)
+		return nil, err
+	}
 
 	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?", pgCfg.User, pgCfg.Password, pgCfg.Host, pgCfg.Port, pgCfg.Database)
 	params := url.Values{}
