@@ -37,7 +37,8 @@ func TestAuthenticatorSameCert(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, "alice", userInfo.Username)
-		assert.Equal(t, []string{"guest"}, userInfo.Roles)
+		assert.Equal(t, []string{"admin", "signer"}, userInfo.Roles)
+		assert.Equal(t, []types.Permission{"read:accounts", "delete:secrets"}, userInfo.Permissions)
 
 	})
 

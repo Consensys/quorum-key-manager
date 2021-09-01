@@ -62,7 +62,7 @@ func generateJWT(keyFile, scope, sub string) (string, error) {
 	}
 
 	cfgSubject := viper.GetString(flags.AuthOIDCClaimUsernameViperKey)
-	cfgScope := viper.GetString(flags.AuthOIDCClaimGroupViperKey)
+	cfgScope := viper.GetString(flags.AuthOIDCClaimPermissionsViperKey)
 
 	return generator.GenerateAccessToken(map[string]interface{}{
 		cfgSubject: sub,
