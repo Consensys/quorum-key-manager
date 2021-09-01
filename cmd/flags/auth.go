@@ -31,8 +31,10 @@ func init() {
 
 	viper.SetDefault(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
 	_ = viper.BindEnv(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-	viper.SetDefault(AuthOIDCClaimGroupViperKey, authOIDCClaimGroupDefault)
-	_ = viper.BindEnv(AuthOIDCClaimGroupViperKey, authOIDCClaimGroupEnv)
+	viper.SetDefault(AuthOIDCClaimPermissionsViperKey, authOIDCClaimPermissionsDefault)
+	_ = viper.BindEnv(AuthOIDCClaimPermissionsViperKey, authOIDCClaimPermissionsEnv)
+	viper.SetDefault(authOIDCClaimRolesViperKey, AuthOIDCClaimRolesDefault)
+	_ = viper.BindEnv(authOIDCClaimRolesViperKey, authOIDCClaimRolesEnv)
 
 	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
 	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
@@ -42,9 +44,13 @@ func init() {
 }
 
 const (
-	csvSeparator      = ';'
-	csvCommentsMarker = '#'
-	csvRowLen         = 3
+	csvSeparator         = ';'
+	csvCommentsMarker    = '#'
+	csvRowLen            = 4
+	csvHashOffset        = 0
+	csvUserOffset        = 1
+	csvPermissionsOffset = 2
+	csvRolesOffset       = 3
 )
 
 const (
@@ -90,10 +96,17 @@ const (
 )
 
 const (
-	authOIDCClaimGroupFlag     = "auth-oidc-claim-groups"
-	AuthOIDCClaimGroupViperKey = "auth.oidc.claim.groups"
-	authOIDCClaimGroupDefault  = "scope"
-	authOIDCClaimGroupEnv      = "AUTH_OIDC_CLAIM_GROUPS"
+	authOIDCClaimPermissionsFlag     = "auth-oidc-claim-permissions"
+	AuthOIDCClaimPermissionsViperKey = "auth.oidc.claim.permissions"
+	authOIDCClaimPermissionsDefault  = "scope"
+	authOIDCClaimPermissionsEnv      = "AUTH_OIDC_CLAIM_PERMISSIONS"
+)
+
+const (
+	authOIDCClaimRolesFlag     = "auth-oidc-claim-roles"
+	authOIDCClaimRolesViperKey = "auth.oidc.claim.roles"
+	AuthOIDCClaimRolesDefault  = "qkm.roles"
+	authOIDCClaimRolesEnv      = "AUTH_OIDC_CLAIM_ROLES"
 )
 
 func authTLSCertFile(f *pflag.FlagSet) {
@@ -114,7 +127,8 @@ func AuthFlags(f *pflag.FlagSet) {
 	authOIDCCAFile(f)
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
-	AuthOIDCClaimGroups(f)
+	AuthOIDCClaimPermissions(f)
+	AuthOIDCClaimRoles(f)
 	authTLSCertFile(f)
 	authAPIKeyFile(f)
 }
@@ -148,11 +162,18 @@ Environment variable: %q`, authOIDCClaimUsernameEnv)
 	_ = viper.BindPFlag(AuthOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
 }
 
-func AuthOIDCClaimGroups(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Token path claims for groups.
-Environment variable: %q`, authOIDCClaimGroupEnv)
-	f.String(authOIDCClaimGroupFlag, authOIDCClaimGroupDefault, desc)
-	_ = viper.BindPFlag(AuthOIDCClaimGroupViperKey, f.Lookup(authOIDCClaimGroupFlag))
+func AuthOIDCClaimPermissions(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Token path claims for permissions.
+Environment variable: %q`, authOIDCClaimPermissionsEnv)
+	f.String(authOIDCClaimPermissionsFlag, authOIDCClaimPermissionsDefault, desc)
+	_ = viper.BindPFlag(AuthOIDCClaimPermissionsViperKey, f.Lookup(authOIDCClaimPermissionsFlag))
+}
+
+func AuthOIDCClaimRoles(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Token path claims for roles.
+Environment variable: %q`, authOIDCClaimPermissionsEnv)
+	f.String(authOIDCClaimRolesFlag, AuthOIDCClaimRolesDefault, desc)
+	_ = viper.BindPFlag(authOIDCClaimRolesViperKey, f.Lookup(authOIDCClaimRolesFlag))
 }
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
@@ -174,7 +195,8 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	}
 
 	oidcCfg := oidc.NewConfig(vipr.GetString(AuthOIDCClaimUsernameViperKey),
-		vipr.GetString(AuthOIDCClaimGroupViperKey), certsOIDC...)
+		vipr.GetString(AuthOIDCClaimPermissionsViperKey),
+		vipr.GetString(authOIDCClaimRolesViperKey), certsOIDC...)
 
 	// API-KEY
 	var apiKeyCfg = &apikey.Config{}
@@ -285,9 +307,10 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 			return nil, fmt.Errorf("invalid number of cells in file %s should be %d", csvfile.Name(), csvRowLen)
 		}
 
-		retFile[cells[0]] = apikey.UserClaims{
-			UserName: cells[1],
-			Claims:   strings.Split(cells[2], ","),
+		retFile[cells[csvHashOffset]] = apikey.UserClaims{
+			UserName:    cells[csvUserOffset],
+			Permissions: strings.Split(cells[csvPermissionsOffset], ","),
+			Roles:       strings.Split(cells[csvRolesOffset], ","),
 		}
 	}
 

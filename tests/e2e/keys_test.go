@@ -332,7 +332,6 @@ func (s *keysTestSuite) TestGetKey() {
 		return
 	}
 	defer s.queueToDelete(key)
-	require.NoError(s.T(), err)
 
 	s.RunT("should get a key successfully", func() {
 		keyRetrieved, err := s.keyManagerClient.GetKey(s.ctx, s.storeName, key.ID)

@@ -49,7 +49,11 @@ func (a Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) 
 	}
 
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(jwtData.Subject)
-	userInfo.Roles, userInfo.Permissions = utils.ExtractRolesAndPermission(jwtData.Scope)
+	userInfo.Permissions = utils.ExtractPermissions(jwtData.Scope)
+	rolesClaim := a.jwtChecker.claimsCfg.Roles
+	if jwtData.MapClaims[rolesClaim] != nil {
+		userInfo.Roles = utils.ExtractRoles(jwtData.MapClaims[rolesClaim].(string))
+	}
 	return userInfo, nil
 }
 
