@@ -80,7 +80,7 @@ services:
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/certificates:/certificates:ro
-    command: utils generate-jwt --sub=${SUB-tenant0|username} --scope=${SCOPE-"admin"} --expiration=${EXPIRATION-24h}
+    command: utils generate-jwt --sub=${SUB-tenant0|username} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-24h}
     restart: "no"
 
 networks:
