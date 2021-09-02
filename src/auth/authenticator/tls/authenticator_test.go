@@ -32,6 +32,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 		reqAlice.TLS = &tls.ConnectionState{}
 		reqAlice.TLS.PeerCertificates = make([]*x509.Certificate, 1)
 		reqAlice.TLS.PeerCertificates[0] = aliceCert.Leaf
+		reqAlice.TLS.HandshakeComplete = true
 
 		userInfo, err := auth.Authenticate(reqAlice)
 
@@ -47,6 +48,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 		reqEve.TLS = &tls.ConnectionState{}
 		reqEve.TLS.PeerCertificates = make([]*x509.Certificate, 1)
 		reqEve.TLS.PeerCertificates[0] = eveCert.Leaf
+		reqEve.TLS.HandshakeComplete = true
 
 		userInfo, err := auth.Authenticate(reqEve)
 
