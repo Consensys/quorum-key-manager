@@ -19,26 +19,30 @@ func (c Connector) Destroy(ctx context.Context, addr ethcommon.Address) error {
 		return err
 	}
 
-	acc, err := c.db.GetDeleted(ctx, addr.Hex())
-	if err != nil {
-		return err
+	_, err = c.Get(ctx, addr)
+	if err == nil {
+		logger.WithError(err).Error("try to destroy an exiting eth1Account, must be deleted first")
+		return errors.StatusConflictError("account %s must be deleted first", addr.Hex())
 	}
 
-	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-		err = dbtx.Purge(ctx, addr.Hex())
+	acc, err := c.db.GetDeleted(ctx, addr.Hex())
+	if err == nil {
+		err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
+			err = dbtx.Purge(ctx, addr.Hex())
+			if err != nil {
+				return err
+			}
+
+			err = c.store.Destroy(ctx, acc.KeyID)
+			if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support deleting, we only delete in DB
+				return err
+			}
+
+			return nil
+		})
 		if err != nil {
 			return err
 		}
-
-		err = c.store.Destroy(ctx, acc.KeyID)
-		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support deleting, we only delete in DB
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
 	}
 
 	logger.Info("ethereum account was permanently deleted")
