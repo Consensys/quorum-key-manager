@@ -94,7 +94,8 @@ func TestRestoreSecret(t *testing.T) {
 
 		err := connector.Restore(ctx, secret.ID, secret.Metadata.Version)
 
-		assert.Nil(t, err)
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to restore secret if db fail to restore", func(t *testing.T) {
