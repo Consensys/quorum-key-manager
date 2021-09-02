@@ -135,14 +135,14 @@ func AuthFlags(f *pflag.FlagSet) {
 
 // Use only on generate-token utils
 func AuthOIDCCertKeyFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect CA Cert filepath.
+	desc := fmt.Sprintf(`OpenID Connect ca Cert filepath.
 Environment variable: %q`, authOIDCCAKeyFileEnv)
 	f.String(authOIDCCAKeyFileFlag, authOIDCCAKeyFileDefault, desc)
 	_ = viper.BindPFlag(AuthOIDCCAKeyFileViperKey, f.Lookup(authOIDCCAKeyFileFlag))
 }
 
 func authOIDCCAFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect CA Key filepath.
+	desc := fmt.Sprintf(`OpenID Connect ca Key filepath.
 Environment variable: %q`, authOIDCCACertFileEnv)
 	f.String(authOIDCCACertFileFlag, authOIDCCACertFileDefault, desc)
 	_ = viper.BindPFlag(authOIDCCACertFileViperKey, f.Lookup(authOIDCCACertFileFlag))
@@ -232,7 +232,7 @@ func oidcCert(vipr *viper.Viper) (*x509.Certificate, error) {
 
 	_, err := os.Stat(caFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
+		return nil, fmt.Errorf("failed to read ca file. %s", err.Error())
 	}
 
 	caFileContent, err := ioutil.ReadFile(caFile)
@@ -324,7 +324,7 @@ func tlsAuthCerts(vipr *viper.Viper) ([]*x509.Certificate, error) {
 	}
 	_, err := os.Stat(caFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read CA file. %s", err.Error())
+		return nil, fmt.Errorf("failed to read ca file. %s", err.Error())
 	}
 
 	caFileContent, err := ioutil.ReadFile(caFile)

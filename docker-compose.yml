@@ -43,6 +43,7 @@ services:
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro
+      - ./deps/config/certificates:/certificates
 
   key-manager:
     <<: *container-common
@@ -79,7 +80,8 @@ services:
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/certificates:/certificates:ro
-    command: utils generate-jwt --sub=${SUB-tenant0|username} --scope=${SCOPE-"admin"} --expiration=${EXPIRATION-24h}
+      - ./deps/ca/ca.crt:/certificates/ca.crt:ro
+    command: utils generate-jwt --sub=${SUB-tenant0|username} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-24h}
     restart: "no"
 
 networks:
