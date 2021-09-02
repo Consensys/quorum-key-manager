@@ -317,14 +317,15 @@ func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {
 	return retFile, nil
 }
 
-func tlsAuthCerts(vipr *viper.Viper) ([]*x509.Certificate, error) {
+func tlsAuthCerts(vipr *viper.Viper) (*x509.CertPool, error) {
 	caFile := vipr.GetString(authTLSCertsFileViperKey)
 	if caFile == "" {
 		return nil, nil
 	}
+
 	_, err := os.Stat(caFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read ca file. %s", err.Error())
+		return nil, err
 	}
 
 	caFileContent, err := ioutil.ReadFile(caFile)
@@ -332,14 +333,11 @@ func tlsAuthCerts(vipr *viper.Viper) ([]*x509.Certificate, error) {
 		return nil, err
 	}
 
-	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
-	if err != nil {
-		return nil, err
-	}
-	cert, err := x509.ParseCertificate(bCert[0])
-	if err != nil {
-		return nil, err
+	caCertPool := x509.NewCertPool()
+	ok := caCertPool.AppendCertsFromPEM(caFileContent)
+	if !ok {
+		return nil, fmt.Errorf("failed to append cert to pool")
 	}
 
-	return []*x509.Certificate{cert}, nil
+	return caCertPool, nil
 }

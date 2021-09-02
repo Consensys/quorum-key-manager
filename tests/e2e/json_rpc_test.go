@@ -52,7 +52,7 @@ func TestJSONRpcHTTP(t *testing.T) {
 	}
 
 	var token string
-	token, s.err = generateJWT("./certificates/auth.key","*:*", "e2e|json_rpc_test")
+	token, s.err = generateJWT("./certificates/client.key","*:*", "e2e|json_rpc_test")
 	if s.err != nil {
 		t.Errorf("failed to generate jwt. %s", s.err)
 		return

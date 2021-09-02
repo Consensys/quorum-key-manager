@@ -51,6 +51,7 @@ tests/report/output/report.json
 
 # Manifests
 deps/config/manifests/*.yml
+deps/config/certificates/ca.crt
 
 # API Doc
 combined-schema.json
