@@ -18,6 +18,11 @@ func (c Connector) Restore(ctx context.Context, id, version string) error {
 		return err
 	}
 
+	_, err = c.Get(ctx, id, version)
+	if err == nil {
+		return nil
+	}
+
 	secret, err := c.db.GetDeleted(ctx, id, version)
 	if err == nil {
 		err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
@@ -36,6 +41,8 @@ func (c Connector) Restore(ctx context.Context, id, version string) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		return err
 	}
 
 	logger.Info("secret restored successfully")
