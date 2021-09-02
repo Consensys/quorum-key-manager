@@ -2,9 +2,9 @@ package tls
 
 import (
 	"crypto/x509"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"net/http"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/utils"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
@@ -33,19 +33,12 @@ func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, erro
 		return nil, nil
 	}
 
-	// first array element is the leaf
-	clientCert := req.TLS.PeerCertificates[0]
-
-	isAllowed := false
-	for _, cert := range auth.certs {
-		if cert.Equal(clientCert) {
-			isAllowed = true
-		}
-	}
-
-	if !isAllowed {
+	if !req.TLS.HandshakeComplete {
 		return nil, errors.UnauthorizedError("request certificate is not valid")
 	}
+
+	// first array element is the leaf
+	clientCert := req.TLS.PeerCertificates[0]
 
 	// UserInfo returned is retrieved from cert contents
 	userInfo := &types.UserInfo{

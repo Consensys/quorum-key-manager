@@ -5,13 +5,13 @@ x-default-variables: &default-variables
   LOG_FORMAT: ${LOG_FORMAT-json}
   MANIFEST_PATH: ${MANIFEST_PATH-/manifests}
   TEST_DATA: ${TEST_DATA-}
-  HTTP_PORT: ${HTTP_PORT-}
+  HTTP_PORT: ${HTTP_PORT-8080}
   HTTP_HOST: ${HTTP_HOST-0.0.0.0}
-  HEALTH_PORT: ${HEALTH_PORT-}
-  DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-}
-  DB_TLS_CERT: ${DB_TLS_CERT-}
-  DB_TLS_KEY: ${DB_TLS_KEY-}
-  DB_TLS_CA: ${DB_TLS_CA-}
+  HEALTH_PORT: ${HEALTH_PORT-8081}
+  DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-verify-ca}
+  DB_TLS_CERT: ${DB_TLS_CERT-/certificates/client.crt}
+  DB_TLS_KEY: ${DB_TLS_KEY-/certificates/client.key}
+  DB_TLS_CA: ${DB_TLS_CA-/certificates/ca.crt}
   DB_HOST: ${DB_HOST-}
   DB_PORT: ${DB_PORT-}
   DB_DATABASE: ${DB_DATABASE-}
@@ -44,18 +44,19 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro
       - ./deps/config/certificates:/certificates
+      - ./deps/ca/ca.crt:/certificates/ca.crt:ro
 
   key-manager:
     <<: *container-common
     environment:
       <<: *default-variables
       <<: *qkm-common
-      AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-}
+      AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/client.crt}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
-      HTTP_SERVER_SSL: ${HTTP_SERVER_SSL-}
-      HTTP_SERVER_KEY: ${HTTP_SERVER_KEY-}
-      HTTP_SERVER_CERT: ${HTTP_SERVER_CERT-}
-      AUTH_TLS_CA: ${AUTH_TLS_CA-}
+      HTTP_SERVER_SSL: ${HTTP_SERVER_SSL-true}
+      HTTP_SERVER_KEY: ${HTTP_SERVER_KEY-/certificates/https.key}
+      HTTP_SERVER_CERT: ${HTTP_SERVER_CERT-/certificates/https.crt}
+      AUTH_TLS_CA: ${AUTH_TLS_CA-/certificates/client.crt}
       AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
     ports:
       - 8080:8080
@@ -69,6 +70,7 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
+      - ./deps/ca/ca.crt:/certificates/ca.crt:ro
       - ./deps/config/apikey:/apikey:ro
       - hashicorp-token:/vault/token:ro
 
@@ -76,12 +78,11 @@ services:
     <<: *container-common
     environment:
       <<: *default-variables
-      AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-/certificates/auth.key}
+      AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-/certificates/client.key}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/certificates:/certificates:ro
-      - ./deps/ca/ca.crt:/certificates/ca.crt:ro
-    command: utils generate-jwt --sub=${SUB-tenant0|username} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-24h}
+    command: utils generate-jwt --sub=${SUB-tenant0|user0} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-72h}
     restart: "no"
 
 networks:

@@ -42,15 +42,9 @@ postgres:
 postgres-down:
 	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0
 
-permissions:
-	@sudo chown 70:70 deps/postgres/server.key
+deps: networks hashicorp postgres
 
-revert-permissions:
-	@sudo chown 1000:1000 deps/postgres/server.key
-
-deps: networks hashicorp permissions postgres
-
-down-deps: postgres-down hashicorp-down revert-permissions down-networks
+down-deps: postgres-down hashicorp-down down-networks
 
 run-acceptance:
 	@go test -v -tags acceptance -count=1 ./tests/acceptance
