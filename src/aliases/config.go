@@ -1,4 +1,4 @@
-package aliasmanager
+package aliases
 
 import (
 	pg "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
