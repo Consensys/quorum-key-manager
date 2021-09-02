@@ -1,6 +1,7 @@
 package tls
 
 import (
+	"bytes"
 	"crypto/x509"
 	"net/http"
 
@@ -35,16 +36,27 @@ func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, erro
 	}
 
 	if !req.TLS.HandshakeComplete {
-		return nil, errors.UnauthorizedError("request certificate is not valid")
+		return nil, errors.UnauthorizedError("request must complete valid handshake")
 	}
 
 	// first array element is the leaf
 	clientCert := req.TLS.PeerCertificates[0]
+	isAllowed := false
+	for _, cert := range auth.certs {
+		if bytes.Equal(cert.AuthorityKeyId, clientCert.AuthorityKeyId) {
+			isAllowed = true
+		}
+	}
+
+	if !isAllowed {
+		return nil, errors.UnauthorizedError("request certificate is not valid")
+	}
 
 	// UserInfo returned is retrieved from cert contents
 	userInfo := &types.UserInfo{
 		AuthMode: AuthMode,
 	}
+
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(clientCert.Subject.CommonName)
 	userInfo.Permissions = utils.ExtractPermissions(clientCert.Subject.OrganizationalUnit)
 	userInfo.Roles = clientCert.Subject.Organization
