@@ -2,10 +2,12 @@ package flags
 
 import (
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/tls"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
+
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -202,7 +204,7 @@ const (
 )
 
 func dbTLSCert(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`TLS Certificate to connect to database
+	desc := fmt.Sprintf(`TLS Certificate to connect to database in PEM format
 Environment variable: %q`, dbTLSCertEnv)
 	f.String(dbTLSCertFlag, dbTLSCertDefault, desc)
 	_ = viper.BindPFlag(DBTLSCertViperKey, f.Lookup(dbTLSCertFlag))
@@ -216,7 +218,7 @@ const (
 )
 
 func dbTLSKey(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`TLS Private Key to connect to database
+	desc := fmt.Sprintf(`TLS Private Key to connect to database in PEM format
 Environment variable: %q`, dbTLSKeyEnv)
 	f.String(dbTLSKeyFlag, dbTLSKeyDefault, desc)
 	_ = viper.BindPFlag(DBTLSKeyViperKey, f.Lookup(dbTLSKeyFlag))
@@ -230,13 +232,13 @@ const (
 )
 
 func dbTLSCA(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Trusted Certificate Authority
+	desc := fmt.Sprintf(`Trusted Certificate Authority in PEM format
 Environment variable: %q`, dbTLSCAEnv)
 	f.String(dbTLSCAFlag, dbTLSCADefault, desc)
 	_ = viper.BindPFlag(DBTLSCAViperKey, f.Lookup(dbTLSCAFlag))
 }
 
-func NewPostgresConfig(vipr *viper.Viper) *postgresclient.Config {
+func NewPostgresConfig(vipr *viper.Viper) (*postgresclient.Config, error) {
 	cfg := &postgresclient.Config{
 		Host:              vipr.GetString(DBHostViperKey),
 		Port:              vipr.GetString(DBPortViperKey),
@@ -245,28 +247,37 @@ func NewPostgresConfig(vipr *viper.Viper) *postgresclient.Config {
 		Database:          vipr.GetString(DBDatabaseViperKey),
 		PoolSize:          vipr.GetInt(DBPoolSizeViperKey),
 		PoolTimeout:       vipr.GetDuration(DBPoolTimeoutViperKey),
-		SSLMode:           vipr.GetString(DBTLSSSLModeViperKey),
 		KeepAliveInterval: vipr.GetDuration(DBKeepAliveKey),
 		DialTimeout:       time.Second * 10, // Using double of default PG value
+		SSLMode:           vipr.GetString(DBTLSSSLModeViperKey),
+		TLSCert:           vipr.GetString(DBTLSCertViperKey),
+		TLSKey:            vipr.GetString(DBTLSKeyViperKey),
+		TLSCA:             vipr.GetString(DBTLSCAViperKey),
 		TLS:               &tls.Option{},
 	}
 
-	if vipr.GetString(DBTLSCertViperKey) != "" {
-		cfg.TLS = &tls.Option{
-			Certificates: []*certificate.KeyPair{
-				{
-					Cert: []byte(vipr.GetString(DBTLSCertViperKey)),
-					Key:  []byte(vipr.GetString(DBTLSKeyViperKey)),
-				},
-			},
+	if cfg.TLSCert != "" && cfg.TLSKey != "" {
+		cert, err := ioutil.ReadFile(cfg.TLSCert)
+		if err != nil {
+			return nil, err
+		}
+
+		key, err := ioutil.ReadFile(cfg.TLSKey)
+		if err != nil {
+			return nil, err
+		}
+
+		cfg.TLS.Certificates = []*certificate.KeyPair{{Cert: cert, Key: key}}
+
+		if vipr.GetString(DBTLSCAViperKey) != "" {
+			ca, err := ioutil.ReadFile(cfg.TLSCA)
+			if err != nil {
+				return nil, err
+			}
+
+			cfg.TLS.CAs = [][]byte{ca}
 		}
 	}
 
-	if vipr.GetString(DBTLSCAViperKey) != "" {
-		cfg.TLS.CAs = [][]byte{
-			[]byte(vipr.GetString(DBTLSCAViperKey)),
-		}
-	}
-
-	return cfg
+	return cfg, nil
 }

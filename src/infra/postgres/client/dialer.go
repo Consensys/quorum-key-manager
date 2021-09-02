@@ -32,7 +32,7 @@ func NewTLSDialer(cfg *Config) (*TLSDialer, error) {
 		// at handshake
 		//
 		// In this case it controls both
-		// - server certificate is CA signed if CA has been passed
+		// - server certificate is ca signed if ca has been passed
 		// - server that is accessed is listed in server certificate domains
 		cfg.TLS.ServerName = cfg.Host
 	case verifyCASSLMode:

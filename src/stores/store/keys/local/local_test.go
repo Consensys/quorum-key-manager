@@ -3,7 +3,6 @@ package local
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -215,7 +214,6 @@ func (s *localKeyStoreTestSuite) TestSign() {
 			EllipticCurve: entities.Bn254,
 		})
 
-		fmt.Println(err)
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
 
