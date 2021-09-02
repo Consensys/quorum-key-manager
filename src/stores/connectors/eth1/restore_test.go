@@ -84,7 +84,7 @@ func TestRestoreEth1Account(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should not fail to restore eth1Account if eth1Account is not deleted", func(t *testing.T) {
+	t.Run("should fail to restore eth1Account if eth1Account is not yet deleted", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
@@ -92,7 +92,7 @@ func TestRestoreEth1Account(t *testing.T) {
 
 		err := connector.Restore(ctx, acc.Address)
 
-		assert.Nil(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("should fail to restore eth1Account if db fails to restore", func(t *testing.T) {

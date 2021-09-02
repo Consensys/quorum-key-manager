@@ -24,23 +24,25 @@ func (c Connector) Restore(ctx context.Context, id string) error {
 	}
 
 	_, err = c.db.GetDeleted(ctx, id)
-	if err == nil {
-		err = c.db.RunInTransaction(ctx, func(dbtx database.Keys) error {
-			err = dbtx.Restore(ctx, id)
-			if err != nil {
-				return err
-			}
+	if err != nil {
+		return err
+	}
 
-			err = c.store.Restore(ctx, id)
-			if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support restoring, we only restore in DB
-				return err
-			}
-
-			return nil
-		})
+	err = c.db.RunInTransaction(ctx, func(dbtx database.Keys) error {
+		err = dbtx.Restore(ctx, id)
 		if err != nil {
 			return err
 		}
+
+		err = c.store.Restore(ctx, id)
+		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support restoring, we only restore in DB
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	logger.Info("key restored successfully")
