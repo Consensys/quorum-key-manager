@@ -29,9 +29,9 @@ func init() {
 	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 
-	viper.SetDefault(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameDefault)
+	viper.SetDefault(AuthOIDCClaimUsernameViperKey, AuthOIDCClaimUsernameDefault)
 	_ = viper.BindEnv(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-	viper.SetDefault(AuthOIDCClaimPermissionsViperKey, authOIDCClaimPermissionsDefault)
+	viper.SetDefault(AuthOIDCClaimPermissionsViperKey, AuthOIDCClaimPermissionsDefault)
 	_ = viper.BindEnv(AuthOIDCClaimPermissionsViperKey, authOIDCClaimPermissionsEnv)
 	viper.SetDefault(authOIDCClaimRolesViperKey, AuthOIDCClaimRolesDefault)
 	_ = viper.BindEnv(authOIDCClaimRolesViperKey, authOIDCClaimRolesEnv)
@@ -91,14 +91,14 @@ const (
 const (
 	authOIDCClaimUsernameFlag     = "auth-oidc-claim-username"
 	AuthOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
-	authOIDCClaimUsernameDefault  = "sub"
+	AuthOIDCClaimUsernameDefault  = "sub"
 	authOIDCClaimUsernameEnv      = "AUTH_OIDC_CLAIM_USERNAME"
 )
 
 const (
 	authOIDCClaimPermissionsFlag     = "auth-oidc-claim-permissions"
 	AuthOIDCClaimPermissionsViperKey = "auth.oidc.claim.permissions"
-	authOIDCClaimPermissionsDefault  = "scope"
+	AuthOIDCClaimPermissionsDefault  = "scope"
 	authOIDCClaimPermissionsEnv      = "AUTH_OIDC_CLAIM_PERMISSIONS"
 )
 
@@ -158,14 +158,14 @@ Environment variable: %q`, authOIDCIssuerURLEnv)
 func AuthOIDCClaimUsername(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for username.
 Environment variable: %q`, authOIDCClaimUsernameEnv)
-	f.String(authOIDCClaimUsernameFlag, authOIDCClaimUsernameDefault, desc)
+	f.String(authOIDCClaimUsernameFlag, AuthOIDCClaimUsernameDefault, desc)
 	_ = viper.BindPFlag(AuthOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
 }
 
 func AuthOIDCClaimPermissions(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for permissions.
 Environment variable: %q`, authOIDCClaimPermissionsEnv)
-	f.String(authOIDCClaimPermissionsFlag, authOIDCClaimPermissionsDefault, desc)
+	f.String(authOIDCClaimPermissionsFlag, AuthOIDCClaimPermissionsDefault, desc)
 	_ = viper.BindPFlag(AuthOIDCClaimPermissionsViperKey, f.Lookup(authOIDCClaimPermissionsFlag))
 }
 

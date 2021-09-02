@@ -3,8 +3,9 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -59,9 +60,9 @@ func (s *secretsTestSuite) TestSet() {
 		})
 		require.NoError(s.T(), err)
 
-		err = s.db.Delete(ctx, id, secret.Metadata.Version)
+		err = s.db.Delete(ctx, id)
 		require.NoError(s.T(), err)
-		err = s.db.Purge(ctx, id, secret.Metadata.Version)
+		err = s.db.Purge(ctx, id)
 		require.NoError(s.T(), err)
 
 		secret, err = s.store.Set(ctx, id, value, &entities.Attributes{
@@ -154,18 +155,18 @@ func (s *secretsTestSuite) TestDelete() {
 	id := s.newID("my-secret-delete")
 	value := "my-deleted-secret-value"
 
-	sItem, setErr := s.store.Set(ctx, id, value, &entities.Attributes{
+	_, setErr := s.store.Set(ctx, id, value, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), setErr)
 
 	s.Run("should delete latest secret successfully", func() {
-		err := s.store.Delete(ctx, id, sItem.Metadata.Version)
+		err := s.store.Delete(ctx, id)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with NotFound if secret is not found", func() {
-		err := s.store.Delete(ctx, "inexistentID", "")
+		err := s.store.Delete(ctx, "inexistentID")
 		require.NotNil(s.T(), err)
 		require.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -185,14 +186,14 @@ func (s *secretsTestSuite) TestGetDeleted() {
 	require.NoError(s.T(), err)
 
 	s.Run("should get deleted secret successfully", func() {
-		secret, err := s.store.GetDeleted(ctx, id, sItem.Metadata.Version)
+		secret, err := s.store.GetDeleted(ctx, id)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, secret.ID)
 	})
 
 	s.Run("should fail with NotFound if deleted secret is not found", func() {
-		secret, err := s.store.GetDeleted(ctx, "inexistentID", "")
+		secret, err := s.store.GetDeleted(ctx, "inexistentID")
 
 		assert.Nil(s.T(), secret)
 		require.NotNil(s.T(), err)
@@ -214,12 +215,12 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 	require.NoError(s.T(), err)
 
 	s.Run("should restore deleted secret successfully", func() {
-		err := s.store.Restore(ctx, id, sItem.Metadata.Version)
+		err := s.store.Restore(ctx, id)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with NotFound if restored secret is not found and not deleted", func() {
-		err := s.store.Restore(ctx, "inexistentID", "")
+		err := s.store.Restore(ctx, "inexistentID")
 		require.NotNil(s.T(), err)
 		// require.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -259,7 +260,7 @@ func (s *secretsTestSuite) newID(name string) string {
 }
 
 func (s *secretsTestSuite) delete(ctx context.Context, id, version string) error {
-	err := s.store.Delete(ctx, id, version)
+	err := s.store.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -267,18 +268,15 @@ func (s *secretsTestSuite) delete(ctx context.Context, id, version string) error
 	if _, ok := s.store.(*akv.Store); ok {
 		maxTries := MaxRetries
 		for {
-			_, err := s.store.GetDeleted(ctx, id, version)
+			_, err := s.store.GetDeleted(ctx, id)
 			if err == nil {
 				break
 			}
 
 			if maxTries <= 0 {
-				if err != nil {
-					errMsg := "failed to wait for deletion to complete"
-					s.env.logger.With("secretID", id).Error(errMsg)
-					return fmt.Errorf(errMsg)
-				}
-				break
+				errMsg := "failed to wait for deletion to complete"
+				s.env.logger.With("secretID", id).Error(errMsg)
+				return fmt.Errorf(errMsg)
 			}
 
 			maxTries -= 1

@@ -19,7 +19,7 @@ func (c Connector) Delete(ctx context.Context, id string) error {
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		derr := dbtx.Delete(ctx, id, "")
+		derr := dbtx.Delete(ctx, id)
 		if derr != nil {
 			return derr
 		}

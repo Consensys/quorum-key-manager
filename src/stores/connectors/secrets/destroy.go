@@ -18,13 +18,13 @@ func (c Connector) Destroy(ctx context.Context, id string) error {
 		return err
 	}
 
-	_, err = c.db.GetDeleted(ctx, id, "")
+	_, err = c.db.GetDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		err = dbtx.Purge(ctx, id, "")
+		err = dbtx.Purge(ctx, id)
 		if err != nil {
 			return err
 		}

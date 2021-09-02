@@ -141,14 +141,10 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 func (s *Store) Delete(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	versionList, err := s.db.ListVersions(ctx, id, false)
+	versions, err := s.listVersions(ctx, id, false)
 	if err != nil {
-		errMessage := "failed to list secret versions"
-		logger.WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
+		return err
 	}
-
-	versions := strings.Join(versionList, ",")
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), map[string][]string{
 		"versions": {versions},
 	})
@@ -189,14 +185,10 @@ func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
 
 func (s *Store) Restore(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
-	versionList, err := s.db.ListVersions(ctx, id, false)
+	versions, err := s.listVersions(ctx, id, false)
 	if err != nil {
-		errMessage := "failed to list secret versions"
-		logger.WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
+		return err
 	}
-
-	versions := strings.Join(versionList, ",")
 	err = s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
 		"versions": {versions},
 	})
@@ -211,15 +203,12 @@ func (s *Store) Restore(ctx context.Context, id string) error {
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
-	
-	versionList, err := s.db.ListVersions(ctx, id, false)
+
+	versions, err := s.listVersions(ctx, id, false)
 	if err != nil {
-		errMessage := "failed to list secret versions"
-		logger.WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
+		return err
 	}
-	
-	versions := strings.Join(versionList, ",")
+
 	err = s.client.WritePost(s.pathDestroyID(id), map[string][]string{
 		"versions": {versions},
 	})
@@ -230,6 +219,16 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (s *Store) listVersions(ctx context.Context, id string, isDeleted bool) (string, error) {
+	versionList, err := s.db.ListVersions(ctx, id, false)
+	if err != nil {
+		errMessage := "failed to list secret versions"
+		s.logger.WithError(err).Error(errMessage, "id", id)
+		return "", errors.FromError(err).SetMessage(errMessage)
+	}
+	return strings.Join(versionList, ","), nil
 }
 
 func (s *Store) pathUndeleteID(id string) string {

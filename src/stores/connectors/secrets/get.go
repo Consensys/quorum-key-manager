@@ -12,17 +12,18 @@ import (
 func (c Connector) Get(ctx context.Context, id, version string) (*entities.Secret, error) {
 	logger := c.logger.With("id", id, "version", version)
 
-	if version == "" {
-		var err error
-		version, err = c.db.GetLatestVersion(ctx, id, false)
-		errMsg := "failed to fetch latest secret version"
-		logger.WithError(err).Error(errMsg)
-		return nil, errors.FromError(err).SetMessage(errMsg)
-	}
-
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret})
 	if err != nil {
 		return nil, err
+	}
+
+	if version == "" {
+		version, err = c.db.GetLatestVersion(ctx, id, false)
+		if err != nil {
+			errMsg := "failed to fetch latest secret version"
+			logger.WithError(err).Error(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
+		}
 	}
 
 	secret, err := c.db.Get(ctx, id, version)
@@ -48,7 +49,7 @@ func (c Connector) GetDeleted(ctx context.Context, id string) (*entities.Secret,
 		return nil, err
 	}
 
-	secret, err := c.db.GetDeleted(ctx, id, "")
+	secret, err := c.db.GetDeleted(ctx, id)
 	if err != nil {
 		return nil, err
 	}

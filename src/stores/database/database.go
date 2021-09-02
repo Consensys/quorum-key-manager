@@ -46,12 +46,12 @@ type Secrets interface {
 	Get(ctx context.Context, id, version string) (*entities.Secret, error)
 	GetLatestVersion(ctx context.Context, id string, isDeleted bool) (string, error)
 	ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error)
-	GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error)
+	GetDeleted(ctx context.Context, id string) (*entities.Secret, error)
 	GetAll(ctx context.Context) ([]*entities.Secret, error)
 	GetAllDeleted(ctx context.Context) ([]*entities.Secret, error)
 	Add(ctx context.Context, secret *entities.Secret) (*entities.Secret, error)
 	Update(ctx context.Context, secret *entities.Secret) (*entities.Secret, error)
-	Delete(ctx context.Context, id, version string) error
-	Restore(ctx context.Context, id, version string) error
-	Purge(ctx context.Context, id, version string) error
+	Delete(ctx context.Context, id string) error
+	Restore(ctx context.Context, id string) error
+	Purge(ctx context.Context, id string) error
 }
