@@ -23,9 +23,10 @@ func TestAuthenticatorSameCert(t *testing.T) {
 	eveCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKey))
 	require.NoError(t, err)
 
-	auth, _ := NewAuthenticator(&Config{
-		CAs: []*x509.Certificate{aliceCert.Leaf, eveCert.Leaf},
-	})
+	caCertPool := x509.NewCertPool()
+	caCertPool.AddCert(aliceCert.Leaf)
+	caCertPool.AddCert(eveCert.Leaf)
+	auth, _ := NewAuthenticator(&Config{CAs: caCertPool})
 
 	t.Run("should accept cert and extract username and roles successfully", func(t *testing.T) {
 		reqAlice := httptest.NewRequest("GET", "https://test.url", nil)
@@ -66,9 +67,10 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 
 	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
 	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKey))
-	auth, _ := NewAuthenticator(&Config{
-		CAs: []*x509.Certificate{aliceCert.Leaf, eveCert.Leaf},
-	})
+	caCertPool := x509.NewCertPool()
+	caCertPool.AddCert(aliceCert.Leaf)
+	caCertPool.AddCert(eveCert.Leaf)
+	auth, _ := NewAuthenticator(&Config{CAs: caCertPool})
 
 	t.Run("should NOT reject cert and leave ID empty", func(t *testing.T) {
 

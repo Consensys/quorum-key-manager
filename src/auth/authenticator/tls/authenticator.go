@@ -2,8 +2,9 @@ package tls
 
 import (
 	"crypto/x509"
-	"github.com/consensys/quorum-key-manager/pkg/tls"
 	"net/http"
+
+	"github.com/consensys/quorum-key-manager/pkg/tls"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 

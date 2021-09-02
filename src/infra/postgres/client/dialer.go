@@ -73,7 +73,8 @@ func (d *TLSDialer) DialContext(ctx context.Context, network, addr string) (net.
 
 	if d.verifyCAOnly {
 		tlsConn := conn.(*gotls.Conn)
-		if err := tlsConn.Handshake(); err != nil {
+		err = tlsConn.Handshake()
+		if err != nil {
 			return nil, err
 		}
 
