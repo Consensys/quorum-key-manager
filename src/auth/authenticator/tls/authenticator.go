@@ -1,8 +1,8 @@
 package tls
 
 import (
-	"bytes"
 	"crypto/x509"
+	"github.com/consensys/quorum-key-manager/pkg/tls"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -14,7 +14,7 @@ import (
 const AuthMode = "Tls"
 
 type Authenticator struct {
-	certs []*x509.Certificate
+	rootCAs *x509.CertPool
 }
 
 func NewAuthenticator(cfg *Config) (*Authenticator, error) {
@@ -22,12 +22,12 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 		return nil, nil
 	}
 	auth := &Authenticator{
-		certs: cfg.CAs,
+		rootCAs: cfg.CAs,
 	}
 	return auth, nil
 }
 
-// Authenticate checks certs and retrieve user Info
+// Authenticate checks rootCAs and retrieve user Info
 func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
 	// extract Certificate info from request if any
 	// let go without error when no cert found
@@ -39,17 +39,9 @@ func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, erro
 		return nil, errors.UnauthorizedError("request must complete valid handshake")
 	}
 
-	// first array element is the leaf
-	clientCert := req.TLS.PeerCertificates[0]
-	isAllowed := false
-	for _, cert := range auth.certs {
-		if bytes.Equal(cert.AuthorityKeyId, clientCert.AuthorityKeyId) {
-			isAllowed = true
-		}
-	}
-
-	if !isAllowed {
-		return nil, errors.UnauthorizedError("request certificate is not valid")
+	err := tls.VerifyCertificateAuthority(req.TLS.PeerCertificates, req.TLS.ServerName, auth.rootCAs, true)
+	if err != nil {
+		return nil, errors.UnauthorizedError(err.Error())
 	}
 
 	// UserInfo returned is retrieved from cert contents
@@ -57,6 +49,8 @@ func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, erro
 		AuthMode: AuthMode,
 	}
 
+	// first array element is the leaf
+	clientCert := req.TLS.PeerCertificates[0]
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(clientCert.Subject.CommonName)
 	userInfo.Permissions = utils.ExtractPermissions(clientCert.Subject.OrganizationalUnit)
 	userInfo.Roles = clientCert.Subject.Organization

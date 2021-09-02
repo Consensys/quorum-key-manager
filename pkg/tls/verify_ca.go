@@ -1,20 +1,17 @@
 package tls
 
 import (
-	"crypto/tls"
 	"crypto/x509"
 )
 
-func VerifyCertificateAuthority(conn *tls.Conn, tlsConf *tls.Config) error {
-	if err := conn.Handshake(); err != nil {
-		return err
+func VerifyCertificateAuthority(certs []*x509.Certificate, serverName string, rootCAs *x509.CertPool, skipVerify bool) error {
+	opts := x509.VerifyOptions{
+		Intermediates: x509.NewCertPool(),
+		Roots:         rootCAs,
 	}
 
-	certs := conn.ConnectionState().PeerCertificates
-	opts := x509.VerifyOptions{
-		DNSName:       conn.ConnectionState().ServerName,
-		Intermediates: x509.NewCertPool(),
-		Roots:         tlsConf.RootCAs,
+	if !skipVerify {
+		opts.DNSName = serverName
 	}
 
 	for i, cert := range certs {

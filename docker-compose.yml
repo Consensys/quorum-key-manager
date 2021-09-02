@@ -11,7 +11,7 @@ x-default-variables: &default-variables
   DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-verify-ca}
   DB_TLS_CERT: ${DB_TLS_CERT-/certificates/client.crt}
   DB_TLS_KEY: ${DB_TLS_KEY-/certificates/client.key}
-  DB_TLS_CA: ${DB_TLS_CA-/certificates/ca.crt}
+  DB_TLS_CA: ${DB_TLS_CA-/ca/ca.crt}
   DB_HOST: ${DB_HOST-}
   DB_PORT: ${DB_PORT-}
   DB_DATABASE: ${DB_DATABASE-}
@@ -44,7 +44,7 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro
       - ./deps/config/certificates:/certificates
-      - ./deps/ca/ca.crt:/certificates/ca.crt:ro
+      - ./deps/ca:/ca:ro
 
   key-manager:
     <<: *container-common
@@ -56,7 +56,7 @@ services:
       HTTP_SERVER_SSL: ${HTTP_SERVER_SSL-true}
       HTTP_SERVER_KEY: ${HTTP_SERVER_KEY-/certificates/https.key}
       HTTP_SERVER_CERT: ${HTTP_SERVER_CERT-/certificates/https.crt}
-      AUTH_TLS_CA: ${AUTH_TLS_CA-/certificates/client.crt}
+      AUTH_TLS_CA: ${AUTH_TLS_CA-/ca/ca.crt}
       AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
     ports:
       - 8080:8080
@@ -70,7 +70,7 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
-      - ./deps/ca/ca.crt:/certificates/ca.crt:ro
+      - ./deps/ca:/ca:ro
       - ./deps/config/apikey:/apikey:ro
       - hashicorp-token:/vault/token:ro
 
