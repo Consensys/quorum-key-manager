@@ -51,16 +51,7 @@ func TestDeleteKey(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should be idempotent when eth1Account not found", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
-
-		err := connector.Delete(ctx, acc.Address)
-
-		assert.NoError(t, err)
-	})
-
-	t.Run("should delete eth1Account successfully, ignoring not supported error", func(t *testing.T) {
+	t.Run("should delete key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
@@ -82,13 +73,14 @@ func TestDeleteKey(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should NOT fail to delete key if db fail to get", func(t *testing.T) {
+	t.Run("should fail to delete key if db fail to get", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, expectedErr)
 
 		err := connector.Delete(ctx, acc.Address)
 
-		assert.Nil(t, err)
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to delete key if db fail to delete", func(t *testing.T) {

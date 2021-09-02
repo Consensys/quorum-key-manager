@@ -40,8 +40,6 @@ func TestDestroyKey(t *testing.T) {
 
 	t.Run("should destroy key successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Purge(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(nil)
@@ -55,8 +53,6 @@ func TestDestroyKey(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Purge(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(rErr)
@@ -75,22 +71,18 @@ func TestDestroyKey(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should not fail to destroy key if key is not deleted", func(t *testing.T) {
+	t.Run("should fail to destroy key if key is not deleted", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
-
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, expectedErr)
 
 		err := connector.Destroy(ctx, key.ID)
 
-		assert.Nil(t, err)
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to destroy key if db fail to purge", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Purge(gomock.Any(), key.ID).Return(expectedErr)
 
@@ -102,23 +94,9 @@ func TestDestroyKey(t *testing.T) {
 
 	t.Run("should fail to destroy key if store fail to destroy", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Purge(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(expectedErr)
-
-		err := connector.Destroy(ctx, key.ID)
-
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedErr)
-	})
-
-	t.Run("should fail to destroy key if key exists", func(t *testing.T) {
-		expectedErr = errors.StatusConflictError("key %s must be deleted first", key.ID)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceKey}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, nil)
 
 		err := connector.Destroy(ctx, key.ID)
 

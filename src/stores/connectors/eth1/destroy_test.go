@@ -42,8 +42,6 @@ func TestDestroyKey(t *testing.T) {
 
 	t.Run("should destroy eth1Account successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(nil)
@@ -53,11 +51,10 @@ func TestDestroyKey(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should destroy eth1Account successfully, ignoring not supported error", func(t *testing.T) {
+	t.Run("should destroy key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
+
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(rErr)
@@ -76,21 +73,18 @@ func TestDestroyKey(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should not fail to destroy eth1Account if db fail to get deleted", func(t *testing.T) {
+	t.Run("should fail to destroy key if db fail to get", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, expectedErr)
 
 		err := connector.Destroy(ctx, acc.Address)
 
-		assert.Nil(t, err)
+		assert.Error(t, err)
+		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should fail to destroy eth1Account if db fail to destroy", func(t *testing.T) {
+	t.Run("should fail to destroy key if db fail to destroy", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(expectedErr)
 
@@ -100,25 +94,11 @@ func TestDestroyKey(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should fail to destroy eth1Account if store fail to destroy", func(t *testing.T) {
+	t.Run("should fail to destroy key if store fail to destroy", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(expectedErr)
-
-		err := connector.Destroy(ctx, acc.Address)
-
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedErr)
-	})
-
-	t.Run("should fail to destroy eth1Account if already exists", func(t *testing.T) {
-		expectedErr = errors.StatusConflictError("account %s must be deleted first", acc.Address.Hex())
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEth1Account}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
-		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 
 		err := connector.Destroy(ctx, acc.Address)
 

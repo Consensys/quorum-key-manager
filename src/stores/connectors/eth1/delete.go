@@ -20,23 +20,25 @@ func (c Connector) Delete(ctx context.Context, addr ethcommon.Address) error {
 	}
 
 	acc, err := c.db.Get(ctx, addr.Hex())
-	if err == nil {
-		err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-			err = dbtx.Delete(ctx, addr.Hex())
-			if err != nil {
-				return err
-			}
+	if err != nil {
+		return err
+	}
 
-			err = c.store.Delete(ctx, acc.KeyID)
-			if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support deleting, we only delete in DB
-				return err
-			}
-
-			return nil
-		})
+	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
+		err = dbtx.Delete(ctx, addr.Hex())
 		if err != nil {
 			return err
 		}
+
+		err = c.store.Delete(ctx, acc.KeyID)
+		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support deleting, we only delete in DB
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	logger.Info("ethereum account deleted successfully")
