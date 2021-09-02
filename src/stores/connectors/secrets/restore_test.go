@@ -71,14 +71,13 @@ func TestRestoreSecret(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should fail to restore secret if secret is not deleted", func(t *testing.T) {
+	t.Run("should not fail to restore secret if secret is not deleted", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, expectedErr)
 
 		err := connector.Restore(ctx, secret.ID, secret.Metadata.Version)
 
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedErr)
+		assert.Nil(t, err)
 	})
 
 	t.Run("should fail to restore secret if db fail to restore", func(t *testing.T) {

@@ -19,25 +19,23 @@ func (c Connector) Restore(ctx context.Context, id, version string) error {
 	}
 
 	secret, err := c.db.GetDeleted(ctx, id, version)
-	if err != nil {
-		return err
-	}
+	if err == nil {
+		err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
+			err = dbtx.Restore(ctx, secret.ID, version)
+			if err != nil {
+				return err
+			}
 
-	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		err = dbtx.Restore(ctx, secret.ID, version)
+			err = c.store.Restore(ctx, secret.ID, version)
+			if err != nil && !errors.IsNotSupportedError(err) {
+				return err
+			}
+
+			return nil
+		})
 		if err != nil {
 			return err
 		}
-
-		err = c.store.Restore(ctx, secret.ID, version)
-		if err != nil && !errors.IsNotSupportedError(err) {
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
 	}
 
 	logger.Info("secret restored successfully")

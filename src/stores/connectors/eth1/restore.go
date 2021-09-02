@@ -19,26 +19,29 @@ func (c Connector) Restore(ctx context.Context, addr ethcommon.Address) error {
 		return err
 	}
 
-	acc, err := c.db.GetDeleted(ctx, addr.Hex())
-	if err != nil {
-		return err
+	_, err = c.Get(ctx, addr)
+	if err == nil {
+		return nil
 	}
 
-	err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
-		err = dbtx.Restore(ctx, addr.Hex())
+	acc, err := c.db.GetDeleted(ctx, addr.Hex())
+	if err == nil {
+		err = c.db.RunInTransaction(ctx, func(dbtx database.ETH1Accounts) error {
+			err = dbtx.Restore(ctx, addr.Hex())
+			if err != nil {
+				return err
+			}
+
+			err = c.store.Restore(ctx, acc.KeyID)
+			if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support restoring, we only restore in DB
+				return err
+			}
+
+			return nil
+		})
 		if err != nil {
 			return err
 		}
-
-		err = c.store.Restore(ctx, acc.KeyID)
-		if err != nil && !errors.IsNotSupportedError(err) { // If the underlying store does not support restoring, we only restore in DB
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
 	}
 
 	logger.Info("ethereum account restored successfully")
