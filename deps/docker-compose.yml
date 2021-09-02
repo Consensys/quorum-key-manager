@@ -15,6 +15,7 @@ services:
     <<: *postgres-common
     image: postgres:13.3-alpine
     # command: ["postgres", "-c", "max_connections=100"]
+    # command: ["postgres", "-c", "log_statement=all"]
     command: >
       -c ssl=on
       -c ssl_cert_file=/var/lib/postgresql/server.crt
