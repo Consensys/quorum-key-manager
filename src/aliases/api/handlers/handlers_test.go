@@ -68,7 +68,7 @@ func TestCreateAlias(t *testing.T) {
 		helper := newAPIHelper(t)
 		c := defaultCase()
 		req := types.CreateAliasRequest{
-			Alias: newAPIAlias(c.key, c.value),
+			Value: types.AliasValue(c.value),
 		}
 		var b bytes.Buffer
 		err := json.NewEncoder(&b).Encode(req)
@@ -90,7 +90,7 @@ func TestCreateAlias(t *testing.T) {
 		err = json.Unmarshal(res, &resp)
 		require.NoError(t, err)
 
-		assert.Equal(t, types.CreateAliasResponse{Alias: types.Alias{Key: types.AliasKey(c.key), Value: types.AliasValue(c.value)}}, resp)
+		assert.Equal(t, types.CreateAliasResponse{Value: types.AliasValue(c.value)}, resp)
 	})
 
 	t.Run("already existing alias", func(t *testing.T) {
@@ -101,7 +101,7 @@ func TestCreateAlias(t *testing.T) {
 		c.status = http.StatusConflict
 
 		req := types.CreateAliasRequest{
-			Alias: newAPIAlias(c.key, c.value),
+			Value: types.AliasValue(c.value),
 		}
 		var b bytes.Buffer
 		err := json.NewEncoder(&b).Encode(req)
@@ -153,10 +153,7 @@ func TestUpdateAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, types.UpdateAliasResponse{
-			Alias: types.Alias{
-				Key:   types.AliasKey(c.key),
-				Value: types.AliasValue(c.value),
-			},
+			Value: types.AliasValue(c.value),
 		},
 			resp)
 	})
@@ -213,10 +210,7 @@ func TestGetAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, types.GetAliasResponse{
-			Alias: types.Alias{
-				Key:   types.AliasKey(c.key),
-				Value: types.AliasValue(c.value),
-			},
+			Value: types.AliasValue(c.value),
 		}, resp)
 
 	})

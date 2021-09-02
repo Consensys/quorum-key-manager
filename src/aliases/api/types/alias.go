@@ -17,11 +17,11 @@ func FormatEntityAlias(ent aliasent.Alias) Alias {
 	}
 }
 
-func FormatAlias(registry RegistryName, alias Alias) aliasent.Alias {
+func FormatAlias(registry RegistryName, key string, value AliasValue) aliasent.Alias {
 	return aliasent.Alias{
 		RegistryName: aliasent.RegistryName(registry),
-		Key:          aliasent.AliasKey(alias.Key),
-		Value:        aliasent.AliasValue(alias.Value),
+		Key:          aliasent.AliasKey(key),
+		Value:        aliasent.AliasValue(value),
 	}
 }
 
@@ -41,15 +41,15 @@ type AliasKey string
 type RegistryName string
 
 type CreateAliasRequest struct {
-	Alias
+	Value AliasValue `json:"value"`
 }
 
 type CreateAliasResponse struct {
-	Alias
+	Value AliasValue `json:"value"`
 }
 
 type GetAliasResponse struct {
-	Alias
+	Value AliasValue `json:"value"`
 }
 
 type UpdateAliasRequest struct {
@@ -57,5 +57,5 @@ type UpdateAliasRequest struct {
 }
 
 type UpdateAliasResponse struct {
-	Alias
+	Value AliasValue `json:"value"`
 }
