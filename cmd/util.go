@@ -72,7 +72,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	_, err = os.Stat(keyFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("cannot read CA Key file %s", keyFile)
+			return fmt.Errorf("cannot read ca Key file %s", keyFile)
 		}
 		return err
 	}

@@ -171,7 +171,7 @@ func clientCAPool(vipr *viper.Viper) (*x509.CertPool, error) {
 	}
 	_, err := os.Stat(caFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read client CA file. %s", err.Error())
+		return nil, fmt.Errorf("failed to read client ca file. %s", err.Error())
 	}
 
 	caFileContent, err := ioutil.ReadFile(caFile)
