@@ -41,6 +41,7 @@ func TestDeleteSecret(t *testing.T) {
 		secret := testutils2.FakeSecret()
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
 		store.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
 
@@ -49,13 +50,22 @@ func TestDeleteSecret(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should delete secret successfully, ignoring not supported error", func(t *testing.T) {
+	t.Run("should be idempotent when secret already deleted", func(t *testing.T) {
 		secret := testutils2.FakeSecret()
-		rErr := errors.NotSupportedError("not supported")
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
-		store.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(rErr)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, nil)
+
+		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("should delete secret successfully, ignoring not supported error", func(t *testing.T) {
+		secret := testutils2.FakeSecret()
+
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, nil)
 
 		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
 
@@ -76,6 +86,7 @@ func TestDeleteSecret(t *testing.T) {
 		secret := testutils2.FakeSecret()
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)
 
 		err := connector.Delete(ctx, secret.ID, secret.Metadata.Version)
@@ -87,6 +98,7 @@ func TestDeleteSecret(t *testing.T) {
 		secret := testutils2.FakeSecret()
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret}).Return(nil)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
 		store.EXPECT().Delete(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)
 
