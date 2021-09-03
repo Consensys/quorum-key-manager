@@ -59,7 +59,7 @@ type Case struct {
 }
 
 func defaultCase() Case {
-	return Case{"testr", "akey2", `[ "0123" ]`, http.StatusOK}
+	return Case{"my-registry", "group-A", `[ “ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=”, ”2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=” ]`, http.StatusOK}
 }
 
 func TestCreateAlias(t *testing.T) {
@@ -330,12 +330,12 @@ func TestListAliases(t *testing.T) {
 		c := defaultCase()
 		ents := []aliasent.Alias{
 			{
-				Key:   "key_1",
-				Value: `[ "value_1_1", "value_2_1" ]`,
+				Key:   "JPM",
+				Value: `[ "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=" ]`,
 			},
 			{
-				Key:   "key_2",
-				Value: `[ "value_2_1", "value_2_2" ]`,
+				Key:   "GS",
+				Value: `[ "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=" ]`,
 			},
 		}
 		helper.mock.EXPECT().ListAliases(gomock.Any(), aliasent.RegistryName(c.reg)).Return(ents, nil)
