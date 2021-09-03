@@ -435,13 +435,6 @@ func newEntAlias(registry, key, value string) aliasent.Alias {
 	}
 }
 
-func newAPIAlias(key, value string) types.Alias {
-	return types.Alias{
-		Key:   types.AliasKey(key),
-		Value: types.AliasValue(value),
-	}
-}
-
 func newJSONRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
 	r, err := http.NewRequestWithContext(ctx, method, path, body)
 	if err != nil {
