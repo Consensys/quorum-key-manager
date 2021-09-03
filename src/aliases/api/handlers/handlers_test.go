@@ -384,9 +384,7 @@ func TestPathValidate(t *testing.T) {
 				require.NoError(t, err)
 
 				helper.router.ServeHTTP(helper.rec, r)
-				assert.Contains(t, helper.rec.Result().Header.Values("Content-Type"), "application/json")
-				assert.Contains(t, helper.rec.Result().Header.Values("X-Content-Type-Options"), "nosniff")
-				assert.Equal(t, helper.rec.Result().StatusCode, http.StatusBadRequest)
+				assert.Equal(t, http.StatusBadRequest, helper.rec.Result().StatusCode)
 			})
 		}
 	}
