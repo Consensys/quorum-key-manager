@@ -67,7 +67,7 @@ func TestCreateAlias(t *testing.T) {
 		t.Parallel()
 		helper := newAPIHelper(t)
 		c := defaultCase()
-		req := types.CreateAliasRequest{
+		req := types.AliasRequest{
 			Value: types.AliasValue(c.value),
 		}
 		var b bytes.Buffer
@@ -86,11 +86,11 @@ func TestCreateAlias(t *testing.T) {
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 
-		var resp types.CreateAliasResponse
+		var resp types.AliasResponse
 		err = json.Unmarshal(res, &resp)
 		require.NoError(t, err)
 
-		assert.Equal(t, types.CreateAliasResponse{Value: types.AliasValue(c.value)}, resp)
+		assert.Equal(t, types.AliasResponse{Value: types.AliasValue(c.value)}, resp)
 	})
 
 	t.Run("already existing alias", func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestCreateAlias(t *testing.T) {
 		c.key = "existing_key"
 		c.status = http.StatusConflict
 
-		req := types.CreateAliasRequest{
+		req := types.AliasRequest{
 			Value: types.AliasValue(c.value),
 		}
 		var b bytes.Buffer
@@ -129,7 +129,7 @@ func TestUpdateAlias(t *testing.T) {
 		helper := newAPIHelper(t)
 
 		c := defaultCase()
-		req := types.UpdateAliasRequest{
+		req := types.AliasRequest{
 			Value: types.AliasValue(c.value),
 		}
 		var b bytes.Buffer
@@ -148,11 +148,11 @@ func TestUpdateAlias(t *testing.T) {
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 
-		var resp types.UpdateAliasResponse
+		var resp types.AliasResponse
 		err = json.Unmarshal(res, &resp)
 		require.NoError(t, err)
 
-		assert.Equal(t, types.UpdateAliasResponse{
+		assert.Equal(t, types.AliasResponse{
 			Value: types.AliasValue(c.value),
 		},
 			resp)
@@ -165,7 +165,7 @@ func TestUpdateAlias(t *testing.T) {
 		c := defaultCase()
 		c.key = nonExistingKey
 		c.status = http.StatusNotFound
-		alias := types.UpdateAliasRequest{
+		alias := types.AliasRequest{
 			Value: types.AliasValue(c.value),
 		}
 		var b bytes.Buffer
@@ -205,11 +205,11 @@ func TestGetAlias(t *testing.T) {
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 
-		var resp types.GetAliasResponse
+		var resp types.AliasResponse
 		err = json.Unmarshal(res, &resp)
 		require.NoError(t, err)
 
-		assert.Equal(t, types.GetAliasResponse{
+		assert.Equal(t, types.AliasResponse{
 			Value: types.AliasValue(c.value),
 		}, resp)
 

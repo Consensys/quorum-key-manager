@@ -40,22 +40,10 @@ type AliasKey string
 
 type RegistryName string
 
-type CreateAliasRequest struct {
+type AliasRequest struct {
 	Value AliasValue `json:"value"`
 }
 
-type CreateAliasResponse struct {
-	Value AliasValue `json:"value"`
-}
-
-type GetAliasResponse struct {
-	Value AliasValue `json:"value"`
-}
-
-type UpdateAliasRequest struct {
-	Value AliasValue `json:"value"`
-}
-
-type UpdateAliasResponse struct {
+type AliasResponse struct {
 	Value AliasValue `json:"value"`
 }

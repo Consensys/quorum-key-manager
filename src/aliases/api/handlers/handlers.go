@@ -92,7 +92,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var aliasReq types.CreateAliasRequest
+	var aliasReq types.AliasRequest
 	err = jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
@@ -106,7 +106,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := types.CreateAliasResponse{
+	resp := types.AliasResponse{
 		Value: types.AliasValue(alias.Value),
 	}
 	err = jsonWrite(w, resp)
@@ -144,7 +144,7 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = jsonWrite(w, types.GetAliasResponse{
+	err = jsonWrite(w, types.AliasResponse{
 		Value: types.AliasValue(alias.Value),
 	})
 	if err != nil {
@@ -178,7 +178,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var aliasReq types.UpdateAliasRequest
+	var aliasReq types.AliasRequest
 	err = jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
@@ -200,7 +200,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = jsonWrite(w, types.UpdateAliasResponse{
+	err = jsonWrite(w, types.AliasResponse{
 		Value: types.AliasValue(alias.Value),
 	})
 	if err != nil {
