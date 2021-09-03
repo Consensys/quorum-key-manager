@@ -72,7 +72,18 @@ func (d *TLSDialer) DialContext(ctx context.Context, network, addr string) (net.
 	}
 
 	if d.verifyCAOnly {
-		err = tls.VerifyCertificateAuthority(conn.(*gotls.Conn), d.Dialer.TLSConfig)
+		tlsConn := conn.(*gotls.Conn)
+		err = tlsConn.Handshake()
+		if err != nil {
+			return nil, err
+		}
+
+		err = tls.VerifyCertificateAuthority(
+			tlsConn.ConnectionState().PeerCertificates,
+			tlsConn.ConnectionState().ServerName,
+			d.Dialer.TLSConfig.RootCAs,
+			d.Dialer.TLSConfig.InsecureSkipVerify,
+		)
 		if err != nil {
 			conn.Close()
 			return nil, err
