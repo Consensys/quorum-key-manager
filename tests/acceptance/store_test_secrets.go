@@ -218,7 +218,7 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 		require.NoError(s.T(), err)
 	})
 
-	s.Run("should fail with NotFound if deleted secret is not found", func() {
+	s.Run("should fail with NotFound if restored secret is not found and not deleted", func() {
 		err := s.store.Restore(ctx, "inexistentID", "")
 		require.NotNil(s.T(), err)
 		// require.True(s.T(), errors.IsNotFoundError(err))

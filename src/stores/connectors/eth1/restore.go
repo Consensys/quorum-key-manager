@@ -19,6 +19,11 @@ func (c Connector) Restore(ctx context.Context, addr ethcommon.Address) error {
 		return err
 	}
 
+	_, err = c.Get(ctx, addr)
+	if err == nil {
+		return nil
+	}
+
 	acc, err := c.db.GetDeleted(ctx, addr.Hex())
 	if err != nil {
 		return err
