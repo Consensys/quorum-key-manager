@@ -354,6 +354,44 @@ func TestListAliases(t *testing.T) {
 	})
 }
 
+func TestPathValidate(t *testing.T) {
+	cases := []struct {
+		path string
+	}{
+		{"/aliases/registries/bad*registry/aliases/ok-key"},
+		{"/aliases/registries/ok_registry/aliases/bad@key"},
+	}
+
+	requests := []struct {
+		method string
+		input  string
+	}{
+		{"GET", ``},
+		{"POST", `{"value": "[ \"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=\" ]"}`},
+		{"PUT", `{"value": "[ \"XOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=\" ]"}`},
+		{"DELETE", ``},
+	}
+
+	for _, c := range cases {
+		for _, r := range requests {
+			t.Run(fmt.Sprintf("%s %s", r.method, c.path), func(t *testing.T) {
+				t.Parallel()
+				helper := newAPIHelper(t)
+
+				input := strings.NewReader(r.input)
+
+				r, err := newJSONRequest(helper.ctx, r.method, c.path, input)
+				require.NoError(t, err)
+
+				helper.router.ServeHTTP(helper.rec, r)
+				assert.Contains(t, helper.rec.Result().Header.Values("Content-Type"), "application/json")
+				assert.Contains(t, helper.rec.Result().Header.Values("X-Content-Type-Options"), "nosniff")
+				assert.Equal(t, helper.rec.Result().StatusCode, http.StatusBadRequest)
+			})
+		}
+	}
+}
+
 func TestJSONHeader(t *testing.T) {
 	cases := []struct {
 		method string

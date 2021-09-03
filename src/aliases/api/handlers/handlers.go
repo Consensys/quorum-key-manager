@@ -45,6 +45,7 @@ func (h *AliasHandler) Register(r *mux.Router) {
 // @Param registry_key path string true "registry identifier"
 // @Param request body types.DeleteRegistryRequest true "Delete Registry Request"
 // @Success 204 {object} types.DeleteRegistryResponse "Registry data"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registryes/{registry_name}/registryes/{registry_key} [delete]
 func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
@@ -122,6 +123,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
 // @Success 200 {object} types.GetAliasResponse "Alias data"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /aliases/{registry_name}/aliases/{alias_key} [get]
 func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
@@ -215,6 +217,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 // @Param alias_key path string true "alias identifier"
 // @Param request body types.DeleteAliasRequest true "Delete Alias Request"
 // @Success 204 "Deleted successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /aliases/{registry_name}/aliases/{alias_key} [delete]
 func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
@@ -246,6 +249,7 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
 // @Success 200 {array} types.GetAliasResponse "a list of Aliases"
+// @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /aliases/{registry_name}/aliases/{alias_key} [get]
 func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
