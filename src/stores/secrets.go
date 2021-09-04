@@ -19,17 +19,17 @@ type SecretStore interface {
 	List(ctx context.Context) ([]string, error)
 
 	// Delete secret not permanently, it can be restored
-	Delete(ctx context.Context, id string, version string) error
+	Delete(ctx context.Context, id string) error
 
 	// GetDeleted secrets
-	GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error)
+	GetDeleted(ctx context.Context, id string) (*entities.Secret, error)
 
 	// ListDeleted secrets
 	ListDeleted(ctx context.Context) ([]string, error)
 
 	// Restore a previously deleted secret
-	Restore(ctx context.Context, id, version string) error
+	Restore(ctx context.Context, id string) error
 
 	// Destroy secret permanently
-	Destroy(ctx context.Context, id, version string) error
+	Destroy(ctx context.Context, id string) error
 }

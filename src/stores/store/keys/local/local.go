@@ -116,15 +116,15 @@ func (s *Store) Update(_ context.Context, _ string, _ *entities.Attributes) (*en
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
-	return s.secretStore.Delete(ctx, id, "1")
+	return s.secretStore.Delete(ctx, id)
 }
 
 func (s *Store) Restore(ctx context.Context, id string) error {
-	return s.secretStore.Restore(ctx, id, "1")
+	return s.secretStore.Restore(ctx, id)
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	return s.secretStore.Destroy(ctx, id, "1")
+	return s.secretStore.Destroy(ctx, id)
 }
 
 func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {

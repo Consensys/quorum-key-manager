@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
-	mocksecrets "github.com/consensys/quorum-key-manager/src/stores/store/secrets/mock"
+	mocksecrets "github.com/consensys/quorum-key-manager/src/stores/mock"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
@@ -33,7 +33,7 @@ var expectedErr = errors.DependencyFailureError("error")
 type localKeyStoreTestSuite struct {
 	suite.Suite
 	keyStore        stores.KeyStore
-	mockSecretStore *mocksecrets.MockStore
+	mockSecretStore *mocksecrets.MockSecretStore
 }
 
 func TestLocalKeyStore(t *testing.T) {
@@ -45,7 +45,7 @@ func (s *localKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mockSecretStore = mocksecrets.NewMockStore(ctrl)
+	s.mockSecretStore = mocksecrets.NewMockSecretStore(ctrl)
 
 	s.keyStore = New(s.mockSecretStore, testutils2.NewMockLogger(ctrl))
 }
@@ -242,14 +242,14 @@ func (s *localKeyStoreTestSuite) TestDelete() {
 	ctx := context.Background()
 
 	s.Run("should delete a key successfully", func() {
-		s.mockSecretStore.EXPECT().Delete(ctx, id, "1").Return(nil)
+		s.mockSecretStore.EXPECT().Delete(ctx, id).Return(nil)
 
 		err := s.keyStore.Delete(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if Delete Secret fails", func() {
-		s.mockSecretStore.EXPECT().Delete(ctx, id, "1").Return(expectedErr)
+		s.mockSecretStore.EXPECT().Delete(ctx, id).Return(expectedErr)
 
 		err := s.keyStore.Delete(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
@@ -260,14 +260,14 @@ func (s *localKeyStoreTestSuite) TestUndelete() {
 	ctx := context.Background()
 
 	s.Run("should delete a key successfully", func() {
-		s.mockSecretStore.EXPECT().Restore(ctx, id, "1").Return(nil)
+		s.mockSecretStore.EXPECT().Restore(ctx, id).Return(nil)
 
 		err := s.keyStore.Restore(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if Delete Secret fails", func() {
-		s.mockSecretStore.EXPECT().Restore(ctx, id, "1").Return(expectedErr)
+		s.mockSecretStore.EXPECT().Restore(ctx, id).Return(expectedErr)
 
 		err := s.keyStore.Restore(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
@@ -278,14 +278,14 @@ func (s *localKeyStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 
 	s.Run("should delete a key successfully", func() {
-		s.mockSecretStore.EXPECT().Destroy(ctx, id, "1").Return(nil)
+		s.mockSecretStore.EXPECT().Destroy(ctx, id).Return(nil)
 
 		err := s.keyStore.Destroy(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if Delete Secret fails", func() {
-		s.mockSecretStore.EXPECT().Destroy(ctx, id, "1").Return(expectedErr)
+		s.mockSecretStore.EXPECT().Destroy(ctx, id).Return(expectedErr)
 
 		err := s.keyStore.Destroy(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)

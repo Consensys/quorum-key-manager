@@ -163,7 +163,7 @@ func (s *akvSecretStoreTestSuite) TestGetDeleted() {
 	s.Run("should get a deleted secret successfully with empty version", func() {
 		s.mockVault.EXPECT().GetDeletedSecret(gomock.Any(), id).Return(res, nil)
 
-		secret, err := s.secretStore.GetDeleted(ctx, id, "")
+		secret, err := s.secretStore.GetDeleted(ctx, id)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), value, secret.Value)
@@ -179,7 +179,7 @@ func (s *akvSecretStoreTestSuite) TestGetDeleted() {
 	s.Run("should fail with error if bad request in response", func() {
 		s.mockVault.EXPECT().GetDeletedSecret(gomock.Any(), id).Return(keyvault.DeletedSecretBundle{}, expectedErr)
 
-		secret, err := s.secretStore.GetDeleted(ctx, id, "")
+		secret, err := s.secretStore.GetDeleted(ctx, id)
 
 		assert.Nil(s.T(), secret)
 		assert.True(s.T(), errors.IsAKVError(err))
@@ -277,13 +277,13 @@ func (s *akvSecretStoreTestSuite) TestDestroy() {
 
 	s.Run("should delete a secret successfully", func() {
 		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(true, nil)
-		err := s.secretStore.Destroy(ctx, id, "")
+		err := s.secretStore.Destroy(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with NotFoundError if DeleteSecret fails with 404", func() {
 		s.mockVault.EXPECT().PurgeDeletedSecret(gomock.Any(), id).Return(false, expectedErr)
-		err := s.secretStore.Destroy(ctx, id, "")
+		err := s.secretStore.Destroy(ctx, id)
 
 		assert.True(s.T(), errors.IsAKVError(err))
 	})
@@ -295,13 +295,13 @@ func (s *akvSecretStoreTestSuite) TestRestore() {
 
 	s.Run("should restore a secret successfully", func() {
 		s.mockVault.EXPECT().RecoverSecret(gomock.Any(), id).Return(keyvault.SecretBundle{}, nil)
-		err := s.secretStore.Restore(ctx, id, "")
+		err := s.secretStore.Restore(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with NotFoundError if RecoverSecret fails with 404", func() {
 		s.mockVault.EXPECT().RecoverSecret(gomock.Any(), id).Return(keyvault.SecretBundle{}, expectedErr)
-		err := s.secretStore.Restore(ctx, id, "")
+		err := s.secretStore.Restore(ctx, id)
 
 		assert.True(s.T(), errors.IsAKVError(err))
 	})

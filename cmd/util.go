@@ -44,8 +44,8 @@ func newUtilCommand() *cobra.Command {
 	flags.AuthOIDCClaimRoles(generateJWTCmd.Flags())
 	flags.AuthOIDCCertKeyFile(generateJWTCmd.Flags())
 
-	generateJWTCmd.Flags().StringVar(&sub, "sub", "", "username and tenant added in claims")
-	generateJWTCmd.Flags().StringArrayVar(&scope, "scope", []string{}, "permissions added in claims")
+	generateJWTCmd.Flags().StringVar(&sub, flags.AuthOIDCClaimUsernameDefault, "", "username and tenant added in claims")
+	generateJWTCmd.Flags().StringArrayVar(&scope, flags.AuthOIDCClaimPermissionsDefault, []string{}, "permissions added in claims")
 	generateJWTCmd.Flags().StringArrayVar(&roles, flags.AuthOIDCClaimRolesDefault, []string{}, "roles added in claims")
 	generateJWTCmd.Flags().DurationVar(&expiration, "expiration", time.Hour, "token expiration time")
 

@@ -10,6 +10,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
@@ -23,17 +24,19 @@ const (
 
 type Store struct {
 	client     hashicorp.VaultClient
+	db         database.Secrets
 	mountPoint string
 	logger     log.Logger
 }
 
 var _ stores.SecretStore = &Store{}
 
-func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *Store {
+func New(client hashicorp.VaultClient, db database.Secrets, mountPoint string, logger log.Logger) *Store {
 	return &Store{
 		client:     client,
 		mountPoint: mountPoint,
 		logger:     logger,
+		db:         db,
 	}
 }
 
@@ -134,16 +137,15 @@ func (s *Store) List(_ context.Context) ([]string, error) {
 	return keysStr, nil
 }
 
-func (s *Store) Delete(_ context.Context, id, version string) error {
-	if version == "" {
-		err := errors.NotSupportedError("secret version must be specified to delete")
-		s.logger.Warn(err.Error())
+func (s *Store) Delete(ctx context.Context, id string) error {
+	logger := s.logger.With("id", id)
+
+	versions, err := s.listVersions(ctx, id, false)
+	if err != nil {
 		return err
 	}
-
-	logger := s.logger.With("id", id).With("version", version)
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), map[string][]string{
-		"versions": {version},
+		"versions": versions,
 	})
 	if err != nil {
 		errMessage := "failed to get Hashicorp secret data for deletion"
@@ -157,7 +159,7 @@ func (s *Store) Delete(_ context.Context, id, version string) error {
 	}
 
 	err = s.client.Delete(s.pathData(id), map[string][]string{
-		"versions": {version},
+		"versions": versions,
 	})
 	if err != nil {
 		errMessage := "failed to delete Hashicorp secret"
@@ -168,7 +170,7 @@ func (s *Store) Delete(_ context.Context, id, version string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(_ context.Context, _, _ string) (*entities.Secret, error) {
+func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Secret, error) {
 	err := errors.NotSupportedError("get deleted secret is not supported")
 	s.logger.Warn(err.Error())
 	return nil, err
@@ -180,19 +182,15 @@ func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
 	return nil, err
 }
 
-func (s *Store) Restore(_ context.Context, id, version string) error {
-	if version == "" {
-		err := errors.NotSupportedError("secret version must be specified to restore")
-		s.logger.Warn(err.Error())
+func (s *Store) Restore(ctx context.Context, id string) error {
+	logger := s.logger.With("id", id)
+	versions, err := s.listVersions(ctx, id, true)
+	if err != nil {
 		return err
 	}
-
-	logger := s.logger.With("id", id).With("version", version)
-
-	err := s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
-		"versions": {version},
+	err = s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
+		"versions": versions,
 	})
-
 	if err != nil {
 		errMessage := "failed to restore Hashicorp secret"
 		logger.WithError(err).Error(errMessage)
@@ -202,16 +200,16 @@ func (s *Store) Restore(_ context.Context, id, version string) error {
 	return nil
 }
 
-func (s *Store) Destroy(_ context.Context, id, version string) error {
-	if version == "" {
-		err := errors.NotSupportedError("secret version must be specified to destroy")
-		s.logger.Warn(err.Error())
+func (s *Store) Destroy(ctx context.Context, id string) error {
+	logger := s.logger.With("id", id)
+
+	versions, err := s.listVersions(ctx, id, true)
+	if err != nil {
 		return err
 	}
 
-	logger := s.logger.With("id", id)
-	err := s.client.WritePost(s.pathDestroyID(id), map[string][]string{
-		"versions": {version},
+	err = s.client.WritePost(s.pathDestroyID(id), map[string][]string{
+		"versions": versions,
 	})
 	if err != nil {
 		errMessage := "failed to destroy Hashicorp secret"
@@ -220,6 +218,16 @@ func (s *Store) Destroy(_ context.Context, id, version string) error {
 	}
 
 	return nil
+}
+
+func (s *Store) listVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
+	versionList, err := s.db.ListVersions(ctx, id, isDeleted)
+	if err != nil {
+		errMessage := "failed to list secret versions"
+		s.logger.WithError(err).Error(errMessage, "id", id)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+	return versionList, nil
 }
 
 func (s *Store) pathUndeleteID(id string) string {

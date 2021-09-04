@@ -8,6 +8,7 @@ import (
 
 type Client interface {
 	QueryOne(ctx context.Context, result, query interface{}, params ...interface{}) error
+	Query(ctx context.Context, result, query interface{}, params ...interface{}) error
 	Insert(ctx context.Context, model ...interface{}) error
 	SelectPK(ctx context.Context, model ...interface{}) error
 	SelectDeletedPK(ctx context.Context, model ...interface{}) error

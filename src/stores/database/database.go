@@ -8,7 +8,6 @@ import (
 
 //go:generate mockgen -source=database.go -destination=mock/database.go -package=mock
 
-// @TODO Replace interfaces to use global ones
 type Database interface {
 	ETH1Accounts(storeID string) ETH1Accounts
 	Keys(storeID string) Keys
@@ -45,12 +44,13 @@ type Secrets interface {
 	RunInTransaction(ctx context.Context, persistFunc func(dbtx Secrets) error) error
 	Get(ctx context.Context, id, version string) (*entities.Secret, error)
 	GetLatestVersion(ctx context.Context, id string, isDeleted bool) (string, error)
-	GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error)
+	ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error)
+	GetDeleted(ctx context.Context, id string) (*entities.Secret, error)
 	GetAll(ctx context.Context) ([]*entities.Secret, error)
 	GetAllDeleted(ctx context.Context) ([]*entities.Secret, error)
 	Add(ctx context.Context, secret *entities.Secret) (*entities.Secret, error)
 	Update(ctx context.Context, secret *entities.Secret) (*entities.Secret, error)
-	Delete(ctx context.Context, id, version string) error
-	Restore(ctx context.Context, id, version string) error
-	Purge(ctx context.Context, id, version string) error
+	Delete(ctx context.Context, id string) error
+	Restore(ctx context.Context, id string) error
+	Purge(ctx context.Context, id string) error
 }

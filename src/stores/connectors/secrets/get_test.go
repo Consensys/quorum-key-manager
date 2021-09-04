@@ -90,9 +90,9 @@ func TestGetDeletedSecret(t *testing.T) {
 
 	t.Run("should get deleted secret successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID).Return(secret, nil)
 
-		rSecret, err := connector.GetDeleted(ctx, secret.ID, secret.Metadata.Version)
+		rSecret, err := connector.GetDeleted(ctx, secret.ID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, secret, rSecret)
@@ -101,7 +101,7 @@ func TestGetDeletedSecret(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
 
-		_, err := connector.GetDeleted(ctx, secret.ID, secret.Metadata.Version)
+		_, err := connector.GetDeleted(ctx, secret.ID)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -109,9 +109,9 @@ func TestGetDeletedSecret(t *testing.T) {
 
 	t.Run("should fail to get deleted secret if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil, expectedErr)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID).Return(nil, expectedErr)
 
-		_, err := connector.GetDeleted(ctx, secret.ID, secret.Metadata.Version)
+		_, err := connector.GetDeleted(ctx, secret.ID)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)

@@ -6,6 +6,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
+	"github.com/lib/pq"
 
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
@@ -37,6 +38,15 @@ func (c *PostgresClient) Config() *Config {
 
 func (c *PostgresClient) QueryOne(ctx context.Context, result, query interface{}, params ...interface{}) error {
 	_, err := c.db.QueryOneContext(ctx, pg.Scan(result), query, params...)
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (c *PostgresClient) Query(ctx context.Context, result, query interface{}, params ...interface{}) error {
+	_, err := c.db.QueryContext(ctx, pg.Scan(pq.Array(result)), query, params...)
 	if err != nil {
 		return parseErrorResponse(err)
 	}

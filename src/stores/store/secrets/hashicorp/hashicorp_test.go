@@ -9,6 +9,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	dbmocks "github.com/consensys/quorum-key-manager/src/stores/database/mock"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
@@ -25,6 +26,7 @@ type hashicorpSecretStoreTestSuite struct {
 	mockVault   *mocks.MockVaultClient
 	mountPoint  string
 	secretStore stores.SecretStore
+	mockDB      *dbmocks.MockSecrets
 }
 
 func TestHashicorpSecretStore(t *testing.T) {
@@ -38,8 +40,9 @@ func (s *hashicorpSecretStoreTestSuite) SetupTest() {
 
 	s.mountPoint = "secret"
 	s.mockVault = mocks.NewMockVaultClient(ctrl)
+	s.mockDB = dbmocks.NewMockSecrets(ctrl)
 
-	s.secretStore = New(s.mockVault, s.mountPoint, testutils2.NewMockLogger(ctrl))
+	s.secretStore = New(s.mockVault, s.mockDB, s.mountPoint, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *hashicorpSecretStoreTestSuite) TestSet() {
@@ -297,29 +300,32 @@ func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 	ctx := context.Background()
 	id := "my-deleted-secret"
 	expectedPath := s.mountPoint + "/data/" + id
+	versions := []string{"1", "2", "3"}
 
 	s.Run("should delete secret by id successfully", func() {
-		data := map[string][]string{"versions": {"1"}}
+		data := map[string][]string{"versions": {"1", "2", "3"}}
 		s.mockVault.EXPECT().Read(expectedPath, data).Return(&hashicorp.Secret{}, nil)
 		s.mockVault.EXPECT().Delete(expectedPath, data).Return(nil)
-
-		err := s.secretStore.Delete(ctx, id, "1")
+		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, false).Return(versions, nil)
+		err := s.secretStore.Delete(ctx, id)
 
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same NotFound if secret is not found by id ", func() {
 		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(nil, nil)
+		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, false).Return(versions, nil)
 
-		err := s.secretStore.Delete(ctx, id, "0")
+		err := s.secretStore.Delete(ctx, id)
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 
 	s.Run("should fail with same error if delete secret by id fails", func() {
 		s.mockVault.EXPECT().Read(expectedPath, gomock.Any()).Return(&hashicorp.Secret{}, nil)
 		s.mockVault.EXPECT().Delete(expectedPath, gomock.Any()).Return(expectedErr)
+		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, false).Return(versions, nil)
 
-		err := s.secretStore.Delete(ctx, id, "0")
+		err := s.secretStore.Delete(ctx, id)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
@@ -328,17 +334,20 @@ func (s *hashicorpSecretStoreTestSuite) TestRestore() {
 	ctx := context.Background()
 	id := "my-restore-secret"
 	expectedPath := s.mountPoint + "/undelete/" + id
+	versions := []string{"1", "2", "3"}
 
 	s.Run("should restore secret by id successfully", func() {
-		data := map[string][]string{"versions": {"1"}}
+		data := map[string][]string{"versions": {"1", "2", "3"}}
 		s.mockVault.EXPECT().WritePost(expectedPath, data).Return(nil)
-		err := s.secretStore.Restore(ctx, id, "1")
+		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, true).Return(versions, nil)
+		err := s.secretStore.Restore(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if restore secret by id fails", func() {
 		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(expectedErr)
-		err := s.secretStore.Restore(ctx, id, "0")
+		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, true).Return(versions, nil)
+		err := s.secretStore.Restore(ctx, id)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }
@@ -347,17 +356,20 @@ func (s *hashicorpSecretStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 	id := "my-destroyed-secret"
 	expectedPath := s.mountPoint + "/destroy/" + id
+	versions := []string{"1", "2", "3"}
 
 	s.Run("should destroy secret by id successfully", func() {
-		data := map[string][]string{"versions": {"1"}}
+		data := map[string][]string{"versions": {"1", "2", "3"}}
 		s.mockVault.EXPECT().WritePost(expectedPath, data).Return(nil)
-		err := s.secretStore.Destroy(ctx, id, "1")
+		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, true).Return(versions, nil)
+		err := s.secretStore.Destroy(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if destroy secret by id fails", func() {
 		s.mockVault.EXPECT().WritePost(expectedPath, gomock.Any()).Return(expectedErr)
-		err := s.secretStore.Destroy(ctx, id, "0")
+		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, true).Return(versions, nil)
+		err := s.secretStore.Destroy(ctx, id)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }

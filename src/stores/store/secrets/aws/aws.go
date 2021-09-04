@@ -119,7 +119,7 @@ func (s *Store) List(ctx context.Context) ([]string, error) {
 	return result, nil
 }
 
-func (s *Store) Delete(ctx context.Context, id, _ string) error {
+func (s *Store) Delete(ctx context.Context, id string) error {
 	_, err := s.client.DeleteSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to delete AWS secret"
@@ -130,7 +130,7 @@ func (s *Store) Delete(ctx context.Context, id, _ string) error {
 	return nil
 }
 
-func (s *Store) GetDeleted(_ context.Context, _, _ string) (*entities.Secret, error) {
+func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Secret, error) {
 	err := errors.NotSupportedError("get deleted secret is not supported")
 	s.logger.Warn(err.Error())
 	return nil, err
@@ -142,7 +142,7 @@ func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
 	return nil, err
 }
 
-func (s *Store) Restore(ctx context.Context, id, version string) error {
+func (s *Store) Restore(ctx context.Context, id string) error {
 	_, err := s.client.RestoreSecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to restore AWS secret"
@@ -153,7 +153,7 @@ func (s *Store) Restore(ctx context.Context, id, version string) error {
 	return nil
 }
 
-func (s *Store) Destroy(ctx context.Context, id, _ string) error {
+func (s *Store) Destroy(ctx context.Context, id string) error {
 	_, err := s.client.DestroySecret(ctx, id)
 	if err != nil {
 		errMessage := "failed to permanently delete AWS secret"
