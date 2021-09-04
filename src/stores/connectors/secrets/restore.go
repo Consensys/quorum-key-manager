@@ -17,7 +17,7 @@ func (c Connector) Restore(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = c.Get(ctx, id, "")
 	if err == nil {
 		return nil

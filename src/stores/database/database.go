@@ -8,7 +8,6 @@ import (
 
 //go:generate mockgen -source=database.go -destination=mock/database.go -package=mock
 
-// @TODO Replace interfaces to use global ones
 type Database interface {
 	ETH1Accounts(storeID string) ETH1Accounts
 	Keys(storeID string) Keys

@@ -76,8 +76,15 @@ func TestManagerService(t *testing.T) {
 
 	mockLogger := testutils.NewMockLogger(ctrl)
 	mockDB := mock.NewMockDatabase(ctrl)
+	mockSecretDB := mock.NewMockSecrets(ctrl)
+	mockKeysDB := mock.NewMockKeys(ctrl)
+	mockEth1DB := mock.NewMockETH1Accounts(ctrl)
 	mockAuthMngr := mock2.NewMockManager(ctrl)
+
 	mockAuthMngr.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
+	mockDB.EXPECT().Secrets(gomock.Any()).Return(mockSecretDB).AnyTimes()
+	mockDB.EXPECT().Keys(gomock.Any()).Return(mockKeysDB).AnyTimes()
+	mockDB.EXPECT().ETH1Accounts(gomock.Any()).Return(mockEth1DB).AnyTimes()
 
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)

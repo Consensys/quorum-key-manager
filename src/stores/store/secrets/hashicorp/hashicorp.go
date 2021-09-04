@@ -185,7 +185,7 @@ func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
 
 func (s *Store) Restore(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
-	versions, err := s.listVersions(ctx, id, false)
+	versions, err := s.listVersions(ctx, id, true)
 	if err != nil {
 		return err
 	}
@@ -204,7 +204,7 @@ func (s *Store) Restore(ctx context.Context, id string) error {
 func (s *Store) Destroy(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
 
-	versions, err := s.listVersions(ctx, id, false)
+	versions, err := s.listVersions(ctx, id, true)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 }
 
 func (s *Store) listVersions(ctx context.Context, id string, isDeleted bool) (string, error) {
-	versionList, err := s.db.ListVersions(ctx, id, false)
+	versionList, err := s.db.ListVersions(ctx, id, isDeleted)
 	if err != nil {
 		errMessage := "failed to list secret versions"
 		s.logger.WithError(err).Error(errMessage, "id", id)
