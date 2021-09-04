@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"path"
 	"strconv"
-	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
@@ -146,7 +145,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	hashicorpSecretData, err := s.client.Read(s.pathData(id), map[string][]string{
-		"versions": {versions},
+		"versions": versions,
 	})
 	if err != nil {
 		errMessage := "failed to get Hashicorp secret data for deletion"
@@ -160,7 +159,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	}
 
 	err = s.client.Delete(s.pathData(id), map[string][]string{
-		"versions": {versions},
+		"versions": versions,
 	})
 	if err != nil {
 		errMessage := "failed to delete Hashicorp secret"
@@ -190,7 +189,7 @@ func (s *Store) Restore(ctx context.Context, id string) error {
 		return err
 	}
 	err = s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
-		"versions": {versions},
+		"versions": versions,
 	})
 	if err != nil {
 		errMessage := "failed to restore Hashicorp secret"
@@ -210,7 +209,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	}
 
 	err = s.client.WritePost(s.pathDestroyID(id), map[string][]string{
-		"versions": {versions},
+		"versions": versions,
 	})
 	if err != nil {
 		errMessage := "failed to destroy Hashicorp secret"
@@ -221,14 +220,14 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) listVersions(ctx context.Context, id string, isDeleted bool) (string, error) {
+func (s *Store) listVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
 	versionList, err := s.db.ListVersions(ctx, id, isDeleted)
 	if err != nil {
 		errMessage := "failed to list secret versions"
 		s.logger.WithError(err).Error(errMessage, "id", id)
-		return "", errors.FromError(err).SetMessage(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
-	return strings.Join(versionList, ","), nil
+	return versionList, nil
 }
 
 func (s *Store) pathUndeleteID(id string) string {

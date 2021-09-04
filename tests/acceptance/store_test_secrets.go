@@ -177,12 +177,12 @@ func (s *secretsTestSuite) TestGetDeleted() {
 	id := fmt.Sprintf("%s-%s", "my-deleted-secret", common.RandString(10))
 	value := "my-deleted-secret-value"
 
-	sItem, setErr := s.store.Set(ctx, id, value, &entities.Attributes{
+	_, setErr := s.store.Set(ctx, id, value, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), setErr)
 
-	err := s.delete(s.env.ctx, id, sItem.Metadata.Version)
+	err := s.delete(s.env.ctx, id)
 	require.NoError(s.T(), err)
 
 	s.Run("should get deleted secret successfully", func() {
@@ -206,12 +206,12 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 	id := s.newID("my-restored-secret")
 	value := "my-restored-secret-value"
 
-	sItem, setErr := s.store.Set(ctx, id, value, &entities.Attributes{
+	_, setErr := s.store.Set(ctx, id, value, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), setErr)
 
-	err := s.delete(s.env.ctx, id, sItem.Metadata.Version)
+	err := s.delete(s.env.ctx, id)
 	require.NoError(s.T(), err)
 
 	s.Run("should restore deleted secret successfully", func() {
@@ -232,15 +232,15 @@ func (s *secretsTestSuite) TestListDeleted() {
 	id2 := s.newID("my-deleted-secret-list-2")
 	value := "my-deleted-secret-value"
 
-	sItem, err := s.store.Set(ctx, id, value, &entities.Attributes{})
+	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
-	err = s.delete(s.env.ctx, id, sItem.Metadata.Version)
+	err = s.delete(s.env.ctx, id)
 	require.NoError(s.T(), err)
 
-	err = s.delete(s.env.ctx, id2, sItem.Metadata.Version)
+	err = s.delete(s.env.ctx, id2)
 	require.NoError(s.T(), err)
 
 	s.Run("should list all deleted secrets ids successfully", func() {
@@ -259,7 +259,7 @@ func (s *secretsTestSuite) newID(name string) string {
 	return id
 }
 
-func (s *secretsTestSuite) delete(ctx context.Context, id, version string) error {
+func (s *secretsTestSuite) delete(ctx context.Context, id string) error {
 	err := s.store.Delete(ctx, id)
 	if err != nil {
 		return err

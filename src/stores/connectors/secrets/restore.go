@@ -18,6 +18,7 @@ func (c Connector) Restore(ctx context.Context, id string) error {
 		return err
 	}
 
+	// If secret already exists, exit without any action
 	_, err = c.Get(ctx, id, "")
 	if err == nil {
 		return nil

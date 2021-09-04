@@ -303,7 +303,7 @@ func (s *hashicorpSecretStoreTestSuite) TestDelete() {
 	versions := []string{"1", "2", "3"}
 
 	s.Run("should delete secret by id successfully", func() {
-		data := map[string][]string{"versions": {"1,2,3"}}
+		data := map[string][]string{"versions": {"1", "2", "3"}}
 		s.mockVault.EXPECT().Read(expectedPath, data).Return(&hashicorp.Secret{}, nil)
 		s.mockVault.EXPECT().Delete(expectedPath, data).Return(nil)
 		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, false).Return(versions, nil)
@@ -337,7 +337,7 @@ func (s *hashicorpSecretStoreTestSuite) TestRestore() {
 	versions := []string{"1", "2", "3"}
 
 	s.Run("should restore secret by id successfully", func() {
-		data := map[string][]string{"versions": {"1,2,3"}}
+		data := map[string][]string{"versions": {"1", "2", "3"}}
 		s.mockVault.EXPECT().WritePost(expectedPath, data).Return(nil)
 		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, true).Return(versions, nil)
 		err := s.secretStore.Restore(ctx, id)
@@ -359,7 +359,7 @@ func (s *hashicorpSecretStoreTestSuite) TestDestroy() {
 	versions := []string{"1", "2", "3"}
 
 	s.Run("should destroy secret by id successfully", func() {
-		data := map[string][]string{"versions": {"1,2,3"}}
+		data := map[string][]string{"versions": {"1", "2", "3"}}
 		s.mockVault.EXPECT().WritePost(expectedPath, data).Return(nil)
 		s.mockDB.EXPECT().ListVersions(gomock.Any(), id, true).Return(versions, nil)
 		err := s.secretStore.Destroy(ctx, id)

@@ -96,14 +96,14 @@ func (s *Secrets) GetLatestVersion(ctx context.Context, id string, isDeleted boo
 }
 
 func (s *Secrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
-	var versions []string
+	var versions = []string{}
 	var err error
 	if !isDeleted {
 		err = s.client.Query(ctx, &versions,
-			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NULL ORDER BY created_at DESC", id, s.storeID)
+			"SELECT array_agg(version ORDER BY created_at ASC) FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NULL", id, s.storeID)
 	} else {
 		err = s.client.Query(ctx, &versions,
-			"SELECT version FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NOT NULL ORDER BY created_at DESC", id, s.storeID)
+			"SELECT array_agg(version ORDER BY created_at ASC) FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NOT NULL", id, s.storeID)
 	}
 
 	if err != nil {
@@ -194,7 +194,7 @@ func (s *Secrets) Delete(ctx context.Context, id string) error {
 }
 
 func (s *Secrets) Restore(ctx context.Context, id string) error {
-	err := s.client.UndeleteWhere(ctx, &models.Secret{}, "id = ? AND store_id = ?", s.storeID)
+	err := s.client.UndeleteWhere(ctx, &models.Secret{}, "id = ? AND store_id = ?", id, s.storeID)
 	if err != nil {
 		errMessage := "failed to restore secret"
 		s.logger.With("id", id).WithError(err).Error(errMessage)

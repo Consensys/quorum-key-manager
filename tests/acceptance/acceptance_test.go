@@ -83,7 +83,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	testSuite := new(secretsTestSuite)
 	testSuite.env = s.env
 	testSuite.db = db.Secrets(storeName)
-	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger), db.Secrets(storeName), auth, logger)
+	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, testSuite.db, HashicorpSecretMountPoint, logger), db.Secrets(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 }
 
@@ -111,7 +111,8 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
 	testSuite.db = db.Keys(storeName)
-	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
+	secretsDB := db.Secrets(storeName)
+	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
 	testSuite.store = keys.NewConnector(local.New(hashicorpSecretStore, logger), db.Keys(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 }
@@ -138,7 +139,8 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
 	// Local
 	storeName = "Eth1-Local-Hashicorp"
 	logger = s.env.logger.WithComponent(storeName)
-	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, HashicorpSecretMountPoint, logger)
+	secretsDB := db.Secrets(storeName)
+	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
 	localStore := local.New(hashicorpSecretStore, logger)
 	testSuite = new(eth1TestSuite)
 	testSuite.env = s.env
