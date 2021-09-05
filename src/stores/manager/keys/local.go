@@ -55,5 +55,5 @@ func NewLocalKeyStore(specs *LocalKeySpecs, db database.Secrets, logger log.Logg
 		return nil, err
 	}
 
-	return localkeys.New(secretStore, logger), nil
+	return localkeys.New(secretStore, db, logger), nil
 }
