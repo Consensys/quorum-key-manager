@@ -58,9 +58,9 @@
       address: http://hashicorp:8200
       token: '{VAULT_TOKEN}'
       namespace: ''
-- kind: Eth1Account
+- kind: Ethereum
   version: 0.0.1
-  name: eth1-accounts
+  name: eth-accounts
   specs:
     keystore: HashicorpKeys
     specs:

@@ -15,7 +15,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	aliasmanager "github.com/consensys/quorum-key-manager/src/aliases/manager"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
@@ -117,35 +117,35 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_Eth1() {
+func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 	if s.err != nil {
 		s.env.logger.Warn("skipping test...")
 		return
 	}
 
-	db := postgres.New(s.env.logger.WithComponent("Eth1-DB"), s.env.postgresClient)
+	db := postgres.New(s.env.logger.WithComponent("Eth-DB"), s.env.postgresClient)
 	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
-	storeName := "Eth1-Hashicorp"
+	storeName := "Eth-Hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
 	hashicorpStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
-	testSuite := new(eth1TestSuite)
+	testSuite := new(ethTestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewConnector(hashicorpStore, db.ETH1Accounts(storeName), auth, logger)
-	testSuite.db = db.ETH1Accounts(storeName)
+	testSuite.store = eth.NewConnector(hashicorpStore, db.ETHAccounts(storeName), auth, logger)
+	testSuite.db = db.ETHAccounts(storeName)
 	suite.Run(s.T(), testSuite)
 
 	// Local
-	storeName = "Eth1-Local-Hashicorp"
+	storeName = "Eth-Local-Hashicorp"
 	logger = s.env.logger.WithComponent(storeName)
 	secretsDB := db.Secrets(storeName)
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
 	localStore := local.New(hashicorpSecretStore, secretsDB, logger)
-	testSuite = new(eth1TestSuite)
+	testSuite = new(ethTestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth1.NewConnector(localStore, db.ETH1Accounts(storeName), auth, logger)
-	testSuite.db = db.ETH1Accounts(storeName)
+	testSuite.store = eth.NewConnector(localStore, db.ETHAccounts(storeName), auth, logger)
+	testSuite.db = db.ETHAccounts(storeName)
 	suite.Run(s.T(), testSuite)
 }
 

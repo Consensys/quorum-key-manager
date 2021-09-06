@@ -10,6 +10,6 @@ type Key struct {
 	Annotations *Annotation
 }
 
-func (k *Key) IsETH1Account() bool {
+func (k *Key) IsETHAccount() bool {
 	return k.Algo.EllipticCurve == Secp256k1 && k.Algo.Type == Ecdsa
 }

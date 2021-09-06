@@ -8,18 +8,18 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-type CreateEth1AccountRequest struct {
+type CreateEthAccountRequest struct {
 	KeyID string            `json:"keyId" example:"my-key-account"`
 	Tags  map[string]string `json:"tags,omitempty"`
 }
 
-type ImportEth1AccountRequest struct {
+type ImportEthAccountRequest struct {
 	KeyID      string            `json:"keyId" example:"my-imported-key-account"`
 	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"0x56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E" swaggertype:"string"`
 	Tags       map[string]string `json:"tags,omitempty"`
 }
 
-type UpdateEth1AccountRequest struct {
+type UpdateEthAccountRequest struct {
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
@@ -93,7 +93,7 @@ type VerifyTypedDataRequest struct {
 	Address   common.Address       `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
 }
 
-type Eth1AccountResponse struct {
+type EthAccountResponse struct {
 	PublicKey           hexutil.Bytes     `json:"publicKey" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
 	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0x6019a3c8..." swaggertype:"string"`
 	CreatedAt           time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`

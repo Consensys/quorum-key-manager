@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	Eth1Account manifest.Kind = "Eth1Account"
+	Ethereum manifest.Kind = "Ethereum"
 )
 
 const (

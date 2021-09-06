@@ -67,34 +67,34 @@ func (mr *MockManagerMockRecorder) GetKeyStore(ctx, name, userInfo interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeyStore", reflect.TypeOf((*MockManager)(nil).GetKeyStore), ctx, name, userInfo)
 }
 
-// GetEth1Store mocks base method
-func (m *MockManager) GetEth1Store(ctx context.Context, name string, userInfo *types.UserInfo) (stores.Eth1Store, error) {
+// GetEthStore mocks base method
+func (m *MockManager) GetEthStore(ctx context.Context, name string, userInfo *types.UserInfo) (stores.EthStore, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEth1Store", ctx, name, userInfo)
-	ret0, _ := ret[0].(stores.Eth1Store)
+	ret := m.ctrl.Call(m, "GetEthStore", ctx, name, userInfo)
+	ret0, _ := ret[0].(stores.EthStore)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetEth1Store indicates an expected call of GetEth1Store
-func (mr *MockManagerMockRecorder) GetEth1Store(ctx, name, userInfo interface{}) *gomock.Call {
+// GetEthStore indicates an expected call of GetEthStore
+func (mr *MockManagerMockRecorder) GetEthStore(ctx, name, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEth1Store", reflect.TypeOf((*MockManager)(nil).GetEth1Store), ctx, name, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEthStore", reflect.TypeOf((*MockManager)(nil).GetEthStore), ctx, name, userInfo)
 }
 
-// GetEth1StoreByAddr mocks base method
-func (m *MockManager) GetEth1StoreByAddr(ctx context.Context, addr common.Address, userInfo *types.UserInfo) (stores.Eth1Store, error) {
+// GetEthStoreByAddr mocks base method
+func (m *MockManager) GetEthStoreByAddr(ctx context.Context, addr common.Address, userInfo *types.UserInfo) (stores.EthStore, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEth1StoreByAddr", ctx, addr, userInfo)
-	ret0, _ := ret[0].(stores.Eth1Store)
+	ret := m.ctrl.Call(m, "GetEthStoreByAddr", ctx, addr, userInfo)
+	ret0, _ := ret[0].(stores.EthStore)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetEth1StoreByAddr indicates an expected call of GetEth1StoreByAddr
-func (mr *MockManagerMockRecorder) GetEth1StoreByAddr(ctx, addr, userInfo interface{}) *gomock.Call {
+// GetEthStoreByAddr indicates an expected call of GetEthStoreByAddr
+func (mr *MockManagerMockRecorder) GetEthStoreByAddr(ctx, addr, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEth1StoreByAddr", reflect.TypeOf((*MockManager)(nil).GetEth1StoreByAddr), ctx, addr, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEthStoreByAddr", reflect.TypeOf((*MockManager)(nil).GetEthStoreByAddr), ctx, addr, userInfo)
 }
 
 // List mocks base method

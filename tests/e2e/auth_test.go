@@ -31,7 +31,7 @@ type authTestSuite struct {
 	keyManagerURL    string
 	storeName        string
 
-	acc    *types.Eth1AccountResponse
+	acc    *types.EthAccountResponse
 	logger log.Logger
 }
 
@@ -71,7 +71,7 @@ func TestAuth(t *testing.T) {
 	})
 
 	s.keyManagerURL = cfg.KeyManagerURL
-	s.storeName = cfg.Eth1Stores[0]
+	s.storeName = cfg.EthStores[0]
 	suite.Run(t, s)
 }
 
@@ -80,7 +80,7 @@ func (s *authTestSuite) SetupSuite() {
 		s.T().Error(s.err)
 	}
 
-	s.acc, s.err = s.keyManagerClient.CreateEth1Account(s.ctx, s.storeName, &types.CreateEth1AccountRequest{
+	s.acc, s.err = s.keyManagerClient.CreateEthAccount(s.ctx, s.storeName, &types.CreateEthAccountRequest{
 		KeyID: fmt.Sprintf("e2e-auth-test-%d", common.RandInt(1000)),
 	})
 
@@ -94,10 +94,10 @@ func (s *authTestSuite) TearDownSuite() {
 		s.T().Error(s.err)
 	}
 
-	_ = s.keyManagerClient.DeleteEth1Account(s.ctx, s.storeName, s.acc.Address.Hex())
-	errMsg := fmt.Sprintf("failed to destroy eth1Account {Address: %s}", s.acc.Address.Hex())
+	_ = s.keyManagerClient.DeleteEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
+	errMsg := fmt.Sprintf("failed to destroy ethAccount {Address: %s}", s.acc.Address.Hex())
 	_ = retryOn(func() error {
-		return s.keyManagerClient.DestroyEth1Account(s.ctx, s.storeName, s.acc.Address.Hex())
+		return s.keyManagerClient.DestroyEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
 	}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
 }
 

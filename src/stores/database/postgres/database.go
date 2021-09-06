@@ -22,12 +22,12 @@ func New(logger log.Logger, client postgres.Client) *Database {
 	}
 }
 
-func (db *Database) Ping(ctx context.Context) error {
-	return db.client.Ping(ctx)
+func (db *Database) ETHAccounts(storeID string) database.ETHAccounts {
+	return NewETHAccounts(storeID, db.client, db.logger.With("store_id", storeID))
 }
 
-func (db *Database) ETH1Accounts(storeID string) database.ETH1Accounts {
-	return NewETH1Accounts(storeID, db.client, db.logger.With("store_id", storeID))
+func (db *Database) Ping(ctx context.Context) error {
+	return db.client.Ping(ctx)
 }
 
 func (db *Database) Keys(storeID string) database.Keys {

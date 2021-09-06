@@ -55,9 +55,9 @@ var testManifest = []byte(`
     tenantID: fakeTenant
     clientID: fakeClientID
     clientSecret: fakeSecret
-- kind: Eth1Account
+- kind: Ethereum
   version: 0.0.1
-  name: eth1-accounts
+  name: eth-accounts
   specs:
     keystore: HashicorpKeys
     specs:
@@ -78,13 +78,13 @@ func TestManagerService(t *testing.T) {
 	mockDB := mock.NewMockDatabase(ctrl)
 	mockSecretDB := mock.NewMockSecrets(ctrl)
 	mockKeysDB := mock.NewMockKeys(ctrl)
-	mockEth1DB := mock.NewMockETH1Accounts(ctrl)
+	mockEthDB := mock.NewMockETHAccounts(ctrl)
 	mockAuthMngr := mock2.NewMockManager(ctrl)
 
 	mockAuthMngr.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 	mockDB.EXPECT().Secrets(gomock.Any()).Return(mockSecretDB).AnyTimes()
 	mockDB.EXPECT().Keys(gomock.Any()).Return(mockKeysDB).AnyTimes()
-	mockDB.EXPECT().ETH1Accounts(gomock.Any()).Return(mockEth1DB).AnyTimes()
+	mockDB.EXPECT().ETHAccounts(gomock.Any()).Return(mockEthDB).AnyTimes()
 
 	dir := t.TempDir()
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
@@ -107,7 +107,7 @@ func TestManagerService(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, stores, "hashicorp-secrets")
 	assert.Contains(t, stores, "hashicorp-keys")
-	assert.Contains(t, stores, "eth1-accounts")
+	assert.Contains(t, stores, "eth-accounts")
 
 	stores, err = mngr.List(context.TODO(), "", &types.UserInfo{Tenant: "tenantOne"})
 	require.NoError(t, err)

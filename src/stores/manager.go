@@ -18,11 +18,11 @@ type Manager interface {
 	// GetKeyStore by name
 	GetKeyStore(ctx context.Context, name string, userInfo *authtype.UserInfo) (KeyStore, error)
 
-	// GetEth1Store by name
-	GetEth1Store(ctx context.Context, name string, userInfo *authtype.UserInfo) (Eth1Store, error)
+	// GetEthStore by name
+	GetEthStore(ctx context.Context, name string, userInfo *authtype.UserInfo) (EthStore, error)
 
-	// GetEth1StoreByAddr gets a eth1 store by address
-	GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtype.UserInfo) (Eth1Store, error)
+	// GetEthStoreByAddr gets a eth store by address
+	GetEthStoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtype.UserInfo) (EthStore, error)
 
 	// List stores
 	List(ctx context.Context, kind manifest.Kind, userInfo *authtype.UserInfo) ([]string, error)

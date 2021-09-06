@@ -30,6 +30,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.5.4
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/justinas/alice v1.2.0
+	github.com/lib/pq v1.8.0
 	github.com/magefile/mage v1.10.0 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/sirupsen/logrus v1.8.1
@@ -37,7 +38,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
-	github.com/swaggo/swag v1.7.1
 	go.elastic.co/ecszap v1.0.0
 	go.uber.org/atomic v1.8.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect

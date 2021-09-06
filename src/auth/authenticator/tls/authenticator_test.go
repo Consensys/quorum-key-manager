@@ -20,7 +20,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 
 	aliceCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
 	require.NoError(t, err)
-	eveCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKey))
+	eveCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKeyEve))
 	require.NoError(t, err)
 
 	caCertPool := x509.NewCertPool()
@@ -57,7 +57,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 		assert.Equal(t, "eve", userInfo.Username)
 		assert.Equal(t, "auth0", userInfo.Tenant)
 		assert.Equal(t, []string{"signer"}, userInfo.Roles)
-		assert.Equal(t, types.ListWildcardPermission("*:eth1accounts"), userInfo.Permissions)
+		assert.Equal(t, types.ListWildcardPermission("*:ethereum"), userInfo.Permissions)
 	})
 }
 
@@ -66,7 +66,7 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 	defer ctrl.Finish()
 
 	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
-	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKey))
+	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKeyEve))
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(aliceCert.Leaf)
 	caCertPool.AddCert(eveCert.Leaf)

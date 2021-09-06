@@ -14,7 +14,7 @@
     permission:
       - "read:*"
       - "sign:keys"
-      - "sign:eth1accounts"
+      - "sign:ethereum"
 - kind: Role
   name: admin
   specs:
