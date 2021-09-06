@@ -74,8 +74,8 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
-// @Param request body types.CreateAliasRequest true "Create Alias Request"
-// @Success 200 {object} types.CreateAliasResponse "Alias data"
+// @Param request body types.AliasRequest true "Create Alias Request"
+// @Success 200 {object} types.AliasResponse "Alias data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registry_name}/aliases/{alias_key} [post]
@@ -121,7 +121,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
-// @Success 200 {object} types.GetAliasResponse "Alias data"
+// @Success 200 {object} types.AliasResponse "Alias data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Alias not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -161,8 +161,8 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
-// @Param request body types.UpdateAliasRequest true "Update Alias Request"
-// @Success 200 {object} types.UpdateAliasResponse "Alias data"
+// @Param request body types.AliasRequest true "Update Alias Request"
+// @Success 200 {object} types.AliasResponse "Alias data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Alias not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
