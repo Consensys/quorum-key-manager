@@ -13,7 +13,7 @@ var ActionProxy OpAction = "proxy"
 
 var ResourceKey OpResource = "keys"
 var ResourceSecret OpResource = "secrets"
-var ResourceEthAccount OpResource = "ethaccounts"
+var ResourceEthAccount OpResource = "ethereum"
 var ResourceStore OpResource = "stores"
 var ResourceNode OpResource = "nodes"
 
