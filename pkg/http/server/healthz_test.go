@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,8 +24,8 @@ type response struct {
 func TestSuccessfulLiveness(t *testing.T) {
 	handler := NewHealthzHandler()
 
-	handler.AddLivenessCheck(servOneID, func() error { return nil })
-	handler.AddLivenessCheck(servTwoID, func() error { return nil })
+	handler.AddLivenessCheck(servOneID, func(_ context.Context) error { return nil })
+	handler.AddLivenessCheck(servTwoID, func(_ context.Context) error { return nil })
 
 	rw := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "http://test.com", nil)
@@ -43,8 +44,8 @@ func TestSuccessfulLiveness(t *testing.T) {
 func TestFailLiveness(t *testing.T) {
 	err := fmt.Errorf("fail to start service")
 	handler := NewHealthzHandler()
-	handler.AddLivenessCheck(servOneID, func() error { return nil })
-	handler.AddLivenessCheck(servTwoID, func() error { return err })
+	handler.AddLivenessCheck(servOneID, func(_ context.Context) error { return nil })
+	handler.AddLivenessCheck(servTwoID, func(_ context.Context) error { return err })
 
 	rw := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "http://test.com", nil)
@@ -64,8 +65,8 @@ func TestFailLiveness(t *testing.T) {
 func TestSuccessfulReadiness(t *testing.T) {
 	handler := NewHealthzHandler()
 
-	handler.AddReadinessCheck(servOneID, func() error { return nil })
-	handler.AddReadinessCheck(servTwoID, func() error { return nil })
+	handler.AddReadinessCheck(servOneID, func(_ context.Context) error { return nil })
+	handler.AddReadinessCheck(servTwoID, func(_ context.Context) error { return nil })
 
 	rw := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "http://test.com", nil)
@@ -84,8 +85,8 @@ func TestSuccessfulReadiness(t *testing.T) {
 func TestFailReadiness(t *testing.T) {
 	err := fmt.Errorf("fail to start service")
 	handler := NewHealthzHandler()
-	handler.AddReadinessCheck(servOneID, func() error { return nil })
-	handler.AddReadinessCheck(servTwoID, func() error { return err })
+	handler.AddReadinessCheck(servOneID, func(_ context.Context) error { return nil })
+	handler.AddReadinessCheck(servTwoID, func(_ context.Context) error { return err })
 
 	rw := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "http://test.com", nil)

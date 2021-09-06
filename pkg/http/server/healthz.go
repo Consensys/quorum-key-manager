@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"sync"
@@ -13,7 +14,7 @@ type HealthzHandler struct {
 	readiness map[string]CheckFunc
 }
 
-type CheckFunc func() error
+type CheckFunc func(context.Context) error
 
 func NewHealthzHandler() *HealthzHandler {
 	h := &HealthzHandler{
@@ -45,7 +46,7 @@ func (s *HealthzHandler) AddReadinessCheck(name string, check CheckFunc) {
 	s.readiness[name] = check
 }
 
-func (s *HealthzHandler) collectChecks(checks map[string]CheckFunc, resultsOut map[string]string, statusOut *int) {
+func (s *HealthzHandler) collectChecks(ctx context.Context, checks map[string]CheckFunc, resultsOut map[string]string, statusOut *int) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
@@ -53,7 +54,7 @@ func (s *HealthzHandler) collectChecks(checks map[string]CheckFunc, resultsOut m
 		if _, ok := resultsOut[name]; ok {
 			continue
 		}
-		if err := check(); err != nil {
+		if err := check(ctx); err != nil {
 			*statusOut = http.StatusServiceUnavailable
 			resultsOut[name] = err.Error()
 		} else {
@@ -71,7 +72,7 @@ func (s *HealthzHandler) handle(w http.ResponseWriter, r *http.Request, checks .
 	checkResults := make(map[string]string)
 	status := http.StatusOK
 	for _, checks := range checks {
-		s.collectChecks(checks, checkResults, &status)
+		s.collectChecks(r.Context(), checks, checkResults, &status)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
