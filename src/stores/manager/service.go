@@ -280,7 +280,7 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := msecrets.NewHashicorpSecretStore(spec, logger)
+		store, err := msecrets.NewHashicorpSecretStore(spec, m.db.Secrets(mnf.Name), logger)
 		if err != nil {
 			return err
 		}
@@ -364,7 +364,7 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := mkeys.NewLocalKeyStore(spec, logger)
+		store, err := mkeys.NewLocalKeyStore(spec, m.db.Secrets(mnf.Name), logger)
 		if err != nil {
 			return err
 		}
@@ -378,7 +378,7 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := meth1.NewLocalEth1(spec, logger)
+		store, err := meth1.NewLocalEth1(spec, m.db.Secrets(mnf.Name), logger)
 		if err != nil {
 			return err
 		}

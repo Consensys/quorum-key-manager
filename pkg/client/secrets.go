@@ -48,11 +48,8 @@ func (c *HTTPClient) GetSecret(ctx context.Context, storeName, id, version strin
 	return secret, nil
 }
 
-func (c *HTTPClient) DeleteSecret(ctx context.Context, storeName, id, version string) error {
+func (c *HTTPClient) DeleteSecret(ctx context.Context, storeName, id string) error {
 	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), secretsPath, id)
-	if version != "" {
-		reqURL = fmt.Sprintf("%s?version=%s", reqURL, version)
-	}
 	response, err := deleteRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return err
@@ -67,11 +64,8 @@ func (c *HTTPClient) DeleteSecret(ctx context.Context, storeName, id, version st
 	return nil
 }
 
-func (c *HTTPClient) RestoreSecret(ctx context.Context, storeName, id, version string) error {
+func (c *HTTPClient) RestoreSecret(ctx context.Context, storeName, id string) error {
 	reqURL := fmt.Sprintf("%s/%s/%s/restore", withURLStore(c.config.URL, storeName), secretsPath, id)
-	if version != "" {
-		reqURL = fmt.Sprintf("%s?version=%s", reqURL, version)
-	}
 	response, err := putRequest(ctx, c.client, reqURL, nil)
 	if err != nil {
 		return err
@@ -86,11 +80,8 @@ func (c *HTTPClient) RestoreSecret(ctx context.Context, storeName, id, version s
 	return nil
 }
 
-func (c *HTTPClient) DestroySecret(ctx context.Context, storeName, id, version string) error {
+func (c *HTTPClient) DestroySecret(ctx context.Context, storeName, id string) error {
 	reqURL := fmt.Sprintf("%s/%s/%s/destroy", withURLStore(c.config.URL, storeName), secretsPath, id)
-	if version != "" {
-		reqURL = fmt.Sprintf("%s?version=%s", reqURL, version)
-	}
 	response, err := deleteRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return err
@@ -105,12 +96,9 @@ func (c *HTTPClient) DestroySecret(ctx context.Context, storeName, id, version s
 	return nil
 }
 
-func (c *HTTPClient) GetDeletedSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (c *HTTPClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
 	secret := &types.SecretResponse{}
 	reqURL := fmt.Sprintf("%s/%s/%s?deleted=true", withURLStore(c.config.URL, storeName), secretsPath, id)
-	if version != "" {
-		reqURL = fmt.Sprintf("%s&version=%s", reqURL, version)
-	}
 	response, err := getRequest(ctx, c.client, reqURL)
 	if err != nil {
 		return nil, err

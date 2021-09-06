@@ -482,19 +482,34 @@ func (mr *MockSecretsMockRecorder) GetLatestVersion(ctx, id, isDeleted interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestVersion", reflect.TypeOf((*MockSecrets)(nil).GetLatestVersion), ctx, id, isDeleted)
 }
 
-// GetDeleted mocks base method
-func (m *MockSecrets) GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error) {
+// ListVersions mocks base method
+func (m *MockSecrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDeleted", ctx, id, version)
+	ret := m.ctrl.Call(m, "ListVersions", ctx, id, isDeleted)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListVersions indicates an expected call of ListVersions
+func (mr *MockSecretsMockRecorder) ListVersions(ctx, id, isDeleted interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListVersions", reflect.TypeOf((*MockSecrets)(nil).ListVersions), ctx, id, isDeleted)
+}
+
+// GetDeleted mocks base method
+func (m *MockSecrets) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeleted", ctx, id)
 	ret0, _ := ret[0].(*entities.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetDeleted indicates an expected call of GetDeleted
-func (mr *MockSecretsMockRecorder) GetDeleted(ctx, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsMockRecorder) GetDeleted(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeleted", reflect.TypeOf((*MockSecrets)(nil).GetDeleted), ctx, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeleted", reflect.TypeOf((*MockSecrets)(nil).GetDeleted), ctx, id)
 }
 
 // GetAll mocks base method
@@ -558,43 +573,43 @@ func (mr *MockSecretsMockRecorder) Update(ctx, secret interface{}) *gomock.Call 
 }
 
 // Delete mocks base method
-func (m *MockSecrets) Delete(ctx context.Context, id, version string) error {
+func (m *MockSecrets) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, id, version)
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockSecretsMockRecorder) Delete(ctx, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSecrets)(nil).Delete), ctx, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSecrets)(nil).Delete), ctx, id)
 }
 
 // Restore mocks base method
-func (m *MockSecrets) Restore(ctx context.Context, id, version string) error {
+func (m *MockSecrets) Restore(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Restore", ctx, id, version)
+	ret := m.ctrl.Call(m, "Restore", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Restore indicates an expected call of Restore
-func (mr *MockSecretsMockRecorder) Restore(ctx, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsMockRecorder) Restore(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockSecrets)(nil).Restore), ctx, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockSecrets)(nil).Restore), ctx, id)
 }
 
 // Purge mocks base method
-func (m *MockSecrets) Purge(ctx context.Context, id, version string) error {
+func (m *MockSecrets) Purge(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Purge", ctx, id, version)
+	ret := m.ctrl.Call(m, "Purge", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Purge indicates an expected call of Purge
-func (mr *MockSecretsMockRecorder) Purge(ctx, id, version interface{}) *gomock.Call {
+func (mr *MockSecretsMockRecorder) Purge(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Purge", reflect.TypeOf((*MockSecrets)(nil).Purge), ctx, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Purge", reflect.TypeOf((*MockSecrets)(nil).Purge), ctx, id)
 }

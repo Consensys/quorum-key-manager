@@ -3,6 +3,7 @@ package eth1
 import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -14,7 +15,7 @@ type LocalEth1Specs struct {
 	Specs    interface{}
 }
 
-func NewLocalEth1(specs *LocalEth1Specs, logger log.Logger) (stores.KeyStore, error) {
+func NewLocalEth1(specs *LocalEth1Specs, db database.Secrets, logger log.Logger) (stores.KeyStore, error) {
 	var keyStore stores.KeyStore
 	var err error
 
@@ -54,7 +55,7 @@ func NewLocalEth1(specs *LocalEth1Specs, logger log.Logger) (stores.KeyStore, er
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 
-		keyStore, err = mkeys.NewLocalKeyStore(spec, logger)
+		keyStore, err = mkeys.NewLocalKeyStore(spec, db, logger)
 	default:
 		errMessage := "invalid keystore kind"
 		logger.Error(errMessage, "kind", specs.Keystore)

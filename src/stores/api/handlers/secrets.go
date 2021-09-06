@@ -96,7 +96,6 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	version := request.URL.Query().Get("version")
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
@@ -108,9 +107,10 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	var secret *entities.Secret
 	getDeleted := request.URL.Query().Get("deleted")
 	if getDeleted == "" {
+		version := request.URL.Query().Get("version")
 		secret, err = secretStore.Get(ctx, id, version)
 	} else {
-		secret, err = secretStore.GetDeleted(ctx, id, version)
+		secret, err = secretStore.GetDeleted(ctx, id)
 	}
 
 	if err != nil {
@@ -165,7 +165,6 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Secret Identifier"
-// @Param version query string false "secret version"
 // @Success 204 "Deleted successfully"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -175,7 +174,6 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	version := request.URL.Query().Get("version")
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
@@ -184,7 +182,7 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = secretStore.Delete(ctx, id, version)
+	err = secretStore.Delete(ctx, id)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -200,7 +198,6 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param storeName path string true "Secret Identifier"
 // @Param id path string true "Key identifier"
-// @Param version query string false "secret version"
 // @Success 204 "Destroyed successfully"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -209,7 +206,6 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	version := request.URL.Query().Get("version")
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
@@ -217,7 +213,7 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	err = secretStore.Destroy(ctx, id, version)
+	err = secretStore.Destroy(ctx, id)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -233,7 +229,6 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Secret identifier"
-// @Param version query string false "secret version"
 // @Success 204 "Restored successfully"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -243,7 +238,6 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	version := request.URL.Query().Get("version")
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
@@ -252,7 +246,7 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	err = secretStore.Restore(ctx, id, version)
+	err = secretStore.Restore(ctx, id)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

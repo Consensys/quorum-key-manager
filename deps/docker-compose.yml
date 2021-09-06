@@ -10,7 +10,7 @@ x-postgres-common: &postgres-common
     POSTGRES_PASSWORD: postgres
 
 services:
-  postgres:
+  postgres-ssl:
     <<: *container-common
     <<: *postgres-common
     image: postgres:13.3-alpine
@@ -26,6 +26,17 @@ services:
       - ./postgres/server.crt:/var/lib/postgresql/server.crt:ro
       - ./postgres/server.key:/var/lib/postgresql/server.key:ro
       - ./ca/ca.crt:/var/lib/postgresql/ca.crt:ro
+    ports:
+      - 5432
+
+  postgres:
+    <<: *container-common
+    <<: *postgres-common
+    image: postgres:13.3-alpine
+    # command: ["postgres", "-c", "max_connections=100"]
+    command: ["postgres", "-c", "log_statement=all"]
+    volumes:
+      - db-data-api:/var/lib/postgresql/data
     ports:
       - 5432
 

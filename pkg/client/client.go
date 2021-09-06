@@ -12,10 +12,10 @@ import (
 type SecretsClient interface {
 	SetSecret(ctx context.Context, storeName, id string, request *types.SetSecretRequest) (*types.SecretResponse, error)
 	GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error)
-	GetDeletedSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error)
-	DeleteSecret(ctx context.Context, storeName, id, version string) error
-	RestoreSecret(ctx context.Context, storeName, id, version string) error
-	DestroySecret(ctx context.Context, storeName, id, version string) error
+	GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error)
+	DeleteSecret(ctx context.Context, storeName, id string) error
+	RestoreSecret(ctx context.Context, storeName, id string) error
+	DestroySecret(ctx context.Context, storeName, id string) error
 	ListSecrets(ctx context.Context, storeName string) ([]string, error)
 	ListDeletedSecrets(ctx context.Context, storeName string) ([]string, error)
 }

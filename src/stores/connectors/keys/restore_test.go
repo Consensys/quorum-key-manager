@@ -40,6 +40,8 @@ func TestRestoreKey(t *testing.T) {
 
 	t.Run("should restore key successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Restore(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), key.ID).Return(nil)
@@ -49,10 +51,21 @@ func TestRestoreKey(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("should be idempotent when key already exists", func(t *testing.T) {
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, nil)
+
+		err := connector.Restore(ctx, key.ID)
+
+		assert.NoError(t, err)
+	})
+
 	t.Run("should restore key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
-
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Restore(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), key.ID).Return(rErr)
@@ -60,6 +73,17 @@ func TestRestoreKey(t *testing.T) {
 		err := connector.Restore(ctx, key.ID)
 
 		assert.NoError(t, err)
+	})
+
+	t.Run("should fail if key not deleted yet", func(t *testing.T) {
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
+		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(nil, expectedErr)
+
+		err := connector.Restore(ctx, key.ID)
+
+		assert.Error(t, err)
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
@@ -71,18 +95,10 @@ func TestRestoreKey(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should fail to restore key if key is not deleted", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, expectedErr)
-
-		err := connector.Restore(ctx, key.ID)
-
-		assert.Error(t, err)
-		assert.Equal(t, err, expectedErr)
-	})
-
 	t.Run("should fail to restore key if db fail to restore", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Restore(gomock.Any(), key.ID).Return(expectedErr)
 
@@ -94,6 +110,8 @@ func TestRestoreKey(t *testing.T) {
 
 	t.Run("should fail to restore key if store fail to restore", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Restore(gomock.Any(), key.ID).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), key.ID).Return(expectedErr)

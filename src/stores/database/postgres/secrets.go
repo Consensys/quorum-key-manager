@@ -58,13 +58,10 @@ func (s *Secrets) Get(ctx context.Context, id, version string) (*entities.Secret
 	return item.ToEntity(), nil
 }
 
-func (s *Secrets) GetDeleted(ctx context.Context, id, version string) (*entities.Secret, error) {
-	var err error
-	if version == "" {
-		version, err = s.GetLatestVersion(ctx, id, true)
-		if err != nil {
-			return nil, err
-		}
+func (s *Secrets) GetDeleted(ctx context.Context, id string) (*entities.Secret, error) {
+	version, err := s.GetLatestVersion(ctx, id, true)
+	if err != nil {
+		return nil, err
 	}
 
 	item := &models.Secret{ID: id, Version: version, StoreID: s.storeID}
@@ -96,6 +93,26 @@ func (s *Secrets) GetLatestVersion(ctx context.Context, id string, isDeleted boo
 	}
 
 	return version, nil
+}
+
+func (s *Secrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
+	var versions = []string{}
+	var err error
+	if !isDeleted {
+		err = s.client.Query(ctx, &versions,
+			"SELECT array_agg(version ORDER BY created_at ASC) FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NULL", id, s.storeID)
+	} else {
+		err = s.client.Query(ctx, &versions,
+			"SELECT array_agg(version ORDER BY created_at ASC) FROM secrets WHERE id = ? AND store_id = ? AND deleted_at IS NOT NULL", id, s.storeID)
+	}
+
+	if err != nil {
+		errMessage := "failed to list secret versions"
+		s.logger.With("id", id).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return versions, nil
 }
 
 func (s *Secrets) GetAll(ctx context.Context) ([]*entities.Secret, error) {
@@ -165,47 +182,30 @@ func (s *Secrets) Update(ctx context.Context, secret *entities.Secret) (*entitie
 	return itemModel.ToEntity(), nil
 }
 
-func (s *Secrets) Delete(ctx context.Context, id, version string) error {
-	var err error
-	if version == "" {
-		err = s.client.DeleteWhere(ctx, &models.Secret{ID: id, StoreID: s.storeID}, "id = ?", id)
-	} else {
-		err = s.client.DeletePK(ctx, &models.Secret{ID: id, Version: version, StoreID: s.storeID})
-	}
-
+func (s *Secrets) Delete(ctx context.Context, id string) error {
+	err := s.client.DeleteWhere(ctx, &models.Secret{ID: id, StoreID: s.storeID}, "id = ?", id)
 	if err != nil {
 		errMessage := "failed to delete secret"
-		s.logger.With("id", id).With("version", version).WithError(err).Error(errMessage)
+		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil
 }
 
-func (s *Secrets) Restore(ctx context.Context, id, version string) error {
-	var err error
-	if version == "" {
-		err = s.client.UndeleteWhere(ctx, &models.Secret{}, "id = ? AND store_id = ?", s.storeID)
-	} else {
-		err = s.client.UndeletePK(ctx, &models.Secret{ID: id, Version: version, StoreID: s.storeID})
-	}
-
+func (s *Secrets) Restore(ctx context.Context, id string) error {
+	err := s.client.UndeleteWhere(ctx, &models.Secret{}, "id = ? AND store_id = ?", id, s.storeID)
 	if err != nil {
 		errMessage := "failed to restore secret"
-		s.logger.With("id", id).With("version", version).WithError(err).Error(errMessage)
+		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)
 	}
 
 	return nil
 }
 
-func (s *Secrets) Purge(ctx context.Context, id, version string) error {
-	var err error
-	if version == "" {
-		err = s.client.ForceDeleteWhere(ctx, &models.Secret{ID: id, StoreID: s.storeID}, "id = ?", id)
-	} else {
-		err = s.client.ForceDeletePK(ctx, &models.Secret{ID: id, Version: version, StoreID: s.storeID})
-	}
+func (s *Secrets) Purge(ctx context.Context, id string) error {
+	err := s.client.ForceDeleteWhere(ctx, &models.Secret{ID: id, StoreID: s.storeID}, "id = ?", id)
 	if err != nil {
 		errMessage := "failed to permanently delete secret"
 		s.logger.With("id", id).WithError(err).Error(errMessage)

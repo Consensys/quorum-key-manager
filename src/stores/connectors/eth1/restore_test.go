@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRestoreKey(t *testing.T) {
+func TestRestoreEth1Account(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -40,6 +40,8 @@ func TestRestoreKey(t *testing.T) {
 
 	t.Run("should restore eth1Account successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), acc.KeyID).Return(nil)
@@ -51,11 +53,22 @@ func TestRestoreKey(t *testing.T) {
 
 	t.Run("should restore eth1Account successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
-
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), acc.KeyID).Return(rErr)
+
+		err := connector.Restore(ctx, acc.Address)
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("should be idempotent if eth1Account already exists", func(t *testing.T) {
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, nil)
 
 		err := connector.Restore(ctx, acc.Address)
 
@@ -71,18 +84,21 @@ func TestRestoreKey(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should fail to restore eth1Account if eth1Account is not deleted", func(t *testing.T) {
+	t.Run("should fail to restore eth1Account if eth1Account is not yet deleted", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
 		err := connector.Restore(ctx, acc.Address)
 
 		assert.Error(t, err)
-		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should fail to restore key if db fail to restore", func(t *testing.T) {
+	t.Run("should fail to restore eth1Account if db fails to restore", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(expectedErr)
 
@@ -92,8 +108,10 @@ func TestRestoreKey(t *testing.T) {
 		assert.Equal(t, err, expectedErr)
 	})
 
-	t.Run("should fail to restore key if store fail to restore", func(t *testing.T) {
+	t.Run("should fail to restore eth1Account if store fails to restore", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEth1Account}).Return(nil)
+		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEth1Account}).Return(nil)
+		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Restore(gomock.Any(), acc.KeyID).Return(expectedErr)

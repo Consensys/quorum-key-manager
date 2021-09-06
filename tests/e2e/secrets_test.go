@@ -189,12 +189,12 @@ func (s *secretsTestSuite) TestDeleteSecret() {
 	defer s.queueToDestroy(secret)
 
 	s.RunT("should delete a secret specific version successfully", func() {
-		err := s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+		err := s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID)
 		assert.NoError(s.T(), err)
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		err := s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, "invalidID", "")
+		err := s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, "invalidID")
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -210,20 +210,20 @@ func (s *secretsTestSuite) TestGetDeletedSecret() {
 	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.storeName, secretID, request)
 	require.NoError(s.T(), err)
 
-	err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+	err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID)
 	require.NoError(s.T(), err)
 
 	defer s.queueToDestroy(secret)
 
 	s.RunT("should get deleted secret successfully", func() {
-		secretRetrieved, err := s.keyManagerClient.GetDeletedSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+		secretRetrieved, err := s.keyManagerClient.GetDeletedSecret(s.ctx, s.storeName, secret.ID)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), secretID, secretRetrieved.ID)
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		_, err := s.keyManagerClient.GetDeletedSecret(s.ctx, s.storeName, "invalidID", "")
+		_, err := s.keyManagerClient.GetDeletedSecret(s.ctx, s.storeName, "invalidID")
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -240,19 +240,19 @@ func (s *secretsTestSuite) TestRestoreDeleted() {
 		secret, err := s.keyManagerClient.SetSecret(s.ctx, s.storeName, secretID, request)
 		require.NoError(s.T(), err)
 
-		err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+		err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID)
 		require.NoError(s.T(), err)
 		defer s.queueToDelete(secret)
 
 		// We should retry on status conflict for AKV
-		errMsg := fmt.Sprintf("failed to restore secret. {ID: %s, version: %s}", secret.ID, secret.Version)
+		errMsg := fmt.Sprintf("failed to restore secret. {ID: %s}", secret.ID)
 		err = retryOn(func() error {
-			return s.keyManagerClient.RestoreSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+			return s.keyManagerClient.RestoreSecret(s.ctx, s.storeName, secret.ID)
 		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
 		require.NoError(s.T(), err)
 
 		// We should retry on status conflict for AKV
-		errMsg = fmt.Sprintf("failed to get secret. {ID: %s, version: %s}", secret.ID, secret.Version)
+		errMsg = fmt.Sprintf("failed to get secret. {ID: %s}", secret.ID)
 		err = retryOn(func() error {
 			_, derr := s.keyManagerClient.GetSecret(s.ctx, s.storeName, secret.ID, secret.Version)
 			return derr
@@ -261,7 +261,7 @@ func (s *secretsTestSuite) TestRestoreDeleted() {
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		err := s.keyManagerClient.RestoreSecret(s.ctx, s.storeName, "invalidID", "")
+		err := s.keyManagerClient.RestoreSecret(s.ctx, s.storeName, "invalidID")
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -277,24 +277,24 @@ func (s *secretsTestSuite) TestDestroyDeleted() {
 	secret, err := s.keyManagerClient.SetSecret(s.ctx, s.storeName, secretID, request)
 	require.NoError(s.T(), err)
 
-	err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+	err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID)
 	require.NoError(s.T(), err)
 
 	s.RunT("should destroy deleted secret successfully", func() {
-		errMsg := fmt.Sprintf("failed to destroy secret {ID: %s, version: %s}", secret.ID, secret.Version)
+		errMsg := fmt.Sprintf("failed to destroy secret {ID: %s}", secret.ID)
 		err := retryOn(func() error {
-			return s.keyManagerClient.DestroySecret(s.ctx, s.storeName, secret.ID, secret.Version)
+			return s.keyManagerClient.DestroySecret(s.ctx, s.storeName, secret.ID)
 		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
 		require.NoError(s.T(), err)
 
-		_, err = s.keyManagerClient.GetDeletedSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+		_, err = s.keyManagerClient.GetDeletedSecret(s.ctx, s.storeName, secret.ID)
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		err := s.keyManagerClient.DestroySecret(s.ctx, s.storeName, "invalidID", "")
+		err := s.keyManagerClient.DestroySecret(s.ctx, s.storeName, "invalidID")
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
@@ -338,7 +338,7 @@ func (s *secretsTestSuite) TestListDeletedSecrets() {
 		secret, err := s.keyManagerClient.SetSecret(s.ctx, s.storeName, secretID, request)
 		require.NoError(s.T(), err)
 
-		err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID, secret.Version)
+		err = s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secret.ID)
 		require.NoError(s.T(), err)
 		defer s.queueToDestroy(secret)
 
@@ -362,9 +362,9 @@ func (s *secretsTestSuite) TestListDeletedSecrets() {
 func (s *secretsTestSuite) queueToDelete(secretR *types.SecretResponse) {
 	s.deleteQueue.Add(1)
 	go func() {
-		err := s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secretR.ID, secretR.Version)
+		err := s.keyManagerClient.DeleteSecret(s.ctx, s.storeName, secretR.ID)
 		if err != nil {
-			s.T().Logf("failed to delete secret {ID: %s, version: %s}", secretR.ID, secretR.Version)
+			s.T().Logf("failed to delete secret {ID: %s}", secretR.ID)
 		} else {
 			s.queueToDestroy(secretR)
 		}
@@ -375,9 +375,9 @@ func (s *secretsTestSuite) queueToDelete(secretR *types.SecretResponse) {
 func (s *secretsTestSuite) queueToDestroy(secretR *types.SecretResponse) {
 	s.destroyQueue.Add(1)
 	go func() {
-		errMsg := fmt.Sprintf("failed to destroy secret {ID: %s, version: %s}", secretR.ID, secretR.Version)
+		errMsg := fmt.Sprintf("failed to destroy secret {ID: %s}", secretR.ID)
 		err := retryOn(func() error {
-			return s.keyManagerClient.DestroySecret(s.ctx, s.storeName, secretR.ID, secretR.Version)
+			return s.keyManagerClient.DestroySecret(s.ctx, s.storeName, secretR.ID)
 		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
 
 		if err != nil {

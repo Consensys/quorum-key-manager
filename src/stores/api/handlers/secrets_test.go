@@ -16,8 +16,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
-	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
-	mocksecrets "github.com/consensys/quorum-key-manager/src/stores/store/secrets/mock"
+	mocks "github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -39,8 +38,8 @@ type secretsHandlerTestSuite struct {
 	suite.Suite
 
 	ctrl         *gomock.Controller
-	storeManager *mockstoremanager.MockManager
-	secretStore  *mocksecrets.MockStore
+	storeManager *mocks.MockManager
+	secretStore  *mocks.MockSecretStore
 	router       *mux.Router
 	ctx          context.Context
 }
@@ -53,8 +52,8 @@ func TestSecretsHandler(t *testing.T) {
 func (s *secretsHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
-	s.secretStore = mocksecrets.NewMockStore(s.ctrl)
+	s.storeManager = mocks.NewMockManager(s.ctrl)
+	s.secretStore = mocks.NewMockSecretStore(s.ctrl)
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: secretUserInfo,
 	})
@@ -164,7 +163,7 @@ func (s *secretsHandlerTestSuite) TestGetDeleted() {
 
 		secret := testutils2.FakeSecret()
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID, version).Return(secret, nil)
+		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID).Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -180,7 +179,7 @@ func (s *secretsHandlerTestSuite) TestGetDeleted() {
 
 		secret := testutils2.FakeSecret()
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID, "").Return(secret, nil)
+		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID).Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -196,7 +195,7 @@ func (s *secretsHandlerTestSuite) TestGetDeleted() {
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?deleted=true", secretID), nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().GetDeleted(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
+		s.secretStore.EXPECT().GetDeleted(gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
@@ -211,7 +210,7 @@ func (s *secretsHandlerTestSuite) TestDelete() {
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s", secretID, version), nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Delete(gomock.Any(), secretID, version).Return(nil)
+		s.secretStore.EXPECT().Delete(gomock.Any(), secretID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
@@ -222,7 +221,7 @@ func (s *secretsHandlerTestSuite) TestDelete() {
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
+		s.secretStore.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
@@ -237,7 +236,7 @@ func (s *secretsHandlerTestSuite) TestRestore() {
 		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/SecretStore/secrets/%s/restore?version=%s", secretID, version), nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Restore(gomock.Any(), secretID, version).Return(nil)
+		s.secretStore.EXPECT().Restore(gomock.Any(), secretID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
@@ -248,7 +247,7 @@ func (s *secretsHandlerTestSuite) TestRestore() {
 		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/SecretStore/secrets/%s/restore", secretID), nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Restore(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
+		s.secretStore.EXPECT().Restore(gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
@@ -263,7 +262,7 @@ func (s *secretsHandlerTestSuite) TestDestroy() {
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s/destroy?version=%s", secretID, version), nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Destroy(gomock.Any(), secretID, version).Return(nil)
+		s.secretStore.EXPECT().Destroy(gomock.Any(), secretID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
@@ -274,7 +273,7 @@ func (s *secretsHandlerTestSuite) TestDestroy() {
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s/destroy", secretID), nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().Destroy(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
+		s.secretStore.EXPECT().Destroy(gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)

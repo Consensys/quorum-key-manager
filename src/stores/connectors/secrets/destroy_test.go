@@ -40,11 +40,11 @@ func TestDestroySecret(t *testing.T) {
 
 	t.Run("should destroy secret successfully", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
-		db.EXPECT().Purge(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
-		store.EXPECT().Destroy(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID).Return(secret, nil)
+		db.EXPECT().Purge(gomock.Any(), secret.ID).Return(nil)
+		store.EXPECT().Destroy(gomock.Any(), secret.ID).Return(nil)
 
-		err := connector.Destroy(ctx, secret.ID, secret.Metadata.Version)
+		err := connector.Destroy(ctx, secret.ID)
 
 		assert.NoError(t, err)
 	})
@@ -53,11 +53,11 @@ func TestDestroySecret(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
-		db.EXPECT().Purge(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
-		store.EXPECT().Destroy(gomock.Any(), secret.ID, secret.Metadata.Version).Return(rErr)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID).Return(secret, nil)
+		db.EXPECT().Purge(gomock.Any(), secret.ID).Return(nil)
+		store.EXPECT().Destroy(gomock.Any(), secret.ID).Return(rErr)
 
-		err := connector.Destroy(ctx, secret.ID, secret.Metadata.Version)
+		err := connector.Destroy(ctx, secret.ID)
 
 		assert.NoError(t, err)
 	})
@@ -65,37 +65,37 @@ func TestDestroySecret(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret}).Return(expectedErr)
 
-		err := connector.Destroy(ctx, secret.ID, secret.Metadata.Version)
+		err := connector.Destroy(ctx, secret.ID)
 
 		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to destroy secret if secret is not deleted", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, expectedErr)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID).Return(secret, expectedErr)
 
-		err := connector.Destroy(ctx, secret.ID, secret.Metadata.Version)
+		err := connector.Destroy(ctx, secret.ID)
 
 		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to destroy secret if db fail to purge", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
-		db.EXPECT().Purge(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID).Return(secret, nil)
+		db.EXPECT().Purge(gomock.Any(), secret.ID).Return(expectedErr)
 
-		err := connector.Destroy(ctx, secret.ID, secret.Metadata.Version)
+		err := connector.Destroy(ctx, secret.ID)
 
 		assert.Equal(t, err, expectedErr)
 	})
 
 	t.Run("should fail to destroy secret if store fail to destroy", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetDeleted(gomock.Any(), secret.ID, secret.Metadata.Version).Return(secret, nil)
-		db.EXPECT().Purge(gomock.Any(), secret.ID, secret.Metadata.Version).Return(nil)
-		store.EXPECT().Destroy(gomock.Any(), secret.ID, secret.Metadata.Version).Return(expectedErr)
+		db.EXPECT().GetDeleted(gomock.Any(), secret.ID).Return(secret, nil)
+		db.EXPECT().Purge(gomock.Any(), secret.ID).Return(nil)
+		store.EXPECT().Destroy(gomock.Any(), secret.ID).Return(expectedErr)
 
-		err := connector.Destroy(ctx, secret.ID, secret.Metadata.Version)
+		err := connector.Destroy(ctx, secret.ID)
 
 		assert.Equal(t, err, expectedErr)
 	})

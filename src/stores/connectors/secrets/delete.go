@@ -9,8 +9,8 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
 
-func (c Connector) Delete(ctx context.Context, id, version string) error {
-	logger := c.logger.With("id", id, "version", version)
+func (c Connector) Delete(ctx context.Context, id string) error {
+	logger := c.logger.With("id", id)
 	logger.Debug("deleting secret")
 
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceSecret})
@@ -19,12 +19,12 @@ func (c Connector) Delete(ctx context.Context, id, version string) error {
 	}
 
 	err = c.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
-		derr := dbtx.Delete(ctx, id, version)
+		derr := dbtx.Delete(ctx, id)
 		if derr != nil {
 			return derr
 		}
 
-		derr = c.store.Delete(ctx, id, version)
+		derr = c.store.Delete(ctx, id)
 		if derr != nil && !errors.IsNotSupportedError(derr) { // If the underlying store does not support deleting, we only delete in DB
 			return derr
 		}
