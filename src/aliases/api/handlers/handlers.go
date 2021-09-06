@@ -191,10 +191,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		Key:          aliasent.AliasKey(key),
 		Value:        aliasent.AliasValue(aliasReq.Value),
 	}
-	// TODO the: we have to either:
-	// - use an ID PK in the alias table to be able to update the alias key while renaming the alias
-	// - modify the UpdateAlias func to change the alias key (PK)
-	// - delete + create of the new alias
+
 	alias, err = h.alias.UpdateAlias(r.Context(), aliasent.RegistryName(regName), *alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
