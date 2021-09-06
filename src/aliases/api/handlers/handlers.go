@@ -108,7 +108,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	resp := types.AliasResponse{
 		Value: types.AliasValue(alias.Value),
 	}
-	err = jsonWrite(w, resp)
+	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -144,7 +144,7 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = jsonWrite(w, types.AliasResponse{
+	err = infrahttp.WriteJSON(w, types.AliasResponse{
 		Value: types.AliasValue(alias.Value),
 	})
 	if err != nil {
@@ -198,7 +198,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = jsonWrite(w, types.AliasResponse{
+	err = infrahttp.WriteJSON(w, types.AliasResponse{
 		Value: types.AliasValue(alias.Value),
 	})
 	if err != nil {
@@ -267,7 +267,7 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = jsonWrite(w, types.FormatEntityAliases(als))
+	err = infrahttp.WriteJSON(w, types.FormatEntityAliases(als))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return

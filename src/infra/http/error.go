@@ -52,3 +52,8 @@ func writeErrorResponse(rw http.ResponseWriter, status int, err error) {
 	rw.WriteHeader(status)
 	_, _ = rw.Write(msg)
 }
+
+func WriteJSON(w http.ResponseWriter, data interface{}) error {
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(data)
+}
