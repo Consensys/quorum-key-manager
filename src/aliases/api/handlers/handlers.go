@@ -42,8 +42,6 @@ func (h *AliasHandler) Register(r *mux.Router) {
 // @Description Delete a registry and all its keys
 // @Tags registry
 // @Param registry_name path string true "registry identifier"
-// @Param registry_key path string true "registry identifier"
-// @Param request body types.DeleteRegistryRequest true "Delete Registry Request"
 // @Success 204 {object} types.DeleteRegistryResponse "Registry data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -215,7 +213,6 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 // @Tags alias
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
-// @Param request body types.DeleteAliasRequest true "Delete Alias Request"
 // @Success 204 "Deleted successfully"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
