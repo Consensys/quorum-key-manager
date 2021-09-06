@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"testing"
 
@@ -119,23 +118,22 @@ func (s *authTestSuite) TestAuth_TLS() {
 		assert.NoError(s.T(), err)
 	})
 
-	// @TODO Find out not passing error
-	s.Run("should fail to sign with StatusUnauthorized", func() {
-		clientCert, err := generateClientCert("./certificates/noAuthClient.crt", "./certificates/client.key")
+	s.Run("should fail to sign with Status Forbidden if the certificate does not contain auth info", func() {
+		clientCert, err := generateClientCert("./certificates/client_no_auth.crt", "./certificates/client_no_auth.key")
 		require.NoError(s.T(), err)
-	
+
 		qkmClient := client.NewHTTPClient(&http.Client{
 			Transport: NewTestHttpTransport("", "", clientCert),
 		}, &client.Config{
 			URL: s.keyManagerURL,
 		})
-	
+
 		_, err = qkmClient.SignMessage(s.ctx, s.storeName, s.acc.Address.Hex(), &types.SignMessageRequest{
 			Message: hexutil.MustDecode("0x1234"),
 		})
-		urlError, ok := err.(*url.Error)
+		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
-		assert.Equal(s.T(), "remote error: tls: bad certificate", urlError.Err.Error())
+		assert.Equal(s.T(), http.StatusForbidden, httpError.StatusCode)
 	})
 
 	s.Run("should fail to sign with StatusForbidden", func() {
@@ -176,7 +174,7 @@ func (s *authTestSuite) TestAuth_JWT() {
 		assert.NoError(s.T(), err)
 	})
 
-	s.Run("should fail to sign with StatusUnauthorized", func() {
+	s.Run("should fail to sign with Status Forbidden", func() {
 		var token string
 		token, err := generateJWT("./certificates/client.key", "*:read", "e2e|auth_test_jwt")
 		if s.err != nil {
@@ -196,7 +194,7 @@ func (s *authTestSuite) TestAuth_JWT() {
 		})
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
-		assert.Equal(s.T(), http.StatusUnauthorized, httpError.StatusCode)
+		assert.Equal(s.T(), http.StatusForbidden, httpError.StatusCode)
 	})
 
 	s.Run("should fail to sign with StatusForbidden", func() {
