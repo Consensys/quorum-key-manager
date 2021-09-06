@@ -9,6 +9,7 @@ import (
 //go:generate mockgen -source=database.go -destination=mock/database.go -package=mock
 
 type Database interface {
+	Ping(ctx context.Context) error
 	ETH1Accounts(storeID string) ETH1Accounts
 	Keys(storeID string) Keys
 	Secrets(storeID string) Secrets

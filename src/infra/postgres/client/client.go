@@ -250,3 +250,8 @@ func (c PostgresClient) RunInTransaction(ctx context.Context, persist func(clien
 
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)
 }
+
+func (c PostgresClient) Ping(ctx context.Context) error {
+	_, err := c.db.ExecContext(ctx, "SELECT 1")
+	return err
+}

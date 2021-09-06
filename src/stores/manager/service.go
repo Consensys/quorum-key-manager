@@ -40,6 +40,7 @@ type BaseManager struct {
 	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
+	err    error
 
 	logger log.Logger
 	db     database.Database
@@ -105,7 +106,7 @@ func (m *BaseManager) Stop(context.Context) error {
 }
 
 func (m *BaseManager) Error() error {
-	return nil
+	return m.err
 }
 
 func (m *BaseManager) Close() error {
@@ -115,7 +116,9 @@ func (m *BaseManager) Close() error {
 func (m *BaseManager) loadAll() {
 	for mnfsts := range m.mnfsts {
 		for _, mnf := range mnfsts {
-			_ = m.load(mnf.Manifest)
+			if err := m.load(mnf.Manifest); err != nil {
+				m.err = errors.CombineErrors(m.err, err)
+			}
 		}
 	}
 }
@@ -424,5 +427,15 @@ func (m *BaseManager) CheckLiveness() error {
 }
 
 func (m *BaseManager) CheckReadiness() error {
-	return m.Error()
+	err := m.Error()
+	if err != nil {
+		return err
+	}
+	
+	err = m.db.Ping(context.Background())
+	if err != nil {
+		return errors.DependencyFailureError("database connection error: %s", err.Error())
+	}
+	
+	return nil
 }

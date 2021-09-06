@@ -25,4 +25,5 @@ type Client interface {
 	ForceDeletePK(ctx context.Context, model ...interface{}) error
 	ForceDeleteWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error
 	RunInTransaction(ctx context.Context, persist func(client Client) error) error
+	Ping(ctx context.Context) error
 }
