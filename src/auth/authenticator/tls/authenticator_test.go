@@ -20,7 +20,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 
 	aliceCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
 	require.NoError(t, err)
-	eveCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKey))
+	eveCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKeyEve))
 	require.NoError(t, err)
 
 	caCertPool := x509.NewCertPool()
@@ -66,7 +66,7 @@ func TestAuthenticatorDifferentCert(t *testing.T) {
 	defer ctrl.Finish()
 
 	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
-	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKey))
+	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKeyEve))
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(aliceCert.Leaf)
 	caCertPool.AddCert(eveCert.Leaf)
