@@ -47,7 +47,7 @@ func (h *AliasHandler) Register(r *mux.Router) {
 // @Success 204 {object} types.DeleteRegistryResponse "Registry data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registryes/{registry_name}/registryes/{registry_key} [delete]
+// @Router /registries/{registry_name} [delete]
 func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
@@ -79,7 +79,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} types.CreateAliasResponse "Alias data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /aliases/{registry_name}/aliases/{alias_key} [post]
+// @Router /registries/{registry_name}/aliases/{alias_key} [post]
 func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
@@ -125,7 +125,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} types.GetAliasResponse "Alias data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /aliases/{registry_name}/aliases/{alias_key} [get]
+// @Router /registries/{registry_name}/aliases/{alias_key} [get]
 func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
@@ -165,7 +165,7 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} types.UpdateAliasResponse "Alias data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /aliases/{registry_name}/aliases/{alias_key} [put]
+// @Router /registries/{registry_name}/aliases/{alias_key} [put]
 func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
@@ -219,7 +219,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 // @Success 204 "Deleted successfully"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /aliases/{registry_name}/aliases/{alias_key} [delete]
+// @Router /registries/{registry_name}/aliases/{alias_key} [delete]
 func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter
@@ -248,10 +248,10 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
-// @Success 200 {array} types.GetAliasResponse "a list of Aliases"
+// @Success 200 {array} types.Alias "a list of Aliases"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /aliases/{registry_name}/aliases/{alias_key} [get]
+// @Router /registries/{registry_name}/aliases [get]
 func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// should always exists in this subrouter

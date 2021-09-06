@@ -18,6 +18,5 @@ func New(alias aliasent.AliasBackend) *AliasAPI {
 }
 
 func (api *AliasAPI) Register(r *mux.Router) {
-	aliasSub := r.PathPrefix("/aliases").Subrouter()
-	handlers.NewAliasHandler(api.alias).Register(aliasSub)
+	handlers.NewAliasHandler(api.alias).Register(r)
 }

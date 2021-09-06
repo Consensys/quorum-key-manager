@@ -77,7 +77,7 @@ func TestCreateAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().CreateAlias(gomock.Any(), ent.RegistryName, ent).Return(&ent, nil)
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "POST", path, &b)
 		require.NoError(t, err)
 
@@ -110,7 +110,7 @@ func TestCreateAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().CreateAlias(gomock.Any(), ent.RegistryName, ent).Return(nil, errors.AlreadyExistsError(""))
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "POST", path, &b)
 		require.NoError(t, err)
 
@@ -139,7 +139,7 @@ func TestUpdateAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().UpdateAlias(gomock.Any(), ent.RegistryName, ent).Return(&ent, nil)
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "PUT", path, &b)
 		require.NoError(t, err)
 
@@ -175,7 +175,7 @@ func TestUpdateAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().UpdateAlias(gomock.Any(), ent.RegistryName, ent).Return(nil, errors.NotFoundError(""))
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "PUT", path, &b)
 		require.NoError(t, err)
 
@@ -196,7 +196,7 @@ func TestGetAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().GetAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(&ent, nil)
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
 		require.NoError(t, err)
 
@@ -225,7 +225,7 @@ func TestGetAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, "")
 		helper.mock.EXPECT().GetAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(nil, errors.NotFoundError(""))
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
 		require.NoError(t, err)
 
@@ -247,7 +247,7 @@ func TestDeleteAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().DeleteAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(nil)
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "DELETE", path, nil)
 		require.NoError(t, err)
 
@@ -265,7 +265,7 @@ func TestDeleteAlias(t *testing.T) {
 		ent := newEntAlias(c.reg, c.key, "")
 		helper.mock.EXPECT().DeleteAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(errors.NotFoundError(""))
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases/%s", c.reg, c.key)
+		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "DELETE", path, nil)
 		require.NoError(t, err)
 
@@ -288,7 +288,7 @@ func TestListAliases(t *testing.T) {
 		c.status = http.StatusNotFound
 		helper.mock.EXPECT().ListAliases(gomock.Any(), aliasent.RegistryName(c.reg)).Return(nil, errors.NotFoundError(""))
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases", c.reg)
+		path := fmt.Sprintf("/registries/%s/aliases", c.reg)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
 		require.NoError(t, err)
 
@@ -307,7 +307,7 @@ func TestListAliases(t *testing.T) {
 		var ents []aliasent.Alias
 		helper.mock.EXPECT().ListAliases(gomock.Any(), aliasent.RegistryName(c.reg)).Return(ents, nil)
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases", c.reg)
+		path := fmt.Sprintf("/registries/%s/aliases", c.reg)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
 		require.NoError(t, err)
 
@@ -340,7 +340,7 @@ func TestListAliases(t *testing.T) {
 		}
 		helper.mock.EXPECT().ListAliases(gomock.Any(), aliasent.RegistryName(c.reg)).Return(ents, nil)
 
-		path := fmt.Sprintf("/aliases/registries/%s/aliases", c.reg)
+		path := fmt.Sprintf("/registries/%s/aliases", c.reg)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
 		require.NoError(t, err)
 
@@ -358,8 +358,8 @@ func TestPathValidate(t *testing.T) {
 	cases := []struct {
 		path string
 	}{
-		{"/aliases/registries/bad*registry/aliases/ok-key"},
-		{"/aliases/registries/ok_registry/aliases/bad@key"},
+		{"/registries/bad*registry/aliases/ok-key"},
+		{"/registries/ok_registry/aliases/bad@key"},
 	}
 
 	requests := []struct {
@@ -396,10 +396,10 @@ func TestJSONHeader(t *testing.T) {
 		path   string
 		input  string
 	}{
-		{"POST", "/aliases/registries/1/aliases", `{"key": "1", "value": "[ \"0123\" ]"}`},
-		{"GET", "/aliases/registries/1/aliases", ``},
-		{"GET", "/aliases/registries/1/aliases/1", ``},
-		{"PUT", "/aliases/registries/1/aliases/1", `{"key": "1", "value": "[ \"01234\" ]"}`},
+		{"POST", "/registries/1/aliases", `{"key": "1", "value": "[ \"0123\" ]"}`},
+		{"GET", "/registries/1/aliases", ``},
+		{"GET", "/registries/1/aliases/1", ``},
+		{"PUT", "/registries/1/aliases/1", `{"key": "1", "value": "[ \"01234\" ]"}`},
 		// DELETE doesn't return any content, only 204 or 404
 	}
 
