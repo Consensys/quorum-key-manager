@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -22,6 +24,10 @@ func New(logger log.Logger, client postgres.Client) *Database {
 
 func (db *Database) ETHAccounts(storeID string) database.ETHAccounts {
 	return NewETHAccounts(storeID, db.client, db.logger.With("store_id", storeID))
+}
+
+func (db *Database) Ping(ctx context.Context) error {
+	return db.client.Ping(ctx)
 }
 
 func (db *Database) Keys(storeID string) database.Keys {

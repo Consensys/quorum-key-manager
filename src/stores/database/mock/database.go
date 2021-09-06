@@ -49,6 +49,20 @@ func (mr *MockDatabaseMockRecorder) ETHAccounts(storeID interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ETHAccounts", reflect.TypeOf((*MockDatabase)(nil).ETHAccounts), storeID)
 }
 
+// Ping mocks base method
+func (m *MockDatabase) Ping(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping
+func (mr *MockDatabaseMockRecorder) Ping(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockDatabase)(nil).Ping), ctx)
+}
+
 // Keys mocks base method
 func (m *MockDatabase) Keys(storeID string) database.Keys {
 	m.ctrl.T.Helper()

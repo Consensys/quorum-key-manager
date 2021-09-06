@@ -10,6 +10,7 @@ import (
 
 type Database interface {
 	ETHAccounts(storeID string) ETHAccounts
+	Ping(ctx context.Context) error
 	Keys(storeID string) Keys
 	Secrets(storeID string) Secrets
 }

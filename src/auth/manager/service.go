@@ -172,7 +172,7 @@ func (mngr *BaseManager) loadRole(mnf *manifest.Manifest) error {
 }
 
 func (mngr *BaseManager) ID() string { return ID }
-func (mngr *BaseManager) CheckLiveness() error {
+func (mngr *BaseManager) CheckLiveness(_ context.Context) error {
 	if mngr.isLive {
 		return nil
 	}
@@ -182,6 +182,6 @@ func (mngr *BaseManager) CheckLiveness() error {
 	return errors.HealthcheckError(errMessage)
 }
 
-func (mngr *BaseManager) CheckReadiness() error {
+func (mngr *BaseManager) CheckReadiness(_ context.Context) error {
 	return mngr.Error()
 }

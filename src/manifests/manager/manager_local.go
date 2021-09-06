@@ -215,7 +215,7 @@ func (ll *LocalManager) Error() error { return ll.err }
 func (ll *LocalManager) Close() error { return nil }
 
 func (ll *LocalManager) ID() string { return ManagerID }
-func (ll *LocalManager) CheckLiveness() error {
+func (ll *LocalManager) CheckLiveness(_ context.Context) error {
 	if ll.isLive {
 		return nil
 	}
@@ -223,7 +223,7 @@ func (ll *LocalManager) CheckLiveness() error {
 	return errors.ConfigError("service %s is not live", ll.ID())
 }
 
-func (ll *LocalManager) CheckReadiness() error {
+func (ll *LocalManager) CheckReadiness(_ context.Context) error {
 	for _, msg := range ll.msgs {
 		if msg.Err != nil {
 			return msg.Err

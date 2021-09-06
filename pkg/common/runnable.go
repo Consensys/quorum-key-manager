@@ -41,8 +41,8 @@ type Checkable interface {
 	ID() string
 
 	// Live MUST return an error if the long living task is not running otherwise nil
-	CheckLiveness() error
+	CheckLiveness(context.Context) error
 
 	// Ready MUST return an error if the long living task is not running otherwise nil
-	CheckReadiness() error
+	CheckReadiness(context.Context) error
 }
