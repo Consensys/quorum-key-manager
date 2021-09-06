@@ -11,6 +11,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 
 	"github.com/consensys/gnark-crypto/crypto/hash"
 	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
@@ -22,32 +23,54 @@ import (
 
 type Store struct {
 	secretStore stores.SecretStore
+	db          database.Secrets
 	logger      log.Logger
 }
 
 var _ stores.KeyStore = &Store{}
 
-func New(secretStore stores.SecretStore, logger log.Logger) *Store {
+func New(secretStore stores.SecretStore, db database.Secrets, logger log.Logger) *Store {
 	return &Store{
 		secretStore: secretStore,
 		logger:      logger,
+		db:          db,
 	}
 }
 
-func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) Get(_ context.Context, _ string) (*entities.Key, error) {
+	return nil, errors.ErrNotSupported
 }
 
-func (s *Store) List(_ context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) List(ctx context.Context) ([]string, error) {
+	ids := []string{}
+	items, err := s.db.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range items {
+		ids = append(ids, item.ID)
+	}
+
+	return ids, nil
 }
 
-func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
-	return nil, errors.ErrNotImplemented
+func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
+	return nil, errors.ErrNotSupported
 }
 
 func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
-	return nil, errors.ErrNotImplemented
+	ids := []string{}
+	items, err := s.db.GetAllDeleted(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range items {
+		ids = append(ids, item.ID)
+	}
+
+	return ids, nil
 }
 
 func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
@@ -90,7 +113,15 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	secret, err := s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), &entities.Attributes{})
+	secret, err := s.secretStore.Set(ctx, id, base64.StdEncoding.EncodeToString(privKey), attr)
+	if err != nil && errors.IsAlreadyExistsError(err) {
+		secret, err = s.secretStore.Get(ctx, id, "")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.Add(ctx, secret)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +138,7 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 			CreatedAt: secret.Metadata.CreatedAt,
 			UpdatedAt: secret.Metadata.UpdatedAt,
 		},
-		Tags: attr.Tags,
+		Tags: secret.Tags,
 	}, nil
 }
 
@@ -116,15 +147,61 @@ func (s *Store) Update(_ context.Context, _ string, _ *entities.Attributes) (*en
 }
 
 func (s *Store) Delete(ctx context.Context, id string) error {
-	return s.secretStore.Delete(ctx, id)
+	return s.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
+		derr := dbtx.Delete(ctx, id)
+		if derr != nil {
+			return derr
+		}
+
+		derr = s.secretStore.Delete(ctx, id)
+		if derr != nil && !errors.IsNotSupportedError(derr) { // If the underlying store does not support deleting, we only delete in DB
+			return derr
+		}
+
+		return nil
+	})
 }
 
 func (s *Store) Restore(ctx context.Context, id string) error {
-	return s.secretStore.Restore(ctx, id)
+	_, err := s.db.GetDeleted(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return s.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
+		err := dbtx.Restore(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		err = s.secretStore.Restore(ctx, id)
+		if err != nil && !errors.IsNotSupportedError(err) {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (s *Store) Destroy(ctx context.Context, id string) error {
-	return s.secretStore.Destroy(ctx, id)
+	_, err := s.db.GetDeleted(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return s.db.RunInTransaction(ctx, func(dbtx database.Secrets) error {
+		err := dbtx.Purge(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		err = s.secretStore.Destroy(ctx, id)
+		if err != nil && !errors.IsNotSupportedError(err) {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
@@ -154,7 +231,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	}
 }
 
-func (s *Store) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
 	return errors.ErrNotSupported
 }
 

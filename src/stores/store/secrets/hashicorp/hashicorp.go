@@ -227,6 +227,14 @@ func (s *Store) listVersions(ctx context.Context, id string, isDeleted bool) ([]
 		s.logger.WithError(err).Error(errMessage, "id", id)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
+
+	if len(versionList) == 0 {
+		errMsg := "no versions were found for secret"
+		err := errors.NotFoundError("unexpected empty list of secret versions")
+		s.logger.WithError(err).Error(errMsg, "id", id)
+		return nil, errors.FromError(err).SetMessage(errMsg)
+	}
+
 	return versionList, nil
 }
 

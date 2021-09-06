@@ -7,6 +7,8 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
+	dbmocks "github.com/consensys/quorum-key-manager/src/stores/database/mock"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -33,6 +35,7 @@ var expectedErr = errors.DependencyFailureError("error")
 type localKeyStoreTestSuite struct {
 	suite.Suite
 	keyStore        stores.KeyStore
+	mockSecretDB    *dbmocks.MockSecrets
 	mockSecretStore *mocksecrets.MockSecretStore
 }
 
@@ -46,8 +49,13 @@ func (s *localKeyStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mockSecretStore = mocksecrets.NewMockSecretStore(ctrl)
+	s.mockSecretDB = dbmocks.NewMockSecrets(ctrl)
+	s.mockSecretDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, persist func(dbtx database.Secrets) error) error {
+			return persist(s.mockSecretDB)
+		}).AnyTimes()
 
-	s.keyStore = New(s.mockSecretStore, testutils2.NewMockLogger(ctrl))
+	s.keyStore = New(s.mockSecretStore, s.mockSecretDB, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *localKeyStoreTestSuite) TestCreate() {
@@ -55,7 +63,9 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 	attr := testutils.FakeAttributes()
 
 	s.Run("should create an ECDSA/Secp256k1 key successfully", func() {
-		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), &entities.Attributes{}).Return(testutils.FakeSecret(), nil)
+		secret := testutils.FakeSecret()
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
+		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
 		key, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Ecdsa,
@@ -74,7 +84,9 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 	})
 
 	s.Run("should create an EDDSA/BN254 key successfully", func() {
-		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), &entities.Attributes{}).Return(testutils.FakeSecret(), nil)
+		secret := testutils.FakeSecret()
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
+		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
 		key, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
@@ -93,7 +105,20 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 	})
 
 	s.Run("should fail with same error if Set fails", func() {
-		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), &entities.Attributes{}).Return(nil, expectedErr)
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(nil, expectedErr)
+
+		_, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.Bn254,
+		}, attr)
+
+		assert.Equal(s.T(), expectedErr, err)
+	})
+
+	s.Run("should fail with same error if DB Add fails", func() {
+		secret := testutils.FakeSecret()
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
+		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(nil, expectedErr)
 
 		_, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
@@ -109,7 +134,9 @@ func (s *localKeyStoreTestSuite) TestImport() {
 	attr := testutils.FakeAttributes()
 
 	s.Run("should create an ECDSA/Secp256k1 key successfully", func() {
-		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), &entities.Attributes{}).Return(testutils.FakeSecret(), nil)
+		secret := testutils.FakeSecret()
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
+		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
 		key, err := s.keyStore.Import(ctx, id, hexutil.MustDecode(privKeyECDSA), &entities.Algorithm{
 			Type:          entities.Ecdsa,
@@ -128,7 +155,9 @@ func (s *localKeyStoreTestSuite) TestImport() {
 	})
 
 	s.Run("should create an EDDSA/BN254 key successfully", func() {
-		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), &entities.Attributes{}).Return(testutils.FakeSecret(), nil)
+		secret := testutils.FakeSecret()
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
+		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
 		key, err := s.keyStore.Import(ctx, id, hexutil.MustDecode(privKeyEDDSA), &entities.Algorithm{
 			Type:          entities.Eddsa,
@@ -156,7 +185,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 	})
 
 	s.Run("should fail with same error if Set fails", func() {
-		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), &entities.Attributes{}).Return(nil, expectedErr)
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(nil, expectedErr)
 
 		_, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
@@ -243,31 +272,52 @@ func (s *localKeyStoreTestSuite) TestDelete() {
 
 	s.Run("should delete a key successfully", func() {
 		s.mockSecretStore.EXPECT().Delete(ctx, id).Return(nil)
+		s.mockSecretDB.EXPECT().Delete(ctx, id).Return(nil)
 
 		err := s.keyStore.Delete(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if Delete Secret fails", func() {
+		s.mockSecretDB.EXPECT().Delete(ctx, id).Return(nil)
 		s.mockSecretStore.EXPECT().Delete(ctx, id).Return(expectedErr)
+
+		err := s.keyStore.Delete(ctx, id)
+		assert.Equal(s.T(), expectedErr, err)
+	})
+
+	s.Run("should fail with same error if DB Delete Secret fails", func() {
+		s.mockSecretStore.EXPECT().Delete(ctx, id).Return(nil)
+		s.mockSecretDB.EXPECT().Delete(ctx, id).Return(expectedErr)
 
 		err := s.keyStore.Delete(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
 	})
 }
 
-func (s *localKeyStoreTestSuite) TestUndelete() {
+func (s *localKeyStoreTestSuite) TestRestore() {
 	ctx := context.Background()
 
 	s.Run("should delete a key successfully", func() {
+		s.mockSecretDB.EXPECT().GetDeleted(ctx, id).Return(testutils.FakeSecret(), nil)
 		s.mockSecretStore.EXPECT().Restore(ctx, id).Return(nil)
+		s.mockSecretDB.EXPECT().Restore(ctx, id).Return(nil)
 
 		err := s.keyStore.Restore(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
+	s.Run("should fail with same error if GetDeleted Secret fails", func() {
+		s.mockSecretDB.EXPECT().GetDeleted(ctx, id).Return(nil, expectedErr)
+
+		err := s.keyStore.Restore(ctx, id)
+		assert.Equal(s.T(), expectedErr, err)
+	})
+
 	s.Run("should fail with same error if Delete Secret fails", func() {
+		s.mockSecretDB.EXPECT().GetDeleted(ctx, id).Return(testutils.FakeSecret(), nil)
 		s.mockSecretStore.EXPECT().Restore(ctx, id).Return(expectedErr)
+		s.mockSecretDB.EXPECT().Restore(ctx, id).Return(nil)
 
 		err := s.keyStore.Restore(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
@@ -277,15 +327,26 @@ func (s *localKeyStoreTestSuite) TestUndelete() {
 func (s *localKeyStoreTestSuite) TestDestroy() {
 	ctx := context.Background()
 
-	s.Run("should delete a key successfully", func() {
+	s.Run("should destroy a key successfully", func() {
+		s.mockSecretDB.EXPECT().GetDeleted(ctx, id).Return(testutils.FakeSecret(), nil)
 		s.mockSecretStore.EXPECT().Destroy(ctx, id).Return(nil)
+		s.mockSecretDB.EXPECT().Purge(ctx, id).Return(nil)
 
 		err := s.keyStore.Destroy(ctx, id)
 		assert.NoError(s.T(), err)
 	})
 
+	s.Run("should fail with same error if GetDeleted Secret fails", func() {
+		s.mockSecretDB.EXPECT().GetDeleted(ctx, id).Return(nil, expectedErr)
+
+		err := s.keyStore.Destroy(ctx, id)
+		assert.Equal(s.T(), expectedErr, err)
+	})
+
 	s.Run("should fail with same error if Delete Secret fails", func() {
+		s.mockSecretDB.EXPECT().GetDeleted(ctx, id).Return(testutils.FakeSecret(), nil)
 		s.mockSecretStore.EXPECT().Destroy(ctx, id).Return(expectedErr)
+		s.mockSecretDB.EXPECT().Purge(ctx, id).Return(nil)
 
 		err := s.keyStore.Destroy(ctx, id)
 		assert.Equal(s.T(), expectedErr, err)
