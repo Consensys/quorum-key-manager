@@ -19,12 +19,12 @@ const DestroyKey Permission = "destroy:keys"
 const SignKey Permission = "sign:keys"
 const EncryptKey Permission = "encrypt:keys"
 
-const ReadEth1 Permission = "read:eth1accounts"
-const WriteEth1 Permission = "write:eth1accounts"
-const DeleteEth1 Permission = "delete:eth1accounts"
-const DestroyEth1 Permission = "destroy:eth1accounts"
-const SignEth1 Permission = "sign:eth1accounts"
-const EncryptEth1 Permission = "encrypt:eth1accounts"
+const ReadEth Permission = "read:ethereum"
+const WriteEth Permission = "write:ethereum"
+const DeleteEth Permission = "delete:ethereum"
+const DestroyEth Permission = "destroy:ethereum"
+const SignEth Permission = "sign:ethereum"
+const EncryptEth Permission = "encrypt:ethereum"
 
 const ProxyNode Permission = "proxy:nodes"
 
@@ -40,12 +40,12 @@ func ListPermissions() []Permission {
 		DestroyKey,
 		SignKey,
 		EncryptKey,
-		ReadEth1,
-		WriteEth1,
-		DeleteEth1,
-		DestroyEth1,
-		SignEth1,
-		EncryptEth1,
+		ReadEth,
+		WriteEth,
+		DeleteEth,
+		DestroyEth,
+		SignEth,
+		EncryptEth,
 		ProxyNode,
 	}
 }

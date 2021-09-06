@@ -349,7 +349,7 @@ func (env *IntegrationEnvironment) createTables() error {
 	for _, v := range []interface{}{
 		&models2.Secret{},
 		&models2.Key{},
-		&models2.ETH1Account{},
+		&models2.ETHAccount{},
 		&aliasent.Alias{},
 	} {
 		err = db.Model(v).CreateTable(opts)

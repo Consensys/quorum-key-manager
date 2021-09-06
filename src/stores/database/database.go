@@ -9,19 +9,19 @@ import (
 //go:generate mockgen -source=database.go -destination=mock/database.go -package=mock
 
 type Database interface {
-	ETH1Accounts(storeID string) ETH1Accounts
+	ETHAccounts(storeID string) ETHAccounts
 	Keys(storeID string) Keys
 	Secrets(storeID string) Secrets
 }
 
-type ETH1Accounts interface {
-	RunInTransaction(ctx context.Context, persistFunc func(dbtx ETH1Accounts) error) error
-	Get(ctx context.Context, addr string) (*entities.ETH1Account, error)
-	GetDeleted(ctx context.Context, addr string) (*entities.ETH1Account, error)
-	GetAll(ctx context.Context) ([]*entities.ETH1Account, error)
-	GetAllDeleted(ctx context.Context) ([]*entities.ETH1Account, error)
-	Add(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error)
-	Update(ctx context.Context, account *entities.ETH1Account) (*entities.ETH1Account, error)
+type ETHAccounts interface {
+	RunInTransaction(ctx context.Context, persistFunc func(dbtx ETHAccounts) error) error
+	Get(ctx context.Context, addr string) (*entities.ETHAccount, error)
+	GetDeleted(ctx context.Context, addr string) (*entities.ETHAccount, error)
+	GetAll(ctx context.Context) ([]*entities.ETHAccount, error)
+	GetAllDeleted(ctx context.Context) ([]*entities.ETHAccount, error)
+	Add(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error)
+	Update(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error)
 	Delete(ctx context.Context, addr string) error
 	Restore(ctx context.Context, addr string) error
 	Purge(ctx context.Context, addr string) error

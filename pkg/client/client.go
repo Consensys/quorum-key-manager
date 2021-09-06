@@ -34,20 +34,20 @@ type KeysClient interface {
 	DestroyKey(ctx context.Context, storeName, id string) error
 }
 
-type Eth1Client interface {
-	CreateEth1Account(ctx context.Context, storeName string, request *types.CreateEth1AccountRequest) (*types.Eth1AccountResponse, error)
-	ImportEth1Account(ctx context.Context, storeName string, request *types.ImportEth1AccountRequest) (*types.Eth1AccountResponse, error)
-	UpdateEth1Account(ctx context.Context, storeName, address string, request *types.UpdateEth1AccountRequest) (*types.Eth1AccountResponse, error)
+type EthClient interface {
+	CreateEthAccount(ctx context.Context, storeName string, request *types.CreateEthAccountRequest) (*types.EthAccountResponse, error)
+	ImportEthAccount(ctx context.Context, storeName string, request *types.ImportEthAccountRequest) (*types.EthAccountResponse, error)
+	UpdateEthAccount(ctx context.Context, storeName, address string, request *types.UpdateEthAccountRequest) (*types.EthAccountResponse, error)
 	SignMessage(ctx context.Context, storeName, account string, request *types.SignMessageRequest) (string, error)
 	SignTypedData(ctx context.Context, storeName, address string, request *types.SignTypedDataRequest) (string, error)
 	SignTransaction(ctx context.Context, storeName, address string, request *types.SignETHTransactionRequest) (string, error)
 	SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types.SignQuorumPrivateTransactionRequest) (string, error)
 	SignEEATransaction(ctx context.Context, storeName, address string, request *types.SignEEATransactionRequest) (string, error)
-	GetEth1Account(ctx context.Context, storeName, address string) (*types.Eth1AccountResponse, error)
-	ListEth1Accounts(ctx context.Context, storeName string) ([]string, error)
-	DeleteEth1Account(ctx context.Context, storeName, address string) error
-	DestroyEth1Account(ctx context.Context, storeName, address string) error
-	RestoreEth1Account(ctx context.Context, storeName, address string) error
+	GetEthAccount(ctx context.Context, storeName, address string) (*types.EthAccountResponse, error)
+	ListEthAccounts(ctx context.Context, storeName string) ([]string, error)
+	DeleteEthAccount(ctx context.Context, storeName, address string) error
+	DestroyEthAccount(ctx context.Context, storeName, address string) error
+	RestoreEthAccount(ctx context.Context, storeName, address string) error
 	ECRecover(ctx context.Context, storeName string, request *types.ECRecoverRequest) (string, error)
 	Verify(ctx context.Context, storeName string, request *types.VerifyRequest) error
 	VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error
@@ -61,6 +61,6 @@ type JSONRPC interface {
 type KeyManagerClient interface {
 	SecretsClient
 	KeysClient
-	Eth1Client
+	EthClient
 	JSONRPC
 }

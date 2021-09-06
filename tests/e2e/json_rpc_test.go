@@ -28,7 +28,7 @@ type jsonRPCTestSuite struct {
 	err              error
 	ctx              context.Context
 	keyManagerClient *client.HTTPClient
-	acc              *types.Eth1AccountResponse
+	acc              *types.EthAccountResponse
 	storeName        string
 	QuorumNodeID     string
 	BesuNodeID       string
@@ -65,7 +65,7 @@ func TestJSONRpcHTTP(t *testing.T) {
 
 	s.BesuNodeID = cfg.BesuNodeID
 	s.QuorumNodeID = cfg.QuorumNodeID
-	s.storeName = cfg.Eth1Stores[0]
+	s.storeName = cfg.EthStores[0]
 	suite.Run(t, s)
 }
 
@@ -74,7 +74,7 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		s.T().Error(s.err)
 	}
 
-	s.acc, s.err = s.keyManagerClient.CreateEth1Account(s.ctx, s.storeName, &types.CreateEth1AccountRequest{
+	s.acc, s.err = s.keyManagerClient.CreateEthAccount(s.ctx, s.storeName, &types.CreateEthAccountRequest{
 		KeyID: fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
 	})
 
@@ -88,10 +88,10 @@ func (s *jsonRPCTestSuite) TearDownSuite() {
 		s.T().Error(s.err)
 	}
 
-	_ = s.keyManagerClient.DeleteEth1Account(s.ctx, s.storeName, s.acc.Address.Hex())
-	errMsg := fmt.Sprintf("failed to destroy eth1Account {Address: %s}", s.acc.Address.Hex())
+	_ = s.keyManagerClient.DeleteEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
+	errMsg := fmt.Sprintf("failed to destroy ethAccount {Address: %s}", s.acc.Address.Hex())
 	_ = retryOn(func() error {
-		return s.keyManagerClient.DestroyEth1Account(s.ctx, s.storeName, s.acc.Address.Hex())
+		return s.keyManagerClient.DestroyEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
 	}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
 }
 
@@ -120,7 +120,7 @@ func (s *jsonRPCTestSuite) TestEthSign() {
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
-		// TODO validate signature when importing eth1 accounts is possible
+		// TODO validate signature when importing eth accounts is possible
 	})
 
 	s.Run("should call eth_sign and fail to sign with an invalid account", func() {

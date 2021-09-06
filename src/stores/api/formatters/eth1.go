@@ -88,20 +88,20 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 	return ethtypes.NewTransaction(uint64(tx.Nonce), *tx.To, big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
 }
 
-func FormatEth1AccResponse(eth1Acc *entities.ETH1Account) *types.Eth1AccountResponse {
-	resp := &types.Eth1AccountResponse{
-		KeyID:               eth1Acc.KeyID,
-		Address:             eth1Acc.Address,
-		PublicKey:           eth1Acc.PublicKey,
-		CompressedPublicKey: eth1Acc.CompressedPublicKey,
-		Tags:                eth1Acc.Tags,
-		CreatedAt:           eth1Acc.Metadata.CreatedAt,
-		UpdatedAt:           eth1Acc.Metadata.UpdatedAt,
-		Disabled:            eth1Acc.Metadata.Disabled,
+func FormatEthAccResponse(ethAcc *entities.ETHAccount) *types.EthAccountResponse {
+	resp := &types.EthAccountResponse{
+		KeyID:               ethAcc.KeyID,
+		Address:             ethAcc.Address,
+		PublicKey:           ethAcc.PublicKey,
+		CompressedPublicKey: ethAcc.CompressedPublicKey,
+		Tags:                ethAcc.Tags,
+		CreatedAt:           ethAcc.Metadata.CreatedAt,
+		UpdatedAt:           ethAcc.Metadata.UpdatedAt,
+		Disabled:            ethAcc.Metadata.Disabled,
 	}
 
-	if !eth1Acc.Metadata.DeletedAt.IsZero() {
-		resp.DeletedAt = &eth1Acc.Metadata.DeletedAt
+	if !ethAcc.Metadata.DeletedAt.IsZero() {
+		resp.DeletedAt = &ethAcc.Metadata.DeletedAt
 	}
 
 	return resp

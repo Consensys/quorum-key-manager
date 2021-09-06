@@ -12,7 +12,7 @@ type StoresHandler struct {
 
 	secrets *SecretsHandler
 	keys    *KeysHandler
-	eth1    *Eth1Handler
+	eth     *EthHandler
 }
 
 // NewStoresHandler creates a http.Handler to be served on /stores
@@ -21,7 +21,7 @@ func NewStoresHandler(s stores.Manager) *StoresHandler {
 		stores:  s,
 		secrets: NewSecretsHandler(s),
 		keys:    NewKeysHandler(s),
-		eth1:    NewAccountsHandler(s),
+		eth:     NewAccountsHandler(s),
 	}
 }
 
@@ -41,9 +41,9 @@ func (h *StoresHandler) Register(router *mux.Router) {
 	keysSubrouter := storeSubrouter.PathPrefix("/keys").Subrouter()
 	h.keys.Register(keysSubrouter)
 
-	// Register eth1 handler on /stores/{storeName}/eth1
-	eth1Subrouter := storeSubrouter.PathPrefix("/eth1").Subrouter()
-	h.eth1.Register(eth1Subrouter)
+	// Register ethereum handler on /stores/{storeName}/ethereum
+	ethSubrouter := storeSubrouter.PathPrefix("/ethereum").Subrouter()
+	h.eth.Register(ethSubrouter)
 }
 
 func StoreSelector(h http.Handler) http.Handler {

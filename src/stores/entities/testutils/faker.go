@@ -33,8 +33,8 @@ func FakeKey() *entities.Key {
 	}
 }
 
-func FakeETH1Account() *entities.ETH1Account {
-	return &entities.ETH1Account{
+func FakeETHAccount() *entities.ETHAccount {
+	return &entities.ETHAccount{
 		KeyID:               fmt.Sprintf("my-account-%d", common2.RandInt(100)),
 		Address:             common.HexToAddress("0x83a0254be47813BBff771F4562744676C4e793F0"),
 		Metadata:            FakeMetadata(),

@@ -23,7 +23,7 @@ type healthzTestSuite struct {
 	ctx         context.Context
 	client      *http.Client
 	cfg         *tests.Config
-	mainAccount *types.Eth1AccountResponse
+	mainAccount *types.EthAccountResponse
 }
 
 func (s *healthzTestSuite) SetupSuite() {

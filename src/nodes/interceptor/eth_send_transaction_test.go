@@ -21,7 +21,7 @@ func TestEthSendTransaction(t *testing.T) {
 	defer ctrl.Finish()
 
 	i, stores := newInterceptor(ctrl)
-	accountsStore := mockaccounts.NewMockEth1Store(ctrl)
+	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 
 	userInfo := &types.UserInfo{
 		Username:    "username",
@@ -51,7 +51,7 @@ func TestEthSendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get Gas price
 				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)
@@ -86,7 +86,7 @@ func TestEthSendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEth1StoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get Gas price
 				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)

@@ -42,23 +42,23 @@ func FakeSignBase64PayloadRequest() *types.SignBase64PayloadRequest {
 	}
 }
 
-func FakeCreateEth1AccountRequest() *types.CreateEth1AccountRequest {
-	return &types.CreateEth1AccountRequest{
+func FakeCreateEthAccountRequest() *types.CreateEthAccountRequest {
+	return &types.CreateEthAccountRequest{
 		KeyID: "my-key-account",
 		Tags:  testutils.FakeTags(),
 	}
 }
 
-func FakeImportEth1AccountRequest() *types.ImportEth1AccountRequest {
-	return &types.ImportEth1AccountRequest{
+func FakeImportEthAccountRequest() *types.ImportEthAccountRequest {
+	return &types.ImportEthAccountRequest{
 		KeyID:      "my-import-key-account",
 		PrivateKey: hexutil.MustDecode("0xdb337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"),
 		Tags:       testutils.FakeTags(),
 	}
 }
 
-func FakeUpdateEth1AccountRequest() *types.UpdateEth1AccountRequest {
-	return &types.UpdateEth1AccountRequest{
+func FakeUpdateEthAccountRequest() *types.UpdateEthAccountRequest {
+	return &types.UpdateEthAccountRequest{
 		Tags: testutils.FakeTags(),
 	}
 }
@@ -149,7 +149,7 @@ func FakeVerifyTypedDataPayloadRequest() *types.VerifyTypedDataRequest {
 	}
 }
 
-func FakeVerifyEth1SignatureRequest() *types.VerifyRequest {
+func FakeVerifyEthSignatureRequest() *types.VerifyRequest {
 	return &types.VerifyRequest{
 		Data:      hexutil.MustDecode("0xfeee"),
 		Signature: hexutil.MustDecode("0x3399aeb23d6564b3a0b220447e9f1bb2057ffb82cfb766147620aa6bc84938e26941e7583d6460fea405d99da897e88cab07a7fd0991c6c2163645c45d25e4b201"),

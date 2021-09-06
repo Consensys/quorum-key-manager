@@ -57,7 +57,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 		assert.Equal(t, "eve", userInfo.Username)
 		assert.Equal(t, "auth0", userInfo.Tenant)
 		assert.Equal(t, []string{"signer"}, userInfo.Roles)
-		assert.Equal(t, types.ListWildcardPermission("*:eth1accounts"), userInfo.Permissions)
+		assert.Equal(t, types.ListWildcardPermission("*:ethereum"), userInfo.Permissions)
 	})
 }
 

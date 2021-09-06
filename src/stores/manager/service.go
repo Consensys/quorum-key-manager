@@ -11,11 +11,11 @@ import (
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
-	eth1connector "github.com/consensys/quorum-key-manager/src/stores/connectors/eth1"
+	ethconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
-	meth1 "github.com/consensys/quorum-key-manager/src/stores/manager/eth1"
+	meth "github.com/consensys/quorum-key-manager/src/stores/manager/ethereum"
 	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 
@@ -31,10 +31,10 @@ type BaseManager struct {
 	manifests   manifestsmanager.Manager
 	authManager auth.Manager
 
-	mux          sync.RWMutex
-	secrets      map[string]*storeBundle
-	keys         map[string]*storeBundle
-	eth1Accounts map[string]*storeBundle
+	mux         sync.RWMutex
+	secrets     map[string]*storeBundle
+	keys        map[string]*storeBundle
+	ethAccounts map[string]*storeBundle
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
@@ -53,15 +53,15 @@ type storeBundle struct {
 
 func New(manifests manifestsmanager.Manager, authMngr auth.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests:    manifests,
-		authManager:  authMngr,
-		mux:          sync.RWMutex{},
-		secrets:      make(map[string]*storeBundle),
-		keys:         make(map[string]*storeBundle),
-		eth1Accounts: make(map[string]*storeBundle),
-		mnfsts:       make(chan []manifestsmanager.Message),
-		logger:       logger,
-		db:           db,
+		manifests:   manifests,
+		authManager: authMngr,
+		mux:         sync.RWMutex{},
+		secrets:     make(map[string]*storeBundle),
+		keys:        make(map[string]*storeBundle),
+		ethAccounts: make(map[string]*storeBundle),
+		mnfsts:      make(chan []manifestsmanager.Message),
+		logger:      logger,
+		db:          db,
 	}
 }
 
@@ -73,7 +73,7 @@ var storeKinds = []manifest.Kind{
 	stores.AWSSecrets,
 	stores.AWSKeys,
 	stores.LocalKeys,
-	stores.Eth1Account,
+	stores.EthAccount,
 }
 
 func (m *BaseManager) Start(_ context.Context) error {
@@ -163,14 +163,14 @@ func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, userInfo 
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetEth1Store(ctx context.Context, name string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
+func (m *BaseManager) GetEthStore(ctx context.Context, name string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
-	return m.getEth1Store(ctx, name, userInfo)
+	return m.getEthStore(ctx, name, userInfo)
 }
 
-func (m *BaseManager) getEth1Store(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
-	if storeBundle, ok := m.eth1Accounts[storeName]; ok {
+func (m *BaseManager) getEthStore(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
+	if storeBundle, ok := m.ethAccounts[storeName]; ok {
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
 
@@ -179,7 +179,7 @@ func (m *BaseManager) getEth1Store(_ context.Context, storeName string, userInfo
 		}
 
 		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			return eth1connector.NewConnector(store, m.db.ETH1Accounts(storeName), resolver, storeBundle.logger), nil
+			return ethconnector.NewConnector(store, m.db.ETHAccounts(storeName), resolver, storeBundle.logger), nil
 		}
 	}
 
@@ -188,16 +188,16 @@ func (m *BaseManager) getEth1Store(_ context.Context, storeName string, userInfo
 	return nil, errors.NotFoundError(errMessage)
 }
 
-func (m *BaseManager) GetEth1StoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtypes.UserInfo) (stores.Eth1Store, error) {
+func (m *BaseManager) GetEthStoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	for _, storeName := range m.list(ctx, stores.Eth1Account, userInfo) {
+	for _, storeName := range m.list(ctx, stores.EthAccount, userInfo) {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
-			acc, err := m.getEth1Store(ctx, storeName, userInfo)
+			acc, err := m.getEthStore(ctx, storeName, userInfo)
 			if err != nil {
 				return nil, err
 			}
@@ -231,13 +231,13 @@ func (m *BaseManager) list(_ context.Context, kind manifest.Kind, userInfo *auth
 	switch kind {
 	case "":
 		storeNames = append(
-			append(m.listStores(m.secrets, kind, userInfo), m.listStores(m.keys, kind, userInfo)...), m.listStores(m.eth1Accounts, kind, userInfo)...)
+			append(m.listStores(m.secrets, kind, userInfo), m.listStores(m.keys, kind, userInfo)...), m.listStores(m.ethAccounts, kind, userInfo)...)
 	case stores.HashicorpSecrets, stores.AKVSecrets, stores.AWSSecrets:
 		storeNames = m.listStores(m.secrets, kind, userInfo)
 	case stores.AKVKeys, stores.HashicorpKeys, stores.AWSKeys:
 		storeNames = m.listStores(m.keys, kind, userInfo)
-	case stores.Eth1Account:
-		storeNames = m.listStores(m.eth1Accounts, kind, userInfo)
+	case stores.EthAccount:
+		storeNames = m.listStores(m.ethAccounts, kind, userInfo)
 	}
 
 	return storeNames
@@ -248,8 +248,8 @@ func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.U
 	defer m.mux.RUnlock()
 
 	accs := []ethcommon.Address{}
-	for _, storeName := range m.list(ctx, stores.Eth1Account, userInfo) {
-		store, err := m.getEth1Store(ctx, storeName, userInfo)
+	for _, storeName := range m.list(ctx, stores.EthAccount, userInfo) {
+		store, err := m.getEthStore(ctx, storeName, userInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -370,20 +370,20 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 		}
 
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.Eth1Account:
-		spec := &meth1.LocalEth1Specs{}
+	case stores.EthAccount:
+		spec := &meth.LocalEthSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal Eth1 store specs"
+			errMessage := "failed to unmarshal Eth store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
 		}
 
-		store, err := meth1.NewLocalEth1(spec, m.db.Secrets(mnf.Name), logger)
+		store, err := meth.NewLocalEth(spec, m.db.Secrets(mnf.Name), logger)
 		if err != nil {
 			return err
 		}
 
-		m.eth1Accounts[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+		m.ethAccounts[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	default:
 		errMessage := "invalid manifest kind"
 		logger.Error(errMessage, "kind", mnf.Kind)

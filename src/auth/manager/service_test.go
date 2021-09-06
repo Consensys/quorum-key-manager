@@ -32,19 +32,19 @@ var testManifest = []byte(`
   name: signer
   specs:
     permission:
-      - read:eth1accounts
+      - read:ethaccounts
       - read:keys
       - sign:keys
-      - sign:eth1accounts
+      - sign:ethaccounts
 - kind: Role
   name: admin
   specs:
     permission:
-      - read:eth1accounts
+      - read:ethaccounts
       - read:keys
       - sign:keys
-      - sign:eth1accounts
-      - create:eth1accounts
+      - sign:ethaccounts
+      - create:ethaccounts
       - create:keys
 `)
 
