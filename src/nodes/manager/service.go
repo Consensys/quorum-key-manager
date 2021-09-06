@@ -224,7 +224,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 }
 
 func (m *BaseManager) ID() string { return NodeManagerID }
-func (m *BaseManager) CheckLiveness() error {
+func (m *BaseManager) CheckLiveness(_ context.Context) error {
 	if m.isLive {
 		return nil
 	}
@@ -234,6 +234,6 @@ func (m *BaseManager) CheckLiveness() error {
 	return errors.HealthcheckError(errMessage)
 }
 
-func (m *BaseManager) CheckReadiness() error {
+func (m *BaseManager) CheckReadiness(_ context.Context) error {
 	return m.Error()
 }

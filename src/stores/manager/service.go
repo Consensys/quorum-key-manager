@@ -416,7 +416,7 @@ func (m *BaseManager) listStores(list map[string]*storeBundle, kind manifest.Kin
 }
 
 func (m *BaseManager) ID() string { return ID }
-func (m *BaseManager) CheckLiveness() error {
+func (m *BaseManager) CheckLiveness(_ context.Context) error {
 	if m.isLive {
 		return nil
 	}
@@ -426,16 +426,16 @@ func (m *BaseManager) CheckLiveness() error {
 	return errors.HealthcheckError(errMessage)
 }
 
-func (m *BaseManager) CheckReadiness() error {
+func (m *BaseManager) CheckReadiness(ctx context.Context) error {
 	err := m.Error()
 	if err != nil {
 		return err
 	}
-	
-	err = m.db.Ping(context.Background())
+
+	err = m.db.Ping(ctx)
 	if err != nil {
 		return errors.DependencyFailureError("database connection error: %s", err.Error())
 	}
-	
+
 	return nil
 }
