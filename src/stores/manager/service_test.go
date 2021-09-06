@@ -55,7 +55,7 @@ var testManifest = []byte(`
     tenantID: fakeTenant
     clientID: fakeClientID
     clientSecret: fakeSecret
-- kind: EthAccount
+- kind: Ethereum
   version: 0.0.1
   name: eth-accounts
   specs:

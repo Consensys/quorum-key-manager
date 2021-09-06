@@ -74,7 +74,7 @@ var storeKinds = []manifest.Kind{
 	stores.AWSSecrets,
 	stores.AWSKeys,
 	stores.LocalKeys,
-	stores.EthAccount,
+	stores.Ethereum,
 }
 
 func (m *BaseManager) Start(_ context.Context) error {
@@ -195,7 +195,7 @@ func (m *BaseManager) GetEthStoreByAddr(ctx context.Context, addr ethcommon.Addr
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	for _, storeName := range m.list(ctx, stores.EthAccount, userInfo) {
+	for _, storeName := range m.list(ctx, stores.Ethereum, userInfo) {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -239,7 +239,7 @@ func (m *BaseManager) list(_ context.Context, kind manifest.Kind, userInfo *auth
 		storeNames = m.listStores(m.secrets, kind, userInfo)
 	case stores.AKVKeys, stores.HashicorpKeys, stores.AWSKeys:
 		storeNames = m.listStores(m.keys, kind, userInfo)
-	case stores.EthAccount:
+	case stores.Ethereum:
 		storeNames = m.listStores(m.ethAccounts, kind, userInfo)
 	}
 
@@ -251,7 +251,7 @@ func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.U
 	defer m.mux.RUnlock()
 
 	accs := []ethcommon.Address{}
-	for _, storeName := range m.list(ctx, stores.EthAccount, userInfo) {
+	for _, storeName := range m.list(ctx, stores.Ethereum, userInfo) {
 		store, err := m.getEthStore(ctx, storeName, userInfo)
 		if err != nil {
 			return nil, err
@@ -373,7 +373,7 @@ func (m *BaseManager) load(mnf *manifest.Manifest) error {
 		}
 
 		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.EthAccount:
+	case stores.Ethereum:
 		spec := &meth.LocalEthSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal Eth store specs"
