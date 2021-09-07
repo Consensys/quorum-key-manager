@@ -13,7 +13,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	aliasmanager "github.com/consensys/quorum-key-manager/src/aliases/manager"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
@@ -157,7 +156,7 @@ func (s *storeTestSuite) TestKeyManagerAliases() {
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliasmanager.New(aliaspg.NewDatabase(s.env.postgresClient))
+	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient).Alias()
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	testSuite.rand = rand.New(randSrc)
 	suite.Run(s.T(), testSuite)
