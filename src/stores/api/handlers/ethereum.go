@@ -64,6 +64,8 @@ func (h *EthHandler) Register(r *mux.Router) {
 // @Param request body types.CreateEthAccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.EthAccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum [post]
@@ -110,6 +112,8 @@ func (h *EthHandler) create(rw http.ResponseWriter, request *http.Request) {
 // @Param request body types.ImportEthAccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.EthAccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/import [post]
@@ -156,6 +160,8 @@ func (h *EthHandler) importAccount(rw http.ResponseWriter, request *http.Request
 // @Param address path string true "Ethereum address"
 // @Param request body types.UpdateEthAccountRequest true "Update Ethereum Account metadata request"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Success 200 {object} types.EthAccountResponse "Update Ethereum Account"
@@ -197,6 +203,8 @@ func (h *EthHandler) update(rw http.ResponseWriter, request *http.Request) {
 // @Param request body types.SignMessageRequest true "Sign message request"
 // @Success 200 {string} string "Signed payload signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address}/sign-message [post]
@@ -237,6 +245,8 @@ func (h *EthHandler) signMessage(rw http.ResponseWriter, request *http.Request) 
 // @Param request body types.SignTypedDataRequest true "Sign typed data request"
 // @Success 200 {string} string "Signed typed data signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address}/sign-typed-data [post]
@@ -278,6 +288,8 @@ func (h *EthHandler) signTypedData(rw http.ResponseWriter, request *http.Request
 // @Param request body types.SignETHTransactionRequest true "Sign Ethereum transaction request"
 // @Success 200 {string} string "Signed transaction signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address}/sign-transaction [post]
@@ -318,6 +330,8 @@ func (h *EthHandler) signTransaction(rw http.ResponseWriter, request *http.Reque
 // @Param request body types.SignEEATransactionRequest true "Sign EEA transaction request"
 // @Success 200 {string} string "Signed EEA transaction signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address}/sign-eea-transaction [post]
@@ -359,6 +373,8 @@ func (h *EthHandler) signEEATransaction(rw http.ResponseWriter, request *http.Re
 // @Param request body types.SignQuorumPrivateTransactionRequest true "Sign Quorum transaction request"
 // @Success 200 {string} string "Signed Quorum private transaction signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address}/sign-quorum-private-transaction [post]
@@ -398,6 +414,8 @@ func (h *EthHandler) signPrivateTransaction(rw http.ResponseWriter, request *htt
 // @Param address path string true "Ethereum address"
 // @Param deleted query bool false "filter by deleted accounts"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Success 200 {object} types.EthAccountResponse "Ethereum Account data"
 // @Router /stores/{storeName}/ethereum/{address} [get]
@@ -435,8 +453,10 @@ func (h *EthHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param deleted query bool false "filter by deleted accounts"
 // @Param chain_uuid query string false "Chain UUID"
-// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Success 200 {array} []types.EthAccountResponse "Ethereum Account list"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum [get]
 func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -471,6 +491,8 @@ func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
 // @Success 204 "Deleted successfully"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address} [delete]
@@ -500,6 +522,8 @@ func (h *EthHandler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
 // @Success 204 "Destroyed successfully"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address}/destroy [delete]
@@ -529,6 +553,8 @@ func (h *EthHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
 // @Success 204 "Restored successfully"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/ethereum/{address}/restore [put]
@@ -553,7 +579,7 @@ func (h *EthHandler) restore(rw http.ResponseWriter, request *http.Request) {
 
 // @Summary EC Recover
 // @Description Recover an Ethereum transaction sender from a signature
-// @Tags Ethereum
+// @Tags Ethereum Utils
 // @Accept json
 // @Produce plain
 // @Param storeName path string true "Store Identifier"
@@ -592,11 +618,11 @@ func (h *EthHandler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 
 // @Summary Verify signature
 // @Description Verify the signature of an Ethereum signature
-// @Tags Ethereum
+// @Tags Ethereum Utils
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Param request body types.VerifyEthSignatureRequest true "Ethereum signature verify request"
+// @Param request body types.VerifyRequest true "Ethereum signature verify request"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -631,11 +657,11 @@ func (h *EthHandler) verify(rw http.ResponseWriter, request *http.Request) {
 
 // @Summary Verify message signature
 // @Description Verify the signature of a message
-// @Tags Ethereum
+// @Tags Ethereum Utils
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Param request body types.VerifyEthSignatureRequest true "Ethereum signature verify request"
+// @Param request body types.VerifyRequest true "Ethereum signature verify request"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -669,7 +695,7 @@ func (h *EthHandler) verifyMessage(rw http.ResponseWriter, request *http.Request
 
 // @Summary Verify typed data signature
 // @Description Verify the signature of an Ethereum typed data signing
-// @Tags Ethereum
+// @Tags Ethereum Utils
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
