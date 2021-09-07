@@ -228,7 +228,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 		})
 		assert.NoError(s.T(), err)
 
-		assert.Equal(s.T(), "YSmChRZfnuMYdhF8MJI46uy3W1aO6P2QV4Ed//kTCIQCoapFsBmln7bUviIjy12/diRYK/ZS70gjGYa+qHK11w==", base64.StdEncoding.EncodeToString(signature))
+		assert.Equal(s.T(), "YSmChRZfnuMYdhF8MJI46uy3W1aO6P2QV4Ed//kTCIQFJnSx7ga7cHvT8KnuKxwvkLhSS0JKicbtFBJnAhIiow==", base64.StdEncoding.EncodeToString(signature))
 	})
 
 	s.Run("should fail with InvalidParameter if algo is undefined", func() {

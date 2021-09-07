@@ -640,7 +640,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		signature, err := s.keyManagerClient.SignKey(s.ctx, s.storeName, key.ID, requestSign)
 		require.NoError(s.T(), err)
 
-		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6/uQnCAmXG9v/FG26vS0AcBqg6eVakZQNYwfic/Ec3LWqzSbXg54TBteQq6grdw==", signature)
+		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6/uQnCAmXG9v/FG26va0C4EOrAi/+gBT/BtlB6JY7P2erqACqKMV0wRgHGgZcWg==", signature)
 
 		sigB, _ := base64.StdEncoding.DecodeString(signature)
 		pubKeyB, _ := base64.StdEncoding.DecodeString(key.PublicKey)

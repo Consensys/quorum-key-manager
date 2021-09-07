@@ -121,7 +121,7 @@ func (s *ethTestSuite) TestImport() {
 		})
 
 		require.Nil(s.T(), account)
-		assert.True(s.T(), errors.IsInvalidParameterError(err) || errors.IsNotSupportedError(err))
+		assert.True(s.T(), errors.IsInvalidParameterError(err) || errors.IsInvalidFormatError(err)) // Hashicorp will return 400 and not 422
 	})
 }
 
