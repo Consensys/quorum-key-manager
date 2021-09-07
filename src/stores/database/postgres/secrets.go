@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
@@ -93,6 +94,35 @@ func (s *Secrets) GetLatestVersion(ctx context.Context, id string, isDeleted boo
 	}
 
 	return version, nil
+}
+
+func (s *Secrets) ListIDs(ctx context.Context, limit, offset int, isDeleted bool) ([]string, error) {
+	var ids = []string{}
+	var err error
+	var query string
+	args := []interface{}{s.storeID}
+
+	switch {
+	case limit != 0 || offset != 0:
+		query = fmt.Sprintf("SELECT (array_agg(id ORDER BY created_at ASC))[%d:%d] FROM secrets WHERE store_id = ?", offset+1, offset+limit)
+	default:
+		query = "SELECT array_agg(id ORDER BY created_at ASC) FROM secrets WHERE store_id = ?"
+	}
+
+	if isDeleted {
+		query = fmt.Sprintf("%s AND deleted_at is NOT NULL", query)
+	} else {
+		query = fmt.Sprintf("%s AND deleted_at is NULL", query)
+	}
+
+	err = s.client.Query(ctx, &ids, query, args...)
+	if err != nil {
+		errMessage := "failed to list secret ids"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return ids, nil
 }
 
 func (s *Secrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {

@@ -247,7 +247,7 @@ func (s *awsSecretStoreTestSuite) TestList() {
 		}
 
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(listOutput, nil)
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.secretStore.List(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), expected, ids)
@@ -264,7 +264,7 @@ func (s *awsSecretStoreTestSuite) TestList() {
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(listOutput, nil)
 		listOutput.NextToken = nil
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), nextToken).Return(listOutput, nil)
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.secretStore.List(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), expected, ids)
@@ -272,7 +272,7 @@ func (s *awsSecretStoreTestSuite) TestList() {
 
 	s.Run("should return empty list if result is nil", func() {
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(&secretsmanager.ListSecretsOutput{}, nil)
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.secretStore.List(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Empty(s.T(), ids)
@@ -280,7 +280,7 @@ func (s *awsSecretStoreTestSuite) TestList() {
 
 	s.Run("should fail if list fails", func() {
 		s.mockVault.EXPECT().ListSecrets(gomock.Any(), int64(0), "").Return(&secretsmanager.ListSecretsOutput{}, expectedErr)
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.secretStore.List(ctx, 0, 0)
 
 		assert.Nil(s.T(), ids)
 		assert.True(s.T(), errors.IsAWSError(err))

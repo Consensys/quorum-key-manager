@@ -97,7 +97,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 	return formatAwsSecret(id, *getSecretOutput.SecretString, tags, metadata), nil
 }
 
-func (s *Store) List(ctx context.Context) ([]string, error) {
+func (s *Store) List(ctx context.Context, _, _ int) ([]string, error) {
 	result := []string{}
 	nextToken := ""
 
@@ -136,7 +136,7 @@ func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Secret, error
 	return nil, err
 }
 
-func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
+func (s *Store) ListDeleted(_ context.Context, _, _ int) ([]string, error) {
 	err := errors.NotSupportedError("list deleted secret is not supported")
 	s.logger.Warn(err.Error())
 	return nil, err
