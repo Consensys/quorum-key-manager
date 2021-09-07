@@ -42,7 +42,7 @@ func (h *AliasHandler) Register(r *mux.Router) {
 // @Description Delete a registry and all its keys
 // @Tags registry
 // @Param registry_name path string true "registry identifier"
-// @Success 204 {object} types.DeleteRegistryResponse "Registry data"
+// @Success 204 "Deleted successfully"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Registry not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
