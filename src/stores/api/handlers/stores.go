@@ -2,10 +2,15 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/gorilla/mux"
 )
+
+
+const DEFAULT_PAGE_SIZE = "100"
 
 type StoresHandler struct {
 	stores stores.Manager
@@ -31,7 +36,7 @@ func (h *StoresHandler) Register(router *mux.Router) {
 
 	// Create subrouter for /stores/{storeName}
 	storeSubrouter := storesSubrouter.PathPrefix("/{storeName}").Subrouter()
-	storeSubrouter.Use(StoreSelector)
+	storeSubrouter.Use(storeSelector)
 
 	// Register secrets handler on /stores/{storeName}/secrets
 	secretsSubrouter := storeSubrouter.PathPrefix("/secrets").Subrouter()
@@ -46,8 +51,42 @@ func (h *StoresHandler) Register(router *mux.Router) {
 	h.eth.Register(ethSubrouter)
 }
 
-func StoreSelector(h http.Handler) http.Handler {
+func storeSelector(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h.ServeHTTP(w, r.WithContext(WithStoreName(r.Context(), mux.Vars(r)["storeName"])))
 	})
+}
+
+func getLimitOffset(request *http.Request) (int, int, error) {
+	limit := request.URL.Query().Get("limit")
+	page := request.URL.Query().Get("page")
+	if limit == "" && page == "" {
+		return 0, 0, nil
+	}
+
+	if limit == "" {
+		limit = DEFAULT_PAGE_SIZE
+	}
+
+	if limit == "" {
+		return 0, 0, nil
+	}
+
+	iLimit, err := strconv.Atoi(limit)
+	if err != nil {
+		return 0, 0, errors.InvalidParameterError("invalid limit value")
+	}
+
+	iPage := 0
+	iOffset := 0
+	if page != "" {
+		iPage, err = strconv.Atoi(page)
+		if err != nil {
+			return 0, 0, errors.InvalidParameterError("invalid page value")
+		}
+
+		iOffset = iPage * iLimit
+	}
+
+	return iLimit, iOffset, nil
 }

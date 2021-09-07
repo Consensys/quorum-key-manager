@@ -188,6 +188,21 @@ func (mr *MockETHAccountsMockRecorder) GetAllDeleted(ctx interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDeleted", reflect.TypeOf((*MockETHAccounts)(nil).GetAllDeleted), ctx)
 }
 
+// ListAddresses mocks base method
+func (m *MockETHAccounts) ListAddresses(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAddresses", ctx, isDeleted, limit, offset)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAddresses indicates an expected call of ListAddresses
+func (mr *MockETHAccountsMockRecorder) ListAddresses(ctx, isDeleted, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAddresses", reflect.TypeOf((*MockETHAccounts)(nil).ListAddresses), ctx, isDeleted, limit, offset)
+}
+
 // Add mocks base method
 func (m *MockETHAccounts) Add(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error) {
 	m.ctrl.T.Helper()
@@ -357,6 +372,21 @@ func (mr *MockKeysMockRecorder) GetAllDeleted(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDeleted", reflect.TypeOf((*MockKeys)(nil).GetAllDeleted), ctx)
 }
 
+// ListIDs mocks base method
+func (m *MockKeys) ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListIDs", ctx, isDeleted, limit, offset)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIDs indicates an expected call of ListIDs
+func (mr *MockKeysMockRecorder) ListIDs(ctx, isDeleted, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIDs", reflect.TypeOf((*MockKeys)(nil).ListIDs), ctx, isDeleted, limit, offset)
+}
+
 // Add mocks base method
 func (m *MockKeys) Add(ctx context.Context, key *entities.Key) (*entities.Key, error) {
 	m.ctrl.T.Helper()
@@ -509,6 +539,21 @@ func (m *MockSecrets) ListVersions(ctx context.Context, id string, isDeleted boo
 func (mr *MockSecretsMockRecorder) ListVersions(ctx, id, isDeleted interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListVersions", reflect.TypeOf((*MockSecrets)(nil).ListVersions), ctx, id, isDeleted)
+}
+
+// ListIDs mocks base method
+func (m *MockSecrets) ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListIDs", ctx, isDeleted, limit, offset)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIDs indicates an expected call of ListIDs
+func (mr *MockSecretsMockRecorder) ListIDs(ctx, isDeleted, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIDs", reflect.TypeOf((*MockSecrets)(nil).ListIDs), ctx, isDeleted, limit, offset)
 }
 
 // GetDeleted mocks base method

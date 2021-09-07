@@ -85,6 +85,7 @@ func (s *secretsTestSuite) TestList() {
 	ctx := s.env.ctx
 	id := s.newID("my-secret-list")
 	id2 := s.newID("my-secret-list")
+	id3 := s.newID("my-secret-list")
 	value := "my-secret-value"
 
 	// 2 with same ID and 1 different
@@ -94,13 +95,28 @@ func (s *secretsTestSuite) TestList() {
 	require.NoError(s.T(), err)
 	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
+	_, err = s.store.Set(ctx, id3, value, &entities.Attributes{})
+	require.NoError(s.T(), err)
 
 	s.Run("should list all secrets ids successfully", func() {
-		ids, err := s.store.List(ctx)
+		ids, err := s.store.List(ctx, 0, 0)
 
 		require.NoError(s.T(), err)
-		assert.Contains(s.T(), ids, id)
-		assert.Contains(s.T(), ids, id2)
+		assert.Equal(s.T(), ids, []string{id, id2, id3})
+	})
+
+	s.Run("should list first secret id successfully", func() {
+		ids, err := s.store.List(ctx, 1, 0)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), ids, []string{id})
+	})
+
+	s.Run("should list last two secret id successfully", func() {
+		ids, err := s.store.List(ctx, 2, 1)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), ids, []string{id2, id3})
 	})
 }
 
@@ -230,11 +246,14 @@ func (s *secretsTestSuite) TestListDeleted() {
 	ctx := s.env.ctx
 	id := s.newID("my-deleted-secret-list")
 	id2 := s.newID("my-deleted-secret-list-2")
+	id3 := s.newID("my-deleted-secret-list-3")
 	value := "my-deleted-secret-value"
 
 	_, err := s.store.Set(ctx, id, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 	_, err = s.store.Set(ctx, id2, value, &entities.Attributes{})
+	require.NoError(s.T(), err)
+	_, err = s.store.Set(ctx, id3, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
 	err = s.delete(s.env.ctx, id)
@@ -243,12 +262,28 @@ func (s *secretsTestSuite) TestListDeleted() {
 	err = s.delete(s.env.ctx, id2)
 	require.NoError(s.T(), err)
 
+	err = s.delete(s.env.ctx, id3)
+	require.NoError(s.T(), err)
+
 	s.Run("should list all deleted secrets ids successfully", func() {
-		ids, err := s.store.ListDeleted(ctx)
+		ids, err := s.store.ListDeleted(ctx, 0, 0)
 
 		require.NoError(s.T(), err)
-		assert.Contains(s.T(), ids, id)
-		assert.Contains(s.T(), ids, id2)
+		assert.Equal(s.T(), ids, []string{id, id2, id3})
+	})
+	
+	s.Run("should list first secret id successfully", func() {
+		ids, err := s.store.ListDeleted(ctx, 1, 0)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), ids, []string{id})
+	})
+
+	s.Run("should list last two secret id successfully", func() {
+		ids, err := s.store.ListDeleted(ctx, 2, 1)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), ids, []string{id2, id3})
 	})
 }
 

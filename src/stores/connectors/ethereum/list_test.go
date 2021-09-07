@@ -10,7 +10,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/ethereum/go-ethereum/common"
@@ -35,11 +34,13 @@ func TestListEthAccounts(t *testing.T) {
 	t.Run("should list ethAccounts successfully", func(t *testing.T) {
 		accOne := testutils2.FakeETHAccount()
 		accTwo := testutils2.FakeETHAccount()
+		limit := 2
+		offset := 4
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().GetAll(gomock.Any()).Return([]*entities.ETHAccount{accOne, accTwo}, nil)
+		db.EXPECT().ListAddresses(gomock.Any(), false, limit, offset).Return([]string{accOne.Address.String(), accTwo.Address.String()}, nil)
 
-		accAddrs, err := connector.List(ctx)
+		accAddrs, err := connector.List(ctx, limit, offset)
 
 		assert.NoError(t, err)
 		assert.Equal(t, accAddrs, []common.Address{accOne.Address, accTwo.Address})
@@ -48,7 +49,7 @@ func TestListEthAccounts(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(expectedErr)
 
-		_, err := connector.List(ctx)
+		_, err := connector.List(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -56,9 +57,9 @@ func TestListEthAccounts(t *testing.T) {
 
 	t.Run("should fail to list ethAccounts if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().GetAll(gomock.Any()).Return(nil, expectedErr)
+		db.EXPECT().ListAddresses(gomock.Any(), false, 0, 0).Return(nil, expectedErr)
 
-		_, err := connector.List(ctx)
+		_, err := connector.List(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -82,11 +83,13 @@ func TestListDeletedEthAccounts(t *testing.T) {
 	t.Run("should list deleted ethAccounts successfully", func(t *testing.T) {
 		accOne := testutils2.FakeETHAccount()
 		accTwo := testutils2.FakeETHAccount()
+		limit := 2
+		offset := 4
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().GetAllDeleted(gomock.Any()).Return([]*entities.ETHAccount{accOne, accTwo}, nil)
+		db.EXPECT().ListAddresses(gomock.Any(), true, limit, offset).Return([]string{accOne.Address.String(), accTwo.Address.String()}, nil)
 
-		accAddrs, err := connector.ListDeleted(ctx)
+		accAddrs, err := connector.ListDeleted(ctx, limit, offset)
 
 		assert.NoError(t, err)
 		assert.Equal(t, accAddrs, []common.Address{accOne.Address, accTwo.Address})
@@ -95,7 +98,7 @@ func TestListDeletedEthAccounts(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(expectedErr)
 
-		_, err := connector.ListDeleted(ctx)
+		_, err := connector.ListDeleted(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -103,9 +106,9 @@ func TestListDeletedEthAccounts(t *testing.T) {
 
 	t.Run("should fail to list deleted ethAccounts if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().GetAllDeleted(gomock.Any()).Return(nil, expectedErr)
+		db.EXPECT().ListAddresses(gomock.Any(), true, 0, 0).Return(nil, expectedErr)
 
-		_, err := connector.ListDeleted(ctx)
+		_, err := connector.ListDeleted(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)

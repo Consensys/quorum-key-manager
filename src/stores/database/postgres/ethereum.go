@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
@@ -97,6 +98,35 @@ func (ea *ETHAccounts) GetAllDeleted(ctx context.Context) ([]*entities.ETHAccoun
 	}
 
 	return accounts, nil
+}
+
+func (s *ETHAccounts) ListAddresses(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
+	var ids = []string{}
+	var err error
+	var query string
+	args := []interface{}{s.storeID}
+
+	switch {
+	case limit != 0 || offset != 0:
+		query = fmt.Sprintf("SELECT (array_agg(address ORDER BY created_at ASC))[%d:%d] FROM eth_accounts WHERE store_id = ?", offset+1, offset+limit)
+	default:
+		query = "SELECT array_agg(address ORDER BY created_at ASC) FROM eth_accounts WHERE store_id = ?"
+	}
+
+	if isDeleted {
+		query = fmt.Sprintf("%s AND deleted_at is NOT NULL", query)
+	} else {
+		query = fmt.Sprintf("%s AND deleted_at is NULL", query)
+	}
+
+	err = s.client.Query(ctx, &ids, query, args...)
+	if err != nil {
+		errMessage := "failed to list keys ids"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return ids, nil
 }
 
 func (ea *ETHAccounts) Add(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error) {

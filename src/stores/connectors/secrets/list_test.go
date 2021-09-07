@@ -10,7 +10,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
@@ -28,17 +27,19 @@ func TestListSecret(t *testing.T) {
 	db := mock2.NewMockSecrets(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 	auth := mock3.NewMockAuthorizator(ctrl)
+	limit := 2
+	offset := 4
 
 	connector := NewConnector(store, db, auth, logger)
 
-	t.Run("should list deleted secret successfully", func(t *testing.T) {
+	t.Run("should list secrets successfully", func(t *testing.T) {
 		secretOne := testutils2.FakeSecret()
 		secretTwo := testutils2.FakeSecret()
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetAll(gomock.Any()).Return([]*entities.Secret{secretOne, secretTwo}, nil)
+		db.EXPECT().ListIDs(gomock.Any(), false, limit, offset).Return([]string{secretOne.ID, secretTwo.ID}, nil)
 
-		secretIDs, err := connector.List(ctx)
+		secretIDs, err := connector.List(ctx, limit, offset)
 
 		assert.NoError(t, err)
 		assert.Equal(t, secretIDs, []string{secretOne.ID, secretTwo.ID})
@@ -47,7 +48,7 @@ func TestListSecret(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
 
-		_, err := connector.List(ctx)
+		_, err := connector.List(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -55,9 +56,9 @@ func TestListSecret(t *testing.T) {
 
 	t.Run("should fail to list deleted secret if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetAll(gomock.Any()).Return(nil, expectedErr)
+		db.EXPECT().ListIDs(gomock.Any(), false, 0, 0).Return(nil, expectedErr)
 
-		_, err := connector.List(ctx)
+		_, err := connector.List(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -81,11 +82,13 @@ func TestListDeletedSecret(t *testing.T) {
 	t.Run("should list deleted secret successfully", func(t *testing.T) {
 		secretOne := testutils2.FakeSecret()
 		secretTwo := testutils2.FakeSecret()
+		limit := 2
+		offset := 4
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetAllDeleted(gomock.Any()).Return([]*entities.Secret{secretOne, secretTwo}, nil)
+		db.EXPECT().ListIDs(gomock.Any(), true, limit, offset).Return([]string{secretOne.ID, secretTwo.ID}, nil)
 
-		secretIDs, err := connector.ListDeleted(ctx)
+		secretIDs, err := connector.ListDeleted(ctx, limit, offset)
 
 		assert.NoError(t, err)
 		assert.Equal(t, secretIDs, []string{secretOne.ID, secretTwo.ID})
@@ -94,7 +97,7 @@ func TestListDeletedSecret(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
 
-		_, err := connector.ListDeleted(ctx)
+		_, err := connector.ListDeleted(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -102,9 +105,9 @@ func TestListDeletedSecret(t *testing.T) {
 
 	t.Run("should fail to list deleted secret if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().GetAllDeleted(gomock.Any()).Return(nil, expectedErr)
+		db.EXPECT().ListIDs(gomock.Any(), true, 0, 0).Return(nil, expectedErr)
 
-		_, err := connector.ListDeleted(ctx)
+		_, err := connector.ListDeleted(ctx, 0, 0)
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)

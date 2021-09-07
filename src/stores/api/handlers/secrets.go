@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
@@ -133,6 +132,8 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param deleted query bool false "filter by deleted accounts"
 // @Param storeName path string true "Store Identifier"
+// @Param limit query int false "pagination size"
+// @Param page query int false "pagination number"
 // @Success 200 {array} []types.SecretResponse "List of Secret IDs"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -150,14 +151,14 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var ids []string
-	getDeleted := request.URL.Query().Get("deleted")
 	limit, offset, err := getLimitOffset(request)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
+	var ids []string
+	getDeleted := request.URL.Query().Get("deleted")
 	if getDeleted == "" {
 		ids, err = secretStore.List(ctx, limit, offset)
 	} else {
@@ -272,34 +273,4 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
-}
-
-func getLimitOffset(request *http.Request) (int, int, error) {
-	limit := request.URL.Query().Get("limit")
-	page := request.URL.Query().Get("page")
-	if page != "" && limit == "" {
-		limit = "100"
-	}
-
-	if limit == "" {
-		return 0, 0, nil
-	}
-
-	iLimit, err := strconv.Atoi(limit)
-	if err != nil {
-		return 0, 0, errors.InvalidParameterError("invalid limit value")
-	}
-
-	iPage := 0
-	iOffset := 0
-	if page != "" {
-		iPage, err = strconv.Atoi(page)
-		if err != nil {
-			return 0, 0, errors.InvalidParameterError("invalid page value")
-		}
-
-		iOffset = iPage * iLimit
-	}
-
-	return iLimit, iOffset, nil
 }

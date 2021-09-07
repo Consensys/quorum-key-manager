@@ -96,7 +96,7 @@ func (s *Secrets) GetLatestVersion(ctx context.Context, id string, isDeleted boo
 	return version, nil
 }
 
-func (s *Secrets) ListIDs(ctx context.Context, limit, offset int, isDeleted bool) ([]string, error) {
+func (s *Secrets) ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
 	var ids = []string{}
 	var err error
 	var query string

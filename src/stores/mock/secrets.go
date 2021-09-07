@@ -65,18 +65,18 @@ func (mr *MockSecretStoreMockRecorder) Get(ctx, id, version interface{}) *gomock
 }
 
 // List mocks base method
-func (m *MockSecretStore) List(ctx context.Context) ([]string, error) {
+func (m *MockSecretStore) List(ctx context.Context, limit, offset int) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
+	ret := m.ctrl.Call(m, "List", ctx, limit, offset)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockSecretStoreMockRecorder) List(ctx interface{}) *gomock.Call {
+func (mr *MockSecretStoreMockRecorder) List(ctx, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockSecretStore)(nil).List), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockSecretStore)(nil).List), ctx, limit, offset)
 }
 
 // Delete mocks base method
@@ -109,18 +109,18 @@ func (mr *MockSecretStoreMockRecorder) GetDeleted(ctx, id interface{}) *gomock.C
 }
 
 // ListDeleted mocks base method
-func (m *MockSecretStore) ListDeleted(ctx context.Context) ([]string, error) {
+func (m *MockSecretStore) ListDeleted(ctx context.Context, limit, offset int) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListDeleted", ctx)
+	ret := m.ctrl.Call(m, "ListDeleted", ctx, limit, offset)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListDeleted indicates an expected call of ListDeleted
-func (mr *MockSecretStoreMockRecorder) ListDeleted(ctx interface{}) *gomock.Call {
+func (mr *MockSecretStoreMockRecorder) ListDeleted(ctx, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeleted", reflect.TypeOf((*MockSecretStore)(nil).ListDeleted), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeleted", reflect.TypeOf((*MockSecretStore)(nil).ListDeleted), ctx, limit, offset)
 }
 
 // Restore mocks base method

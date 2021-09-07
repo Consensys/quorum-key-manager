@@ -12,7 +12,7 @@ func (c Connector) List(ctx context.Context, limit, offset int) ([]string, error
 		return nil, err
 	}
 
-	ids, err := c.db.ListIDs(ctx, limit, offset, false)
+	ids, err := c.db.ListIDs(ctx, false, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (c Connector) ListDeleted(ctx context.Context, limit, offset int) ([]string
 		return nil, err
 	}
 
-	ids, err := c.db.ListIDs(ctx, limit, offset, true)
+	ids, err := c.db.ListIDs(ctx, true, limit, offset)
 	if err != nil {
 		return nil, err
 	}

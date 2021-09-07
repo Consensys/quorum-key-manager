@@ -8,40 +8,40 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (c Connector) List(ctx context.Context) ([]common.Address, error) {
+func (c Connector) List(ctx context.Context, limit, offset int) ([]common.Address, error) {
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}
 
-	accs, err := c.db.GetAll(ctx)
+	strAddr, err := c.db.ListAddresses(ctx, false, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	addrs := []common.Address{}
-	for _, acc := range accs {
-		addrs = append(addrs, acc.Address)
+	for _, addr := range strAddr {
+		addrs = append(addrs, common.HexToAddress(addr))
 	}
 
 	c.logger.Debug("ethereum accounts listed successfully")
 	return addrs, nil
 }
 
-func (c Connector) ListDeleted(ctx context.Context) ([]common.Address, error) {
+func (c Connector) ListDeleted(ctx context.Context, limit, offset int) ([]common.Address, error) {
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}
 
-	accs, err := c.db.GetAllDeleted(ctx)
+	strAddr, err := c.db.ListAddresses(ctx, true, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	addrs := []common.Address{}
-	for _, acc := range accs {
-		addrs = append(addrs, acc.Address)
+	for _, addr := range strAddr {
+		addrs = append(addrs, common.HexToAddress(addr))
 	}
 
 	c.logger.Debug("deleted ethereum accounts listed successfully")
