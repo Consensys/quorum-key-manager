@@ -464,7 +464,23 @@ func (s *ethHandlerTestSuite) TestList() {
 
 		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73"
 		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec8"
-		s.ethStore.EXPECT().List(gomock.Any()).Return([]ethcommon.Address{
+		s.ethStore.EXPECT().List(gomock.Any(), 0, 0).Return([]ethcommon.Address{
+			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
+		}, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		assert.Equal(s.T(), fmt.Sprintf("[\"%s\",\"%s\"]\n", acc1, acc2), rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request with limit and offset successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/ethereum?limit=10&page=2", ethStoreName), nil).WithContext(s.ctx)
+
+		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd74"
+		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec9"
+		s.ethStore.EXPECT().List(gomock.Any(), 10, 20).Return([]ethcommon.Address{
 			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
 		}, nil)
 
@@ -478,9 +494,9 @@ func (s *ethHandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/ethereum?deleted=true", ethStoreName), nil).WithContext(s.ctx)
 
-		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd74"
-		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec9"
-		s.ethStore.EXPECT().ListDeleted(gomock.Any()).Return([]ethcommon.Address{
+		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd75"
+		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ed9"
+		s.ethStore.EXPECT().ListDeleted(gomock.Any(), 0, 0).Return([]ethcommon.Address{
 			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
 		}, nil)
 
@@ -495,7 +511,7 @@ func (s *ethHandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/ethereum", ethStoreName), nil).WithContext(s.ctx)
 
-		s.ethStore.EXPECT().List(gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
+		s.ethStore.EXPECT().List(gomock.Any(), 0, 0).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)

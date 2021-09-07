@@ -9,8 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
-const DEFAULT_PAGE_SIZE = "100"
+const DefaultPageSize = "100"
 
 type StoresHandler struct {
 	stores stores.Manager
@@ -57,7 +56,7 @@ func storeSelector(h http.Handler) http.Handler {
 	})
 }
 
-func getLimitOffset(request *http.Request) (int, int, error) {
+func getLimitOffset(request *http.Request) (rLimit, rOffset uint64, err error) {
 	limit := request.URL.Query().Get("limit")
 	page := request.URL.Query().Get("page")
 	if limit == "" && page == "" {
@@ -65,28 +64,28 @@ func getLimitOffset(request *http.Request) (int, int, error) {
 	}
 
 	if limit == "" {
-		limit = DEFAULT_PAGE_SIZE
+		limit = DefaultPageSize
 	}
 
 	if limit == "" {
 		return 0, 0, nil
 	}
 
-	iLimit, err := strconv.Atoi(limit)
+	rLimit, err = strconv.ParseUint(limit, 10, 32)
 	if err != nil {
-		return 0, 0, errors.InvalidParameterError("invalid limit value")
+		return 0, 0, errors.InvalidFormatError("invalid limit value")
 	}
 
-	iPage := 0
-	iOffset := 0
+	iPage := uint64(0)
+	rOffset = 0
 	if page != "" {
-		iPage, err = strconv.Atoi(page)
+		iPage, err = strconv.ParseUint(page, 10, 32)
 		if err != nil {
-			return 0, 0, errors.InvalidParameterError("invalid page value")
+			return 0, 0, errors.InvalidFormatError("invalid page value")
 		}
 
-		iOffset = iPage * iLimit
+		rOffset = iPage * rLimit
 	}
 
-	return iLimit, iOffset, nil
+	return rLimit, rOffset, nil
 }

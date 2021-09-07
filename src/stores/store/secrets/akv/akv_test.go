@@ -248,7 +248,7 @@ func (s *akvSecretStoreTestSuite) TestListDeleted() {
 		list := keyvault.NewDeletedSecretListResultPage(result, nil).Values()
 
 		s.mockVault.EXPECT().ListDeletedSecrets(gomock.Any(), gomock.Any()).Return(list, nil)
-		ids, err := s.secretStore.ListDeleted(ctx)
+		ids, err := s.secretStore.ListDeleted(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), secretsList, ids)
@@ -256,7 +256,7 @@ func (s *akvSecretStoreTestSuite) TestListDeleted() {
 
 	s.Run("should return empty list deleted secrets if result is nil", func() {
 		s.mockVault.EXPECT().ListDeletedSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.DeletedSecretItem{}, nil)
-		ids, err := s.secretStore.ListDeleted(ctx)
+		ids, err := s.secretStore.ListDeleted(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Empty(s.T(), ids)
@@ -264,7 +264,7 @@ func (s *akvSecretStoreTestSuite) TestListDeleted() {
 
 	s.Run("should fail if list deleted secrets fails", func() {
 		s.mockVault.EXPECT().ListDeletedSecrets(gomock.Any(), gomock.Any()).Return([]keyvault.DeletedSecretItem{}, expectedErr)
-		ids, err := s.secretStore.ListDeleted(ctx)
+		ids, err := s.secretStore.ListDeleted(ctx, 0, 0)
 
 		assert.Nil(s.T(), ids)
 		assert.True(s.T(), errors.IsAKVError(err))

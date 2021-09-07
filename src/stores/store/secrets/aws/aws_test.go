@@ -290,7 +290,7 @@ func (s *awsSecretStoreTestSuite) TestList() {
 func (s *awsSecretStoreTestSuite) TestListDeleted() {
 	s.Run("should fail with not implemented error", func() {
 		ctx := context.Background()
-		_, err := s.secretStore.ListDeleted(ctx)
+		_, err := s.secretStore.ListDeleted(ctx, 0, 0)
 
 		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})

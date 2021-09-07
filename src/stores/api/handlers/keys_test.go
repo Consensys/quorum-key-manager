@@ -303,7 +303,23 @@ func (s *keysHandlerTestSuite) TestList() {
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		ids := []string{"key1", "key2"}
-		s.keyStore.EXPECT().List(gomock.Any()).Return(ids, nil)
+		s.keyStore.EXPECT().List(gomock.Any(), 0, 0).Return(ids, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		expectedBody, _ := json.Marshal(ids)
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request with limit and offset successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys?limit=5&page=2", nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
+
+		ids := []string{"key1", "key2"}
+		s.keyStore.EXPECT().List(gomock.Any(), 5, 10).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -318,7 +334,7 @@ func (s *keysHandlerTestSuite) TestList() {
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
-		s.keyStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
+		s.keyStore.EXPECT().List(gomock.Any(), 0, 0).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)

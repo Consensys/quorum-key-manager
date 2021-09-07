@@ -100,11 +100,11 @@ func (ea *ETHAccounts) GetAllDeleted(ctx context.Context) ([]*entities.ETHAccoun
 	return accounts, nil
 }
 
-func (s *ETHAccounts) ListAddresses(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
+func (ea *ETHAccounts) ListAddresses(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
 	var ids = []string{}
 	var err error
 	var query string
-	args := []interface{}{s.storeID}
+	args := []interface{}{ea.storeID}
 
 	switch {
 	case limit != 0 || offset != 0:
@@ -119,10 +119,10 @@ func (s *ETHAccounts) ListAddresses(ctx context.Context, isDeleted bool, limit, 
 		query = fmt.Sprintf("%s AND deleted_at is NULL", query)
 	}
 
-	err = s.client.Query(ctx, &ids, query, args...)
+	err = ea.client.Query(ctx, &ids, query, args...)
 	if err != nil {
-		errMessage := "failed to list keys ids"
-		s.logger.WithError(err).Error(errMessage)
+		errMessage := "failed to list of ethereum addresses"
+		ea.logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 

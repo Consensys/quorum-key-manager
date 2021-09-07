@@ -100,11 +100,11 @@ func (k *Keys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
 	return keys, nil
 }
 
-func (s *Keys) ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
+func (k *Keys) ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
 	var ids = []string{}
 	var err error
 	var query string
-	args := []interface{}{s.storeID}
+	args := []interface{}{k.storeID}
 
 	switch {
 	case limit != 0 || offset != 0:
@@ -119,10 +119,10 @@ func (s *Keys) ListIDs(ctx context.Context, isDeleted bool, limit, offset int) (
 		query = fmt.Sprintf("%s AND deleted_at is NULL", query)
 	}
 
-	err = s.client.Query(ctx, &ids, query, args...)
+	err = k.client.Query(ctx, &ids, query, args...)
 	if err != nil {
 		errMessage := "failed to list keys ids"
-		s.logger.WithError(err).Error(errMessage)
+		k.logger.WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 

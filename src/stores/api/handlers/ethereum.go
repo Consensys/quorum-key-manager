@@ -470,7 +470,7 @@ func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
-	
+
 	limit, offset, err := getLimitOffset(request)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
