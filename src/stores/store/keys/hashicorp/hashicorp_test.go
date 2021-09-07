@@ -3,7 +3,6 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -63,17 +62,16 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":         id,
-			"public_key": publicKey,
-			"curve":      string(entities.Secp256k1),
-			"algorithm":  string(entities.Ecdsa),
-			"tags": map[string]interface{}{
+			idLabel:        id,
+			publicKeyLabel: publicKey,
+			curveLabel:     string(entities.Secp256k1),
+			algorithmLabel: string(entities.Ecdsa),
+			tagsLabel: map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
 			},
-			"version":    json.Number("1"),
-			"created_at": time.Now().Format(time.RFC3339),
-			"updated_at": time.Now().Format(time.RFC3339),
+			createdAtLabel: time.Now().Format(time.RFC3339),
+			updatedAtLabel: time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -119,17 +117,16 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	}
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":         id,
-			"public_key": publicKey,
-			"curve":      string(entities.Secp256k1),
-			"algorithm":  string(entities.Ecdsa),
-			"tags": map[string]interface{}{
+			idLabel:        id,
+			publicKeyLabel: publicKey,
+			curveLabel:     string(entities.Secp256k1),
+			algorithmLabel: string(entities.Ecdsa),
+			tagsLabel: map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
 			},
-			"version":    json.Number("1"),
-			"created_at": time.Now().Format(time.RFC3339),
-			"updated_at": time.Now().Format(time.RFC3339),
+			createdAtLabel: time.Now().Format(time.RFC3339),
+			updatedAtLabel: time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -165,17 +162,16 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	attributes := testutils.FakeAttributes()
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
-			"id":         id,
-			"public_key": publicKey,
-			"curve":      string(entities.Secp256k1),
-			"algorithm":  string(entities.Ecdsa),
-			"tags": map[string]interface{}{
+			idLabel:        id,
+			publicKeyLabel: publicKey,
+			curveLabel:     string(entities.Secp256k1),
+			algorithmLabel: string(entities.Ecdsa),
+			tagsLabel: map[string]interface{}{
 				"tag1": "tagValue1",
 				"tag2": "tagValue2",
 			},
-			"version":    json.Number("1"),
-			"created_at": time.Now().Format(time.RFC3339),
-			"updated_at": time.Now().Format(time.RFC3339),
+			createdAtLabel: time.Now().Format(time.RFC3339),
+			updatedAtLabel: time.Now().Format(time.RFC3339),
 		},
 	}
 
