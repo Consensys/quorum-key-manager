@@ -44,7 +44,7 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro
       - ./deps/config/certificates:/certificates
-      - ./deps/ca:/ca:ro
+      - ./deps/config/ca:/ca:ro
 
   key-manager:
     <<: *container-common
@@ -70,7 +70,7 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
-      - ./deps/ca:/ca:ro
+      - ./deps/config/ca:/ca:ro
       - ./deps/config/apikey:/apikey:ro
       - hashicorp-token:/vault/token:ro
 

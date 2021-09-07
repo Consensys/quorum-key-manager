@@ -25,7 +25,7 @@ services:
       - db-data-api:/var/lib/postgresql/data
       - ./postgres/server.crt:/var/lib/postgresql/server.crt:ro
       - ./postgres/server.key:/var/lib/postgresql/server.key:ro
-      - ./ca/ca.crt:/var/lib/postgresql/ca.crt:ro
+      - ./config/ca/ca.crt:/var/lib/postgresql/ca.crt:ro
     ports:
       - 5432
 
