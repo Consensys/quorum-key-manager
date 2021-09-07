@@ -1,8 +1,8 @@
 package crypto
 
 import (
-	"github.com/consensys/gnark-crypto/crypto/hash"
 	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+	"github.com/consensys/gnark-crypto/hash"
 )
 
 func VerifyEDDSASignature(publicKey, message, signature []byte) (bool, error) {

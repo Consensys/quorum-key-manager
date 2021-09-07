@@ -114,14 +114,14 @@ func (s *ethTestSuite) TestImport() {
 		assert.True(s.T(), errors.IsStatusConflictError(err) || errors.IsNotSupportedError(err))
 	})
 
-	s.Run("should fail with InvalidParameterError if private key is invalid", func() {
+	s.Run("should fail with InvalidFormatError if private key is invalid", func() {
 		id := s.newID("my-account-import-failure")
 		account, err := s.store.Import(ctx, id, []byte("invalidPrivKey"), &entities.Attributes{
 			Tags: tags,
 		})
 
 		require.Nil(s.T(), account)
-		assert.True(s.T(), errors.IsInvalidParameterError(err) || errors.IsNotSupportedError(err))
+		assert.True(s.T(), errors.IsInvalidParameterError(err) || errors.IsInvalidFormatError(err))
 	})
 }
 

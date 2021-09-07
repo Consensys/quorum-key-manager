@@ -13,8 +13,8 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 
-	"github.com/consensys/gnark-crypto/crypto/hash"
 	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+	"github.com/consensys/gnark-crypto/hash"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"

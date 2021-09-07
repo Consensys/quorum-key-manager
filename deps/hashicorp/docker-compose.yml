@@ -26,7 +26,7 @@ services:
       VAULT_ADDR: ${VAULT_ADDR-http://hashicorp:8200}
       PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
       TOKEN_PATH: ${TOKEN_PATH-/vault/token}
-      PLUGIN_VERSION: ${PLUGIN_VERSION-v0.0.11-alpha.3}
+      PLUGIN_VERSION: ${PLUGIN_VERSION-v0.0.11}
     restart: "no"
     depends_on:
       - hashicorp

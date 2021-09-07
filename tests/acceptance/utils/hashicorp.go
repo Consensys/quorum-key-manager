@@ -12,7 +12,7 @@ import (
 )
 
 const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
-const HashicorpPluginVersion = "v0.0.11-alpha.3"
+const HashicorpPluginVersion = "v0.0.11"
 
 func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 	hashicorpHost := "localhost"
