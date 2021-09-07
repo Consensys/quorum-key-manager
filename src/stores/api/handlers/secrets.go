@@ -45,6 +45,8 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 // @Param request body types.SetSecretRequest true "Create Secret request"
 // @Success 200 {object} types.SecretResponse "Secret data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id} [post]
@@ -88,6 +90,8 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 // @Param version query string false "secret version"
 // @Param deleted query bool false "filter by deleted accounts"
 // @Success 200 {object} types.SecretResponse "Secret object"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id} [get]
@@ -129,6 +133,8 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Param deleted query bool false "filter by deleted accounts"
 // @Param storeName path string true "Store Identifier"
 // @Success 200 {array} []types.SecretResponse "List of Secret IDs"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets [get]
@@ -166,6 +172,8 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Secret Identifier"
 // @Success 204 "Deleted successfully"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id} [delete]
@@ -199,6 +207,8 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Secret Identifier"
 // @Param id path string true "Key identifier"
 // @Success 204 "Destroyed successfully"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id}/destroy [delete]
@@ -230,6 +240,8 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 // @Param storeName path string true "Store Identifier"
 // @Param id path string true "Secret identifier"
 // @Success 204 "Restored successfully"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store/Secret not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /stores/{storeName}/secrets/{id}/restore [put]
