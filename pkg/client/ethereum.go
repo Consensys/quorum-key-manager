@@ -133,21 +133,12 @@ func (c *HTTPClient) GetEthAccount(ctx context.Context, storeName, address strin
 	return acc, nil
 }
 
-func (c *HTTPClient) ListEthAccounts(ctx context.Context, storeName string) ([]string, error) {
-	var accs []string
-	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), ethPath)
-	response, err := getRequest(ctx, c.client, reqURL)
-	if err != nil {
-		return nil, err
-	}
+func (c *HTTPClient) ListEthAccounts(ctx context.Context, storeName string, limit, page uint64) ([]string, error) {
+	return listRequest(ctx, c.client, fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), ethPath), false, limit, page)
+}
 
-	defer closeResponse(response)
-	err = parseResponse(response, &accs)
-	if err != nil {
-		return nil, err
-	}
-
-	return accs, nil
+func (c *HTTPClient) ListDeletedEthAccounts(ctx context.Context, storeName string, limit, page uint64) ([]string, error) {
+	return listRequest(ctx, c.client, fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), ethPath), true, limit, page)
 }
 
 func (c *HTTPClient) DeleteEthAccount(ctx context.Context, storeName, address string) error {

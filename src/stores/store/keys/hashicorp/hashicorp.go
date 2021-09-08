@@ -98,7 +98,7 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	return parseAPISecretToKey(res)
 }
 
-func (s *Store) List(_ context.Context) ([]string, error) {
+func (s *Store) List(_ context.Context, _, _ uint64) ([]string, error) {
 	res, err := s.client.List(s.pathKeys(""))
 	if err != nil {
 		errMessage := "failed to list Hashicorp keys"
@@ -148,7 +148,7 @@ func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
 	return nil, err
 }
 
-func (s *Store) ListDeleted(_ context.Context) ([]string, error) {
+func (s *Store) ListDeleted(_ context.Context, _, _ uint64) ([]string, error) {
 	err := errors.NotSupportedError("list deleted keys is not supported")
 	s.logger.Warn(err.Error())
 	return nil, err

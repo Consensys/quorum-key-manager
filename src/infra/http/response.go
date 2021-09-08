@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
@@ -11,12 +13,8 @@ import (
 const (
 	internalErrMsg    = "internal server error. Please ask an admin for help or try again later"
 	internalDepErrMsg = "failed dependency. Please ask an admin for help or try again later"
+	DefaultPageSize   = "100"
 )
-
-type ErrorResponse struct {
-	Message string `json:"message" example:"error message"`
-	Code    string `json:"code,omitempty" example:"IR001"`
-}
 
 func WriteHTTPErrorResponse(rw http.ResponseWriter, err error) {
 	switch {
@@ -53,7 +51,74 @@ func writeErrorResponse(rw http.ResponseWriter, status int, err error) {
 	_, _ = rw.Write(msg)
 }
 
-func WriteJSON(w http.ResponseWriter, data interface{}) error {
-	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(data)
+func WriteJSON(rw http.ResponseWriter, data interface{}) error {
+	rw.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(rw).Encode(data)
+}
+
+func WritePagingResponse(rw http.ResponseWriter, req *http.Request, data interface{}) error {
+	arrData := []interface{}{}
+	bData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bData, &arrData)
+	if err != nil {
+		return err
+	}
+
+	if arrData == nil {
+		arrData = []interface{}{}
+	}
+
+	res := PageResponse{
+		Data: arrData,
+	}
+
+	prevBaseURL, _ := url.Parse(req.Host)
+	nextBaseURL, _ := url.Parse(req.Host)
+	prevParams := req.URL.Query()
+	nextParams := req.URL.Query()
+
+	strLimit := req.URL.Query().Get("limit")
+	if strLimit == "" {
+		strLimit = DefaultPageSize
+	}
+
+	strPage := req.URL.Query().Get("page")
+
+	if page, err := strconv.ParseUint(strPage, 10, 64); err == nil {
+		nextParams.Set("page", fmt.Sprintf("%d", page+1))
+		if page == 0 {
+			prevParams = nil
+		} else {
+			prevParams.Set("page", fmt.Sprintf("%d", page-1))
+		}
+	} else {
+		nextParams.Set("page", "1")
+		prevParams = nil
+	}
+
+	if limit, err := strconv.ParseUint(strLimit, 10, 64); err == nil {
+		if uint64(len(arrData)) < limit {
+			nextParams = nil
+		}
+	}
+
+	if prevParams != nil {
+		prevBaseURL.RawQuery = prevParams.Encode()
+		res.Paging.Previous = prevBaseURL.String()
+		if req.TLS != nil {
+			res.Paging.Previous = "https://" + res.Paging.Previous
+		}
+	}
+	if nextParams != nil {
+		nextBaseURL.RawQuery = nextParams.Encode()
+		res.Paging.Next = nextBaseURL.String()
+		if req.TLS != nil {
+			res.Paging.Next = "https://" + res.Paging.Next
+		}
+	}
+
+	return WriteJSON(rw, res)
 }

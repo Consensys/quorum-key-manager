@@ -188,6 +188,21 @@ func (mr *MockETHAccountsMockRecorder) GetAllDeleted(ctx interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDeleted", reflect.TypeOf((*MockETHAccounts)(nil).GetAllDeleted), ctx)
 }
 
+// SearchAddresses mocks base method
+func (m *MockETHAccounts) SearchAddresses(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchAddresses", ctx, isDeleted, limit, offset)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchAddresses indicates an expected call of SearchAddresses
+func (mr *MockETHAccountsMockRecorder) SearchAddresses(ctx, isDeleted, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchAddresses", reflect.TypeOf((*MockETHAccounts)(nil).SearchAddresses), ctx, isDeleted, limit, offset)
+}
+
 // Add mocks base method
 func (m *MockETHAccounts) Add(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error) {
 	m.ctrl.T.Helper()
@@ -357,6 +372,21 @@ func (mr *MockKeysMockRecorder) GetAllDeleted(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDeleted", reflect.TypeOf((*MockKeys)(nil).GetAllDeleted), ctx)
 }
 
+// SearchIDs mocks base method
+func (m *MockKeys) SearchIDs(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchIDs", ctx, isDeleted, limit, offset)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchIDs indicates an expected call of SearchIDs
+func (mr *MockKeysMockRecorder) SearchIDs(ctx, isDeleted, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchIDs", reflect.TypeOf((*MockKeys)(nil).SearchIDs), ctx, isDeleted, limit, offset)
+}
+
 // Add mocks base method
 func (m *MockKeys) Add(ctx context.Context, key *entities.Key) (*entities.Key, error) {
 	m.ctrl.T.Helper()
@@ -509,6 +539,21 @@ func (m *MockSecrets) ListVersions(ctx context.Context, id string, isDeleted boo
 func (mr *MockSecretsMockRecorder) ListVersions(ctx, id, isDeleted interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListVersions", reflect.TypeOf((*MockSecrets)(nil).ListVersions), ctx, id, isDeleted)
+}
+
+// SearchIDs mocks base method
+func (m *MockSecrets) SearchIDs(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchIDs", ctx, isDeleted, limit, offset)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchIDs indicates an expected call of SearchIDs
+func (mr *MockSecretsMockRecorder) SearchIDs(ctx, isDeleted, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchIDs", reflect.TypeOf((*MockSecrets)(nil).SearchIDs), ctx, isDeleted, limit, offset)
 }
 
 // GetDeleted mocks base method

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
@@ -97,6 +98,17 @@ func (ea *ETHAccounts) GetAllDeleted(ctx context.Context) ([]*entities.ETHAccoun
 	}
 
 	return accounts, nil
+}
+
+func (ea *ETHAccounts) SearchAddresses(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	ids, err := client.QuerySearchIDs(ctx, ea.client, "eth_accounts", "address", "store_id = ?", []interface{}{ea.storeID}, isDeleted, limit, offset)
+	if err != nil {
+		errMessage := "failed to list of ethereum addresses"
+		ea.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return ids, nil
 }
 
 func (ea *ETHAccounts) Add(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error) {

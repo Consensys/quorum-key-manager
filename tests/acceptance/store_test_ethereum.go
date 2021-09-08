@@ -160,7 +160,8 @@ func (s *ethTestSuite) TestList() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 	id := s.newID("my-account-list")
-	id2 := s.newID("my-account-list")
+	id2 := s.newID("my-account-list-2")
+	id3 := s.newID("my-account-list-3")
 
 	account1, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: tags,
@@ -172,12 +173,32 @@ func (s *ethTestSuite) TestList() {
 	})
 	require.NoError(s.T(), err)
 
-	s.Run("should get all account addresses", func() {
-		addresses, err := s.store.List(ctx)
-		require.NoError(s.T(), err)
+	account3, err := s.store.Create(ctx, id3, &entities.Attributes{
+		Tags: tags,
+	})
+	require.NoError(s.T(), err)
 
+	listLen := 0
+	s.Run("should get all account addresses", func() {
+		addresses, err := s.store.List(ctx, 0, 0)
+		require.NoError(s.T(), err)
+		
+		listLen = len(addresses)
 		assert.Contains(s.T(), addresses, account1.Address)
 		assert.Contains(s.T(), addresses, account2.Address)
+		assert.Contains(s.T(), addresses, account3.Address)
+	})
+	
+	s.Run("should get all first account addresses", func() {
+		addresses, err := s.store.List(ctx, 1, uint64(listLen-3))
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), addresses, []ethcommon.Address{account1.Address})
+	})
+	
+	s.Run("should get last two account addresses", func() {
+		addresses, err := s.store.List(ctx, 2, uint64(listLen-2))
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), addresses, []ethcommon.Address{account2.Address, account3.Address})
 	})
 }
 

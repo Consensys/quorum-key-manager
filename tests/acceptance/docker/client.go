@@ -148,7 +148,7 @@ func (c *Client) WaitTillIsReady(ctx context.Context, name string, timeout time.
 
 	err := c.factory.WaitForService(ctx, c.composition.Containers[name], timeout)
 	if err != nil {
-		logger.WithError(err).Error("cannot wait for service", "service", name)
+		logger.WithError(err).Error("failed to wait for service", "service", name)
 		return err
 	}
 

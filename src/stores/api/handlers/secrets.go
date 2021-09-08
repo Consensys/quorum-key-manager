@@ -132,7 +132,9 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param deleted query bool false "filter by deleted accounts"
 // @Param storeName path string true "Store Identifier"
-// @Success 200 {array} []types.SecretResponse "List of Secret IDs"
+// @Param limit query int false "pagination size"
+// @Param page query int false "pagination number"
+// @Success 200 {array} []PagePagingResponse "List of Secret IDs"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store not found"
@@ -149,19 +151,25 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	limit, offset, err := getLimitOffset(request)
+	if err != nil {
+		http2.WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
 	var ids []string
 	getDeleted := request.URL.Query().Get("deleted")
 	if getDeleted == "" {
-		ids, err = secretStore.List(ctx)
+		ids, err = secretStore.List(ctx, limit, offset)
 	} else {
-		ids, err = secretStore.ListDeleted(ctx)
+		ids, err = secretStore.ListDeleted(ctx, limit, offset)
 	}
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(ids)
+	_ = http2.WritePagingResponse(rw, request, ids)
 }
 
 // @Summary Delete a secret by id

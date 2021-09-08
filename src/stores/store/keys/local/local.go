@@ -41,7 +41,7 @@ func (s *Store) Get(_ context.Context, _ string) (*entities.Key, error) {
 	return nil, errors.ErrNotSupported
 }
 
-func (s *Store) List(ctx context.Context) ([]string, error) {
+func (s *Store) List(ctx context.Context, _, _ uint64) ([]string, error) {
 	ids := []string{}
 	items, err := s.db.GetAll(ctx)
 	if err != nil {
@@ -59,7 +59,7 @@ func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
 	return nil, errors.ErrNotSupported
 }
 
-func (s *Store) ListDeleted(ctx context.Context) ([]string, error) {
+func (s *Store) ListDeleted(ctx context.Context, _, _ uint64) ([]string, error) {
 	ids := []string{}
 	items, err := s.db.GetAllDeleted(ctx)
 	if err != nil {

@@ -80,18 +80,18 @@ func (mr *MockKeyStoreMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 }
 
 // List mocks base method
-func (m *MockKeyStore) List(ctx context.Context) ([]string, error) {
+func (m *MockKeyStore) List(ctx context.Context, limit, offset uint64) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
+	ret := m.ctrl.Call(m, "List", ctx, limit, offset)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockKeyStoreMockRecorder) List(ctx interface{}) *gomock.Call {
+func (mr *MockKeyStoreMockRecorder) List(ctx, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockKeyStore)(nil).List), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockKeyStore)(nil).List), ctx, limit, offset)
 }
 
 // Update mocks base method
@@ -139,18 +139,18 @@ func (mr *MockKeyStoreMockRecorder) GetDeleted(ctx, id interface{}) *gomock.Call
 }
 
 // ListDeleted mocks base method
-func (m *MockKeyStore) ListDeleted(ctx context.Context) ([]string, error) {
+func (m *MockKeyStore) ListDeleted(ctx context.Context, limit, offset uint64) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListDeleted", ctx)
+	ret := m.ctrl.Call(m, "ListDeleted", ctx, limit, offset)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListDeleted indicates an expected call of ListDeleted
-func (mr *MockKeyStoreMockRecorder) ListDeleted(ctx interface{}) *gomock.Call {
+func (mr *MockKeyStoreMockRecorder) ListDeleted(ctx, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeleted", reflect.TypeOf((*MockKeyStore)(nil).ListDeleted), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeleted", reflect.TypeOf((*MockKeyStore)(nil).ListDeleted), ctx, limit, offset)
 }
 
 // Restore mocks base method

@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
@@ -97,6 +98,17 @@ func (k *Keys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
 	}
 
 	return keys, nil
+}
+
+func (k *Keys) SearchIDs(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	ids, err := client.QuerySearchIDs(ctx, k.client, "keys", "id", "store_id = ?", []interface{}{k.storeID}, isDeleted, limit, offset)
+	if err != nil {
+		errMessage := "failed to list keys ids"
+		k.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return ids, nil
 }
 
 func (k *Keys) Add(ctx context.Context, key *entities.Key) (*entities.Key, error) {

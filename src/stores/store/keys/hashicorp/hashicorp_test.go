@@ -215,7 +215,7 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 
 		s.mockVault.EXPECT().List(expectedPath).Return(hashicorpSecret, nil)
 
-		ids, err := s.keyStore.List(ctx)
+		ids, err := s.keyStore.List(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), []string{"my-key1", "my-key2"}, ids)
@@ -224,7 +224,7 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 	s.Run("should fail with same error if read fails", func() {
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
-		key, err := s.keyStore.List(ctx)
+		key, err := s.keyStore.List(ctx, 0, 0)
 
 		assert.Nil(s.T(), key)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))

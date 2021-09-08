@@ -113,36 +113,10 @@ func (c *HTTPClient) GetDeletedSecret(ctx context.Context, storeName, id string)
 	return secret, nil
 }
 
-func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string) ([]string, error) {
-	var ids []string
-	reqURL := fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), secretsPath)
-	response, err := getRequest(ctx, c.client, reqURL)
-	if err != nil {
-		return nil, err
-	}
-
-	defer closeResponse(response)
-	err = parseResponse(response, &ids)
-	if err != nil {
-		return nil, err
-	}
-
-	return ids, nil
+func (c *HTTPClient) ListSecrets(ctx context.Context, storeName string, limit, page uint64) ([]string, error) {
+	return listRequest(ctx, c.client, fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), secretsPath), false, limit, page)
 }
 
-func (c *HTTPClient) ListDeletedSecrets(ctx context.Context, storeName string) ([]string, error) {
-	var ids []string
-	reqURL := fmt.Sprintf("%s/%s?deleted=true", withURLStore(c.config.URL, storeName), secretsPath)
-	response, err := getRequest(ctx, c.client, reqURL)
-	if err != nil {
-		return nil, err
-	}
-
-	defer closeResponse(response)
-	err = parseResponse(response, &ids)
-	if err != nil {
-		return nil, err
-	}
-
-	return ids, nil
+func (c *HTTPClient) ListDeletedSecrets(ctx context.Context, storeName string, limit, page uint64) ([]string, error) {
+	return listRequest(ctx, c.client, fmt.Sprintf("%s/%s", withURLStore(c.config.URL, storeName), secretsPath), true, limit, page)
 }

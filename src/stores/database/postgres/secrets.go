@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
@@ -93,6 +94,17 @@ func (s *Secrets) GetLatestVersion(ctx context.Context, id string, isDeleted boo
 	}
 
 	return version, nil
+}
+
+func (s *Secrets) SearchIDs(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	ids, err := client.QuerySearchIDs(ctx, s.client, "secrets", "id", "store_id = ?", []interface{}{s.storeID}, isDeleted, limit, offset)
+	if err != nil {
+		errMessage := "failed to list secret ids"
+		s.logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return ids, nil
 }
 
 func (s *Secrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {

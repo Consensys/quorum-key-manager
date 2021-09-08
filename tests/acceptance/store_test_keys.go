@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -226,6 +227,8 @@ func (s *keysTestSuite) TestList() {
 	ctx := s.env.ctx
 	tags := testutils.FakeTags()
 	id := s.newID("my-key-list")
+	id2 := s.newID("my-key-list-2")
+	id3 := s.newID("my-key-list-3")
 
 	_, err := s.store.Create(ctx, id, &entities.Algorithm{
 		Type:          entities.Ecdsa,
@@ -234,11 +237,46 @@ func (s *keysTestSuite) TestList() {
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
+	
+	_, err = s.store.Create(ctx, id2, &entities.Algorithm{
+		Type:          entities.Ecdsa,
+		EllipticCurve: entities.Secp256k1,
+	}, &entities.Attributes{
+		Tags: tags,
+	})
+	require.NoError(s.T(), err)
+	
+	_, err = s.store.Create(ctx, id3, &entities.Algorithm{
+		Type:          entities.Ecdsa,
+		EllipticCurve: entities.Secp256k1,
+	}, &entities.Attributes{
+		Tags: tags,
+	})
+	require.NoError(s.T(), err)
 
+	listLen := 0
 	s.Run("should list all key pairs", func() {
-		ids, err := s.store.List(ctx)
+		ids, err := s.store.List(ctx, 0, 0)
 		require.NoError(s.T(), err)
+		
+		listLen = len(ids)
 		assert.Contains(s.T(), ids, id)
+		assert.Contains(s.T(), ids, id2)
+		assert.Contains(s.T(), ids, id3)
+	})
+	
+	s.Run("should list first key pair successfully", func() {
+		ids, err := s.store.List(ctx, 1, uint64(listLen-3))
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), ids, []string{id})
+	})
+
+	s.Run("should list last two key pair successfully", func() {
+		ids, err := s.store.List(ctx, 2, uint64(listLen-2))
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), ids, []string{id2, id3})
 	})
 }
 
