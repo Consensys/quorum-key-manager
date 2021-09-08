@@ -578,13 +578,12 @@ func (s *keysTestSuite) TestSignVerify() {
 
 	s.RunT("should sign a new payload successfully: Secp256k1/ECDSA", func() {
 		keyID := fmt.Sprintf("my-key-sign-ecdsa-%d", common.RandInt(1000))
-		request := &types.ImportKeyRequest{
+		request := &types.CreateKeyRequest{
 			Curve:            "secp256k1",
-			PrivateKey:       ecdsaPrivKey,
 			SigningAlgorithm: "ecdsa",
 		}
 
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
 		// Ignoring not supported errors 
 		if err != nil {
 			httpError, ok := err.(*client.ResponseError)
@@ -618,12 +617,11 @@ func (s *keysTestSuite) TestSignVerify() {
 
 	s.RunT("should sign and verify a new payload successfully: BN254/EDDSA", func() {
 		keyID := fmt.Sprintf("my-key-sign-eddsa-%d", common.RandInt(1000))
-		request := &types.ImportKeyRequest{
+		request := &types.CreateKeyRequest{
 			Curve:            "bn254",
 			SigningAlgorithm: "eddsa",
-			PrivateKey:       eddsaPrivKey,
 		}
-		key, err := s.keyManagerClient.ImportKey(s.ctx, s.storeName, keyID, request)
+		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
 		// Ignoring not supported errors 
 		if err != nil {
 			httpError, ok := err.(*client.ResponseError)
@@ -639,8 +637,6 @@ func (s *keysTestSuite) TestSignVerify() {
 		}
 		signature, err := s.keyManagerClient.SignKey(s.ctx, s.storeName, key.ID, requestSign)
 		require.NoError(s.T(), err)
-
-		assert.Equal(s.T(), "tdpR9JkX7lKSugSvYJX2icf6/uQnCAmXG9v/FG26va0C4EOrAi/+gBT/BtlB6JY7P2erqACqKMV0wRgHGgZcWg==", signature)
 
 		sigB, _ := base64.StdEncoding.DecodeString(signature)
 		pubKeyB, _ := base64.StdEncoding.DecodeString(key.PublicKey)
