@@ -14,9 +14,9 @@ func QuerySearchIDs(ctx context.Context, client postgres.Client, table, idCol, w
 
 	switch {
 	case limit != 0 || offset != 0:
-		query = fmt.Sprintf("SELECT (array_agg(%s ORDER BY created_at ASC))[%d:%d] FROM %s WHERE %s", table, idCol, offset+1, offset+limit, whereCond)
+		query = fmt.Sprintf("SELECT (array_agg(%s ORDER BY created_at ASC))[%d:%d] FROM %s WHERE %s", idCol, offset+1, offset+limit, table, whereCond)
 	default:
-		query = fmt.Sprintf("SELECT array_agg(%s ORDER BY created_at ASC) FROM secrets WHERE %s", idCol, whereCond)
+		query = fmt.Sprintf("SELECT array_agg(%s ORDER BY created_at ASC) FROM %s WHERE %s", idCol, table, whereCond)
 	}
 
 	if isDeleted {

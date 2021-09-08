@@ -47,7 +47,7 @@ func TestListSecret(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
 
-		_, err := connector.List(ctx, 0, 0)
+		_, err := connector.List(ctx, uint64(0), uint64(0))
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -55,9 +55,9 @@ func TestListSecret(t *testing.T) {
 
 	t.Run("should fail to list deleted secret if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().SearchIDs(gomock.Any(), false, 0, 0).Return(nil, expectedErr)
+		db.EXPECT().SearchIDs(gomock.Any(), false, uint64(0), uint64(0)).Return(nil, expectedErr)
 
-		_, err := connector.List(ctx, 0, 0)
+		_, err := connector.List(ctx, uint64(0), uint64(0))
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -96,7 +96,7 @@ func TestListDeletedSecret(t *testing.T) {
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(expectedErr)
 
-		_, err := connector.ListDeleted(ctx, 0, 0)
+		_, err := connector.ListDeleted(ctx, uint64(0), uint64(0))
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)
@@ -104,9 +104,9 @@ func TestListDeletedSecret(t *testing.T) {
 
 	t.Run("should fail to list deleted secret if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceSecret}).Return(nil)
-		db.EXPECT().SearchIDs(gomock.Any(), true, 0, 0).Return(nil, expectedErr)
+		db.EXPECT().SearchIDs(gomock.Any(), true, uint64(0), uint64(0)).Return(nil, expectedErr)
 
-		_, err := connector.ListDeleted(ctx, 0, 0)
+		_, err := connector.ListDeleted(ctx, uint64(0), uint64(0))
 
 		assert.Error(t, err)
 		assert.Equal(t, err, expectedErr)

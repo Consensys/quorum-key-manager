@@ -5,11 +5,10 @@ import (
 	"strconv"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/gorilla/mux"
 )
-
-const DefaultPageSize = "100"
 
 type StoresHandler struct {
 	stores stores.Manager
@@ -60,7 +59,7 @@ func getLimitOffset(request *http.Request) (rLimit, rOffset uint64, err error) {
 	limit := request.URL.Query().Get("limit")
 	page := request.URL.Query().Get("page")
 	if limit == "" {
-		limit = DefaultPageSize
+		limit = http2.DefaultPageSize
 	}
 
 	rLimit, err = strconv.ParseUint(limit, 10, 64)

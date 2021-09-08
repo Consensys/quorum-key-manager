@@ -379,14 +379,14 @@ func (s *ethTestSuite) TestGetEthAccount() {
 
 func (s *ethTestSuite) TestListEthAccounts() {
 	s.Run("should sign private transaction successfully", func() {
-		accounts, err := s.keyManagerClient.ListEthAccounts(s.ctx, s.storeName)
+		accounts, err := s.keyManagerClient.ListEthAccounts(s.ctx, s.storeName, 999999, 0)
 		require.NoError(s.T(), err)
 
 		assert.Contains(s.T(), accounts, strings.ToLower(s.signAccount.Address.Hex()))
 	})
 
 	s.Run("should parse errors successfully", func() {
-		key, err := s.keyManagerClient.ListEthAccounts(s.ctx, "inexistentStoreName")
+		key, err := s.keyManagerClient.ListEthAccounts(s.ctx, "inexistentStoreName", 0, 0)
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)

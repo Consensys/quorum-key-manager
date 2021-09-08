@@ -1,7 +1,12 @@
-package types
+package http
+
+type ErrorResponse struct {
+	Message string `json:"message" example:"error message"`
+	Code    string `json:"code,omitempty" example:"IR001"`
+}
 
 type PageResponse struct {
-	Data   []interface{} `json:"data" example:"{'item1', 'item2', 'item3'}"`
+	Data   interface{}        `json:"data" example:"{'item1', 'item2', 'item3'}"`
 	Paging PagePagingResponse `json:"paging"`
 }
 

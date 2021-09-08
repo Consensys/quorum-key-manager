@@ -134,7 +134,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param limit query int false "pagination size"
 // @Param page query int false "pagination number"
-// @Success 200 {array} []types.SecretResponse "List of Secret IDs"
+// @Success 200 {array} []PagePagingResponse "List of Secret IDs"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Store not found"
@@ -169,7 +169,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(ids)
+	_ = http2.WritePagingResponse(rw, request, ids)
 }
 
 // @Summary Delete a secret by id

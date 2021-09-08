@@ -455,7 +455,7 @@ func (h *EthHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Param chain_uuid query string false "Chain UUID"
 // @Param limit query int false "pagination size"
 // @Param page query int false "pagination number"
-// @Success 200 {array} []types.EthAccountResponse "Ethereum Account list"
+// @Success 200 {array} []PagePagingResponse "Ethereum Account list"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -489,7 +489,7 @@ func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(addresses)
+	_ = http2.WritePagingResponse(rw, request, addresses)
 }
 
 // @Summary Delete Ethereum Account
