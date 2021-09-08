@@ -21,7 +21,7 @@ type ETHAccounts interface {
 	GetDeleted(ctx context.Context, addr string) (*entities.ETHAccount, error)
 	GetAll(ctx context.Context) ([]*entities.ETHAccount, error)
 	GetAllDeleted(ctx context.Context) ([]*entities.ETHAccount, error)
-	ListAddresses(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error)
+	SearchAddresses(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error)
 	Add(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error)
 	Update(ctx context.Context, account *entities.ETHAccount) (*entities.ETHAccount, error)
 	Delete(ctx context.Context, addr string) error
@@ -35,7 +35,7 @@ type Keys interface {
 	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
 	GetAll(ctx context.Context) ([]*entities.Key, error)
 	GetAllDeleted(ctx context.Context) ([]*entities.Key, error)
-	ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error)
+	SearchIDs(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error)
 	Add(ctx context.Context, key *entities.Key) (*entities.Key, error)
 	Update(ctx context.Context, key *entities.Key) (*entities.Key, error)
 	Delete(ctx context.Context, id string) error
@@ -48,7 +48,7 @@ type Secrets interface {
 	Get(ctx context.Context, id, version string) (*entities.Secret, error)
 	GetLatestVersion(ctx context.Context, id string, isDeleted bool) (string, error)
 	ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error)
-	ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error)
+	SearchIDs(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error)
 	GetDeleted(ctx context.Context, id string) (*entities.Secret, error)
 	GetAll(ctx context.Context) ([]*entities.Secret, error)
 	GetAllDeleted(ctx context.Context) ([]*entities.Secret, error)

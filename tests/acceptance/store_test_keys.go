@@ -254,21 +254,26 @@ func (s *keysTestSuite) TestList() {
 	})
 	require.NoError(s.T(), err)
 
+	listLen := 0
 	s.Run("should list all key pairs", func() {
 		ids, err := s.store.List(ctx, 0, 0)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), ids, []string{id, id2, id3})
+		
+		listLen = len(ids)
+		assert.Contains(s.T(), ids, id)
+		assert.Contains(s.T(), ids, id2)
+		assert.Contains(s.T(), ids, id3)
 	})
 	
 	s.Run("should list first key pair successfully", func() {
-		ids, err := s.store.List(ctx, 1, 0)
+		ids, err := s.store.List(ctx, 1, uint64(listLen-3))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), ids, []string{id})
 	})
 
 	s.Run("should list last two key pair successfully", func() {
-		ids, err := s.store.List(ctx, 2, 1)
+		ids, err := s.store.List(ctx, 2, uint64(listLen-2))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), ids, []string{id2, id3})

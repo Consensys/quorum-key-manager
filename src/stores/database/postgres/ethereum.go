@@ -2,9 +2,9 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
@@ -100,26 +100,8 @@ func (ea *ETHAccounts) GetAllDeleted(ctx context.Context) ([]*entities.ETHAccoun
 	return accounts, nil
 }
 
-func (ea *ETHAccounts) ListAddresses(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
-	var ids = []string{}
-	var err error
-	var query string
-	args := []interface{}{ea.storeID}
-
-	switch {
-	case limit != 0 || offset != 0:
-		query = fmt.Sprintf("SELECT (array_agg(address ORDER BY created_at ASC))[%d:%d] FROM eth_accounts WHERE store_id = ?", offset+1, offset+limit)
-	default:
-		query = "SELECT array_agg(address ORDER BY created_at ASC) FROM eth_accounts WHERE store_id = ?"
-	}
-
-	if isDeleted {
-		query = fmt.Sprintf("%s AND deleted_at is NOT NULL", query)
-	} else {
-		query = fmt.Sprintf("%s AND deleted_at is NULL", query)
-	}
-
-	err = ea.client.Query(ctx, &ids, query, args...)
+func (ea *ETHAccounts) SearchAddresses(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	ids, err := client.QuerySearchIDs(ctx, ea.client, "eth_accounts", "address", "store_id = ?", []interface{}{ea.storeID}, isDeleted, limit, offset)
 	if err != nil {
 		errMessage := "failed to list of ethereum addresses"
 		ea.logger.WithError(err).Error(errMessage)

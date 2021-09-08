@@ -106,7 +106,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	return key, nil
 }
 
-func (s *Store) List(ctx context.Context, _, _ int) ([]string, error) {
+func (s *Store) List(ctx context.Context, _, _ uint64) ([]string, error) {
 	var ids []string
 	nextMarker := ""
 
@@ -199,7 +199,7 @@ func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
 	return nil, err
 }
 
-func (s *Store) ListDeleted(_ context.Context, _, _ int) ([]string, error) {
+func (s *Store) ListDeleted(_ context.Context, _, _ uint64) ([]string, error) {
 	err := errors.NotSupportedError("list deleted keys is not supported")
 	s.logger.Warn(err.Error())
 	return nil, err

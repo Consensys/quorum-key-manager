@@ -33,11 +33,11 @@ func TestListKey(t *testing.T) {
 	t.Run("should list keys successfully", func(t *testing.T) {
 		keyOne := testutils2.FakeKey()
 		keyTwo := testutils2.FakeKey()
-		limit := 2
-		offset := 4
+		limit := uint64(2)
+		offset := uint64(4)
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().ListIDs(gomock.Any(), false, limit, offset).Return([]string{keyOne.ID, keyTwo.ID}, nil)
+		db.EXPECT().SearchIDs(gomock.Any(), false, limit, offset).Return([]string{keyOne.ID, keyTwo.ID}, nil)
 
 		keyIDs, err := connector.List(ctx, limit, offset)
 
@@ -56,7 +56,7 @@ func TestListKey(t *testing.T) {
 
 	t.Run("should fail to list keys if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().ListIDs(gomock.Any(), false, 0, 0).Return(nil, expectedErr)
+		db.EXPECT().SearchIDs(gomock.Any(), false, 0, 0).Return(nil, expectedErr)
 
 		_, err := connector.List(ctx, 0, 0)
 
@@ -82,11 +82,11 @@ func TestListDeletedKey(t *testing.T) {
 	t.Run("should list deleted key successfully", func(t *testing.T) {
 		keyOne := testutils2.FakeKey()
 		keyTwo := testutils2.FakeKey()
-		limit := 2
-		offset := 4
+		limit := uint64(2)
+		offset := uint64(4)
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().ListIDs(gomock.Any(), true, limit, offset).Return([]string{keyOne.ID, keyTwo.ID}, nil)
+		db.EXPECT().SearchIDs(gomock.Any(), true, limit, offset).Return([]string{keyOne.ID, keyTwo.ID}, nil)
 
 		keyIDs, err := connector.ListDeleted(ctx, limit, offset)
 
@@ -105,7 +105,7 @@ func TestListDeletedKey(t *testing.T) {
 
 	t.Run("should fail to list deleted key if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
-		db.EXPECT().ListIDs(gomock.Any(), true, 0, 0).Return(nil, expectedErr)
+		db.EXPECT().SearchIDs(gomock.Any(), true, 0, 0).Return(nil, expectedErr)
 
 		_, err := connector.ListDeleted(ctx, 0, 0)
 

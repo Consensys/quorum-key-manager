@@ -178,22 +178,27 @@ func (s *ethTestSuite) TestList() {
 	})
 	require.NoError(s.T(), err)
 
+	listLen := 0
 	s.Run("should get all account addresses", func() {
 		addresses, err := s.store.List(ctx, 0, 0)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), addresses, []string{account1.Address.String(), account2.Address.String(), account3.Address.String()})
+		
+		listLen = len(addresses)
+		assert.Contains(s.T(), addresses, account1.Address)
+		assert.Contains(s.T(), addresses, account2.Address)
+		assert.Contains(s.T(), addresses, account3.Address)
 	})
 	
 	s.Run("should get all first account addresses", func() {
-		addresses, err := s.store.List(ctx, 1, 0)
+		addresses, err := s.store.List(ctx, 1, uint64(listLen-3))
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), addresses, []string{account1.Address.String()})
+		assert.Equal(s.T(), addresses, []ethcommon.Address{account1.Address})
 	})
 	
 	s.Run("should get last two account addresses", func() {
-		addresses, err := s.store.List(ctx, 2, 1)
+		addresses, err := s.store.List(ctx, 2, uint64(listLen-2))
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), addresses, []string{account2.Address.String(), account3.Address.String()})
+		assert.Equal(s.T(), addresses, []ethcommon.Address{account2.Address, account3.Address})
 	})
 }
 

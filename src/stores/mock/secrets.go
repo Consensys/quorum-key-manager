@@ -65,7 +65,7 @@ func (mr *MockSecretStoreMockRecorder) Get(ctx, id, version interface{}) *gomock
 }
 
 // List mocks base method
-func (m *MockSecretStore) List(ctx context.Context, limit, offset int) ([]string, error) {
+func (m *MockSecretStore) List(ctx context.Context, limit, offset uint64) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", ctx, limit, offset)
 	ret0, _ := ret[0].([]string)
@@ -109,7 +109,7 @@ func (mr *MockSecretStoreMockRecorder) GetDeleted(ctx, id interface{}) *gomock.C
 }
 
 // ListDeleted mocks base method
-func (m *MockSecretStore) ListDeleted(ctx context.Context, limit, offset int) ([]string, error) {
+func (m *MockSecretStore) ListDeleted(ctx context.Context, limit, offset uint64) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListDeleted", ctx, limit, offset)
 	ret0, _ := ret[0].([]string)

@@ -34,11 +34,11 @@ func TestListEthAccounts(t *testing.T) {
 	t.Run("should list ethAccounts successfully", func(t *testing.T) {
 		accOne := testutils2.FakeETHAccount()
 		accTwo := testutils2.FakeETHAccount()
-		limit := 2
-		offset := 4
+		limit := uint64(2)
+		offset := uint64(4)
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().ListAddresses(gomock.Any(), false, limit, offset).Return([]string{accOne.Address.String(), accTwo.Address.String()}, nil)
+		db.EXPECT().SearchAddresses(gomock.Any(), false, limit, offset).Return([]string{accOne.Address.String(), accTwo.Address.String()}, nil)
 
 		accAddrs, err := connector.List(ctx, limit, offset)
 
@@ -57,7 +57,7 @@ func TestListEthAccounts(t *testing.T) {
 
 	t.Run("should fail to list ethAccounts if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().ListAddresses(gomock.Any(), false, 0, 0).Return(nil, expectedErr)
+		db.EXPECT().SearchAddresses(gomock.Any(), false, 0, 0).Return(nil, expectedErr)
 
 		_, err := connector.List(ctx, 0, 0)
 
@@ -83,11 +83,11 @@ func TestListDeletedEthAccounts(t *testing.T) {
 	t.Run("should list deleted ethAccounts successfully", func(t *testing.T) {
 		accOne := testutils2.FakeETHAccount()
 		accTwo := testutils2.FakeETHAccount()
-		limit := 2
-		offset := 4
+		limit := uint64(2)
+		offset := uint64(4)
 
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().ListAddresses(gomock.Any(), true, limit, offset).Return([]string{accOne.Address.String(), accTwo.Address.String()}, nil)
+		db.EXPECT().SearchAddresses(gomock.Any(), true, limit, offset).Return([]string{accOne.Address.String(), accTwo.Address.String()}, nil)
 
 		accAddrs, err := connector.ListDeleted(ctx, limit, offset)
 
@@ -106,7 +106,7 @@ func TestListDeletedEthAccounts(t *testing.T) {
 
 	t.Run("should fail to list deleted ethAccounts if db fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
-		db.EXPECT().ListAddresses(gomock.Any(), true, 0, 0).Return(nil, expectedErr)
+		db.EXPECT().SearchAddresses(gomock.Any(), true, 0, 0).Return(nil, expectedErr)
 
 		_, err := connector.ListDeleted(ctx, 0, 0)
 

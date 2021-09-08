@@ -59,19 +59,11 @@ func storeSelector(h http.Handler) http.Handler {
 func getLimitOffset(request *http.Request) (rLimit, rOffset uint64, err error) {
 	limit := request.URL.Query().Get("limit")
 	page := request.URL.Query().Get("page")
-	if limit == "" && page == "" {
-		return 0, 0, nil
-	}
-
 	if limit == "" {
 		limit = DefaultPageSize
 	}
 
-	if limit == "" {
-		return 0, 0, nil
-	}
-
-	rLimit, err = strconv.ParseUint(limit, 10, 32)
+	rLimit, err = strconv.ParseUint(limit, 10, 64)
 	if err != nil {
 		return 0, 0, errors.InvalidFormatError("invalid limit value")
 	}
@@ -79,7 +71,7 @@ func getLimitOffset(request *http.Request) (rLimit, rOffset uint64, err error) {
 	iPage := uint64(0)
 	rOffset = 0
 	if page != "" {
-		iPage, err = strconv.ParseUint(page, 10, 32)
+		iPage, err = strconv.ParseUint(page, 10, 64)
 		if err != nil {
 			return 0, 0, errors.InvalidFormatError("invalid page value")
 		}

@@ -51,7 +51,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 	return parseSecretBundle(&res), nil
 }
 
-func (s *Store) List(ctx context.Context, _, _ int) ([]string, error) {
+func (s *Store) List(ctx context.Context, _, _ uint64) ([]string, error) {
 	items, err := s.client.ListSecrets(ctx, 0)
 	if err != nil {
 		errMessage := "failed to list AKV secrets"
@@ -91,7 +91,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Secret, er
 	return parseDeletedSecretBundle(&res), nil
 }
 
-func (s *Store) ListDeleted(ctx context.Context, _, _ int) ([]string, error) {
+func (s *Store) ListDeleted(ctx context.Context, _, _ uint64) ([]string, error) {
 	items, err := s.client.ListDeletedSecrets(ctx, 0)
 	if err != nil {
 		errMessage := "failed to list deleted AKV secrets"

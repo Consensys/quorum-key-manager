@@ -98,22 +98,26 @@ func (s *secretsTestSuite) TestList() {
 	_, err = s.store.Set(ctx, id3, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
+	listLen := 0
 	s.Run("should list all secrets ids successfully", func() {
 		ids, err := s.store.List(ctx, 0, 0)
-
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), ids, []string{id, id2, id3})
+		
+		listLen = len(ids)
+		assert.Contains(s.T(), ids, id)
+		assert.Contains(s.T(), ids, id2)
+		assert.Contains(s.T(), ids, id3)
 	})
 
 	s.Run("should list first secret id successfully", func() {
-		ids, err := s.store.List(ctx, 1, 0)
+		ids, err := s.store.List(ctx, 1, uint64(listLen-3))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), ids, []string{id})
 	})
 
 	s.Run("should list last two secret id successfully", func() {
-		ids, err := s.store.List(ctx, 2, 1)
+		ids, err := s.store.List(ctx, 2, uint64(listLen-2))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), ids, []string{id2, id3})
@@ -265,22 +269,26 @@ func (s *secretsTestSuite) TestListDeleted() {
 	err = s.delete(s.env.ctx, id3)
 	require.NoError(s.T(), err)
 
+	listLen := 0
 	s.Run("should list all deleted secrets ids successfully", func() {
 		ids, err := s.store.ListDeleted(ctx, 0, 0)
-
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), ids, []string{id, id2, id3})
+		
+		listLen = len(ids)
+		assert.Contains(s.T(), ids, id)
+		assert.Contains(s.T(), ids, id2)
+		assert.Contains(s.T(), ids, id3)
 	})
 	
 	s.Run("should list first secret id successfully", func() {
-		ids, err := s.store.ListDeleted(ctx, 1, 0)
+		ids, err := s.store.ListDeleted(ctx, 1, uint64(listLen-3))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), ids, []string{id})
 	})
 
 	s.Run("should list last two secret id successfully", func() {
-		ids, err := s.store.ListDeleted(ctx, 2, 1)
+		ids, err := s.store.ListDeleted(ctx, 2, uint64(listLen-2))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), ids, []string{id2, id3})

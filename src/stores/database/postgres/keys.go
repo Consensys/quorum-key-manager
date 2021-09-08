@@ -2,8 +2,8 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
@@ -100,26 +100,8 @@ func (k *Keys) GetAllDeleted(ctx context.Context) ([]*entities.Key, error) {
 	return keys, nil
 }
 
-func (k *Keys) ListIDs(ctx context.Context, isDeleted bool, limit, offset int) ([]string, error) {
-	var ids = []string{}
-	var err error
-	var query string
-	args := []interface{}{k.storeID}
-
-	switch {
-	case limit != 0 || offset != 0:
-		query = fmt.Sprintf("SELECT (array_agg(id ORDER BY created_at ASC))[%d:%d] FROM keys WHERE store_id = ?", offset+1, offset+limit)
-	default:
-		query = "SELECT array_agg(id ORDER BY created_at ASC) FROM keys WHERE store_id = ?"
-	}
-
-	if isDeleted {
-		query = fmt.Sprintf("%s AND deleted_at is NOT NULL", query)
-	} else {
-		query = fmt.Sprintf("%s AND deleted_at is NULL", query)
-	}
-
-	err = k.client.Query(ctx, &ids, query, args...)
+func (k *Keys) SearchIDs(ctx context.Context, isDeleted bool, limit, offset uint64) ([]string, error) {
+	ids, err := client.QuerySearchIDs(ctx, k.client, "keys", "id", "store_id = ?", []interface{}{k.storeID}, isDeleted, limit, offset)
 	if err != nil {
 		errMessage := "failed to list keys ids"
 		k.logger.WithError(err).Error(errMessage)

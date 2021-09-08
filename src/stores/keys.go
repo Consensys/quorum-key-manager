@@ -19,7 +19,7 @@ type KeyStore interface {
 	Get(ctx context.Context, id string) (*entities.Key, error)
 
 	// List lists keys
-	List(ctx context.Context, limit, offset int) ([]string, error)
+	List(ctx context.Context, limit, offset uint64) ([]string, error)
 
 	// Update updates key tags
 	Update(ctx context.Context, id string, attr *entities.Attributes) (*entities.Key, error)
@@ -31,7 +31,7 @@ type KeyStore interface {
 	GetDeleted(ctx context.Context, id string) (*entities.Key, error)
 
 	// ListDeleted lists deleted keys
-	ListDeleted(ctx context.Context, limit, offset int) ([]string, error)
+	ListDeleted(ctx context.Context, limit, offset uint64) ([]string, error)
 
 	// Restore restores a previously deleted secret
 	Restore(ctx context.Context, id string) error

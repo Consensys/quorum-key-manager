@@ -112,7 +112,7 @@ func (s *Store) Get(ctx context.Context, id string) (*entities.Key, error) {
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) List(ctx context.Context, _, _ int) ([]string, error) {
+func (s *Store) List(ctx context.Context, _, _ uint64) ([]string, error) {
 	res, err := s.client.GetKeys(ctx, 0)
 	if err != nil {
 		errMessage := "failed to list AKV keys"
@@ -165,7 +165,7 @@ func (s *Store) GetDeleted(ctx context.Context, id string) (*entities.Key, error
 	return parseKeyDeleteBundleRes(&res), nil
 }
 
-func (s *Store) ListDeleted(ctx context.Context, _, _ int) ([]string, error) {
+func (s *Store) ListDeleted(ctx context.Context, _, _ uint64) ([]string, error) {
 	res, err := s.client.GetDeletedKeys(ctx, 0)
 	if err != nil {
 		errMessage := "failed to list deleted AKV keys"

@@ -8,13 +8,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (c Connector) List(ctx context.Context, limit, offset int) ([]common.Address, error) {
+func (c Connector) List(ctx context.Context, limit, offset uint64) ([]common.Address, error) {
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}
 
-	strAddr, err := c.db.ListAddresses(ctx, false, limit, offset)
+	strAddr, err := c.db.SearchAddresses(ctx, false, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -28,13 +28,13 @@ func (c Connector) List(ctx context.Context, limit, offset int) ([]common.Addres
 	return addrs, nil
 }
 
-func (c Connector) ListDeleted(ctx context.Context, limit, offset int) ([]common.Address, error) {
+func (c Connector) ListDeleted(ctx context.Context, limit, offset uint64) ([]common.Address, error) {
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}
 
-	strAddr, err := c.db.ListAddresses(ctx, true, limit, offset)
+	strAddr, err := c.db.SearchAddresses(ctx, true, limit, offset)
 	if err != nil {
 		return nil, err
 	}

@@ -27,7 +27,7 @@ type EthStore interface {
 	Get(ctx context.Context, addr common.Address) (*entities.ETHAccount, error)
 
 	// List lists all Ethereum account addresses
-	List(ctx context.Context, limit, offset int) ([]common.Address, error)
+	List(ctx context.Context, limit, offset uint64) ([]common.Address, error)
 
 	// Update updates Ethereum account attributes
 	Update(ctx context.Context, addr common.Address, attr *entities.Attributes) (*entities.ETHAccount, error)
@@ -39,7 +39,7 @@ type EthStore interface {
 	GetDeleted(ctx context.Context, addr common.Address) (*entities.ETHAccount, error)
 
 	// ListDeleted lists all deleted Ethereum accounts
-	ListDeleted(ctx context.Context, limit, offset int) ([]common.Address, error)
+	ListDeleted(ctx context.Context, limit, offset uint64) ([]common.Address, error)
 
 	// Restore restores a previously deleted Ethereum account
 	Restore(ctx context.Context, addr common.Address) error
