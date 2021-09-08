@@ -9,9 +9,7 @@ import (
 //go:generate mockgen -source=authenticator.go -destination=mock/authenticator.go -package=mock
 
 type Authenticator interface {
-	// Authenticate request
-
-	// It MUST
+	// Authenticate MUST
 	// - return an error, if request credentials are present but invalid
 	// - returns a non nil UserInfo and nil error, if request credentials are valid
 	// - returns nil, nil, if request credentials are missing
@@ -26,7 +24,7 @@ func (f Func) Authenticate(req *http.Request) (*types.UserInfo, error) {
 
 // First combines authenticators
 
-// It executes authenticators in sequence until one authenticator accepts
+// First executes authenticators in sequence until one authenticator accepts
 // or rejects the request
 func First(authenticators ...Authenticator) Authenticator {
 	return Func(func(req *http.Request) (*types.UserInfo, error) {
