@@ -12,6 +12,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -288,11 +289,35 @@ func (s *secretsHandlerTestSuite) TestList() {
 		ids := []string{"secret1", "secret2"}
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().List(gomock.Any()).Return(ids, nil)
+		s.secretStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		expectedBody, _ := json.Marshal(ids)
+		expectedBody, _ := json.Marshal(http2.PageResponse{
+			Data: ids,
+		})
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request with limit and offset successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets?limit=1&page=5", nil).WithContext(s.ctx)
+
+		ids := []string{"secret1", "secret2"}
+
+		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+		s.secretStore.EXPECT().List(gomock.Any(), uint64(1), uint64(5)).Return(ids, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		expectedBody, _ := json.Marshal(http2.PageResponse{
+			Data: ids,
+			Paging: http2.PagePagingResponse{
+				Previous: "example.com?limit=1&page=4",
+				Next:     "example.com?limit=1&page=6",
+			},
+		})
 		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
@@ -303,7 +328,7 @@ func (s *secretsHandlerTestSuite) TestList() {
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
+		s.secretStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)
@@ -318,11 +343,13 @@ func (s *secretsHandlerTestSuite) TestListDeleted() {
 		ids := []string{"secret1", "secret2"}
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().ListDeleted(gomock.Any()).Return(ids, nil)
+		s.secretStore.EXPECT().ListDeleted(gomock.Any(), defaultPageSize, uint64(0)).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		expectedBody, _ := json.Marshal(ids)
+		expectedBody, _ := json.Marshal(http2.PageResponse{
+			Data: ids,
+		})
 		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
@@ -333,7 +360,7 @@ func (s *secretsHandlerTestSuite) TestListDeleted() {
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets?deleted=true", nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
-		s.secretStore.EXPECT().ListDeleted(gomock.Any()).Return(nil, errors.NotFoundError("error"))
+		s.secretStore.EXPECT().ListDeleted(gomock.Any(), defaultPageSize, uint64(0)).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)

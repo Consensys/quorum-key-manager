@@ -312,7 +312,7 @@ func (s *secretsTestSuite) TestList() {
 	defer s.queueToDelete(secret)
 
 	s.RunT("should get all secret ids successfully", func() {
-		ids, err := s.keyManagerClient.ListSecrets(s.ctx, s.storeName)
+		ids, err := s.keyManagerClient.ListSecrets(s.ctx, s.storeName, 99999, 0)
 		require.NoError(s.T(), err)
 
 		assert.GreaterOrEqual(s.T(), len(ids), 1)
@@ -320,7 +320,7 @@ func (s *secretsTestSuite) TestList() {
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		ids, err := s.keyManagerClient.ListSecrets(s.ctx, "inexistentStoreName")
+		ids, err := s.keyManagerClient.ListSecrets(s.ctx, "inexistentStoreName", 0,0)
 		require.Empty(s.T(), ids)
 
 		httpError := err.(*client.ResponseError)
@@ -342,7 +342,7 @@ func (s *secretsTestSuite) TestListDeletedSecrets() {
 		require.NoError(s.T(), err)
 		defer s.queueToDestroy(secret)
 
-		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, s.storeName)
+		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, s.storeName, 99999, 0)
 		require.NoError(s.T(), err)
 
 		assert.GreaterOrEqual(s.T(), len(ids), 1)
@@ -350,7 +350,7 @@ func (s *secretsTestSuite) TestListDeletedSecrets() {
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, "inexistentStoreName")
+		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, "inexistentStoreName", 0, 0)
 		require.Empty(s.T(), ids)
 
 		httpError, ok := err.(*client.ResponseError)

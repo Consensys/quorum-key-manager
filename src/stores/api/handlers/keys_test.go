@@ -13,6 +13,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -303,11 +304,34 @@ func (s *keysHandlerTestSuite) TestList() {
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		ids := []string{"key1", "key2"}
-		s.keyStore.EXPECT().List(gomock.Any()).Return(ids, nil)
+		s.keyStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		expectedBody, _ := json.Marshal(ids)
+		expectedBody, _ := json.Marshal(http2.PageResponse{
+			Data: ids,
+		})
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request with limit and offset successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys?limit=5&page=2", nil).WithContext(s.ctx)
+
+		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
+
+		ids := []string{"key1", "key2"}
+		s.keyStore.EXPECT().List(gomock.Any(), uint64(5), uint64(10)).Return(ids, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		expectedBody, _ := json.Marshal(http2.PageResponse{
+			Data: ids,
+			Paging: http2.PagePagingResponse{
+				Previous: "example.com?limit=5&page=1",
+			},
+		})
 		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
@@ -318,7 +342,7 @@ func (s *keysHandlerTestSuite) TestList() {
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil).WithContext(s.ctx)
 
 		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
-		s.keyStore.EXPECT().List(gomock.Any()).Return(nil, errors.NotFoundError("error"))
+		s.keyStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusNotFound, rw.Code)

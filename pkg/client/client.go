@@ -16,8 +16,8 @@ type SecretsClient interface {
 	DeleteSecret(ctx context.Context, storeName, id string) error
 	RestoreSecret(ctx context.Context, storeName, id string) error
 	DestroySecret(ctx context.Context, storeName, id string) error
-	ListSecrets(ctx context.Context, storeName string) ([]string, error)
-	ListDeletedSecrets(ctx context.Context, storeName string) ([]string, error)
+	ListSecrets(ctx context.Context, storeName string, limit, page uint64) ([]string, error)
+	ListDeletedSecrets(ctx context.Context, storeName string, limit, page uint64) ([]string, error)
 }
 
 type KeysClient interface {
@@ -26,10 +26,10 @@ type KeysClient interface {
 	SignKey(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error)
 	VerifyKeySignature(ctx context.Context, storeName string, request *types.VerifyKeySignatureRequest) error
 	GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error)
-	ListKeys(ctx context.Context, storeName string) ([]string, error)
+	ListKeys(ctx context.Context, storeName string, limit, page uint64) ([]string, error)
 	DeleteKey(ctx context.Context, storeName, id string) error
 	GetDeletedKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error)
-	ListDeletedKeys(ctx context.Context, storeName string) ([]string, error)
+	ListDeletedKeys(ctx context.Context, storeName string, limit, page uint64) ([]string, error)
 	RestoreKey(ctx context.Context, storeName, id string) error
 	DestroyKey(ctx context.Context, storeName, id string) error
 }
@@ -44,7 +44,8 @@ type EthClient interface {
 	SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types.SignQuorumPrivateTransactionRequest) (string, error)
 	SignEEATransaction(ctx context.Context, storeName, address string, request *types.SignEEATransactionRequest) (string, error)
 	GetEthAccount(ctx context.Context, storeName, address string) (*types.EthAccountResponse, error)
-	ListEthAccounts(ctx context.Context, storeName string) ([]string, error)
+	ListEthAccounts(ctx context.Context, storeName string, limit, page uint64) ([]string, error)
+	ListDeletedEthAccounts(ctx context.Context, storeName string, limit, page uint64) ([]string, error)
 	DeleteEthAccount(ctx context.Context, storeName, address string) error
 	DestroyEthAccount(ctx context.Context, storeName, address string) error
 	RestoreEthAccount(ctx context.Context, storeName, address string) error

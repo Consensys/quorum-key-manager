@@ -44,9 +44,8 @@ const (
 	HashicorpKeyStoreName     = "HashicorpKeys"
 	HashicorpSecretMountPoint = "secret"
 	HashicorpKeyMountPoint    = "orchestrate"
-	AKVKeyStoreName           = "AKVKeys"
-	AWSKeyStoreName           = "AWSKeys"
 	MaxRetries                = 4
+	WaitContainerTime         = 15 * time.Second
 )
 
 // IntegrationEnvironment holds all connected clients needed to ready docker containers.
@@ -88,7 +87,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger, err := zap.NewLogger(log.NewConfig(log.ErrorLevel, log.JSONFormat))
+	logger, err := zap.NewLogger(log.NewConfig(log.InfoLevel, log.JSONFormat))
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +173,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 	hashicorpClient.SetToken(hashicorpContainer.RootToken)
-	
+
 	postgresClient, err := postgresclient.NewClient(postgresCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Postgres client")
@@ -211,7 +210,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.dockerClient.WaitTillIsReady(ctx, hashicorpContainerID, 10*time.Second)
+	err = env.dockerClient.WaitTillIsReady(ctx, hashicorpContainerID, WaitContainerTime)
 	if err != nil {
 		env.logger.WithError(err).Error("could not start vault")
 		return err
@@ -244,7 +243,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.dockerClient.WaitTillIsReady(ctx, postgresContainerID, 10*time.Second)
+	err = env.dockerClient.WaitTillIsReady(ctx, postgresContainerID, WaitContainerTime)
 	if err != nil {
 		env.logger.WithError(err).Error("could not start postgres")
 		return err

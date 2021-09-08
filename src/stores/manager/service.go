@@ -257,7 +257,7 @@ func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.U
 			return nil, err
 		}
 
-		storeAccs, err := store.List(ctx)
+		storeAccs, err := store.List(ctx, 0, 0)
 		if err != nil {
 			return nil, err
 		}

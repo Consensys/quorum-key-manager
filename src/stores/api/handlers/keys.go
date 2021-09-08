@@ -306,7 +306,9 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 // @Accept json
 // @Produce json
 // @Param storeName path string true "Store Identifier"
-// @Success 200 {array} []types.KeyResponse "List of key ids"
+// @Param limit query int false "pagination size"
+// @Param page query int false "pagination number"
+// @Success 200 {array} []PagePagingResponse "List of key ids"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -322,19 +324,25 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	limit, offset, err := getLimitOffset(request)
+	if err != nil {
+		http2.WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
 	getDeleted := request.URL.Query().Get("deleted")
 	var ids []string
 	if getDeleted == "" {
-		ids, err = keyStore.List(ctx)
+		ids, err = keyStore.List(ctx, limit, offset)
 	} else {
-		ids, err = keyStore.ListDeleted(ctx)
+		ids, err = keyStore.ListDeleted(ctx, limit, offset)
 	}
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(ids)
+	_ = http2.WritePagingResponse(rw, request, ids)
 }
 
 // @Summary Soft-delete Key

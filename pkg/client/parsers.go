@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 )
 
 func parseResponse(response *http.Response, resp interface{}) error {
@@ -87,4 +89,9 @@ func closeResponse(response *http.Response) {
 	if deferErr := response.Body.Close(); deferErr != nil {
 		return
 	}
+}
+
+type pageStringResponse struct {
+	Data   []string        `json:"data" example:"{'item1', 'item2', 'item3'}"`
+	Paging http2.PagePagingResponse `json:"paging"`
 }

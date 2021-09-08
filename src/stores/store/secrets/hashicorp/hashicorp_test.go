@@ -271,7 +271,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 
 		s.mockVault.EXPECT().List(expectedPath).Return(hashicorpSecret, nil)
 
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.secretStore.List(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), keysStr, ids)
@@ -280,7 +280,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 	s.Run("should return empty list if result is nil", func() {
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, nil)
 
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.secretStore.List(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Empty(s.T(), ids)
@@ -289,7 +289,7 @@ func (s *hashicorpSecretStoreTestSuite) TestList() {
 	s.Run("should fail with same error if read data fails", func() {
 		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
 
-		ids, err := s.secretStore.List(ctx)
+		ids, err := s.secretStore.List(ctx, 0, 0)
 
 		assert.Empty(s.T(), ids)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))

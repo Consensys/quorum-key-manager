@@ -513,7 +513,7 @@ func (s *keysTestSuite) TestListKeys() {
 	defer s.queueToDelete(key)
 
 	s.RunT("should get all key ids successfully", func() {
-		ids, err := s.keyManagerClient.ListKeys(s.ctx, s.storeName)
+		ids, err := s.keyManagerClient.ListKeys(s.ctx, s.storeName, 99999,0)
 		require.NoError(s.T(), err)
 
 		assert.GreaterOrEqual(s.T(), len(ids), 1)
@@ -521,7 +521,7 @@ func (s *keysTestSuite) TestListKeys() {
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
+		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName", 0, 0)
 		require.Empty(s.T(), ids)
 
 		httpError := err.(*client.ResponseError)
@@ -556,7 +556,7 @@ func (s *keysTestSuite) TestListDeletedKeys() {
 	defer s.queueToDestroy(key)
 
 	s.RunT("should get all deleted key ids successfully", func() {
-		ids, err := s.keyManagerClient.ListDeletedKeys(s.ctx, s.storeName)
+		ids, err := s.keyManagerClient.ListDeletedKeys(s.ctx, s.storeName, 99999, 0)
 		require.NoError(s.T(), err)
 
 		assert.GreaterOrEqual(s.T(), len(ids), 1)
@@ -564,7 +564,7 @@ func (s *keysTestSuite) TestListDeletedKeys() {
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName")
+		ids, err := s.keyManagerClient.ListKeys(s.ctx, "inexistentStoreName", 0, 0)
 		require.Empty(s.T(), ids)
 
 		httpError := err.(*client.ResponseError)

@@ -9,12 +9,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	apiTypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
+	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+	apiTypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
@@ -38,6 +38,8 @@ var ethUserInfo = &types.UserInfo{
 	Roles:       []string{"role1", "role2"},
 	Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
 }
+
+var defaultPageSize = uint64(100)
 
 type ethHandlerTestSuite struct {
 	suite.Suite
@@ -464,13 +466,38 @@ func (s *ethHandlerTestSuite) TestList() {
 
 		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73"
 		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec8"
-		s.ethStore.EXPECT().List(gomock.Any()).Return([]ethcommon.Address{
+		s.ethStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return([]ethcommon.Address{
 			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
 		}, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		assert.Equal(s.T(), fmt.Sprintf("[\"%s\",\"%s\"]\n", acc1, acc2), rw.Body.String())
+		expectedBody, _ := json.Marshal(http2.PageResponse{
+			Data: []string{acc1, acc2},
+		})
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request with limit and offset successfully", func() {
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/ethereum?limit=10&page=2", ethStoreName), nil).WithContext(s.ctx)
+
+		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd74"
+		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec9"
+		s.ethStore.EXPECT().List(gomock.Any(), uint64(10), uint64(20)).Return([]ethcommon.Address{
+			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
+		}, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		expectedBody, _ := json.Marshal(http2.PageResponse{
+			Data: []string{acc1, acc2},
+			Paging: http2.PagePagingResponse{
+				Previous: "example.com?limit=10&page=1",
+			},
+		})
+		assert.Equal(s.T(), string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
@@ -478,15 +505,15 @@ func (s *ethHandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/ethereum?deleted=true", ethStoreName), nil).WithContext(s.ctx)
 
-		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd74"
-		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ec9"
-		s.ethStore.EXPECT().ListDeleted(gomock.Any()).Return([]ethcommon.Address{
+		acc1 := "0xfe3b557e8fb62b89f4916b721be55ceb828dbd75"
+		acc2 := "0xea674fdde714fd979de3edf0f56aa9716b898ed9"
+		s.ethStore.EXPECT().ListDeleted(gomock.Any(), defaultPageSize, uint64(0)).Return([]ethcommon.Address{
 			ethcommon.HexToAddress(acc1), ethcommon.HexToAddress(acc2),
 		}, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		assert.Equal(s.T(), fmt.Sprintf("[\"%s\",\"%s\"]\n", acc1, acc2), rw.Body.String())
+		assert.Equal(s.T(), fmt.Sprintf("{\"data\":[\"%s\",\"%s\"],\"paging\":{}}\n", acc1, acc2), rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
@@ -495,7 +522,7 @@ func (s *ethHandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/%s/ethereum", ethStoreName), nil).WithContext(s.ctx)
 
-		s.ethStore.EXPECT().List(gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
+		s.ethStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)

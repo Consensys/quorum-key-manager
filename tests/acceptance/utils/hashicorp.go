@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"math/rand"
 	"os"
 	"runtime"
 	"strconv"
+
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	dockerhashicorp "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 )
@@ -32,7 +33,7 @@ func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 		SetHost(hashicorpHost).
 		SetPluginSourceDirectory(pluginPath)
 
-	//Deal with darwin compliant plugin
+	// Deal with darwin compliant plugin
 	runtime := runtime.GOOS
 	switch runtime {
 	case "darwin":
@@ -45,6 +46,7 @@ func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 		logger.Info("using local orchestrate plugin", "path", pluginPath)
 
 	default:
+		logger.Info("downloading orchestrate pluging...", "path", pluginPath)
 		pluginPath, err = vaultContainer.DownloadPlugin(HashicorpPluginFilename, HashicorpPluginVersion)
 		if err != nil {
 			logger.WithError(err).Error("cannot download hashicorp vault plugin")

@@ -453,7 +453,9 @@ func (h *EthHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Param storeName path string true "Store Identifier"
 // @Param deleted query bool false "filter by deleted accounts"
 // @Param chain_uuid query string false "Chain UUID"
-// @Success 200 {array} []types.EthAccountResponse "Ethereum Account list"
+// @Param limit query int false "pagination size"
+// @Param page query int false "pagination number"
+// @Success 200 {array} []PagePagingResponse "Ethereum Account list"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -469,19 +471,25 @@ func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	limit, offset, err := getLimitOffset(request)
+	if err != nil {
+		http2.WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
 	getDeleted := request.URL.Query().Get("deleted")
 	var addresses []ethcommon.Address
 	if getDeleted == "" {
-		addresses, err = ethStore.List(ctx)
+		addresses, err = ethStore.List(ctx, limit, offset)
 	} else {
-		addresses, err = ethStore.ListDeleted(ctx)
+		addresses, err = ethStore.ListDeleted(ctx, limit, offset)
 	}
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(addresses)
+	_ = http2.WritePagingResponse(rw, request, addresses)
 }
 
 // @Summary Delete Ethereum Account

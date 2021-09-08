@@ -189,7 +189,7 @@ func (s *akvKeyStoreTestSuite) TestList() {
 
 		s.mockVault.EXPECT().GetKeys(gomock.Any(), gomock.Any()).Return(keyList, nil)
 
-		ids, err := s.keyStore.List(ctx)
+		ids, err := s.keyStore.List(ctx, 0, 0)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), []string{"my-key1", "my-key2"}, ids)
