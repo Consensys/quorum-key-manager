@@ -11,9 +11,8 @@ import (
 func (c Connector) ECRecover(_ context.Context, data, sig []byte) (ethcommon.Address, error) {
 	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
 	if err != nil {
-		errMessage := "failed to recover public key, please verify your signature and payload"
-		c.logger.WithError(err).Error(errMessage)
-		return ethcommon.Address{}, errors.InvalidParameterError(errMessage)
+		c.logger.WithError(err).Error("failed to recover public key, please verify your signature and payload")
+		return ethcommon.Address{}, errors.InvalidParameterError(err.Error())
 	}
 
 	c.logger.Debug("ethereum account recovered successfully from signature")
