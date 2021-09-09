@@ -40,7 +40,6 @@ func (h *EthHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
 	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
-	r.Methods(http.MethodPost).Path("/verify").HandlerFunc(h.verify)
 	r.Methods(http.MethodPost).Path("/verify-message").HandlerFunc(h.verifyMessage)
 	r.Methods(http.MethodPost).Path("/verify-typed-data").HandlerFunc(h.verifyTypedData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
@@ -624,46 +623,7 @@ func (h *EthHandler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 	_, _ = rw.Write([]byte(address.Hex()))
 }
 
-// @Summary Verify signature
-// @Description Verify the signature of an Ethereum signature
-// @Tags Ethereum Utils
-// @Accept json
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
-// @Param request body types.VerifyRequest true "Ethereum signature verify request"
-// @Success 204 "Successful verification"
-// @Failure 422 {object} ErrorResponse "Cannot verify signature"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/ethereum/verify [post]
-func (h *EthHandler) verify(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	verifyReq := &types.VerifyRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	err = ethStore.Verify(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	rw.WriteHeader(http.StatusNoContent)
-}
-
-// @Summary Verify message signature
+// @Summary Verify EIP-191 message signature
 // @Description Verify the signature of a message
 // @Tags Ethereum Utils
 // @Accept json
@@ -701,7 +661,7 @@ func (h *EthHandler) verifyMessage(rw http.ResponseWriter, request *http.Request
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Verify typed data signature
+// @Summary Verify EIP-712 typed data signature
 // @Description Verify the signature of an Ethereum typed data signing
 // @Tags Ethereum Utils
 // @Accept json

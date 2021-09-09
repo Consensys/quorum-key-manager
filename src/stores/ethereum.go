@@ -68,9 +68,6 @@ type EthStore interface {
 	// ECRecover returns the Ethereum address from a signature and data
 	ECRecover(ctx context.Context, data, sig []byte) (common.Address, error)
 
-	// Verify verifies that a signature belongs to a given address
-	Verify(ctx context.Context, addr common.Address, data, sig []byte) error
-
 	// VerifyMessage verifies that a message signature belongs to a given address
 	VerifyMessage(ctx context.Context, addr common.Address, data, sig []byte) error
 

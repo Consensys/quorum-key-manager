@@ -292,20 +292,6 @@ func (mr *MockEthStoreMockRecorder) ECRecover(ctx, data, sig interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockEthStore)(nil).ECRecover), ctx, data, sig)
 }
 
-// Verify mocks base method
-func (m *MockEthStore) Verify(ctx context.Context, addr common.Address, data, sig []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", ctx, addr, data, sig)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Verify indicates an expected call of Verify
-func (mr *MockEthStoreMockRecorder) Verify(ctx, addr, data, sig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockEthStore)(nil).Verify), ctx, addr, data, sig)
-}
-
 // VerifyMessage mocks base method
 func (m *MockEthStore) VerifyMessage(ctx context.Context, addr common.Address, data, sig []byte) error {
 	m.ctrl.T.Helper()

@@ -40,7 +40,7 @@ func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) (
 func (c Connector) SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
-	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(getEIP191EncodedData(data))))
+	signature, err := c.signHomestead(ctx, addr, crypto.Keccak256(getEIP191EncodedData(data)))
 	if err != nil {
 		return nil, err
 	}
@@ -59,12 +59,12 @@ func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typed
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(encodedData)))
+	signature, err := c.signHomestead(ctx, addr, crypto.Keccak256(encodedData))
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debug("typed data signed successfully (eip-712) ")
+	logger.Debug("typed data signed successfully (eip-712)")
 	return signature, nil
 }
 
@@ -246,6 +246,22 @@ func eeaHash(object interface{}) (hash common.Hash, err error) {
 	hashAlgo.Sum(hash[:0])
 
 	return hash, nil
+}
+
+func (c Connector) signHomestead(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
+	signature, err := c.sign(ctx, addr, data)
+	if err != nil {
+		return nil, err
+	}
+
+	r, s, v, err := types.HomesteadSigner{}.SignatureValues(nil, signature)
+	if err != nil {
+		errMessage := "failed to recover homestead signature values"
+		c.logger.Error(errMessage)
+		return nil, errors.DependencyFailureError(errMessage)
+	}
+
+	return append(r.Bytes(), append(s.Bytes(), v.Bytes()...)...), nil
 }
 
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96

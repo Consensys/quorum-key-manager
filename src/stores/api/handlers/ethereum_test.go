@@ -635,37 +635,6 @@ func (s *ethHandlerTestSuite) TestECRecover() {
 	})
 }
 
-func (s *ethHandlerTestSuite) TestVerifySignature() {
-	s.Run("should execute request successfully", func() {
-		verifyRequest := testutils.FakeVerifyEthSignatureRequest()
-		requestBytes, _ := json.Marshal(verifyRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().Verify(gomock.Any(), verifyRequest.Address, verifyRequest.Data, verifyRequest.Signature).Return(nil)
-
-		s.router.ServeHTTP(rw, httpRequest)
-
-		assert.Equal(s.T(), "", rw.Body.String())
-		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
-	})
-
-	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.Run("should fail with correct error code if use case fails", func() {
-		verifyRequest := testutils.FakeVerifyEthSignatureRequest()
-		requestBytes, _ := json.Marshal(verifyRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
-	})
-}
-
 func (s *ethHandlerTestSuite) TestVerifyTypedDataSignature() {
 	s.Run("should execute request successfully", func() {
 		verifyRequest := testutils.FakeVerifyTypedDataPayloadRequest()
