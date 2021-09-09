@@ -15,7 +15,7 @@ type CreateKeyRequest struct {
 type ImportKeyRequest struct {
 	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa"`
-	PrivateKey       []byte            `json:"privateKey" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..." swaggertype:"string"`
+	PrivateKey       []byte            `json:"privateKey" validate:"required" example:"bXkgc2lnbmVkIG1lc3NhZ2U=" swaggertype:"string"`
 	Tags             map[string]string `json:"tags,omitempty"`
 }
 
@@ -24,20 +24,20 @@ type UpdateKeyRequest struct {
 }
 
 type SignBase64PayloadRequest struct {
-	Data []byte `json:"data" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..." swaggertype:"string"`
+	Data []byte `json:"data" validate:"required" example:"bXkgc2lnbmVkIG1lc3NhZ2U=" swaggertype:"string"`
 }
 
 type VerifyKeySignatureRequest struct {
-	Data             []byte `json:"data" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
-	Signature        []byte `json:"signature" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	Data             []byte `json:"data" validate:"required" example:"bXkgc2lnbmVkIG1lc3NhZ2U=" swaggertype:"string"`
+	Signature        []byte `json:"signature" validate:"required" example:"tjThYhKSFSKKvsR8Pji6EJ+FYAcf8TNUdAQnM7MSwZEEaPvFhpr1SuGpX5uOcYUrb3pBA8cLk8xcbKtvZ56qWA==" swaggertype:"string"`
 	Curve            string `json:"curve" validate:"required,isCurve" example:"secp256k1"`
 	SigningAlgorithm string `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa"`
-	PublicKey        []byte `json:"publicKey" validate:"required" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	PublicKey        []byte `json:"publicKey" validate:"required" example:"Cjix/fS3WdqKGKabagBNYwcClan5aImoFpnjSF0cqJs=" swaggertype:"string"`
 }
 
 type KeyResponse struct {
 	ID               string               `json:"id" example:"my-key"`
-	PublicKey        string               `json:"publicKey" example:"BFVSFJhqUh9DQJwcayNtsWdD2..."`
+	PublicKey        string               `json:"publicKey" example:"Cjix/fS3WdqKGKabagBNYwcClan5aImoFpnjSF0cqJs=" swaggertype:"string"`
 	Curve            string               `json:"curve" example:"secp256k1"`
 	SigningAlgorithm string               `json:"signingAlgorithm" example:"ecdsa"`
 	Tags             map[string]string    `json:"tags,omitempty"`

@@ -40,7 +40,7 @@ func (h *AliasHandler) Register(r *mux.Router) {
 
 // @Summary Delete a registry
 // @Description Delete a registry and all its keys
-// @Tags registry
+// @Tags Registries
 // @Param registry_name path string true "registry identifier"
 // @Success 204 "Deleted successfully"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -69,7 +69,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 
 // @Summary Creates an alias
 // @Description Create an alias of a key in a dedicated alias registry
-// @Tags alias
+// @Tags Aliases
 // @Accept json
 // @Produce json
 // @Param registry_name path string true "registry identifier"
@@ -117,7 +117,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 
 // @Summary Get an alias
 // @Description Get an alias of a key from a dedicated alias registry
-// @Tags alias
+// @Tags Aliases
 // @Produce json
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
@@ -156,7 +156,7 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 // updateAlias updates an alias value.
 // @Summary Update an alias
 // @Description Update an alias of a key from a dedicated alias registry
-// @Tags alias
+// @Tags Aliases
 // @Accept json
 // @Produce json
 // @Param registry_name path string true "registry identifier"
@@ -210,7 +210,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 // deleteAlias deletes an alias value.
 // @Summary Delete an alias
 // @Description Delete an alias of a key from a dedicated alias registry
-// @Tags alias
+// @Tags Aliases
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
 // @Success 204 "Deleted successfully"
@@ -242,7 +242,7 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 
 // @Summary Get all the aliases in a registry
 // @Description Get all the aliases in a registry
-// @Tags alias
+// @Tags Aliases
 // @Produce json
 // @Param registry_name path string true "registry identifier"
 // @Param alias_key path string true "alias identifier"
