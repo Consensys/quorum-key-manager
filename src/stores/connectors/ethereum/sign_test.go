@@ -32,7 +32,7 @@ func TestSignMessage(t *testing.T) {
 	defer ctrl.Finish()
 
 	data := hexutil.MustDecode("0xfeaa")
-	expectedData := fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", 2, "0xfeaa")
+	expectedData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%v", 2, string(data))
 	expectedErr := fmt.Errorf("my error")
 
 	store := mock.NewMockKeyStore(ctrl)
@@ -45,13 +45,13 @@ func TestSignMessage(t *testing.T) {
 	t.Run("should sign successfully", func(t *testing.T) {
 		acc := testutils2.FakeETHAccount()
 		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
-		acc.PublicKey = hexutil.MustDecode("0x0450705848a88e7957b69e41362c52591fd6621c1d0945633b3dd5b420f7e67fd75e2c9a7f0a26927e4a04b48face723f3533da64d9fcc8d616b085bb5f0afa189")
+		acc.PublicKey = hexutil.MustDecode("0x04e2e7621c0c08e43905648be731a482e8eb3d3186023335812f52130e4a18dd729b22d88fbf0f22b8fa4390267ef0c54367dc638a25b38ea74290bdb9f79ff917")
 
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignature, nil)
 
-		expectedSignature := hexutil.Encode(ecdsaSignature) + "00"
+		expectedSignature := hexutil.Encode(ecdsaSignature) + "1b"
 		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.NoError(t, err)
@@ -64,13 +64,13 @@ func TestSignMessage(t *testing.T) {
 		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
 		S2 := new(big.Int).Add(S, secp256k1N)
 		ecdsaSignatureMalleable := append(R.Bytes(), S2.Bytes()...)
-		acc.PublicKey = hexutil.MustDecode("0x0486f304bd499166d7a453d4d952366bd4a9a0292bbf9ef662dccf70a2619cae6016808dae5f00a7301793101132a36e476527e34822e6850c0712d8c7cb526715")
+		acc.PublicKey = hexutil.MustDecode("0x048e12a3333368c1c4c7c8fe9d1fd172444f6de328cd1650b76836928be9e71e952f61d75d87133f881bf4d25e02c3147aebf69abf7587c39cb5d177693ce1ca8f")
 
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignatureMalleable, nil)
 
-		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + "01"
+		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + "1c"
 		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.NoError(t, err)
