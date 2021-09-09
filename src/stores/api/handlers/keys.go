@@ -233,6 +233,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
+// @Param request body types.UpdateKeyRequest true "Update key request"
 // @Success 200 {object} types.KeyResponse "Key data"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -418,6 +419,7 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
+// @Param request body types.VerifyKeySignatureRequest true "Verify signature request"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 500 {object} ErrorResponse "Internal server error"
