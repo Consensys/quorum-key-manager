@@ -91,7 +91,7 @@ func TestSignMessage(t *testing.T) {
 		_, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.Error(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.True(t, errors.IsCryptoOperationError(err))
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
