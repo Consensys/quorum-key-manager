@@ -24,7 +24,7 @@ type UpdateEthAccountRequest struct {
 }
 
 type SignMessageRequest struct {
-	Message hexutil.Bytes `json:"message" validate:"required" example:"0xfeade..." swaggertype:"string"`
+	Message string `json:"message" validate:"required" example:"0x536f6d652064617461 or 536f6d652064617461 (hexaString)" swaggertype:"string"`
 }
 
 type SignTypedDataRequest struct {

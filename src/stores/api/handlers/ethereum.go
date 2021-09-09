@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
@@ -226,7 +228,15 @@ func (h *EthHandler) signMessage(rw http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	signature, err := ethStore.SignMessage(ctx, getAddress(request), signPayloadReq.Message)
+	signedMessage := strings.TrimPrefix(signPayloadReq.Message, "0x")
+
+	signedMessageData, err := hex.DecodeString(signedMessage)
+	if err != nil {
+		http2.WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	signature, err := ethStore.SignMessage(ctx, getAddress(request), signedMessageData)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

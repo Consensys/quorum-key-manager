@@ -40,7 +40,10 @@ func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) (
 func (c Connector) SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
-	signature, err := c.sign(ctx, addr, crypto.Keccak256([]byte(getEIP191EncodedData(data))))
+	toHash := []byte(getEIP191EncodedData(data))
+	hash := crypto.Keccak256(toHash)
+
+	signature, err := c.sign(ctx, addr, hash)
 	if err != nil {
 		return nil, err
 	}
@@ -227,6 +230,8 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 		}
 
 		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), acc.PublicKey) {
+			// add + 27 to recID
+			appendedSignature[len(appendedSignature)-1] += 27
 			return appendedSignature, nil
 		}
 	}

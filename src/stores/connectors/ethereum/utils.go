@@ -6,8 +6,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/signer/core"
 )
@@ -27,7 +25,7 @@ func getEIP712EncodedData(typedData *core.TypedData) (string, error) {
 }
 
 func getEIP191EncodedData(msg []byte) string {
-	return fmt.Sprintf("\x19Ethereum Signed Message\n%d%v", len(msg), hexutil.Encode(msg))
+	return fmt.Sprintf("\x19Ethereum Signed Message:\n%d%v", len(msg), string(msg))
 }
 
 func newEthAccount(key *entities.Key, attr *entities.Attributes) *entities.ETHAccount {

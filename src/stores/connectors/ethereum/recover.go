@@ -9,6 +9,9 @@ import (
 )
 
 func (c Connector) ECRecover(_ context.Context, data, sig []byte) (ethcommon.Address, error) {
+	if sig[len(sig)-1] > 1 {
+		sig[len(sig)-1] -= 27
+	}
 	pubKey, err := crypto.SigToPub(crypto.Keccak256(data), sig)
 	if err != nil {
 		errMessage := "failed to recover public key, please verify your signature and payload"
