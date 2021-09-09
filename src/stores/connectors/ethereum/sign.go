@@ -223,7 +223,7 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 		if err != nil {
 			errMessage := "failed to recover public key candidate with appended recID"
 			c.logger.WithError(err).Error(errMessage, "recID", recID)
-			return nil, errors.InvalidParameterError(errMessage)
+			return nil, errors.CryptoOperationError(errMessage)
 		}
 
 		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), acc.PublicKey) {
@@ -233,7 +233,7 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 
 	errMessage := "failed to recover public key candidate"
 	c.logger.Error(errMessage)
-	return nil, errors.InvalidParameterError(errMessage)
+	return nil, errors.CryptoOperationError(errMessage)
 }
 
 func eeaHash(object interface{}) (hash common.Hash, err error) {
@@ -257,8 +257,8 @@ func (c Connector) signHomestead(ctx context.Context, addr common.Address, data 
 	r, s, v, err := types.HomesteadSigner{}.SignatureValues(nil, signature)
 	if err != nil {
 		errMessage := "failed to recover homestead signature values"
-		c.logger.Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
+		c.logger.WithError(err).Error(errMessage)
+		return nil, errors.CryptoOperationError(errMessage)
 	}
 
 	return append(r.Bytes(), append(s.Bytes(), v.Bytes()...)...), nil
