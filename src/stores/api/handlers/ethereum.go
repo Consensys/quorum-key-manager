@@ -56,7 +56,7 @@ func (h *EthHandler) Register(r *mux.Router) {
 
 // @Summary Create Ethereum Account
 // @Description Create a new ECDSA Secp256k1 key representing an Ethereum Account
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept  json
 // @Produce  json
 // @Param storeName path string true "Store Identifier"
@@ -106,7 +106,7 @@ func (h *EthHandler) create(rw http.ResponseWriter, request *http.Request) {
 // @Description Import an ECDSA Secp256k1 key representing an Ethereum account
 // @Accept  json
 // @Produce  json
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Param storeName path string true "Store Identifier"
 // @Param request body types.ImportEthAccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.EthAccountResponse "Created Ethereum Account"
@@ -154,7 +154,7 @@ func (h *EthHandler) importAccount(rw http.ResponseWriter, request *http.Request
 // @Description Update Ethereum Account metadata
 // @Accept  json
 // @Produce  json
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
 // @Param request body types.UpdateEthAccountRequest true "Update Ethereum Account metadata request"
@@ -192,9 +192,9 @@ func (h *EthHandler) update(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEthAccResponse(ethAcc))
 }
 
-// @Summary Sign a message
-// @Description Sign a message using an existing Ethereum Account
-// @Tags Ethereum Account
+// @Summary Sign a message (EIP-191)
+// @Description Sign a message, following EIP-191, using an existing Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Produce plain
 // @Param storeName path string true "Store Identifier"
@@ -234,9 +234,9 @@ func (h *EthHandler) signMessage(rw http.ResponseWriter, request *http.Request) 
 	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
-// @Summary Sign Typed Data
-// @Description Sign Typed Data, following the EIP-712 Standard, using selected Ethereum Account
-// @Tags Ethereum Account
+// @Summary Sign Typed Data (EIP-712)
+// @Description Sign Typed Data, following EIP-712, using selected Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Produce plain
 // @Param storeName path string true "Store Identifier"
@@ -279,7 +279,7 @@ func (h *EthHandler) signTypedData(rw http.ResponseWriter, request *http.Request
 
 // @Summary Sign Ethereum transaction
 // @Description Sign an Ethereum transaction using the selected Ethereum Account
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Produce plain
 // @Param storeName path string true "Store Identifier"
@@ -321,7 +321,7 @@ func (h *EthHandler) signTransaction(rw http.ResponseWriter, request *http.Reque
 
 // @Summary Sign EEA transaction
 // @Description Sign an EEA transaction using the selected Ethereum Account
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Produce plain
 // @Param storeName path string true "Store Identifier"
@@ -364,7 +364,7 @@ func (h *EthHandler) signEEATransaction(rw http.ResponseWriter, request *http.Re
 
 // @Summary Sign Quorum private transaction
 // @Description Sign a Quorum private transaction using the selected Ethereum Account
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Produce plain
 // @Param storeName path string true "Store Identifier"
@@ -406,12 +406,12 @@ func (h *EthHandler) signPrivateTransaction(rw http.ResponseWriter, request *htt
 
 // @Summary Get Ethereum Account
 // @Description Fetch an Ethereum Account data by its address
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Produce json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Param deleted query bool false "filter by deleted accounts"
+// @Param deleted query bool false "filter by only deleted accounts"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -444,17 +444,17 @@ func (h *EthHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEthAccResponse(ethAcc))
 }
 
-// @Summary List Ethereum Accounts
-// @Description List Ethereum Accounts located in the Store
-// @Tags Ethereum Account
+// @Summary List Ethereum accounts
+// @Description List Ethereum account's addresses allocated in the selected Store
+// @Tags Ethereum
 // @Accept json
 // @Produce json
 // @Param storeName path string true "Store Identifier"
-// @Param deleted query bool false "filter by deleted accounts"
+// @Param deleted query bool false "filter by only deleted accounts"
 // @Param chain_uuid query string false "Chain UUID"
-// @Param limit query int false "pagination size"
-// @Param page query int false "pagination number"
-// @Success 200 {array} []PagePagingResponse "Ethereum Account list"
+// @Param limit query int false "page size"
+// @Param page query int false "page number"
+// @Success 200 {array} PageResponse "Ethereum Account list"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -493,7 +493,7 @@ func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 
 // @Summary Delete Ethereum Account
 // @Description Soft delete an Ethereum Account, can be recovered
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
@@ -524,7 +524,7 @@ func (h *EthHandler) delete(rw http.ResponseWriter, request *http.Request) {
 
 // @Summary Destroy Ethereum Account
 // @Description Hard delete an Ethereum Account, cannot be recovered
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
@@ -555,7 +555,7 @@ func (h *EthHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 
 // @Summary Restore Ethereum Account
 // @Description Recover a soft-deleted Ethereum Account
-// @Tags Ethereum Account
+// @Tags Ethereum
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
@@ -623,8 +623,8 @@ func (h *EthHandler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 	_, _ = rw.Write([]byte(address.Hex()))
 }
 
-// @Summary Verify EIP-191 message signature
-// @Description Verify the signature of a message
+// @Summary Verify message signature (EIP-191)
+// @Description Verify the signature of a message signed using standard format EIP-191
 // @Tags Ethereum Utils
 // @Accept json
 // @Param storeName path string true "Store Identifier"
@@ -661,13 +661,13 @@ func (h *EthHandler) verifyMessage(rw http.ResponseWriter, request *http.Request
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Verify EIP-712 typed data signature
-// @Description Verify the signature of an Ethereum typed data signing
+// @Summary Verify typed data signature (EIP-712)
+// @Description Verify the signature of an Ethereum typed data using format defined at EIP-712
 // @Tags Ethereum Utils
 // @Accept json
 // @Param storeName path string true "Store Identifier"
 // @Param address path string true "Ethereum address"
-// @Param request body types.VerifyTypedDataRequest true "Ethereum signature verify request"
+// @Param request body types.VerifyTypedDataRequest true "Typed data request to verify"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
 // @Failure 500 {object} ErrorResponse "Internal server error"
