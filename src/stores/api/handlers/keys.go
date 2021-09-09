@@ -42,13 +42,13 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodDelete).Path("/{id}/destroy").HandlerFunc(h.destroy)
 }
 
-// @Summary Create key
-// @Description Create a private Key using the specified Curve and Signing algorithm
+// @Summary Create new Key
+// @Description Create a new key pair using the specified Ecliptic Curve and Signing algorithm
 // @Tags Keys
 // @Accept json
 // @Produce json
 // @Param id path string true "Key Identifier"
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param request body types.CreateKeyRequest true "Create key request"
 // @Success 200 {object} types.KeyResponse "Key data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -94,12 +94,12 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Import Key
-// @Description Import a private Key using the specified Curve and Signing algorithm
+// @Description Import a private Key using the specified Ecliptic Curve and Signing algorithm
 // @Tags Keys
 // @Accept json
 // @Produce json
 // @Param id path string true "Key Identifier"
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param request body types.ImportKeyRequest true "Create key request"
 // @Success 200 {object} types.KeyResponse "Key data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -146,11 +146,11 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Sign random payload
-// @Description Sign a random payload using the selected key
+// @Description Sign a random payload using the selected key pair
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
 // @Param request body types.SignBase64PayloadRequest true "Signing request"
 // @Success 200 {string} {string}"signature in base64"
@@ -187,12 +187,13 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Get key by ID
-// @Description Retrieve a key object by identifier
+// @Description Retrieve a key pair by its identifier
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
+// @Param deleted query bool false "filter by only deleted keys"
 // @Success 200 {object} types.KeyResponse "Key data"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -226,11 +227,11 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Update a key
-// @Description Update the tags of a key by ID
+// @Description Update the key tags of a specific key by its id
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
 // @Success 200 {object} types.KeyResponse "Key data"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -268,11 +269,11 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Restore a soft-deleted key
-// @Description Restore a previously soft-deleted key by ID
+// @Description Restore a soft-deleted key by its id
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
 // @Success 204 "Restored successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -301,14 +302,15 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary List Key ids
-// @Description List identifiers of keys store on selected Store
+// @Description List key's identifiers allocated on selected Store
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
-// @Param limit query int false "pagination size"
-// @Param page query int false "pagination number"
-// @Success 200 {array} []PagePagingResponse "List of key ids"
+// @Param storeName path string true "Store identifier"
+// @Param limit query int false "page size"
+// @Param page query int false "page number"
+// @Param deleted query bool false "filter by only deleted keys"
+// @Success 200 {array} PageResponse "List of key ids"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -346,11 +348,11 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Soft-delete Key
-// @Description Delete a Key by ID. The key can be recovered
+// @Description Delete a key by its id. Key can be recovered
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
 // @Success 204 "Deleted successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -378,11 +380,11 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Destroy a Key
-// @Description Permanently delete a Key by ID
+// @Description Permanently delete a key by id
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
 // @Success 204 "Destroyed successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -414,7 +416,7 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store identifier"
 // @Param id path string true "Key identifier"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
