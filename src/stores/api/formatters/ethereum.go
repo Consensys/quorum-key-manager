@@ -2,6 +2,8 @@ package formatters
 
 import (
 	"fmt"
+	"math/big"
+
 	common2 "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
@@ -11,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	signer "github.com/ethereum/go-ethereum/signer/core"
-	"math/big"
 )
 
 const (
