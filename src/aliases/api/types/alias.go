@@ -26,7 +26,7 @@ func FormatAlias(registry RegistryName, key string, value AliasValue) aliasent.A
 }
 
 func FormatEntityAliases(ents []aliasent.Alias) []Alias {
-	var als []Alias
+	als := []Alias{}
 	for _, v := range ents {
 		als = append(als, FormatEntityAlias(v))
 	}
