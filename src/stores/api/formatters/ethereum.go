@@ -1,9 +1,9 @@
 package formatters
 
 import (
-	"math/big"
-
+	"fmt"
 	common2 "github.com/consensys/quorum-key-manager/pkg/common"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	signer "github.com/ethereum/go-ethereum/signer/core"
+	"math/big"
 )
 
 const (
@@ -60,11 +61,47 @@ func FormatSignTypedDataRequest(request *types.SignTypedDataRequest) *signer.Typ
 	return typedData
 }
 
-func FormatTransaction(tx *types.SignETHTransactionRequest) *ethtypes.Transaction {
-	if tx.To == nil {
-		return ethtypes.NewContractCreation(uint64(tx.Nonce), tx.Value.ToInt(), uint64(tx.GasLimit), tx.GasPrice.ToInt(), tx.Data)
+func FormatTransaction(tx *types.SignETHTransactionRequest) (*ethtypes.Transaction, error) {
+	var txData ethtypes.TxData
+
+	switch tx.TransactionType {
+	case types.LegacyTxType:
+		txData = &ethtypes.LegacyTx{
+			Nonce:    uint64(tx.Nonce),
+			GasPrice: tx.GasPrice.ToInt(),
+			Gas:      uint64(tx.GasLimit),
+			To:       tx.To,
+			Value:    tx.Value.ToInt(),
+			Data:     tx.Data,
+		}
+	case types.AccessListTxType:
+		txData = &ethtypes.AccessListTx{
+			ChainID:    tx.ChainID.ToInt(),
+			Nonce:      uint64(tx.Nonce),
+			GasPrice:   tx.GasPrice.ToInt(),
+			Gas:        uint64(tx.GasLimit),
+			To:         tx.To,
+			Value:      tx.Value.ToInt(),
+			Data:       tx.Data,
+			AccessList: tx.AccessList,
+		}
+	case "", types.DynamicFeeTxType:
+		txData = &ethtypes.DynamicFeeTx{
+			ChainID:    tx.ChainID.ToInt(),
+			Nonce:      uint64(tx.Nonce),
+			GasTipCap:  tx.GasTipCap.ToInt(),
+			GasFeeCap:  tx.GasFeeCap.ToInt(),
+			Gas:        uint64(tx.GasLimit),
+			To:         tx.To,
+			Value:      tx.Value.ToInt(),
+			Data:       tx.Data,
+			AccessList: tx.AccessList,
+		}
+	default:
+		return nil, errors.InvalidFormatError(fmt.Sprintf("invalid transaction type, must be %s, %s or %s", types.LegacyTxType, types.AccessListTxType, types.DynamicFeeTxType))
 	}
-	return ethtypes.NewTransaction(uint64(tx.Nonce), *tx.To, tx.Value.ToInt(), uint64(tx.GasLimit), tx.GasPrice.ToInt(), tx.Data)
+
+	return ethtypes.NewTx(txData), nil
 }
 
 func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *quorumtypes.Transaction {
@@ -82,10 +119,16 @@ func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transa
 		PrivacyGroupID: &tx.PrivacyGroupID,
 	}
 
-	if tx.To == nil {
-		return ethtypes.NewContractCreation(uint64(tx.Nonce), big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
+	txData := &ethtypes.LegacyTx{
+		Nonce:    uint64(tx.Nonce),
+		GasPrice: big.NewInt(0),
+		Gas:      uint64(0),
+		To:       tx.To,
+		Value:    big.NewInt(0),
+		Data:     tx.Data,
 	}
-	return ethtypes.NewTransaction(uint64(tx.Nonce), *tx.To, big.NewInt(0), uint64(0), big.NewInt(0), tx.Data), privateArgs
+
+	return ethtypes.NewTx(txData), privateArgs
 }
 
 func FormatEthAccResponse(ethAcc *entities.ETHAccount) *types.EthAccountResponse {

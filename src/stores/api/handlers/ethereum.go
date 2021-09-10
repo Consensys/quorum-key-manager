@@ -310,7 +310,13 @@ func (h *EthHandler) signTransaction(rw http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	signature, err := ethStore.SignTransaction(ctx, getAddress(request), signTransactionReq.ChainID.ToInt(), formatters.FormatTransaction(signTransactionReq))
+	tx, err := formatters.FormatTransaction(signTransactionReq)
+	if err != nil {
+		http2.WriteHTTPErrorResponse(rw, err)
+		return
+	}
+
+	signature, err := ethStore.SignTransaction(ctx, getAddress(request), signTransactionReq.ChainID.ToInt(), tx)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

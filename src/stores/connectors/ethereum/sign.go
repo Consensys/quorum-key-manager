@@ -71,7 +71,7 @@ func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typed
 func (c Connector) SignTransaction(ctx context.Context, addr common.Address, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	signer := types.NewEIP155Signer(chainID)
+	signer := types.NewLondonSigner(chainID)
 	txData := signer.Hash(tx).Bytes()
 
 	signature, err := c.sign(ctx, addr, txData)
