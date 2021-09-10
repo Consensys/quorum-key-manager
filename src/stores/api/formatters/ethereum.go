@@ -86,6 +86,14 @@ func FormatTransaction(tx *types.SignETHTransactionRequest) (*ethtypes.Transacti
 			AccessList: tx.AccessList,
 		}
 	case "", types.DynamicFeeTxType:
+		if tx.GasFeeCap == nil {
+			return nil, errors.InvalidFormatError(fmt.Sprintf("maxFeePerGas cannot be empty for a %s transaction", types.DynamicFeeTxType))
+		}
+
+		if tx.GasTipCap == nil {
+			return nil, errors.InvalidFormatError(fmt.Sprintf("maxPriorityFeePerGas cannot be empty for a %s transaction", types.DynamicFeeTxType))
+		}
+
 		txData = &ethtypes.DynamicFeeTx{
 			ChainID:    tx.ChainID.ToInt(),
 			Nonce:      uint64(tx.Nonce),
