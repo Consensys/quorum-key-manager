@@ -16,7 +16,7 @@ const (
 // CreateAlias creates an alias in the registry.
 func (c *HTTPClient) CreateAlias(ctx context.Context, registry types.RegistryName, aliasKey types.AliasKey, req types.AliasRequest) (*types.AliasResponse, error) {
 	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
-	resp, err := postRequest(ctx, c.client, url, req.Value)
+	resp, err := postRequest(ctx, c.client, url, req)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *HTTPClient) GetAlias(ctx context.Context, registry types.RegistryName, 
 // UpdateAlias updates an alias in the registry.
 func (c *HTTPClient) UpdateAlias(ctx context.Context, registry types.RegistryName, aliasKey types.AliasKey, req types.AliasRequest) (*types.AliasResponse, error) {
 	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
-	resp, err := putRequest(ctx, c.client, url, req.Value)
+	resp, err := putRequest(ctx, c.client, url, req)
 	if err != nil {
 		return nil, err
 	}
