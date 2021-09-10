@@ -110,6 +110,26 @@ func (s *aliasTestSuite) TestFull() {
 	})
 }
 
+func (s *aliasTestSuite) TestCreateAlias() {
+	fakeAlias := s.fakeAlias()
+	s.Run("bad registry format", func() {
+		fakeAlias := fakeAlias
+		fakeAlias.reg = "bad@registry"
+		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
+		s.Require().Error(err)
+
+		s.checkErr(err, http.StatusBadRequest)
+	})
+	s.Run("bad key format", func() {
+		fakeAlias := fakeAlias
+		fakeAlias.key = "bad@key"
+		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
+		s.Require().Error(err)
+
+		s.checkErr(err, http.StatusBadRequest)
+	})
+}
+
 func (s *aliasTestSuite) checkErr(err error, status int) {
 	httpError, ok := err.(*client.ResponseError)
 	s.Require().True(ok)
