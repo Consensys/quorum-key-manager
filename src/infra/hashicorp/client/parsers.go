@@ -15,14 +15,14 @@ func parseErrorResponse(err error) error {
 
 	switch httpError.StatusCode {
 	case http.StatusNotFound:
-		return errors.NotFoundError(httpError.Errors[0])
+		return errors.NotFoundError(httpError.Error())
 	case http.StatusBadRequest:
-		return errors.InvalidFormatError(httpError.Errors[0])
+		return errors.InvalidFormatError(httpError.Error())
 	case http.StatusUnprocessableEntity:
-		return errors.InvalidParameterError(httpError.Errors[0])
+		return errors.InvalidParameterError(httpError.Error())
 	case http.StatusConflict:
-		return errors.AlreadyExistsError(httpError.Errors[0])
+		return errors.AlreadyExistsError(httpError.Error())
 	default:
-		return errors.HashicorpVaultError(httpError.Errors[0])
+		return errors.HashicorpVaultError(httpError.Error())
 	}
 }
