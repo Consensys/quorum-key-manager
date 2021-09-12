@@ -102,14 +102,14 @@ func (c Connector) SignEEA(ctx context.Context, addr common.Address, chainID *bi
 
 	privateFromEncoded, err := base64.StdEncoding.DecodeString(*args.PrivateFrom)
 	if err != nil {
-		errMessage := "invalid privateFrom param"
+		errMessage := "invalid 'privateFrom'"
 		c.logger.WithError(err).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
 	privateRecipientEncoded, err := getEncodedPrivateRecipient(args.PrivacyGroupID, args.PrivateFor)
 	if err != nil {
-		errMessage := "invalid privacyGroupID or privateFor"
+		errMessage := "invalid 'privacyGroupID' or 'privateFor'"
 		c.logger.WithError(err).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}

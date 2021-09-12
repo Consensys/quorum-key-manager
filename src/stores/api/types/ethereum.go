@@ -69,6 +69,9 @@ type SignQuorumPrivateTransactionRequest struct {
 type SignEEATransactionRequest struct {
 	Nonce          hexutil.Uint64  `json:"nonce" example:"0x1" swaggertype:"string"`
 	To             *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
+	Value          hexutil.Big     `json:"value,omitempty" example:"0x1" swaggertype:"string"`
+	GasPrice       hexutil.Big     `json:"gasPrice,omitempty" example:"0x0" swaggertype:"string"`
+	GasLimit       hexutil.Uint64  `json:"gasLimit,omitempty" example:"0x5208" swaggertype:"string"`
 	Data           hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..." swaggertype:"string"`
 	ChainID        hexutil.Big     `json:"chainID" validate:"required" example:"0x1 (mainnet)" swaggertype:"string"`
 	PrivateFrom    string          `json:"privateFrom" validate:"required,base64,required_with=PrivateFor PrivacyGroupID" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
