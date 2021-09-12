@@ -27,6 +27,7 @@ RUN upx /bin/main
 FROM gcr.io/distroless/static:$VERSION
 WORKDIR /
 COPY --from=builder /bin/main .
+COPY ./deps/migrations /migrations
 COPY LICENSE .
 USER 65532:65532
 
