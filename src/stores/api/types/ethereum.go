@@ -3,18 +3,27 @@ package types
 import (
 	"time"
 
+	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// Transaction types
+const (
+	LegacyTxType     = "legacy"
+	AccessListTxType = "access_list"
+	DynamicFeeTxType = "dynamic_fee"
+)
+
 type CreateEthAccountRequest struct {
-	KeyID string            `json:"keyId" example:"my-key-account"`
+	KeyID string            `json:"keyId,omitempty" example:"my-key-account"`
 	Tags  map[string]string `json:"tags,omitempty"`
 }
 
 type ImportEthAccountRequest struct {
-	KeyID      string            `json:"keyId" example:"my-imported-key-account"`
+	KeyID      string            `json:"keyId,omitempty" example:"my-imported-key-account"`
 	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"0x56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E" swaggertype:"string"`
 	Tags       map[string]string `json:"tags,omitempty"`
 }
@@ -48,13 +57,17 @@ type Type struct {
 }
 
 type SignETHTransactionRequest struct {
-	Nonce    hexutil.Uint64  `json:"nonce" example:"0x1" swaggertype:"string"`
-	To       *common.Address `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
-	Value    hexutil.Big     `json:"value,omitempty" example:"0xfeaeae" swaggertype:"string"`
-	GasPrice hexutil.Big     `json:"gasPrice" validate:"required" example:"0x0" swaggertype:"string"`
-	GasLimit hexutil.Uint64  `json:"gasLimit" validate:"required" example:"0x5208" swaggertype:"string"`
-	Data     hexutil.Bytes   `json:"data,omitempty" example:"0xfeaeee..." swaggertype:"string"`
-	ChainID  hexutil.Big     `json:"chainID" validate:"required" example:"0x1 (mainnet)" swaggertype:"string"`
+	TransactionType string           `json:"transactionType,omitempty" example:"0x0" swaggertype:"string"`
+	Nonce           hexutil.Uint64   `json:"nonce" example:"0x1" swaggertype:"string"`
+	To              *common.Address  `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
+	Value           hexutil.Big      `json:"value,omitempty" example:"0xfeaeae" swaggertype:"string"`
+	GasPrice        hexutil.Big      `json:"gasPrice,omitempty" example:"0x0" swaggertype:"string"`
+	GasLimit        hexutil.Uint64   `json:"gasLimit" validate:"required" example:"0x5208" swaggertype:"string"`
+	Data            hexutil.Bytes    `json:"data,omitempty" example:"0xfeaeee..." swaggertype:"string"`
+	ChainID         hexutil.Big      `json:"chainID" validate:"required" example:"0x1 (mainnet)" swaggertype:"string"`
+	GasFeeCap       *hexutil.Big     `json:"maxFeePerGas,omitempty" example:"0x5208" swaggertype:"string"`
+	GasTipCap       *hexutil.Big     `json:"maxPriorityFeePerGas,omitempty" example:"0x5208" swaggertype:"string"`
+	AccessList      types.AccessList `json:"accessList,omitempty"`
 }
 
 type SignQuorumPrivateTransactionRequest struct {

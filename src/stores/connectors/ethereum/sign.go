@@ -71,7 +71,7 @@ func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typed
 func (c Connector) SignTransaction(ctx context.Context, addr common.Address, chainID *big.Int, tx *types.Transaction) ([]byte, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	signer := types.NewEIP155Signer(chainID)
+	signer := types.NewLondonSigner(chainID)
 	txData := signer.Hash(tx).Bytes()
 
 	signature, err := c.sign(ctx, addr, txData)
@@ -86,7 +86,7 @@ func (c Connector) SignTransaction(ctx context.Context, addr common.Address, cha
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
-	signedRaw, err := rlp.EncodeToBytes(signedTx)
+	signedRaw, err := signedTx.MarshalBinary()
 	if err != nil {
 		errMessage := "failed to RLP encode signed transaction"
 		c.logger.WithError(err).Error(errMessage)
@@ -254,14 +254,9 @@ func (c Connector) signHomestead(ctx context.Context, addr common.Address, data 
 		return nil, err
 	}
 
-	r, s, v, err := types.HomesteadSigner{}.SignatureValues(nil, signature)
-	if err != nil {
-		errMessage := "failed to recover homestead signature values"
-		c.logger.WithError(err).Error(errMessage)
-		return nil, errors.CryptoOperationError(errMessage)
-	}
+	signature[crypto.RecoveryIDOffset] += 27
 
-	return append(r.Bytes(), append(s.Bytes(), v.Bytes()...)...), nil
+	return signature, nil
 }
 
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96

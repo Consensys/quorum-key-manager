@@ -50,7 +50,6 @@ type EthClient interface {
 	DestroyEthAccount(ctx context.Context, storeName, address string) error
 	RestoreEthAccount(ctx context.Context, storeName, address string) error
 	ECRecover(ctx context.Context, storeName string, request *types.ECRecoverRequest) (string, error)
-	Verify(ctx context.Context, storeName string, request *types.VerifyRequest) error
 	VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error
 	VerifyTypedData(ctx context.Context, storeName string, request *types.VerifyTypedDataRequest) error
 }
