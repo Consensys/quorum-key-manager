@@ -73,10 +73,14 @@ func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *qu
 
 func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transaction, *ethereum.PrivateArgs) {
 	privateArgs := &ethereum.PrivateArgs{
-		PrivateFrom:    &tx.PrivateFrom,
-		PrivateFor:     &tx.PrivateFor,
-		PrivateType:    common2.ToPtr(ethereum.PrivateTypeRestricted).(*ethereum.PrivateType),
-		PrivacyGroupID: &tx.PrivacyGroupID,
+		PrivateFrom: &tx.PrivateFrom,
+		PrivateType: common2.ToPtr(ethereum.PrivateTypeRestricted).(*ethereum.PrivateType),
+	}
+
+	if tx.PrivacyGroupID != "" {
+		privateArgs.PrivacyGroupID = &tx.PrivacyGroupID
+	} else if len(tx.PrivateFor) > 0 {
+		privateArgs.PrivateFor = &tx.PrivateFor
 	}
 
 	if tx.To == nil {

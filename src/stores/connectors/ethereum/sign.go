@@ -134,7 +134,7 @@ func (c Connector) SignEEA(ctx context.Context, addr common.Address, chainID *bi
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	signature, err := c.sign(ctx, addr, hash[:])
+	signature, err := c.sign(ctx, addr, hash.Bytes())
 	if err != nil {
 		return nil, err
 	}
