@@ -98,59 +98,39 @@ func FakeSignTypedDataRequest() *types.SignTypedDataRequest {
 
 func FakeSignETHTransactionRequest(txType string) *types.SignETHTransactionRequest {
 	toAddress := common.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
+	accessList := []ethtypes.AccessTuple{
+		{
+			Address:     toAddress,
+			StorageKeys: []common.Hash{common.HexToHash("0xfeee")},
+		},
+	}
+
+	req := &types.SignETHTransactionRequest{
+		TransactionType: txType,
+		Nonce:           0,
+		To:              &toAddress,
+		Value:           hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
+		GasLimit:        21000,
+		ChainID:         hexutil.Big(*hexutil.MustDecodeBig("0x1")),
+		Data:            hexutil.MustDecode("0xfeee"),
+	}
 
 	switch txType {
 	case types.LegacyTxType:
-		return &types.SignETHTransactionRequest{
-			TransactionType: txType,
-			Nonce:           0,
-			To:              &toAddress,
-			Value:           hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
-			GasPrice:        hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
-			GasLimit:        21000,
-			Data:            hexutil.MustDecode("0xfeee"),
-			ChainID:         hexutil.Big(*hexutil.MustDecodeBig("0x1")),
-		}
+		req.GasPrice = hexutil.Big(*hexutil.MustDecodeBig("0xfeee"))
 	case types.AccessListTxType:
-		return &types.SignETHTransactionRequest{
-			TransactionType: txType,
-			Nonce:           0,
-			To:              &toAddress,
-			Value:           hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
-			GasPrice:        hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
-			GasLimit:        21000,
-			ChainID:         hexutil.Big(*hexutil.MustDecodeBig("0x1")),
-			Data:            hexutil.MustDecode("0xfeee"),
-			AccessList: []ethtypes.AccessTuple{
-				{
-					Address:     toAddress,
-					StorageKeys: []common.Hash{common.HexToHash("0xfeee")},
-				},
-			},
-		}
+		req.AccessList = accessList
 	case "", types.DynamicFeeTxType:
 		baseFee := hexutil.Big(*hexutil.MustDecodeBig("0xfeee"))
 		minerTip := hexutil.Big(*hexutil.MustDecodeBig("0xfeee"))
-		return &types.SignETHTransactionRequest{
-			TransactionType: txType,
-			Nonce:           0,
-			To:              &toAddress,
-			Value:           hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
-			GasFeeCap:       &baseFee,
-			GasTipCap:       &minerTip,
-			GasLimit:        21000,
-			ChainID:         hexutil.Big(*hexutil.MustDecodeBig("0x1")),
-			Data:            hexutil.MustDecode("0xfeee"),
-			AccessList: []ethtypes.AccessTuple{
-				{
-					Address:     toAddress,
-					StorageKeys: []common.Hash{common.HexToHash("0xfeee")},
-				},
-			},
-		}
+		req.GasFeeCap = &baseFee
+		req.GasTipCap = &minerTip
+		req.AccessList = accessList
+	default:
+		return nil
 	}
 
-	return nil
+	return req
 }
 
 func FakeSignQuorumPrivateTransactionRequest() *types.SignQuorumPrivateTransactionRequest {
@@ -194,7 +174,7 @@ func FakeVerifyTypedDataPayloadRequest() *types.VerifyTypedDataRequest {
 	}
 }
 
-func FakeVerifyEthSignatureRequest() *types.VerifyRequest {
+func FakeVerifyRequest() *types.VerifyRequest {
 	return &types.VerifyRequest{
 		Data:      hexutil.MustDecode("0xfeee"),
 		Signature: hexutil.MustDecode("0x3399aeb23d6564b3a0b220447e9f1bb2057ffb82cfb766147620aa6bc84938e26941e7583d6460fea405d99da897e88cab07a7fd0991c6c2163645c45d25e4b201"),
