@@ -77,10 +77,10 @@ Environment variable: %q`, httpHostEnv)
 }
 
 const (
-	enableHTTPSFlag     = "enable-https"
-	enableHTTPSViperKey = "enable.https"
+	enableHTTPSFlag     = "https-enable"
+	enableHTTPSViperKey = "https-enable"
 	enableHTTPSDefault  = false
-	enableHTTPSEnv      = "HTTP_SERVER_SSL"
+	enableHTTPSEnv      = "HTTPS_ENABLE"
 )
 
 // Hostname register a flag for HTTP server address
@@ -92,10 +92,10 @@ Environment variable: %q`, enableHTTPSEnv)
 }
 
 const (
-	httpServerKeyFlag     = "tls-server-key"
-	httpServerKeyViperKey = "tls.server.key"
+	httpServerKeyFlag     = "https-server-key"
+	httpServerKeyViperKey = "https.server.key"
 	httpServerKeyDefault  = ""
-	httpServerKeyEnv      = "HTTP_SERVER_KEY"
+	httpServerKeyEnv      = "HTTPS_SERVER_KEY"
 )
 
 func httpServerKey(f *pflag.FlagSet) {
@@ -106,10 +106,10 @@ Environment variable: %q`, httpServerKeyEnv)
 }
 
 const (
-	httpServerCertFlag     = "tls-server-cert"
-	httpServerCertViperKey = "tls.server.cert"
+	httpServerCertFlag     = "https-server-cert"
+	httpServerCertViperKey = "https.server.cert"
 	httpServerCertDefault  = ""
-	httpServerCertEnv      = "HTTP_SERVER_CERT"
+	httpServerCertEnv      = "HTTPS_SERVER_CERT"
 )
 
 func httpServerCert(f *pflag.FlagSet) {

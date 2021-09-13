@@ -13,10 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-const (
-	privateTxTypeRestricted = "restricted"
-)
-
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
 	i.logger.Debug("sending EEA transaction")
 
@@ -84,7 +80,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	if msg.PrivateType == nil {
-		msg.PrivateType = common.ToPtr(privateTxTypeRestricted).(*string)
+		msg.PrivateType = common.ToPtr(ethereum.PrivateTypeRestricted).(*ethereum.PrivateType)
 	}
 
 	// Get ChainID from Node
