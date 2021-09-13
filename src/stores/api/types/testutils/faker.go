@@ -132,14 +132,15 @@ func FakeSignETHTransactionRequest(txType string) *types.SignETHTransactionReque
 		baseFee := hexutil.Big(*hexutil.MustDecodeBig("0xfeee"))
 		minerTip := hexutil.Big(*hexutil.MustDecodeBig("0xfeee"))
 		return &types.SignETHTransactionRequest{
-			Nonce:     0,
-			To:        &toAddress,
-			Value:     hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
-			GasFeeCap: &baseFee,
-			GasTipCap: &minerTip,
-			GasLimit:  21000,
-			ChainID:   hexutil.Big(*hexutil.MustDecodeBig("0x1")),
-			Data:      hexutil.MustDecode("0xfeee"),
+			TransactionType: txType,
+			Nonce:           0,
+			To:              &toAddress,
+			Value:           hexutil.Big(*hexutil.MustDecodeBig("0xfeee")),
+			GasFeeCap:       &baseFee,
+			GasTipCap:       &minerTip,
+			GasLimit:        21000,
+			ChainID:         hexutil.Big(*hexutil.MustDecodeBig("0x1")),
+			Data:            hexutil.MustDecode("0xfeee"),
 			AccessList: []ethtypes.AccessTuple{
 				{
 					Address:     toAddress,
