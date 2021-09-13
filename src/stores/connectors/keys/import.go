@@ -14,6 +14,12 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, alg *e
 	logger := c.logger.With("id", id).With("algorithm", alg.Type).With("curve", alg.EllipticCurve)
 	logger.Debug("importing key")
 
+	if len(privKey) == 0 {
+		errMessage := "private key must be provided"
+		logger.Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey})
 	if err != nil {
 		return nil, err

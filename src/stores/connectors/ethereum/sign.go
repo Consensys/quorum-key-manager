@@ -86,7 +86,7 @@ func (c Connector) SignTransaction(ctx context.Context, addr common.Address, cha
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
-	signedRaw, err := rlp.EncodeToBytes(signedTx)
+	signedRaw, err := signedTx.MarshalBinary()
 	if err != nil {
 		errMessage := "failed to RLP encode signed transaction"
 		c.logger.WithError(err).Error(errMessage)

@@ -18,12 +18,12 @@ const (
 )
 
 type CreateEthAccountRequest struct {
-	KeyID string            `json:"keyId" example:"my-key-account"`
+	KeyID string            `json:"keyId" validate:"required" example:"my-key-account"`
 	Tags  map[string]string `json:"tags,omitempty"`
 }
 
 type ImportEthAccountRequest struct {
-	KeyID      string            `json:"keyId" example:"my-imported-key-account"`
+	KeyID      string            `json:"keyId" validate:"required" example:"my-imported-key-account"`
 	PrivateKey hexutil.Bytes     `json:"privateKey" validate:"required" example:"0x56202652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2E" swaggertype:"string"`
 	Tags       map[string]string `json:"tags,omitempty"`
 }
