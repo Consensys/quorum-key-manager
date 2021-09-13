@@ -53,9 +53,9 @@ services:
       <<: *qkm-common
       AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/client.crt}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
-      HTTP_SERVER_SSL: ${HTTP_SERVER_SSL-true}
-      HTTP_SERVER_KEY: ${HTTP_SERVER_KEY-/certificates/https.key}
-      HTTP_SERVER_CERT: ${HTTP_SERVER_CERT-/certificates/https.crt}
+      HTTPS_ENABLE: ${HTTPS_ENABLE-true}
+      HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-/certificates/https.key}
+      HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-/certificates/https.crt}
       AUTH_TLS_CA: ${AUTH_TLS_CA-/ca/ca.crt}
       AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
     ports:

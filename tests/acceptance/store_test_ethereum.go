@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
@@ -364,11 +363,10 @@ func (s *ethTestSuite) TestSignEEA() {
 	})
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
-	privateType := formatters.PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom: &privateFrom,
 		PrivateFor:  &privateFor,
-		PrivateType: &privateType,
+		PrivateType: common.ToPtr(ethereum.PrivateTypeRestricted).(*ethereum.PrivateType),
 	}
 
 	account, err := s.store.Create(ctx, id, &entities.Attributes{

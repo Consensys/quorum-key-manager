@@ -11,6 +11,7 @@ import (
 )
 
 type PrivacyFlag uint64
+type PrivateType string
 
 const (
 	StandardPrivatePrivacyFlag PrivacyFlag = iota                              // 0
@@ -18,12 +19,17 @@ const (
 	StateValidationPrivacyFlag             = iota | PartyProtectionPrivacyFlag // 3 which includes PrivacyFlagPartyProtection
 )
 
+const (
+	PrivateTypeRestricted   PrivateType = "restricted"
+	PrivateTypeUnrestricted PrivateType = "unrestricted"
+)
+
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
 // PrivateArgs arguments for private transactions
 type PrivateArgs struct {
 	PrivateFrom    *string      `json:"privateFrom,omitempty"`
 	PrivateFor     *[]string    `json:"privateFor,omitempty"`
-	PrivateType    *string      `json:"restriction,omitempty"`
+	PrivateType    *PrivateType `json:"restriction,omitempty"`
 	PrivacyFlag    *PrivacyFlag `json:"privacyFlag,omitempty"`
 	PrivacyGroupID *string      `json:"privacyGroupId,omitempty"`
 }

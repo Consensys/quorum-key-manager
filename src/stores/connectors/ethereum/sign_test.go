@@ -6,13 +6,12 @@ import (
 	"math/big"
 	"testing"
 
-	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
-
+	common2 "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/mock"
@@ -284,11 +283,10 @@ func TestSignEEA(t *testing.T) {
 	)
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
-	privateType := formatters.PrivateTxTypeRestricted
 	privateArgs := &ethereum.PrivateArgs{
 		PrivateFrom: &privateFrom,
 		PrivateFor:  &privateFor,
-		PrivateType: &privateType,
+		PrivateType: common2.ToPtr(ethereum.PrivateTypeRestricted).(*ethereum.PrivateType),
 	}
 	ecdsaSignature := hexutil.MustDecode("0x6854034c21ebb5a6d4aa9a9c1462862b1e4af355383413a0dcfbba309f56ed0220c0ebc19f159ce83c24dde6f1b2d424025e45bc8b00be3e2fd4367949d4f0b3")
 

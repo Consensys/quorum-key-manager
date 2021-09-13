@@ -19,7 +19,7 @@ func parseResponse(response *http.Response, resp interface{}) error {
 	}
 	if response.StatusCode == http.StatusNoContent {
 		return nil
-	} 
+	}
 
 	// Read body
 	respMsg, err := ioutil.ReadAll(response.Body)

@@ -2,7 +2,6 @@ package formatters
 
 import (
 	"fmt"
-	"math/big"
 
 	common2 "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -16,8 +15,7 @@ import (
 )
 
 const (
-	PrivateTxTypeRestricted = "restricted"
-	EIP712DomainLabel       = "EIP712Domain"
+	EIP712DomainLabel = "EIP712Domain"
 )
 
 func FormatSignTypedDataRequest(request *types.SignTypedDataRequest) *signer.TypedData {
@@ -122,18 +120,22 @@ func FormatPrivateTransaction(tx *types.SignQuorumPrivateTransactionRequest) *qu
 
 func FormatEEATransaction(tx *types.SignEEATransactionRequest) (*ethtypes.Transaction, *ethereum.PrivateArgs) {
 	privateArgs := &ethereum.PrivateArgs{
-		PrivateFrom:    &tx.PrivateFrom,
-		PrivateFor:     &tx.PrivateFor,
-		PrivateType:    common2.ToPtr(PrivateTxTypeRestricted).(*string),
-		PrivacyGroupID: &tx.PrivacyGroupID,
+		PrivateFrom: &tx.PrivateFrom,
+		PrivateType: common2.ToPtr(ethereum.PrivateTypeRestricted).(*ethereum.PrivateType),
+	}
+
+	if tx.PrivacyGroupID != "" {
+		privateArgs.PrivacyGroupID = &tx.PrivacyGroupID
+	} else if len(tx.PrivateFor) > 0 {
+		privateArgs.PrivateFor = &tx.PrivateFor
 	}
 
 	txData := &ethtypes.LegacyTx{
 		Nonce:    uint64(tx.Nonce),
-		GasPrice: big.NewInt(0),
-		Gas:      uint64(0),
+		GasPrice: tx.GasPrice.ToInt(),
+		Gas:      uint64(tx.GasLimit),
 		To:       tx.To,
-		Value:    big.NewInt(0),
+		Value:    tx.Value.ToInt(),
 		Data:     tx.Data,
 	}
 
