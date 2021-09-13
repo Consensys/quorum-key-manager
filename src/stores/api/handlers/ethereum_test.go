@@ -321,8 +321,8 @@ func (s *ethHandlerTestSuite) TestSignMessage() {
 }
 
 func (s *ethHandlerTestSuite) TestSignTransaction() {
-	s.Run("should execute request successfully", func() {
-		signTransactionRequest := testutils.FakeSignETHTransactionRequest()
+	s.Run("should execute request successfully with default type DYNAMIC_FEE", func() {
+		signTransactionRequest := testutils.FakeSignETHTransactionRequest("")
 		requestBytes, _ := json.Marshal(signTransactionRequest)
 
 		rw := httptest.NewRecorder()
@@ -337,9 +337,56 @@ func (s *ethHandlerTestSuite) TestSignTransaction() {
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 
+	s.Run("should execute request successfully for DYNAMIC_FEE", func() {
+		signTransactionRequest := testutils.FakeSignETHTransactionRequest(apiTypes.DynamicFeeTxType)
+		requestBytes, _ := json.Marshal(signTransactionRequest)
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", ethStoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+
+		signedRaw := []byte("signedRaw")
+		s.ethStore.EXPECT().SignTransaction(gomock.Any(), ethcommon.HexToAddress(accAddress), signTransactionRequest.ChainID.ToInt(), gomock.Any()).Return(signedRaw, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		assert.Equal(s.T(), hexutil.Encode(signedRaw), rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request successfully for DYNAMIC_FEE", func() {
+		signTransactionRequest := testutils.FakeSignETHTransactionRequest(apiTypes.AccessListTxType)
+		requestBytes, _ := json.Marshal(signTransactionRequest)
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", ethStoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+
+		signedRaw := []byte("signedRaw")
+		s.ethStore.EXPECT().SignTransaction(gomock.Any(), ethcommon.HexToAddress(accAddress), signTransactionRequest.ChainID.ToInt(), gomock.Any()).Return(signedRaw, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		assert.Equal(s.T(), hexutil.Encode(signedRaw), rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
+
+	s.Run("should execute request successfully for LEGACY", func() {
+		signTransactionRequest := testutils.FakeSignETHTransactionRequest(apiTypes.LegacyTxType)
+		requestBytes, _ := json.Marshal(signTransactionRequest)
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", ethStoreName, accAddress), bytes.NewReader(requestBytes)).WithContext(s.ctx)
+
+		signedRaw := []byte("signedRaw")
+		s.ethStore.EXPECT().SignTransaction(gomock.Any(), ethcommon.HexToAddress(accAddress), signTransactionRequest.ChainID.ToInt(), gomock.Any()).Return(signedRaw, nil)
+
+		s.router.ServeHTTP(rw, httpRequest)
+
+		assert.Equal(s.T(), hexutil.Encode(signedRaw), rw.Body.String())
+		assert.Equal(s.T(), http.StatusOK, rw.Code)
+	})
 	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
 	s.Run("should fail with correct error code if use case fails", func() {
-		signTransactionRequest := testutils.FakeSignETHTransactionRequest()
+		signTransactionRequest := testutils.FakeSignETHTransactionRequest("")
 		requestBytes, _ := json.Marshal(signTransactionRequest)
 
 		rw := httptest.NewRecorder()
