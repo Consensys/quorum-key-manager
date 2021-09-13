@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
@@ -32,8 +33,14 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
+	var aliasManager aliasent.AliasBackend
+	err = a.Service(aliasManager)
+	if err != nil {
+		return err
+	}
+
 	// Create and register nodes service
-	nodes := nodesmanager.New(*storeManager, *manifestManager, *authManager, logger)
+	nodes := nodesmanager.New(*storeManager, *manifestManager, *authManager, aliasManager, logger)
 	err = a.RegisterService(nodes)
 	if err != nil {
 		return err

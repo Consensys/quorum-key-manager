@@ -13,6 +13,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
@@ -29,6 +30,7 @@ type BaseManager struct {
 	stores      stores.Manager
 	manifests   manifestsmanager.Manager
 	authManager auth.Manager
+	aliases     aliasent.AliasBackend
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
@@ -49,7 +51,7 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, aliasManager aliasent.AliasBackend, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:      smng,
 		manifests:   manifests,
@@ -57,6 +59,7 @@ func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager au
 		mux:         sync.RWMutex{},
 		nodes:       make(map[string]*nodeBundle),
 		authManager: authManager,
+		aliases:     aliasManager,
 		logger:      logger,
 	}
 }

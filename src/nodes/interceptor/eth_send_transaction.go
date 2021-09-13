@@ -3,12 +3,13 @@ package interceptor
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
+	"github.com/consensys/quorum-key-manager/src/aliases/placeholder"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*ethcommon.Hash, error) {
@@ -62,6 +63,14 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 		var privateFrom string
 		if msg.PrivateFrom != nil {
 			privateFrom = *msg.PrivateFrom
+		}
+
+		// extract aliases from PrivateFor
+		var err error
+		*msg.PrivateFor, err = placeholder.ReplaceAliases(ctx, i.aliases, *msg.PrivateFor)
+		if err != nil {
+			i.logger.WithError(err).Error("failed to replace aliases in privateFor")
+			return nil, errors.BlockchainNodeError(err.Error())
 		}
 
 		// Store payload on Tessera
