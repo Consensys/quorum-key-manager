@@ -12,9 +12,9 @@ import (
 
 // Transaction types
 const (
-	LegacyTxType     = "LEGACY"
-	AccessListTxType = "ACCESS_LIST"
-	DynamicFeeTxType = "DYNAMIC_FEE"
+	LegacyTxType     = "legacy"
+	AccessListTxType = "access_list"
+	DynamicFeeTxType = "dynamic_fee"
 )
 
 type CreateEthAccountRequest struct {
