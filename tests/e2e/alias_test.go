@@ -67,42 +67,42 @@ func (s *aliasTestSuite) fakeAlias() testAlias {
 
 func (s *aliasTestSuite) TestFull() {
 	fakeAlias := s.fakeAlias()
-	s.Run("create", func() {
+	s.Run("should create a new alias successfully", func() {
 		a, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
 		s.Require().NoError(err)
 
 		s.Equal(fakeAlias.val, a.Value)
 	})
-	s.Run("1st get", func() {
+	s.Run("should get the new alias successfully", func() {
 		a, err := s.client.GetAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
 		s.Require().NoError(err)
 
 		s.Equal(fakeAlias.val, a.Value)
 	})
-	s.Run("update", func() {
+	s.Run("should update the new alias with a new value successfully", func() {
 		a, err := s.client.UpdateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.newVal})
 		s.Require().NoError(err)
 
 		s.Equal(fakeAlias.newVal, a.Value)
 	})
-	s.Run("2nd get", func() {
+	s.Run("should get the update alias successfully", func() {
 		a, err := s.client.GetAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
 		s.Require().NoError(err)
 
 		s.Equal(fakeAlias.newVal, a.Value)
 	})
-	s.Run("list", func() {
+	s.Run("should list the updated alias successfully", func() {
 		as, err := s.client.ListAliases(s.ctx, fakeAlias.reg)
 		s.Require().NoError(err)
 
 		s.Require().Len(as, 1)
 		s.Equal(fakeAlias.newVal, as[0].Value)
 	})
-	s.Run("delete", func() {
+	s.Run("should delete the updated alias successfully", func() {
 		err := s.client.DeleteAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
 		s.Require().NoError(err)
 	})
-	s.Run("not found get", func() {
+	s.Run("should fail with not found error if alias is deleted", func() {
 		_, err := s.client.GetAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
 		s.Require().Error(err)
 
@@ -112,7 +112,7 @@ func (s *aliasTestSuite) TestFull() {
 
 func (s *aliasTestSuite) TestCreateAlias() {
 	fakeAlias := s.fakeAlias()
-	s.Run("bad registry format", func() {
+	s.Run("should fail with bad request if registry has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.reg = "bad@registry"
 		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
@@ -120,7 +120,7 @@ func (s *aliasTestSuite) TestCreateAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("bad key format", func() {
+	s.Run("should fail with bad request if key has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "bad@key"
 		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
@@ -132,7 +132,7 @@ func (s *aliasTestSuite) TestCreateAlias() {
 
 func (s *aliasTestSuite) TestUpdateAlias() {
 	fakeAlias := s.fakeAlias()
-	s.Run("bad registry format", func() {
+	s.Run("should fail with bad request if registry has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.reg = "bad@registry"
 		_, err := s.client.UpdateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.newVal})
@@ -140,7 +140,7 @@ func (s *aliasTestSuite) TestUpdateAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("bad key format", func() {
+	s.Run("should fail with bad request if key has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "bad@key"
 		_, err := s.client.UpdateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.newVal})
@@ -148,7 +148,7 @@ func (s *aliasTestSuite) TestUpdateAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("not found", func() {
+	s.Run("should fail with not found if key does not exist", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "notfound-key"
 		_, err := s.client.UpdateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.newVal})
@@ -160,7 +160,7 @@ func (s *aliasTestSuite) TestUpdateAlias() {
 
 func (s *aliasTestSuite) TestGetAlias() {
 	fakeAlias := s.fakeAlias()
-	s.Run("bad registry format", func() {
+	s.Run("should fail with bad request if registry has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.reg = "bad@registry"
 		_, err := s.client.GetAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
@@ -168,7 +168,7 @@ func (s *aliasTestSuite) TestGetAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("bad key format", func() {
+	s.Run("should fail with bad request if key has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "bad@key"
 		_, err := s.client.GetAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
@@ -176,7 +176,7 @@ func (s *aliasTestSuite) TestGetAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("not found", func() {
+	s.Run("should fail with not found if key does not exist", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "notfound-key"
 		_, err := s.client.GetAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
@@ -188,7 +188,7 @@ func (s *aliasTestSuite) TestGetAlias() {
 
 func (s *aliasTestSuite) TestDeleteAlias() {
 	fakeAlias := s.fakeAlias()
-	s.Run("bad registry format", func() {
+	s.Run("should fail with bad request if registry has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.reg = "bad@registry"
 		err := s.client.DeleteAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
@@ -196,7 +196,7 @@ func (s *aliasTestSuite) TestDeleteAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("bad key format", func() {
+	s.Run("should fail with bad request if key has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "bad@key"
 		err := s.client.DeleteAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
@@ -204,7 +204,7 @@ func (s *aliasTestSuite) TestDeleteAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("not found", func() {
+	s.Run("should fail with not found if key does not exist", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "notfound-key"
 		err := s.client.DeleteAlias(s.ctx, fakeAlias.reg, fakeAlias.key)
@@ -216,7 +216,7 @@ func (s *aliasTestSuite) TestDeleteAlias() {
 
 func (s *aliasTestSuite) TestListAliases() {
 	fakeAlias := s.fakeAlias()
-	s.Run("bad registry format", func() {
+	s.Run("should fail with bad request if registry has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.reg = "bad@registry"
 		_, err := s.client.ListAliases(s.ctx, fakeAlias.reg)
@@ -224,7 +224,7 @@ func (s *aliasTestSuite) TestListAliases() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
-	s.Run("not found", func() {
+	s.Run("should fail with not found if key does not exist", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "notfound-key"
 		as, err := s.client.ListAliases(s.ctx, fakeAlias.reg)
