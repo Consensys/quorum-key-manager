@@ -3,6 +3,8 @@ package interceptor
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 
@@ -17,12 +19,6 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 
 	if msg.Gas == nil {
 		errMessage := "gas not specified"
-		i.logger.Error(errMessage)
-		return nil, jsonrpc.InvalidParamsError(errors.InvalidParameterError(errMessage))
-	}
-
-	if msg.GasPrice == nil {
-		errMessage := "gasPrice not specified"
 		i.logger.Error(errMessage)
 		return nil, jsonrpc.InvalidParamsError(errors.InvalidParameterError(errMessage))
 	}
@@ -57,7 +53,14 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.IsPrivate() {
 		sig, err = store.SignPrivate(ctx, msg.From, msg.TxDataQuorum())
 	} else {
-		sig, err = store.SignTransaction(ctx, msg.From, chainID, msg.TxData())
+		var txType int
+		if msg.GasPrice != nil {
+			txType = types.LegacyTxType
+		} else {
+			txType = types.DynamicFeeTxType
+		}
+
+		sig, err = store.SignTransaction(ctx, msg.From, chainID, msg.TxData(txType, chainID))
 	}
 	if err != nil {
 		return nil, err
