@@ -1,5 +1,14 @@
 # Quorum Key Manager Release Notes
 
+## v21.7.0-alpha.3 (2021-09-13)
+### 🆕 Features
+* Support pagination for listing endpoints
+* Idempotent behaviour for update endpoints 
+
+### 🛠 Bug fixes
+* EEA transaction signing using empty privateFor
+* Invalid successful readiness response if PG is not reachable 
+
 ## v21.7.0-alpha.2 (2021-08-26)
 ### 🆕 Features
 * Support for authorization using OIDC, TLS and API-KEY

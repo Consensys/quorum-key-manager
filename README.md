@@ -14,18 +14,22 @@ In addition, using QKM, you can connect to your Ethereum nodes to sign your tran
 
 ## Run QKM
 
-Available docker images can be found at `docker.consensys.net/pub/quorum-key-manager`.
+First, define your Quorum Key Manager environment setup using manifest files.
+Examples can be found at [`./deps/config/manifests`](./deps/config/manifests). 
+More information about how to setup service can be found in [documentation](#documentation).
 
-To run the Quorum Key Manager service using docker you can execute the following command:
+Once you manifests are written, specify where `quorum-key-manager` can find them on your filesystem
+with the following environment variable: 
 
+```bash
+export HOST_MANIFEST_PATH={your_manifests_folder}
 ```
-docker run -it \
---name quorum-key-manager \
---mount  type=bind,source="$(pwd)"/deps/config,target=/manifests \
-docker.consensys.net/pub/quorum-key-manager:stable run --manifest-path=/manifests
-```
+ 
+Now launch Quorum Key Manager service using docker-compose with the following command:
 
-You can find more information about the expected content of the `/manifest` folder in the project [documentation](#documentation) 
+```bash
+docker-compose -f docker-compose.latest.yml up key-manager
+```
 
 ## Build from source
 
@@ -33,8 +37,8 @@ To build binary locally requires Go (version 1.15 or later) and C compiler.
 
 After installing project vendors (ie `go mod vendor`) you can run following command to compile the binary
 
-```
-make gobuild
+```bash
+go build -o ./build/bin/key-manager
 ```
 
 Binary will be located in `./build/bin/key-manager`
@@ -42,7 +46,6 @@ Binary will be located in `./build/bin/key-manager`
 ## Documentation
 
 Quorum Key Manager documentation website [https://docs.quorum-key-manager.consensys.net/](https://docs.quorum-key-manager.consensys.net/) 
-
  
 ## License
 

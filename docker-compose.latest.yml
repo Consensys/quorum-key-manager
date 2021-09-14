@@ -1,0 +1,72 @@
+version: "3.7"
+
+x-default-variables: &default-variables
+  LOG_LEVEL: ${LOG_LEVEL-INFO}
+  LOG_FORMAT: ${LOG_FORMAT-text}
+  HTTP_PORT: ${HTTP_PORT-8080}
+  HTTP_HOST: ${HTTP_HOST-0.0.0.0}
+  HEALTH_PORT: ${HEALTH_PORT-8081}
+  DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-disable}
+  DB_TLS_CERT: ${DB_TLS_CERT-}
+  DB_TLS_KEY: ${DB_TLS_KEY-}
+  DB_TLS_CA: ${DB_TLS_CA-}
+  DB_HOST: ${DB_HOST-postgres}
+  DB_PORT: ${DB_PORT-}
+  DB_DATABASE: ${DB_DATABASE-}
+  DB_POOLSIZE: ${DB_POOLSIZE-}
+  DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
+  MANIFEST_PATH: "/manifests"
+
+x-container-common: &container-common
+  image: docker.consensys.net/pub/quorum-key-manager:latest
+  restart: ${CONTAINER_RESTART-on-failure}
+  tty: true
+
+x-postgres-common: &postgres-common
+  environment:
+    POSTGRES_PASSWORD: postgres
+    
+x-qkm-common: &qkm-common
+  DB_HOST: postgres
+
+services:
+  postgres:
+    <<: *container-common
+    <<: *postgres-common
+    image: postgres:13.3-alpine
+    volumes:
+      - db-data-api:/var/lib/postgresql/data
+    ports:
+      - 5432
+      
+  migration:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+    restart: "no"
+    command: migrate up
+    depends_on:
+      - postgres
+    volumes:
+      - ./deps/migrations:/migrations:ro
+
+  key-manager:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+    ports:
+      - 8080:8080
+      - 8081:8081
+    restart: "no"
+    depends_on:
+      - migration
+    command: run
+    volumes:
+      - ${HOST_MANIFEST_PATH-./deps/config/manifests}:/manifests:ro
+
+volumes:
+  db-data-api:
+    driver: local
+
