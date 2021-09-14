@@ -14,21 +14,22 @@ In addition, using QKM, you can connect to your Ethereum nodes to sign your tran
 
 ## Run QKM
 
-First you have to write your manifest files and set the following environment variable:
+First, define your Quorum Key Manager environment setup using manifest files.
+Examples can be found at [`./deps/config/manifests`](./deps/config/manifests). 
+More information about how to setup service can be found in [documentation](#documentation).
+
+Once you manifests are written, specify where `quorum-key-manager` can find them on your filesystem
+with the following environment variable: 
 
 ```bash
 export HOST_MANIFEST_PATH={your_manifests_folder}
 ```
  
-> You can find example of how to define manifests in [`./deps/config/manifests`](./deps/config/manifests).
-
-To run the Quorum Key Manager service using docker you can execute the following command:
+Now launch Quorum Key Manager service using docker-compose with the following command:
 
 ```bash
 docker-compose -f docker-compose.latest.yml up key-manager
 ```
-
-More information about how to setup your `quorum-key-manager` service can be found in [documentation](#documentation) 
 
 ## Build from source
 
