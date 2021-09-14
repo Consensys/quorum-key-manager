@@ -34,7 +34,7 @@ func FormatEntityAliases(ents []aliasent.Alias) []Alias {
 	return als
 }
 
-type AliasValue string
+type AliasValue []string
 
 type AliasKey string
 

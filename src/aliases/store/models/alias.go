@@ -1,6 +1,11 @@
 package aliasmodels
 
-import aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+import (
+	"bytes"
+	"encoding/json"
+
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+)
 
 // Alias allows the user to associates a RegistryName + a Key to 1 or more public keys stored
 // in Value. The Value has 2 formats:
@@ -15,29 +20,43 @@ type Alias struct {
 	Value AliasValue
 }
 
-func AliasFromEntity(ent aliasent.Alias) Alias {
+func AliasFromEntity(ent aliasent.Alias) (alias Alias, err error) {
+	var b bytes.Buffer
+	err = json.NewEncoder(&b).Encode(ent.Value)
+	if err != nil {
+		return alias, err
+	}
 	return Alias{
 		Key:          AliasKey(ent.Key),
 		RegistryName: RegistryName(ent.RegistryName),
-		Value:        AliasValue(ent.Value),
-	}
+		Value:        AliasValue(b.String()),
+	}, nil
 }
 
-func (a *Alias) ToEntity() *aliasent.Alias {
+func (a *Alias) ToEntity() (*aliasent.Alias, error) {
+	var value aliasent.AliasValue
+	err := json.Unmarshal([]byte(a.Value), &value)
+
+	if err != nil {
+		return nil, err
+	}
 	return &aliasent.Alias{
 		Key:          aliasent.AliasKey(a.Key),
 		RegistryName: aliasent.RegistryName(a.RegistryName),
-		Value:        aliasent.AliasValue(a.Value),
-	}
+		Value:        value,
+	}, nil
 }
 
-func AliasesToEntity(aliases []Alias) []aliasent.Alias {
+func AliasesToEntity(aliases []Alias) ([]aliasent.Alias, error) {
 	var ents []aliasent.Alias
 	for _, v := range aliases {
-		ent := v.ToEntity()
+		ent, err := v.ToEntity()
+		if err != nil {
+			return nil, err
+		}
 		ents = append(ents, *ent)
 	}
-	return ents
+	return ents, nil
 }
 
 type AliasKey string

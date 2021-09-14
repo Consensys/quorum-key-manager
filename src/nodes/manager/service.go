@@ -205,7 +205,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler = interceptor.New(m.stores, m.logger)
+		prxNode.Handler = interceptor.New(m.stores, m.aliases, m.logger)
 
 		// Start node
 		err = prxNode.Start(ctx)

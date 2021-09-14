@@ -7,12 +7,12 @@ package aliasent
 type Alias struct {
 	Key          AliasKey
 	RegistryName RegistryName
-	// Value is a JSON array containing Tessera/Orion keys base64 encoded in strings.
+	// Value is an array containing Tessera/Orion keys base64 encoded in strings.
 	Value AliasValue
 }
 
 type AliasKey string
 
-type AliasValue string
+type AliasValue []string
 
 type RegistryName string

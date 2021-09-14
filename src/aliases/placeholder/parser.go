@@ -54,7 +54,10 @@ func ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, add
 		if err != nil {
 			return nil, err
 		}
-		values = append(values, string(alias.Value))
+
+		for _, v := range alias.Value {
+			values = append(values, string(v))
+		}
 	}
 	return values, nil
 }

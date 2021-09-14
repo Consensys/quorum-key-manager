@@ -52,10 +52,10 @@ func TestReplaceAliases(t *testing.T) {
 		err   error
 	}
 
-	groupACall := backendCall{"my-registry", "group-A", `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`, nil}
-	JPMCall := backendCall{"my-registry", "JPM", `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="]`, nil}
-	GSCall := backendCall{"my-registry", "GS", `["2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`, nil}
-	errCall := backendCall{"unknown-registry", "unknown-key", "", errors.InvalidFormatError("bad format")}
+	groupACall := backendCall{"my-registry", "group-A", []string{`["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", []string{`["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="]`}, nil}
+	GSCall := backendCall{"my-registry", "GS", []string{`["2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`}, nil}
+	errCall := backendCall{"unknown-registry", "unknown-key", []string{""}, errors.InvalidFormatError("bad format")}
 
 	cases := map[string]struct {
 		addrs []string
@@ -91,9 +91,11 @@ func TestReplaceAliases(t *testing.T) {
 			for _, call := range c.calls {
 				present := false
 				for _, addr := range addrs {
-					if addr == string(call.value) {
-						present = true
-						break
+					for _, v := range call.value {
+						if addr == v {
+							present = true
+							break
+						}
 					}
 				}
 				assert.True(t, present)

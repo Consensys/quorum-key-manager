@@ -14,7 +14,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
+	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"

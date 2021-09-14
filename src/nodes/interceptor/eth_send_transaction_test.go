@@ -123,7 +123,7 @@ func TestEthSendTransaction(t *testing.T) {
 			ctx:     ctx,
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
-				aliases.EXPECT().GetAlias(gomock.Any(), aliasent.RegistryName("JPM"), aliasent.AliasKey("Group-A")).Return(&aliasent.Alias{RegistryName: "JPM", Key: "Group-A", Value: "KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s="}, nil)
+				aliases.EXPECT().GetAlias(gomock.Any(), aliasent.RegistryName("JPM"), aliasent.AliasKey("Group-A")).Return(&aliasent.Alias{RegistryName: "JPM", Key: "Group-A", Value: []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s="}}, nil)
 				// Get accounts
 				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 

@@ -25,7 +25,7 @@ func (s *aliasStoreTestSuite) fakeAlias() aliasent.Alias {
 	return aliasent.Alias{
 		RegistryName: aliasent.RegistryName("JPM-" + randID),
 		Key:          aliasent.AliasKey("Goldman Sachs-" + randID),
-		Value:        `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
+		Value:        []string{`["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`},
 	}
 }
 
@@ -71,7 +71,7 @@ func (s *aliasStoreTestSuite) TestUpdateAlias() {
 		require.Equal(s.T(), in, *out)
 
 		updated := in
-		updated.Value = `["SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`
+		updated.Value = []string{`["SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`}
 
 		out, err = s.srv.UpdateAlias(s.env.ctx, in.RegistryName, updated)
 		require.NoError(s.T(), err)
@@ -119,7 +119,7 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
-		newAlias.Value = `[ SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc= ]`
+		newAlias.Value = []string{`[ SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc= ]`}
 		out, err = s.srv.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), newAlias, *out)

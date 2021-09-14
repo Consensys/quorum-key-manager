@@ -59,6 +59,16 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
+	err = a.RegisterServiceConfig(&aliases.Config{Postgres: cfg.Postgres})
+	if err != nil {
+		return nil, err
+	}
+
+	err = aliases.RegisterService(a, logger.WithComponent("aliases"))
+	if err != nil {
+		return nil, err
+	}
+
 	err = nodes.RegisterService(a, logger.WithComponent("nodes"))
 	if err != nil {
 		return nil, err
@@ -73,16 +83,6 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	mid := alice.New(middleware.AccessLog(logger.WithComponent("accesslog")), authmid)
 
 	err = a.SetMiddleware(mid.Then)
-	if err != nil {
-		return nil, err
-	}
-
-	err = a.RegisterServiceConfig(&aliases.Config{Postgres: cfg.Postgres})
-	if err != nil {
-		return nil, err
-	}
-
-	err = aliases.RegisterService(a, logger.WithComponent("aliases"))
 	if err != nil {
 		return nil, err
 	}

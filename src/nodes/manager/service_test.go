@@ -7,6 +7,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
 
+	aliasentmock "github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
@@ -105,7 +106,8 @@ func TestManager(t *testing.T) {
 	mockAuthManager := mock.NewMockManager(ctrl)
 	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 
-	mngr := New(nil, nil, mockAuthManager, testutils.NewMockLogger(ctrl))
+	mockAliasManager := aliasentmock.NewMockAliasBackend(ctrl)
+	mngr := New(nil, nil, mockAuthManager, mockAliasManager, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)
 	require.NoError(t, err, "Load must not error")
