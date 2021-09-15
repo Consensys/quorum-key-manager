@@ -76,7 +76,7 @@ type SendTxMsg struct {
 }
 
 func (msg *SendTxMsg) IsPrivate() bool {
-	return msg.PrivateArgs != PrivateArgs{}
+	return msg.PrivateArgs != PrivateArgs{} && msg.PrivateArgs.PrivateFrom != nil
 }
 
 func (msg *SendTxMsg) IsLegacy() bool {

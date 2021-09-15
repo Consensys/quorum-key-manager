@@ -54,15 +54,10 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 		msg.Data = new([]byte)
 	}
 
-	var privateFrom string
-	if msg.PrivateFrom != nil {
-		privateFrom = *msg.PrivateFrom
-	}
-
 	// Store payload on Tessera
-	key, err := sess.ClientPrivTxManager().StoreRaw(ctx, *msg.Data, privateFrom)
+	key, err := sess.ClientPrivTxManager().StoreRaw(ctx, *msg.Data, *msg.PrivateFrom)
 	if err != nil {
-		i.logger.WithError(err).Error("failed to store raw payload on Tessera", "private_from", privateFrom)
+		i.logger.WithError(err).Error("failed to store raw payload on Tessera", "private_from", *msg.PrivateFrom)
 		return nil, errors.BlockchainNodeError(err.Error())
 	}
 	// Switch message data
@@ -182,6 +177,7 @@ func (i *Interceptor) fillGas(ctx context.Context, sess proxynode.Session, msg *
 			To:         msg.To,
 			Value:      msg.Value,
 			Data:       msg.Data,
+			GasPrice:   msg.GasPrice,
 			GasTipCap:  msg.GasTipCap,
 			GasFeeCap:  msg.GasFeeCap,
 			AccessList: msg.AccessList,
