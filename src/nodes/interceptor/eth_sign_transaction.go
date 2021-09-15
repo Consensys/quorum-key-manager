@@ -50,17 +50,13 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 
 	// Sign
 	var sig []byte
-	if msg.IsPrivate() {
+	switch {
+	case msg.IsPrivate():
 		sig, err = store.SignPrivate(ctx, msg.From, msg.TxDataQuorum())
-	} else {
-		var txType int
-		if msg.GasPrice != nil {
-			txType = types.LegacyTxType
-		} else {
-			txType = types.DynamicFeeTxType
-		}
-
-		sig, err = store.SignTransaction(ctx, msg.From, chainID, msg.TxData(txType, chainID))
+	case msg.IsLegacy():
+		sig, err = store.SignTransaction(ctx, msg.From, chainID, msg.TxData(types.LegacyTxType, chainID))
+	default:
+		sig, err = store.SignTransaction(ctx, msg.From, chainID, msg.TxData(types.DynamicFeeTxType, chainID))
 	}
 	if err != nil {
 		return nil, err

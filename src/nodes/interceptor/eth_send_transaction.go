@@ -37,24 +37,12 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 		msg.GasPrice = gasPrice
 	}
 
-	if msg.Gas == nil {
-		callMsg := &ethereum.CallMsg{
-			From:     &msg.From,
-			To:       msg.To,
-			GasPrice: msg.GasPrice,
-			Value:    msg.Value,
-			Data:     msg.Data,
-		}
-		gas, err := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
-		if err != nil {
-			i.logger.WithError(err).With("gas_price", msg.GasPrice).Error("failed to estimate gas for quorum private transaction")
-			return nil, errors.BlockchainNodeError(err.Error())
-		}
-
-		msg.Gas = &gas
+	err := i.fillGas(ctx, sess, msg)
+	if err != nil {
+		return nil, err
 	}
 
-	err := i.fillNonce(ctx, sess, msg)
+	err = i.fillNonce(ctx, sess, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -107,24 +95,12 @@ func (i *Interceptor) sendLegacyTx(ctx context.Context, msg *ethereum.SendTxMsg)
 		msg.GasPrice = gasPrice
 	}
 
-	if msg.Gas == nil {
-		callMsg := &ethereum.CallMsg{
-			From:     &msg.From,
-			To:       msg.To,
-			GasPrice: msg.GasPrice,
-			Value:    msg.Value,
-			Data:     msg.Data,
-		}
-		gas, err := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
-		if err != nil {
-			i.logger.WithError(err).With("gas_price", msg.GasPrice).Error("failed to estimate gas for legacy transaction")
-			return nil, errors.BlockchainNodeError(err.Error())
-		}
-
-		msg.Gas = &gas
+	err := i.fillGas(ctx, sess, msg)
+	if err != nil {
+		return nil, err
 	}
 
-	err := i.fillNonce(ctx, sess, msg)
+	err = i.fillNonce(ctx, sess, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -171,23 +147,9 @@ func (i *Interceptor) sendTx(ctx context.Context, msg *ethereum.SendTxMsg) (*eth
 			Debug("'maxFeePerGas' set with previous block 'baseFeePerGas' + miner tip")
 	}
 
-	if msg.Gas == nil {
-		callMsg := &ethereum.CallMsg{
-			From:       &msg.From,
-			To:         msg.To,
-			Value:      msg.Value,
-			Data:       msg.Data,
-			GasTipCap:  msg.GasTipCap,
-			GasFeeCap:  msg.GasFeeCap,
-			AccessList: msg.AccessList,
-		}
-		gas, err2 := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
-		if err2 != nil {
-			i.logger.WithError(err2).With("gas_price", msg.GasPrice).Error("failed to estimate gas for dynamic fee transaction")
-			return nil, errors.BlockchainNodeError(err2.Error())
-		}
-
-		msg.Gas = &gas
+	err = i.fillGas(ctx, sess, msg)
+	if err != nil {
+		return nil, err
 	}
 
 	err = i.fillNonce(ctx, sess, msg)
@@ -208,6 +170,29 @@ func (i *Interceptor) sendTx(ctx context.Context, msg *ethereum.SendTxMsg) (*eth
 
 	i.logger.Info("ETH transaction sent successfully", "tx_hash", hash)
 	return &hash, nil
+}
+
+func (i *Interceptor) fillGas(ctx context.Context, sess proxynode.Session, msg *ethereum.SendTxMsg) error {
+	if msg.Gas == nil {
+		callMsg := &ethereum.CallMsg{
+			From:       &msg.From,
+			To:         msg.To,
+			Value:      msg.Value,
+			Data:       msg.Data,
+			GasTipCap:  msg.GasTipCap,
+			GasFeeCap:  msg.GasFeeCap,
+			AccessList: msg.AccessList,
+		}
+		gas, err := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
+		if err != nil {
+			i.logger.WithError(err).With("gas_price", msg.GasPrice).Error("failed to estimate gas")
+			return errors.BlockchainNodeError(err.Error())
+		}
+
+		msg.Gas = &gas
+	}
+
+	return nil
 }
 
 func (i *Interceptor) fillNonce(ctx context.Context, sess proxynode.Session, msg *ethereum.SendTxMsg) error {

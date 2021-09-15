@@ -79,6 +79,10 @@ func (msg *SendTxMsg) IsPrivate() bool {
 	return msg.PrivateArgs != PrivateArgs{}
 }
 
+func (msg *SendTxMsg) IsLegacy() bool {
+	return msg.GasPrice != nil
+}
+
 func (msg *SendTxMsg) TxData(txType int, chainID *big.Int) *types.Transaction {
 	var txData types.TxData
 
