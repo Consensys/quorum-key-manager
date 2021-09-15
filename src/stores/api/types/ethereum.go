@@ -67,7 +67,7 @@ type SignETHTransactionRequest struct {
 	ChainID         hexutil.Big      `json:"chainID" validate:"required" example:"0x1 (mainnet)" swaggertype:"string"`
 	GasFeeCap       *hexutil.Big     `json:"maxFeePerGas,omitempty" example:"0x5208" swaggertype:"string"`
 	GasTipCap       *hexutil.Big     `json:"maxPriorityFeePerGas,omitempty" example:"0x5208" swaggertype:"string"`
-	AccessList      types.AccessList `json:"accessList,omitempty"`
+	AccessList      types.AccessList `json:"accessList,omitempty" swaggertype:"string"`
 }
 
 type SignQuorumPrivateTransactionRequest struct {
