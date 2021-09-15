@@ -15,9 +15,12 @@ func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.Send
 	switch {
 	case msg.IsPrivate():
 		return i.sendPrivateTx(ctx, msg)
-	case msg.GasPrice != nil:
+	case msg.IsLegacy():
 		return i.sendLegacyTx(ctx, msg)
 	default:
+		// If the node is a pre-london fork, the tx will be reverted to legacy, and we will retrieve the gasPrice from the node
+		// If the node is a post-london fork, the tx will be filled with a default value for maxFeePerGas (currently maxFee = baseFee)
+		// pre-london = 'baseFeePerGas' field does not exist in the block header.
 		return i.sendTx(ctx, msg)
 	}
 }
