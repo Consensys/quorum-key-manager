@@ -2,6 +2,8 @@ package interceptor
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 
@@ -122,4 +124,42 @@ func TestEthSendTransaction(t *testing.T) {
 			assertHandlerScenario(t, tt)
 		})
 	}
+}
+
+func TestEthSendTransaction_Private(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	session := proxynode.NewMockSession(ctrl)
+	caller := mockethereum.NewMockCaller(ctrl)
+	ethCaller := mockethereum.NewMockEthCaller(ctrl)
+	tesseraClient := mocktessera.NewMockClient(ctrl)
+
+	caller.EXPECT().Eth().Return(ethCaller).AnyTimes()
+	session.EXPECT().EthCaller().Return(caller).AnyTimes()
+	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
+
+	ctx := proxynode.WithSession(context.TODO(), session)
+
+	i := New(nil, testutils.NewMockLogger(ctrl))
+
+	t.Run("should send a private tx successfully", func(t *testing.T) {
+		msg := &ethereum.SendTxMsg{
+			From:        ethcommon.Address{},
+			To:          nil,
+			Gas:         nil,
+			GasPrice:    nil,
+			Value:       nil,
+			Nonce:       nil,
+			Data:        nil,
+			PrivateArgs: ethereum.PrivateArgs{
+				PrivateFrom:    nil,
+				PrivateFor:     nil,
+				PrivateType:    nil,
+				PrivacyFlag:    nil,
+				PrivacyGroupID: nil,
+			},
+		}
+		hash, err := i.ethSendTransaction(ctx, )
+	})
 }
