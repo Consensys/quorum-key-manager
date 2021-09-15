@@ -61,27 +61,56 @@ func (args *PrivateArgs) WithPrivacyGroupID(id string) *PrivateArgs {
 
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
 type SendTxMsg struct {
-	From     ethcommon.Address
-	To       *ethcommon.Address
-	Gas      *uint64
-	GasPrice *big.Int
-	Value    *big.Int
-	Nonce    *uint64
-	Data     *[]byte
+	From       ethcommon.Address
+	To         *ethcommon.Address
+	Gas        *uint64
+	GasPrice   *big.Int
+	Value      *big.Int
+	Nonce      *uint64
+	Data       *[]byte
+	GasFeeCap  *big.Int
+	GasTipCap  *big.Int
+	AccessList types.AccessList
 
 	PrivateArgs
 }
 
 func (msg *SendTxMsg) IsPrivate() bool {
-	return msg.PrivateArgs != PrivateArgs{}
+	return msg.PrivateArgs != PrivateArgs{} && msg.PrivateArgs.PrivateFrom != nil
 }
 
-func (msg *SendTxMsg) TxData() *types.Transaction {
-	if msg.To == nil {
-		return types.NewContractCreation(*msg.Nonce, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
+func (msg *SendTxMsg) IsLegacy() bool {
+	return msg.GasPrice != nil
+}
+
+func (msg *SendTxMsg) TxData(txType int, chainID *big.Int) *types.Transaction {
+	var txData types.TxData
+
+	switch txType {
+	case types.LegacyTxType:
+		txData = &types.LegacyTx{
+			Nonce:    *msg.Nonce,
+			GasPrice: msg.GasPrice,
+			Gas:      *msg.Gas,
+			To:       msg.To,
+			Value:    msg.Value,
+			Data:     *msg.Data,
+		}
+	case types.DynamicFeeTxType:
+		txData = &types.DynamicFeeTx{
+			ChainID:    chainID,
+			Nonce:      *msg.Nonce,
+			GasTipCap:  msg.GasTipCap,
+			GasFeeCap:  msg.GasFeeCap,
+			Gas:        *msg.Gas,
+			To:         msg.To,
+			Value:      msg.Value,
+			Data:       *msg.Data,
+			AccessList: msg.AccessList,
+		}
 	}
 
-	return types.NewTransaction(*msg.Nonce, *msg.To, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
+	return types.NewTx(txData)
 }
 
 // TODO: Delete this function and use only go-quorum types when
@@ -95,14 +124,17 @@ func (msg *SendTxMsg) TxDataQuorum() *quorumtypes.Transaction {
 
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
 type jsonSendTxMsg struct {
-	From     ethcommon.Address  `json:"from,omitempty"`
-	To       *ethcommon.Address `json:"to,omitempty"`
-	Gas      *hexutil.Uint64    `json:"gas,omitempty"`
-	GasPrice *hexutil.Big       `json:"gasPrice,omitempty"`
-	Value    *hexutil.Big       `json:"value,omitempty"`
-	Nonce    *hexutil.Uint64    `json:"nonce,omitempty"`
-	Data     *hexutil.Bytes     `json:"data,omitempty"`
-	Input    *hexutil.Bytes     `json:"input,omitempty"`
+	From       ethcommon.Address  `json:"from,omitempty"`
+	To         *ethcommon.Address `json:"to,omitempty"`
+	Gas        *hexutil.Uint64    `json:"gas,omitempty"`
+	GasPrice   *hexutil.Big       `json:"gasPrice,omitempty"`
+	Value      *hexutil.Big       `json:"value,omitempty"`
+	Nonce      *hexutil.Uint64    `json:"nonce,omitempty"`
+	Data       *hexutil.Bytes     `json:"data,omitempty"`
+	Input      *hexutil.Bytes     `json:"input,omitempty"`
+	GasFeeCap  *hexutil.Big       `json:"maxFeePerGas,omitempty"`
+	GasTipCap  *hexutil.Big       `json:"maxPriorityFeePerGas,omitempty"`
+	AccessList types.AccessList   `json:"accessList,omitempty"`
 
 	PrivateArgs
 }
@@ -123,6 +155,9 @@ func (msg *SendTxMsg) UnmarshalJSON(b []byte) error {
 		Nonce:       (*uint64)(raw.Nonce),
 		PrivateArgs: raw.PrivateArgs,
 		Data:        (*[]byte)(raw.Input),
+		GasTipCap:   (*big.Int)(raw.GasTipCap),
+		GasFeeCap:   (*big.Int)(raw.GasFeeCap),
+		AccessList:  raw.AccessList,
 	}
 
 	if raw.Data != nil {
@@ -141,6 +176,9 @@ func (msg *SendTxMsg) MarshalJSON() ([]byte, error) {
 		Value:       (*hexutil.Big)(msg.Value),
 		Nonce:       (*hexutil.Uint64)(msg.Nonce),
 		Data:        (*hexutil.Bytes)(msg.Data),
+		GasTipCap:   (*hexutil.Big)(msg.GasTipCap),
+		GasFeeCap:   (*hexutil.Big)(msg.GasFeeCap),
+		AccessList:  msg.AccessList,
 		PrivateArgs: msg.PrivateArgs,
 	})
 }
@@ -159,20 +197,18 @@ type SendEEATxMsg struct {
 
 func (msg *SendEEATxMsg) TxData() *types.Transaction {
 	var data []byte
-	var nonce uint64
 	if msg.Data != nil {
 		data = *msg.Data
 	}
 
-	if msg.Nonce != nil {
-		nonce = *msg.Nonce
-	}
-
-	if msg.To == nil {
-		return types.NewContractCreation(nonce, nil, 0, nil, data)
-	}
-
-	return types.NewTransaction(nonce, *msg.To, nil, *msg.Gas, msg.GasPrice, data)
+	return types.NewTx(&types.LegacyTx{
+		Nonce:    *msg.Nonce,
+		GasPrice: msg.GasPrice,
+		Gas:      *msg.Gas,
+		To:       msg.To,
+		Value:    nil,
+		Data:     data,
+	})
 }
 
 // TODO: Delete usage of unnecessary pointers: https://app.zenhub.com/workspaces/orchestrate-5ea70772b186e10067f57842/issues/consensys/quorum-key-manager/96
