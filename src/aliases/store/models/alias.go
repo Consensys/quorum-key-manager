@@ -2,8 +2,10 @@ package aliasmodels
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
@@ -20,7 +22,24 @@ type Alias struct {
 	Value AliasValue
 }
 
+func checkAliasValue(value aliasent.AliasValue) error {
+	for _, v := range value {
+		// we just want the decoding to happen without error
+		_, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			return errors.InvalidFormatError("alias value is incorrect: %v: %v", err, v)
+		}
+	}
+	return nil
+}
+
 func AliasFromEntity(ent aliasent.Alias) (alias Alias, err error) {
+	// check that the ent.Value only contains base64 string
+	err = checkAliasValue(ent.Value)
+	if err != nil {
+		return alias, err
+	}
+
 	var b bytes.Buffer
 	err = json.NewEncoder(&b).Encode(ent.Value)
 	if err != nil {
@@ -36,7 +55,11 @@ func AliasFromEntity(ent aliasent.Alias) (alias Alias, err error) {
 func (a *Alias) ToEntity() (*aliasent.Alias, error) {
 	var value aliasent.AliasValue
 	err := json.Unmarshal([]byte(a.Value), &value)
+	if err != nil {
+		return nil, err
+	}
 
+	err = checkAliasValue(value)
 	if err != nil {
 		return nil, err
 	}
