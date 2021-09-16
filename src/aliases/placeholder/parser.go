@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
@@ -17,7 +16,6 @@ var (
 )
 
 func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.AliasKey, parsed bool, err error) {
-	formatError := errors.InvalidFormatError(`alias not in the format "{{registry_name:alias_key}}"`)
 	aliasParseRegexOnce.Do(func() {
 		aliasParseRegex, err = regexp.Compile(aliasParseFormat)
 	})
@@ -26,7 +24,7 @@ func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.
 	}
 	submatches := aliasParseRegex.FindStringSubmatch(alias)
 	if len(submatches) < 3 {
-		return "", "", false, formatError
+		return "", "", false, nil
 	}
 
 	regName = aliasent.RegistryName(submatches[1])
@@ -37,17 +35,16 @@ func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.
 
 func ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error) {
 	var values []string
-	for _, v := range addrs {
-		regName, aliasKey, parsed, err := ParseAlias(v)
-		if err != nil {
-			values = append(values, v)
-			continue
-		}
-		if parsed {
-		}
-
+	for _, addr := range addrs {
+		regName, aliasKey, parsed, err := ParseAlias(addr)
 		if err != nil {
 			return nil, err
+		}
+
+		// it is not an alias
+		if !parsed {
+			values = append(values, addr)
+			continue
 		}
 
 		alias, err := aliasBackend.GetAlias(ctx, regName, aliasKey)
@@ -56,7 +53,7 @@ func ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, add
 		}
 
 		for _, v := range alias.Value {
-			values = append(values, string(v))
+			values = append(values, v)
 		}
 	}
 	return values, nil
