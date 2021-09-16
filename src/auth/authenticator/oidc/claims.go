@@ -23,7 +23,6 @@ func (c *Claims) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	// Second Unmarshal Orchestrate entries
 	var objmap map[string]*json.RawMessage
 	err = json.Unmarshal(b, &objmap)
 	if err != nil {
