@@ -4,12 +4,13 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/jwt"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/pkg/jwt"
+	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
@@ -91,6 +92,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	privPem, _ := pem.Decode(keyFileContent)
 	var privPemBytes []byte
 	if privKeyPassword != "" {
+		//nolint
 		privPemBytes, err = x509.DecryptPEMBlock(privPem, []byte(privKeyPassword))
 		if err != nil {
 			return err
