@@ -28,7 +28,7 @@
   version: 0.0.1
   name: hashicorp-keys
   specs:
-    mountPoint: orchestrate
+    mountPoint: quorum
     address: http://hashicorp:8200
     tokenPath: '{VAULT_TOKEN_PATH}'
     namespace: ''

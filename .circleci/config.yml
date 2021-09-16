@@ -89,7 +89,7 @@ commands:
           condition: <<parameters.qkm_namespace>>
           steps:
             - run:
-                name: Set Orchestrate Namespace
+                name: Set Quorum Key Manager Namespace
                 command: echo 'export QKM_NAMESPACE=<<parameters.environment_values>>-qkm' >> $BASH_ENV
 
       - unless:

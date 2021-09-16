@@ -25,7 +25,7 @@
 Initial release of the Quorum Key Manager
 
 * Support for [Hashicorp KV Secrets Engine](https://www.vaultproject.io/docs/secrets/kv/kv-v2)
-* Support for [Hashicorp keys plugin](https://github.com/ConsenSys/orchestrate-hashicorp-vault-plugin) (custom plugin)
+* Support for [Quorum Hashicorp Vault Plugin](https://github.com/ConsenSys/quorum-hashicorp-vault-plugin) (custom plugin)
 * Support for [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/) (secrets and keys)
 * Support for [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/)
 * Support for [AWS Key Management Service](https://aws.amazon.com/kms/) (KMS)
