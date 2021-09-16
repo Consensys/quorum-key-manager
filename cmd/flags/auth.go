@@ -140,14 +140,14 @@ func AuthFlags(f *pflag.FlagSet) {
 	authAPIKeyFile(f)
 }
 
-// Use only on generate-token utils
+// AuthOIDCCertKeyFile Use only on generate-token utils
 func AuthOIDCCertKeyFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect ca Cert filepath.
+	desc := fmt.Sprintf(`OpenID Connect CA key filepath.
 Environment variable: %q`, authOIDCCAKeyFileEnv)
 	f.String(authOIDCCAKeyFileFlag, authOIDCCAKeyFileDefault, desc)
 	_ = viper.BindPFlag(AuthOIDCCAKeyFileViperKey, f.Lookup(authOIDCCAKeyFileFlag))
 
-	desc = fmt.Sprintf(`OpenID Connect ca Cert password.
+	desc = fmt.Sprintf(`OpenID Connect CA key password.
 Environment variable: %q`, authOIDCCAKeyPasswordEnv)
 	f.String(authOIDCCAKeyPasswordFlag, authOIDCCAKeyPasswordDefault, desc)
 	_ = viper.BindPFlag(AuthOIDCCAKeyPasswordViperKey, f.Lookup(authOIDCCAKeyPasswordFlag))
