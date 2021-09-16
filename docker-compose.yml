@@ -79,9 +79,10 @@ services:
     environment:
       <<: *default-variables
       AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-}
+      AUTH_OIDC_CA_KEY_PASSWORD: ${AUTH_OIDC_CA_KEY_PASSWORD-}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config/certificates:/certificates:ro
+      - ./deps/config/ca:/ca:ro
     command: utils generate-jwt --sub=${SUB-tenant0|user0} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-72h}
     restart: "no"
 
