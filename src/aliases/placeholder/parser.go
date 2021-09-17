@@ -15,7 +15,7 @@ var (
 	aliasParseRegex     *regexp.Regexp
 )
 
-func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.AliasKey, parsed bool, err error) {
+func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.AliasKey, isAlias bool, err error) {
 	aliasParseRegexOnce.Do(func() {
 		aliasParseRegex, err = regexp.Compile(aliasParseFormat)
 	})
@@ -36,13 +36,13 @@ func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.
 func ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error) {
 	var values []string
 	for _, addr := range addrs {
-		regName, aliasKey, parsed, err := ParseAlias(addr)
+		regName, aliasKey, isAlias, err := ParseAlias(addr)
 		if err != nil {
 			return nil, err
 		}
 
 		// it is not an alias
-		if !parsed {
+		if !isAlias {
 			values = append(values, addr)
 			continue
 		}

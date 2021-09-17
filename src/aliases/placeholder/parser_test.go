@@ -22,11 +22,12 @@ func TestParseAlias(t *testing.T) {
 		parsed       bool
 		errCompareFn func(error) bool
 	}{
-		"bad registry format": {`{{bad#registry:ok_key}}`, "", "", false, errors.IsInvalidFormatError},
-		"bad key format":      {`{{ok_registry:bad>key}}`, "", "", false, errors.IsInvalidFormatError},
-		"single {":            {`{ok_registry:ok_key}`, "", "", false, errors.IsInvalidFormatError},
-		"column missing":      {`{{ok_registry ok_key}}`, "", "", false, errors.IsInvalidFormatError},
-		"too many columns":    {`{{ok_registry:ok_key:}}`, "", "", false, errors.IsInvalidFormatError},
+		"bad registry format": {`{{bad#registry:ok_key}}`, "", "", false, nil},
+		"bad key format":      {`{{ok_registry:bad>key}}`, "", "", false, nil},
+		"single {":            {`{ok_registry:ok_key}`, "", "", false, nil},
+		"column missing":      {`{{ok_registry ok_key}}`, "", "", false, nil},
+		"too many columns":    {`{{ok_registry:ok_key:}}`, "", "", false, nil},
+		"base 64 key":         {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false, nil},
 		"ok":                  {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true, nil},
 	}
 	for name, c := range cases {
@@ -61,8 +62,8 @@ func TestReplaceAliases(t *testing.T) {
 		addrs []string
 		calls []backendCall
 	}{
-		"bad key":          {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:bad/key}}"}, nil},
 		"unknown registry": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:unknown-key}}"}, []backendCall{errCall}},
+		"bad key":          {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:bad/key}}"}, nil},
 		"bad registry":     {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{bad#registry:unknown-key}}"}, nil},
 		"ok without alias": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil},
 		"ok 1":             {[]string{"{{my-registry:group-A}}"}, []backendCall{groupACall}},
