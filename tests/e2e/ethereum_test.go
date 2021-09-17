@@ -29,7 +29,7 @@ type ethTestSuite struct {
 	suite.Suite
 	err              error
 	ctx              context.Context
-	keyManagerClient client.EthClient
+	keyManagerClient client.KeyManagerClient
 	signAccount      *types.EthAccountResponse
 
 	storeName string
@@ -203,7 +203,7 @@ func (s *ethTestSuite) TestImport() {
 	})
 }
 
-func (s *ethTestSuite) TestSign() {
+func (s *ethTestSuite) TestSignMessage() {
 	s.Run("should sign a payload successfully and verify it", func() {
 		request := testutils.FakeSignMessageRequest()
 
@@ -215,7 +215,7 @@ func (s *ethTestSuite) TestSign() {
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
 
-		err = s.keyManagerClient.VerifyMessage(s.ctx, s.storeName, &types.VerifyRequest{
+		err = s.keyManagerClient.VerifyMessage(s.ctx, &types.VerifyRequest{
 			Data:      request.Message,
 			Signature: hexSig,
 			Address:   s.signAccount.Address,
@@ -246,7 +246,7 @@ func (s *ethTestSuite) TestSignTypedData() {
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
 
-		err = s.keyManagerClient.VerifyTypedData(s.ctx, s.storeName, &types.VerifyTypedDataRequest{
+		err = s.keyManagerClient.VerifyTypedData(s.ctx, &types.VerifyTypedDataRequest{
 			TypedData: *request,
 			Signature: hexSig,
 			Address:   s.signAccount.Address,

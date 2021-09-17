@@ -10,7 +10,7 @@ import (
 const utilsPath = "utilities"
 
 func (c *HTTPClient) VerifyKeySignature(ctx context.Context, req *types.VerifyKeySignatureRequest) error {
-	reqURL := fmt.Sprintf("%s/keys/verify-signature", utilsPath)
+	reqURL := fmt.Sprintf("%s/%s/keys/verify-signature", c.config.URL, utilsPath)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func (c *HTTPClient) VerifyKeySignature(ctx context.Context, req *types.VerifyKe
 }
 
 func (c *HTTPClient) ECRecover(ctx context.Context, req *types.ECRecoverRequest) (string, error) {
-	reqURL := fmt.Sprintf("%s/ethereum/ec-recover", utilsPath)
+	reqURL := fmt.Sprintf("%s/%s/ethereum/ec-recover", c.config.URL, utilsPath)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return "", err
@@ -32,7 +32,7 @@ func (c *HTTPClient) ECRecover(ctx context.Context, req *types.ECRecoverRequest)
 }
 
 func (c *HTTPClient) VerifyMessage(ctx context.Context, req *types.VerifyRequest) error {
-	reqURL := fmt.Sprintf("%s/ethereum/verify-message", utilsPath)
+	reqURL := fmt.Sprintf("%s/%s/ethereum/verify-message", c.config.URL, utilsPath)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (c *HTTPClient) VerifyMessage(ctx context.Context, req *types.VerifyRequest
 }
 
 func (c *HTTPClient) VerifyTypedData(ctx context.Context, req *types.VerifyTypedDataRequest) error {
-	reqURL := fmt.Sprintf("%s/ethereum/verify-typed-data", utilsPath)
+	reqURL := fmt.Sprintf("%s/%s/ethereum/verify-typed-data", c.config.URL, utilsPath)
 	response, err := postRequest(ctx, c.client, reqURL, req)
 	if err != nil {
 		return err
