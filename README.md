@@ -28,14 +28,18 @@ export HOST_MANIFEST_PATH={your_manifests_folder}
 Now launch Quorum Key Manager service using docker-compose with the following command:
 
 ```bash
-docker-compose -f docker-compose.latest.yml up key-manager
+docker-compose up
 ```
 
 ## Build from source
 
+### Prerequisites
+
 To build binary locally requires Go (version 1.15 or later) and C compiler. 
 
-After installing project vendors (ie `go mod vendor`) you can run following command to compile the binary
+### Build
+
+After downloading dependencies (ie `go mod download`) you can run following command to compile the binary
 
 ```bash
 go build -o ./build/bin/key-manager
