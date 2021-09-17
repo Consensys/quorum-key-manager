@@ -2,8 +2,11 @@ package ethereum
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/ethereum/go-ethereum/signer/core"
+)
+
+const (
+	EIP712DomainLabel = "EIP712Domain"
 )
 
 func GetEIP712EncodedData(typedData *core.TypedData) ([]byte, error) {
@@ -12,7 +15,7 @@ func GetEIP712EncodedData(typedData *core.TypedData) ([]byte, error) {
 		return nil, err
 	}
 
-	domainSeparatorHash, err := typedData.HashStruct(formatters.EIP712DomainLabel, typedData.Domain.Map())
+	domainSeparatorHash, err := typedData.HashStruct(EIP712DomainLabel, typedData.Domain.Map())
 	if err != nil {
 		return nil, err
 	}

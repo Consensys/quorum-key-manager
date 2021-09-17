@@ -44,7 +44,6 @@ func (h *UtilsHandler) Register(r *mux.Router) {
 // @Router /keys/verify-signature [post]
 func (h *UtilsHandler) verifySignature(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
 
 	verifyReq := &types.VerifyKeySignatureRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
@@ -53,7 +52,7 @@ func (h *UtilsHandler) verifySignature(rw http.ResponseWriter, request *http.Req
 		return
 	}
 
-	err = h.utils.Verify(ctx, verifyReq.PublicKey, verifyReq.Data, verifyReq.Signature, &entities.Algorithm{
+	err = h.utils.Verify(verifyReq.PublicKey, verifyReq.Data, verifyReq.Signature, &entities.Algorithm{
 		Type:          entities.KeyType(verifyReq.SigningAlgorithm),
 		EllipticCurve: entities.Curve(verifyReq.Curve),
 	})
@@ -79,7 +78,6 @@ func (h *UtilsHandler) verifySignature(rw http.ResponseWriter, request *http.Req
 // @Router /ethereum/ec-recover [post]
 func (h *UtilsHandler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
 
 	ecRecoverReq := &types.ECRecoverRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, ecRecoverReq)
@@ -88,7 +86,7 @@ func (h *UtilsHandler) ecRecover(rw http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	address, err := h.utils.ECRecover(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
+	address, err := h.utils.ECRecover(ecRecoverReq.Data, ecRecoverReq.Signature)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -110,7 +108,6 @@ func (h *UtilsHandler) ecRecover(rw http.ResponseWriter, request *http.Request) 
 // @Router /ethereum/verify-message [post]
 func (h *UtilsHandler) verifyMessage(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
 
 	verifyReq := &types.VerifyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
@@ -119,7 +116,7 @@ func (h *UtilsHandler) verifyMessage(rw http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	err = h.utils.VerifyMessage(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
+	err = h.utils.VerifyMessage(verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -141,7 +138,6 @@ func (h *UtilsHandler) verifyMessage(rw http.ResponseWriter, request *http.Reque
 // @Router /ethereum/verify-typed-data [post]
 func (h *UtilsHandler) verifyTypedData(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
 
 	verifyReq := &types.VerifyTypedDataRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
@@ -151,7 +147,7 @@ func (h *UtilsHandler) verifyTypedData(rw http.ResponseWriter, request *http.Req
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
-	err = h.utils.VerifyTypedData(ctx, verifyReq.Address, typedData, verifyReq.Signature)
+	err = h.utils.VerifyTypedData(verifyReq.Address, typedData, verifyReq.Signature)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

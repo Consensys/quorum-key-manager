@@ -8,7 +8,7 @@ import (
 )
 
 type Interceptor struct {
-	stores  stores.Manager
+	stores  stores.Stores
 	handler jsonrpc.Handler
 	logger  log.Logger
 }
@@ -35,9 +35,9 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router), i.logger)
 }
 
-func New(smng stores.Manager, logger log.Logger) *Interceptor {
+func New(stores stores.Stores, logger log.Logger) *Interceptor {
 	i := &Interceptor{
-		stores: smng,
+		stores: stores,
 		logger: logger,
 	}
 

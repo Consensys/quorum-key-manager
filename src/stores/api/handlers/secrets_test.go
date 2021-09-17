@@ -17,7 +17,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
-	mocks "github.com/consensys/quorum-key-manager/src/stores/mock"
+	"github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -38,11 +38,11 @@ var secretUserInfo = &types.UserInfo{
 type secretsHandlerTestSuite struct {
 	suite.Suite
 
-	ctrl         *gomock.Controller
-	storeManager *mocks.MockManager
-	secretStore  *mocks.MockSecretStore
-	router       *mux.Router
-	ctx          context.Context
+	ctrl        *gomock.Controller
+	stores      *mock.MockStores
+	secretStore *mock.MockSecretStore
+	router      *mux.Router
+	ctx         context.Context
 }
 
 func TestSecretsHandler(t *testing.T) {
@@ -53,14 +53,19 @@ func TestSecretsHandler(t *testing.T) {
 func (s *secretsHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	s.storeManager = mocks.NewMockManager(s.ctrl)
-	s.secretStore = mocks.NewMockSecretStore(s.ctrl)
+	manager := mock.NewMockManager(s.ctrl)
+	s.stores = mock.NewMockStores(s.ctrl)
+	s.secretStore = mock.NewMockSecretStore(s.ctrl)
+
+	manager.EXPECT().Stores().Return(s.stores, nil).AnyTimes()
+	s.stores.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: secretUserInfo,
 	})
 
 	s.router = mux.NewRouter()
-	NewStoresHandler(s.storeManager).Register(s.router)
+	NewStoresHandler(manager).Register(s.router)
 }
 
 func (s *secretsHandlerTestSuite) TearDownTest() {
@@ -78,7 +83,6 @@ func (s *secretsHandlerTestSuite) TestSet() {
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 		secret := testutils2.FakeSecret()
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), secretID, setSecretRequest.Value, &entities.Attributes{
 			Tags: setSecretRequest.Tags,
 		}).Return(secret, nil)
@@ -99,7 +103,6 @@ func (s *secretsHandlerTestSuite) TestSet() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/SecretStore/secrets/"+secretID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -115,7 +118,6 @@ func (s *secretsHandlerTestSuite) TestGet() {
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s", secretID, version), nil).WithContext(s.ctx)
 
 		secret := testutils2.FakeSecret()
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), secretID, version).Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -131,7 +133,6 @@ func (s *secretsHandlerTestSuite) TestGet() {
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil).WithContext(s.ctx)
 
 		secret := testutils2.FakeSecret()
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), secretID, "").Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -147,7 +148,6 @@ func (s *secretsHandlerTestSuite) TestGet() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -163,7 +163,6 @@ func (s *secretsHandlerTestSuite) TestGetDeleted() {
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s&deleted=true", secretID, version), nil).WithContext(s.ctx)
 
 		secret := testutils2.FakeSecret()
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID).Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -179,7 +178,6 @@ func (s *secretsHandlerTestSuite) TestGetDeleted() {
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?deleted=true", secretID), nil).WithContext(s.ctx)
 
 		secret := testutils2.FakeSecret()
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().GetDeleted(gomock.Any(), secretID).Return(secret, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -195,7 +193,6 @@ func (s *secretsHandlerTestSuite) TestGetDeleted() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/SecretStore/secrets/%s?deleted=true", secretID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().GetDeleted(gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -210,7 +207,6 @@ func (s *secretsHandlerTestSuite) TestDelete() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s?version=%s", secretID, version), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Delete(gomock.Any(), secretID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -221,7 +217,6 @@ func (s *secretsHandlerTestSuite) TestDelete() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s", secretID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -236,7 +231,6 @@ func (s *secretsHandlerTestSuite) TestRestore() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/SecretStore/secrets/%s/restore?version=%s", secretID, version), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Restore(gomock.Any(), secretID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -247,7 +241,6 @@ func (s *secretsHandlerTestSuite) TestRestore() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/SecretStore/secrets/%s/restore", secretID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Restore(gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -262,7 +255,6 @@ func (s *secretsHandlerTestSuite) TestDestroy() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s/destroy?version=%s", secretID, version), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Destroy(gomock.Any(), secretID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -273,7 +265,6 @@ func (s *secretsHandlerTestSuite) TestDestroy() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/SecretStore/secrets/%s/destroy", secretID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().Destroy(gomock.Any(), gomock.Any()).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -288,7 +279,6 @@ func (s *secretsHandlerTestSuite) TestList() {
 
 		ids := []string{"secret1", "secret2"}
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -306,7 +296,6 @@ func (s *secretsHandlerTestSuite) TestList() {
 
 		ids := []string{"secret1", "secret2"}
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any(), uint64(1), uint64(5)).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -327,7 +316,6 @@ func (s *secretsHandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets", nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -342,7 +330,6 @@ func (s *secretsHandlerTestSuite) TestListDeleted() {
 
 		ids := []string{"secret1", "secret2"}
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().ListDeleted(gomock.Any(), defaultPageSize, uint64(0)).Return(ids, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -359,7 +346,6 @@ func (s *secretsHandlerTestSuite) TestListDeleted() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/SecretStore/secrets?deleted=true", nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
 		s.secretStore.EXPECT().ListDeleted(gomock.Any(), defaultPageSize, uint64(0)).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)

@@ -18,7 +18,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
-	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
+	"github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -41,11 +41,11 @@ var keyUserInfo = &types.UserInfo{
 type keysHandlerTestSuite struct {
 	suite.Suite
 
-	ctrl         *gomock.Controller
-	storeManager *mockstoremanager.MockManager
-	keyStore     *mockstoremanager.MockKeyStore
-	router       *mux.Router
-	ctx          context.Context
+	ctrl     *gomock.Controller
+	stores   *mock.MockStores
+	keyStore *mock.MockKeyStore
+	router   *mux.Router
+	ctx      context.Context
 }
 
 func TestKeysHandler(t *testing.T) {
@@ -56,14 +56,18 @@ func TestKeysHandler(t *testing.T) {
 func (s *keysHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
-	s.keyStore = mockstoremanager.NewMockKeyStore(s.ctrl)
+	manager := mock.NewMockManager(s.ctrl)
+	s.stores = mock.NewMockStores(s.ctrl)
+	s.keyStore = mock.NewMockKeyStore(s.ctrl)
+
+	manager.EXPECT().Stores().Return(s.stores, nil).AnyTimes()
+	s.stores.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: keyUserInfo,
 	})
-	NewStoresHandler(s.storeManager).Register(s.router)
+	NewStoresHandler(manager).Register(s.router)
 }
 
 func (s *keysHandlerTestSuite) TearDownTest() {
@@ -80,7 +84,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 		key := testutils2.FakeKey()
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
+		s.stores.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			keyID,
@@ -106,7 +110,6 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 		key := testutils2.FakeKey()
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			gomock.Any(),
@@ -153,7 +156,6 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID, bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -170,7 +172,6 @@ func (s *keysHandlerTestSuite) TestImport() {
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
 		key := testutils2.FakeKey()
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Import(
 			gomock.Any(),
 			keyID,
@@ -223,7 +224,6 @@ func (s *keysHandlerTestSuite) TestImport() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/KeyStore/keys/"+keyID+"/import", bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -238,8 +238,6 @@ func (s *keysHandlerTestSuite) TestSign() {
 
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		signature := []byte("signature")
 		s.keyStore.EXPECT().Sign(gomock.Any(), keyID, signPayloadRequest.Data, gomock.Any()).Return(signature, nil)
@@ -258,7 +256,6 @@ func (s *keysHandlerTestSuite) TestSign() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/KeyStore/keys/%s/sign", keyID), bytes.NewReader(requestBytes)).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -271,7 +268,6 @@ func (s *keysHandlerTestSuite) TestGet() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		key := testutils2.FakeKey()
 		s.keyStore.EXPECT().Get(gomock.Any(), keyID).Return(key, nil)
 
@@ -288,7 +284,6 @@ func (s *keysHandlerTestSuite) TestGet() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -300,8 +295,6 @@ func (s *keysHandlerTestSuite) TestList() {
 	s.Run("should execute request successfully", func() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil).WithContext(s.ctx)
-
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		ids := []string{"key1", "key2"}
 		s.keyStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(ids, nil)
@@ -318,8 +311,6 @@ func (s *keysHandlerTestSuite) TestList() {
 	s.Run("should execute request with limit and offset successfully", func() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys?limit=5&page=2", nil).WithContext(s.ctx)
-
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 
 		ids := []string{"key1", "key2"}
 		s.keyStore.EXPECT().List(gomock.Any(), uint64(5), uint64(10)).Return(ids, nil)
@@ -341,7 +332,6 @@ func (s *keysHandlerTestSuite) TestList() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodGet, "/stores/KeyStore/keys", nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().List(gomock.Any(), defaultPageSize, uint64(0)).Return(nil, errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -354,7 +344,6 @@ func (s *keysHandlerTestSuite) TestDelete() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -368,7 +357,6 @@ func (s *keysHandlerTestSuite) TestDelete() {
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 		httpRequest = httpRequest.WithContext(WithStoreName(httpRequest.Context(), keyStoreName))
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -382,7 +370,6 @@ func (s *keysHandlerTestSuite) TestDelete() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Delete(gomock.Any(), keyID).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -395,7 +382,6 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -409,7 +395,6 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil).WithContext(s.ctx)
 		httpRequest = httpRequest.WithContext(WithStoreName(httpRequest.Context(), keyStoreName))
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -423,7 +408,6 @@ func (s *keysHandlerTestSuite) TestDestroy() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/stores/KeyStore/keys/%s/destroy", keyID), nil).WithContext(s.ctx)
 
-		s.storeManager.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Destroy(gomock.Any(), keyID).Return(errors.NotFoundError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)

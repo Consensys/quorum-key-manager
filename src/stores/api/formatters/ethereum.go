@@ -14,14 +14,10 @@ import (
 	signer "github.com/ethereum/go-ethereum/signer/core"
 )
 
-const (
-	EIP712DomainLabel = "EIP712Domain"
-)
-
 func FormatSignTypedDataRequest(request *types.SignTypedDataRequest) *signer.TypedData {
 	typedData := &signer.TypedData{
 		Types: signer.Types{
-			EIP712DomainLabel: []signer.Type{
+			ethereum.EIP712DomainLabel: []signer.Type{
 				{Name: "name", Type: "string"},
 				{Name: "chainId", Type: "uint256"},
 				{Name: "version", Type: "string"},
@@ -50,11 +46,11 @@ func FormatSignTypedDataRequest(request *types.SignTypedDataRequest) *signer.Typ
 	}
 
 	if request.DomainSeparator.VerifyingContract != "" {
-		typedData.Types[EIP712DomainLabel] = append(typedData.Types[EIP712DomainLabel], signer.Type{Name: "verifyingContract", Type: "address"})
+		typedData.Types[ethereum.EIP712DomainLabel] = append(typedData.Types[ethereum.EIP712DomainLabel], signer.Type{Name: "verifyingContract", Type: "address"})
 	}
 
 	if request.DomainSeparator.Salt != "" {
-		typedData.Types[EIP712DomainLabel] = append(typedData.Types[EIP712DomainLabel], signer.Type{Name: "salt", Type: "string"})
+		typedData.Types[ethereum.EIP712DomainLabel] = append(typedData.Types[ethereum.EIP712DomainLabel], signer.Type{Name: "salt", Type: "string"})
 	}
 
 	return typedData
