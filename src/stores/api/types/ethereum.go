@@ -1,15 +1,14 @@
 package types
 
 import (
-	"github.com/ethereum/go-ethereum/core/types"
 	"time"
+
+	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
-
-type TransactionType string
 
 const (
 	LegacyTxType     = "legacy"
@@ -57,7 +56,7 @@ type Type struct {
 }
 
 type SignETHTransactionRequest struct {
-	TransactionType TransactionType  `json:"transactionType,omitempty" example:"dynamic_fee" enums:"legacy,access_list,dynamic_fee"`
+	TransactionType string           `json:"transactionType,omitempty" example:"dynamic_fee" enums:"legacy,access_list,dynamic_fee"`
 	Nonce           hexutil.Uint64   `json:"nonce" example:"0x1" swaggertype:"string"`
 	To              *common.Address  `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
 	Value           hexutil.Big      `json:"value,omitempty" example:"0xfeaeae" swaggertype:"string"`

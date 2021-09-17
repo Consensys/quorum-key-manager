@@ -7,16 +7,16 @@ import (
 )
 
 type CreateKeyRequest struct {
-	Curve            entities.Curve     `json:"curve" validate:"required,isCurve" example:"secp256k1" enums:"bn254,secp256k1" swaggertype:"string"`
-	SigningAlgorithm entities.Algorithm `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa" enums:"ecdsa,eddsa" swaggertype:"string"`
-	Tags             map[string]string  `json:"tags,omitempty"`
+	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1" enums:"bn254,secp256k1"`
+	SigningAlgorithm string            `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa" enums:"ecdsa,eddsa"`
+	Tags             map[string]string `json:"tags,omitempty"`
 }
 
 type ImportKeyRequest struct {
-	Curve            entities.Curve     `json:"curve" validate:"required,isCurve" example:"secp256k1" enums:"bn254,secp256k1" swaggertype:"string"`
-	SigningAlgorithm entities.Algorithm `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa" enums:"ecdsa,eddsa" swaggertype:"string"`
-	PrivateKey       []byte             `json:"privateKey" validate:"required" example:"bXkgc2lnbmVkIG1lc3NhZ2U=" swaggertype:"string"`
-	Tags             map[string]string  `json:"tags,omitempty"`
+	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1" enums:"bn254,secp256k1"`
+	SigningAlgorithm string            `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa" enums:"ecdsa,eddsa"`
+	PrivateKey       []byte            `json:"privateKey" validate:"required" example:"bXkgc2lnbmVkIG1lc3NhZ2U=" swaggertype:"string"`
+	Tags             map[string]string `json:"tags,omitempty"`
 }
 
 type UpdateKeyRequest struct {
@@ -28,11 +28,11 @@ type SignBase64PayloadRequest struct {
 }
 
 type VerifyKeySignatureRequest struct {
-	Data             []byte             `json:"data" validate:"required" example:"bXkgc2lnbmVkIG1lc3NhZ2U=" swaggertype:"string"`
-	Signature        []byte             `json:"signature" validate:"required" example:"tjThYhKSFSKKvsR8Pji6EJ+FYAcf8TNUdAQnM7MSwZEEaPvFhpr1SuGpX5uOcYUrb3pBA8cLk8xcbKtvZ56qWA==" swaggertype:"string"`
-	Curve            entities.Curve     `json:"curve" validate:"required,isCurve" example:"secp256k1" enums:"bn254,secp256k1" swaggertype:"string"`
-	SigningAlgorithm entities.Algorithm `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa" enums:"ecdsa,eddsa" swaggertype:"string"`
-	PublicKey        []byte             `json:"publicKey" validate:"required" example:"Cjix/fS3WdqKGKabagBNYwcClan5aImoFpnjSF0cqJs=" swaggertype:"string"`
+	Data             []byte `json:"data" validate:"required" example:"bXkgc2lnbmVkIG1lc3NhZ2U=" swaggertype:"string"`
+	Signature        []byte `json:"signature" validate:"required" example:"tjThYhKSFSKKvsR8Pji6EJ+FYAcf8TNUdAQnM7MSwZEEaPvFhpr1SuGpX5uOcYUrb3pBA8cLk8xcbKtvZ56qWA==" swaggertype:"string"`
+	Curve            string `json:"curve" validate:"required,isCurve" example:"secp256k1" enums:"bn254,secp256k1" swaggertype:"string"`
+	SigningAlgorithm string `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa" enums:"ecdsa,eddsa"`
+	PublicKey        []byte `json:"publicKey" validate:"required" example:"Cjix/fS3WdqKGKabagBNYwcClan5aImoFpnjSF0cqJs="`
 }
 
 type KeyResponse struct {

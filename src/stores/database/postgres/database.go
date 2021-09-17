@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
