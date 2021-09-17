@@ -1,6 +1,6 @@
 package handlers
 
-// @TODO Remove duplicated entities once make gen-swagger issue is identified
+// @TODO Remove duplicated types once make gen-swagger issue is identified
 
 // https://github.com/ConsenSys/quorum-key-manager/actions/runs/1170918392
 type ErrorResponse struct {

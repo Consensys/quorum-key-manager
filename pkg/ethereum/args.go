@@ -113,7 +113,7 @@ func (msg *SendTxMsg) TxData(txType int, chainID *big.Int) *types.Transaction {
 	return types.NewTx(txData)
 }
 
-// TODO: Delete this function and use only go-quorum entities when
+// TODO: Delete this function and use only go-quorum types when
 func (msg *SendTxMsg) TxDataQuorum() *quorumtypes.Transaction {
 	if msg.To == nil {
 		return quorumtypes.NewContractCreation(*msg.Nonce, msg.Value, *msg.Gas, msg.GasPrice, *msg.Data)
