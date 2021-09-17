@@ -22,7 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
 
-	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
+	"github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/suite"
@@ -44,11 +44,11 @@ var defaultPageSize = uint64(100)
 type ethHandlerTestSuite struct {
 	suite.Suite
 
-	ctrl         *gomock.Controller
-	storeManager *mockstoremanager.MockManager
-	ethStore     *mockstoremanager.MockEthStore
-	router       *mux.Router
-	ctx          context.Context
+	ctrl     *gomock.Controller
+	stores   *mock.MockStores
+	ethStore *mock.MockEthStore
+	router   *mux.Router
+	ctx      context.Context
 }
 
 func TestEthHandler(t *testing.T) {
@@ -59,16 +59,19 @@ func TestEthHandler(t *testing.T) {
 func (s *ethHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	s.storeManager = mockstoremanager.NewMockManager(s.ctrl)
-	s.ethStore = mockstoremanager.NewMockEthStore(s.ctrl)
+	manager := mock.NewMockManager(s.ctrl)
+	s.stores = mock.NewMockStores(s.ctrl)
+	s.ethStore = mock.NewMockEthStore(s.ctrl)
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: ethUserInfo,
 	})
 
-	s.storeManager.EXPECT().GetEthStore(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
+	manager.EXPECT().Stores().Return(s.stores).AnyTimes()
+	manager.EXPECT().Utilities().Return(nil)
+	s.stores.EXPECT().GetEthStore(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
-	NewStoresHandler(s.storeManager).Register(s.router)
+	NewStoresHandler(manager).Register(s.router)
 }
 
 func (s *ethHandlerTestSuite) TearDownTest() {
@@ -645,100 +648,6 @@ func (s *ethHandlerTestSuite) TestRestore() {
 		httpRequest := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/stores/%s/ethereum/%s/restore", ethStoreName, accAddress), nil).WithContext(s.ctx)
 
 		s.ethStore.EXPECT().Restore(gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
-	})
-}
-
-func (s *ethHandlerTestSuite) TestECRecover() {
-	s.Run("should execute request successfully", func() {
-		ecRecoverRequest := testutils.FakeECRecoverRequest()
-		requestBytes, _ := json.Marshal(ecRecoverRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/ec-recover", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().ECRecover(gomock.Any(), ecRecoverRequest.Data, ecRecoverRequest.Signature).Return(ethcommon.HexToAddress(accAddress), nil)
-
-		s.router.ServeHTTP(rw, httpRequest)
-
-		assert.Equal(s.T(), ethcommon.HexToAddress(accAddress).String(), rw.Body.String())
-		assert.Equal(s.T(), http.StatusOK, rw.Code)
-	})
-
-	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.Run("should fail with correct error code if use case fails", func() {
-		ecRecoverRequest := testutils.FakeECRecoverRequest()
-		requestBytes, _ := json.Marshal(ecRecoverRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/ec-recover", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().ECRecover(gomock.Any(), gomock.Any(), gomock.Any()).Return(ethcommon.Address{}, errors.HashicorpVaultError("error"))
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
-	})
-}
-
-func (s *ethHandlerTestSuite) TestVerifyMessage() {
-	s.Run("should execute request successfully", func() {
-		verifyRequest := testutils.FakeVerifyRequest()
-		requestBytes, _ := json.Marshal(verifyRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify-message", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().VerifyMessage(gomock.Any(), verifyRequest.Address, verifyRequest.Data, verifyRequest.Signature).Return(nil)
-
-		s.router.ServeHTTP(rw, httpRequest)
-
-		assert.Equal(s.T(), "", rw.Body.String())
-		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
-	})
-
-	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.Run("should fail with correct error code if use case fails", func() {
-		verifyRequest := testutils.FakeVerifyRequest()
-		requestBytes, _ := json.Marshal(verifyRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify-message", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().VerifyMessage(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
-	})
-}
-
-func (s *ethHandlerTestSuite) TestVerifyTypedData() {
-	s.Run("should execute request successfully", func() {
-		verifyRequest := testutils.FakeVerifyTypedDataPayloadRequest()
-		requestBytes, _ := json.Marshal(verifyRequest)
-		expectedTypedData := formatters.FormatSignTypedDataRequest(&verifyRequest.TypedData)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify-typed-data", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().VerifyTypedData(gomock.Any(), verifyRequest.Address, expectedTypedData, verifyRequest.Signature).Return(nil)
-
-		s.router.ServeHTTP(rw, httpRequest)
-
-		assert.Equal(s.T(), "", rw.Body.String())
-		assert.Equal(s.T(), http.StatusNoContent, rw.Code)
-	})
-
-	// Sufficient test to check that the mapping to HTTP errors is working. All other status code tests are done in integration tests
-	s.Run("should fail with correct error code if use case fails", func() {
-		verifyRequest := testutils.FakeVerifyTypedDataPayloadRequest()
-		requestBytes, _ := json.Marshal(verifyRequest)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify-typed-data", ethStoreName), bytes.NewReader(requestBytes)).WithContext(s.ctx)
-
-		s.ethStore.EXPECT().VerifyTypedData(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)

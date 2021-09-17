@@ -13,8 +13,8 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
 	"github.com/consensys/quorum-key-manager/src/nodes/node"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
@@ -202,7 +202,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler = interceptor.New(m.stores, m.logger)
+		prxNode.Handler = interceptor.New(m.stores.Stores(), m.logger)
 
 		// Start node
 		err = prxNode.Start(ctx)

@@ -40,7 +40,7 @@ func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) (
 func (c Connector) SignMessage(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr)
 
-	signature, err := c.signHomestead(ctx, addr, crypto.Keccak256(getEIP191EncodedData(data)))
+	signature, err := c.signHomestead(ctx, addr, crypto.Keccak256(ethereum.GetEIP191EncodedData(data)))
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (c Connector) SignMessage(ctx context.Context, addr common.Address, data []
 func (c Connector) SignTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData) ([]byte, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	encodedData, err := getEIP712EncodedData(typedData)
+	encodedData, err := ethereum.GetEIP712EncodedData(typedData)
 	if err != nil {
 		errMessage := "failed to format typed data"
 		logger.WithError(err).Error(errMessage)

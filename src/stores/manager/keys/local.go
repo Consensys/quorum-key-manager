@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )
 
@@ -22,7 +22,7 @@ func NewLocalKeyStore(specs *LocalKeySpecs, db database.Secrets, logger log.Logg
 	var err error
 
 	switch specs.SecretStore {
-	case stores.HashicorpSecrets:
+	case manifest.HashicorpSecrets:
 		spec := &msecrets.HashicorpSecretSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp secret store specs"
@@ -30,7 +30,7 @@ func NewLocalKeyStore(specs *LocalKeySpecs, db database.Secrets, logger log.Logg
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 		secretStore, err = msecrets.NewHashicorpSecretStore(spec, db, logger)
-	case stores.AKVSecrets:
+	case manifest.AKVSecrets:
 		spec := &msecrets.AkvSecretSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV secret store specs"
@@ -38,7 +38,7 @@ func NewLocalKeyStore(specs *LocalKeySpecs, db database.Secrets, logger log.Logg
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 		secretStore, err = msecrets.NewAkvSecretStore(spec, logger)
-	case stores.AWSSecrets:
+	case manifest.AWSSecrets:
 		spec := &msecrets.AwsSecretSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS secret store specs"

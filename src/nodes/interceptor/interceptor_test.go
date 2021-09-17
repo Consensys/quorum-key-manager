@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newInterceptor(ctrl *gomock.Controller) (i *Interceptor, stores *mockstoremanager.MockManager) {
-	stores = mockstoremanager.NewMockManager(ctrl)
+func newInterceptor(ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores) {
+	stores := mockstoremanager.NewMockStores(ctrl)
 	return New(stores, testutils.NewMockLogger(ctrl)), stores
 }
 

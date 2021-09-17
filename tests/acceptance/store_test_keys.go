@@ -26,6 +26,7 @@ type keysTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.KeyStore
+	utils stores.Utilities
 	db    database.Keys
 }
 
@@ -237,7 +238,7 @@ func (s *keysTestSuite) TestList() {
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
-	
+
 	_, err = s.store.Create(ctx, id2, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
@@ -245,7 +246,7 @@ func (s *keysTestSuite) TestList() {
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
-	
+
 	_, err = s.store.Create(ctx, id3, &entities.Algorithm{
 		Type:          entities.Ecdsa,
 		EllipticCurve: entities.Secp256k1,
@@ -258,13 +259,13 @@ func (s *keysTestSuite) TestList() {
 	s.Run("should list all key pairs", func() {
 		ids, err := s.store.List(ctx, 0, 0)
 		require.NoError(s.T(), err)
-		
+
 		listLen = len(ids)
 		assert.Contains(s.T(), ids, id)
 		assert.Contains(s.T(), ids, id2)
 		assert.Contains(s.T(), ids, id3)
 	})
-	
+
 	s.Run("should list first key pair successfully", func() {
 		ids, err := s.store.List(ctx, 1, uint64(listLen-3))
 
@@ -345,7 +346,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
-		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
+		err = s.utils.Verify(key.PublicKey, payload, signature, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		})
@@ -369,7 +370,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
-		err = s.store.Verify(ctx, key.PublicKey, payload, signature, &entities.Algorithm{
+		err = s.utils.Verify(key.PublicKey, payload, signature, &entities.Algorithm{
 			Type:          key.Algo.Type,
 			EllipticCurve: key.Algo.EllipticCurve,
 		})

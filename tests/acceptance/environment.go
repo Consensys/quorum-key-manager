@@ -14,7 +14,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/stores"
 	models2 "github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
@@ -25,8 +24,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	keymanager "github.com/consensys/quorum-key-manager/src"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
@@ -129,7 +128,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
 	tmpYml, err := newTmpManifestYml(
 		&manifest.Manifest{
-			Kind: stores.HashicorpKeys,
+			Kind: manifest.HashicorpKeys,
 			Name: HashicorpKeyStoreName,
 			Specs: &keys.HashicorpKeySpecs{
 				MountPoint: HashicorpKeyMountPoint,

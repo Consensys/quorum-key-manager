@@ -29,7 +29,7 @@ func TestEthSendTransaction(t *testing.T) {
 	ethCaller := mockethereum.NewMockEthCaller(ctrl)
 	tesseraClient := mocktessera.NewMockClient(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
-	storesManager := mockaccounts.NewMockManager(ctrl)
+	stores := mockaccounts.NewMockStores(ctrl)
 
 	from := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 	userInfo := &types.UserInfo{
@@ -48,9 +48,9 @@ func TestEthSendTransaction(t *testing.T) {
 	caller.EXPECT().Eth().Return(ethCaller).AnyTimes()
 	session.EXPECT().EthCaller().Return(caller).AnyTimes()
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
-	storesManager.EXPECT().GetEthStoreByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
+	stores.EXPECT().GetEthStoreByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
 
-	i := New(storesManager, testutils.NewMockLogger(ctrl))
+	i := New(stores, testutils.NewMockLogger(ctrl))
 
 	t.Run("should send a private tx successfully", func(t *testing.T) {
 		privateArgs := (&ethereum.PrivateArgs{}).

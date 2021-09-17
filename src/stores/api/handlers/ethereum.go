@@ -25,13 +25,12 @@ const (
 )
 
 type EthHandler struct {
-	stores stores.Manager
+	stores stores.Stores
 }
 
-// NewAccountsHandler creates a http.Handler to be served on /accounts
-func NewAccountsHandler(s stores.Manager) *EthHandler {
+func NewEthHandler(storesConnector stores.Stores) *EthHandler {
 	return &EthHandler{
-		stores: s,
+		stores: storesConnector,
 	}
 }
 
@@ -39,9 +38,6 @@ func (h *EthHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
 	r.Methods(http.MethodGet).Path("").HandlerFunc(h.list)
 	r.Methods(http.MethodPost).Path("/import").HandlerFunc(h.importAccount)
-	r.Methods(http.MethodPost).Path("/ec-recover").HandlerFunc(h.ecRecover)
-	r.Methods(http.MethodPost).Path("/verify-message").HandlerFunc(h.verifyMessage)
-	r.Methods(http.MethodPost).Path("/verify-typed-data").HandlerFunc(h.verifyTypedData)
 	r.Methods(http.MethodPost).Path("/{address}/sign-transaction").HandlerFunc(h.signTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-quorum-private-transaction").HandlerFunc(h.signPrivateTransaction)
 	r.Methods(http.MethodPost).Path("/{address}/sign-eea-transaction").HandlerFunc(h.signEEATransaction)
@@ -582,122 +578,6 @@ func (h *EthHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	err = ethStore.Restore(ctx, getAddress(request))
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	rw.WriteHeader(http.StatusNoContent)
-}
-
-// @Summary EC Recover
-// @Description Recover an Ethereum transaction sender from a signature
-// @Tags Ethereum Utils
-// @Accept json
-// @Produce plain
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
-// @Param request body types.ECRecoverRequest true "Ethereum recover request"
-// @Success 200 {string} string "Recovered sender address"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/ethereum/ec-recover [post]
-func (h *EthHandler) ecRecover(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	ecRecoverReq := &types.ECRecoverRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, ecRecoverReq)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	address, err := ethStore.ECRecover(ctx, ecRecoverReq.Data, ecRecoverReq.Signature)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	_, _ = rw.Write([]byte(address.Hex()))
-}
-
-// @Summary Verify message signature (EIP-191)
-// @Description Verify the signature of a message signed using standard format EIP-191
-// @Tags Ethereum Utils
-// @Accept json
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
-// @Param request body types.VerifyRequest true "Ethereum signature verify request"
-// @Success 204 "Successful verification"
-// @Failure 422 {object} ErrorResponse "Cannot verify signature"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/ethereum/verify-message [post]
-func (h *EthHandler) verifyMessage(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	verifyReq := &types.VerifyRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	err = ethStore.VerifyMessage(ctx, verifyReq.Address, verifyReq.Data, verifyReq.Signature)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	rw.WriteHeader(http.StatusNoContent)
-}
-
-// @Summary Verify typed data signature (EIP-712)
-// @Description Verify the signature of an Ethereum typed data using format defined at EIP-712
-// @Tags Ethereum Utils
-// @Accept json
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
-// @Param request body types.VerifyTypedDataRequest true "Typed data request to verify"
-// @Success 204 "Successful verification"
-// @Failure 422 {object} ErrorResponse "Cannot verify signature"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/ethereum/verify-typed-data [post]
-func (h *EthHandler) verifyTypedData(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	verifyReq := &types.VerifyTypedDataRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
-	err = ethStore.VerifyTypedData(ctx, verifyReq.Address, typedData, verifyReq.Signature)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

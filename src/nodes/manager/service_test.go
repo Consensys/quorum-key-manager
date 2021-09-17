@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
+	storesmock "github.com/consensys/quorum-key-manager/src/stores/mock"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -14,7 +15,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 )
 
 var manifestWithTessera = &manifest.Manifest{
@@ -103,9 +104,13 @@ func TestManager(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockAuthManager := mock.NewMockManager(ctrl)
-	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
+	mockStoresManager := storesmock.NewMockManager(ctrl)
+	mockStores := storesmock.NewMockStores(ctrl)
 
-	mngr := New(nil, nil, mockAuthManager, testutils.NewMockLogger(ctrl))
+	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
+	mockStoresManager.EXPECT().Stores().Return(mockStores).AnyTimes()
+
+	mngr := New(mockStoresManager, nil, mockAuthManager, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)
 	require.NoError(t, err, "Load must not error")
