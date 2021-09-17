@@ -1,16 +1,16 @@
 package types
 
 import (
-	"time"
-
 	"github.com/ethereum/go-ethereum/core/types"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// Transaction types
+type TransactionType string
+
 const (
 	LegacyTxType     = "legacy"
 	AccessListTxType = "access_list"
@@ -57,7 +57,7 @@ type Type struct {
 }
 
 type SignETHTransactionRequest struct {
-	TransactionType string           `json:"transactionType,omitempty" example:"0x0" swaggertype:"string"`
+	TransactionType TransactionType  `json:"transactionType,omitempty" example:"dynamic_fee" enums:"legacy,access_list,dynamic_fee"`
 	Nonce           hexutil.Uint64   `json:"nonce" example:"0x1" swaggertype:"string"`
 	To              *common.Address  `json:"to,omitempty" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
 	Value           hexutil.Big      `json:"value,omitempty" example:"0xfeaeae" swaggertype:"string"`
@@ -67,7 +67,7 @@ type SignETHTransactionRequest struct {
 	ChainID         hexutil.Big      `json:"chainID" validate:"required" example:"0x1 (mainnet)" swaggertype:"string"`
 	GasFeeCap       *hexutil.Big     `json:"maxFeePerGas,omitempty" example:"0x5208" swaggertype:"string"`
 	GasTipCap       *hexutil.Big     `json:"maxPriorityFeePerGas,omitempty" example:"0x5208" swaggertype:"string"`
-	AccessList      types.AccessList `json:"accessList,omitempty" swaggertype:"string"`
+	AccessList      types.AccessList `json:"accessList,omitempty" swaggertype:"array,object"`
 }
 
 type SignQuorumPrivateTransactionRequest struct {
@@ -104,7 +104,7 @@ type VerifyRequest struct {
 }
 
 type VerifyTypedDataRequest struct {
-	TypedData SignTypedDataRequest `json:"data" validate:"required" swaggertype:"string"`
+	TypedData SignTypedDataRequest `json:"data" validate:"required"`
 	Signature hexutil.Bytes        `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
 	Address   common.Address       `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
 }

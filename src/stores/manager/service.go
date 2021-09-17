@@ -117,7 +117,7 @@ func (m *BaseManager) CheckReadiness(ctx context.Context) error {
 
 	err = m.db.Ping(ctx)
 	if err != nil {
-		return errors.DependencyFailureError("database connection error: %s", err.Error())
+		return err
 	}
 
 	return nil

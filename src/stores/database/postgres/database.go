@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
@@ -27,7 +28,14 @@ func (db *Database) ETHAccounts(storeID string) database.ETHAccounts {
 }
 
 func (db *Database) Ping(ctx context.Context) error {
-	return db.client.Ping(ctx)
+	err := db.client.Ping(ctx)
+	if err != nil {
+		errMessage := "database connection error"
+		db.logger.WithError(err).Error(errMessage)
+		return errors.DependencyFailureError(errMessage)
+	}
+
+	return nil
 }
 
 func (db *Database) Keys(storeID string) database.Keys {
