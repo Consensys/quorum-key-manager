@@ -220,20 +220,6 @@ func (mr *MockKeysClientMockRecorder) SignKey(ctx, storeName, id, request interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignKey", reflect.TypeOf((*MockKeysClient)(nil).SignKey), ctx, storeName, id, request)
 }
 
-// VerifyKeySignature mocks base method
-func (m *MockKeysClient) VerifyKeySignature(ctx context.Context, storeName string, request *types.VerifyKeySignatureRequest) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, storeName, request)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// VerifyKeySignature indicates an expected call of VerifyKeySignature
-func (mr *MockKeysClientMockRecorder) VerifyKeySignature(ctx, storeName, request interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyKeySignature", reflect.TypeOf((*MockKeysClient)(nil).VerifyKeySignature), ctx, storeName, request)
-}
-
 // GetKey mocks base method
 func (m *MockKeysClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
 	m.ctrl.T.Helper()
@@ -566,47 +552,84 @@ func (mr *MockEthClientMockRecorder) RestoreEthAccount(ctx, storeName, address i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreEthAccount", reflect.TypeOf((*MockEthClient)(nil).RestoreEthAccount), ctx, storeName, address)
 }
 
-// ECRecover mocks base method
-func (m *MockEthClient) ECRecover(ctx context.Context, storeName string, request *types.ECRecoverRequest) (string, error) {
+// MockUtilsClient is a mock of UtilsClient interface
+type MockUtilsClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockUtilsClientMockRecorder
+}
+
+// MockUtilsClientMockRecorder is the mock recorder for MockUtilsClient
+type MockUtilsClientMockRecorder struct {
+	mock *MockUtilsClient
+}
+
+// NewMockUtilsClient creates a new mock instance
+func NewMockUtilsClient(ctrl *gomock.Controller) *MockUtilsClient {
+	mock := &MockUtilsClient{ctrl: ctrl}
+	mock.recorder = &MockUtilsClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockUtilsClient) EXPECT() *MockUtilsClientMockRecorder {
+	return m.recorder
+}
+
+// VerifyKeySignature mocks base method
+func (m *MockUtilsClient) VerifyKeySignature(ctx context.Context, request *types.VerifyKeySignatureRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ECRecover", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, request)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyKeySignature indicates an expected call of VerifyKeySignature
+func (mr *MockUtilsClientMockRecorder) VerifyKeySignature(ctx, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyKeySignature", reflect.TypeOf((*MockUtilsClient)(nil).VerifyKeySignature), ctx, request)
+}
+
+// ECRecover mocks base method
+func (m *MockUtilsClient) ECRecover(ctx context.Context, request *types.ECRecoverRequest) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ECRecover", ctx, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ECRecover indicates an expected call of ECRecover
-func (mr *MockEthClientMockRecorder) ECRecover(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockUtilsClientMockRecorder) ECRecover(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockEthClient)(nil).ECRecover), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockUtilsClient)(nil).ECRecover), ctx, request)
 }
 
 // VerifyMessage mocks base method
-func (m *MockEthClient) VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error {
+func (m *MockUtilsClient) VerifyMessage(ctx context.Context, request *types.VerifyRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyMessage", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "VerifyMessage", ctx, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyMessage indicates an expected call of VerifyMessage
-func (mr *MockEthClientMockRecorder) VerifyMessage(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockUtilsClientMockRecorder) VerifyMessage(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockEthClient)(nil).VerifyMessage), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockUtilsClient)(nil).VerifyMessage), ctx, request)
 }
 
 // VerifyTypedData mocks base method
-func (m *MockEthClient) VerifyTypedData(ctx context.Context, storeName string, request *types.VerifyTypedDataRequest) error {
+func (m *MockUtilsClient) VerifyTypedData(ctx context.Context, request *types.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyTypedData indicates an expected call of VerifyTypedData
-func (mr *MockEthClientMockRecorder) VerifyTypedData(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockUtilsClientMockRecorder) VerifyTypedData(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockEthClient)(nil).VerifyTypedData), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockUtilsClient)(nil).VerifyTypedData), ctx, request)
 }
 
 // MockJSONRPC is a mock of JSONRPC interface
@@ -835,20 +858,6 @@ func (m *MockKeyManagerClient) SignKey(ctx context.Context, storeName, id string
 func (mr *MockKeyManagerClientMockRecorder) SignKey(ctx, storeName, id, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignKey", reflect.TypeOf((*MockKeyManagerClient)(nil).SignKey), ctx, storeName, id, request)
-}
-
-// VerifyKeySignature mocks base method
-func (m *MockKeyManagerClient) VerifyKeySignature(ctx context.Context, storeName string, request *types.VerifyKeySignatureRequest) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, storeName, request)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// VerifyKeySignature indicates an expected call of VerifyKeySignature
-func (mr *MockKeyManagerClientMockRecorder) VerifyKeySignature(ctx, storeName, request interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyKeySignature", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyKeySignature), ctx, storeName, request)
 }
 
 // GetKey mocks base method
@@ -1160,47 +1169,61 @@ func (mr *MockKeyManagerClientMockRecorder) RestoreEthAccount(ctx, storeName, ad
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreEthAccount", reflect.TypeOf((*MockKeyManagerClient)(nil).RestoreEthAccount), ctx, storeName, address)
 }
 
-// ECRecover mocks base method
-func (m *MockKeyManagerClient) ECRecover(ctx context.Context, storeName string, request *types.ECRecoverRequest) (string, error) {
+// VerifyKeySignature mocks base method
+func (m *MockKeyManagerClient) VerifyKeySignature(ctx context.Context, request *types.VerifyKeySignatureRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ECRecover", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, request)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyKeySignature indicates an expected call of VerifyKeySignature
+func (mr *MockKeyManagerClientMockRecorder) VerifyKeySignature(ctx, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyKeySignature", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyKeySignature), ctx, request)
+}
+
+// ECRecover mocks base method
+func (m *MockKeyManagerClient) ECRecover(ctx context.Context, request *types.ECRecoverRequest) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ECRecover", ctx, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ECRecover indicates an expected call of ECRecover
-func (mr *MockKeyManagerClientMockRecorder) ECRecover(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) ECRecover(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockKeyManagerClient)(nil).ECRecover), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockKeyManagerClient)(nil).ECRecover), ctx, request)
 }
 
 // VerifyMessage mocks base method
-func (m *MockKeyManagerClient) VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error {
+func (m *MockKeyManagerClient) VerifyMessage(ctx context.Context, request *types.VerifyRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyMessage", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "VerifyMessage", ctx, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyMessage indicates an expected call of VerifyMessage
-func (mr *MockKeyManagerClientMockRecorder) VerifyMessage(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) VerifyMessage(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyMessage), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyMessage), ctx, request)
 }
 
 // VerifyTypedData mocks base method
-func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, storeName string, request *types.VerifyTypedDataRequest) error {
+func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, request *types.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, storeName, request)
+	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyTypedData indicates an expected call of VerifyTypedData
-func (mr *MockKeyManagerClientMockRecorder) VerifyTypedData(ctx, storeName, request interface{}) *gomock.Call {
+func (mr *MockKeyManagerClientMockRecorder) VerifyTypedData(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyTypedData), ctx, storeName, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyTypedData), ctx, request)
 }
 
 // Call mocks base method

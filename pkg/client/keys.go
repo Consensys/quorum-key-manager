@@ -54,17 +54,6 @@ func (c *HTTPClient) SignKey(ctx context.Context, storeName, id string, req *typ
 	return parseStringResponse(response)
 }
 
-func (c *HTTPClient) VerifyKeySignature(ctx context.Context, storeName string, req *types.VerifyKeySignatureRequest) error {
-	reqURL := fmt.Sprintf("%s/%s/verify-signature", withURLStore(c.config.URL, storeName), keysPath)
-	response, err := postRequest(ctx, c.client, reqURL, req)
-	if err != nil {
-		return err
-	}
-
-	defer closeResponse(response)
-	return parseEmptyBodyResponse(response)
-}
-
 func (c *HTTPClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
 	key := &types.KeyResponse{}
 	reqURL := fmt.Sprintf("%s/%s/%s", withURLStore(c.config.URL, storeName), keysPath, id)
