@@ -3,7 +3,7 @@ package manager
 import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 )
 
 type Action string

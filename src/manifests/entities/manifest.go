@@ -8,6 +8,30 @@ import (
 
 type Kind string
 
+const (
+	Ethereum Kind = "Ethereum"
+
+	HashicorpKeys Kind = "HashicorpKeys"
+	AKVKeys       Kind = "AKVKeys"
+	AWSKeys       Kind = "AWSKeys"
+	LocalKeys     Kind = "LocalKeys"
+
+	HashicorpSecrets Kind = "HashicorpSecrets"
+	AKVSecrets       Kind = "AKVSecrets"
+	AWSSecrets       Kind = "AWSSecrets"
+)
+
+var StoreKinds = []Kind{
+	HashicorpSecrets,
+	HashicorpKeys,
+	AKVSecrets,
+	AKVKeys,
+	AWSSecrets,
+	AWSKeys,
+	LocalKeys,
+	Ethereum,
+}
+
 // Manifest for a store
 type Manifest struct {
 	// Kind of item (Store, Node,...)

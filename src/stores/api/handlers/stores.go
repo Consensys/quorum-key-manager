@@ -11,20 +11,19 @@ import (
 )
 
 type StoresHandler struct {
-	stores stores.Manager
-
 	secrets *SecretsHandler
 	keys    *KeysHandler
 	eth     *EthHandler
+	utils   *UtilsHandler
 }
 
 // NewStoresHandler creates a http.Handler to be served on /stores
 func NewStoresHandler(s stores.Manager) *StoresHandler {
 	return &StoresHandler{
-		stores:  s,
-		secrets: NewSecretsHandler(s),
-		keys:    NewKeysHandler(s),
-		eth:     NewAccountsHandler(s),
+		secrets: NewSecretsHandler(s.Stores()),
+		keys:    NewKeysHandler(s.Stores()),
+		eth:     NewEthHandler(s.Stores()),
+		utils:   NewUtilsHandler(s.Utilities()),
 	}
 }
 
@@ -47,6 +46,10 @@ func (h *StoresHandler) Register(router *mux.Router) {
 	// Register ethereum handler on /stores/{storeName}/ethereum
 	ethSubrouter := storeSubrouter.PathPrefix("/ethereum").Subrouter()
 	h.eth.Register(ethSubrouter)
+
+	// Register ethereum handler on /utilities
+	utilsSubrouter := storeSubrouter.PathPrefix("/utilities").Subrouter()
+	h.eth.Register(utilsSubrouter)
 }
 
 func storeSelector(h http.Handler) http.Handler {

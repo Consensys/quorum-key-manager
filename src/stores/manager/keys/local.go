@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )
 

@@ -1,16 +1,16 @@
-package eth
+package utils
 
 import (
-	"context"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/ethereum"
+
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core"
 )
 
-func (c Connector) VerifyMessage(ctx context.Context, addr ethcommon.Address, data, sig []byte) error {
-	err := c.verifyHomestead(ctx, addr, getEIP191EncodedData(data), sig)
+func (c Connector) VerifyMessage(addr ethcommon.Address, data, sig []byte) error {
+	err := c.verifyHomestead(addr, ethereum.GetEIP191EncodedData(data), sig)
 	if err != nil {
 		return err
 	}
@@ -19,15 +19,15 @@ func (c Connector) VerifyMessage(ctx context.Context, addr ethcommon.Address, da
 	return nil
 }
 
-func (c Connector) VerifyTypedData(ctx context.Context, addr ethcommon.Address, typedData *core.TypedData, sig []byte) error {
-	encodedData, err := getEIP712EncodedData(typedData)
+func (c Connector) VerifyTypedData(addr ethcommon.Address, typedData *core.TypedData, sig []byte) error {
+	encodedData, err := ethereum.GetEIP712EncodedData(typedData)
 	if err != nil {
 		errMessage := "failed to generate EIP-712 encoded data"
 		c.logger.WithError(err).Error(errMessage)
 		return errors.InvalidParameterError(errMessage)
 	}
 
-	err = c.verifyHomestead(ctx, addr, encodedData, sig)
+	err = c.verifyHomestead(addr, encodedData, sig)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (c Connector) VerifyTypedData(ctx context.Context, addr ethcommon.Address, 
 	return nil
 }
 
-func (c Connector) verifyHomestead(ctx context.Context, addr ethcommon.Address, data, sig []byte) error {
+func (c Connector) verifyHomestead(addr ethcommon.Address, data, sig []byte) error {
 	sigLength := len(sig)
 	if sigLength != crypto.SignatureLength {
 		errMessage := "signature must be exactly 65 bytes"
@@ -46,7 +46,7 @@ func (c Connector) verifyHomestead(ctx context.Context, addr ethcommon.Address, 
 
 	sig[crypto.RecoveryIDOffset] -= 27
 
-	recoveredAddress, err := c.ECRecover(ctx, data, sig)
+	recoveredAddress, err := c.ECRecover(data, sig)
 	if err != nil {
 		return err
 	}

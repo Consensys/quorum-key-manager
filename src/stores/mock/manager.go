@@ -5,11 +5,7 @@
 package mock
 
 import (
-	context "context"
-	types "github.com/consensys/quorum-key-manager/src/auth/types"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 	stores "github.com/consensys/quorum-key-manager/src/stores"
-	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -37,92 +33,30 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// GetSecretStore mocks base method
-func (m *MockManager) GetSecretStore(ctx context.Context, name string, userInfo *types.UserInfo) (stores.SecretStore, error) {
+// Stores mocks base method
+func (m *MockManager) Stores() stores.Stores {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecretStore", ctx, name, userInfo)
-	ret0, _ := ret[0].(stores.SecretStore)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Stores")
+	ret0, _ := ret[0].(stores.Stores)
+	return ret0
 }
 
-// GetSecretStore indicates an expected call of GetSecretStore
-func (mr *MockManagerMockRecorder) GetSecretStore(ctx, name, userInfo interface{}) *gomock.Call {
+// Stores indicates an expected call of Stores
+func (mr *MockManagerMockRecorder) Stores() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecretStore", reflect.TypeOf((*MockManager)(nil).GetSecretStore), ctx, name, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stores", reflect.TypeOf((*MockManager)(nil).Stores))
 }
 
-// GetKeyStore mocks base method
-func (m *MockManager) GetKeyStore(ctx context.Context, name string, userInfo *types.UserInfo) (stores.KeyStore, error) {
+// Utilities mocks base method
+func (m *MockManager) Utilities() stores.Utilities {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKeyStore", ctx, name, userInfo)
-	ret0, _ := ret[0].(stores.KeyStore)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Utilities")
+	ret0, _ := ret[0].(stores.Utilities)
+	return ret0
 }
 
-// GetKeyStore indicates an expected call of GetKeyStore
-func (mr *MockManagerMockRecorder) GetKeyStore(ctx, name, userInfo interface{}) *gomock.Call {
+// Utilities indicates an expected call of Utilities
+func (mr *MockManagerMockRecorder) Utilities() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeyStore", reflect.TypeOf((*MockManager)(nil).GetKeyStore), ctx, name, userInfo)
-}
-
-// GetEthStore mocks base method
-func (m *MockManager) GetEthStore(ctx context.Context, name string, userInfo *types.UserInfo) (stores.EthStore, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEthStore", ctx, name, userInfo)
-	ret0, _ := ret[0].(stores.EthStore)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetEthStore indicates an expected call of GetEthStore
-func (mr *MockManagerMockRecorder) GetEthStore(ctx, name, userInfo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEthStore", reflect.TypeOf((*MockManager)(nil).GetEthStore), ctx, name, userInfo)
-}
-
-// GetEthStoreByAddr mocks base method
-func (m *MockManager) GetEthStoreByAddr(ctx context.Context, addr common.Address, userInfo *types.UserInfo) (stores.EthStore, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEthStoreByAddr", ctx, addr, userInfo)
-	ret0, _ := ret[0].(stores.EthStore)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetEthStoreByAddr indicates an expected call of GetEthStoreByAddr
-func (mr *MockManagerMockRecorder) GetEthStoreByAddr(ctx, addr, userInfo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEthStoreByAddr", reflect.TypeOf((*MockManager)(nil).GetEthStoreByAddr), ctx, addr, userInfo)
-}
-
-// List mocks base method
-func (m *MockManager) List(ctx context.Context, kind manifest.Kind, userInfo *types.UserInfo) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx, kind, userInfo)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List
-func (mr *MockManagerMockRecorder) List(ctx, kind, userInfo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List), ctx, kind, userInfo)
-}
-
-// ListAllAccounts mocks base method
-func (m *MockManager) ListAllAccounts(ctx context.Context, userInfo *types.UserInfo) ([]common.Address, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAllAccounts", ctx, userInfo)
-	ret0, _ := ret[0].([]common.Address)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAllAccounts indicates an expected call of ListAllAccounts
-func (mr *MockManagerMockRecorder) ListAllAccounts(ctx, userInfo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllAccounts", reflect.TypeOf((*MockManager)(nil).ListAllAccounts), ctx, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Utilities", reflect.TypeOf((*MockManager)(nil).Utilities))
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// Transaction types
+// Transaction entities
 const (
 	LegacyTxType     = "legacy"
 	AccessListTxType = "access_list"
@@ -38,7 +38,7 @@ type SignMessageRequest struct {
 
 type SignTypedDataRequest struct {
 	DomainSeparator DomainSeparator        `json:"domainSeparator" validate:"required"`
-	Types           map[string][]Type      `json:"types" validate:"required"`
+	Types           map[string][]Type      `json:"entities" validate:"required"`
 	Message         map[string]interface{} `json:"message" validate:"required"`
 	MessageType     string                 `json:"messageType" validate:"required" example:"Mail"`
 }

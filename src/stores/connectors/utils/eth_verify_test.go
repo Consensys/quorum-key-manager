@@ -1,7 +1,8 @@
-package eth
+package utils
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -26,7 +27,7 @@ func TestVerifyMessage(t *testing.T) {
 	db := mock2.NewMockETHAccounts(ctrl)
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(store, db, nil, logger)
+	connector := eth.NewConnector(store, db, nil, logger)
 	acc := testutils2.FakeETHAccount()
 	acc.Address = common.HexToAddress("0x185bD93d8D62AF4e7AD6c928561A3d86142e26ef")
 

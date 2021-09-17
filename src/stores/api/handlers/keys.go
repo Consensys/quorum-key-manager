@@ -18,13 +18,12 @@ import (
 )
 
 type KeysHandler struct {
-	stores stores.Manager
+	stores stores.Stores
 }
 
-// NewKeysHandler creates a http.Handler to be served on /keys
-func NewKeysHandler(s stores.Manager) *KeysHandler {
+func NewKeysHandler(stores stores.Stores) *KeysHandler {
 	return &KeysHandler{
-		stores: s,
+		stores: stores,
 	}
 }
 
@@ -35,7 +34,6 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodGet).Path("/{id}").HandlerFunc(h.getOne)
 	r.Methods(http.MethodPatch).Path("/{id}").HandlerFunc(h.update)
 	r.Methods(http.MethodPut).Path("/{id}/restore").HandlerFunc(h.restore)
-	r.Methods(http.MethodPost).Path("/verify-signature").HandlerFunc(h.verifySignature)
 	r.Methods(http.MethodPost).Path("/{id}").HandlerFunc(h.create)
 
 	r.Methods(http.MethodDelete).Path("/{id}").HandlerFunc(h.delete)
@@ -404,48 +402,6 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	err = keyStore.Destroy(ctx, getID(request))
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	rw.WriteHeader(http.StatusNoContent)
-}
-
-// @Summary Verify key signature
-// @Description Verify if signature data was signed by a specific key
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
-// @Param request body types.VerifyKeySignatureRequest true "Verify signature request"
-// @Success 204 "Successful verification"
-// @Failure 422 {object} ErrorResponse "Cannot verify signature"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/verify-signature [post]
-func (h *KeysHandler) verifySignature(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	verifyReq := &types.VerifyKeySignatureRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeyStore(ctx, StoreNameFromContext(ctx), userInfo)
-	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	err = keyStore.Verify(ctx, verifyReq.PublicKey, verifyReq.Data, verifyReq.Signature, &entities.Algorithm{
-		Type:          entities.KeyType(verifyReq.SigningAlgorithm),
-		EllipticCurve: entities.Curve(verifyReq.Curve),
-	})
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

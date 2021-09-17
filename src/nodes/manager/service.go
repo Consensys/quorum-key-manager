@@ -14,7 +14,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
 	"github.com/consensys/quorum-key-manager/src/nodes/node"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"

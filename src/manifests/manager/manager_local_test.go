@@ -11,7 +11,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

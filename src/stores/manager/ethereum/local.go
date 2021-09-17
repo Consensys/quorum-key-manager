@@ -7,7 +7,7 @@ import (
 	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 )
 
 type LocalEthSpecs struct {

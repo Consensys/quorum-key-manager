@@ -277,49 +277,6 @@ func (mr *MockEthStoreMockRecorder) SignPrivate(ctx, addr, tx interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignPrivate", reflect.TypeOf((*MockEthStore)(nil).SignPrivate), ctx, addr, tx)
 }
 
-// ECRecover mocks base method
-func (m *MockEthStore) ECRecover(ctx context.Context, data, sig []byte) (common.Address, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ECRecover", ctx, data, sig)
-	ret0, _ := ret[0].(common.Address)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ECRecover indicates an expected call of ECRecover
-func (mr *MockEthStoreMockRecorder) ECRecover(ctx, data, sig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ECRecover", reflect.TypeOf((*MockEthStore)(nil).ECRecover), ctx, data, sig)
-}
-
-// VerifyMessage mocks base method
-func (m *MockEthStore) VerifyMessage(ctx context.Context, addr common.Address, data, sig []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyMessage", ctx, addr, data, sig)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// VerifyMessage indicates an expected call of VerifyMessage
-func (mr *MockEthStoreMockRecorder) VerifyMessage(ctx, addr, data, sig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMessage", reflect.TypeOf((*MockEthStore)(nil).VerifyMessage), ctx, addr, data, sig)
-}
-
-// VerifyTypedData mocks base method
-func (m *MockEthStore) VerifyTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData, sig []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, addr, typedData, sig)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// VerifyTypedData indicates an expected call of VerifyTypedData
-func (mr *MockEthStoreMockRecorder) VerifyTypedData(ctx, addr, typedData, sig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockEthStore)(nil).VerifyTypedData), ctx, addr, typedData, sig)
-}
-
 // Encrypt mocks base method
 func (m *MockEthStore) Encrypt(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()

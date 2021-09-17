@@ -16,13 +16,12 @@ import (
 )
 
 type SecretsHandler struct {
-	stores stores.Manager
+	stores stores.Stores
 }
 
-// NewSecretsHandler creates a http.Handler to be served on /secrets
-func NewSecretsHandler(s stores.Manager) *SecretsHandler {
+func NewSecretsHandler(stores stores.Stores) *SecretsHandler {
 	return &SecretsHandler{
-		stores: s,
+		stores: stores,
 	}
 }
 
