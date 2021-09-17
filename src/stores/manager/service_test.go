@@ -33,7 +33,7 @@ var testManifest = []byte(`
   version: 0.0.1
   name: hashicorp-keys
   specs:
-    mountPoint: orchestrate
+    mountPoint: quorum
     address: http://hashicorp:8200
     token: fakeToken
     namespace: ''
@@ -61,7 +61,7 @@ var testManifest = []byte(`
   specs:
     keystore: HashicorpKeys
     specs:
-      mountPoint: orchestrate
+      mountPoint: quorum
       address: http://hashicorp:8200
       token: fakeToken
       namespace: ''

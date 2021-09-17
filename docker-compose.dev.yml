@@ -52,11 +52,12 @@ services:
       <<: *qkm-common
       AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-/certificates/client.crt}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
-      HTTPS_ENABLE: ${HTTPS_ENABLE-true}
+      HTTPS_ENABLED: ${HTTPS_ENABLED-true}
       HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-/certificates/https.key}
       HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-/certificates/https.crt}
       AUTH_TLS_CA: ${AUTH_TLS_CA-/ca/ca.crt}
       AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
+      AUTH_OIDC_CA_KEY_PASSWORD: ${AUTH_OIDC_CA_KEY_PASSWORD-}
     ports:
       - 8080:8080
       - 8081:8081
@@ -79,7 +80,7 @@ services:
       AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config/certificates:/certificates:ro
+      - ./deps/config/ca:/ca:ro
     command: utils generate-jwt --sub=${SUB-tenant0|user0} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-72h}
 
 networks:

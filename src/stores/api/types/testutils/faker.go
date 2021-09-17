@@ -74,7 +74,7 @@ func FakeSignMessageRequest() *types.SignMessageRequest {
 func FakeSignTypedDataRequest() *types.SignTypedDataRequest {
 	return &types.SignTypedDataRequest{
 		DomainSeparator: types.DomainSeparator{
-			Name:              "orchestrate",
+			Name:              "quorum",
 			Version:           "v2.6.0",
 			ChainID:           1,
 			VerifyingContract: "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18",

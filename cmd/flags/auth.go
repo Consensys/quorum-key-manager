@@ -27,6 +27,7 @@ import (
 func init() {
 	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
 	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
+	_ = viper.BindEnv(AuthOIDCCAKeyPasswordViperKey, authOIDCCAKeyPasswordEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 
 	viper.SetDefault(AuthOIDCClaimUsernameViperKey, AuthOIDCClaimUsernameDefault)
@@ -40,7 +41,6 @@ func init() {
 	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
 
 	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsFileEnv)
-
 }
 
 const (
@@ -89,6 +89,13 @@ const (
 )
 
 const (
+	authOIDCCAKeyPasswordFlag     = "auth-oidc-ca-key-password"
+	AuthOIDCCAKeyPasswordViperKey = "auth.oidc.ca.key.password"
+	authOIDCCAKeyPasswordDefault  = ""
+	authOIDCCAKeyPasswordEnv      = "AUTH_OIDC_CA_KEY_PASSWORD"
+)
+
+const (
 	authOIDCClaimUsernameFlag     = "auth-oidc-claim-username"
 	AuthOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
 	AuthOIDCClaimUsernameDefault  = "sub"
@@ -133,12 +140,17 @@ func AuthFlags(f *pflag.FlagSet) {
 	authAPIKeyFile(f)
 }
 
-// Use only on generate-token utils
+// AuthOIDCCertKeyFile Use only on generate-token utils
 func AuthOIDCCertKeyFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect ca Cert filepath.
+	desc := fmt.Sprintf(`OpenID Connect CA key filepath.
 Environment variable: %q`, authOIDCCAKeyFileEnv)
 	f.String(authOIDCCAKeyFileFlag, authOIDCCAKeyFileDefault, desc)
 	_ = viper.BindPFlag(AuthOIDCCAKeyFileViperKey, f.Lookup(authOIDCCAKeyFileFlag))
+
+	desc = fmt.Sprintf(`OpenID Connect CA key password.
+Environment variable: %q`, authOIDCCAKeyPasswordEnv)
+	f.String(authOIDCCAKeyPasswordFlag, authOIDCCAKeyPasswordDefault, desc)
+	_ = viper.BindPFlag(AuthOIDCCAKeyPasswordViperKey, f.Lookup(authOIDCCAKeyPasswordFlag))
 }
 
 func authOIDCCAFile(f *pflag.FlagSet) {
