@@ -3,6 +3,7 @@ package storemanager
 import (
 	"context"
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/src/auth"
 	storesconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"

@@ -19,9 +19,9 @@ type SecretsHandler struct {
 	stores stores.Stores
 }
 
-func NewSecretsHandler(stores stores.Stores) *SecretsHandler {
+func NewSecretsHandler(storesConnector stores.Stores) *SecretsHandler {
 	return &SecretsHandler{
-		stores: stores,
+		stores: storesConnector,
 	}
 }
 

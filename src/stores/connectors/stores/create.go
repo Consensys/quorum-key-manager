@@ -2,9 +2,10 @@ package stores
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/ethereum"
+	eth "github.com/consensys/quorum-key-manager/src/stores/manager/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )

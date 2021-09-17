@@ -21,9 +21,9 @@ type KeysHandler struct {
 	stores stores.Stores
 }
 
-func NewKeysHandler(stores stores.Stores) *KeysHandler {
+func NewKeysHandler(storesConnector stores.Stores) *KeysHandler {
 	return &KeysHandler{
-		stores: stores,
+		stores: storesConnector,
 	}
 }
 

@@ -60,7 +60,8 @@ func (s *keysHandlerTestSuite) SetupTest() {
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.keyStore = mock.NewMockKeyStore(s.ctrl)
 
-	manager.EXPECT().Stores().Return(s.stores, nil).AnyTimes()
+	manager.EXPECT().Stores().Return(s.stores).AnyTimes()
+	manager.EXPECT().Utilities().Return(nil)
 	s.stores.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
@@ -84,7 +85,6 @@ func (s *keysHandlerTestSuite) TestCreate() {
 
 		key := testutils2.FakeKey()
 
-		s.stores.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil)
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			keyID,

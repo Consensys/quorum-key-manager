@@ -28,6 +28,10 @@ func NewStoresHandler(s stores.Manager) *StoresHandler {
 }
 
 func (h *StoresHandler) Register(router *mux.Router) {
+	// Register utilities handler on /utilities
+	utilsSubrouter := router.PathPrefix("/utilities").Subrouter()
+	h.utils.Register(utilsSubrouter)
+
 	// Create subrouter for /stores
 	storesSubrouter := router.PathPrefix("/stores").Subrouter()
 
@@ -46,10 +50,6 @@ func (h *StoresHandler) Register(router *mux.Router) {
 	// Register ethereum handler on /stores/{storeName}/ethereum
 	ethSubrouter := storeSubrouter.PathPrefix("/ethereum").Subrouter()
 	h.eth.Register(ethSubrouter)
-
-	// Register ethereum handler on /utilities
-	utilsSubrouter := storeSubrouter.PathPrefix("/utilities").Subrouter()
-	h.eth.Register(utilsSubrouter)
 }
 
 func storeSelector(h http.Handler) http.Handler {

@@ -35,9 +35,9 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router), i.logger)
 }
 
-func New(stores stores.Stores, logger log.Logger) *Interceptor {
+func New(storesConnector stores.Stores, logger log.Logger) *Interceptor {
 	i := &Interceptor{
-		stores: stores,
+		stores: storesConnector,
 		logger: logger,
 	}
 

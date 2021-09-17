@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"net/http"
+
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
@@ -35,8 +36,6 @@ func (h *UtilsHandler) Register(r *mux.Router) {
 // @Tags Utilities
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
 // @Param request body types.VerifyKeySignatureRequest true "Verify signature request"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
@@ -69,8 +68,6 @@ func (h *UtilsHandler) verifySignature(rw http.ResponseWriter, request *http.Req
 // @Tags Utilities
 // @Accept json
 // @Produce plain
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
 // @Param request body types.ECRecoverRequest true "Ethereum recover request"
 // @Success 200 {string} string "Recovered sender address"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -99,8 +96,6 @@ func (h *UtilsHandler) ecRecover(rw http.ResponseWriter, request *http.Request) 
 // @Description Verify the signature of a message signed using standard format EIP-191
 // @Tags Utilities
 // @Accept json
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
 // @Param request body types.VerifyRequest true "Ethereum signature verify request"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"
@@ -129,8 +124,6 @@ func (h *UtilsHandler) verifyMessage(rw http.ResponseWriter, request *http.Reque
 // @Description Verify the signature of an Ethereum typed data using format defined at EIP-712
 // @Tags Utilities
 // @Accept json
-// @Param storeName path string true "Store Identifier"
-// @Param address path string true "Ethereum address"
 // @Param request body types.VerifyTypedDataRequest true "Typed data request to verify"
 // @Success 204 "Successful verification"
 // @Failure 422 {object} ErrorResponse "Cannot verify signature"

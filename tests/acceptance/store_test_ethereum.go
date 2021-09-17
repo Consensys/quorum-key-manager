@@ -25,6 +25,7 @@ type ethTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.EthStore
+	utils stores.Utilities
 	db    database.ETHAccounts
 }
 
@@ -216,7 +217,7 @@ func (s *ethTestSuite) TestSignMessageVerify() {
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
-		err = s.store.VerifyMessage(ctx, account.Address, payload, signature)
+		err = s.utils.VerifyMessage(account.Address, payload, signature)
 		require.NoError(s.T(), err)
 	})
 

@@ -28,9 +28,9 @@ type EthHandler struct {
 	stores stores.Stores
 }
 
-func NewEthHandler(stores stores.Stores) *EthHandler {
+func NewEthHandler(storesConnector stores.Stores) *EthHandler {
 	return &EthHandler{
-		stores: stores,
+		stores: storesConnector,
 	}
 }
 

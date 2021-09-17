@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -39,7 +38,8 @@ func (s *utilsHandlerTestSuite) SetupTest() {
 	manager := mock.NewMockManager(s.ctrl)
 	s.utilities = mock.NewMockUtils(s.ctrl)
 
-	manager.EXPECT().Utilities().Return(s.utilities, nil).AnyTimes()
+	manager.EXPECT().Utilities().Return(s.utilities).AnyTimes()
+	manager.EXPECT().Stores().Return(nil).AnyTimes()
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(manager).Register(s.router)
@@ -55,7 +55,7 @@ func (s *utilsHandlerTestSuite) TestECRecover() {
 		requestBytes, _ := json.Marshal(ecRecoverRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/ethereum/ec-recover", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/ec-recover", bytes.NewReader(requestBytes))
 
 		s.utilities.EXPECT().ECRecover(ecRecoverRequest.Data, ecRecoverRequest.Signature).Return(ethcommon.HexToAddress(accAddress), nil)
 
@@ -71,7 +71,7 @@ func (s *utilsHandlerTestSuite) TestECRecover() {
 		requestBytes, _ := json.Marshal(ecRecoverRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/ethereum/ec-recover", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/ec-recover", bytes.NewReader(requestBytes))
 
 		s.utilities.EXPECT().ECRecover(gomock.Any(), gomock.Any()).Return(ethcommon.Address{}, errors.HashicorpVaultError("error"))
 
@@ -86,7 +86,7 @@ func (s *utilsHandlerTestSuite) TestVerifyMessage() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify-message", ethStoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/verify-message", bytes.NewReader(requestBytes))
 
 		s.utilities.EXPECT().VerifyMessage(verifyRequest.Address, verifyRequest.Data, verifyRequest.Signature).Return(nil)
 
@@ -102,7 +102,7 @@ func (s *utilsHandlerTestSuite) TestVerifyMessage() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/stores/%s/ethereum/verify-message", ethStoreName), bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/verify-message", bytes.NewReader(requestBytes))
 
 		s.utilities.EXPECT().VerifyMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 
@@ -118,7 +118,7 @@ func (s *utilsHandlerTestSuite) TestVerifyTypedData() {
 		expectedTypedData := formatters.FormatSignTypedDataRequest(&verifyRequest.TypedData)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "/ethereum/verify-typed-data", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/verify-typed-data", bytes.NewReader(requestBytes))
 
 		s.utilities.EXPECT().VerifyTypedData(verifyRequest.Address, expectedTypedData, verifyRequest.Signature).Return(nil)
 
@@ -134,7 +134,7 @@ func (s *utilsHandlerTestSuite) TestVerifyTypedData() {
 		requestBytes, _ := json.Marshal(verifyRequest)
 
 		rw := httptest.NewRecorder()
-		httpRequest := httptest.NewRequest(http.MethodPost, "ethereum/verify-typed-data", bytes.NewReader(requestBytes))
+		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/verify-typed-data", bytes.NewReader(requestBytes))
 
 		s.utilities.EXPECT().VerifyTypedData(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.HashicorpVaultError("error"))
 

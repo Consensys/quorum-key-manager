@@ -57,8 +57,9 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.secretStore = mock.NewMockSecretStore(s.ctrl)
 
-	manager.EXPECT().Stores().Return(s.stores, nil).AnyTimes()
-	s.stores.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil)
+	manager.EXPECT().Stores().Return(s.stores).AnyTimes()
+	manager.EXPECT().Utilities().Return(nil)
+	s.stores.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil).AnyTimes()
 
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: secretUserInfo,
