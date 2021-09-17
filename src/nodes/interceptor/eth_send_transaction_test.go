@@ -5,13 +5,17 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
 	mocktessera "github.com/consensys/quorum-key-manager/pkg/tessera/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
-	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 )
@@ -20,106 +24,150 @@ func TestEthSendTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, stores := newInterceptor(ctrl)
+	session := proxynode.NewMockSession(ctrl)
+	caller := mockethereum.NewMockCaller(ctrl)
+	ethCaller := mockethereum.NewMockEthCaller(ctrl)
+	tesseraClient := mocktessera.NewMockClient(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
+	storesManager := mockaccounts.NewMockManager(ctrl)
 
+	from := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 	userInfo := &types.UserInfo{
 		Username:    "username",
 		Roles:       []string{"role1", "role2"},
 		Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
 	}
-	session := proxynode.NewMockSession(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
 	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
 		UserInfo: userInfo,
 	})
+	gasPrice := big.NewInt(38)
+	chainID := big.NewInt(1)
+	value := big.NewInt(45)
 
-	cller := mockethereum.NewMockCaller(ctrl)
-	ethCaller := mockethereum.NewMockEthCaller(ctrl)
-	cller.EXPECT().Eth().Return(ethCaller).AnyTimes()
-	session.EXPECT().EthCaller().Return(cller).AnyTimes()
-
-	tesseraClient := mocktessera.NewMockClient(ctrl)
+	caller.EXPECT().Eth().Return(ethCaller).AnyTimes()
+	session.EXPECT().EthCaller().Return(caller).AnyTimes()
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
+	storesManager.EXPECT().GetEthStoreByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
 
-	tests := []*testHandlerCase{
-		{
-			desc:    "Public Transaction ",
-			handler: i.handler,
-			reqBody: []byte(`{"jsonrpc":"2.0","method":"eth_sendTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","data":"0x5208"}]}`),
-			ctx:     ctx,
-			prepare: func() {
-				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
-				// Get accounts
-				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+	i := New(storesManager, testutils.NewMockLogger(ctrl))
 
-				// Get Gas price
-				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)
+	t.Run("should send a private tx successfully", func(t *testing.T) {
+		privateArgs := (&ethereum.PrivateArgs{}).
+			WithPrivateFrom("A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=").
+			WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
+		msg := &ethereum.SendTxMsg{
+			From:        from,
+			PrivateArgs: *privateArgs,
+		}
+		expectedEstimateGasCall := &ethereum.CallMsg{
+			From:     &msg.From,
+			To:       msg.To,
+			Value:    msg.Value,
+			Data:     msg.Data,
+			GasPrice: gasPrice,
+		}
+		expectedData := new([]byte)
+		expectedSignedTx := []byte("mysignature")
+		expectedHash := ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778")
 
-				// Get Gas Limit
-				expectedCallMsg := (&ethereum.CallMsg{
-					From:     &expectedFrom,
-					GasPrice: big.NewInt(1000000000),
-				}).WithData(ethcommon.FromHex("0x5208"))
+		ethCaller.EXPECT().GasPrice(ctx).Return(gasPrice, nil)
+		ethCaller.EXPECT().EstimateGas(ctx, expectedEstimateGasCall).Return(uint64(21000), nil)
+		ethCaller.EXPECT().GetTransactionCount(ctx, msg.From, ethereum.PendingBlockNumber).Return(uint64(0), nil)
+		tesseraClient.EXPECT().StoreRaw(ctx, *expectedData, *msg.PrivateFrom).Return(ethcommon.FromHex("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
+		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
+		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
+		ethCaller.EXPECT().SendRawPrivateTransaction(ctx, expectedSignedTx, privateArgs).Return(expectedHash, nil)
 
-				ethCaller.EXPECT().EstimateGas(gomock.Any(), expectedCallMsg).Return(uint64(21000), nil)
+		hash, err := i.ethSendTransaction(ctx, msg)
+		require.NoError(t, err)
 
-				// Get Nonce
-				ethCaller.EXPECT().GetTransactionCount(gomock.Any(), expectedFrom, ethereum.PendingBlockNumber).Return(uint64(5), nil)
+		assert.Equal(t, hash.Hex(), expectedHash.Hex())
+	})
 
-				// Get ChainID
-				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
+	t.Run("should send a legacy tx successfully", func(t *testing.T) {
+		msg := &ethereum.SendTxMsg{
+			From:     from,
+			GasPrice: gasPrice,
+		}
+		expectedEstimateGasCall := &ethereum.CallMsg{
+			From:     &msg.From,
+			To:       msg.To,
+			Value:    msg.Value,
+			Data:     msg.Data,
+			GasPrice: gasPrice,
+		}
+		expectedSignedTx := []byte("mysignature")
+		expectedHash := ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778")
 
-				// Sign
-				accountsStore.EXPECT().SignTransaction(gomock.Any(), expectedFrom, big.NewInt(1998), gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
+		ethCaller.EXPECT().EstimateGas(ctx, expectedEstimateGasCall).Return(uint64(21000), nil)
+		ethCaller.EXPECT().GetTransactionCount(ctx, msg.From, ethereum.PendingBlockNumber).Return(uint64(0), nil)
+		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
+		accountsStore.EXPECT().SignTransaction(ctx, msg.From, chainID, gomock.Any()).Return(expectedSignedTx, nil)
+		ethCaller.EXPECT().SendRawTransaction(ctx, expectedSignedTx).Return(expectedHash, nil)
 
-				// SendRawTransaction
-				ethCaller.EXPECT().SendRawTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27")).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
-			},
-			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":"0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778","error":null,"id":null}`),
-		},
-		{
-			desc:    "Transaction private transaction",
-			handler: i.handler,
-			reqBody: []byte(`{"jsonrpc":"2.0","method":"eth_sendTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","data":"0x5208","privateFrom":"GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=","privateFor":["KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=","eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="]}]}`),
-			ctx:     ctx,
-			prepare: func() {
-				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
-				// Get accounts
-				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+		hash, err := i.ethSendTransaction(ctx, msg)
+		require.NoError(t, err)
 
-				// Get Gas price
-				ethCaller.EXPECT().GasPrice(gomock.Any()).Return(big.NewInt(1000000000), nil)
+		assert.Equal(t, hash.Hex(), expectedHash.Hex())
+	})
 
-				// Get Gas Limit
-				expectedCallMsg := (&ethereum.CallMsg{
-					From:     &expectedFrom,
-					GasPrice: big.NewInt(1000000000),
-				}).WithData(ethcommon.FromHex("0x5208"))
+	t.Run("should send a dynamic fee tx successfully", func(t *testing.T) {
+		msg := &ethereum.SendTxMsg{
+			From:  from,
+			Value: value,
+		}
+		expectedEstimateGasCall := &ethereum.CallMsg{
+			From:       &msg.From,
+			To:         msg.To,
+			Value:      value,
+			Data:       msg.Data,
+			GasFeeCap:  new(big.Int).Add(gasPrice, big.NewInt(0)),
+			GasTipCap:  msg.GasTipCap,
+			AccessList: msg.AccessList,
+		}
+		expectedSignedTx := []byte("mysignature")
+		expectedHash := ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778")
 
-				ethCaller.EXPECT().EstimateGas(gomock.Any(), expectedCallMsg).Return(uint64(21000), nil)
+		ethCaller.EXPECT().BaseFeePerGas(ctx, ethereum.LatestBlockNumber).Return(gasPrice, nil)
+		ethCaller.EXPECT().EstimateGas(ctx, expectedEstimateGasCall).Return(uint64(21000), nil)
+		ethCaller.EXPECT().GetTransactionCount(ctx, msg.From, ethereum.PendingBlockNumber).Return(uint64(0), nil)
+		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
+		accountsStore.EXPECT().SignTransaction(ctx, msg.From, chainID, gomock.Any()).Return(expectedSignedTx, nil)
+		ethCaller.EXPECT().SendRawTransaction(ctx, expectedSignedTx).Return(expectedHash, nil)
 
-				// Get Nonce
-				ethCaller.EXPECT().GetTransactionCount(gomock.Any(), expectedFrom, ethereum.PendingBlockNumber).Return(uint64(5), nil)
+		hash, err := i.ethSendTransaction(ctx, msg)
+		require.NoError(t, err)
 
-				tesseraClient.EXPECT().StoreRaw(gomock.Any(), ethcommon.FromHex("0x5208"), "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=").Return(ethcommon.FromHex("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
+		assert.Equal(t, hash.Hex(), expectedHash.Hex())
+	})
 
-				// Get ChainID
-				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
+	t.Run("should revert to legacy tx if baseFeePerGas is nil", func(t *testing.T) {
+		msg := &ethereum.SendTxMsg{
+			From:  from,
+			Value: value,
+		}
+		expectedEstimateGasCall := &ethereum.CallMsg{
+			From:     &msg.From,
+			To:       msg.To,
+			Value:    msg.Value,
+			Data:     msg.Data,
+			GasPrice: gasPrice,
+		}
+		expectedSignedTx := []byte("mysignature")
+		expectedHash := ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778")
 
-				// Sign
-				accountsStore.EXPECT().SignPrivate(gomock.Any(), expectedFrom, gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
+		ethCaller.EXPECT().BaseFeePerGas(ctx, ethereum.LatestBlockNumber).Return(nil, nil)
+		ethCaller.EXPECT().GasPrice(ctx).Return(gasPrice, nil)
+		ethCaller.EXPECT().EstimateGas(ctx, expectedEstimateGasCall).Return(uint64(21000), nil)
+		ethCaller.EXPECT().GetTransactionCount(ctx, msg.From, ethereum.PendingBlockNumber).Return(uint64(0), nil)
+		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
+		accountsStore.EXPECT().SignTransaction(ctx, msg.From, chainID, gomock.Any()).Return(expectedSignedTx, nil)
+		ethCaller.EXPECT().SendRawTransaction(ctx, expectedSignedTx).Return(expectedHash, nil)
 
-				expectedPrivateArgs := (&ethereum.PrivateArgs{}).WithPrivateFrom("GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=").WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
-				ethCaller.EXPECT().SendRawPrivateTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27"), expectedPrivateArgs).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
-			},
-			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":"0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778","error":null,"id":null}`),
-		},
-	}
+		hash, err := i.ethSendTransaction(ctx, msg)
+		require.NoError(t, err)
 
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			assertHandlerScenario(t, tt)
-		})
-	}
+		assert.Equal(t, hash.Hex(), expectedHash.Hex())
+	})
 }

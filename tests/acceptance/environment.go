@@ -43,7 +43,7 @@ const (
 	localhostPath             = "http://localhost"
 	HashicorpKeyStoreName     = "HashicorpKeys"
 	HashicorpSecretMountPoint = "secret"
-	HashicorpKeyMountPoint    = "orchestrate"
+	HashicorpKeyMountPoint    = "quorum"
 	MaxRetries                = 4
 	WaitContainerTime         = 15 * time.Second
 )
@@ -222,9 +222,9 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.hashicorpClient.Mount("orchestrate", &api.MountInput{
+	err = env.hashicorpClient.Mount("quorum", &api.MountInput{
 		Type:        "plugin",
-		Description: "Orchestrate Wallets",
+		Description: "Quorum Hashicorp Vault Plugin",
 		Config: api.MountConfigInput{
 			ForceNoCache:              true,
 			PassthroughRequestHeaders: []string{"X-Vault-Namespace"},
@@ -232,7 +232,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		PluginName: utils.HashicorpPluginFilename,
 	})
 	if err != nil {
-		env.logger.WithError(err).Error("failed to mount (enable) orchestrate vault plugin")
+		env.logger.WithError(err).Error("failed to mount (enable) Quorum Hashicorp Vault plugin")
 		return err
 	}
 

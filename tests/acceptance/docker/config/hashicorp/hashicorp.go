@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-const defaultHashicorpVaultImage = "library/vault:1.6.2"
+const defaultHashicorpVaultImage = "library/vault:1.8.2"
 const defaultHostPort = "8200"
 const defaultRootToken = "myRoot"
 const defaultHost = "localhost"
@@ -53,7 +53,7 @@ func (cfg *Config) SetPluginSourceDirectory(dir string) *Config {
 }
 
 func (cfg *Config) DownloadPlugin(filename, version string) (string, error) {
-	url := fmt.Sprintf("https://github.com/ConsenSys/orchestrate-hashicorp-vault-plugin/releases/download/%s/orchestrate-hashicorp-vault-plugin", version)
+	url := fmt.Sprintf("https://github.com/ConsenSys/quorum-hashicorp-vault-plugin/releases/download/%s/quorum-hashicorp-vault-plugin", version)
 
 	pluginPath := fmt.Sprintf("%s/%s", cfg.PluginSourceDirectory, filename)
 	err := downloadPlugin(pluginPath, url)
