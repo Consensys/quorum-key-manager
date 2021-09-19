@@ -15,6 +15,13 @@ x-default-variables: &default-variables
   DB_DATABASE: ${DB_DATABASE-}
   DB_POOLSIZE: ${DB_POOLSIZE-}
   DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
+  AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-}
+  AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
+  HTTPS_ENABLE: ${HTTPS_ENABLE-}
+  HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-}
+  HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
+  AUTH_TLS_CA: ${AUTH_TLS_CA-}
+  AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
   MANIFEST_PATH: "/manifests"
 
 x-container-common: &container-common
@@ -47,8 +54,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./deps/migrations:/migrations:ro
 
   key-manager:
     <<: *container-common
