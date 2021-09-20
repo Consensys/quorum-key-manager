@@ -39,9 +39,9 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 
 func New(storesConnector stores.Stores, aliases aliasent.AliasBackend, logger log.Logger) *Interceptor {
 	i := &Interceptor{
-		stores: storesConnector,
+		stores:  storesConnector,
 		aliases: aliases,
-		logger: logger,
+		logger:  logger,
 	}
 
 	i.handler = i.newHandler()

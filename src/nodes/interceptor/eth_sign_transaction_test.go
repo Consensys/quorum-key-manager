@@ -18,7 +18,7 @@ func TestEthSignTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, stores, _ := newInterceptor(ctrl)
+	i, stores := newInterceptor(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 
 	session := proxynode.NewMockSession(ctrl)

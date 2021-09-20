@@ -17,10 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newInterceptor(ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores, *aliasentmocks.MockAliasBackend) {
+func newInterceptor(ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores) {
 	stores := mockstoremanager.NewMockStores(ctrl)
 	aliases := aliasentmocks.NewMockAliasBackend(ctrl)
-	return New(stores, aliases, testutils.NewMockLogger(ctrl)), stores, aliases
+	return New(stores, aliases, testutils.NewMockLogger(ctrl)), stores
 }
 
 type testHandlerCase struct {
@@ -58,7 +58,7 @@ func TestPersonal(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, _, _ := newInterceptor(ctrl)
+	i, _ := newInterceptor(ctrl)
 	tests := []*testHandlerCase{
 		{
 			desc:             "Personal",
