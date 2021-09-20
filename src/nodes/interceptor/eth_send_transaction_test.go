@@ -88,7 +88,7 @@ func TestEthSendTransaction(t *testing.T) {
 		assert.Equal(t, hash.Hex(), expectedHash.Hex())
 	})
 
-	t.Run("should send a private tx successfully", func(t *testing.T) {
+	t.Run("should send an alias private tx successfully", func(t *testing.T) {
 		privateArgs := (&ethereum.PrivateArgs{}).
 			WithPrivateFrom("A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=").
 			WithPrivateFor([]string{"{{JPM:Group-A}}", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
