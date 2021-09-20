@@ -53,22 +53,23 @@ func TestReplaceAliases(t *testing.T) {
 		err   error
 	}
 
-	groupACall := backendCall{"my-registry", "group-A", []string{`["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`}, nil}
-	JPMCall := backendCall{"my-registry", "JPM", []string{`["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="]`}, nil}
-	GSCall := backendCall{"my-registry", "GS", []string{`["2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`}, nil}
+	groupACall := backendCall{"my-registry", "group-A", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
+	GSCall := backendCall{"my-registry", "GS", []string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
 	errCall := backendCall{"unknown-registry", "unknown-key", []string{""}, errors.InvalidFormatError("bad format")}
 
 	cases := map[string]struct {
-		addrs []string
-		calls []backendCall
+		addrs  []string
+		calls  []backendCall
+		expLen int
 	}{
-		"unknown registry": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:unknown-key}}"}, []backendCall{errCall}},
-		"bad key":          {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:bad/key}}"}, nil},
-		"bad registry":     {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{bad#registry:unknown-key}}"}, nil},
-		"ok without alias": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil},
-		"ok 1":             {[]string{"{{my-registry:group-A}}"}, []backendCall{groupACall}},
-		"ok 2":             {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{my-registry:JPM}}"}, []backendCall{JPMCall}},
-		"ok 3":             {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{my-registry:GS}}", "{{my-registry:JPM}}"}, []backendCall{JPMCall, GSCall}},
+		"unknown registry": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:unknown-key}}"}, []backendCall{errCall}, 2},
+		"bad key":          {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:bad/key}}"}, nil, 2},
+		"bad registry":     {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{bad#registry:unknown-key}}"}, nil, 2},
+		"ok without alias": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil, 1},
+		"ok 1":             {[]string{"{{my-registry:group-A}}"}, []backendCall{groupACall}, 2},
+		"ok 2":             {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{my-registry:JPM}}"}, []backendCall{JPMCall}, 2},
+		"ok 3":             {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{my-registry:GS}}", "{{my-registry:JPM}}"}, []backendCall{JPMCall, GSCall}, 3},
 	}
 
 	ctx := context.Background()
@@ -85,9 +86,8 @@ func TestReplaceAliases(t *testing.T) {
 				require.True(t, errors.IsInvalidFormatError(err))
 				return
 			}
-			t.Log("err", err)
 
-			assert.Len(t, addrs, len(c.addrs))
+			assert.Len(t, addrs, c.expLen)
 			// we check the aliases have been extracted to the results
 			for _, call := range c.calls {
 				present := false
