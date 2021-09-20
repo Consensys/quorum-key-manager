@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -28,14 +30,16 @@ type ethService struct {
 	EstimateGas               func(jsonrpc.Client) func(context.Context, *CallMsg) (*hexutil.Uint64, error)                       `namespace:"eth"`
 	SendRawTransaction        func(jsonrpc.Client) func(context.Context, hexutil.Bytes) (ethcommon.Hash, error)                   `namespace:"eth"`
 	SendRawPrivateTransaction func(jsonrpc.Client) func(context.Context, hexutil.Bytes, *PrivateArgs) (ethcommon.Hash, error)     `namespace:"eth"`
+	GetBlockByNumber          func(jsonrpc.Client) func(context.Context, BlockNumber, bool) (*types.Header, error)                `method:"eth_getBlockByNumber"`
 }
 
 //go:generate mockgen -source=caller_eth.go -destination=mock/caller_eth.go -package=mock
 
-// EthCaller is a JSON-RPC client to a Ethereum client using eth namespace
+// EthCaller is a JSON-RPC client to an Ethereum client using eth namespace
 type EthCaller interface {
 	ChainID(context.Context) (*big.Int, error)
 	GasPrice(context.Context) (*big.Int, error)
+	BaseFeePerGas(context.Context, BlockNumber) (*big.Int, error)
 	GetTransactionCount(context.Context, ethcommon.Address, BlockNumber) (uint64, error)
 	EstimateGas(context.Context, *CallMsg) (uint64, error)
 	SendRawTransaction(context.Context, []byte) (ethcommon.Hash, error)
@@ -83,9 +87,18 @@ func (c *ethCaller) EstimateGas(ctx context.Context, msg *CallMsg) (uint64, erro
 }
 
 func (c *ethCaller) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
-	return ethSrv.SendRawTransaction(c.client)(ctx, hexutil.Bytes(raw))
+	return ethSrv.SendRawTransaction(c.client)(ctx, raw)
 }
 
 func (c *ethCaller) SendRawPrivateTransaction(ctx context.Context, raw []byte, privArgs *PrivateArgs) (ethcommon.Hash, error) {
-	return ethSrv.SendRawPrivateTransaction(c.client)(ctx, hexutil.Bytes(raw), privArgs)
+	return ethSrv.SendRawPrivateTransaction(c.client)(ctx, raw, privArgs)
+}
+
+func (c *ethCaller) BaseFeePerGas(ctx context.Context, blockNumber BlockNumber) (*big.Int, error) {
+	header, err := ethSrv.GetBlockByNumber(c.client)(ctx, blockNumber, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return header.BaseFee, nil
 }

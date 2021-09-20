@@ -24,7 +24,6 @@ type KeysClient interface {
 	CreateKey(ctx context.Context, storeName, id string, request *types.CreateKeyRequest) (*types.KeyResponse, error)
 	ImportKey(ctx context.Context, storeName, id string, request *types.ImportKeyRequest) (*types.KeyResponse, error)
 	SignKey(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error)
-	VerifyKeySignature(ctx context.Context, storeName string, request *types.VerifyKeySignatureRequest) error
 	GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error)
 	ListKeys(ctx context.Context, storeName string, limit, page uint64) ([]string, error)
 	DeleteKey(ctx context.Context, storeName, id string) error
@@ -49,10 +48,13 @@ type EthClient interface {
 	DeleteEthAccount(ctx context.Context, storeName, address string) error
 	DestroyEthAccount(ctx context.Context, storeName, address string) error
 	RestoreEthAccount(ctx context.Context, storeName, address string) error
-	ECRecover(ctx context.Context, storeName string, request *types.ECRecoverRequest) (string, error)
-	Verify(ctx context.Context, storeName string, request *types.VerifyRequest) error
-	VerifyMessage(ctx context.Context, storeName string, request *types.VerifyRequest) error
-	VerifyTypedData(ctx context.Context, storeName string, request *types.VerifyTypedDataRequest) error
+}
+
+type UtilsClient interface {
+	VerifyKeySignature(ctx context.Context, request *types.VerifyKeySignatureRequest) error
+	ECRecover(ctx context.Context, request *types.ECRecoverRequest) (string, error)
+	VerifyMessage(ctx context.Context, request *types.VerifyRequest) error
+	VerifyTypedData(ctx context.Context, request *types.VerifyTypedDataRequest) error
 }
 
 type JSONRPC interface {
@@ -63,5 +65,6 @@ type KeyManagerClient interface {
 	SecretsClient
 	KeysClient
 	EthClient
+	UtilsClient
 	JSONRPC
 }

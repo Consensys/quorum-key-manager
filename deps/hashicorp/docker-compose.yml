@@ -8,7 +8,7 @@ x-container-common: &container-common
 services:
   hashicorp:
     <<: *container-common
-    image: library/vault:1.6.1
+    image: library/vault:1.8.2
     tty: true
     cap_add:
       - IPC_LOCK
@@ -40,7 +40,7 @@ services:
 
   hashicorp-agent:
     <<: *container-common
-    image: library/vault:1.6.1
+    image: library/vault:1.8.2
     tty: true
     depends_on:
       - hashicorp

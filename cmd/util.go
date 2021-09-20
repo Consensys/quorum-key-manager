@@ -1,15 +1,18 @@
 package cmd
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/pkg/jwt"
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
+
+	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -69,6 +72,8 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	defer syncZapLogger(logger)
 
 	keyFile := vipr.GetString(flags.AuthOIDCCAKeyFileViperKey)
+	privKeyPassword := vipr.GetString(flags.AuthOIDCCAKeyPasswordViperKey)
+
 	_, err = os.Stat(keyFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -83,17 +88,23 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	}
 
 	oidcCfg := authCfg.OIDC
-	var keys [][]byte
-	keys, err = certificate.Decode(keyFileContent, "PRIVATE KEY")
+
+	privPem, _ := pem.Decode(keyFileContent)
+	var privPemBytes []byte
+	if privKeyPassword != "" {
+		//nolint
+		privPemBytes, err = x509.DecryptPEMBlock(privPem, []byte(privKeyPassword))
+		if err != nil {
+			return err
+		}
+	} else {
+		privPemBytes = privPem.Bytes
+	}
+
+	certKey, err := certificate.ParsePrivateKey(privPemBytes)
 	if err != nil {
 		return err
 	}
-
-	certKey, err := certificate.ParsePrivateKey(keys[0])
-	if err != nil {
-		return err
-	}
-
 	generator, err := jwt.NewTokenGenerator(certKey)
 
 	if err != nil {

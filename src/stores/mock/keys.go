@@ -196,20 +196,6 @@ func (mr *MockKeyStoreMockRecorder) Sign(ctx, id, data, algo interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockKeyStore)(nil).Sign), ctx, id, data, algo)
 }
 
-// Verify mocks base method
-func (m *MockKeyStore) Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", ctx, pubKey, data, sig, algo)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Verify indicates an expected call of Verify
-func (mr *MockKeyStoreMockRecorder) Verify(ctx, pubKey, data, sig, algo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockKeyStore)(nil).Verify), ctx, pubKey, data, sig, algo)
-}
-
 // Encrypt mocks base method
 func (m *MockKeyStore) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()

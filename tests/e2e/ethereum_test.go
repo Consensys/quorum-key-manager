@@ -15,14 +15,11 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -32,7 +29,7 @@ type ethTestSuite struct {
 	suite.Suite
 	err              error
 	ctx              context.Context
-	keyManagerClient client.EthClient
+	keyManagerClient client.KeyManagerClient
 	signAccount      *types.EthAccountResponse
 
 	storeName string
@@ -206,7 +203,7 @@ func (s *ethTestSuite) TestImport() {
 	})
 }
 
-func (s *ethTestSuite) TestSign() {
+func (s *ethTestSuite) TestSignMessage() {
 	s.Run("should sign a payload successfully and verify it", func() {
 		request := testutils.FakeSignMessageRequest()
 
@@ -218,7 +215,7 @@ func (s *ethTestSuite) TestSign() {
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
 
-		err = s.keyManagerClient.VerifyMessage(s.ctx, s.storeName, &types.VerifyRequest{
+		err = s.keyManagerClient.VerifyMessage(s.ctx, &types.VerifyRequest{
 			Data:      request.Message,
 			Signature: hexSig,
 			Address:   s.signAccount.Address,
@@ -249,7 +246,7 @@ func (s *ethTestSuite) TestSignTypedData() {
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
 
-		err = s.keyManagerClient.VerifyTypedData(s.ctx, s.storeName, &types.VerifyTypedDataRequest{
+		err = s.keyManagerClient.VerifyTypedData(s.ctx, &types.VerifyTypedDataRequest{
 			TypedData: *request,
 			Signature: hexSig,
 			Address:   s.signAccount.Address,
@@ -269,33 +266,40 @@ func (s *ethTestSuite) TestSignTypedData() {
 }
 
 func (s *ethTestSuite) TestSignTransaction() {
-	s.Run("should sign transaction successfully", func() {
-		request := testutils.FakeSignETHTransactionRequest()
+	s.Run("should sign transaction successfully (default type: DYNAMIC_FEE)", func() {
+		request := testutils.FakeSignETHTransactionRequest("")
 
 		signedTx, err := s.keyManagerClient.SignTransaction(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
 		require.NoError(s.T(), err)
 		assert.NotNil(s.T(), signedTx)
+	})
 
-		signer := ethtypes.NewEIP155Signer(request.ChainID.ToInt())
+	s.Run("should sign DYNAMIC_FEE transaction successfully", func() {
+		request := testutils.FakeSignETHTransactionRequest(types.DynamicFeeTxType)
 
-		tx := formatters.FormatTransaction(request)
-		txData := signer.Hash(tx).Bytes()
-
-		err = rlp.DecodeBytes(hexutil.MustDecode(signedTx), &tx)
+		signedTx, err := s.keyManagerClient.SignTransaction(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
 		require.NoError(s.T(), err)
-		v_, r_, s_ := tx.RawSignatureValues()
-		sig := append(append(r_.Bytes(), s_.Bytes()...), v_.Bytes()...)
+		assert.NotNil(s.T(), signedTx)
+	})
 
-		err = s.keyManagerClient.Verify(s.ctx, s.storeName, &types.VerifyRequest{
-			Data:      txData,
-			Signature: sig,
-			Address:   s.signAccount.Address,
-		})
-		// require.NoError(s.T(), err)
+	s.Run("should sign ACCESS_LIST transaction successfully", func() {
+		request := testutils.FakeSignETHTransactionRequest(types.AccessListTxType)
+
+		signedTx, err := s.keyManagerClient.SignTransaction(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
+		require.NoError(s.T(), err)
+		assert.NotNil(s.T(), signedTx)
+	})
+
+	s.Run("should sign LEGACY transaction successfully", func() {
+		request := testutils.FakeSignETHTransactionRequest(types.LegacyTxType)
+
+		signedTx, err := s.keyManagerClient.SignTransaction(s.ctx, s.storeName, s.signAccount.Address.Hex(), request)
+		require.NoError(s.T(), err)
+		assert.NotNil(s.T(), signedTx)
 	})
 
 	s.Run("should parse errors successfully", func() {
-		request := testutils.FakeSignETHTransactionRequest()
+		request := testutils.FakeSignETHTransactionRequest("")
 
 		signature, err := s.keyManagerClient.SignTransaction(s.ctx, "inexistentStoreName", s.signAccount.Address.Hex(), request)
 		require.Empty(s.T(), signature)

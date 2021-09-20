@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -36,6 +38,7 @@ type jsonRPCTestSuite struct {
 	storeName        string
 	QuorumNodeID     string
 	BesuNodeID       string
+	GethNodeID       string
 }
 
 func TestJSONRpcHTTP(t *testing.T) {
@@ -56,19 +59,20 @@ func TestJSONRpcHTTP(t *testing.T) {
 	}
 
 	var token string
-	token, s.err = generateJWT("./certificates/client.key","*:*", "e2e|json_rpc_test")
+	token, s.err = generateJWT("./certificates/client.key", "*:*", "e2e|json_rpc_test")
 	if s.err != nil {
 		t.Errorf("failed to generate jwt. %s", s.err)
 		return
 	}
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
-		Transport: NewTestHttpTransport(token, "",nil),
+		Transport: NewTestHttpTransport(token, "", nil),
 	}, &client.Config{
 		URL: cfg.KeyManagerURL,
 	})
 
 	s.BesuNodeID = cfg.BesuNodeID
 	s.QuorumNodeID = cfg.QuorumNodeID
+	s.GethNodeID = cfg.GethNodeID
 	s.storeName = cfg.EthStores[0]
 	suite.Run(t, s)
 }
@@ -78,8 +82,14 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		s.T().Error(s.err)
 	}
 
-	s.acc, s.err = s.keyManagerClient.CreateEthAccount(s.ctx, s.storeName, &types.CreateEthAccountRequest{
-		KeyID: fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
+	privKey, err := hexutil.Decode("0x56202652fdffd802b7252a456dbd8f3ecc0352bbde76c23b40afe8aebd714e2e")
+	if s.err != nil {
+		s.T().Error(err)
+	}
+
+	s.acc, s.err = s.keyManagerClient.ImportEthAccount(s.ctx, s.storeName, &types.ImportEthAccountRequest{
+		KeyID:      fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
+		PrivateKey: privKey,
 	})
 
 	if s.err != nil {
@@ -141,7 +151,7 @@ func (s *jsonRPCTestSuite) TestEthSign() {
 }
 
 func (s *jsonRPCTestSuite) TestEthSignTransaction() {
-	s.Run("should call eth_signTransaction successfully", func() {
+	s.Run("should call eth_signTransaction successfully; legacy tx", func() {
 		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_signTransaction", map[string]interface{}{
 			"data":     "0xa2",
 			"from":     s.acc.Address,
@@ -149,6 +159,20 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 			"nonce":    "0x0",
 			"gas":      "0x989680",
 			"gasPrice": "0x10000",
+		})
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+	})
+
+	s.Run("should call eth_signTransaction successfully; dynamic fee tx", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_signTransaction", map[string]interface{}{
+			"data":                 "0xa2",
+			"from":                 s.acc.Address,
+			"to":                   "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+			"nonce":                "0x1",
+			"gas":                  "0x989680",
+			"maxFeePerGas":         "0x10000",
+			"maxPriorityFeePerGas": "0x1000",
 		})
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
@@ -237,12 +261,14 @@ func (s *jsonRPCTestSuite) TestAliasEthSendTransaction() {
 
 func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 	toAddr := "0xd46e8dd67c5d32be8058bb8eb970870f07244567"
-	s.Run("should call eth_sendTransaction, successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
-			"data": "0xa2",
-			"from": s.acc.Address,
-			"to":   toAddr,
-			"gas":  "0x989680",
+
+	s.Run("should call eth_sendTransaction successfully: legacy tx", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.GethNodeID, "eth_sendTransaction", map[string]interface{}{
+			"data":     "0xa2",
+			"from":     s.acc.Address,
+			"to":       toAddr,
+			"gas":      "0x989680",
+			"gasPrice": "0x7",
 		})
 
 		require.NoError(s.T(), err)
@@ -251,7 +277,27 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
-		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
+		tx, err := s.retrieveTransaction(s.ctx, s.GethNodeID, result)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
+	})
+
+	s.Run("should call eth_sendTransaction successfully: dynamic fee tx", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.GethNodeID, "eth_sendTransaction", map[string]interface{}{
+			"data":  "0xa2",
+			"from":  s.acc.Address,
+			"to":    toAddr,
+			"gas":   "0x989680",
+			"value": "0x1",
+		})
+
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.ctx, s.GethNodeID, result)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})

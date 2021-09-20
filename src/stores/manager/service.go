@@ -3,38 +3,23 @@ package storemanager
 import (
 	"context"
 	"fmt"
-	"sync"
-
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores"
-	ethconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
-	keysconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
-	secretsconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
-	"github.com/consensys/quorum-key-manager/src/stores/database"
-	meth "github.com/consensys/quorum-key-manager/src/stores/manager/ethereum"
-	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
-	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
+	storesconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
 
 const ID = "StoreManager"
 
 type BaseManager struct {
-	manifests   manifestsmanager.Manager
-	authManager auth.Manager
-
-	mux         sync.RWMutex
-	secrets     map[string]*storeBundle
-	keys        map[string]*storeBundle
-	ethAccounts map[string]*storeBundle
+	manifests manifestsmanager.Manager
 
 	sub    manifestsmanager.Subscription
 	mnfsts chan []manifestsmanager.Message
@@ -42,60 +27,41 @@ type BaseManager struct {
 	isLive bool
 	err    error
 
-	logger log.Logger
 	db     database.Database
+	logger log.Logger
+
+	utils  stores.Utilities
+	stores stores.Stores
 }
 
-type storeBundle struct {
-	manifest *manifest.Manifest
-	logger   log.Logger
-	store    interface{}
-}
+var _ stores.Manager = &BaseManager{}
 
-func New(manifests manifestsmanager.Manager, authMngr auth.Manager, db database.Database, logger log.Logger) *BaseManager {
+func New(manifests manifestsmanager.Manager, authManager auth.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests:   manifests,
-		authManager: authMngr,
-		mux:         sync.RWMutex{},
-		secrets:     make(map[string]*storeBundle),
-		keys:        make(map[string]*storeBundle),
-		ethAccounts: make(map[string]*storeBundle),
-		mnfsts:      make(chan []manifestsmanager.Message),
-		logger:      logger,
-		db:          db,
+		manifests: manifests,
+		mnfsts:    make(chan []manifestsmanager.Message),
+		logger:    logger,
+		db:        db,
+		utils:     utils.NewConnector(logger),
+		stores:    storesconnector.NewConnector(authManager, db, logger),
 	}
 }
 
-var storeKinds = []manifest.Kind{
-	stores.HashicorpSecrets,
-	stores.HashicorpKeys,
-	stores.AKVSecrets,
-	stores.AKVKeys,
-	stores.AWSSecrets,
-	stores.AWSKeys,
-	stores.LocalKeys,
-	stores.Ethereum,
-}
-
-func (m *BaseManager) Start(_ context.Context) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+func (m *BaseManager) Start(ctx context.Context) error {
 	defer func() {
 		m.isLive = true
 	}()
 
 	// Subscribe to manifest of Kind node
-	m.sub = m.manifests.Subscribe(storeKinds, m.mnfsts)
+	m.sub = m.manifests.Subscribe(manifest.StoreKinds, m.mnfsts)
 
 	// Start loading manifest
-	go m.loadAll()
+	go m.loadAll(ctx)
 
 	return nil
 }
 
 func (m *BaseManager) Stop(context.Context) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
 	m.isLive = false
 
 	if m.sub != nil {
@@ -113,309 +79,26 @@ func (m *BaseManager) Close() error {
 	return nil
 }
 
-func (m *BaseManager) loadAll() {
+func (m *BaseManager) Utilities() stores.Utilities {
+	return m.utils
+}
+
+func (m *BaseManager) Stores() stores.Stores {
+	return m.stores
+}
+
+func (m *BaseManager) loadAll(ctx context.Context) {
 	for mnfsts := range m.mnfsts {
 		for _, mnf := range mnfsts {
-			if err := m.load(mnf.Manifest); err != nil {
+			if err := m.stores.Create(ctx, mnf.Manifest); err != nil {
 				m.err = errors.CombineErrors(m.err, err)
 			}
 		}
 	}
 }
 
-func (m *BaseManager) GetSecretStore(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.SecretStore, error) {
-	m.mux.RLock()
-	defer m.mux.RUnlock()
-
-	if storeBundle, ok := m.secrets[storeName]; ok {
-		permissions := m.authManager.UserPermissions(userInfo)
-		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
-
-		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
-			return nil, err
-		}
-
-		if store, ok := storeBundle.store.(stores.SecretStore); ok {
-			return secretsconnector.NewConnector(store, m.db.Secrets(storeName), resolver, storeBundle.logger), nil
-		}
-	}
-
-	errMessage := "secret store was not found"
-	m.logger.Error(errMessage, "store_name", storeName)
-	return nil, errors.NotFoundError(errMessage)
-}
-
-func (m *BaseManager) GetKeyStore(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.KeyStore, error) {
-	m.mux.RLock()
-	defer m.mux.RUnlock()
-	if storeBundle, ok := m.keys[storeName]; ok {
-		permissions := m.authManager.UserPermissions(userInfo)
-		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
-
-		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
-			return nil, err
-		}
-
-		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			return keysconnector.NewConnector(store, m.db.Keys(storeName), resolver, storeBundle.logger), nil
-		}
-	}
-
-	errMessage := "key store was not found"
-	m.logger.Error(errMessage, "store_name", storeName)
-	return nil, errors.NotFoundError(errMessage)
-}
-
-func (m *BaseManager) GetEthStore(ctx context.Context, name string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
-	m.mux.RLock()
-	defer m.mux.RUnlock()
-	return m.getEthStore(ctx, name, userInfo)
-}
-
-func (m *BaseManager) getEthStore(_ context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
-	if storeBundle, ok := m.ethAccounts[storeName]; ok {
-		permissions := m.authManager.UserPermissions(userInfo)
-		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
-
-		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
-			return nil, err
-		}
-
-		if store, ok := storeBundle.store.(stores.KeyStore); ok {
-			return ethconnector.NewConnector(store, m.db.ETHAccounts(storeName), resolver, storeBundle.logger), nil
-		}
-	}
-
-	errMessage := "account store was not found"
-	m.logger.Error(errMessage, "store_name", storeName)
-	return nil, errors.NotFoundError(errMessage)
-}
-
-func (m *BaseManager) GetEthStoreByAddr(ctx context.Context, addr ethcommon.Address, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
-	m.mux.RLock()
-	defer m.mux.RUnlock()
-
-	for _, storeName := range m.list(ctx, stores.Ethereum, userInfo) {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			acc, err := m.getEthStore(ctx, storeName, userInfo)
-			if err != nil {
-				return nil, err
-			}
-
-			_, err = acc.Get(ctx, addr)
-			if err == nil {
-				// CheckPermission if account exists in store and returns it
-				_, err := acc.Get(ctx, addr)
-				if err == nil {
-					return acc, nil
-				}
-				return acc, nil
-			}
-		}
-	}
-
-	errMessage := "account was not found"
-	m.logger.Error(errMessage, "account", addr.Hex())
-	return nil, errors.InvalidParameterError(errMessage)
-}
-
-func (m *BaseManager) List(ctx context.Context, kind manifest.Kind, userInfo *authtypes.UserInfo) ([]string, error) {
-	m.mux.RLock()
-	defer m.mux.RUnlock()
-
-	return m.list(ctx, kind, userInfo), nil
-}
-
-func (m *BaseManager) list(_ context.Context, kind manifest.Kind, userInfo *authtypes.UserInfo) []string {
-	storeNames := []string{}
-	switch kind {
-	case "":
-		storeNames = append(
-			append(m.listStores(m.secrets, kind, userInfo), m.listStores(m.keys, kind, userInfo)...), m.listStores(m.ethAccounts, kind, userInfo)...)
-	case stores.HashicorpSecrets, stores.AKVSecrets, stores.AWSSecrets:
-		storeNames = m.listStores(m.secrets, kind, userInfo)
-	case stores.AKVKeys, stores.HashicorpKeys, stores.AWSKeys:
-		storeNames = m.listStores(m.keys, kind, userInfo)
-	case stores.Ethereum:
-		storeNames = m.listStores(m.ethAccounts, kind, userInfo)
-	}
-
-	return storeNames
-}
-
-func (m *BaseManager) ListAllAccounts(ctx context.Context, userInfo *authtypes.UserInfo) ([]ethcommon.Address, error) {
-	m.mux.RLock()
-	defer m.mux.RUnlock()
-
-	accs := []ethcommon.Address{}
-	for _, storeName := range m.list(ctx, stores.Ethereum, userInfo) {
-		store, err := m.getEthStore(ctx, storeName, userInfo)
-		if err != nil {
-			return nil, err
-		}
-
-		storeAccs, err := store.List(ctx, 0, 0)
-		if err != nil {
-			return nil, err
-		}
-		accs = append(accs, storeAccs...)
-	}
-
-	return accs, nil
-}
-
-func (m *BaseManager) load(mnf *manifest.Manifest) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
-
-	logger := m.logger.With("kind", mnf.Kind).With("name", mnf.Name)
-	logger.Debug("loading store manifest")
-
-	switch mnf.Kind {
-	case stores.HashicorpSecrets:
-		spec := &msecrets.HashicorpSecretSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal Hashicorp secret store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := msecrets.NewHashicorpSecretStore(spec, m.db.Secrets(mnf.Name), logger)
-		if err != nil {
-			return err
-		}
-
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.HashicorpKeys:
-		spec := &mkeys.HashicorpKeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal Hashicorp key store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := mkeys.NewHashicorpKeyStore(spec, logger)
-		if err != nil {
-			return err
-		}
-
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.AKVSecrets:
-		spec := &msecrets.AkvSecretSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal AKV secret store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := msecrets.NewAkvSecretStore(spec, logger)
-		if err != nil {
-			return err
-		}
-
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.AKVKeys:
-		spec := &mkeys.AkvKeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal AKV key store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := mkeys.NewAkvKeyStore(spec, logger)
-		if err != nil {
-			return err
-		}
-
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.AWSSecrets:
-		spec := &msecrets.AwsSecretSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal AWS secret store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := msecrets.NewAwsSecretStore(spec, logger)
-		if err != nil {
-			return err
-		}
-
-		m.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.AWSKeys:
-		spec := &mkeys.AwsKeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal AWS key store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := mkeys.NewAwsKeyStore(spec, logger)
-		if err != nil {
-			return err
-		}
-
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.LocalKeys:
-		spec := &mkeys.LocalKeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal local key store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := mkeys.NewLocalKeyStore(spec, m.db.Secrets(mnf.Name), logger)
-		if err != nil {
-			return err
-		}
-
-		m.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	case stores.Ethereum:
-		spec := &meth.LocalEthSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
-			errMessage := "failed to unmarshal Eth store specs"
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidFormatError(errMessage)
-		}
-
-		store, err := meth.NewLocalEth(spec, m.db.Secrets(mnf.Name), logger)
-		if err != nil {
-			return err
-		}
-
-		m.ethAccounts[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	default:
-		errMessage := "invalid manifest kind"
-		logger.Error(errMessage, "kind", mnf.Kind)
-		return errors.InvalidFormatError(errMessage)
-	}
-
-	logger.Info("store manifest loaded successfully")
-	return nil
-}
-
-func (m *BaseManager) listStores(list map[string]*storeBundle, kind manifest.Kind, userInfo *authtypes.UserInfo) []string {
-	var storeNames []string
-	for k, storeBundle := range list {
-		permissions := m.authManager.UserPermissions(userInfo)
-		resolver := authorizator.New(permissions, userInfo.Tenant, storeBundle.logger)
-
-		if err := resolver.CheckAccess(storeBundle.manifest.AllowedTenants); err != nil {
-			continue
-		}
-
-		if kind == "" || storeBundle.manifest.Kind == kind {
-			storeNames = append(storeNames, k)
-		}
-	}
-
-	return storeNames
-}
-
 func (m *BaseManager) ID() string { return ID }
+
 func (m *BaseManager) CheckLiveness(_ context.Context) error {
 	if m.isLive {
 		return nil

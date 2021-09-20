@@ -42,9 +42,6 @@ type KeyStore interface {
 	// Sign from any arbitrary data using the specified key
 	Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error)
 
-	// Verify verifies the signature belongs to the corresponding key
-	Verify(ctx context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error
-
 	// Encrypt encrypts any arbitrary data using a specified key
 	Encrypt(ctx context.Context, id string, data []byte) ([]byte, error)
 

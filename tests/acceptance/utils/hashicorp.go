@@ -12,7 +12,7 @@ import (
 	dockerhashicorp "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 )
 
-const HashicorpPluginFilename = "orchestrate-hashicorp-vault-plugin"
+const HashicorpPluginFilename = "quorum-hashicorp-vault-plugin"
 const HashicorpPluginVersion = "v0.0.11"
 
 func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
@@ -43,16 +43,16 @@ func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 			return nil, err
 		}
 		vaultContainer.SetPluginSourceDirectory(pluginPath)
-		logger.Info("using local orchestrate plugin", "path", pluginPath)
+		logger.Info("using local Quorum Hashicorp Vault plugin", "path", pluginPath)
 
 	default:
-		logger.Info("downloading orchestrate pluging...", "path", pluginPath)
+		logger.Info("downloading Quorum Hashicorp Vault plugin...", "path", pluginPath)
 		pluginPath, err = vaultContainer.DownloadPlugin(HashicorpPluginFilename, HashicorpPluginVersion)
 		if err != nil {
 			logger.WithError(err).Error("cannot download hashicorp vault plugin")
 			return nil, err
 		}
-		logger.Info("orchestrate plugin downloaded", "path", pluginPath)
+		logger.Info("Quorum Hashicorp Vault plugin plugin downloaded", "path", pluginPath)
 	}
 
 	return vaultContainer, nil

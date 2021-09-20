@@ -65,15 +65,6 @@ type EthStore interface {
 	// SignPrivate signs a Quorum private transaction
 	SignPrivate(ctx context.Context, addr common.Address, tx *quorumtypes.Transaction) ([]byte, error)
 
-	// ECRecover returns the Ethereum address from a signature and data
-	ECRecover(ctx context.Context, data, sig []byte) (common.Address, error)
-
-	// VerifyMessage verifies that a message signature belongs to a given address
-	VerifyMessage(ctx context.Context, addr common.Address, data, sig []byte) error
-
-	// VerifyTypedData verifies that a typed data signature belongs to a given address
-	VerifyTypedData(ctx context.Context, addr common.Address, typedData *core.TypedData, sig []byte) error
-
 	// Encrypt encrypts any arbitrary data using a specified account
 	Encrypt(ctx context.Context, addr common.Address, data []byte) ([]byte, error)
 

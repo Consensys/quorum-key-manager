@@ -9,7 +9,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
 )

@@ -29,9 +29,6 @@ func newMigrateCommand() *cobra.Command {
 		},
 	}
 
-	flags.LoggerFlags(migrateCmd.Flags())
-	flags.PGFlags(migrateCmd.Flags())
-
 	// Register Up command
 	upCmd := &cobra.Command{
 		Use:   "up [target]",
@@ -42,6 +39,8 @@ func newMigrateCommand() *cobra.Command {
 		},
 	}
 	migrateCmd.AddCommand(upCmd)
+	flags.LoggerFlags(upCmd.Flags())
+	flags.PGFlags(upCmd.Flags())
 
 	// Register Down command
 	downCmd := &cobra.Command{
@@ -52,6 +51,8 @@ func newMigrateCommand() *cobra.Command {
 		},
 	}
 	migrateCmd.AddCommand(downCmd)
+	flags.LoggerFlags(downCmd.Flags())
+	flags.PGFlags(downCmd.Flags())
 
 	// Register Reset command
 	resetCmd := &cobra.Command{
@@ -62,6 +63,8 @@ func newMigrateCommand() *cobra.Command {
 		},
 	}
 	migrateCmd.AddCommand(resetCmd)
+	flags.LoggerFlags(resetCmd.Flags())
+	flags.PGFlags(resetCmd.Flags())
 
 	return migrateCmd
 }

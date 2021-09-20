@@ -9,8 +9,8 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
 )
 
 const ID = "AuthManager"

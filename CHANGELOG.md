@@ -1,5 +1,14 @@
 # Quorum Key Manager Release Notes
 
+## v21.7.0-alpha.3 (2021-09-13)
+### 🆕 Features
+* Support pagination for listing endpoints
+* Idempotent behaviour for update endpoints 
+
+### 🛠 Bug fixes
+* EEA transaction signing using empty privateFor
+* Invalid successful readiness response if PG is not reachable 
+
 ## v21.7.0-alpha.2 (2021-08-26)
 ### 🆕 Features
 * Support for authorization using OIDC, TLS and API-KEY
@@ -16,7 +25,7 @@
 Initial release of the Quorum Key Manager
 
 * Support for [Hashicorp KV Secrets Engine](https://www.vaultproject.io/docs/secrets/kv/kv-v2)
-* Support for [Hashicorp keys plugin](https://github.com/ConsenSys/orchestrate-hashicorp-vault-plugin) (custom plugin)
+* Support for [Quorum Hashicorp Vault Plugin](https://github.com/ConsenSys/quorum-hashicorp-vault-plugin) (custom plugin)
 * Support for [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/) (secrets and keys)
 * Support for [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/)
 * Support for [AWS Key Management Service](https://aws.amazon.com/kms/) (KMS)

@@ -1,0 +1,103 @@
+version: "3.7"
+
+x-default-variables: &default-variables
+  LOG_LEVEL: ${LOG_LEVEL-INFO}
+  LOG_FORMAT: ${LOG_FORMAT-json}
+  MANIFEST_PATH: ${MANIFEST_PATH-/manifests}
+  TEST_DATA: ${TEST_DATA-}
+  HTTP_PORT: ${HTTP_PORT-8080}
+  HTTP_HOST: ${HTTP_HOST-0.0.0.0}
+  HEALTH_PORT: ${HEALTH_PORT-8081}
+  DB_TLS_SSLMODE: ${DB_TLS_SSLMODE-disable}
+  DB_TLS_CERT: ${DB_TLS_CERT-}
+  DB_TLS_KEY: ${DB_TLS_KEY-}
+  DB_TLS_CA: ${DB_TLS_CA-}
+  DB_HOST: ${DB_HOST-}
+  DB_PORT: ${DB_PORT-}
+  DB_DATABASE: ${DB_DATABASE-}
+  DB_POOLSIZE: ${DB_POOLSIZE-}
+  DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
+  AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-}
+  AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
+  HTTPS_ENABLE: ${HTTPS_ENABLE-}
+  HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-}
+  HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
+  AUTH_TLS_CA: ${AUTH_TLS_CA-}
+  AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
+
+x-container-common: &container-common
+  image: golang:1.15-buster
+  restart: ${CONTAINER_RESTART-on-failure}
+  entrypoint: /bin/main
+  tty: true
+  networks:
+    - quorum
+    - besu
+    - hashicorp
+    - qkm
+
+x-qkm-common: &qkm-common
+  DB_HOST: postgres
+
+services:
+  migration:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+    command: migrate up
+    volumes:
+      - ./build/bin/key-manager:/bin/main:ro
+      - ./deps/migrations:/migrations:ro
+      - ./deps/config/certificates:/certificates
+      - ./deps/config/ca:/ca:ro
+
+  key-manager:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+    ports:
+      - 8080:8080
+      - 8081:8081
+      - 8443:8443
+    depends_on:
+      - migration
+    command: run
+    volumes:
+      - ./build/bin/key-manager:/bin/main:ro
+      - ./deps/config/manifests:/manifests:ro
+      - ./deps/config/certificates:/certificates:ro
+      - ./deps/config/ca:/ca:ro
+      - ./deps/config/apikey:/apikey:ro
+      - hashicorp-token:/vault/token:ro
+
+  generate-jwt:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-}
+    volumes:
+      - ./build/bin/key-manager:/bin/main:ro
+      - ./deps/config/certificates:/certificates:ro
+    command: utils generate-jwt --sub=${SUB-} --scope=${SCOPE-} --expiration=${EXPIRATION-72h}
+
+networks:
+  quorum:
+    external:
+      name: quorum
+  besu:
+    external:
+      name: besu
+  hashicorp:
+    external:
+      name: hashicorp
+  qkm:
+    external:
+      name: deps_qkm
+
+volumes:
+  hashicorp-token:
+    external:
+      name: hashicorp-token
+

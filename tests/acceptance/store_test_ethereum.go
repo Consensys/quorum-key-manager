@@ -25,6 +25,7 @@ type ethTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.EthStore
+	utils stores.Utilities
 	db    database.ETHAccounts
 }
 
@@ -181,19 +182,19 @@ func (s *ethTestSuite) TestList() {
 	s.Run("should get all account addresses", func() {
 		addresses, err := s.store.List(ctx, 0, 0)
 		require.NoError(s.T(), err)
-		
+
 		listLen = len(addresses)
 		assert.Contains(s.T(), addresses, account1.Address)
 		assert.Contains(s.T(), addresses, account2.Address)
 		assert.Contains(s.T(), addresses, account3.Address)
 	})
-	
+
 	s.Run("should get all first account addresses", func() {
 		addresses, err := s.store.List(ctx, 1, uint64(listLen-3))
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), addresses, []ethcommon.Address{account1.Address})
 	})
-	
+
 	s.Run("should get last two account addresses", func() {
 		addresses, err := s.store.List(ctx, 2, uint64(listLen-2))
 		require.NoError(s.T(), err)
@@ -216,7 +217,7 @@ func (s *ethTestSuite) TestSignMessageVerify() {
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signature)
 
-		err = s.store.VerifyMessage(ctx, account.Address, payload, signature)
+		err = s.utils.VerifyMessage(account.Address, payload, signature)
 		require.NoError(s.T(), err)
 	})
 
@@ -231,27 +232,88 @@ func (s *ethTestSuite) TestSignTransaction() {
 	ctx := s.env.ctx
 	id := s.newID("my-account-sign-tx")
 	chainID := big.NewInt(1)
-	tx := types.NewTransaction(
-		0,
-		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
-		big.NewInt(0),
-		0,
-		big.NewInt(0),
-		nil,
-	)
+	to := ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
 
 	account, err := s.store.Create(ctx, id, &entities.Attributes{
 		Tags: testutils.FakeTags(),
 	})
 	require.NoError(s.T(), err)
 
-	s.Run("should sign a transaction successfully", func() {
+	s.Run("should sign a legacy transaction successfully", func() {
+		tx := types.NewTx(&types.LegacyTx{
+			Nonce:    0,
+			GasPrice: big.NewInt(0),
+			Gas:      21000,
+			To:       &to,
+			Value:    big.NewInt(0),
+			Data:     nil,
+		})
+
+		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
+		require.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signedRaw)
+	})
+
+	s.Run("should sign an access list transaction successfully", func() {
+		tx := types.NewTx(&types.AccessListTx{
+			ChainID:  big.NewInt(1),
+			Nonce:    0,
+			GasPrice: big.NewInt(0),
+			Gas:      21000,
+			To:       &to,
+			Value:    big.NewInt(0),
+			AccessList: []types.AccessTuple{
+				{
+					Address:     ethcommon.HexToAddress("0x899381bb15208e1586e7B0a4b2e1E8943BE5Ab1C"),
+					StorageKeys: []ethcommon.Hash{ethcommon.HexToHash("0xabab")},
+				},
+				{
+					Address:     ethcommon.HexToAddress("0xad8340404a428278017aFfC2a6AfB9Ad4b49b7d6"),
+					StorageKeys: []ethcommon.Hash{ethcommon.HexToHash("0xbaba")},
+				},
+			},
+		})
+
+		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
+		require.NoError(s.T(), err)
+		assert.NotEmpty(s.T(), signedRaw)
+	})
+
+	s.Run("should sign a dynamic fee transaction successfully", func() {
+		tx := types.NewTx(&types.DynamicFeeTx{
+			ChainID:   big.NewInt(1),
+			Nonce:     0,
+			GasTipCap: big.NewInt(1000000),
+			GasFeeCap: big.NewInt(1000000),
+			Gas:       21000,
+			To:        &to,
+			Value:     big.NewInt(0),
+			AccessList: []types.AccessTuple{
+				{
+					Address:     ethcommon.HexToAddress("0x899381bb15208e1586e7B0a4b2e1E8943BE5Ab1C"),
+					StorageKeys: []ethcommon.Hash{ethcommon.HexToHash("0xabab")},
+				},
+				{
+					Address:     ethcommon.HexToAddress("0xad8340404a428278017aFfC2a6AfB9Ad4b49b7d6"),
+					StorageKeys: []ethcommon.Hash{ethcommon.HexToHash("0xbaba")},
+				},
+			},
+		})
+
 		signedRaw, err := s.store.SignTransaction(ctx, account.Address, chainID, tx)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(s.T(), signedRaw)
 	})
 
 	s.Run("should fail with NotFoundError if account is not found", func() {
+		tx := types.NewTx(&types.LegacyTx{
+			Nonce:    0,
+			GasPrice: big.NewInt(0),
+			Gas:      21000,
+			To:       &to,
+			Value:    big.NewInt(0),
+		})
+
 		signedRaw, err := s.store.SignTransaction(ctx, ethcommon.HexToAddress("invalidAddress"), chainID, tx)
 		require.Empty(s.T(), signedRaw)
 		assert.True(s.T(), errors.IsNotFoundError(err))
@@ -292,14 +354,14 @@ func (s *ethTestSuite) TestSignEEA() {
 	ctx := s.env.ctx
 	id := s.newID("my-account-sign-eea")
 	chainID := big.NewInt(1)
-	tx := types.NewTransaction(
-		0,
-		ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"),
-		big.NewInt(0),
-		0,
-		big.NewInt(0),
-		nil,
-	)
+	to := ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
+	tx := types.NewTx(&types.LegacyTx{
+		Nonce:    0,
+		GasPrice: big.NewInt(0),
+		Gas:      0,
+		To:       &to,
+		Value:    big.NewInt(0),
+	})
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	privateFor := []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="}
 	privateArgs := &ethereum.PrivateArgs{

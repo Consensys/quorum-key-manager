@@ -4,6 +4,7 @@ package acceptancetests
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 	"math/rand"
 	"os"
 	"testing"
@@ -94,6 +95,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 
 	db := postgres.New(s.env.logger.WithComponent("Keys-DB"), s.env.postgresClient)
 	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
+	utilsConnector := utils.NewConnector(s.env.logger)
 
 	// Hashicorp
 	storeName := "Keys-Hashicorp"
@@ -102,6 +104,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	testSuite.env = s.env
 	testSuite.db = db.Keys(storeName)
 	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db.Keys(storeName), auth, logger)
+	testSuite.utils = utilsConnector
 	suite.Run(s.T(), testSuite)
 
 	// Local
@@ -113,6 +116,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	secretsDB := db.Secrets(storeName)
 	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
 	testSuite.store = keys.NewConnector(local.New(hashicorpSecretStore, secretsDB, logger), db.Keys(storeName), auth, logger)
+	testSuite.utils = utilsConnector
 	suite.Run(s.T(), testSuite)
 }
 
@@ -124,6 +128,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 
 	db := postgres.New(s.env.logger.WithComponent("Eth-DB"), s.env.postgresClient)
 	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
+	utilsConnector := utils.NewConnector(s.env.logger)
 
 	// Hashicorp
 	storeName := "Eth-Hashicorp"
@@ -132,6 +137,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 	testSuite := new(ethTestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth.NewConnector(hashicorpStore, db.ETHAccounts(storeName), auth, logger)
+	testSuite.utils = utilsConnector
 	testSuite.db = db.ETHAccounts(storeName)
 	suite.Run(s.T(), testSuite)
 
@@ -144,6 +150,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 	testSuite = new(ethTestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth.NewConnector(localStore, db.ETHAccounts(storeName), auth, logger)
+	testSuite.utils = utilsConnector
 	testSuite.db = db.ETHAccounts(storeName)
 	suite.Run(s.T(), testSuite)
 }

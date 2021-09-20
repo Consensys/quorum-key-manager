@@ -22,6 +22,7 @@ type Config struct {
 	EthStores           []string         `json:"eth_stores"`
 	QuorumNodeID        string           `json:"quorum_node_id"`
 	BesuNodeID          string           `json:"besu_node_id"`
+	GethNodeID          string           `json:"geth_node_id"`
 	Postgres            *pgclient.Config `json:"postgres"`
 }
 

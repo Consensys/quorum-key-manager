@@ -30,7 +30,7 @@ type keysTestSuite struct {
 	suite.Suite
 	err              error
 	ctx              context.Context
-	keyManagerClient client.KeysClient
+	keyManagerClient client.KeyManagerClient
 
 	storeName string
 	logger    log.Logger
@@ -611,7 +611,7 @@ func (s *keysTestSuite) TestSignVerify() {
 			SigningAlgorithm: key.SigningAlgorithm,
 			PublicKey:        pubKeyB,
 		}
-		err = s.keyManagerClient.VerifyKeySignature(s.ctx, s.storeName, verifyRequest)
+		err = s.keyManagerClient.VerifyKeySignature(s.ctx, verifyRequest)
 		require.NoError(s.T(), err)
 	})
 
@@ -647,7 +647,7 @@ func (s *keysTestSuite) TestSignVerify() {
 			SigningAlgorithm: key.SigningAlgorithm,
 			PublicKey:        pubKeyB,
 		}
-		err = s.keyManagerClient.VerifyKeySignature(s.ctx, s.storeName, verifyRequest)
+		err = s.keyManagerClient.VerifyKeySignature(s.ctx, verifyRequest)
 		require.NoError(s.T(), err)
 	})
 }

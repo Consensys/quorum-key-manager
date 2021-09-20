@@ -33,7 +33,7 @@ var testManifest = []byte(`
   version: 0.0.1
   name: hashicorp-keys
   specs:
-    mountPoint: orchestrate
+    mountPoint: quorum
     address: http://hashicorp:8200
     token: fakeToken
     namespace: ''
@@ -61,7 +61,7 @@ var testManifest = []byte(`
   specs:
     keystore: HashicorpKeys
     specs:
-      mountPoint: orchestrate
+      mountPoint: quorum
       address: http://hashicorp:8200
       token: fakeToken
       namespace: ''
@@ -103,13 +103,13 @@ func TestManagerService(t *testing.T) {
 	// Give some time to load manifests
 	time.Sleep(500 * time.Millisecond)
 
-	stores, err := mngr.List(context.TODO(), "", &types.UserInfo{})
+	stores, err := mngr.Stores().List(context.TODO(), "", &types.UserInfo{})
 	require.NoError(t, err)
 	assert.Contains(t, stores, "hashicorp-secrets")
 	assert.Contains(t, stores, "hashicorp-keys")
 	assert.Contains(t, stores, "eth-accounts")
 
-	stores, err = mngr.List(context.TODO(), "", &types.UserInfo{Tenant: "tenantOne"})
+	stores, err = mngr.Stores().List(context.TODO(), "", &types.UserInfo{Tenant: "tenantOne"})
 	require.NoError(t, err)
 	assert.Contains(t, stores, "akv-secrets")
 	assert.Contains(t, stores, "akv-keys")

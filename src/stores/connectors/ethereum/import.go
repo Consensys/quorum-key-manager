@@ -14,6 +14,12 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *
 	logger := c.logger.With("id", id)
 	logger.Debug("importing ethereum account")
 
+	if len(privKey) == 0 {
+		errMessage := "private key must be provided"
+		logger.Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+
 	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEthAccount})
 	if err != nil {
 		return nil, err

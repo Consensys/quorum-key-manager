@@ -7,7 +7,7 @@ import (
 	mkeys "github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/types"
+	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 )
 
 type LocalEthSpecs struct {
@@ -20,7 +20,7 @@ func NewLocalEth(specs *LocalEthSpecs, db database.Secrets, logger log.Logger) (
 	var err error
 
 	switch specs.Keystore {
-	case stores.HashicorpKeys:
+	case manifest.HashicorpKeys:
 		spec := &mkeys.HashicorpKeySpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp keystore specs"
@@ -29,7 +29,7 @@ func NewLocalEth(specs *LocalEthSpecs, db database.Secrets, logger log.Logger) (
 		}
 
 		keyStore, err = mkeys.NewHashicorpKeyStore(spec, logger)
-	case stores.AKVKeys:
+	case manifest.AKVKeys:
 		spec := &mkeys.AkvKeySpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV keystore specs"
@@ -38,7 +38,7 @@ func NewLocalEth(specs *LocalEthSpecs, db database.Secrets, logger log.Logger) (
 		}
 
 		keyStore, err = mkeys.NewAkvKeyStore(spec, logger)
-	case stores.AWSKeys:
+	case manifest.AWSKeys:
 		spec := &mkeys.AwsKeySpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS keystore specs"
@@ -47,7 +47,7 @@ func NewLocalEth(specs *LocalEthSpecs, db database.Secrets, logger log.Logger) (
 		}
 
 		keyStore, err = mkeys.NewAwsKeyStore(spec, logger)
-	case stores.LocalKeys:
+	case manifest.LocalKeys:
 		spec := &mkeys.LocalKeySpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal local keystore specs"
