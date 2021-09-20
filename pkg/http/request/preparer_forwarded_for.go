@@ -7,7 +7,6 @@ import (
 )
 
 // ForwardedFor populates "X-Forwarded-For" header with the client IP address
-
 // In case, "X-Forwarded-For" was already populated (e.g. if we are not the first proxy)
 // then retains prior X-Forwarded-For information as a comma+space
 // separated list and fold multiple headers into one.

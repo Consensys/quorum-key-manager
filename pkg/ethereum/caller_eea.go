@@ -26,7 +26,7 @@ type eeaService struct {
 
 //go:generate mockgen -source=caller_eea.go -destination=mock/caller_eea.go -package=mock
 
-// EEACaller is a JSON-RPC client to a Ethereum client using eea namespace
+// EEACaller is a JSON-RPC client to an Ethereum client using eea namespace
 type EEACaller interface {
 	SendRawTransaction(context.Context, []byte) (ethcommon.Hash, error)
 }
@@ -36,5 +36,5 @@ type eeaCaller struct {
 }
 
 func (c *eeaCaller) SendRawTransaction(ctx context.Context, raw []byte) (ethcommon.Hash, error) {
-	return eeaSrv.SendRawTransaction(c.client)(ctx, hexutil.Bytes(raw))
+	return eeaSrv.SendRawTransaction(c.client)(ctx, raw)
 }

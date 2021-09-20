@@ -22,8 +22,8 @@ func (m jsonMap) Value() (driver.Value, error) {
 	return json.Marshal(m)
 }
 
-// Go refuses to convert map[interface{}]interface{} to JSON because JSON only support string keys
-// So it's necessary to recursively convert all map[interface]interface{} to map[string]interface{}
+// RecursiveToJSON recursively convert all map[interface]interface{} to map[string]interface{}
+// as Go refuses to convert map[interface{}]interface{} to JSON because JSON only support string keys
 func RecursiveToJSON(v interface{}) (r interface{}) {
 	switch v := v.(type) {
 	case []interface{}:

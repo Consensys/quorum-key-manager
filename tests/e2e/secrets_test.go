@@ -123,7 +123,7 @@ func (s *secretsTestSuite) TestSet() {
 			},
 		}
 
-		secret, err := s.keyManagerClient.SetSecret(s.ctx, "inexistentStoreName", secretID, request)
+		secret, err := s.keyManagerClient.SetSecret(s.ctx, "nonExistentStoreName", secretID, request)
 		require.Nil(s.T(), secret)
 
 		httpError := err.(*client.ResponseError)
@@ -248,7 +248,7 @@ func (s *secretsTestSuite) TestRestoreDeleted() {
 		errMsg := fmt.Sprintf("failed to restore secret. {ID: %s}", secret.ID)
 		err = retryOn(func() error {
 			return s.keyManagerClient.RestoreSecret(s.ctx, s.storeName, secret.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 		require.NoError(s.T(), err)
 
 		// We should retry on status conflict for AKV
@@ -256,7 +256,7 @@ func (s *secretsTestSuite) TestRestoreDeleted() {
 		err = retryOn(func() error {
 			_, derr := s.keyManagerClient.GetSecret(s.ctx, s.storeName, secret.ID, secret.Version)
 			return derr
-		}, s.T().Logf, errMsg, http.StatusNotFound, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusNotFound, MaxRetries)
 		require.NoError(s.T(), err)
 	})
 
@@ -284,7 +284,7 @@ func (s *secretsTestSuite) TestDestroyDeleted() {
 		errMsg := fmt.Sprintf("failed to destroy secret {ID: %s}", secret.ID)
 		err := retryOn(func() error {
 			return s.keyManagerClient.DestroySecret(s.ctx, s.storeName, secret.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 		require.NoError(s.T(), err)
 
 		_, err = s.keyManagerClient.GetDeletedSecret(s.ctx, s.storeName, secret.ID)
@@ -320,7 +320,7 @@ func (s *secretsTestSuite) TestList() {
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		ids, err := s.keyManagerClient.ListSecrets(s.ctx, "inexistentStoreName", 0,0)
+		ids, err := s.keyManagerClient.ListSecrets(s.ctx, "nonExistentStoreName", 0,0)
 		require.Empty(s.T(), ids)
 
 		httpError := err.(*client.ResponseError)
@@ -350,7 +350,7 @@ func (s *secretsTestSuite) TestListDeletedSecrets() {
 	})
 
 	s.RunT("should parse errors successfully", func() {
-		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, "inexistentStoreName", 0, 0)
+		ids, err := s.keyManagerClient.ListDeletedSecrets(s.ctx, "nonExistentStoreName", 0, 0)
 		require.Empty(s.T(), ids)
 
 		httpError, ok := err.(*client.ResponseError)
@@ -378,7 +378,7 @@ func (s *secretsTestSuite) queueToDestroy(secretR *types.SecretResponse) {
 		errMsg := fmt.Sprintf("failed to destroy secret {ID: %s}", secretR.ID)
 		err := retryOn(func() error {
 			return s.keyManagerClient.DestroySecret(s.ctx, s.storeName, secretR.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		if err != nil {
 			s.T().Logf(errMsg)

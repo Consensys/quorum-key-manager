@@ -38,12 +38,12 @@ type privCaller struct {
 }
 
 func (c *privCaller) DistributeRawTransaction(ctx context.Context, raw []byte) ([]byte, error) {
-	enclaveKey, err := privSrv.DistributeRawTransaction(c.client)(ctx, hexutil.Bytes(raw))
+	enclaveKey, err := privSrv.DistributeRawTransaction(c.client)(ctx, raw)
 	if err != nil {
 		return nil, err
 	}
 
-	return []byte(*enclaveKey), nil
+	return *enclaveKey, nil
 }
 
 func (c *privCaller) GetTransactionCount(ctx context.Context, addr ethcommon.Address, privacyGroupID string) (uint64, error) {

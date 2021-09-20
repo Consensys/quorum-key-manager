@@ -58,7 +58,7 @@ func ListWildcardPermission(p string) []Permission {
 		return all
 	}
 
-	included := []Permission{}
+	var included []Permission
 	for _, ip := range all {
 		if action == "*" && strings.Contains(string(ip), fmt.Sprintf(":%s", resource)) {
 			included = append(included, ip)

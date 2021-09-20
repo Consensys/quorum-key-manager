@@ -15,7 +15,7 @@ import (
 )
 
 func convertToAKVOps(ops []entities.CryptoOperation) []keyvault.JSONWebKeyOperation {
-	akvOps := []keyvault.JSONWebKeyOperation{}
+	var akvOps []keyvault.JSONWebKeyOperation
 
 	for _, op := range ops {
 		switch op {

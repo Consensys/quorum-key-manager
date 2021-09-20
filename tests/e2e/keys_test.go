@@ -428,7 +428,7 @@ func (s *keysTestSuite) TestRestoreKey() {
 		errMsg := fmt.Sprintf("failed to restore key {ID: %s}", key.ID)
 		err := retryOn(func() error {
 			return s.keyManagerClient.RestoreKey(s.ctx, s.storeName, key.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		require.NoError(s.T(), err)
 
@@ -438,7 +438,7 @@ func (s *keysTestSuite) TestRestoreKey() {
 		err = retryOn(func() error {
 			_, derr := s.keyManagerClient.GetKey(s.ctx, s.storeName, key.ID)
 			return derr
-		}, s.T().Logf, errMsg, http.StatusNotFound, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusNotFound, MaxRetries)
 		require.NoError(s.T(), err)
 	})
 
@@ -471,7 +471,7 @@ func (s *keysTestSuite) TestDestroyKey() {
 		errMsg := fmt.Sprintf("failed to destroy key {ID: %s}", key.ID)
 		err = retryOn(func() error {
 			return s.keyManagerClient.DestroyKey(s.ctx, s.storeName, key.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		require.NoError(s.T(), err)
 
@@ -671,7 +671,7 @@ func (s *keysTestSuite) queueToDestroy(keyR *types.KeyResponse) {
 		errMsg := fmt.Sprintf("failed to destroy key {ID: %s}", keyR.ID)
 		err := retryOn(func() error {
 			return s.keyManagerClient.DestroyKey(s.ctx, s.storeName, keyR.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		if err != nil {
 			s.T().Logf(errMsg)

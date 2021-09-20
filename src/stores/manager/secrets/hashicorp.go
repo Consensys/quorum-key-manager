@@ -12,7 +12,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 )
 
-// SecretSpecs is the specs format for an Hashicorp Vault secret store
+// HashicorpSecretSpecs is the specs format for a Hashicorp Vault secret store
 type HashicorpSecretSpecs struct {
 	MountPoint string `json:"mountPoint"`
 	Address    string `json:"address"`

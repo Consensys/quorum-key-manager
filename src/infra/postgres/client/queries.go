@@ -8,7 +8,7 @@ import (
 )
 
 func QuerySearchIDs(ctx context.Context, client postgres.Client, table, idCol, whereCond string, whereArgs []interface{}, isDeleted bool, limit, offset uint64) ([]string, error) {
-	var ids = []string{}
+	var ids []string
 	var err error
 	var query string
 

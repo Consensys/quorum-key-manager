@@ -8,7 +8,7 @@ const (
 	DependencyFailure = "IN200"
 )
 
-//nolint
+// nolint
 var ErrNotImplemented = NotImplementedError("this operation is not yet implemented. Please contact your administrator")
 var ErrNotSupported = NotSupportedError("this operation is not supported. Please contact your administrator")
 

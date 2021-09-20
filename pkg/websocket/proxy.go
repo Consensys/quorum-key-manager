@@ -358,7 +358,7 @@ func (op *operation) writeServerClose(msg []byte, waitCloseBack bool) {
 
 func (op *operation) pipeControlMessages() {
 	op.clientConn.SetPingHandler(func(data string) error {
-		// We received a message from client so we refresh read timeline
+		// We received a message from client, so we refresh read timeline
 		_ = op.clientConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward Ping to server
@@ -371,7 +371,7 @@ func (op *operation) pipeControlMessages() {
 	})
 
 	op.clientConn.SetPongHandler(func(data string) error {
-		// We received a message from client so we refresh read timeline
+		// We received a message from client, so we refresh read timeline
 		_ = op.clientConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward Pong to server
@@ -384,26 +384,26 @@ func (op *operation) pipeControlMessages() {
 	})
 
 	op.serverConn.SetPingHandler(func(data string) error {
-		// We received a message from server so we refresh read timeline
+		// We received a message from server, so we refresh read timeline
 		_ = op.serverConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward Ping to client
 		err := op.prx.writeControl(op.clientConn, websocket.PingMessage, []byte(data))
 		if err != nil {
-			op.logger.WithError(err).Debug("error writing Ping message on cient connection")
+			op.logger.WithError(err).Debug("error writing Ping message on client connection")
 		}
 
 		return nil
 	})
 
 	op.serverConn.SetPongHandler(func(data string) error {
-		// We received a message from server so we refresh read timeline
+		// We received a message from server, so we refresh read timeline
 		_ = op.serverConn.SetReadDeadline(time.Now().Add(op.prx.PingPongTimeout))
 
 		// Forward pong to client
 		err := op.prx.writeControl(op.clientConn, websocket.PongMessage, []byte(data))
 		if err != nil {
-			op.logger.WithError(err).Debug("error writing Pong message on cient connection")
+			op.logger.WithError(err).Debug("error writing Pong message on client connection")
 		}
 
 		return nil
@@ -418,7 +418,7 @@ func (op *operation) pipeControlMessages() {
 		}
 
 		// We answer Close back to client
-		msg := []byte{}
+		var msg []byte
 		if code != websocket.CloseNoStatusReceived {
 			msg = websocket.FormatCloseMessage(code, "")
 		}
@@ -436,7 +436,7 @@ func (op *operation) pipeControlMessages() {
 		}
 
 		// We answer Close back to server
-		msg := []byte{}
+		var msg []byte
 		if code != websocket.CloseNoStatusReceived {
 			msg = websocket.FormatCloseMessage(code, "")
 		}

@@ -40,7 +40,6 @@ var hopByHopHeaders = []string{
 }
 
 // RemoveHopByHopHeaders remove Hop-by-hop headers from the request
-
 // These headers are meaningful only for a single transport-level connection,
 // and must not be retransmitted by proxies or cached (c.f. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
 func RemoveHopByHopHeaders() Preparer {

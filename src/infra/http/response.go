@@ -57,7 +57,7 @@ func WriteJSON(rw http.ResponseWriter, data interface{}) error {
 }
 
 func WritePagingResponse(rw http.ResponseWriter, req *http.Request, data interface{}) error {
-	arrData := []interface{}{}
+	var arrData []interface{}
 	bData, err := json.Marshal(data)
 	if err != nil {
 		return err

@@ -143,7 +143,7 @@ func (s *ethTestSuite) TestCreate() {
 	s.Run("should parse errors successfully", func() {
 		request := testutils.FakeCreateEthAccountRequest()
 
-		key, err := s.keyManagerClient.CreateEthAccount(s.ctx, "inexistentStoreName", request)
+		key, err := s.keyManagerClient.CreateEthAccount(s.ctx, "nonExistentStoreName", request)
 		require.Nil(s.T(), key)
 
 		httpError := err.(*client.ResponseError)
@@ -417,7 +417,7 @@ func (s *ethTestSuite) queueToDestroy(accR *types.EthAccountResponse) {
 		errMsg := fmt.Sprintf("failed to destroy eth account {Address: %s}", accR.Address.String())
 		err := retryOn(func() error {
 			return s.keyManagerClient.DestroyEthAccount(s.ctx, s.storeName, accR.Address.Hex())
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		if err != nil {
 			s.T().Logf(errMsg)

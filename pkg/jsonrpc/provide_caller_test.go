@@ -324,6 +324,6 @@ func TestProvideCaller(t *testing.T) {
 		Header:     header,
 	}, nil)
 
-	mapStrs := srv.MapInput_MapOutput(client)(map[string][]string{"key1": []string{"value1"}})
-	assert.Equal(t, map[string][]string{"key2": []string{"value2"}, "key3": []string{"value3", "value4"}}, mapStrs, "SliceInput_SliceOutput result should be correct")
+	mapStrs := srv.MapInput_MapOutput(client)(map[string][]string{"key1": {"value1"}})
+	assert.Equal(t, map[string][]string{"key2": {"value2"}, "key3": {"value3", "value4"}}, mapStrs, "SliceInput_SliceOutput result should be correct")
 }

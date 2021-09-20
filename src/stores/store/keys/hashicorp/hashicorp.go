@@ -115,7 +115,7 @@ func (s *Store) List(_ context.Context, _, _ uint64) ([]string, error) {
 		return []string{}, nil
 	}
 
-	var ids = []string{}
+	var ids []string
 	for _, id := range keyIds {
 		ids = append(ids, id.(string))
 	}

@@ -8,7 +8,6 @@ import (
 )
 
 // BasicAuth sets Authorization header "Basic <username>:<password>"
-
 // If header is already set then does nothing
 // if User is set on request URL then set username, password to the values of the URL
 func BasicAuth(cfg *BasicAuthConfig) Preparer {

@@ -3,7 +3,7 @@ package header
 import "net/http"
 
 // WebSocketHeaders enforce WebSocket headers to be case-sensitive
-
+//
 // Even if the websocket RFC says that headers should be case-insensitive,
 // some servers need Sec-WebSocket-Key, Sec-WebSocket-Extensions, Sec-WebSocket-Accept,
 // Sec-WebSocket-Protocol and Sec-WebSocket-Version to be case-sensitive.

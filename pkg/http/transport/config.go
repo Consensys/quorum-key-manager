@@ -7,7 +7,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/net/dialer"
 )
 
-//  Config options to configure communication between Traefik and the servers
+// Config options to configure communication between Traefik and the servers
 type Config struct {
 	Dialer                *dialer.Config `json:"dialer,omitempty"`
 	IdleConnTimeout       *json.Duration `json:"idleConnTimeout,omitempty" description:"Maximum time an idle (keep-alive) connection will remain idle before closing itself (if zero then no limit)"`
