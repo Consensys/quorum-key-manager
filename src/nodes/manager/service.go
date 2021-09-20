@@ -3,7 +3,6 @@ package nodemanager
 import (
 	"context"
 	"fmt"
-	golog "log"
 	"sort"
 	"sync"
 
@@ -205,7 +204,6 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 			return err
 		}
 
-		golog.Println("DBGTHE:", m.stores, m.stores.Stores(), m.aliases)
 		// Set interceptor on proxy node
 		prxNode.Handler = interceptor.New(m.stores.Stores(), m.aliases, m.logger)
 
