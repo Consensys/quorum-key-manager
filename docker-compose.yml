@@ -47,6 +47,7 @@ services:
       <<: *default-variables
     command: migrate up
     restart: "no"
+    tty: true
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,6 +65,7 @@ services:
     volumes:
       - ${HOST_MANIFEST_PATH-./deps/config/manifests}:/manifests:ro
     restart: "on-failure"
+    tty: true
 
 volumes:
   db-data-api:
