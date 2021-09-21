@@ -17,12 +17,11 @@ x-default-variables: &default-variables
   DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
   AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-}
   AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
-  HTTPS_ENABLE: ${HTTPS_ENABLE-}
+  HTTPS_ENABLED: ${HTTPS_ENABLED-}
   HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-}
   HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
   AUTH_TLS_CA: ${AUTH_TLS_CA-}
   AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
-  MANIFEST_PATH: "/manifests"
 
 services:
   postgres:
@@ -46,7 +45,7 @@ services:
     environment:
       <<: *default-variables
     command: migrate up
-    restart: "no"
+    restart: "on-failure"
     tty: true
     depends_on:
       postgres:
@@ -56,6 +55,7 @@ services:
     image: consensys/quorum-key-manager:latest
     environment:
       <<: *default-variables
+      MANIFEST_PATH: ${MANIFEST_PATH-/manifests}
     ports:
       - 8080:8080
       - 8081:8081

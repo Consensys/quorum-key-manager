@@ -80,7 +80,7 @@ const (
 	enableHTTPSFlag     = "https-enable"
 	enableHTTPSViperKey = "https-enable"
 	enableHTTPSDefault  = false
-	enableHTTPSEnv      = "HTTPS_ENABLE"
+	enableHTTPSEnv      = "HTTPS_ENABLED"
 )
 
 // Hostname register a flag for HTTP server address
