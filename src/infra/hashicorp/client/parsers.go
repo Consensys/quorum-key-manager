@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -10,7 +11,7 @@ import (
 func parseErrorResponse(err error) error {
 	httpError, ok := err.(*api.ResponseError)
 	if !ok {
-		return errors.HashicorpVaultError("failed to connect to Hashicorp store")
+		return errors.HashicorpVaultError(fmt.Sprintf("failed to connect to Hashicorp store: %s", err.Error()))
 	}
 
 	switch httpError.StatusCode {

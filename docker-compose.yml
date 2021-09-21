@@ -17,21 +17,14 @@ x-default-variables: &default-variables
   DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
   AUTH_OIDC_CA_CERT: ${AUTH_OIDC_CA_CERT-}
   AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
-  HTTPS_ENABLE: ${HTTPS_ENABLE-}
+  HTTPS_ENABLED: ${HTTPS_ENABLED-}
   HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-}
   HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
   AUTH_TLS_CA: ${AUTH_TLS_CA-}
   AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
-  MANIFEST_PATH: "/manifests"
-
-x-container-common: &container-common
-  image: consensys/quorum-key-manager:latest
-  restart: ${CONTAINER_RESTART-on-failure}
-  tty: true
 
 services:
   postgres:
-    <<: *container-common
     image: postgres:13.4-alpine
     environment:
       POSTGRES_PASSWORD: postgres
@@ -44,21 +37,23 @@ services:
       interval: 1s
       timeout: 1s
       retries: 5
+    restart: "on-failure"
 
   migration:
-    <<: *container-common
+    image: consensys/quorum-key-manager:latest
     environment:
       <<: *default-variables
     command: migrate up
-    restart: "no"
+    restart: "on-failure"
     depends_on:
       postgres:
         condition: service_healthy
 
   key-manager:
-    <<: *container-common
+    image: consensys/quorum-key-manager:latest
     environment:
       <<: *default-variables
+      MANIFEST_PATH: ${MANIFEST_PATH-/manifests}
     ports:
       - 8080:8080
       - 8081:8081
@@ -67,6 +62,7 @@ services:
     command: run
     volumes:
       - ${HOST_MANIFEST_PATH-./deps/config/manifests}:/manifests:ro
+    restart: "on-failure"
 
 volumes:
   db-data-api:
