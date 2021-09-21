@@ -110,7 +110,7 @@ stop-geth:
 down-geth:
 	@docker-compose -f deps/geth/docker-compose.yml down  --volumes --timeout 0
 
-generate-jwt: networks gobuild
+generate-jwt: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up generate-jwt
 
 lint: ## Run linter to fix issues
