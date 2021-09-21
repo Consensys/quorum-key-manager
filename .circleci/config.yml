@@ -18,7 +18,7 @@ commands:
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
             echo $DOCKER_PASS_2 | docker login -u $DOCKER_USER_2 --password-stdin $DOCKER_REGISTRY_2
   docker_build_dev:
-    description: "Build Quorum Key Manager"
+    description: "Build Quorum Key Manager - dev mode"
     steps:
       - run:
           name: Build Quorum Key Manager
@@ -108,7 +108,7 @@ jobs:
   lint:
     executor:
       name: go/default
-      tag: '1.15.7'
+      tag: '1.16.8'
     steps:
       - prepare_golang
       - run:
@@ -120,7 +120,7 @@ jobs:
   gobuild:
     executor:
       name: go/default
-      tag: '1.15.7'
+      tag: '1.16.8'
     steps:
       - prepare_golang
       - run:
@@ -129,7 +129,7 @@ jobs:
 
   test:
     docker:
-      - image: cimg/go:1.15.7
+      - image: cimg/go:1.16.8
     steps:
       - prepare_golang
       - run:
@@ -144,7 +144,7 @@ jobs:
           name: Uninstall Go
           command: sudo rm -rvf /usr/local/go/
       - go/install:
-          version: 1.15.7
+          version: 1.16.8
       - prepare_golang
       - run:
           name: Acceptance tests
@@ -158,7 +158,7 @@ jobs:
           name: Uninstall Go
           command: sudo rm -rvf /usr/local/go/
       - go/install:
-          version: 1.15.7
+          version: 1.16.8
       - prepare_golang
       - run:
           name: e2e tests
@@ -208,6 +208,8 @@ jobs:
             docker tag ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG} ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
             docker push ${DOCKER_REGISTRY_REPO}/quorum-key-manager:latest
 
+            docker tag ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
+            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
             docker tag ${DOCKER_REGISTRY_REPO}/quorum-key-manager:${CIRCLE_TAG} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
             docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
 
