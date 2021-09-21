@@ -19,7 +19,7 @@ x-default-variables: &default-variables
   DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
 
 x-container-common: &container-common
-  image: golang:1.15-buster
+  image: golang:1.16-buster
   restart: ${CONTAINER_RESTART-on-failure}
   entrypoint: /bin/main
   tty: true

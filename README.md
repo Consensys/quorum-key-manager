@@ -29,13 +29,6 @@ First, define your Quorum Key Manager environment setup using manifest files.
 Examples can be found at [`./deps/config/manifests`](./deps/config/manifests). 
 More information about how to set up service can be found in [documentation](http://docs.quorum-key-manager.consensys.net/).
 
-Once your manifests are written, specify where `quorum-key-manager` can find them on your filesystem
-with the following environment variable:
-
-```bash
-export HOST_MANIFEST_PATH={your_manifests_folder}
-```
- 
 Now launch Quorum Key Manager service using docker-compose with the following command:
 
 ```bash

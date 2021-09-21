@@ -4,21 +4,18 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
-	"time"
-
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores"
-	"github.com/consensys/quorum-key-manager/src/stores/database"
 
 	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark-crypto/hash"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 type Store struct {
@@ -290,7 +287,10 @@ func (s *Store) signEDDSA(privKeyB, data []byte) ([]byte, error) {
 func eddsaBN254(importedPrivKey []byte) (eddsabn254.PrivateKey, error) {
 	if importedPrivKey == nil {
 		seed := make([]byte, 32)
-		rand.New(rand.NewSource(time.Now().UnixNano())).Read(seed)
+		_, err := rand.Read(seed)
+		if err != nil {
+			return eddsabn254.PrivateKey{}, err
+		}
 
 		// Usually standards implementations of eddsa do not require the choice of a specific hash function (usually it's SHA256).
 		// Here we needed to allow the choice of the hash, so we can choose a hash function that is easily programmable in a snark circuit.

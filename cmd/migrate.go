@@ -82,7 +82,7 @@ func migrateUp() error {
 	}
 
 	err = m.Up()
-	if err != nil {
+	if err != nil && err != migrate.ErrNoChange {
 		errMessage := "failed to execute migrations"
 		logger.WithError(err).Error(errMessage)
 		return err
@@ -105,7 +105,7 @@ func migrateDown() error {
 	}
 
 	err = m.Steps(-1)
-	if err != nil {
+	if err != nil && err != migrate.ErrNoChange {
 		errMessage := "failed to downgrade migrations"
 		logger.WithError(err).Error(errMessage)
 		return err
@@ -128,7 +128,7 @@ func migrateReset() error {
 	}
 
 	err = m.Down()
-	if err != nil {
+	if err != nil && err != migrate.ErrNoChange {
 		errMessage := "failed to reset all migrations"
 		logger.WithError(err).Error(errMessage)
 		return err
