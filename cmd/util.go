@@ -92,7 +92,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	privPem, _ := pem.Decode(keyFileContent)
 	var privPemBytes []byte
 	if privKeyPassword != "" {
-		//nolint
+		// nolint
 		privPemBytes, err = x509.DecryptPEMBlock(privPem, []byte(privKeyPassword))
 		if err != nil {
 			return err

@@ -3,16 +3,15 @@ package compose
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/container/postgres"
 	goreflect "reflect"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
 	hashConfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 	postgresConfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
-
 	hashVault "github.com/consensys/quorum-key-manager/tests/acceptance/docker/container/hashicorp"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/container/postgres"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/container/reflect"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"

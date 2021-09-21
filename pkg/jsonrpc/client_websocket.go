@@ -37,7 +37,7 @@ type WebSocketClient struct {
 	errors chan error
 }
 
-// NewClient creates a new jsonrpc HTTPClient from an HTTP HTTPClient
+// NewWebsocketClient creates a new jsonrpc HTTPClient from an HTTP HTTPClient
 func NewWebsocketClient(conn *websocket.Conn) *WebSocketClient {
 	return &WebSocketClient{
 		conn:         conn,
@@ -61,7 +61,7 @@ func (c *WebSocketClient) Start(context.Context) error {
 }
 
 // Stop the client from receiving new messages
-// It finishes to read all messages before quiting
+// It finishes reading all messages before quiting
 func (c *WebSocketClient) Stop(ctx context.Context) error {
 	// Close stop channel
 	close(c.stop)
@@ -82,7 +82,7 @@ func (c *WebSocketClient) Errors() <-chan error {
 	return c.errors
 }
 
-// Do sends an jsonrpc request over the underlying HTTP client and returns a jsonrpc response
+// Do sends a jsonrpc request over the underlying HTTP client and returns a jsonrpc response
 func (c *WebSocketClient) Do(reqMsg *RequestMsg) (*ResponseMsg, error) {
 	err := reqMsg.Validate()
 	if err != nil {
@@ -188,7 +188,7 @@ func (c *WebSocketClient) manageOp() {
 			close(c.readErr)
 			close(c.readResp)
 
-			// Finish to process all responses that were already received
+			// Finish processing all responses that were already received
 			for msg := range c.readResp {
 				c.handleRespMsg(msg)
 			}

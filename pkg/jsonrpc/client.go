@@ -16,7 +16,7 @@ type Client interface {
 	Do(*RequestMsg) (*ResponseMsg, error)
 }
 
-type incrementalIDlient struct {
+type incrementalIDClient struct {
 	client Client
 
 	baseID    string
@@ -26,7 +26,7 @@ type incrementalIDlient struct {
 // WithIncrementalID wraps a HTTPClient with an ID counter an increases it each time a new request comes out
 func WithIncrementalID(id interface{}) func(Client) Client {
 	return func(c Client) Client {
-		idC := &incrementalIDlient{
+		idC := &incrementalIDClient{
 			client: c,
 		}
 
@@ -38,11 +38,11 @@ func WithIncrementalID(id interface{}) func(Client) Client {
 	}
 }
 
-func (c *incrementalIDlient) nextID() string {
+func (c *incrementalIDClient) nextID() string {
 	return fmt.Sprintf("%v%v", c.baseID, atomic.AddUint32(&c.idCounter, 1))
 }
 
-func (c *incrementalIDlient) Do(msg *RequestMsg) (*ResponseMsg, error) {
+func (c *incrementalIDClient) Do(msg *RequestMsg) (*ResponseMsg, error) {
 	if msg.ID == nil {
 		msg.WithID(c.nextID())
 	}

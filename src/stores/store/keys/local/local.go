@@ -39,7 +39,7 @@ func (s *Store) Get(_ context.Context, _ string) (*entities.Key, error) {
 }
 
 func (s *Store) List(ctx context.Context, _, _ uint64) ([]string, error) {
-	ids := []string{}
+	var ids []string
 	items, err := s.db.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (s *Store) GetDeleted(_ context.Context, _ string) (*entities.Key, error) {
 }
 
 func (s *Store) ListDeleted(ctx context.Context, _, _ uint64) ([]string, error) {
-	ids := []string{}
+	var ids []string
 	items, err := s.db.GetAllDeleted(ctx)
 	if err != nil {
 		return nil, err

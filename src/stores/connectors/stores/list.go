@@ -20,7 +20,7 @@ func (c *Connector) ListAllAccounts(ctx context.Context, userInfo *authtypes.Use
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 
-	accs := []common.Address{}
+	var accs []common.Address
 	for _, storeName := range c.list(ctx, manifest.Ethereum, userInfo) {
 		store, err := c.getEthStore(ctx, storeName, userInfo)
 		if err != nil {
@@ -56,7 +56,7 @@ func (c *Connector) listStores(list map[string]*storeBundle, kind manifest.Kind,
 }
 
 func (c *Connector) list(_ context.Context, kind manifest.Kind, userInfo *authtypes.UserInfo) []string {
-	storeNames := []string{}
+	var storeNames []string
 	switch kind {
 	case "":
 		storeNames = append(

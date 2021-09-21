@@ -119,7 +119,7 @@ Environment variable: %q`, httpServerCertEnv)
 	_ = viper.BindPFlag(httpServerCertViperKey, f.Lookup(httpServerCertFlag))
 }
 
-// Flags register flags for HashiCorp Hashicorp
+// HTTPFlags register flags for HTTPS server
 func HTTPFlags(f *pflag.FlagSet) {
 	httpHost(f)
 	httpPort(f)

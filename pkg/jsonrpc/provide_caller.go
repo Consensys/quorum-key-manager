@@ -15,16 +15,16 @@ var (
 
 // ProvideCaller takes a list of user defines callers as argument and
 // automatically populates all caller's fields with RPC functions
-
-// It aims at facilitate the implemention of Web3 client connecting to downstream node
-
+//
+// It aims at facilitate the implementation of Web3 client connecting to downstream node
+//
 // - Caller MUST be pointers to struct
 // - All caller's fields MUST be functions mathc
 // - Caller field func MUST accept a single input of type jsonrpc.Client and MUST return a single output which is a function
 // - Caller field output func MUST return at most 2 outputs (if 2 the second MUST be an error)
-
+//
 // Example of valid caller struct:
-
+//
 // type ExampleCaller struct {
 // 	   CtxInput_NoOutput        func(Client) func(context.Context)
 // 	   NoInput_NoOutput         func(Client) func()

@@ -15,7 +15,7 @@ type RecoveryPolicy string
 
 // Attributes are user set configuration and information attached to stored item
 type Attributes struct {
-	// Operations supported by a stored item (e.g sign, encrypt...)
+	// Operations supported by a stored item (e.g. sign, encrypt...)
 	Operations []CryptoOperation
 
 	// Disabled whether item is disabled

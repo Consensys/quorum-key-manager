@@ -13,14 +13,14 @@ type HTTPClient struct {
 	client httpclient.Client
 }
 
-// NewClient creates a new jsonrpc HTTPClient from an HTTP HTTPClient
+// NewHTTPClient creates a new jsonrpc HTTPClient from an HTTP HTTPClient
 func NewHTTPClient(c httpclient.Client) *HTTPClient {
 	return &HTTPClient{
 		client: c,
 	}
 }
 
-// Do sends an jsonrpc request over the underlying HTTP client and returns a jsonrpc response
+// Do sends a jsonrpc request over the underlying HTTP client and returns a jsonrpc response
 func (c *HTTPClient) Do(reqMsg *RequestMsg) (*ResponseMsg, error) {
 	err := reqMsg.Validate()
 	if err != nil {

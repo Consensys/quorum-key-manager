@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const MAX_RETRIES = 5
+const MaxRetries = 5
 
 type callFunc func() error
 type logFunc func(format string, args ...interface{})

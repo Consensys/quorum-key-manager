@@ -83,7 +83,7 @@ func TestLocalManager(t *testing.T) {
 	defer func() { _ = subNone.Unsubscribe() }()
 
 	assertMessage(t, []Message{
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindA",
@@ -92,7 +92,7 @@ func TestLocalManager(t *testing.T) {
 			},
 			Action: CreateAction,
 		},
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
@@ -101,7 +101,7 @@ func TestLocalManager(t *testing.T) {
 			},
 			Action: CreateAction,
 		},
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
@@ -113,7 +113,7 @@ func TestLocalManager(t *testing.T) {
 	}, chanAB)
 
 	assertMessage(t, []Message{
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
@@ -122,7 +122,7 @@ func TestLocalManager(t *testing.T) {
 			},
 			Action: CreateAction,
 		},
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
@@ -131,7 +131,7 @@ func TestLocalManager(t *testing.T) {
 			},
 			Action: CreateAction,
 		},
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindC",
@@ -143,7 +143,7 @@ func TestLocalManager(t *testing.T) {
 	}, chanBC)
 
 	assertMessage(t, []Message{
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindA",
@@ -152,7 +152,7 @@ func TestLocalManager(t *testing.T) {
 			},
 			Action: CreateAction,
 		},
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
@@ -161,7 +161,7 @@ func TestLocalManager(t *testing.T) {
 			},
 			Action: CreateAction,
 		},
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindB",
@@ -170,7 +170,7 @@ func TestLocalManager(t *testing.T) {
 			},
 			Action: CreateAction,
 		},
-		Message{
+		{
 			Loader: ManagerID,
 			Manifest: &manifest.Manifest{
 				Kind:  "KindC",

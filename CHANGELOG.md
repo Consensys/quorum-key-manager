@@ -1,26 +1,6 @@
 # Quorum Key Manager Release Notes
 
-## v21.7.0-alpha.3 (2021-09-13)
-### 🆕 Features
-* Support pagination for listing endpoints
-* Idempotent behaviour for update endpoints 
-
-### 🛠 Bug fixes
-* EEA transaction signing using empty privateFor
-* Invalid successful readiness response if PG is not reachable 
-
-## v21.7.0-alpha.2 (2021-08-26)
-### 🆕 Features
-* Support for authorization using OIDC, TLS and API-KEY
-* Support for authentication based on roles and permissions
-* Usage Postgres DB to resources public information
-* Support for PostgreSQL migrations through command line
-
-### 🛠 Bug fixes
-* Behaviour alignment over every support key vault
-* Keys and secrets were not available after restoring
-
-## v21.7.0-alpha.1 (2021-07-06)
+## v21.9.0 (2021-09-21)
 ### 🆕 Features
 Initial release of the Quorum Key Manager
 
@@ -31,3 +11,7 @@ Initial release of the Quorum Key Manager
 * Support for [AWS Key Management Service](https://aws.amazon.com/kms/) (KMS)
 * Support for Ethereum account management using an underlying key store 
 * Node proxy connected to an underlying Blockchain Node (tested with [GoQuorum](https://docs.goquorum.consensys.net/en/stable/) and [Hyperledger Besu](https://www.hyperledger.org/use/besu)) intercepting JSON-RPC calls
+* Support for authorization using OIDC, TLS and API-KEY
+* Support for authentication based on roles and permissions
+* Usage Postgres DB to resources public information
+* Support for PostgreSQL migrations through command line

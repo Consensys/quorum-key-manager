@@ -107,7 +107,7 @@ func (c *AwsSecretsClient) DescribeSecret(_ context.Context, id string) (tags ma
 
 	if output != nil {
 
-		// Trick to help us getting the actual current version as there is no versionID metadata
+		// Trick to help us to get the actual current version as there is no versionID metadata
 		currentVersion := ""
 		for version, stages := range output.VersionIdsToStages {
 			for _, stage := range stages {

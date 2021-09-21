@@ -34,8 +34,8 @@ func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 		SetPluginSourceDirectory(pluginPath)
 
 	// Deal with darwin compliant plugin
-	runtime := runtime.GOOS
-	switch runtime {
+	runtimeOS := runtime.GOOS
+	switch runtimeOS {
 	case "darwin":
 		pluginPath += "/darwin"
 		if _, err := os.Stat(pluginPath + "/" + HashicorpPluginFilename); os.IsNotExist(err) {

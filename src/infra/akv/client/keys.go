@@ -55,7 +55,7 @@ func (c *AKVClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.K
 		return nil, parseErrorResponse(err)
 	}
 
-	items := []keyvault.KeyItem{}
+	var items []keyvault.KeyItem
 	for {
 		items = append(items, res.Values()...)
 		if !res.NotDone() {
@@ -118,7 +118,7 @@ func (c *AKVClient) GetDeletedKeys(ctx context.Context, maxResults int32) ([]key
 		return nil, parseErrorResponse(err)
 	}
 
-	result := []keyvault.DeletedKeyItem{}
+	var result []keyvault.DeletedKeyItem
 	for {
 		result = append(result, res.Values()...)
 

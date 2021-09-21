@@ -6,9 +6,9 @@ import (
 
 //go:generate mockgen -source=preparer.go -destination=preparer_mock.go -package=request
 
-// Preparer is the interface that wraps alows to prepare an http.Request
+// Preparer is the interface that allows to prepare a http.Request
 //
-// Prepare accepts and possibly modifies an Request (e.g., adding Headers). Implementations
+// Prepare accepts and possibly modifies a Request (e.g., adding Headers). Implementations
 // must ensure to not share or hold per-invocation state since Preparers may be shared and re-used.
 type Preparer interface {
 	Prepare(*http.Request) (*http.Request, error)

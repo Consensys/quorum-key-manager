@@ -15,11 +15,11 @@ func (rf ModifierFunc) Modify(r *http.Response) error {
 	return rf(r)
 }
 
-// CombineModifier combines multiple modifers into a single one
-func CombineModifier(modifers ...Modifier) Modifier {
+// CombineModifier combines multiple modifiers into a single one
+func CombineModifier(modifiers ...Modifier) Modifier {
 	return ModifierFunc(func(resp *http.Response) error {
 		var err error
-		for _, modifier := range modifers {
+		for _, modifier := range modifiers {
 			err = modifier.Modify(resp)
 			if err != nil {
 				return err

@@ -64,7 +64,7 @@ func (c *HTTPClient) UpdateAlias(ctx context.Context, registry types.RegistryNam
 	return &a, nil
 }
 
-// GetAlias deletes an alias from the registry.
+// DeleteAlias deletes an alias from the registry.
 func (c *HTTPClient) DeleteAlias(ctx context.Context, registry types.RegistryName, aliasKey types.AliasKey) error {
 	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := deleteRequest(ctx, c.client, url)
@@ -76,7 +76,7 @@ func (c *HTTPClient) DeleteAlias(ctx context.Context, registry types.RegistryNam
 	return parseEmptyBodyResponse(resp)
 }
 
-// ListAlias lists all aliases from a registry.
+// ListAliases lists all aliases from a registry.
 func (c *HTTPClient) ListAliases(ctx context.Context, registry types.RegistryName) ([]types.Alias, error) {
 	url := fmt.Sprintf(aliasesPathf, c.config.URL, registry)
 	resp, err := getRequest(ctx, c.client, url)
