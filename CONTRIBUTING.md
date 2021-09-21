@@ -17,7 +17,7 @@ Welcome to the Quorum Key Manager repositories! The following is a set of guidel
 
 [Style Guides](#style-guides)
 
-- [GO Style Guide](#GO-style-guide)
+- [GO Style Guide](#GO-code-style-guide)
 - [Git Commit Messages & Pull Request Messages](#git-commit-messages--pull-request-messages)
 
 ## Code of Conduct

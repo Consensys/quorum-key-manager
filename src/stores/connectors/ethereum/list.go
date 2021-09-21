@@ -19,7 +19,7 @@ func (c Connector) List(ctx context.Context, limit, offset uint64) ([]common.Add
 		return nil, err
 	}
 
-	addrs := []common.Address{}
+	var addrs []common.Address
 	for _, addr := range strAddr {
 		addrs = append(addrs, common.HexToAddress(addr))
 	}
@@ -39,7 +39,7 @@ func (c Connector) ListDeleted(ctx context.Context, limit, offset uint64) ([]com
 		return nil, err
 	}
 
-	addrs := []common.Address{}
+	var addrs []common.Address
 	for _, addr := range strAddr {
 		addrs = append(addrs, common.HexToAddress(addr))
 	}

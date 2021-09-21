@@ -8,10 +8,6 @@ type ProxyConfig struct {
 }
 
 func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
-	if cfg == nil {
-		cfg = new(ProxyConfig)
-	}
-
 	if cfg.PassHostHeader != nil {
 		cfg.PassHostHeader = new(bool)
 		*cfg.PassHostHeader = true

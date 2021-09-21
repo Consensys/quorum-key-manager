@@ -1,9 +1,8 @@
 package server
 
 import (
-	"time"
-
 	"crypto/tls"
+	"time"
 )
 
 type Config struct {

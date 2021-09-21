@@ -63,7 +63,7 @@ func TestMakeHandler(t *testing.T) {
 		},
 		{
 			desc:           "Invalid - int input",
-			f:              int(0),
+			f:              0,
 			expectedErrMsg: "expect function but got int",
 		},
 		{

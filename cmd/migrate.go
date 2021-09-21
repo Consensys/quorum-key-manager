@@ -10,8 +10,8 @@ import (
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" //nolint
-	_ "github.com/golang-migrate/migrate/v4/source/file"       //nolint
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // nolint
+	_ "github.com/golang-migrate/migrate/v4/source/file"       // nolint
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

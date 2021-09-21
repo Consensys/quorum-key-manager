@@ -15,7 +15,7 @@ func Error(err error) *ErrorMsg {
 	return InternalError(err)
 }
 
-func NotSupporteVersionError(version string) *ErrorMsg {
+func NotSupportedVersionError(version string) *ErrorMsg {
 	return &ErrorMsg{
 		Code:    -32600,
 		Message: fmt.Sprintf("JSON-RPC version %q not supported", version),

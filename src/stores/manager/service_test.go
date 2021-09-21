@@ -67,7 +67,7 @@ var testManifest = []byte(`
       namespace: ''
 `)
 
-// This test ensure that we do not get any panic on stores manager process
+// This test ensures that we do not get any panic on stores manager process
 // Still this test can not ensure stores are properly created since we do not have access to dependencies
 // (should be responsibility of e2e and ATs)
 func TestManagerService(t *testing.T) {

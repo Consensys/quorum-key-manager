@@ -49,7 +49,7 @@ func (h *AliasHandler) Register(r *mux.Router) {
 // @Router /registries/{registry_name} [delete]
 func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	// should always exists in this subrouter
+	// should always exist in this subrouter
 	regName := vars["registry_name"]
 
 	err := validatePathVars(regName)
@@ -81,7 +81,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 // @Router /registries/{registry_name}/aliases/{alias_key} [post]
 func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	// should always exists in this subrouter
+	// should always exist in this subrouter
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
@@ -128,7 +128,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 // @Router /registries/{registry_name}/aliases/{alias_key} [get]
 func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	// should always exists in this subrouter
+	// should always exist in this subrouter
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
@@ -169,7 +169,7 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 // @Router /registries/{registry_name}/aliases/{alias_key} [put]
 func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	// should always exists in this subrouter
+	// should always exist in this subrouter
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
@@ -220,7 +220,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 // @Router /registries/{registry_name}/aliases/{alias_key} [delete]
 func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	// should always exists in this subrouter
+	// should always exist in this subrouter
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
@@ -252,7 +252,7 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 // @Router /registries/{registry_name}/aliases [get]
 func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	// should always exists in this subrouter
+	// should always exist in this subrouter
 	regName := vars["registry_name"]
 
 	err := validatePathVars(regName)

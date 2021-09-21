@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Modified version of http.StripPrefix() to append a tail backslash in case prefix exact match with URL.path
+// StripPrefix is a modified version of http.StripPrefix() to append a tail backslash in case prefix exact match with URL.path
 func StripPrefix(prefix string) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

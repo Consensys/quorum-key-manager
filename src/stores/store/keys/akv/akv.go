@@ -120,7 +120,7 @@ func (s *Store) List(ctx context.Context, _, _ uint64) ([]string, error) {
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	kIDs := []string{}
+	var kIDs []string
 	for _, kItem := range res {
 		kID, _ := parseKeyID(kItem.Kid)
 		kIDs = append(kIDs, kID)
@@ -173,7 +173,7 @@ func (s *Store) ListDeleted(ctx context.Context, _, _ uint64) ([]string, error) 
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	kIds := []string{}
+	var kIds []string
 	for _, kItem := range res {
 		kID, _ := parseKeyID(kItem.Kid)
 		kIds = append(kIds, kID)

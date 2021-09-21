@@ -48,7 +48,7 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 		return nil, err
 	}
 
-	auths := []authenticator.Authenticator{}
+	var auths []authenticator.Authenticator
 	if cfg.OIDC != nil {
 		oidcAuth, err := oidc.NewAuthenticator(cfg.OIDC)
 		if err != nil {

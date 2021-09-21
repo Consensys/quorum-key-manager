@@ -1,4 +1,4 @@
-# Download vault pluging assets
+# Download vault plugin assets
 
 VERSION="${PLUGIN_VERSION}"
 FILE_PATH="${PLUGIN_PATH}"

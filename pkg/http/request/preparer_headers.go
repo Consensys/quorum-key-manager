@@ -13,6 +13,6 @@ func HeadersPreparer(h func(http.Header) error) Preparer {
 }
 
 // Headers sets or deletes custom request headers
-func Headers(overides map[string][]string) Preparer {
-	return HeadersPreparer(header.Overide(overides))
+func Headers(overrides map[string][]string) Preparer {
+	return HeadersPreparer(header.Override(overrides))
 }

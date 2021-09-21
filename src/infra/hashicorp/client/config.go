@@ -77,7 +77,7 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 	// but in e.g. http_test actual redirect handling is necessary
 	config.HttpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		// Returning this value causes the Go net library to not close the
-		// response body and to nil out the error. Otherwise retry clients may
+		// response body and to nil out the error. Otherwise, retry clients may
 		// try three times on every redirect because it sees an error from this
 		// function (to prevent redirects) passing through to it.
 		return http.ErrUseLastResponse

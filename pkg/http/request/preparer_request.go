@@ -59,7 +59,7 @@ func Request(baseReq *http.Request) Preparer {
 		outReq.Method = req.Method
 
 		// Override Header
-		err := header.Overide(req.Header)(outReq.Header)
+		err := header.Override(req.Header)(outReq.Header)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func Request(baseReq *http.Request) Preparer {
 			outReq.RequestURI = req.RequestURI
 		}
 
-		// Overide body
+		// Override body
 		outReq.Body = req.Body
 		outReq.GetBody = req.GetBody
 		outReq.ContentLength = req.ContentLength

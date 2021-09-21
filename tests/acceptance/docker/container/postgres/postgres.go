@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	postgresConfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
@@ -10,7 +12,6 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 	"github.com/go-pg/pg/v10"
-	"time"
 )
 
 type Postgres struct {

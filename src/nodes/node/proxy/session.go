@@ -13,10 +13,10 @@ type Session interface {
 	// ClientRPC returns a client to downstream JSON-RPC
 	ClientRPC() jsonrpc.Client
 
-	// EthClient returns a caller to downstream Ethereum JSON-RPC
+	// EthCaller returns a caller to downstream Ethereum JSON-RPC
 	EthCaller() ethereum.Caller
 
-	// ClientPrivTxManager returns client to downstrem private transaction manager
+	// ClientPrivTxManager returns client to downstream private transaction manager
 	ClientPrivTxManager() tessera.Client
 }
 

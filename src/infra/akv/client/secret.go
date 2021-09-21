@@ -40,7 +40,7 @@ func (c *AKVClient) ListSecrets(ctx context.Context, maxResults int32) ([]keyvau
 		return nil, parseErrorResponse(err)
 	}
 
-	items := []keyvault.SecretItem{}
+	var items []keyvault.SecretItem
 	for {
 		items = append(items, res.Values()...)
 		if !res.NotDone() {
@@ -113,7 +113,7 @@ func (c *AKVClient) ListDeletedSecrets(ctx context.Context, maxResults int32) ([
 		return nil, parseErrorResponse(err)
 	}
 
-	items := []keyvault.DeletedSecretItem{}
+	var items []keyvault.DeletedSecretItem
 	for {
 		items = append(items, res.Values()...)
 

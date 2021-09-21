@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/http2"
 )
 
-// New creates an http.RoundTripper configured with the Transport configuration settings.
+// New creates a http.RoundTripper configured with the Transport configuration settings.
 func New(cfg *Config) (http.RoundTripper, error) {
 	// Create dialer
 	dlr := dialer.New(cfg.Dialer)

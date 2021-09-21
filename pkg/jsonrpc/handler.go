@@ -20,8 +20,8 @@ func (f HandlerFunc) ServeRPC(rw ResponseWriter, msg *RequestMsg) {
 	f(rw, msg)
 }
 
-// DefaultRWHandler is an utility middleware that attaches request ID and Version to ResponseWriter
-// so when developper has not to bother with response ID and Version when writing response
+// DefaultRWHandler is a utility middleware that attaches request ID and Version to ResponseWriter
+// so when developer has not to bother with response ID and Version when writing response
 func DefaultRWHandler(h Handler) Handler {
 	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
 		h.ServeRPC(RWWithVersion(msg.Version)(RWWithID(msg.ID)(rw)), msg)
@@ -29,7 +29,7 @@ func DefaultRWHandler(h Handler) Handler {
 }
 
 func NotSupportedVersion(rw ResponseWriter, msg *RequestMsg) {
-	_ = WriteError(rw, NotSupporteVersionError(msg.Version))
+	_ = WriteError(rw, NotSupportedVersionError(msg.Version))
 }
 
 // NotSupportedVersionHandler returns a simple handler
@@ -41,7 +41,7 @@ func InvalidMethod(rw ResponseWriter, msg *RequestMsg) {
 	_ = WriteError(rw, InvalidMethodError(msg.Method))
 }
 
-// InvalidMethod returns a simple handler
+// InvalidMethodHandler returns a simple handler
 // that replies to each request with an invalid method error
 func InvalidMethodHandler() Handler { return HandlerFunc(InvalidMethod) }
 
@@ -50,11 +50,11 @@ func MethodNotFound(rw ResponseWriter, msg *RequestMsg) {
 	_ = WriteError(rw, MethodNotFoundError())
 }
 
-// InvalidMethod returns a simple handler
+// MethodNotFoundHandler returns a simple handler
 // that replies to each request with an invalid method error
 func MethodNotFoundHandler() Handler { return HandlerFunc(MethodNotFound) }
 
-// NotImplementedMethod replies to the request with an not implemented error
+// NotImplementedMethod replies to the request with a not implemented error
 func NotImplementedMethod(rw ResponseWriter, msg *RequestMsg) {
 	_ = WriteError(rw, NotImplementedMethodError(msg.Method))
 }

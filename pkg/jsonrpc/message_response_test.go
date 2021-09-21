@@ -32,7 +32,7 @@ func TestUnmarshalResponseMsg(t *testing.T) {
 			expectedVersion: "2.0",
 			expectedID:      "25",
 			expectedResult: []*TestResult{
-				&TestResult{
+				{
 					Field1: "test-value",
 					Field2: []int{1, 2, 3},
 				},
@@ -126,7 +126,7 @@ func TestMarshalResponseMsg(t *testing.T) {
 			msg: &ResponseMsg{
 				Version: "2.0",
 				ID:      json.RawMessage(`0`),
-				Result:  json.RawMessage([]byte(`{"test-field": "test-value"}`)),
+				Result:  json.RawMessage(`{"test-field": "test-value"}`),
 				Error: &ErrorMsg{
 					Code:    -32600,
 					Message: "test message",
