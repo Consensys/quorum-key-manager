@@ -24,14 +24,8 @@ x-default-variables: &default-variables
   AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
   MANIFEST_PATH: "/manifests"
 
-x-container-common: &container-common
-  image: consensys/quorum-key-manager:latest
-  restart: ${CONTAINER_RESTART-on-failure}
-  tty: true
-
 services:
   postgres:
-    <<: *container-common
     image: postgres:13.4-alpine
     environment:
       POSTGRES_PASSWORD: postgres
@@ -44,9 +38,11 @@ services:
       interval: 1s
       timeout: 1s
       retries: 5
+    restart: "on-failure"
+    tty: true
 
   migration:
-    <<: *container-common
+    image: consensys/quorum-key-manager:latest
     environment:
       <<: *default-variables
     command: migrate up
@@ -56,7 +52,7 @@ services:
         condition: service_healthy
 
   key-manager:
-    <<: *container-common
+    image: consensys/quorum-key-manager:latest
     environment:
       <<: *default-variables
     ports:
@@ -67,6 +63,7 @@ services:
     command: run
     volumes:
       - ${HOST_MANIFEST_PATH-./deps/config/manifests}:/manifests:ro
+    restart: "on-failure"
 
 volumes:
   db-data-api:
