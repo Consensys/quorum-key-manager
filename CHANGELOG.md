@@ -1,6 +1,6 @@
 # Quorum Key Manager Release Notes
 
-## v21.9.0 (2021-09-21)
+## v21.9.0 (2021-09-22)
 ### 🆕 Features
 Initial release of the Quorum Key Manager
 
@@ -15,3 +15,7 @@ Initial release of the Quorum Key Manager
 * Support for authentication based on roles and permissions
 * Usage Postgres DB to resources public information
 * Support for PostgreSQL migrations through command line
+
+### 🐛 Know issues
+
+* Communication between HashiCorp Vault and Quorum Key Manager cannot use TLS
