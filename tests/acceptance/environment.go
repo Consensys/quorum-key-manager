@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	hashicorpclient "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -348,7 +347,6 @@ func (env *IntegrationEnvironment) createTables() error {
 		&models2.Secret{},
 		&models2.Key{},
 		&models2.ETHAccount{},
-		&aliasent.Alias{},
 	} {
 		err = db.Model(v).CreateTable(opts)
 
