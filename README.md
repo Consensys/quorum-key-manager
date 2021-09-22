@@ -20,6 +20,7 @@ In addition, using the JSON-RPC interface of the QKM, you can connect to your Et
 * [GitHub Project](https://github.com/ConsenSys/quorum-key-manager)
 * [issues](https://github.com/ConsenSys/quorum-key-manager/issues)
 * [Changelog](https://github.com/ConsenSys/quorum-key-manager/blob/main/CHANGELOG.md)
+* [HashiCorp Vault plugin](https://github.com/ConsenSys/quorum-hashicorp-vault-plugin)
 * [Helm Charts](https://github.com/ConsenSys/quorum-key-manager-helm)
 * [Kubernetes deployment example](https://github.com/ConsenSys/quorum-key-manager-kubernetes)
 
