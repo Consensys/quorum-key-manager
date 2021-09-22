@@ -60,7 +60,7 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 	*msg.PrivateFor, err = placeholder.ReplaceAliases(ctx, i.aliases, *msg.PrivateFor)
 	if err != nil {
 		i.logger.WithError(err).Error("failed to replace aliases in privateFor")
-		return nil, errors.BlockchainNodeError(err.Error())
+		return nil, err
 	}
 
 	// Store payload on Tessera

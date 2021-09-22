@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
@@ -20,7 +21,7 @@ func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.
 		aliasParseRegex, err = regexp.Compile(aliasParseFormat)
 	})
 	if err != nil {
-		return "", "", false, err
+		return "", "", false, errors.InvalidFormatError("bad regexp format '%v': %v", aliasParseFormat, err)
 	}
 	submatches := aliasParseRegex.FindStringSubmatch(alias)
 	if len(submatches) < 3 {
