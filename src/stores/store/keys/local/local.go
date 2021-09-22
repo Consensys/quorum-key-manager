@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	eddsabn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark-crypto/hash"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -84,10 +84,10 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 	var privKey []byte
 	var pubKey []byte
 	switch {
-	case alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Bn254:
-		eddsaKey, err := eddsaBN254(importedPrivKey)
+	case alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Babyjubjub:
+		eddsaKey, err := eddsaBabyjubjub(importedPrivKey)
 		if err != nil {
-			errMessage := "failed to generate EDDSA/BN254 key pair"
+			errMessage := "failed to generate EDDSA/Babyjujub key pair"
 			logger.With("error", err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
@@ -217,7 +217,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	}
 
 	switch {
-	case algo.Type == entities.Eddsa && algo.EllipticCurve == entities.Bn254:
+	case algo.Type == entities.Eddsa && algo.EllipticCurve == entities.Babyjubjub:
 		return s.signEDDSA(privkey, data)
 	case algo.Type == entities.Ecdsa && algo.EllipticCurve == entities.Secp256k1:
 		return s.signECDSA(privkey, data)
@@ -266,7 +266,7 @@ func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
 }
 
 func (s *Store) signEDDSA(privKeyB, data []byte) ([]byte, error) {
-	privKey := eddsabn254.PrivateKey{}
+	privKey := babyjubjub.PrivateKey{}
 	_, err := privKey.SetBytes(privKeyB)
 	if err != nil {
 		errMessage := "failed to parse EDDSA private key"
@@ -284,21 +284,21 @@ func (s *Store) signEDDSA(privKeyB, data []byte) ([]byte, error) {
 	return signature, nil
 }
 
-func eddsaBN254(importedPrivKey []byte) (eddsabn254.PrivateKey, error) {
+func eddsaBabyjubjub(importedPrivKey []byte) (babyjubjub.PrivateKey, error) {
 	if importedPrivKey == nil {
 		seed := make([]byte, 32)
 		_, err := rand.Read(seed)
 		if err != nil {
-			return eddsabn254.PrivateKey{}, err
+			return babyjubjub.PrivateKey{}, err
 		}
 
 		// Usually standards implementations of eddsa do not require the choice of a specific hash function (usually it's SHA256).
 		// Here we needed to allow the choice of the hash, so we can choose a hash function that is easily programmable in a snark circuit.
 		// Same hFunc should be used for sign and verify
-		return eddsabn254.GenerateKey(bytes.NewReader(seed))
+		return babyjubjub.GenerateKey(bytes.NewReader(seed))
 	}
 
-	key := eddsabn254.PrivateKey{}
+	key := babyjubjub.PrivateKey{}
 	_, err := key.SetBytes(importedPrivKey)
 	if err != nil {
 		return key, err

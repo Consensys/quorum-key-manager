@@ -32,7 +32,7 @@ func isSupportedAlgo(alg *entities.Algorithm) bool {
 		return true
 	}
 
-	if alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Bn254 {
+	if alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Babyjubjub {
 		return true
 	}
 

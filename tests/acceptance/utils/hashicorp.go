@@ -13,7 +13,7 @@ import (
 )
 
 const HashicorpPluginFilename = "quorum-hashicorp-vault-plugin"
-const HashicorpPluginVersion = "v0.0.11"
+const HashicorpPluginVersion = "v1.0.0"
 
 func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 	hashicorpHost := "localhost"

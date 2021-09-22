@@ -83,14 +83,14 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 	})
 
-	s.Run("should create an EDDSA/BN254 key successfully", func() {
+	s.Run("should create an EDDSA/Babyjubjub key successfully", func() {
 		secret := testutils.FakeSecret()
 		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
 		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
 		key, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, attr)
 		assert.NoError(s.T(), err)
 
@@ -98,7 +98,7 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.PublicKey)
 		assert.Equal(s.T(), attr.Tags, key.Tags)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
-		assert.Equal(s.T(), entities.Bn254, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Babyjubjub, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
@@ -109,7 +109,7 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 
 		_, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, attr)
 
 		assert.Equal(s.T(), expectedErr, err)
@@ -122,7 +122,7 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 
 		_, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, attr)
 
 		assert.Equal(s.T(), expectedErr, err)
@@ -154,14 +154,14 @@ func (s *localKeyStoreTestSuite) TestImport() {
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 	})
 
-	s.Run("should create an EDDSA/BN254 key successfully", func() {
+	s.Run("should create an EDDSA/Babyjubjub key successfully", func() {
 		secret := testutils.FakeSecret()
 		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
 		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
 		key, err := s.keyStore.Import(ctx, id, hexutil.MustDecode(privKeyEDDSA), &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, attr)
 		assert.NoError(s.T(), err)
 
@@ -169,7 +169,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 		assert.Equal(s.T(), publicKeyEDDSA, hexutil.Encode(key.PublicKey))
 		assert.Equal(s.T(), attr.Tags, key.Tags)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
-		assert.Equal(s.T(), entities.Bn254, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Babyjubjub, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
@@ -178,7 +178,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 	s.Run("should fail with InvalidParameter if algo is undefined", func() {
 		_, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          "wrongType",
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, attr)
 
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
@@ -189,7 +189,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 
 		_, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, attr)
 
 		assert.Equal(s.T(), expectedErr, err)
@@ -215,7 +215,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 		assert.Equal(s.T(), "xUBOm7wht727RjpUY+KqK/NpCIOkzxX9H+dSBIWOITccTl/i5DyFvrcO3EIZTLV1gLVfCL+AOkY2pGWnIxygtQ==", base64.StdEncoding.EncodeToString(signature))
 	})
 
-	s.Run("should create an EDDSA/BN254 key successfully", func() {
+	s.Run("should create an EDDSA/Babyjubjub key successfully", func() {
 		payload := []byte("my data")
 		secret := testutils.FakeSecret()
 		secret.Value = base64.StdEncoding.EncodeToString(hexutil.MustDecode(privKeyEDDSA))
@@ -224,7 +224,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 
 		signature, err := s.keyStore.Sign(ctx, id, payload, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		})
 		assert.NoError(s.T(), err)
 
@@ -240,7 +240,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 
 		_, err := s.keyStore.Sign(ctx, id, payload, &entities.Algorithm{
 			Type:          "wrongType",
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		})
 
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
@@ -251,7 +251,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 
 		_, err := s.keyStore.Sign(ctx, id, []byte("my data"), &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		})
 
 		assert.Equal(s.T(), expectedErr, err)

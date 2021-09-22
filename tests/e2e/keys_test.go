@@ -119,10 +119,10 @@ func (s *keysTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.UpdatedAt)
 	})
 
-	s.RunT("should create a new key successfully: BN254/EDDSA", func() {
+	s.RunT("should create a new key successfully: Babyjubjub/EDDSA", func() {
 		keyID := fmt.Sprintf("my-key-eddsa-%d", common.RandInt(1000))
 		request := &types.CreateKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -154,7 +154,7 @@ func (s *keysTestSuite) TestCreate() {
 	s.RunT("should parse errors successfully", func() {
 		keyID := "my-key"
 		request := &types.CreateKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -240,10 +240,10 @@ func (s *keysTestSuite) TestImport() {
 		assert.NotEmpty(s.T(), key.UpdatedAt)
 	})
 
-	s.RunT("should create a new key successfully: BN254/EDDSA", func() {
+	s.RunT("should create a new key successfully: Babyjubjub/EDDSA", func() {
 		keyID := fmt.Sprintf("my-key-eddsa-%d", common.RandInt(1000))
 		request := &types.ImportKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 			PrivateKey:       eddsaPrivKey,
 			Tags: map[string]string{
@@ -615,10 +615,10 @@ func (s *keysTestSuite) TestSignVerify() {
 		require.NoError(s.T(), err)
 	})
 
-	s.RunT("should sign and verify a new payload successfully: BN254/EDDSA", func() {
+	s.RunT("should sign and verify a new payload successfully: Babyjubjub/EDDSA", func() {
 		keyID := fmt.Sprintf("my-key-sign-eddsa-%d", common.RandInt(1000))
 		request := &types.CreateKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 		}
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
