@@ -4,17 +4,13 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
-	"math/rand"
-	"os"
-	"testing"
-	"time"
-
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
+	"os"
+	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
@@ -152,19 +148,5 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 	testSuite.store = eth.NewConnector(localStore, db.ETHAccounts(storeName), auth, logger)
 	testSuite.utils = utilsConnector
 	testSuite.db = db.ETHAccounts(storeName)
-	suite.Run(s.T(), testSuite)
-}
-
-func (s *storeTestSuite) TestKeyManagerAliases() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	testSuite := new(aliasStoreTestSuite)
-	testSuite.env = s.env
-	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient).Alias()
-	randSrc := rand.NewSource(time.Now().UnixNano())
-	testSuite.rand = rand.New(randSrc)
 	suite.Run(s.T(), testSuite)
 }
