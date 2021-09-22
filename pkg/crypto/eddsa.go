@@ -1,12 +1,12 @@
 package crypto
 
 import (
-	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark-crypto/hash"
 )
 
 func VerifyEDDSASignature(publicKey, message, signature []byte) (bool, error) {
-	pubKey := eddsa.PublicKey{}
+	pubKey := babyjubjub.PublicKey{}
 	_, err := pubKey.SetBytes(publicKey)
 	if err != nil {
 		return false, err
