@@ -9,8 +9,8 @@
   "source": "21.7.0-alpha.1"
  },
  "stable": {
-  "spec": "21.7.0-alpha.7",
-  "source": "21.7.0-alpha.7"
+  "spec": "21.9.0",
+  "source": "21.9.0"
  },
  "21.7.0-alpha.2": {
   "spec": "21.7.0-alpha.2",
@@ -31,5 +31,9 @@
  "21.7.0-alpha.7": {
   "spec": "21.7.0-alpha.7",
   "source": "21.7.0-alpha.7"
+ },
+ "21.9.0": {
+  "spec": "21.9.0",
+  "source": "21.9.0"
  }
 }
