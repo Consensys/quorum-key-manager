@@ -2,6 +2,7 @@ package keys
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
 	"github.com/consensys/quorum-key-manager/src/infra/log"

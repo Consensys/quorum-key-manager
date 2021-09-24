@@ -2,12 +2,13 @@ package client
 
 import (
 	"crypto/tls"
+	"net/http"
+	"time"
+
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/hashicorp/go-retryablehttp"
 	"golang.org/x/net/http2"
 	"golang.org/x/time/rate"
-	"net/http"
-	"time"
 
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/vault/api"

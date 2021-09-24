@@ -11,10 +11,10 @@ type StoresAPI struct {
 	utils  stores.Utilities
 }
 
-func New(stores stores.Stores, utils stores.Utilities) *StoresAPI {
+func New(storesConnector stores.Stores, utilsConnector stores.Utilities) *StoresAPI {
 	return &StoresAPI{
-		stores: stores,
-		utils:  utils,
+		stores: storesConnector,
+		utils:  utilsConnector,
 	}
 }
 

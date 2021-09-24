@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
