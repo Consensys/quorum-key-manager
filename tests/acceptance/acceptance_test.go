@@ -163,7 +163,7 @@ func (s *storeTestSuite) TestKeyManagerAliases() {
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient).Alias()
+	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient, s.env.logger).Alias()
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	testSuite.rand = rand.New(randSrc)
 	suite.Run(s.T(), testSuite)

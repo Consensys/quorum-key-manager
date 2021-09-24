@@ -40,7 +40,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	}
 
 	// Create and register nodes service
-	nodes := nodesmanager.New(*storeManager, *manifestManager, *authManager, aliasManager, logger)
+	nodes := nodesmanager.New(*storeManager, *manifestManager, *authManager, aliasManager.Aliases, logger)
 	err = a.RegisterService(nodes)
 	if err != nil {
 		return err

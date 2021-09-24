@@ -24,13 +24,14 @@ func RegisterService(a *app.App, logger log.Logger) error {
 
 	db := aliaspg.NewDatabase(pgClient, logger)
 
-	m := aliasmgr.New(db)
+	aliasSrv := aliasmgr.NewAliasService(db, logger)
+	m := aliasmgr.New(aliasSrv)
 	err = a.RegisterService(m)
 	if err != nil {
 		return err
 	}
 
-	api := aliasapi.New(db.Alias())
+	api := aliasapi.New(aliasSrv)
 	api.Register(a.Router())
 
 	return nil
