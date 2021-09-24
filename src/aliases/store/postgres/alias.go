@@ -26,10 +26,7 @@ func NewAlias(pgClient postgres.Client, logger log.Logger) *AliasStore {
 }
 
 func (s *AliasStore) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
-	a, err := aliasmodels.AliasFromEntity(alias)
-	if err != nil {
-		return nil, err
-	}
+	a := aliasmodels.AliasFromEntity(alias)
 	a.RegistryName = aliasmodels.RegistryName(registry)
 
 	err = s.pgClient.Insert(ctx, &a)
@@ -48,21 +45,18 @@ func (s *AliasStore) GetAlias(ctx context.Context, registry aliasent.RegistryNam
 	if err != nil {
 		return nil, err
 	}
-	return a.ToEntity()
+	return a.ToEntity(), nil
 }
 
 func (s *AliasStore) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
-	a, err := aliasmodels.AliasFromEntity(alias)
-	if err != nil {
-		return nil, err
-	}
+	a := aliasmodels.AliasFromEntity(alias)
 	a.RegistryName = aliasmodels.RegistryName(registry)
 
-	err = s.pgClient.UpdatePK(ctx, &a)
+	err := s.pgClient.UpdatePK(ctx, &a)
 	if err != nil {
 		return nil, err
 	}
-	return a.ToEntity()
+	return a.ToEntity(), nil
 }
 
 func (s *AliasStore) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
@@ -82,7 +76,7 @@ func (s *AliasStore) ListAliases(ctx context.Context, registry aliasent.Registry
 		return nil, err
 	}
 
-	return aliasmodels.AliasesToEntity(als)
+	return aliasmodels.AliasesToEntity(als), nil
 }
 
 func (s *AliasStore) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
