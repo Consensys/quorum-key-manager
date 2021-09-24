@@ -22,7 +22,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	db := aliaspg.NewDatabase(pgClient)
+	db := aliaspg.NewDatabase(pgClient, logger)
 
 	m := aliasmgr.New(db)
 	err = a.RegisterService(m)
