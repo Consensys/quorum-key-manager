@@ -23,8 +23,8 @@ services:
       -c ssl_ca_file=/var/lib/postgresql/ca.crt
     volumes:
       - db-data-api:/var/lib/postgresql/data
-      - ./postgres/server.crt:/var/lib/postgresql/server.crt:ro
-      - ./postgres/server.key:/var/lib/postgresql/server.key:ro
+      - ./postgres/vault.crt:/var/lib/postgresql/vault.crt:ro
+      - ./postgres/vault.key:/var/lib/postgresql/vault.key:ro
       - ./config/ca/ca.crt:/var/lib/postgresql/ca.crt:ro
     ports:
       - 5432

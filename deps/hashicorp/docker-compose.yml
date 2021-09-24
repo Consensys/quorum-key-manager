@@ -14,6 +14,7 @@ services:
       - IPC_LOCK
     volumes:
       - hashicorp-plugin:/vault/plugins
+      - ./tls:/vault/tls:ro
       - ./config/config.hcl:/vault/config.hcl:ro
     entrypoint: vault server -config=/vault/config.hcl
     ports:
@@ -23,7 +24,7 @@ services:
     <<: *container-common
     build: .
     environment:
-      VAULT_ADDR: ${VAULT_ADDR-http://hashicorp:8200}
+      VAULT_ADDR: ${VAULT_ADDR-https://hashicorp:8200}
       PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
       TOKEN_PATH: ${TOKEN_PATH-/vault/token}
       PLUGIN_VERSION: ${PLUGIN_VERSION-v1.0.0}

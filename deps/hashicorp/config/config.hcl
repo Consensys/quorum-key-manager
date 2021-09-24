@@ -4,7 +4,9 @@ backend "file" {
 
 listener "tcp" {
   address = "hashicorp:8200"
-  tls_disable = true
+  tls_cert_file = "/vault/tls/vault.crt"
+  tls_client_ca_file = "/vault/tls/root.crt"
+  tls_key_file = "/vault/tls/vault.key"
 }
 
 default_lease_ttl = "15m"
@@ -13,4 +15,4 @@ api_addr = "http://hashicorp:8200"
 plugin_directory = "/vault/plugins"
 log_level = "Debug"
 
-ui = true
+ui = false

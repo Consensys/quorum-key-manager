@@ -2,27 +2,18 @@ package secrets
 
 import (
 	"context"
-
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 )
 
-// HashicorpSecretSpecs is the specs format for a Hashicorp Vault secret store
-type HashicorpSecretSpecs struct {
-	MountPoint string `json:"mountPoint"`
-	Address    string `json:"address"`
-	Token      string `json:"token"`
-	TokenPath  string `json:"tokenPath"`
-	Namespace  string `json:"namespace"`
-}
-
-func NewHashicorpSecretStore(specs *HashicorpSecretSpecs, db database.Secrets, logger log.Logger) (*hashicorp.Store, error) {
-	cfg := client.NewConfig(specs.Address, specs.Namespace)
+func NewHashicorpSecretStore(specs *entities.HashicorpSpecs, db database.Secrets, logger log.Logger) (*hashicorp.Store, error) {
+	cfg := client.NewConfig(specs)
 	cli, err := client.NewClient(cfg)
 	if err != nil {
 		errMessage := "failed to instantiate Hashicorp client (secrets)"
