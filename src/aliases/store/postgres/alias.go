@@ -43,42 +43,69 @@ func (s *AliasStore) CreateAlias(ctx context.Context, registry aliasent.Registry
 }
 
 func (s *AliasStore) GetAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) (*aliasent.Alias, error) {
+	logger := s.logger.With(
+		"registry_name", registry,
+		"alias_key", aliasKey,
+	)
 	a := aliasmodels.Alias{
 		Key:          aliasmodels.AliasKey(aliasKey),
 		RegistryName: aliasmodels.RegistryName(registry),
 	}
 	err := s.pgClient.SelectPK(ctx, &a)
-	if err != nil {
+	if err != nil && !errors.IsNotFoundError(err) {
+		msg := "failed to get alias"
+		logger.WithError(err).Error(msg)
 		return nil, err
 	}
 	return a.ToEntity(), nil
 }
 
 func (s *AliasStore) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+	logger := s.logger.With(
+		"registry_name", registry,
+		"alias_key", alias.Key,
+	)
 	a := aliasmodels.AliasFromEntity(alias)
 	a.RegistryName = aliasmodels.RegistryName(registry)
 
 	err := s.pgClient.UpdatePK(ctx, &a)
 	if err != nil {
+		msg := "failed to update alias"
+		logger.WithError(err).Error(msg)
 		return nil, err
 	}
 	return a.ToEntity(), nil
 }
 
 func (s *AliasStore) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
+	logger := s.logger.With(
+		"registry_name", registry,
+		"alias_key", aliasKey,
+	)
 	a := aliasmodels.Alias{
 		Key:          aliasmodels.AliasKey(aliasKey),
 		RegistryName: aliasmodels.RegistryName(registry),
 	}
-	return s.pgClient.DeletePK(ctx, &a)
+	err := s.pgClient.DeletePK(ctx, &a)
+	if err != nil {
+		msg := "failed to delete alias"
+		logger.WithError(err).Error(msg)
+		return err
+	}
+	return nil
 }
 
 func (s *AliasStore) ListAliases(ctx context.Context, registry aliasent.RegistryName) ([]aliasent.Alias, error) {
+	logger := s.logger.With(
+		"registry_name", registry,
+	)
 	reg := aliasmodels.RegistryName(registry)
 
 	var als []aliasmodels.Alias
 	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", reg)
 	if err != nil {
+		msg := "failed to list aliases"
+		logger.WithError(err).Error(msg)
 		return nil, err
 	}
 
