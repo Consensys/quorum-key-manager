@@ -26,11 +26,17 @@ func NewAlias(pgClient postgres.Client, logger log.Logger) *AliasStore {
 }
 
 func (s *AliasStore) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+	logger := s.logger.With(
+		"registry_name", registry,
+		"alias_key", alias.Key,
+	)
 	a := aliasmodels.AliasFromEntity(alias)
 	a.RegistryName = aliasmodels.RegistryName(registry)
 
-	err = s.pgClient.Insert(ctx, &a)
+	err := s.pgClient.Insert(ctx, &a)
 	if err != nil {
+		msg := "failed to create alias"
+		logger.WithError(err).Error(msg)
 		return nil, err
 	}
 	return &alias, nil
