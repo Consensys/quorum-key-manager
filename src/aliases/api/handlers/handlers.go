@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -97,6 +98,11 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
 	}
+	err = checkAliasValue(aliasReq.Value)
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
+		return
+	}
 
 	eAlias := types.FormatAlias(types.RegistryName(regName), key, aliasReq.Value)
 	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
@@ -181,6 +187,11 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 
 	var aliasReq types.AliasRequest
 	err = jsonutils.UnmarshalBody(r.Body, &aliasReq)
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
+		return
+	}
+	err = checkAliasValue(aliasReq.Value)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
@@ -291,6 +302,17 @@ func validatePathVars(pathVars ...string) error {
 	for _, v := range pathVars {
 		if !pathVarsRegex.MatchString(v) {
 			return fmt.Errorf("`%v` in path is not in the correct format: %v", v, pathVarsFormat)
+		}
+	}
+	return nil
+}
+
+func checkAliasValue(value types.AliasValue) error {
+	for _, v := range value {
+		// we just want the decoding to happen without error
+		_, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			return errors.InvalidFormatError("alias value is incorrect: %v: %v", err, v)
 		}
 	}
 	return nil

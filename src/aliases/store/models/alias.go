@@ -1,9 +1,6 @@
 package aliasmodels
 
 import (
-	"encoding/base64"
-
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
@@ -18,17 +15,6 @@ type Alias struct {
 	RegistryName RegistryName `pg:",pk"`
 	// Value is a JSON array containing Tessera/Orion keys base64 encoded in strings.
 	Value AliasValue
-}
-
-func checkAliasValue(value aliasent.AliasValue) error {
-	for _, v := range value {
-		// we just want the decoding to happen without error
-		_, err := base64.StdEncoding.DecodeString(v)
-		if err != nil {
-			return errors.InvalidFormatError("alias value is incorrect: %v: %v", err, v)
-		}
-	}
-	return nil
 }
 
 func AliasFromEntity(ent aliasent.Alias) (alias Alias) {
