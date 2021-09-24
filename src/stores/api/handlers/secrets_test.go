@@ -53,12 +53,9 @@ func TestSecretsHandler(t *testing.T) {
 func (s *secretsHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	manager := mock.NewMockManager(s.ctrl)
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.secretStore = mock.NewMockSecretStore(s.ctrl)
 
-	manager.EXPECT().Stores().Return(s.stores).AnyTimes()
-	manager.EXPECT().Utilities().Return(nil)
 	s.stores.EXPECT().GetSecretStore(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil).AnyTimes()
 
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
@@ -66,7 +63,7 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 	})
 
 	s.router = mux.NewRouter()
-	NewStoresHandler(manager).Register(s.router)
+	NewStoresHandler(s.stores).Register(s.router)
 }
 
 func (s *secretsHandlerTestSuite) TearDownTest() {
