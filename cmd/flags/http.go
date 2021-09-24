@@ -93,7 +93,7 @@ Environment variable: %q`, enableHTTPSEnv)
 
 const (
 	httpServerKeyFlag     = "https-server-key"
-	httpServerKeyViperKey = "https.vault.key"
+	httpServerKeyViperKey = "https.server.key"
 	httpServerKeyDefault  = ""
 	httpServerKeyEnv      = "HTTPS_SERVER_KEY"
 )
