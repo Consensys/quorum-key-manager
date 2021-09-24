@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
@@ -19,7 +20,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 	switch mnf.Kind {
 	case manifest.HashicorpSecrets:
-		spec := &secrets.HashicorpSecretSpecs{}
+		spec := &entities.HashicorpSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp secret store specs"
 			logger.WithError(err).Error(errMessage)
@@ -33,7 +34,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 		c.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
 	case manifest.HashicorpKeys:
-		spec := &keys.HashicorpKeySpecs{}
+		spec := &entities.HashicorpSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp key store specs"
 			logger.WithError(err).Error(errMessage)
