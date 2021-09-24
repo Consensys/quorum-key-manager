@@ -33,7 +33,7 @@ func AKVError(format string, a ...interface{}) *Error {
 	return Errorf(AKV, format, a...)
 }
 
-// IsAKVError indicate whether an error is a AKV client connection error
+// IsAKVError indicate whether an error is an AKV client connection error
 func IsAKVError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), AKV)
 }
@@ -43,7 +43,7 @@ func AWSError(format string, a ...interface{}) *Error {
 	return Errorf(AWS, format, a...)
 }
 
-// IsAWSError indicate whether an error is a AWS client connection error
+// IsAWSError indicate whether an error is an AWS client connection error
 func IsAWSError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), AWS)
 }

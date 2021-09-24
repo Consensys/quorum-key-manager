@@ -10,21 +10,26 @@ Quorum Key Manager (QKM) is a key management service developed under the [BSL 1.
 Quorum Key Manager exposes an HTTP API service to manage your secrets, keys and Ethereum accounts. QKM supports the integration with
 *AWS Key Management Service*, *Azure Key Vault* and *HashiCorp Vault*. 
 
-In addition, using QKM, you can connect to your Ethereum nodes to sign your transaction using the Ethereum account stored in your secure key vault.
+In addition, using the JSON-RPC interface of the QKM, you can connect to your Ethereum nodes to sign your transaction using the Ethereum account stored in your secure key vault.
+
+## Useful links
+
+* [Product page](https://consensys.net/quorum/key-manager/)
+* [User documentation](http://docs.quorum-key-manager.consensys.net/)
+* [REST API reference documentation](https://consensys.github.io/quorum-key-manager/#stable)
+* [GitHub Project](https://github.com/ConsenSys/quorum-key-manager)
+* [issues](https://github.com/ConsenSys/quorum-key-manager/issues)
+* [Changelog](https://github.com/ConsenSys/quorum-key-manager/blob/main/CHANGELOG.md)
+* [HashiCorp Vault plugin](https://github.com/ConsenSys/quorum-hashicorp-vault-plugin)
+* [Helm Charts](https://github.com/ConsenSys/quorum-key-manager-helm)
+* [Kubernetes deployment example](https://github.com/ConsenSys/quorum-key-manager-kubernetes)
 
 ## Run QKM
 
 First, define your Quorum Key Manager environment setup using manifest files.
 Examples can be found at [`./deps/config/manifests`](./deps/config/manifests). 
-More information about how to setup service can be found in [documentation](#documentation).
+More information about how to set up service can be found in [documentation](http://docs.quorum-key-manager.consensys.net/).
 
-Once you manifests are written, specify where `quorum-key-manager` can find them on your filesystem
-with the following environment variable: 
-
-```bash
-export HOST_MANIFEST_PATH={your_manifests_folder}
-```
- 
 Now launch Quorum Key Manager service using docker-compose with the following command:
 
 ```bash
@@ -46,10 +51,6 @@ go build -o ./build/bin/key-manager
 ```
 
 Binary will be located in `./build/bin/key-manager`
-
-## Documentation
-
-Quorum Key Manager documentation website [https://docs.quorum-key-manager.consensys.net/](https://docs.quorum-key-manager.consensys.net/) 
  
 ## License
 

@@ -140,13 +140,13 @@ func (s *keysTestSuite) TestImport() {
 		assert.False(s.T(), key.Metadata.Disabled)
 	})
 
-	s.Run("should import a new key pair successfully: EDDSA/BN254", func() {
+	s.Run("should import a new key pair successfully: EDDSA/Babyjubjub", func() {
 		id := fmt.Sprintf("%s-%d", "my-key-eddsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyEDDSA)
 
 		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -160,7 +160,7 @@ func (s *keysTestSuite) TestImport() {
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), tags, key.Tags)
-		assert.Equal(s.T(), entities.Bn254, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Babyjubjub, key.Algo.EllipticCurve)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
@@ -353,12 +353,12 @@ func (s *keysTestSuite) TestSignVerify() {
 		require.NoError(s.T(), err)
 	})
 
-	s.Run("should sign and verify a message successfully: EDDSA/BN254", func() {
+	s.Run("should sign and verify a message successfully: EDDSA/Babyjubjub", func() {
 		id := fmt.Sprintf("mykey-sign-eddsa-%d", common.RandInt(1000))
 		payload := []byte("my data to sign")
 		key, err := s.store.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.Bn254,
+			EllipticCurve: entities.Babyjubjub,
 		}, &entities.Attributes{
 			Tags: tags,
 		})

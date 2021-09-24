@@ -103,7 +103,7 @@ func (msg *ResponseMsg) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
-// Validate JSON-RPC reseponse is valid
+// Validate JSON-RPC response is valid
 func (msg *ResponseMsg) Validate() error {
 	if msg.Version == "" {
 		return fmt.Errorf("missing version")

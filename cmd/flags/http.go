@@ -80,7 +80,7 @@ const (
 	enableHTTPSFlag     = "https-enable"
 	enableHTTPSViperKey = "https-enable"
 	enableHTTPSDefault  = false
-	enableHTTPSEnv      = "HTTPS_ENABLE"
+	enableHTTPSEnv      = "HTTPS_ENABLED"
 )
 
 // Hostname register a flag for HTTP server address
@@ -119,7 +119,7 @@ Environment variable: %q`, httpServerCertEnv)
 	_ = viper.BindPFlag(httpServerCertViperKey, f.Lookup(httpServerCertFlag))
 }
 
-// Flags register flags for HashiCorp Hashicorp
+// HTTPFlags register flags for HTTPS server
 func HTTPFlags(f *pflag.FlagSet) {
 	httpHost(f)
 	httpPort(f)

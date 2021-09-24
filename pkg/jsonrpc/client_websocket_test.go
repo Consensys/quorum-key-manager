@@ -138,7 +138,7 @@ func TestWebSocketClient(t *testing.T) {
 	defer cancel()
 
 	cases := []*TestCase{
-		&TestCase{
+		{
 			req: &RequestMsg{
 				Version: "2.0",
 				Method:  "testMethod0",
@@ -152,7 +152,7 @@ func TestWebSocketClient(t *testing.T) {
 			},
 			done: make(chan struct{}),
 		},
-		&TestCase{
+		{
 			req: &RequestMsg{
 				Version: "2.0",
 				Method:  "testMethod1",
@@ -166,7 +166,7 @@ func TestWebSocketClient(t *testing.T) {
 			},
 			done: make(chan struct{}),
 		},
-		&TestCase{
+		{
 			req: &RequestMsg{
 				Version: "2.0",
 				Method:  "testMethod2",
@@ -180,7 +180,7 @@ func TestWebSocketClient(t *testing.T) {
 			},
 			done: make(chan struct{}),
 		},
-		&TestCase{
+		{
 			req: (&RequestMsg{
 				Version: "2.0",
 				Method:  "testMethod3",

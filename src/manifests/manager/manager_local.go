@@ -180,12 +180,12 @@ func (ll *LocalManager) buildMessages(fp string) []Message {
 		return []Message{newCreateActionMsg(mnf, nil)}
 	}
 
-	mnfs := []*manifest.Manifest{}
+	var mnfs []*manifest.Manifest
 	if err = yaml.Unmarshal(data, &mnfs); err != nil {
 		return []Message{newCreateActionMsg(nil, err)}
 	}
 
-	msgs := []Message{}
+	var msgs []Message
 	for _, mnf := range mnfs {
 		if err := val.Struct(mnf); err != nil {
 			msgs = append(msgs, newCreateActionMsg(nil, err))

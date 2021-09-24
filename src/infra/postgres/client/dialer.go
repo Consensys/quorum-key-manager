@@ -113,7 +113,7 @@ func (d *pgTLSDialer) DialContext(ctx context.Context, network, addr string) (ne
 	// Next is a preliminary send/receive message between client and Postgres server
 	// to make sure server is configured for TLS connection
 	//
-	// It should happened before upgrading the connection to TLS
+	// It should happen before upgrading the connection to TLS
 	// Implementation is largely inspired from https://github.com/lib/pq/blob/v1.7.0/conn.go#L1027
 	var scratch [512]byte
 	scratch[0] = 0

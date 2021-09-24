@@ -153,7 +153,7 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
-	nodeNames := []string{}
+	var nodeNames []string
 	for name, nodeBundle := range m.nodes {
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)

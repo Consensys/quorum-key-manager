@@ -119,10 +119,10 @@ func (s *keysTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.UpdatedAt)
 	})
 
-	s.RunT("should create a new key successfully: BN254/EDDSA", func() {
+	s.RunT("should create a new key successfully: Babyjubjub/EDDSA", func() {
 		keyID := fmt.Sprintf("my-key-eddsa-%d", common.RandInt(1000))
 		request := &types.CreateKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -154,7 +154,7 @@ func (s *keysTestSuite) TestCreate() {
 	s.RunT("should parse errors successfully", func() {
 		keyID := "my-key"
 		request := &types.CreateKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 			Tags: map[string]string{
 				"myTag0": "tag0",
@@ -240,10 +240,10 @@ func (s *keysTestSuite) TestImport() {
 		assert.NotEmpty(s.T(), key.UpdatedAt)
 	})
 
-	s.RunT("should create a new key successfully: BN254/EDDSA", func() {
+	s.RunT("should create a new key successfully: Babyjubjub/EDDSA", func() {
 		keyID := fmt.Sprintf("my-key-eddsa-%d", common.RandInt(1000))
 		request := &types.ImportKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 			PrivateKey:       eddsaPrivKey,
 			Tags: map[string]string{
@@ -428,7 +428,7 @@ func (s *keysTestSuite) TestRestoreKey() {
 		errMsg := fmt.Sprintf("failed to restore key {ID: %s}", key.ID)
 		err := retryOn(func() error {
 			return s.keyManagerClient.RestoreKey(s.ctx, s.storeName, key.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		require.NoError(s.T(), err)
 
@@ -438,7 +438,7 @@ func (s *keysTestSuite) TestRestoreKey() {
 		err = retryOn(func() error {
 			_, derr := s.keyManagerClient.GetKey(s.ctx, s.storeName, key.ID)
 			return derr
-		}, s.T().Logf, errMsg, http.StatusNotFound, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusNotFound, MaxRetries)
 		require.NoError(s.T(), err)
 	})
 
@@ -471,7 +471,7 @@ func (s *keysTestSuite) TestDestroyKey() {
 		errMsg := fmt.Sprintf("failed to destroy key {ID: %s}", key.ID)
 		err = retryOn(func() error {
 			return s.keyManagerClient.DestroyKey(s.ctx, s.storeName, key.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		require.NoError(s.T(), err)
 
@@ -615,10 +615,10 @@ func (s *keysTestSuite) TestSignVerify() {
 		require.NoError(s.T(), err)
 	})
 
-	s.RunT("should sign and verify a new payload successfully: BN254/EDDSA", func() {
+	s.RunT("should sign and verify a new payload successfully: Babyjubjub/EDDSA", func() {
 		keyID := fmt.Sprintf("my-key-sign-eddsa-%d", common.RandInt(1000))
 		request := &types.CreateKeyRequest{
-			Curve:            "bn254",
+			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
 		}
 		key, err := s.keyManagerClient.CreateKey(s.ctx, s.storeName, keyID, request)
@@ -671,7 +671,7 @@ func (s *keysTestSuite) queueToDestroy(keyR *types.KeyResponse) {
 		errMsg := fmt.Sprintf("failed to destroy key {ID: %s}", keyR.ID)
 		err := retryOn(func() error {
 			return s.keyManagerClient.DestroyKey(s.ctx, s.storeName, keyR.ID)
-		}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 
 		if err != nil {
 			s.T().Logf(errMsg)

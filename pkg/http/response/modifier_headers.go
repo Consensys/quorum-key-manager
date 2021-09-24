@@ -13,6 +13,6 @@ func HeadersModifier(h func(http.Header) error) Modifier {
 }
 
 // Headers sets or deletes custom request headers
-func Headers(overides map[string][]string) Modifier {
-	return HeadersModifier(header.Overide(overides))
+func Headers(overrides map[string][]string) Modifier {
+	return HeadersModifier(header.Override(overrides))
 }

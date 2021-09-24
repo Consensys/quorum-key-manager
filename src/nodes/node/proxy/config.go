@@ -9,7 +9,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/websocket"
 )
 
-// ProxyConfig
 type ProxyConfig struct {
 	Request   *request.ProxyConfig   `json:"request,omitempty"`
 	Response  *response.ProxyConfig  `json:"response,omitempty"`
@@ -35,7 +34,6 @@ func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
 	return cfg
 }
 
-// DownstreamConfig
 type DownstreamConfig struct {
 	Addr          string            `json:"addr,omitempty"`
 	Transport     *transport.Config `json:"transport,omitempty"`
@@ -84,7 +82,7 @@ func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
 	return cfg
 }
 
-// Config is the cfg format for an Hashicorp Vault secret store
+// Config is the cfg format for a Hashicorp Vault secret store
 type Config struct {
 	RPC           *DownstreamConfig `json:"rpc,omitempty"`
 	PrivTxManager *DownstreamConfig `json:"tessera,omitempty"`

@@ -13,7 +13,7 @@ import (
 )
 
 const HashicorpPluginFilename = "quorum-hashicorp-vault-plugin"
-const HashicorpPluginVersion = "v0.0.11"
+const HashicorpPluginVersion = "v1.0.0"
 
 func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 	hashicorpHost := "localhost"
@@ -34,8 +34,8 @@ func HashicorpContainer(logger log.Logger) (*dockerhashicorp.Config, error) {
 		SetPluginSourceDirectory(pluginPath)
 
 	// Deal with darwin compliant plugin
-	runtime := runtime.GOOS
-	switch runtime {
+	runtimeOS := runtime.GOOS
+	switch runtimeOS {
 	case "darwin":
 		pluginPath += "/darwin"
 		if _, err := os.Stat(pluginPath + "/" + HashicorpPluginFilename); os.IsNotExist(err) {

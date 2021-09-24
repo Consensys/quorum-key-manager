@@ -108,7 +108,7 @@ func (s *Secrets) SearchIDs(ctx context.Context, isDeleted bool, limit, offset u
 }
 
 func (s *Secrets) ListVersions(ctx context.Context, id string, isDeleted bool) ([]string, error) {
-	var versions = []string{}
+	var versions []string
 	var err error
 	if !isDeleted {
 		err = s.client.Query(ctx, &versions,

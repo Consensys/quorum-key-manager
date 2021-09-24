@@ -1,6 +1,6 @@
 module github.com/consensys/quorum-key-manager
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Azure/azure-sdk-for-go v52.5.0+incompatible
@@ -10,7 +10,6 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/aws/aws-sdk-go v1.38.41
 	github.com/consensys/gnark-crypto v0.5.0
 	github.com/consensys/quorum v2.7.0+incompatible

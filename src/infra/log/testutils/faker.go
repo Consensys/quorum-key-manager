@@ -3,7 +3,7 @@ package testutils
 import (
 	"github.com/golang/mock/gomock"
 
-	mock "github.com/consensys/quorum-key-manager/src/infra/log/mock"
+	"github.com/consensys/quorum-key-manager/src/infra/log/mock"
 )
 
 func NewMockLogger(ctrl *gomock.Controller) *mock.MockLogger {

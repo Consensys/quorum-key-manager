@@ -14,7 +14,7 @@ func (c Connector) Verify(pubKey, data, sig []byte, algo *entities.Algorithm) er
 	switch {
 	case algo.EllipticCurve == entities.Secp256k1 && algo.Type == entities.Ecdsa:
 		verified, err = crypto.VerifyECDSASignature(pubKey, data, sig)
-	case algo.EllipticCurve == entities.Bn254 && algo.Type == entities.Eddsa:
+	case algo.EllipticCurve == entities.Babyjubjub && algo.Type == entities.Eddsa:
 		verified, err = crypto.VerifyEDDSASignature(pubKey, data, sig)
 	default:
 		errMessage := "unsupported signing algorithm and elliptic curve combination"

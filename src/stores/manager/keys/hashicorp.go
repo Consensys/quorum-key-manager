@@ -15,7 +15,7 @@ import (
 
 const maxRetries = 3
 
-// KeySpecs is the specs format for an Hashicorp Vault key store
+// HashicorpKeySpecs is the specs format for a Hashicorp Vault key store
 type HashicorpKeySpecs struct {
 	MountPoint string `json:"mountPoint"`
 	Address    string `json:"address"`

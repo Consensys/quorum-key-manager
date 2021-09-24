@@ -111,7 +111,7 @@ func TestMarshalRequestMsg(t *testing.T) {
 	}{
 		{
 			desc:         "request with all fields",
-			msg:          &RequestMsg{Version: "2.0", Method: "testMethod", ID: int(0), Params: &TestParams{Field: "test-value"}},
+			msg:          &RequestMsg{Version: "2.0", Method: "testMethod", ID: 0, Params: &TestParams{Field: "test-value"}},
 			expectedBody: []byte(`{"jsonrpc":"2.0","method":"testMethod","params":{"test-field":"test-value"},"id":0}`),
 		},
 		{

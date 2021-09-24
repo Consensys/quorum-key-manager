@@ -156,7 +156,7 @@ func (s *secretsTestSuite) TestGet() {
 	})
 
 	s.Run("should fail with NotFound if secret is not found", func() {
-		secret, err := s.store.Get(ctx, "inexistentID", "")
+		secret, err := s.store.Get(ctx, "nonExistentID", "")
 
 		assert.Nil(s.T(), secret)
 		require.True(s.T(), errors.IsNotFoundError(err))
@@ -186,7 +186,7 @@ func (s *secretsTestSuite) TestDelete() {
 	})
 
 	s.Run("should fail with NotFound if secret is not found", func() {
-		err := s.store.Delete(ctx, "inexistentID")
+		err := s.store.Delete(ctx, "nonExistentID")
 		require.NotNil(s.T(), err)
 		require.True(s.T(), errors.IsNotFoundError(err))
 	})
@@ -213,7 +213,7 @@ func (s *secretsTestSuite) TestGetDeleted() {
 	})
 
 	s.Run("should fail with NotFound if deleted secret is not found", func() {
-		secret, err := s.store.GetDeleted(ctx, "inexistentID")
+		secret, err := s.store.GetDeleted(ctx, "nonExistentID")
 
 		assert.Nil(s.T(), secret)
 		require.NotNil(s.T(), err)
@@ -240,7 +240,7 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 	})
 
 	s.Run("should fail with NotFound if restored secret is not found and not deleted", func() {
-		err := s.store.Restore(ctx, "inexistentID")
+		err := s.store.Restore(ctx, "nonExistentID")
 		require.NotNil(s.T(), err)
 		// require.True(s.T(), errors.IsNotFoundError(err))
 	})

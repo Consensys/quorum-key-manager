@@ -97,7 +97,7 @@ func (fn *rpcHandler) newParams() []reflect.Value {
 }
 
 func prepareParams(inputs ...reflect.Value) []interface{} {
-	params := []interface{}{}
+	var params []interface{}
 	for _, in := range inputs {
 		params = append(params, in.Interface())
 	}

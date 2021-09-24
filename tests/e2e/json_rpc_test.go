@@ -106,7 +106,7 @@ func (s *jsonRPCTestSuite) TearDownSuite() {
 	errMsg := fmt.Sprintf("failed to destroy ethAccount {Address: %s}", s.acc.Address.Hex())
 	_ = retryOn(func() error {
 		return s.keyManagerClient.DestroyEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
-	}, s.T().Logf, errMsg, http.StatusConflict, MAX_RETRIES)
+	}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
 }
 
 func (s *jsonRPCTestSuite) TestCallForwarding() {

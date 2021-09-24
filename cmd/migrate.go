@@ -10,8 +10,8 @@ import (
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" //nolint
-	_ "github.com/golang-migrate/migrate/v4/source/file"       //nolint
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // nolint
+	_ "github.com/golang-migrate/migrate/v4/source/file"       // nolint
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -82,7 +82,7 @@ func migrateUp() error {
 	}
 
 	err = m.Up()
-	if err != nil {
+	if err != nil && err != migrate.ErrNoChange {
 		errMessage := "failed to execute migrations"
 		logger.WithError(err).Error(errMessage)
 		return err
@@ -105,7 +105,7 @@ func migrateDown() error {
 	}
 
 	err = m.Steps(-1)
-	if err != nil {
+	if err != nil && err != migrate.ErrNoChange {
 		errMessage := "failed to downgrade migrations"
 		logger.WithError(err).Error(errMessage)
 		return err
@@ -128,7 +128,7 @@ func migrateReset() error {
 	}
 
 	err = m.Down()
-	if err != nil {
+	if err != nil && err != migrate.ErrNoChange {
 		errMessage := "failed to reset all migrations"
 		logger.WithError(err).Error(errMessage)
 		return err

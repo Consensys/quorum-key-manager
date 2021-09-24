@@ -98,7 +98,7 @@ func (s *Store) Get(ctx context.Context, id, version string) (*entities.Secret, 
 }
 
 func (s *Store) List(ctx context.Context, _, _ uint64) ([]string, error) {
-	result := []string{}
+	var result []string
 	nextToken := ""
 
 	// Loop until the entire list is constituted
@@ -173,7 +173,7 @@ func (s *Store) listPaginated(ctx context.Context, maxResults int64, nextToken s
 	}
 
 	// return only a list of secret names (IDs)
-	secretNamesList := []string{}
+	var secretNamesList []string
 	for _, secret := range listOutput.SecretList {
 		secretNamesList = append(secretNamesList, *secret.Name)
 	}
