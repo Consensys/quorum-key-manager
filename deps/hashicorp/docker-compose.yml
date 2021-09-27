@@ -50,7 +50,7 @@ services:
     volumes:
       - hashicorp-token:/vault/token
       - hashicorp-plugin:/vault/plugins
-      - ./scripts/init.sh:/init.sh
+      - ./scripts/init-tls.sh:/init.sh
       - ./scripts/plugin.sh:/plugin.sh
       - ./tls/ca.crt:/vault/tls/ca.crt:ro
       - ./tls/vault-client.crt:/vault/tls/vault-client.crt:ro
