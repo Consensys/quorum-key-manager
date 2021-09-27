@@ -1,6 +1,6 @@
 GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" -not -path "./tests/*" | egrep -v "^\./\.go" | grep -v _test.go)
 DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
-DEPS_HASHICORP_TLS = hashicorp-tls hashicorp-init-tls hashicorp-agent-tls
+DEPS_HASHICORP_TLS = hashicorp hashicorp-init-tls hashicorp-agent-tls
 DEPS_POSTGRES = postgres
 DEPS_POSTGRES_TLS = postgres-ssl
 PACKAGES ?= $(shell go list ./... | egrep -v "tests|e2e|mocks|mock" )

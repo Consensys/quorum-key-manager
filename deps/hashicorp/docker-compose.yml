@@ -6,20 +6,6 @@ x-container-common: &container-common
     - hashicorp
 
 services:
-  hashicorp-tls:
-    <<: *container-common
-    image: library/vault:1.8.2
-    tty: true
-    cap_add:
-      - IPC_LOCK
-    volumes:
-      - hashicorp-plugin:/vault/plugins
-      - ./tls:/vault/tls:ro
-      - ./config/config-tls.hcl:/vault/config.hcl:ro
-    entrypoint: vault server -config=/vault/config.hcl
-    ports:
-      - 8200:8200
-
   hashicorp:
     <<: *container-common
     image: library/vault:1.8.2
@@ -28,6 +14,7 @@ services:
       - IPC_LOCK
     volumes:
       - hashicorp-plugin:/vault/plugins
+      - ./tls:/vault/tls:ro
       - ./config/config.hcl:/vault/config.hcl:ro
     entrypoint: vault server -config=/vault/config.hcl
     ports:
@@ -39,22 +26,22 @@ services:
     environment:
       VAULT_ADDR: ${VAULT_ADDR-https://hashicorp:8200}
       VAULT_CACERT: ${VAULT_CACERT-/vault/tls/ca.crt}
-      VAULT_CLIENT_CERT: ${VAULT_CLIENT_CERT-/vault/tls/vault-client.crt}
-      VAULT_CLIENT_KEY: ${VAULT_CLIENT_KEY-/vault/tls/vault-client.key}
+      VAULT_CLIENT_CERT: ${VAULT_CLIENT_CERT-/vault/tls/client.crt}
+      VAULT_CLIENT_KEY: ${VAULT_CLIENT_KEY-/vault/tls/client.key}
       PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
       TOKEN_PATH: ${TOKEN_PATH-/vault/token}
       PLUGIN_VERSION: ${PLUGIN_VERSION-v1.0.0}
     restart: "no"
     depends_on:
-      - hashicorp-tls
+      - hashicorp
     volumes:
       - hashicorp-token:/vault/token
       - hashicorp-plugin:/vault/plugins
       - ./scripts/init-tls.sh:/init.sh
       - ./scripts/plugin.sh:/plugin.sh
       - ./tls/ca.crt:/vault/tls/ca.crt:ro
-      - ./tls/vault-client.crt:/vault/tls/vault-client.crt:ro
-      - ./tls/vault-client.key:/vault/tls/vault-client.key:ro
+      - ./tls/client.crt:/vault/tls/client.crt:ro
+      - ./tls/client.key:/vault/tls/client.key:ro
     command: >
       sh -c "./plugin.sh && ./init.sh"
 
@@ -85,7 +72,7 @@ services:
     image: library/vault:1.8.2
     tty: true
     depends_on:
-      - hashicorp-tls
+      - hashicorp
       - hashicorp-init-tls
     cap_add:
       - IPC_LOCK
