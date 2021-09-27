@@ -1,6 +1,8 @@
 GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" -not -path "./tests/*" | egrep -v "^\./\.go" | grep -v _test.go)
 DEPS_HASHICORP = hashicorp hashicorp-init hashicorp-agent
+DEPS_HASHICORP_TLS = hashicorp-tls hashicorp-init-tls hashicorp-agent-tls
 DEPS_POSTGRES = postgres
+DEPS_POSTGRES_TLS = postgres-ssl
 PACKAGES ?= $(shell go list ./... | egrep -v "tests|e2e|mocks|mock" )
 KEY_MANAGER_SERVICES = key-manager
 
@@ -23,6 +25,10 @@ hashicorp:
 	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_HASHICORP)
 	@sleep 2 # Sleep couple seconds to wait token to be created
 
+hashicorp-tls:
+	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_HASHICORP_TLS)
+	@sleep 2 # Sleep couple seconds to wait token to be created
+
 hashicorp-down:
 	@docker-compose -f deps/hashicorp/docker-compose.yml down --volumes --timeout 0
 
@@ -39,10 +45,15 @@ down-networks:
 postgres:
 	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_POSTGRES)
 
+postgres-tls:
+	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_POSTGRES_TLS)
+
 postgres-down:
 	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0
 
 deps: networks hashicorp postgres
+
+deps-tls: networks hashicorp-tls postgres-tls
 
 down-deps: postgres-down hashicorp-down down-networks
 
