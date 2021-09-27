@@ -70,6 +70,7 @@ services:
       - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
       - ./deps/config/ca:/ca:ro
+      - ./deps/hashicorp/tls/ca.crt:/ca/ca-hashicorp:ro
       - ./deps/config/apikey:/apikey:ro
       - hashicorp-token:/vault/token:ro
 
