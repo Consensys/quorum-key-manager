@@ -45,7 +45,7 @@ func (h *KeysHandler) Register(r *mux.Router) {
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param id path string true "Key Identifier"
+// @Param id path string true "Key ID"
 // @Param storeName path string true "Store identifier"
 // @Param request body types.CreateKeyRequest true "Create key request"
 // @Success 200 {object} types.KeyResponse "Key data"
@@ -96,7 +96,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 // @Tags Keys
 // @Accept json
 // @Produce json
-// @Param id path string true "Key Identifier"
+// @Param id path string true "Key ID"
 // @Param storeName path string true "Store identifier"
 // @Param request body types.ImportKeyRequest true "Create key request"
 // @Success 200 {object} types.KeyResponse "Key data"
@@ -144,7 +144,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Sign random payload
-// @Description Sign a random payload using the selected key pair
+// @Description Sign a random payload using the selected key
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -185,7 +185,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Get key by ID
-// @Description Retrieve a key pair by its identifier
+// @Description Retrieve a key by its ID
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -225,7 +225,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Update a key
-// @Description Update the key tags of a specific key by its id
+// @Description Update the key tags of a specific key by its ID
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -268,7 +268,7 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Restore a soft-deleted key
-// @Description Restore a soft-deleted key by its id
+// @Description Restore a soft-deleted key by its ID
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -301,7 +301,7 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary List Key ids
-// @Description List key's identifiers allocated on selected Store
+// @Description List key's IDs allocated on targeted Store
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -347,7 +347,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Soft-delete Key
-// @Description Delete a key by its id. Key can be recovered
+// @Description Delete a key by its ID. Key can be recovered
 // @Tags Keys
 // @Accept json
 // @Produce json
@@ -379,7 +379,7 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary Destroy a Key
-// @Description Permanently delete a key by id
+// @Description Permanently delete a key by ID
 // @Tags Keys
 // @Accept json
 // @Produce json

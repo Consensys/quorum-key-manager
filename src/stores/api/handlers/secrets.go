@@ -39,8 +39,8 @@ func (h *SecretsHandler) Register(r *mux.Router) {
 // @Tags Secrets
 // @Accept json
 // @Produce json
-// @Param id path string true "Secret identifier"
-// @Param storeName path string true "Store identifier"
+// @Param id path string true "Secret ID"
+// @Param storeName path string true "Store ID"
 // @Param request body types.SetSecretRequest true "Create Secret request"
 // @Success 200 {object} types.SecretResponse "Secret data"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -84,8 +84,8 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 // @Tags Secrets
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Secret identifier"
+// @Param storeName path string true "Store ID"
+// @Param id path string true "Secret ID"
 // @Param version query string false "secret version"
 // @Param deleted query bool false "filter by only deleted accounts"
 // @Success 200 {object} types.SecretResponse "Secret object"
@@ -125,12 +125,12 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary List secrets
-// @Description List of secret's ids allocated in the selected Store
+// @Description List of secrets ids allocated in the targeted Store
 // @Tags Secrets
 // @Accept json
 // @Produce json
 // @Param deleted query bool false "filter by deleted accounts"
-// @Param storeName path string true "Store identifier"
+// @Param storeName path string true "Store ID"
 // @Param limit query int false "page size"
 // @Param page query int false "page number"
 // @Success 200 {array} PageResponse "List of Secret IDs"
@@ -176,8 +176,8 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 // @Tags Secrets
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Secret identifier"
+// @Param storeName path string true "Store ID"
+// @Param id path string true "Secret ID"
 // @Success 204 "Deleted successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -211,8 +211,8 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Tags Secrets
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Secret identifier"
-// @Param id path string true "Key identifier"
+// @Param storeName path string true "Secret ID"
+// @Param id path string true "Key ID"
 // @Success 204 "Destroyed successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -244,8 +244,8 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 // @Tags Secrets
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Secret identifier"
+// @Param storeName path string true "Store ID"
+// @Param id path string true "Secret ID"
 // @Success 204 "Restored successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
