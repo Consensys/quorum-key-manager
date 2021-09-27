@@ -1,7 +1,7 @@
 exit_after_auth = false
 
 vault {
-  address = "http://hashicorp:8200"
+  address = "https://hashicorp:8200"
 }
 
 auto_auth {
