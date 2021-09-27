@@ -3,27 +3,28 @@ package placeholder
 import (
 	"context"
 	"regexp"
-	"sync"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
-const aliasParseFormat = `{{(?m)(?P<registry>[a-zA-Z0-9-_+]+):(?P<alias>[a-zA-Z0-9-_+]+)}}$`
+type Parser struct {
+	regex *regexp.Regexp
+}
 
-var (
-	aliasParseRegexOnce sync.Once
-	aliasParseRegex     *regexp.Regexp
-)
-
-func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.AliasKey, isAlias bool, err error) {
-	aliasParseRegexOnce.Do(func() {
-		aliasParseRegex, err = regexp.Compile(aliasParseFormat)
-	})
+func New() (*Parser, error) {
+	const aliasParseFormat = `{{(?m)(?P<registry>[a-zA-Z0-9-_+]+):(?P<alias>[a-zA-Z0-9-_+]+)}}$`
+	regex, err := regexp.Compile(aliasParseFormat)
 	if err != nil {
-		return "", "", false, errors.InvalidFormatError("bad regexp format '%v': %v", aliasParseFormat, err)
+		return nil, errors.InvalidFormatError("bad regexp format '%v': %v", aliasParseFormat, err)
 	}
-	submatches := aliasParseRegex.FindStringSubmatch(alias)
+	return &Parser{
+		regex: regex,
+	}, nil
+}
+
+func (p *Parser) ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.AliasKey, isAlias bool, err error) {
+	submatches := p.regex.FindStringSubmatch(alias)
 	if len(submatches) < 3 {
 		return "", "", false, nil
 	}
@@ -34,10 +35,10 @@ func ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.
 	return regName, aliasKey, true, nil
 }
 
-func ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error) {
+func (p *Parser) ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error) {
 	var values []string
 	for _, addr := range addrs {
-		regName, aliasKey, isAlias, err := ParseAlias(addr)
+		regName, aliasKey, isAlias, err := p.ParseAlias(addr)
 		if err != nil {
 			return nil, err
 		}

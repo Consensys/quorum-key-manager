@@ -26,7 +26,7 @@ func TestEthAccounts(t *testing.T) {
 		UserInfo: userInfo,
 	})
 
-	i, stores := newInterceptor(ctrl)
+	i, stores := newInterceptor(t, ctrl)
 	tests := []*testHandlerCase{
 		{
 			desc:    "Signature",

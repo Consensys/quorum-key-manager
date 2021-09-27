@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"testing"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasentmock "github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
@@ -17,6 +16,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
 	mocktessera "github.com/consensys/quorum-key-manager/pkg/tessera/mock"
+	placeholdermock "github.com/consensys/quorum-key-manager/src/aliases/placeholder/mock"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
@@ -33,6 +33,7 @@ func TestEthSendTransaction(t *testing.T) {
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	stores := mockaccounts.NewMockStores(ctrl)
 	aliases := aliasentmock.NewMockAliasBackend(ctrl)
+	aliasParser := placeholdermock.NewMockAliasParser(ctrl)
 
 	from := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 	userInfo := &types.UserInfo{
@@ -53,12 +54,15 @@ func TestEthSendTransaction(t *testing.T) {
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
 	stores.EXPECT().GetEthStoreByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
 
-	i := New(stores, aliases, testutils.NewMockLogger(ctrl))
+	i, err := New(stores, aliases, aliasParser, testutils.NewMockLogger(ctrl))
+	require.NoError(t, err)
 
 	t.Run("should send a private tx successfully", func(t *testing.T) {
+		privateFor := []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}
+
 		privateArgs := (&ethereum.PrivateArgs{}).
 			WithPrivateFrom("A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=").
-			WithPrivateFor([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
+			WithPrivateFor(privateFor)
 		msg := &ethereum.SendTxMsg{
 			From:        from,
 			PrivateArgs: *privateArgs,
@@ -81,6 +85,7 @@ func TestEthSendTransaction(t *testing.T) {
 		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
 		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
 		ethCaller.EXPECT().SendRawPrivateTransaction(ctx, expectedSignedTx, privateArgs).Return(expectedHash, nil)
+		aliasParser.EXPECT().ReplaceAliases(gomock.Any(), gomock.Any(), privateFor).Return(privateFor, nil)
 
 		hash, err := i.ethSendTransaction(ctx, msg)
 		require.NoError(t, err)
@@ -89,9 +94,12 @@ func TestEthSendTransaction(t *testing.T) {
 	})
 
 	t.Run("should send an alias private tx successfully", func(t *testing.T) {
+		privateFor := []string{"{{JPM:Group-A}}", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}
+		privateForExp := []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}
+
 		privateArgs := (&ethereum.PrivateArgs{}).
 			WithPrivateFrom("A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=").
-			WithPrivateFor([]string{"{{JPM:Group-A}}", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="})
+			WithPrivateFor(privateFor)
 		msg := &ethereum.SendTxMsg{
 			From:        from,
 			PrivateArgs: *privateArgs,
@@ -114,7 +122,7 @@ func TestEthSendTransaction(t *testing.T) {
 		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
 		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
 		ethCaller.EXPECT().SendRawPrivateTransaction(ctx, expectedSignedTx, privateArgs).Return(expectedHash, nil)
-		aliases.EXPECT().GetAlias(ctx, aliasent.RegistryName("JPM"), aliasent.AliasKey("Group-A")).Return(&aliasent.Alias{Value: []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s="}}, nil)
+		aliasParser.EXPECT().ReplaceAliases(gomock.Any(), gomock.Any(), privateFor).Return(privateForExp, nil)
 
 		hash, err := i.ethSendTransaction(ctx, msg)
 		require.NoError(t, err)

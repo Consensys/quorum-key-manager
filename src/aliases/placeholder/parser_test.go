@@ -30,9 +30,11 @@ func TestParseAlias(t *testing.T) {
 		"base 64 key":         {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false, nil},
 		"ok":                  {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true, nil},
 	}
+	p, err := placeholder.New()
+	require.NoError(t, err)
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			reg, key, parsed, err := placeholder.ParseAlias(c.input)
+			reg, key, parsed, err := p.ParseAlias(c.input)
 			assert.Equal(t, c.reg, reg)
 			assert.Equal(t, c.key, key)
 			assert.Equal(t, c.parsed, parsed)
@@ -75,13 +77,17 @@ func TestReplaceAliases(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	aliasBackend := mock.NewMockAliasBackend(ctrl)
+
+	p, err := placeholder.New()
+	require.NoError(t, err)
+
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			for _, call := range c.calls {
 				aliasBackend.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&aliasent.Alias{Value: call.value}, call.err)
 			}
 
-			addrs, err := placeholder.ReplaceAliases(ctx, aliasBackend, c.addrs)
+			addrs, err := p.ReplaceAliases(ctx, aliasBackend, c.addrs)
 			if err != nil {
 				require.True(t, errors.IsInvalidFormatError(err))
 				return

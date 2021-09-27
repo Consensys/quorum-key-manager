@@ -86,6 +86,7 @@ func (s *AliasStore) DeleteAlias(ctx context.Context, registry aliasent.Registry
 		Key:          aliasmodels.AliasKey(aliasKey),
 		RegistryName: aliasmodels.RegistryName(registry),
 	}
+
 	err := s.pgClient.DeletePK(ctx, &a)
 	if err != nil {
 		msg := "failed to delete alias"

@@ -9,7 +9,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	"github.com/consensys/quorum-key-manager/src/aliases/placeholder"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 )
 
@@ -57,7 +56,7 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 	}
 
 	// extract aliases from PrivateFor
-	*msg.PrivateFor, err = placeholder.ReplaceAliases(ctx, i.aliases, *msg.PrivateFor)
+	*msg.PrivateFor, err = i.aliasParser.ReplaceAliases(ctx, i.aliases, *msg.PrivateFor)
 	if err != nil {
 		i.logger.WithError(err).Error("failed to replace aliases in privateFor")
 		return nil, err
