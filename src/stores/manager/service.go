@@ -4,10 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/consensys/quorum-key-manager/src/auth"
-	storesconnector "github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
@@ -30,20 +26,18 @@ type BaseManager struct {
 	db     database.Database
 	logger log.Logger
 
-	utils  stores.Utilities
 	stores stores.Stores
 }
 
 var _ stores.Manager = &BaseManager{}
 
-func New(manifests manifestsmanager.Manager, authManager auth.Manager, db database.Database, logger log.Logger) *BaseManager {
+func New(storesConnector stores.Stores, manifests manifestsmanager.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests: manifests,
 		mnfsts:    make(chan []manifestsmanager.Message),
 		logger:    logger,
 		db:        db,
-		utils:     utils.NewConnector(logger),
-		stores:    storesconnector.NewConnector(authManager, db, logger),
+		stores:    storesConnector,
 	}
 }
 
@@ -77,10 +71,6 @@ func (m *BaseManager) Error() error {
 
 func (m *BaseManager) Close() error {
 	return nil
-}
-
-func (m *BaseManager) Utilities() stores.Utilities {
-	return m.utils
 }
 
 func (m *BaseManager) Stores() stores.Stores {

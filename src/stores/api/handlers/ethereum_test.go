@@ -59,19 +59,16 @@ func TestEthHandler(t *testing.T) {
 func (s *ethHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	manager := mock.NewMockManager(s.ctrl)
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.ethStore = mock.NewMockEthStore(s.ctrl)
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: ethUserInfo,
 	})
 
-	manager.EXPECT().Stores().Return(s.stores).AnyTimes()
-	manager.EXPECT().Utilities().Return(nil)
 	s.stores.EXPECT().GetEthStore(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
-	NewStoresHandler(manager).Register(s.router)
+	NewStoresHandler(s.stores).Register(s.router)
 }
 
 func (s *ethHandlerTestSuite) TearDownTest() {

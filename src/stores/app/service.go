@@ -6,7 +6,9 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	storesapi "github.com/consensys/quorum-key-manager/src/stores/api"
+	"github.com/consensys/quorum-key-manager/src/stores/api"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
 	storesmanager "github.com/consensys/quorum-key-manager/src/stores/manager"
 )
@@ -40,14 +42,15 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	}
 
 	// Create and register the stores service
-	stores := storesmanager.New(*m, *authManager, db, logger)
-	err = a.RegisterService(stores)
+	storesConnector := stores.NewConnector(*authManager, db, logger)
+	utilsConnector := utils.NewConnector(logger)
+	api.New(storesConnector, utilsConnector).Register(a.Router())
+
+	service := storesmanager.New(storesConnector, *m, db, logger)
+	err = a.RegisterService(service)
 	if err != nil {
 		return err
 	}
-
-	// Create and register stores API
-	storesapi.New(stores).Register(a.Router())
 
 	return nil
 }

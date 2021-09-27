@@ -46,17 +46,3 @@ func (mr *MockManagerMockRecorder) Stores() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stores", reflect.TypeOf((*MockManager)(nil).Stores))
 }
-
-// Utilities mocks base method
-func (m *MockManager) Utilities() stores.Utilities {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Utilities")
-	ret0, _ := ret[0].(stores.Utilities)
-	return ret0
-}
-
-// Utilities indicates an expected call of Utilities
-func (mr *MockManagerMockRecorder) Utilities() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Utilities", reflect.TypeOf((*MockManager)(nil).Utilities))
-}
