@@ -52,7 +52,7 @@ func (s *AliasStore) GetAlias(ctx context.Context, registry aliasent.RegistryNam
 		RegistryName: aliasmodels.RegistryName(registry),
 	}
 	err := s.pgClient.SelectPK(ctx, &a)
-	if err != nil && !errors.IsNotFoundError(err) {
+	if err != nil {
 		msg := "failed to get alias"
 		logger.WithError(err).Error(msg)
 		return nil, err
