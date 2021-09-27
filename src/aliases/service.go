@@ -3,6 +3,7 @@ package aliases
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
+	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/connectors/aliases"
 	aliasmgr "github.com/consensys/quorum-key-manager/src/aliases/manager"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -24,7 +25,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 
 	db := aliaspg.NewDatabase(pgClient, logger)
 
-	aliasSrv := aliasmgr.NewAliasService(db, logger)
+	aliasSrv := aliasconn.NewAliasService(db, logger)
 	m := aliasmgr.New(aliasSrv)
 	err = a.RegisterService(m)
 	if err != nil {
