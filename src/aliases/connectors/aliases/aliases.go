@@ -9,22 +9,22 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
-var _ aliasent.AliasBackend = &AliasService{}
+var _ aliasent.AliasBackend = &Connector{}
 
-type AliasService struct {
+type Connector struct {
 	db aliasstore.Database
 
 	logger log.Logger
 }
 
-func NewAliasService(db aliasstore.Database, logger log.Logger) *AliasService {
-	return &AliasService{
+func NewConnector(db aliasstore.Database, logger log.Logger) *Connector {
+	return &Connector{
 		db:     db,
 		logger: logger,
 	}
 }
 
-func (m *AliasService) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *Connector) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := m.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -37,11 +37,11 @@ func (m *AliasService) CreateAlias(ctx context.Context, registry aliasent.Regist
 	return a, nil
 }
 
-func (m *AliasService) GetAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) (*aliasent.Alias, error) {
+func (m *Connector) GetAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) (*aliasent.Alias, error) {
 	return m.db.Alias().GetAlias(ctx, registry, aliasKey)
 }
 
-func (m *AliasService) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *Connector) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := m.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -55,7 +55,7 @@ func (m *AliasService) UpdateAlias(ctx context.Context, registry aliasent.Regist
 	return a, nil
 }
 
-func (m *AliasService) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
+func (m *Connector) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
 	logger := m.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
@@ -68,10 +68,10 @@ func (m *AliasService) DeleteAlias(ctx context.Context, registry aliasent.Regist
 	return nil
 }
 
-func (m *AliasService) ListAliases(ctx context.Context, registry aliasent.RegistryName) ([]aliasent.Alias, error) {
+func (m *Connector) ListAliases(ctx context.Context, registry aliasent.RegistryName) ([]aliasent.Alias, error) {
 	return m.db.Alias().ListAliases(ctx, registry)
 }
 
-func (m *AliasService) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
+func (m *Connector) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
 	return m.db.Alias().DeleteRegistry(ctx, registry)
 }

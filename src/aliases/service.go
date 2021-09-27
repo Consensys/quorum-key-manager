@@ -25,7 +25,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 
 	db := aliaspg.NewDatabase(pgClient, logger)
 
-	aliasSrv := aliasconn.NewAliasService(db, logger)
+	aliasSrv := aliasconn.NewConnector(db, logger)
 	m := aliasmgr.New(aliasSrv)
 	err = a.RegisterService(m)
 	if err != nil {
