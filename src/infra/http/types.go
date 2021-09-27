@@ -11,6 +11,6 @@ type PageResponse struct {
 }
 
 type PagePagingResponse struct {
-	Previous string `json:"previous,omitempty" example:"http://quorum-key-manager.com/stores/your-store/secrets?page=1"`
-	Next     string `json:"next,omitempty" example:"http://quorum-key-manager.com/stores/your-store/secrets?page=3"`
+	Previous string `json:"previous,omitempty" example:"https://quorum-key-manager.com/stores/your-store/secrets?page=1"`
+	Next     string `json:"next,omitempty" example:"https://quorum-key-manager.com/stores/your-store/secrets?page=3"`
 }

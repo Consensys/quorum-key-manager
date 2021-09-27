@@ -7,15 +7,18 @@ import (
 )
 
 type StoresAPI struct {
-	stores stores.Manager
+	stores stores.Stores
+	utils  stores.Utilities
 }
 
-func New(m stores.Manager) *StoresAPI {
+func New(storesConnector stores.Stores, utilsConnector stores.Utilities) *StoresAPI {
 	return &StoresAPI{
-		stores: m,
+		stores: storesConnector,
+		utils:  utilsConnector,
 	}
 }
 
 func (api *StoresAPI) Register(r *mux.Router) {
 	handlers.NewStoresHandler(api.stores).Register(r)
+	handlers.NewUtilsHandler(api.utils).Register(r)
 }

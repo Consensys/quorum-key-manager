@@ -57,6 +57,7 @@ services:
       HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
       AUTH_TLS_CA: ${AUTH_TLS_CA-}
       AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
+      GODEBUG: x509ignoreCN=0 # Temporary ENV var while we generate new certs that are compliant with the new golang behavior: https://geekflare.com/san-ssl-certificate/
     ports:
       - 8080:8080
       - 8081:8081

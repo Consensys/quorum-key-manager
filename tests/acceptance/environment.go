@@ -3,6 +3,7 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -15,7 +16,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	models2 "github.com/consensys/quorum-key-manager/src/stores/database/models"
-	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -125,17 +125,17 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	envHTTPPort := rand.IntnRange(20000, 28080)
-	hashicorpAddr := fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port)
+	hashicorpSpecs := &entities.HashicorpSpecs{
+		MountPoint: HashicorpKeyMountPoint,
+		Address:    fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
+		TokenPath:  tmpTokenFile,
+		Namespace:  "",
+	}
 	tmpYml, err := newTmpManifestYml(
 		&manifest.Manifest{
-			Kind: manifest.HashicorpKeys,
-			Name: HashicorpKeyStoreName,
-			Specs: &keys.HashicorpKeySpecs{
-				MountPoint: HashicorpKeyMountPoint,
-				Address:    hashicorpAddr,
-				TokenPath:  tmpTokenFile,
-				Namespace:  "",
-			},
+			Kind:  manifest.HashicorpKeys,
+			Name:  HashicorpKeyStoreName,
+			Specs: hashicorpSpecs,
 		},
 	)
 
@@ -165,7 +165,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	// Hashicorp client for direct integration tests
-	hashicorpCfg := hashicorpclient.NewConfig(hashicorpAddr, "")
+	hashicorpCfg := hashicorpclient.NewConfig(hashicorpSpecs)
 	hashicorpClient, err := hashicorpclient.NewClient(hashicorpCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize hashicorp vault client")
