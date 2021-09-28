@@ -26,7 +26,7 @@ hashicorp:
 	@sleep 2 # Sleep couple seconds to wait token to be created
 
 hashicorp-tls:
-    override VAULT_ADDR = https://hashicorp:8202
+	override VAULT_ADDR = https://hashicorp:8202
 	@docker-compose -f deps/hashicorp/docker-compose.yml up --build -d $(DEPS_HASHICORP_TLS)
 	@sleep 2 # Sleep couple seconds to wait token to be created
 
