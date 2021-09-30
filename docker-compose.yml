@@ -46,8 +46,7 @@ services:
     command: migrate up
     restart: "on-failure"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
 
   key-manager:
     image: consensys/quorum-key-manager:latest
