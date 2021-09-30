@@ -50,12 +50,12 @@ func (h *EthHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodDelete).Path("/{address}/destroy").HandlerFunc(h.destroy)
 }
 
-// @Summary Create Ethereum Account
+// @Summary Create an Ethereum Account
 // @Description Create a new ECDSA Secp256k1 key representing an Ethereum Account
 // @Tags Ethereum
 // @Accept  json
 // @Produce  json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param request body types.CreateEthAccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.EthAccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -98,12 +98,12 @@ func (h *EthHandler) create(rw http.ResponseWriter, request *http.Request) {
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEthAccResponse(ethAcc))
 }
 
-// @Summary Import Ethereum Account
+// @Summary Import an Ethereum Account
 // @Description Import an ECDSA Secp256k1 key representing an Ethereum account
 // @Accept  json
 // @Produce  json
 // @Tags Ethereum
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param request body types.ImportEthAccountRequest true "Create Ethereum Account request"
 // @Success 200 {object} types.EthAccountResponse "Created Ethereum Account"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -146,12 +146,12 @@ func (h *EthHandler) importAccount(rw http.ResponseWriter, request *http.Request
 	_ = json.NewEncoder(rw).Encode(formatters.FormatEthAccResponse(ethAcc))
 }
 
-// @Summary Update Ethereum Account
-// @Description Update Ethereum Account metadata
+// @Summary Update an Ethereum Account
+// @Description Update an Ethereum Account metadata
 // @Accept  json
 // @Produce  json
 // @Tags Ethereum
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Param request body types.UpdateEthAccountRequest true "Update Ethereum Account metadata request"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
@@ -193,7 +193,7 @@ func (h *EthHandler) update(rw http.ResponseWriter, request *http.Request) {
 // @Tags Ethereum
 // @Accept json
 // @Produce plain
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Param request body types.SignMessageRequest true "Sign message request"
 // @Success 200 {string} string "Signed payload signature"
@@ -231,11 +231,11 @@ func (h *EthHandler) signMessage(rw http.ResponseWriter, request *http.Request) 
 }
 
 // @Summary Sign Typed Data (EIP-712)
-// @Description Sign Typed Data, following EIP-712, using selected Ethereum Account
+// @Description Sign Typed Data, following EIP-712, using identified Ethereum Account
 // @Tags Ethereum
 // @Accept json
 // @Produce plain
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Param request body types.SignTypedDataRequest true "Sign typed data request"
 // @Success 200 {string} string "Signed typed data signature"
@@ -274,11 +274,11 @@ func (h *EthHandler) signTypedData(rw http.ResponseWriter, request *http.Request
 }
 
 // @Summary Sign Ethereum transaction
-// @Description Sign an Ethereum transaction using the selected Ethereum Account
+// @Description Sign an Ethereum transaction using the identified Ethereum Account
 // @Tags Ethereum
 // @Accept json
 // @Produce plain
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Param request body types.SignETHTransactionRequest true "Sign Ethereum transaction request"
 // @Success 200 {string} string "Signed raw transaction"
@@ -322,11 +322,11 @@ func (h *EthHandler) signTransaction(rw http.ResponseWriter, request *http.Reque
 }
 
 // @Summary Sign EEA transaction
-// @Description Sign an EEA transaction using the selected Ethereum Account
+// @Description Sign an EEA transaction using the identified Ethereum Account
 // @Tags Ethereum
 // @Accept json
 // @Produce plain
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Param request body types.SignEEATransactionRequest true "Sign EEA transaction request"
 // @Success 200 {string} string "Signed raw EEA transaction"
@@ -365,11 +365,11 @@ func (h *EthHandler) signEEATransaction(rw http.ResponseWriter, request *http.Re
 }
 
 // @Summary Sign Quorum private transaction
-// @Description Sign a Quorum private transaction using the selected Ethereum Account
+// @Description Sign a Quorum private transaction using the identified Ethereum Account
 // @Tags Ethereum
 // @Accept json
 // @Produce plain
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Param request body types.SignQuorumPrivateTransactionRequest true "Sign Quorum transaction request"
 // @Success 200 {string} string "Signed raw Quorum private transaction"
@@ -406,12 +406,12 @@ func (h *EthHandler) signPrivateTransaction(rw http.ResponseWriter, request *htt
 	_, _ = rw.Write([]byte(hexutil.Encode(signature)))
 }
 
-// @Summary Get Ethereum Account
+// @Summary Get an Ethereum Account
 // @Description Fetch an Ethereum Account data by its address
 // @Tags Ethereum
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Param deleted query bool false "filter by only deleted accounts"
 // @Failure 404 {object} ErrorResponse "Store/Account not found"
@@ -447,11 +447,11 @@ func (h *EthHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 }
 
 // @Summary List Ethereum accounts
-// @Description List Ethereum account's addresses allocated in the selected Store
+// @Description List Ethereum accounts addresses allocated in the targeted Store
 // @Tags Ethereum
 // @Accept json
 // @Produce json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param deleted query bool false "filter by only deleted accounts"
 // @Param chain_uuid query string false "Chain UUID"
 // @Param limit query int false "page size"
@@ -497,7 +497,7 @@ func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 // @Description Soft delete an Ethereum Account, can be recovered
 // @Tags Ethereum
 // @Accept json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Success 204 "Deleted successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -528,7 +528,7 @@ func (h *EthHandler) delete(rw http.ResponseWriter, request *http.Request) {
 // @Description Hard delete an Ethereum Account, cannot be recovered
 // @Tags Ethereum
 // @Accept json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Success 204 "Destroyed successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -559,7 +559,7 @@ func (h *EthHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 // @Description Recover a soft-deleted Ethereum Account
 // @Tags Ethereum
 // @Accept json
-// @Param storeName path string true "Store Identifier"
+// @Param storeName path string true "Store ID"
 // @Param address path string true "Ethereum address"
 // @Success 204 "Restored successfully"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
