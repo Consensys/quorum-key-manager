@@ -25,10 +25,14 @@ func NewUtilsHandler(utils stores.Utilities) *UtilsHandler {
 }
 
 func (h *UtilsHandler) Register(r *mux.Router) {
-	r.Methods(http.MethodPost).Path("/keys/verify-signature").HandlerFunc(h.verifySignature)
-	r.Methods(http.MethodPost).Path("/ethereum/ec-recover").HandlerFunc(h.ecRecover)
-	r.Methods(http.MethodPost).Path("/ethereum/verify-message").HandlerFunc(h.verifyMessage)
-	r.Methods(http.MethodPost).Path("/ethereum/verify-typed-data").HandlerFunc(h.verifyTypedData)
+	// Register utilities handler on /utilities
+	utilsSubrouter := r.PathPrefix("/utilities").Subrouter()
+
+	utilsSubrouter.Methods(http.MethodPost).Path("/keys/verify-signature").HandlerFunc(h.verifySignature)
+
+	utilsSubrouter.Methods(http.MethodPost).Path("/ethereum/ec-recover").HandlerFunc(h.ecRecover)
+	utilsSubrouter.Methods(http.MethodPost).Path("/ethereum/verify-message").HandlerFunc(h.verifyMessage)
+	utilsSubrouter.Methods(http.MethodPost).Path("/ethereum/verify-typed-data").HandlerFunc(h.verifyTypedData)
 }
 
 // @Summary Verify key signature

@@ -5,5 +5,4 @@ package stores
 // Manager allows managing multiple stores
 type Manager interface {
 	Stores() Stores
-	Utilities() Utilities
 }

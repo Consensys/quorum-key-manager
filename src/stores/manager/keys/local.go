@@ -4,6 +4,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
@@ -23,7 +24,7 @@ func NewLocalKeyStore(specs *LocalKeySpecs, db database.Secrets, logger log.Logg
 
 	switch specs.SecretStore {
 	case manifest.HashicorpSecrets:
-		spec := &msecrets.HashicorpSecretSpecs{}
+		spec := &entities.HashicorpSpecs{}
 		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp secret store specs"
 			logger.WithError(err).Error(errMessage)

@@ -56,19 +56,16 @@ func TestKeysHandler(t *testing.T) {
 func (s *keysHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	manager := mock.NewMockManager(s.ctrl)
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.keyStore = mock.NewMockKeyStore(s.ctrl)
 
-	manager.EXPECT().Stores().Return(s.stores).AnyTimes()
-	manager.EXPECT().Utilities().Return(nil)
 	s.stores.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
 		UserInfo: keyUserInfo,
 	})
-	NewStoresHandler(manager).Register(s.router)
+	NewStoresHandler(s.stores).Register(s.router)
 }
 
 func (s *keysHandlerTestSuite) TearDownTest() {
