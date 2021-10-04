@@ -100,7 +100,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	}
 	err = checkAliasValue(aliasReq.Value)
 	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
@@ -193,7 +193,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	}
 	err = checkAliasValue(aliasReq.Value)
 	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
