@@ -17,7 +17,7 @@ func FormatEntityAlias(ent aliasent.Alias) Alias {
 	}
 }
 
-func FormatAlias(registry string, key string, value []string) aliasent.Alias {
+func FormatAlias(registry, key string, value []string) aliasent.Alias {
 	return aliasent.Alias{
 		RegistryName: registry,
 		Key:          key,

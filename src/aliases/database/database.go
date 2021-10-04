@@ -1,4 +1,4 @@
-package aliasstore
+package aliasdb
 
 import (
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"

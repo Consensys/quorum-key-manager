@@ -4,17 +4,18 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
+
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
+	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
 	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"

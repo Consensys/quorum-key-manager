@@ -14,7 +14,7 @@ const (
 )
 
 // CreateAlias creates an alias in the registry.
-func (c *HTTPClient) CreateAlias(ctx context.Context, registry string, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+func (c *HTTPClient) CreateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
 	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := postRequest(ctx, c.client, url, req)
 	if err != nil {
@@ -31,7 +31,7 @@ func (c *HTTPClient) CreateAlias(ctx context.Context, registry string, aliasKey 
 }
 
 // GetAlias gets an alias from the registry.
-func (c *HTTPClient) GetAlias(ctx context.Context, registry string, aliasKey string) (*types.AliasResponse, error) {
+func (c *HTTPClient) GetAlias(ctx context.Context, registry, aliasKey string) (*types.AliasResponse, error) {
 	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := getRequest(ctx, c.client, url)
 	if err != nil {
@@ -48,7 +48,7 @@ func (c *HTTPClient) GetAlias(ctx context.Context, registry string, aliasKey str
 }
 
 // UpdateAlias updates an alias in the registry.
-func (c *HTTPClient) UpdateAlias(ctx context.Context, registry string, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+func (c *HTTPClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
 	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := putRequest(ctx, c.client, url, req)
 	if err != nil {
@@ -65,7 +65,7 @@ func (c *HTTPClient) UpdateAlias(ctx context.Context, registry string, aliasKey 
 }
 
 // DeleteAlias deletes an alias from the registry.
-func (c *HTTPClient) DeleteAlias(ctx context.Context, registry string, aliasKey string) error {
+func (c *HTTPClient) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
 	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := deleteRequest(ctx, c.client, url)
 	if err != nil {

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/database/models"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/store/models"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
@@ -42,7 +42,7 @@ func (s *AliasStore) CreateAlias(ctx context.Context, registry string, alias ali
 	return &alias, nil
 }
 
-func (s *AliasStore) GetAlias(ctx context.Context, registry string, aliasKey string) (*aliasent.Alias, error) {
+func (s *AliasStore) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
@@ -77,7 +77,7 @@ func (s *AliasStore) UpdateAlias(ctx context.Context, registry string, alias ali
 	return a.ToEntity(), nil
 }
 
-func (s *AliasStore) DeleteAlias(ctx context.Context, registry string, aliasKey string) error {
+func (s *AliasStore) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,

@@ -3,20 +3,20 @@ package aliases
 import (
 	"context"
 
+	aliasdb "github.com/consensys/quorum-key-manager/src/aliases/database"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
 var _ aliasent.AliasBackend = &Connector{}
 
 type Connector struct {
-	db aliasstore.Database
+	db aliasdb.Database
 
 	logger log.Logger
 }
 
-func NewConnector(db aliasstore.Database, logger log.Logger) *Connector {
+func NewConnector(db aliasdb.Database, logger log.Logger) *Connector {
 	return &Connector{
 		db:     db,
 		logger: logger,
@@ -36,7 +36,7 @@ func (m *Connector) CreateAlias(ctx context.Context, registry string, alias alia
 	return a, nil
 }
 
-func (m *Connector) GetAlias(ctx context.Context, registry string, aliasKey string) (*aliasent.Alias, error) {
+func (m *Connector) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
 	return m.db.Alias().GetAlias(ctx, registry, aliasKey)
 }
 
@@ -53,7 +53,7 @@ func (m *Connector) UpdateAlias(ctx context.Context, registry string, alias alia
 	return a, nil
 }
 
-func (m *Connector) DeleteAlias(ctx context.Context, registry string, aliasKey string) error {
+func (m *Connector) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
 	logger := m.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,

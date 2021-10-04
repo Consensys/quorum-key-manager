@@ -4,8 +4,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
 	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/connectors/aliases"
+	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
 	aliasmgr "github.com/consensys/quorum-key-manager/src/aliases/manager"
-	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 )
