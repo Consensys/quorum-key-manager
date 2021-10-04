@@ -16,7 +16,7 @@ func New() (*Parser, error) {
 	const aliasParseFormat = `{{(?m)(?P<registry>[a-zA-Z0-9-_+]+):(?P<alias>[a-zA-Z0-9-_+]+)}}$`
 	regex, err := regexp.Compile(aliasParseFormat)
 	if err != nil {
-		return nil, errors.InvalidFormatError("bad regexp format '%v': %v", aliasParseFormat, err)
+		return nil, errors.ConfigError("bad regexp format '%v': %v", aliasParseFormat, err)
 	}
 	return &Parser{
 		regex: regex,
