@@ -2,7 +2,6 @@ package aliases
 
 import (
 	"context"
-	"fmt"
 
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasstore "github.com/consensys/quorum-key-manager/src/aliases/store"
@@ -50,7 +49,6 @@ func (m *Connector) UpdateAlias(ctx context.Context, registry aliasent.RegistryN
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("alias updated successfully")
 	logger.Info("alias updated successfully")
 	return a, nil
 }
