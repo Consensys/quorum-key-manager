@@ -3,25 +3,25 @@ package types
 import aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 
 type Alias struct {
-	Key   AliasKey   `json:"key"`
-	Value AliasValue `json:"value"`
+	Key   string   `json:"key"`
+	Value []string `json:"value"`
 
-	registryName RegistryName
+	registryName string
 }
 
 func FormatEntityAlias(ent aliasent.Alias) Alias {
 	return Alias{
-		registryName: RegistryName(ent.RegistryName),
-		Key:          AliasKey(ent.Key),
-		Value:        AliasValue(ent.Value),
+		registryName: ent.RegistryName,
+		Key:          ent.Key,
+		Value:        ent.Value,
 	}
 }
 
-func FormatAlias(registry RegistryName, key string, value AliasValue) aliasent.Alias {
+func FormatAlias(registry string, key string, value []string) aliasent.Alias {
 	return aliasent.Alias{
-		RegistryName: aliasent.RegistryName(registry),
-		Key:          aliasent.AliasKey(key),
-		Value:        aliasent.AliasValue(value),
+		RegistryName: registry,
+		Key:          key,
+		Value:        value,
 	}
 }
 
@@ -34,16 +34,10 @@ func FormatEntityAliases(ents []aliasent.Alias) []Alias {
 	return als
 }
 
-type AliasValue []string
-
-type AliasKey string
-
-type RegistryName string
-
 type AliasRequest struct {
-	Value AliasValue `json:"value"`
+	Value []string `json:"value"`
 }
 
 type AliasResponse struct {
-	Value AliasValue `json:"value"`
+	Value []string `json:"value"`
 }

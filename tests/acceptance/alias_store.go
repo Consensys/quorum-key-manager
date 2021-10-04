@@ -23,8 +23,8 @@ func (s *aliasStoreTestSuite) fakeAlias() aliasent.Alias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
 	return aliasent.Alias{
-		RegistryName: aliasent.RegistryName("JPM-" + randID),
-		Key:          aliasent.AliasKey("Goldman Sachs-" + randID),
+		RegistryName: "JPM-" + randID,
+		Key:          "Goldman Sachs-" + randID,
 		Value:        []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
 	}
 }

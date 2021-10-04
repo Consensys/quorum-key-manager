@@ -11,25 +11,25 @@ import (
 type Alias struct {
 	tableName struct{} `pg:"aliases"` // nolint:unused,structcheck // reason
 
-	Key          AliasKey     `pg:",pk"`
-	RegistryName RegistryName `pg:",pk"`
+	Key          string `pg:",pk"`
+	RegistryName string `pg:",pk"`
 	// Value is a JSON array containing Tessera/Orion keys base64 encoded in strings.
-	Value AliasValue
+	Value []string
 }
 
 func AliasFromEntity(ent aliasent.Alias) (alias Alias) {
 	return Alias{
-		Key:          AliasKey(ent.Key),
-		RegistryName: RegistryName(ent.RegistryName),
-		Value:        AliasValue(ent.Value),
+		Key:          ent.Key,
+		RegistryName: ent.RegistryName,
+		Value:        ent.Value,
 	}
 }
 
 func (a *Alias) ToEntity() *aliasent.Alias {
 	return &aliasent.Alias{
-		Key:          aliasent.AliasKey(a.Key),
-		RegistryName: aliasent.RegistryName(a.RegistryName),
-		Value:        aliasent.AliasValue(a.Value),
+		Key:          a.Key,
+		RegistryName: a.RegistryName,
+		Value:        a.Value,
 	}
 }
 
@@ -41,9 +41,3 @@ func AliasesToEntity(aliases []Alias) []aliasent.Alias {
 	}
 	return ents
 }
-
-type AliasKey string
-
-type AliasValue []string
-
-type RegistryName string

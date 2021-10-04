@@ -48,18 +48,18 @@ func TestAlias(t *testing.T) {
 }
 
 type testAlias struct {
-	reg    types.RegistryName
-	key    types.AliasKey
-	val    types.AliasValue
-	newVal types.AliasValue
+	reg    string
+	key    string
+	val    []string
+	newVal []string
 }
 
 func (s *aliasTestSuite) fakeAlias() testAlias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
 	return testAlias{
-		reg:    types.RegistryName("JPM-" + randID),
-		key:    types.AliasKey("GoldmanSachs-" + randID),
+		reg:    "JPM-" + randID,
+		key:    "GoldmanSachs-" + randID,
 		val:    []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
 		newVal: []string{"ZOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
 	}

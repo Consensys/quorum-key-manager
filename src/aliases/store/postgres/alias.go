@@ -25,13 +25,13 @@ func NewAlias(pgClient postgres.Client, logger log.Logger) *AliasStore {
 	}
 }
 
-func (s *AliasStore) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (s *AliasStore) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
 	a := aliasmodels.AliasFromEntity(alias)
-	a.RegistryName = aliasmodels.RegistryName(registry)
+	a.RegistryName = registry
 
 	err := s.pgClient.Insert(ctx, &a)
 	if err != nil {
@@ -42,14 +42,14 @@ func (s *AliasStore) CreateAlias(ctx context.Context, registry aliasent.Registry
 	return &alias, nil
 }
 
-func (s *AliasStore) GetAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) (*aliasent.Alias, error) {
+func (s *AliasStore) GetAlias(ctx context.Context, registry string, aliasKey string) (*aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
 	)
 	a := aliasmodels.Alias{
-		Key:          aliasmodels.AliasKey(aliasKey),
-		RegistryName: aliasmodels.RegistryName(registry),
+		Key:          aliasKey,
+		RegistryName: registry,
 	}
 	err := s.pgClient.SelectPK(ctx, &a)
 	if err != nil {
@@ -60,13 +60,13 @@ func (s *AliasStore) GetAlias(ctx context.Context, registry aliasent.RegistryNam
 	return a.ToEntity(), nil
 }
 
-func (s *AliasStore) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (s *AliasStore) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
 	a := aliasmodels.AliasFromEntity(alias)
-	a.RegistryName = aliasmodels.RegistryName(registry)
+	a.RegistryName = registry
 
 	err := s.pgClient.UpdatePK(ctx, &a)
 	if err != nil {
@@ -77,14 +77,14 @@ func (s *AliasStore) UpdateAlias(ctx context.Context, registry aliasent.Registry
 	return a.ToEntity(), nil
 }
 
-func (s *AliasStore) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
+func (s *AliasStore) DeleteAlias(ctx context.Context, registry string, aliasKey string) error {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
 	)
 	a := aliasmodels.Alias{
-		Key:          aliasmodels.AliasKey(aliasKey),
-		RegistryName: aliasmodels.RegistryName(registry),
+		Key:          aliasKey,
+		RegistryName: registry,
 	}
 
 	err := s.pgClient.DeletePK(ctx, &a)
@@ -96,11 +96,11 @@ func (s *AliasStore) DeleteAlias(ctx context.Context, registry aliasent.Registry
 	return nil
 }
 
-func (s *AliasStore) ListAliases(ctx context.Context, registry aliasent.RegistryName) ([]aliasent.Alias, error) {
+func (s *AliasStore) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 	)
-	reg := aliasmodels.RegistryName(registry)
+	reg := registry
 
 	var als []aliasmodels.Alias
 	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", reg)
@@ -113,6 +113,6 @@ func (s *AliasStore) ListAliases(ctx context.Context, registry aliasent.Registry
 	return aliasmodels.AliasesToEntity(als), nil
 }
 
-func (s *AliasStore) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
+func (s *AliasStore) DeleteRegistry(ctx context.Context, registry string) error {
 	return errors.NotImplementedError("DeleteRegistry not implemented")
 }

@@ -59,7 +59,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.alias.DeleteRegistry(r.Context(), aliasent.RegistryName(regName))
+	err = h.alias.DeleteRegistry(r.Context(), regName)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -104,7 +104,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	eAlias := types.FormatAlias(types.RegistryName(regName), key, aliasReq.Value)
+	eAlias := types.FormatAlias(regName, key, aliasReq.Value)
 	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -112,7 +112,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := types.AliasResponse{
-		Value: types.AliasValue(alias.Value),
+		Value: alias.Value,
 	}
 	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
@@ -144,14 +144,14 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias, err := h.alias.GetAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(key))
+	alias, err := h.alias.GetAlias(r.Context(), regName, key)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: types.AliasValue(alias.Value),
+		Value: alias.Value,
 	})
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -198,19 +198,19 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	alias := &aliasent.Alias{
-		RegistryName: aliasent.RegistryName(regName),
-		Key:          aliasent.AliasKey(key),
-		Value:        aliasent.AliasValue(aliasReq.Value),
+		RegistryName: regName,
+		Key:          key,
+		Value:        aliasReq.Value,
 	}
 
-	alias, err = h.alias.UpdateAlias(r.Context(), aliasent.RegistryName(regName), *alias)
+	alias, err = h.alias.UpdateAlias(r.Context(), regName, *alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: types.AliasValue(alias.Value),
+		Value: alias.Value,
 	})
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -241,7 +241,7 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.alias.DeleteAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(key))
+	err = h.alias.DeleteAlias(r.Context(), regName, key)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -272,7 +272,7 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	als, err := h.alias.ListAliases(r.Context(), aliasent.RegistryName(regName))
+	als, err := h.alias.ListAliases(r.Context(), regName)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -307,7 +307,7 @@ func validatePathVars(pathVars ...string) error {
 	return nil
 }
 
-func checkAliasValue(value types.AliasValue) error {
+func checkAliasValue(value []string) error {
 	for _, v := range value {
 		// we just want the decoding to happen without error
 		_, err := base64.StdEncoding.DecodeString(v)

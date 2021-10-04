@@ -213,13 +213,13 @@ func (s *jsonRPCTestSuite) TestAliasEthSendTransaction() {
 	randInt := randGen.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
 	alias := struct {
-		reg aliastypes.RegistryName
-		key aliastypes.AliasKey
-		val aliastypes.AliasValue
+		reg string
+		key string
+		val []string
 	}{
-		reg: aliastypes.RegistryName("JPM-" + randID),
-		key: aliastypes.AliasKey("GoldmanSachs-" + randID),
-		val: aliastypes.AliasValue([]string{b64Addr}),
+		reg: "JPM-" + randID,
+		key: "GoldmanSachs-" + randID,
+		val: []string{b64Addr},
 	}
 
 	_, err := s.keyManagerClient.CreateAlias(s.ctx, alias.reg, alias.key, aliastypes.AliasRequest{Value: alias.val})

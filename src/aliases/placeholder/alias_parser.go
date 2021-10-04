@@ -9,6 +9,6 @@ import (
 //go:generate mockgen -source=alias_parser.go -destination=mock/alias_parser.go -package=mock
 
 type AliasParser interface {
-	ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.AliasKey, isAlias bool, err error)
+	ParseAlias(alias string) (regName string, aliasKey string, isAlias bool, err error)
 	ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error)
 }

@@ -6,8 +6,8 @@ import (
 
 func NewEntAlias(registry, key string, value []string) aliasent.Alias {
 	return aliasent.Alias{
-		RegistryName: aliasent.RegistryName(registry),
-		Key:          aliasent.AliasKey(key),
-		Value:        aliasent.AliasValue(value),
+		RegistryName: registry,
+		Key:          key,
+		Value:        value,
 	}
 }

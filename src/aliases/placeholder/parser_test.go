@@ -17,8 +17,8 @@ func TestParseAlias(t *testing.T) {
 	cases := map[string]struct {
 		input string
 
-		reg          aliasent.RegistryName
-		key          aliasent.AliasKey
+		reg          string
+		key          string
 		parsed       bool
 		errCompareFn func(error) bool
 	}{
@@ -49,9 +49,9 @@ func TestParseAlias(t *testing.T) {
 
 func TestReplaceAliases(t *testing.T) {
 	type backendCall struct {
-		reg   aliasent.RegistryName
-		key   aliasent.AliasKey
-		value aliasent.AliasValue
+		reg   string
+		key   string
+		value []string
 		err   error
 	}
 

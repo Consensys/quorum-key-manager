@@ -23,7 +23,7 @@ func NewConnector(db aliasstore.Database, logger log.Logger) *Connector {
 	}
 }
 
-func (m *Connector) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *Connector) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := m.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -36,11 +36,11 @@ func (m *Connector) CreateAlias(ctx context.Context, registry aliasent.RegistryN
 	return a, nil
 }
 
-func (m *Connector) GetAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) (*aliasent.Alias, error) {
+func (m *Connector) GetAlias(ctx context.Context, registry string, aliasKey string) (*aliasent.Alias, error) {
 	return m.db.Alias().GetAlias(ctx, registry, aliasKey)
 }
 
-func (m *Connector) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *Connector) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := m.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -53,7 +53,7 @@ func (m *Connector) UpdateAlias(ctx context.Context, registry aliasent.RegistryN
 	return a, nil
 }
 
-func (m *Connector) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
+func (m *Connector) DeleteAlias(ctx context.Context, registry string, aliasKey string) error {
 	logger := m.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
@@ -66,11 +66,11 @@ func (m *Connector) DeleteAlias(ctx context.Context, registry aliasent.RegistryN
 	return nil
 }
 
-func (m *Connector) ListAliases(ctx context.Context, registry aliasent.RegistryName) ([]aliasent.Alias, error) {
+func (m *Connector) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
 	return m.db.Alias().ListAliases(ctx, registry)
 }
 
-func (m *Connector) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
+func (m *Connector) DeleteRegistry(ctx context.Context, registry string) error {
 	logger := m.logger.With(
 		"registry_name", registry,
 	)

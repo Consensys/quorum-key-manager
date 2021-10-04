@@ -23,14 +23,14 @@ func New() (*Parser, error) {
 	}, nil
 }
 
-func (p *Parser) ParseAlias(alias string) (regName aliasent.RegistryName, aliasKey aliasent.AliasKey, isAlias bool, err error) {
+func (p *Parser) ParseAlias(alias string) (regName string, aliasKey string, isAlias bool, err error) {
 	submatches := p.regex.FindStringSubmatch(alias)
 	if len(submatches) < 3 {
 		return "", "", false, nil
 	}
 
-	regName = aliasent.RegistryName(submatches[1])
-	aliasKey = aliasent.AliasKey(submatches[2])
+	regName = submatches[1]
+	aliasKey = submatches[2]
 
 	return regName, aliasKey, true, nil
 }

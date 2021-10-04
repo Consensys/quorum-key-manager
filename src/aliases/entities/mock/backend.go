@@ -36,7 +36,7 @@ func (m *MockAliasBackend) EXPECT() *MockAliasBackendMockRecorder {
 }
 
 // CreateAlias mocks base method.
-func (m *MockAliasBackend) CreateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockAliasBackend) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, alias)
 	ret0, _ := ret[0].(*aliasent.Alias)
@@ -51,7 +51,7 @@ func (mr *MockAliasBackendMockRecorder) CreateAlias(ctx, registry, alias interfa
 }
 
 // DeleteAlias mocks base method.
-func (m *MockAliasBackend) DeleteAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) error {
+func (m *MockAliasBackend) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAlias", ctx, registry, aliasKey)
 	ret0, _ := ret[0].(error)
@@ -65,7 +65,7 @@ func (mr *MockAliasBackendMockRecorder) DeleteAlias(ctx, registry, aliasKey inte
 }
 
 // DeleteRegistry mocks base method.
-func (m *MockAliasBackend) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
+func (m *MockAliasBackend) DeleteRegistry(ctx context.Context, registry string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
 	ret0, _ := ret[0].(error)
@@ -79,7 +79,7 @@ func (mr *MockAliasBackendMockRecorder) DeleteRegistry(ctx, registry interface{}
 }
 
 // GetAlias mocks base method.
-func (m *MockAliasBackend) GetAlias(ctx context.Context, registry aliasent.RegistryName, aliasKey aliasent.AliasKey) (*aliasent.Alias, error) {
+func (m *MockAliasBackend) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAlias", ctx, registry, aliasKey)
 	ret0, _ := ret[0].(*aliasent.Alias)
@@ -94,7 +94,7 @@ func (mr *MockAliasBackendMockRecorder) GetAlias(ctx, registry, aliasKey interfa
 }
 
 // ListAliases mocks base method.
-func (m *MockAliasBackend) ListAliases(ctx context.Context, registry aliasent.RegistryName) ([]aliasent.Alias, error) {
+func (m *MockAliasBackend) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
 	ret0, _ := ret[0].([]aliasent.Alias)
@@ -109,7 +109,7 @@ func (mr *MockAliasBackendMockRecorder) ListAliases(ctx, registry interface{}) *
 }
 
 // UpdateAlias mocks base method.
-func (m *MockAliasBackend) UpdateAlias(ctx context.Context, registry aliasent.RegistryName, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockAliasBackend) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, alias)
 	ret0, _ := ret[0].(*aliasent.Alias)
