@@ -1,0 +1,16 @@
+{
+  "CN": "Tanuki Root CA",
+  "key": {
+    "algo": "rsa",
+    "size": 4096
+  },
+  "names": [
+  {
+    "C": "FR",
+    "L": "Paris",
+    "ST": "Paris",
+    "O": "Consensys",
+    "OU": "Tanuki team Root CA"
+  }
+ ]
+}
