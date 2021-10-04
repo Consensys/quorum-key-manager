@@ -71,5 +71,13 @@ func (m *Connector) ListAliases(ctx context.Context, registry aliasent.RegistryN
 }
 
 func (m *Connector) DeleteRegistry(ctx context.Context, registry aliasent.RegistryName) error {
-	return m.db.Alias().DeleteRegistry(ctx, registry)
+	logger := m.logger.With(
+		"registry_name", registry,
+	)
+	err := m.db.Alias().DeleteRegistry(ctx, registry)
+	if err != nil {
+		return err
+	}
+	logger.Info("registry deleted successfully")
+	return nil
 }
