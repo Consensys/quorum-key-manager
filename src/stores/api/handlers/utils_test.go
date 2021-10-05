@@ -35,14 +35,10 @@ func TestUtilsHandler(t *testing.T) {
 func (s *utilsHandlerTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
-	manager := mock.NewMockManager(s.ctrl)
 	s.utilities = mock.NewMockUtils(s.ctrl)
 
-	manager.EXPECT().Utilities().Return(s.utilities).AnyTimes()
-	manager.EXPECT().Stores().Return(nil).AnyTimes()
-
 	s.router = mux.NewRouter()
-	NewStoresHandler(manager).Register(s.router)
+	NewUtilsHandler(s.utilities).Register(s.router)
 }
 
 func (s *utilsHandlerTestSuite) TearDownTest() {

@@ -14,24 +14,18 @@ type StoresHandler struct {
 	secrets *SecretsHandler
 	keys    *KeysHandler
 	eth     *EthHandler
-	utils   *UtilsHandler
 }
 
 // NewStoresHandler creates a http.Handler to be served on /stores
-func NewStoresHandler(s stores.Manager) *StoresHandler {
+func NewStoresHandler(s stores.Stores) *StoresHandler {
 	return &StoresHandler{
-		secrets: NewSecretsHandler(s.Stores()),
-		keys:    NewKeysHandler(s.Stores()),
-		eth:     NewEthHandler(s.Stores()),
-		utils:   NewUtilsHandler(s.Utilities()),
+		secrets: NewSecretsHandler(s),
+		keys:    NewKeysHandler(s),
+		eth:     NewEthHandler(s),
 	}
 }
 
 func (h *StoresHandler) Register(router *mux.Router) {
-	// Register utilities handler on /utilities
-	utilsSubrouter := router.PathPrefix("/utilities").Subrouter()
-	h.utils.Register(utilsSubrouter)
-
 	// Create subrouter for /stores
 	storesSubrouter := router.PathPrefix("/stores").Subrouter()
 

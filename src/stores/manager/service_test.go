@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	stores2 "github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
+
 	mock2 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -96,7 +98,8 @@ func TestManagerService(t *testing.T) {
 	err = manifests.Start(context.TODO())
 	require.NoError(t, err, "Start manifests manager must not error")
 
-	mngr := New(manifests, mockAuthMngr, mockDB, mockLogger)
+	storesConnector := stores2.NewConnector(mockAuthMngr, mockDB, mockLogger)
+	mngr := New(storesConnector, manifests, mockDB, mockLogger)
 	err = mngr.Start(context.TODO())
 	require.NoError(t, err, "Start manager manager must not error")
 
