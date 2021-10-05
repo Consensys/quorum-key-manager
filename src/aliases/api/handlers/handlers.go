@@ -2,10 +2,7 @@ package handlers
 
 import (
 	"encoding/base64"
-	"fmt"
 	"net/http"
-	"regexp"
-	"sync"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
@@ -55,13 +52,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 	// should always exist in this subrouter
 	regName := vars["registry_name"]
 
-	err := validatePathVars(regName)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	err = h.alias.DeleteRegistry(r.Context(), regName)
+	err := h.alias.DeleteRegistry(r.Context(), regName)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -88,14 +79,8 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	var aliasReq types.AliasRequest
-	err = jsonutils.UnmarshalBody(r.Body, &aliasReq)
+	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
@@ -140,12 +125,6 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	alias, err := h.alias.GetAlias(r.Context(), regName, key)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -181,14 +160,8 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	var aliasReq types.AliasRequest
-	err = jsonutils.UnmarshalBody(r.Body, &aliasReq)
+	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
@@ -237,13 +210,7 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	err = h.alias.DeleteAlias(r.Context(), regName, key)
+	err := h.alias.DeleteAlias(r.Context(), regName, key)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -268,12 +235,6 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 	// should always exist in this subrouter
 	regName := vars["registry_name"]
 
-	err := validatePathVars(regName)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	als, err := h.alias.ListAliases(r.Context(), regName)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -285,28 +246,6 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
-}
-
-var pathVarsRegexCompileOnce sync.Once
-var pathVarsRegex *regexp.Regexp
-
-const pathVarsFormat = "^[a-zA-Z0-9-_+]+$"
-
-func validatePathVars(pathVars ...string) error {
-	var err error
-	pathVarsRegexCompileOnce.Do(func() {
-		pathVarsRegex, err = regexp.Compile(pathVarsFormat)
-	})
-	if err != nil {
-		return err
-	}
-
-	for _, v := range pathVars {
-		if !pathVarsRegex.MatchString(v) {
-			return fmt.Errorf("`%v` in path is not in the correct format: %v", v, pathVarsFormat)
-		}
-	}
-	return nil
 }
 
 func checkAliasValue(value []string) error {

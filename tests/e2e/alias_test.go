@@ -120,7 +120,23 @@ func (s *aliasTestSuite) TestCreateAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
+	s.Run("should not fail if registry use chars that need to be URL encoded", func() {
+		fakeAlias := fakeAlias
+		fakeAlias.reg = "bad registry"
+		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
+		s.Require().Error(err)
+
+		s.checkErr(err, http.StatusBadRequest)
+	})
 	s.Run("should fail with bad request if key has a bad format", func() {
+		fakeAlias := fakeAlias
+		fakeAlias.key = "bad@key"
+		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
+		s.Require().Error(err)
+
+		s.checkErr(err, http.StatusBadRequest)
+	})
+	s.Run("should not fail if key has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "bad@key"
 		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
