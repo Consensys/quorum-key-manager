@@ -5,7 +5,7 @@ import (
 	"regexp"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 )
 
 // make sure Parser implements AliasParser
@@ -45,7 +45,7 @@ func (p *Parser) ParseAlias(alias string) (regName, aliasKey string, isAlias boo
 
 // ReplaceAliases replace a slice of potential aliases with a slice having all the aliases replaced by their value.
 // It will fail if no aliases can be found.
-func (p *Parser) ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error) {
+func (p *Parser) ReplaceAliases(ctx context.Context, aliasBackend aliases.AliasBackend, addrs []string) ([]string, error) {
 	var values []string
 	for _, addr := range addrs {
 		regName, aliasKey, isAlias := p.ParseAlias(addr)

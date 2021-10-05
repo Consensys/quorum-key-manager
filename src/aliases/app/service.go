@@ -1,4 +1,4 @@
-package aliases
+package aliasapp
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"

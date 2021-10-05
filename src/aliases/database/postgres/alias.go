@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/database/models"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
-var _ aliasent.AliasBackend = &AliasStore{}
+var _ aliases.AliasBackend = &AliasStore{}
 
 // AliasStore stores the alias data in a postgres DB.
 type AliasStore struct {

@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
 	storesmock "github.com/consensys/quorum-key-manager/src/stores/mock"
 
-	aliasentmock "github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
+	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	placeholdermock "github.com/consensys/quorum-key-manager/src/aliases/placeholder/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -112,7 +112,7 @@ func TestManager(t *testing.T) {
 	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 	mockStoresManager.EXPECT().Stores().Return(mockStores).AnyTimes()
 
-	mockAliasManager := aliasentmock.NewMockAliasBackend(ctrl)
+	mockAliasManager := aliasmock.NewMockAliasBackend(ctrl)
 	mockAliasParser := placeholdermock.NewMockAliasParser(ctrl)
 	mngr := New(mockStoresManager, nil, mockAuthManager, mockAliasManager, mockAliasParser, testutils.NewMockLogger(ctrl))
 

@@ -9,13 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
 type aliasStoreTestSuite struct {
 	suite.Suite
 	env  *IntegrationEnvironment
-	srv  aliasent.AliasBackend
+	srv  aliases.AliasBackend
 	rand *rand.Rand
 }
 

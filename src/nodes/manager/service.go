@@ -6,6 +6,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/aliases/placeholder"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
@@ -31,7 +31,7 @@ type BaseManager struct {
 	stores      stores.Manager
 	manifests   manifestsmanager.Manager
 	authManager auth.Manager
-	aliases     aliasent.AliasBackend
+	aliases     aliases.AliasBackend
 	aliasParser placeholder.AliasParser
 
 	mux   sync.RWMutex
@@ -53,7 +53,7 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, aliasManager aliasent.AliasBackend, aliasParser placeholder.AliasParser, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, aliasManager aliases.AliasBackend, aliasParser placeholder.AliasParser, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:      smng,
 		manifests:   manifests,

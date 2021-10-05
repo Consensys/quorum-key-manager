@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/placeholder"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
@@ -13,7 +13,7 @@ type Interceptor struct {
 	stores      stores.Stores
 	handler     jsonrpc.Handler
 	logger      log.Logger
-	aliases     aliasent.AliasBackend
+	aliases     aliases.AliasBackend
 	aliasParser placeholder.AliasParser
 }
 
@@ -39,10 +39,10 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router), i.logger)
 }
 
-func New(storesConnector stores.Stores, aliases aliasent.AliasBackend, aliasParser placeholder.AliasParser, logger log.Logger) (*Interceptor, error) {
+func New(storesConnector stores.Stores, aliasBackend aliases.AliasBackend, aliasParser placeholder.AliasParser, logger log.Logger) (*Interceptor, error) {
 	i := &Interceptor{
 		stores:      storesConnector,
-		aliases:     aliases,
+		aliases:     aliasBackend,
 		aliasParser: aliasParser,
 		logger:      logger,
 	}

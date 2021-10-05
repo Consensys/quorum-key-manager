@@ -6,7 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
+	"github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/aliases/placeholder"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

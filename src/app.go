@@ -4,7 +4,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/pkg/http/middleware"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
-	"github.com/consensys/quorum-key-manager/src/aliases"
+	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
@@ -59,12 +59,12 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&aliases.Config{Postgres: cfg.Postgres})
+	err = a.RegisterServiceConfig(&aliasapp.Config{Postgres: cfg.Postgres})
 	if err != nil {
 		return nil, err
 	}
 
-	err = aliases.RegisterService(a, logger.WithComponent("aliases"))
+	err = aliasapp.RegisterService(a, logger.WithComponent("aliases"))
 	if err != nil {
 		return nil, err
 	}

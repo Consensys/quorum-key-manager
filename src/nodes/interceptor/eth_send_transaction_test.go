@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	aliasentmock "github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
+	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -32,7 +32,7 @@ func TestEthSendTransaction(t *testing.T) {
 	tesseraClient := mocktessera.NewMockClient(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	stores := mockaccounts.NewMockStores(ctrl)
-	aliases := aliasentmock.NewMockAliasBackend(ctrl)
+	aliases := aliasmock.NewMockAliasBackend(ctrl)
 	aliasParser := placeholdermock.NewMockAliasParser(ctrl)
 
 	from := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")

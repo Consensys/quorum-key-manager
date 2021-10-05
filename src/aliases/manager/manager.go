@@ -3,14 +3,14 @@ package aliasmanager
 import (
 	"context"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 )
 
 type BaseManager struct {
-	Aliases aliasent.AliasBackend
+	Aliases aliases.AliasBackend
 }
 
-func New(aliasSrv aliasent.AliasBackend) *BaseManager {
+func New(aliasSrv aliases.AliasBackend) *BaseManager {
 	return &BaseManager{
 		Aliases: aliasSrv,
 	}

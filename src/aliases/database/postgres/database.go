@@ -1,7 +1,7 @@
 package aliaspg
 
 import (
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
@@ -16,6 +16,6 @@ func NewDatabase(pgClient postgres.Client, logger log.Logger) *Database {
 	}
 }
 
-func (db *Database) Alias() aliasent.AliasBackend {
+func (db *Database) Alias() aliases.AliasBackend {
 	return db.alias
 }

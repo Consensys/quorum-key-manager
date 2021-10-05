@@ -9,6 +9,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
@@ -16,10 +17,10 @@ import (
 )
 
 type AliasHandler struct {
-	alias aliasent.AliasBackend
+	alias aliases.AliasBackend
 }
 
-func NewAliasHandler(backend aliasent.AliasBackend) *AliasHandler {
+func NewAliasHandler(backend aliases.AliasBackend) *AliasHandler {
 	h := AliasHandler{
 		alias: backend,
 	}

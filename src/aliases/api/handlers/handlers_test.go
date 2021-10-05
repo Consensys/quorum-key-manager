@@ -21,8 +21,8 @@ import (
 	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/aliases/mock"
 )
 
 type apiHelper struct {

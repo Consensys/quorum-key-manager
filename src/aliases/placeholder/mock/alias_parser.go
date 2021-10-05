@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	aliases "github.com/consensys/quorum-key-manager/src/aliases"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -52,7 +52,7 @@ func (mr *MockAliasParserMockRecorder) ParseAlias(alias interface{}) *gomock.Cal
 }
 
 // ReplaceAliases mocks base method.
-func (m *MockAliasParser) ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error) {
+func (m *MockAliasParser) ReplaceAliases(ctx context.Context, aliasBackend aliases.AliasBackend, addrs []string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReplaceAliases", ctx, aliasBackend, addrs)
 	ret0, _ := ret[0].([]string)

@@ -3,13 +3,14 @@ package aliases
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	aliasdb "github.com/consensys/quorum-key-manager/src/aliases/database"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
 // We make sure Connector implements aliasent.AliasBackend
-var _ aliasent.AliasBackend = &Connector{}
+var _ aliases.AliasBackend = &Connector{}
 
 // Connector is the service layer for other service to query.
 type Connector struct {

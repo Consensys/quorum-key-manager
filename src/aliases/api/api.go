@@ -3,16 +3,16 @@ package aliasapi
 import (
 	"github.com/gorilla/mux"
 
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/handlers"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
 // AliasAPI expose the alias service as an HTTP REST API
 type AliasAPI struct {
-	alias aliasent.AliasBackend
+	alias aliases.AliasBackend
 }
 
-func New(alias aliasent.AliasBackend) *AliasAPI {
+func New(alias aliases.AliasBackend) *AliasAPI {
 	return &AliasAPI{
 		alias: alias,
 	}
