@@ -1,4 +1,4 @@
-package placeholder_test
+package aliasparser_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/aliases/mock"
-	"github.com/consensys/quorum-key-manager/src/aliases/placeholder"
+	aliasparser "github.com/consensys/quorum-key-manager/src/aliases/parser"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +29,7 @@ func TestParseAlias(t *testing.T) {
 		"base 64 key":         {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false},
 		"ok":                  {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true},
 	}
-	p, err := placeholder.New()
+	p, err := aliasparser.New()
 	require.NoError(t, err)
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestReplaceAliases(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	aliasBackend := mock.NewMockAliasBackend(ctrl)
 
-	p, err := placeholder.New()
+	p, err := aliasparser.New()
 	require.NoError(t, err)
 
 	for name, c := range cases {

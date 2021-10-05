@@ -11,7 +11,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
 	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
-	placeholdermock "github.com/consensys/quorum-key-manager/src/aliases/placeholder/mock"
+	aliasparsermock "github.com/consensys/quorum-key-manager/src/aliases/parser/mock"
 	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ import (
 func newInterceptor(t *testing.T, ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores) {
 	stores := mockstoremanager.NewMockStores(ctrl)
 	aliases := aliasmock.NewMockAliasBackend(ctrl)
-	aliasParser := placeholdermock.NewMockAliasParser(ctrl)
+	aliasParser := aliasparsermock.NewMockAliasParser(ctrl)
 	i, err := New(stores, aliases, aliasParser, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err)
 	return i, stores

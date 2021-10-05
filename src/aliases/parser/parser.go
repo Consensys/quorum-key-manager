@@ -1,4 +1,4 @@
-package placeholder
+package aliasparser
 
 import (
 	"context"

@@ -16,7 +16,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
 	mocktessera "github.com/consensys/quorum-key-manager/pkg/tessera/mock"
-	placeholdermock "github.com/consensys/quorum-key-manager/src/aliases/placeholder/mock"
+	aliasparsermock "github.com/consensys/quorum-key-manager/src/aliases/parser/mock"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
@@ -33,7 +33,7 @@ func TestEthSendTransaction(t *testing.T) {
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	stores := mockaccounts.NewMockStores(ctrl)
 	aliases := aliasmock.NewMockAliasBackend(ctrl)
-	aliasParser := placeholdermock.NewMockAliasParser(ctrl)
+	aliasParser := aliasparsermock.NewMockAliasParser(ctrl)
 
 	from := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 	userInfo := &types.UserInfo{
