@@ -153,6 +153,7 @@ jobs:
   e2e:
     machine:
       image: ubuntu-2004:202010-01
+    resource_class: xlarge
     steps:
       - run:
           name: Uninstall Go
