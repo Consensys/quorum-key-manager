@@ -17,31 +17,26 @@ func TestParseAlias(t *testing.T) {
 	cases := map[string]struct {
 		input string
 
-		reg          string
-		key          string
-		parsed       bool
-		errCompareFn func(error) bool
+		reg    string
+		key    string
+		parsed bool
 	}{
-		"bad registry format": {`{{bad#registry:ok_key}}`, "", "", false, nil},
-		"bad key format":      {`{{ok_registry:bad>key}}`, "", "", false, nil},
-		"single {":            {`{ok_registry:ok_key}`, "", "", false, nil},
-		"column missing":      {`{{ok_registry ok_key}}`, "", "", false, nil},
-		"too many columns":    {`{{ok_registry:ok_key:}}`, "", "", false, nil},
-		"base 64 key":         {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false, nil},
-		"ok":                  {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true, nil},
+		"bad registry format": {`{{bad#registry:ok_key}}`, "", "", false},
+		"bad key format":      {`{{ok_registry:bad>key}}`, "", "", false},
+		"single {":            {`{ok_registry:ok_key}`, "", "", false},
+		"column missing":      {`{{ok_registry ok_key}}`, "", "", false},
+		"too many columns":    {`{{ok_registry:ok_key:}}`, "", "", false},
+		"base 64 key":         {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false},
+		"ok":                  {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true},
 	}
 	p, err := placeholder.New()
 	require.NoError(t, err)
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			reg, key, parsed, err := p.ParseAlias(c.input)
+			reg, key, parsed := p.ParseAlias(c.input)
 			assert.Equal(t, c.reg, reg)
 			assert.Equal(t, c.key, key)
 			assert.Equal(t, c.parsed, parsed)
-			if c.errCompareFn != nil {
-				require.Error(t, err)
-				assert.True(t, c.errCompareFn(err))
-			}
 		})
 
 	}

@@ -23,25 +23,22 @@ func New() (*Parser, error) {
 	}, nil
 }
 
-func (p *Parser) ParseAlias(alias string) (regName, aliasKey string, isAlias bool, err error) {
+func (p *Parser) ParseAlias(alias string) (regName, aliasKey string, isAlias bool) {
 	submatches := p.regex.FindStringSubmatch(alias)
 	if len(submatches) < 3 {
-		return "", "", false, nil
+		return "", "", false
 	}
 
 	regName = submatches[1]
 	aliasKey = submatches[2]
 
-	return regName, aliasKey, true, nil
+	return regName, aliasKey, true
 }
 
 func (p *Parser) ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error) {
 	var values []string
 	for _, addr := range addrs {
-		regName, aliasKey, isAlias, err := p.ParseAlias(addr)
-		if err != nil {
-			return nil, err
-		}
+		regName, aliasKey, isAlias := p.ParseAlias(addr)
 
 		// it is not an alias
 		if !isAlias {
