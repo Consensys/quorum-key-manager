@@ -10,6 +10,6 @@ import (
 
 // AliasParser parses and replace aliases.
 type AliasParser interface {
-	ParseAlias(alias string) (regName string, aliasKey string, isAlias bool, err error)
+	ParseAlias(alias string) (regName string, aliasKey string, isAlias bool)
 	ReplaceAliases(ctx context.Context, aliasBackend aliasent.AliasBackend, addrs []string) ([]string, error)
 }

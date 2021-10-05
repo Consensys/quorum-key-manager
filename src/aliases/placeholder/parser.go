@@ -8,6 +8,9 @@ import (
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
+// make sure Parser implements AliasParser
+var _ AliasParser = &Parser{}
+
 // Parser parses alias strings in the form of {{registry_name:alias_key}}.
 type Parser struct {
 	regex *regexp.Regexp
