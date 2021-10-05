@@ -9,6 +9,7 @@ type Alias struct {
 	registryName string
 }
 
+// FormatEntityAlias format an alias entity to an alias API type.
 func FormatEntityAlias(ent aliasent.Alias) Alias {
 	return Alias{
 		registryName: ent.RegistryName,
@@ -17,6 +18,7 @@ func FormatEntityAlias(ent aliasent.Alias) Alias {
 	}
 }
 
+// FormatAlias format an alias API type to an alias entity.
 func FormatAlias(registry, key string, value []string) aliasent.Alias {
 	return aliasent.Alias{
 		RegistryName: registry,
@@ -25,6 +27,7 @@ func FormatAlias(registry, key string, value []string) aliasent.Alias {
 	}
 }
 
+// FormatEntityAliases formats a slice of alias entities into a slice of alias API type.
 func FormatEntityAliases(ents []aliasent.Alias) []Alias {
 	var als = []Alias{}
 	for _, v := range ents {
@@ -34,10 +37,12 @@ func FormatEntityAliases(ents []aliasent.Alias) []Alias {
 	return als
 }
 
+// AliasRequest creates or modifies an alias value.
 type AliasRequest struct {
 	Value []string `json:"value"`
 }
 
+// AliasRequest returns the alias value.
 type AliasResponse struct {
 	Value []string `json:"value"`
 }

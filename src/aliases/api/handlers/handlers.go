@@ -27,6 +27,7 @@ func NewAliasHandler(backend aliasent.AliasBackend) *AliasHandler {
 	return &h
 }
 
+// Register registers alias handlers to HTTP endpoints.
 func (h *AliasHandler) Register(r *mux.Router) {
 	regRoute := r.PathPrefix("/registries/{registry_name}").Subrouter()
 	regRoute.HandleFunc("", h.deleteRegistry).Methods(http.MethodDelete)

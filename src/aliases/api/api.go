@@ -7,6 +7,7 @@ import (
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
+// AliasAPI expose the alias service as an HTTP REST API
 type AliasAPI struct {
 	alias aliasent.AliasBackend
 }
@@ -17,6 +18,7 @@ func New(alias aliasent.AliasBackend) *AliasAPI {
 	}
 }
 
+// Register registers HTTP endpoints to the HTTP router.
 func (api *AliasAPI) Register(r *mux.Router) {
 	handlers.NewAliasHandler(api.alias).Register(r)
 }

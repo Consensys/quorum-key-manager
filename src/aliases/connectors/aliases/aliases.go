@@ -8,8 +8,10 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
+// We make sure Connector implements aliasent.AliasBackend
 var _ aliasent.AliasBackend = &Connector{}
 
+// Connector is the service layer for other service to query.
 type Connector struct {
 	db aliasdb.Database
 

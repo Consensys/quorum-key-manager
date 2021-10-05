@@ -4,19 +4,22 @@ import (
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
-// Alias allows the user to associates a RegistryName + a Key to 1 or more public keys stored
-// in Value. The Value has 2 formats:
-// - a JSON string if AliasKind is an AliasKindString.
-// - a JSON array of strings if AliasKind is an AliasKindArray.
+// Alias allows the user to associates a RegistryName + a Key to 1 or more
+// public keys stored in Value.
 type Alias struct {
 	tableName struct{} `pg:"aliases"` // nolint:unused,structcheck // reason
 
-	Key          string `pg:",pk"`
+	// Key is the unique alias key.
+	Key string `pg:",pk"`
+
+	// RegistryName is the unique registry name.
 	RegistryName string `pg:",pk"`
-	// Value is a JSON array containing Tessera/Orion keys base64 encoded in strings.
+
+	// Value is a slice containing Tessera/Orion keys base64 encoded in strings.
 	Value []string
 }
 
+// AliasFromEntitiy transforms an alias entity into an alias model.
 func AliasFromEntity(ent aliasent.Alias) (alias Alias) {
 	return Alias{
 		Key:          ent.Key,
@@ -25,6 +28,7 @@ func AliasFromEntity(ent aliasent.Alias) (alias Alias) {
 	}
 }
 
+// ToEntity transforms an alias model into an alias entity.
 func (a *Alias) ToEntity() *aliasent.Alias {
 	return &aliasent.Alias{
 		Key:          a.Key,
@@ -33,6 +37,7 @@ func (a *Alias) ToEntity() *aliasent.Alias {
 	}
 }
 
+// AliasesToEntity transforms an alias model slice into an alias entity slice.
 func AliasesToEntity(aliases []Alias) []aliasent.Alias {
 	var ents []aliasent.Alias
 	for _, v := range aliases {
