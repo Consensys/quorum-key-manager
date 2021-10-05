@@ -8,21 +8,21 @@ x-container-common: &container-common
 services:
   geth:
     <<: *container-common
-    image: ethereum/client-go:stable
+    image: ethereum/client-go:v1.10.9
     entrypoint:
       - /bin/sh
       - -c
       - |
         geth --datadir "/nodeData" init "/nodeData/genesis.json"
         geth \
-        --rpc \
-        --rpcaddr "0.0.0.0" \
-        --rpcport "${GETH_RPC_PORT-8545}" \
-        --rpccorsdomain "*" \
-        --rpcvhosts "*" \
+        --http \
+        --http.addr "0.0.0.0" \
+        --http.port "${GETH_RPC_PORT-8545}" \
+        --http.api "admin,eth,net,web3,personal,txpool" \
+        --http.corsdomain "*" \
+        --http.vhosts "*" \
         --datadir "/nodeData" \
         --port "${GETH_PORT-30303}" \
-        --rpcapi "admin,eth,net,web3,personal,txpool" \
         --networkid ${GETH_NETWORKID-888} \
         --nodiscover \
         --unlock "0" \
