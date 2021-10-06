@@ -14,7 +14,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	aliasparser "github.com/consensys/quorum-key-manager/src/aliases/parser"
 	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
@@ -31,8 +30,7 @@ type BaseManager struct {
 	stores      stores.Manager
 	manifests   manifestsmanager.Manager
 	authManager auth.Manager
-	aliases     aliases.AliasBackend
-	aliasParser aliasparser.AliasParser
+	aliases     aliases.Backend
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
@@ -53,7 +51,7 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, aliasManager aliases.AliasBackend, aliasParser aliasparser.AliasParser, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, aliasManager aliases.Backend, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:      smng,
 		manifests:   manifests,
@@ -62,7 +60,6 @@ func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager au
 		nodes:       make(map[string]*nodeBundle),
 		authManager: authManager,
 		aliases:     aliasManager,
-		aliasParser: aliasParser,
 		logger:      logger,
 	}
 }
@@ -208,7 +205,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler, err = interceptor.New(m.stores.Stores(), m.aliases, m.aliasParser, m.logger)
+		prxNode.Handler, err = interceptor.New(m.stores.Stores(), m.aliases, m.logger)
 		if err != nil {
 			logger.WithError(err).Error("failed to create interceptor")
 			n.err = err

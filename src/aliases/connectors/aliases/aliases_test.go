@@ -1,13 +1,14 @@
-package aliasparser_test
+package aliasconn_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/connectors/aliases"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/aliases/mock"
-	aliasparser "github.com/consensys/quorum-key-manager/src/aliases/parser"
+	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,11 +30,15 @@ func TestParseAlias(t *testing.T) {
 		"base 64 key":         {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false},
 		"ok":                  {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true},
 	}
-	p, err := aliasparser.New()
+
+	ctrl := gomock.NewController(t)
+	loggerMock := testutils.NewMockLogger(ctrl)
+	backend := mock.NewMockBackend(ctrl)
+	aConn, err := aliasconn.NewConnector(backend, loggerMock)
 	require.NoError(t, err)
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			reg, key, parsed := p.ParseAlias(c.input)
+			reg, key, parsed := aConn.ParseAlias(c.input)
 			assert.Equal(t, c.reg, reg)
 			assert.Equal(t, c.key, key)
 			assert.Equal(t, c.parsed, parsed)
@@ -71,18 +76,19 @@ func TestReplaceAliases(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	aliasBackend := mock.NewMockAliasBackend(ctrl)
+	backend := mock.NewMockBackend(ctrl)
+	loggerMock := testutils.NewMockLogger(ctrl)
 
-	p, err := aliasparser.New()
+	aConn, err := aliasconn.NewConnector(backend, loggerMock)
 	require.NoError(t, err)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			for _, call := range c.calls {
-				aliasBackend.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&aliasent.Alias{Value: call.value}, call.err)
+				backend.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&aliasent.Alias{Value: call.value}, call.err)
 			}
 
-			addrs, err := p.ReplaceAliases(ctx, aliasBackend, c.addrs)
+			addrs, err := aConn.ReplaceAliases(ctx, c.addrs)
 			if err != nil {
 				require.True(t, errors.IsInvalidFormatError(err))
 				return

@@ -16,6 +16,6 @@ func NewDatabase(pgClient postgres.Client, logger log.Logger) *Database {
 	}
 }
 
-func (db *Database) Alias() aliases.AliasBackend {
+func (db *Database) Alias() aliases.Repository {
 	return db.alias
 }

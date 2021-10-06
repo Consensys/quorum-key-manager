@@ -56,7 +56,7 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 	}
 
 	// extract aliases from PrivateFor
-	*msg.PrivateFor, err = i.aliasParser.ReplaceAliases(ctx, i.aliases, *msg.PrivateFor)
+	*msg.PrivateFor, err = i.aliases.ReplaceAliases(ctx, *msg.PrivateFor)
 	if err != nil {
 		i.logger.WithError(err).Error("failed to replace aliases in privateFor")
 		return nil, err

@@ -35,10 +35,10 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 }
 
 // Alias mocks base method.
-func (m *MockDatabase) Alias() aliases.AliasBackend {
+func (m *MockDatabase) Alias() aliases.Repository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Alias")
-	ret0, _ := ret[0].(aliases.AliasBackend)
+	ret0, _ := ret[0].(aliases.Repository)
 	return ret0
 }
 

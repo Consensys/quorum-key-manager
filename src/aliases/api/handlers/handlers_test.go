@@ -27,7 +27,7 @@ import (
 
 type apiHelper struct {
 	ctx     context.Context
-	mock    *mock.MockAliasBackend
+	mock    *mock.MockBackend
 	rec     *httptest.ResponseRecorder
 	router  *mux.Router
 	handler *aliasapi.AliasAPI
@@ -35,7 +35,7 @@ type apiHelper struct {
 
 func newAPIHelper(t *testing.T) *apiHelper {
 	ctrl := gomock.NewController(t)
-	backend := mock.NewMockAliasBackend(ctrl)
+	backend := mock.NewMockBackend(ctrl)
 	handler := aliasapi.New(backend)
 	router := mux.NewRouter()
 	handler.Register(router)

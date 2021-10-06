@@ -6,10 +6,10 @@ import (
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
-//go:generate mockgen -source=aliases.go -destination=mock/aliases.go -package=mock
+//go:generate mockgen -destination=mock/repository.go -package=mock . Repository
 
-// Alias handles the aliases.
-type AliasBackend interface {
+// Repository handles the aliases storage.
+type Repository interface {
 	// CreateAlias creates an alias in the registry.
 	CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error)
 	// GetAlias gets an alias from the registry.

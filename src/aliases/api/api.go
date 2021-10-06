@@ -9,12 +9,12 @@ import (
 
 // AliasAPI expose the alias service as an HTTP REST API
 type AliasAPI struct {
-	alias aliases.AliasBackend
+	alias aliases.Repository
 }
 
-func New(alias aliases.AliasBackend) *AliasAPI {
+func New(repo aliases.Repository) *AliasAPI {
 	return &AliasAPI{
-		alias: alias,
+		alias: repo,
 	}
 }
 

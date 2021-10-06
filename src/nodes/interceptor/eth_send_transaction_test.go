@@ -16,7 +16,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
 	mocktessera "github.com/consensys/quorum-key-manager/pkg/tessera/mock"
-	aliasparsermock "github.com/consensys/quorum-key-manager/src/aliases/parser/mock"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
@@ -32,8 +31,7 @@ func TestEthSendTransaction(t *testing.T) {
 	tesseraClient := mocktessera.NewMockClient(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	stores := mockaccounts.NewMockStores(ctrl)
-	aliases := aliasmock.NewMockAliasBackend(ctrl)
-	aliasParser := aliasparsermock.NewMockAliasParser(ctrl)
+	aliases := aliasmock.NewMockBackend(ctrl)
 
 	from := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 	userInfo := &types.UserInfo{
@@ -54,7 +52,7 @@ func TestEthSendTransaction(t *testing.T) {
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
 	stores.EXPECT().GetEthStoreByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
 
-	i, err := New(stores, aliases, aliasParser, testutils.NewMockLogger(ctrl))
+	i, err := New(stores, aliases, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err)
 
 	t.Run("should send a private tx successfully", func(t *testing.T) {
@@ -85,7 +83,7 @@ func TestEthSendTransaction(t *testing.T) {
 		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
 		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
 		ethCaller.EXPECT().SendRawPrivateTransaction(ctx, expectedSignedTx, privateArgs).Return(expectedHash, nil)
-		aliasParser.EXPECT().ReplaceAliases(gomock.Any(), gomock.Any(), privateFor).Return(privateFor, nil)
+		aliases.EXPECT().ReplaceAliases(gomock.Any(), privateFor).Return(privateFor, nil)
 
 		hash, err := i.ethSendTransaction(ctx, msg)
 		require.NoError(t, err)
@@ -122,7 +120,7 @@ func TestEthSendTransaction(t *testing.T) {
 		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
 		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
 		ethCaller.EXPECT().SendRawPrivateTransaction(ctx, expectedSignedTx, privateArgs).Return(expectedHash, nil)
-		aliasParser.EXPECT().ReplaceAliases(gomock.Any(), gomock.Any(), privateFor).Return(privateForExp, nil)
+		aliases.EXPECT().ReplaceAliases(gomock.Any(), privateFor).Return(privateForExp, nil)
 
 		hash, err := i.ethSendTransaction(ctx, msg)
 		require.NoError(t, err)
