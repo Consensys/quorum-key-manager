@@ -21,15 +21,14 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	}
 
 	// Create Postgres DB
-	postgresClient, err := client.NewClient(cfg.Postgres)
+	postgresClient, err := client.New(cfg.Postgres)
 	if err != nil {
 		return err
 	}
 	db := postgres.New(logger, postgresClient)
 
-	// Load manifests service
-	m := new(manifestsmanager.Manager)
-	err = a.Service(m)
+	// Create manifest reader
+	manifestReader, err := manifestsmanager.NewLocalManager(cfg.ManifestPath, logger)
 	if err != nil {
 		return err
 	}
@@ -46,7 +45,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	utilsConnector := utils.NewConnector(logger)
 	api.New(storesConnector, utilsConnector).Register(a.Router())
 
-	service := storesmanager.New(storesConnector, *m, db, logger)
+	service := storesmanager.New(storesConnector, manifestReader, db, logger)
 	err = a.RegisterService(service)
 	if err != nil {
 		return err

@@ -15,21 +15,13 @@ import (
 
 const ID = "AuthManager"
 
-var authKinds = []manifest.Kind{
-	RoleKind,
-}
-
 type BaseManager struct {
 	manifests manifestsmanager.Manager
 
 	mux   sync.RWMutex
 	roles map[string]*types.Role
 
-	sub    manifestsmanager.Subscription
-	mnfsts chan []manifestsmanager.Message
-
 	logger log.Logger
-	err    error
 	isLive bool
 }
 
@@ -37,46 +29,29 @@ func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests: manifests,
 		roles:     make(map[string]*types.Role),
-		mnfsts:    make(chan []manifestsmanager.Message),
 		logger:    logger,
 	}
 }
 
 func (mngr *BaseManager) Start(_ context.Context) error {
-	mngr.mux.Lock()
-	defer mngr.mux.Unlock()
-	defer func() {
-		mngr.isLive = true
-	}()
-
-	// Subscribe to manifest of Kind Role and Policy
-	mngr.sub = mngr.manifests.Subscribe(authKinds, mngr.mnfsts)
-
-	// Start loading manifest
-	go mngr.loadAll()
-
-	return nil
-}
-
-func (mngr *BaseManager) Stop(context.Context) error {
-	mngr.mux.Lock()
-	defer mngr.mux.Unlock()
-	defer close(mngr.mnfsts)
-
-	if mngr.sub != nil {
-		_ = mngr.sub.Unsubscribe()
+	messages, err := mngr.manifests.Load()
+	if err != nil {
+		return err
 	}
+
+	for _, message := range messages {
+		_ = mngr.load(message.Manifest)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func (mngr *BaseManager) Error() error {
-	return mngr.err
-}
-
-func (mngr *BaseManager) Close() error {
-	close(mngr.mnfsts)
-	return nil
-}
+func (mngr *BaseManager) Stop(context.Context) error { return nil }
+func (mngr *BaseManager) Error() error               { return nil }
+func (mngr *BaseManager) Close() error               { return nil }
 
 func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permission {
 	var permissions []types.Permission
@@ -122,14 +97,6 @@ func (mngr *BaseManager) role(name string) (*types.Role, error) {
 	return nil, fmt.Errorf("role %q not found", name)
 }
 
-func (mngr *BaseManager) loadAll() {
-	for mnfsts := range mngr.mnfsts {
-		for _, mnf := range mnfsts {
-			_ = mngr.load(mnf.Manifest)
-		}
-	}
-}
-
 func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
@@ -144,10 +111,6 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 			return err
 		}
 		logger.Info("loaded Role")
-	default:
-		err := fmt.Errorf("invalid manifest kind %s", mnf.Kind)
-		logger.WithError(err).Error("error starting node")
-		return err
 	}
 
 	return nil
@@ -181,7 +144,4 @@ func (mngr *BaseManager) CheckLiveness(_ context.Context) error {
 	mngr.logger.Error(errMessage, "id", mngr.ID())
 	return errors.HealthcheckError(errMessage)
 }
-
-func (mngr *BaseManager) CheckReadiness(_ context.Context) error {
-	return mngr.Error()
-}
+func (mngr *BaseManager) CheckReadiness(_ context.Context) error { return mngr.Error() }

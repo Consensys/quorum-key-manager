@@ -6,7 +6,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -16,9 +15,6 @@ const ID = "StoreManager"
 
 type BaseManager struct {
 	manifests manifestsmanager.Manager
-
-	sub    manifestsmanager.Subscription
-	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
 	err    error
@@ -34,7 +30,6 @@ var _ stores.Manager = &BaseManager{}
 func New(storesConnector stores.Stores, manifests manifestsmanager.Manager, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests: manifests,
-		mnfsts:    make(chan []manifestsmanager.Message),
 		logger:    logger,
 		db:        db,
 		stores:    storesConnector,
@@ -42,26 +37,23 @@ func New(storesConnector stores.Stores, manifests manifestsmanager.Manager, db d
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	defer func() {
-		m.isLive = true
-	}()
+	messages, err := m.manifests.Load()
+	if err != nil {
+		return err
+	}
 
-	// Subscribe to manifest of Kind node
-	m.sub = m.manifests.Subscribe(manifest.StoreKinds, m.mnfsts)
-
-	// Start loading manifest
-	go m.loadAll(ctx)
+	for _, message := range messages {
+		err = m.stores.Create(ctx, message.Manifest)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
 func (m *BaseManager) Stop(context.Context) error {
 	m.isLive = false
-
-	if m.sub != nil {
-		_ = m.sub.Unsubscribe()
-	}
-	close(m.mnfsts)
 	return nil
 }
 
@@ -75,16 +67,6 @@ func (m *BaseManager) Close() error {
 
 func (m *BaseManager) Stores() stores.Stores {
 	return m.stores
-}
-
-func (m *BaseManager) loadAll(ctx context.Context) {
-	for mnfsts := range m.mnfsts {
-		for _, mnf := range mnfsts {
-			if err := m.stores.Create(ctx, mnf.Manifest); err != nil {
-				m.err = errors.CombineErrors(m.err, err)
-			}
-		}
-	}
 }
 
 func (m *BaseManager) ID() string { return ID }

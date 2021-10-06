@@ -18,7 +18,7 @@ type PostgresClient struct {
 
 var _ postgres.Client = &PostgresClient{}
 
-func NewClient(cfg *Config) (*PostgresClient, error) {
+func New(cfg *Config) (*PostgresClient, error) {
 	pgOptions, err := cfg.ToPGOptions()
 	if err != nil {
 		return nil, err

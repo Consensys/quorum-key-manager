@@ -132,10 +132,6 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.ethAccounts[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
-	default:
-		errMessage := "invalid manifest kind"
-		logger.Error(errMessage, "kind", mnf.Kind)
-		return errors.InvalidFormatError(errMessage)
 	}
 
 	logger.Info("store manifest loaded successfully")

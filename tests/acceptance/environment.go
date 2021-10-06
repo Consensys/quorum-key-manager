@@ -173,7 +173,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 	hashicorpClient.SetToken(hashicorpContainer.RootToken)
 
-	postgresClient, err := postgresclient.NewClient(postgresCfg)
+	postgresClient, err := postgresclient.New(postgresCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Postgres client")
 		return nil, err

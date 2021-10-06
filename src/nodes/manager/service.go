@@ -23,8 +23,6 @@ import (
 
 const NodeManagerID = "NodeManager"
 
-var NodeKind manifest.Kind = "Node"
-
 type BaseManager struct {
 	stores      stores.Manager
 	manifests   manifestsmanager.Manager
@@ -32,9 +30,6 @@ type BaseManager struct {
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
-
-	sub    manifestsmanager.Subscription
-	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
 	err    error
@@ -53,7 +48,6 @@ func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager au
 	return &BaseManager{
 		stores:      smng,
 		manifests:   manifests,
-		mnfsts:      make(chan []manifestsmanager.Message),
 		mux:         sync.RWMutex{},
 		nodes:       make(map[string]*nodeBundle),
 		authManager: authManager,
@@ -62,17 +56,17 @@ func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager au
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
-	defer func() {
-		m.isLive = true
-	}()
+	messages, err := m.manifests.Load()
+	if err != nil {
+		return err
+	}
 
-	// Subscribe to manifest of Kind node
-	m.sub = m.manifests.Subscribe([]manifest.Kind{NodeKind}, m.mnfsts)
-
-	// Start loading manifest
-	go m.loadAll(ctx)
+	for _, message := range messages {
+		err = m.createNodes(ctx, message.Manifest)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -82,10 +76,6 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 	defer m.mux.Unlock()
 
 	m.isLive = false
-	// Unsubscribe
-	if m.sub != nil {
-		_ = m.sub.Unsubscribe()
-	}
 
 	wg := &sync.WaitGroup{}
 	for name, n := range m.nodes {
@@ -111,16 +101,6 @@ func (m *BaseManager) Close() error {
 
 func (m *BaseManager) Error() error {
 	return m.err
-}
-
-func (m *BaseManager) loadAll(ctx context.Context) {
-	for mnfsts := range m.mnfsts {
-		for _, mnf := range mnfsts {
-			if err := m.load(ctx, mnf.Manifest); err != nil {
-				m.err = err
-			}
-		}
-	}
 }
 
 func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.UserInfo) (node.Node, error) {
@@ -166,7 +146,7 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 	return nodeNames, nil
 }
 
-func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
+func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
@@ -179,7 +159,7 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 	}
 
 	switch mnf.Kind {
-	case NodeKind:
+	case manifest.Node:
 		n := new(nodeBundle)
 		n.manifest = mnf
 		m.nodes[mnf.Name] = n
@@ -213,13 +193,10 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 		n.node = prxNode
 		n.stop = prxNode.Stop
-	default:
-		errMessage := "invalid manifest kind"
-		logger.Error(errMessage)
-		return errors.InvalidParameterError(errMessage)
+
+		logger.Info("node created successfully")
 	}
 
-	logger.Info("node loaded successfully")
 	return nil
 }
 

@@ -11,9 +11,14 @@ import (
 )
 
 func RegisterService(a *app.App, logger log.Logger) error {
-	// Load manifests service
-	manifestManager := new(manifestsmanager.Manager)
-	err := a.Service(manifestManager)
+	cfg := new(Config)
+	err := a.ServiceConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	// Create manifest reader
+	manifestReader, err := manifestsmanager.NewLocalManager(cfg.ManifestPath, logger)
 	if err != nil {
 		return err
 	}
@@ -33,7 +38,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	}
 
 	// Create and register nodes service
-	nodes := nodesmanager.New(*storeManager, *manifestManager, *authManager, logger)
+	nodes := nodesmanager.New(*storeManager, manifestReader, *authManager, logger)
 	err = a.RegisterService(nodes)
 	if err != nil {
 		return err

@@ -5,5 +5,6 @@ import (
 )
 
 type Config struct {
-	Postgres *pg.Config
+	Postgres     *pg.Config
+	ManifestPath string
 }

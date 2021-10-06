@@ -8,19 +8,17 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/manifests"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	stores "github.com/consensys/quorum-key-manager/src/stores/app"
 	"github.com/justinas/alice"
 )
 
 type Config struct {
-	HTTP      *server.Config
-	Logger    *log.Config
-	Manifests *manifestsmanager.Config
-	Postgres  *client.Config
-	Auth      *auth.Config
+	HTTP         *server.Config
+	Logger       *log.Config
+	Postgres     *client.Config
+	Auth         *auth.Config
+	ManifestPath string
 }
 
 func New(cfg *Config, logger log.Logger) (*app.App, error) {
@@ -28,27 +26,22 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
 	// Register Service Configuration
-	err := a.RegisterServiceConfig(cfg.Manifests)
+	err := a.RegisterServiceConfig(cfg.Auth)
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(cfg.Auth)
+	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres, ManifestPath: cfg.ManifestPath})
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres})
+	err = a.RegisterServiceConfig(&nodes.Config{ManifestPath: cfg.ManifestPath})
 	if err != nil {
 		return nil, err
 	}
 
 	// Register Services
-	err = manifests.RegisterService(a, logger.WithComponent("manifests"))
-	if err != nil {
-		return nil, err
-	}
-
 	err = auth.RegisterService(a, logger.WithComponent("auth"))
 	if err != nil {
 		return nil, err
