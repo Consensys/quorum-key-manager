@@ -39,10 +39,10 @@ func FormatEntityAliases(ents []aliasent.Alias) []Alias {
 
 // AliasRequest creates or modifies an alias value.
 type AliasRequest struct {
-	Value []string `json:"value" validate:"omitempty,min=1,unique,dive,base64" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
+	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 }
 
-// AliasRequest returns the alias value.
+// AliasResponse returns the alias value.
 type AliasResponse struct {
-	Value []string `json:"value" validate:"omitempty,min=1,unique,dive,base64" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
+	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 }
