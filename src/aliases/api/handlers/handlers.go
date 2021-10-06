@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -85,11 +84,6 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
 	}
-	err = checkAliasValue(aliasReq.Value)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, err)
-		return
-	}
 
 	eAlias := types.FormatAlias(regName, key, aliasReq.Value)
 	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
@@ -164,11 +158,6 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-	err = checkAliasValue(aliasReq.Value)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
@@ -246,15 +235,4 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
-}
-
-func checkAliasValue(value []string) error {
-	for _, v := range value {
-		// we just want the decoding to happen without error
-		_, err := base64.StdEncoding.DecodeString(v)
-		if err != nil {
-			return errors.InvalidFormatError("alias value is incorrect: %v: %v", err, v)
-		}
-	}
-	return nil
 }
