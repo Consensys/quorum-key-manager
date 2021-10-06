@@ -17,7 +17,7 @@ func newImportCmd() *cobra.Command {
 	var db database.Database
 	var logger log.Logger
 
-	accountCmd := &cobra.Command{
+	importCmd := &cobra.Command{
 		Use:   "import",
 		Short: "Import management tool",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -48,8 +48,9 @@ func newImportCmd() *cobra.Command {
 		},
 	}
 
-	flags.PGFlags(accountCmd.Flags())
-	flags.ImportFlags(accountCmd.Flags())
+	flags.PGFlags(importCmd.Flags())
+	flags.ImportFlags(importCmd.Flags())
+	flags.ManifestFlags(importCmd.Flags())
 
 	importSecretsCmd := &cobra.Command{
 		Use:   "secrets",
@@ -60,7 +61,7 @@ func newImportCmd() *cobra.Command {
 			return imports.ImportSecrets(cmd.Context(), flags.GetStoreName(vipr), db, mock.NewMockSecretStore(nil))
 		},
 	}
-	accountCmd.AddCommand(importSecretsCmd)
+	importCmd.AddCommand(importSecretsCmd)
 
 	importKeysCmd := &cobra.Command{
 		Use:   "keys",
@@ -70,7 +71,7 @@ func newImportCmd() *cobra.Command {
 			return imports.ImportKeys(cmd.Context(), flags.GetStoreName(vipr), db, mock.NewMockKeyStore(nil))
 		},
 	}
-	accountCmd.AddCommand(importKeysCmd)
+	importCmd.AddCommand(importKeysCmd)
 
 	importEthereumCmd := &cobra.Command{
 		Use:   "ethereum",
@@ -80,7 +81,7 @@ func newImportCmd() *cobra.Command {
 			return imports.ImportEthereum(cmd.Context(), flags.GetStoreName(vipr), db, mock.NewMockEthStore(nil))
 		},
 	}
-	accountCmd.AddCommand(importEthereumCmd)
+	importCmd.AddCommand(importEthereumCmd)
 
-	return accountCmd
+	return importCmd
 }
