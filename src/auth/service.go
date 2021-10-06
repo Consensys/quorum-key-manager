@@ -41,13 +41,6 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 		return nil, err
 	}
 
-	// Load policy manager service
-	policyMngr := new(Manager)
-	err = a.Service(policyMngr)
-	if err != nil {
-		return nil, err
-	}
-
 	var auths []authenticator.Authenticator
 	if cfg.OIDC != nil {
 		oidcAuth, err := oidc.NewAuthenticator(cfg.OIDC)
