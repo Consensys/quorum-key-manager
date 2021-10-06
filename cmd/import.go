@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"github.com/consensys/quorum-key-manager/cmd/flags"
+	"github.com/consensys/quorum-key-manager/cmd/imports"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
+	"github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -53,9 +55,9 @@ func newImportCmd() *cobra.Command {
 		Use:   "secrets",
 		Short: "import secrets from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// vipr := viper.GetViper()
-			// return imports.ImportSecrets(cmd.Context(), flags.GetStoreName(vipr), db, )
-			return nil
+			vipr := viper.GetViper()
+
+			return imports.ImportSecrets(cmd.Context(), flags.GetStoreName(vipr), db, mock.NewMockSecretStore(nil))
 		},
 	}
 	accountCmd.AddCommand(importSecretsCmd)
@@ -64,9 +66,8 @@ func newImportCmd() *cobra.Command {
 		Use:   "keys",
 		Short: "import keys from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// vipr := viper.GetViper()
-			// return imports.ImportSecrets(cmd.Context(), flags.GetStoreName(vipr), db, )
-			return nil
+			vipr := viper.GetViper()
+			return imports.ImportKeys(cmd.Context(), flags.GetStoreName(vipr), db, mock.NewMockKeyStore(nil))
 		},
 	}
 	accountCmd.AddCommand(importKeysCmd)
@@ -75,9 +76,8 @@ func newImportCmd() *cobra.Command {
 		Use:   "ethereum",
 		Short: "import ethereum accounts from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// vipr := viper.GetViper()
-			// return imports.ImportSecrets(cmd.Context(), flags.GetStoreName(vipr), db, )
-			return nil
+			vipr := viper.GetViper()
+			return imports.ImportEthereum(cmd.Context(), flags.GetStoreName(vipr), db, mock.NewMockEthStore(nil))
 		},
 	}
 	accountCmd.AddCommand(importEthereumCmd)

@@ -6,7 +6,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
 
-func ImportEthereum(ctx context.Context, storeName string, db database.Database, vault stores.KeyStore) error {
+func ImportEthereum(ctx context.Context, storeName string, db database.Database, vault stores.EthStore) error {
 
 	return nil
 }
