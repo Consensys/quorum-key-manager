@@ -6,6 +6,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
@@ -28,6 +29,7 @@ type BaseManager struct {
 	stores      stores.Manager
 	manifests   manifests.Reader
 	authManager auth.Manager
+	aliasParser aliases.Parser
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
@@ -45,13 +47,14 @@ type nodeBundle struct {
 	stop func(context.Context) error
 }
 
-func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, aliasParser aliases.Parser, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:      smng,
 		manifests:   manifestReader,
 		mux:         sync.RWMutex{},
 		nodes:       make(map[string]*nodeBundle),
 		authManager: authManager,
+		aliasParser: aliasParser,
 		logger:      logger,
 	}
 }
@@ -186,7 +189,12 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler = interceptor.New(m.stores.Stores(), m.logger)
+		prxNode.Handler, err = interceptor.New(m.stores.Stores(), m.aliasParser, m.logger)
+		if err != nil {
+			logger.WithError(err).Error("failed to create interceptor")
+			n.err = err
+			return err
+		}
 
 		// Start node
 		err = prxNode.Start(ctx)

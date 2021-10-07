@@ -68,7 +68,7 @@ func (h *UtilsHandler) verifySignature(rw http.ResponseWriter, request *http.Req
 }
 
 // @Summary EC Recover
-// @Description Recover an Ethereum sender from a signature of the format [R || S || V] where V is 0 or 1
+// @Description Recover an Ethereum sender address from a signature of the format [R || S || V] where V is 0 or 1
 // @Tags Utilities
 // @Accept json
 // @Produce plain

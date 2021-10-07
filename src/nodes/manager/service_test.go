@@ -13,6 +13,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
 	storesmock "github.com/consensys/quorum-key-manager/src/stores/mock"
 
+	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
@@ -112,8 +113,9 @@ func TestManager(t *testing.T) {
 	mockStoresManager := storesmock.NewMockManager(ctrl)
 	mockStores := storesmock.NewMockStores(ctrl)
 	mockManifestReader := manifestmock.NewMockReader(ctrl)
+	mockAliasManager := aliasmock.NewMockService(ctrl)
 
-	mngr := New(mockStoresManager, mockManifestReader, mockAuthManager, testutils.NewMockLogger(ctrl))
+	mngr := New(mockStoresManager, mockManifestReader, mockAuthManager, mockAliasManager, testutils.NewMockLogger(ctrl))
 
 	t.Run("should start service successfully loading nodes from mnf", func(t *testing.T) {
 		mockManifestReader.EXPECT().Load().Return([]*manifest.Manifest{manifestWithTessera, manifestRPCOnly, manifestWithTenant}, nil)

@@ -14,9 +14,9 @@ const (
 )
 
 // CreateAlias creates an alias in the registry.
-func (c *HTTPClient) CreateAlias(ctx context.Context, registry types.RegistryName, aliasKey types.AliasKey, req types.AliasRequest) (*types.AliasResponse, error) {
-	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
-	resp, err := postRequest(ctx, c.client, url, req)
+func (c *HTTPClient) CreateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
+	resp, err := postRequest(ctx, c.client, requestURL, req)
 	if err != nil {
 		return nil, err
 	}
@@ -31,9 +31,9 @@ func (c *HTTPClient) CreateAlias(ctx context.Context, registry types.RegistryNam
 }
 
 // GetAlias gets an alias from the registry.
-func (c *HTTPClient) GetAlias(ctx context.Context, registry types.RegistryName, aliasKey types.AliasKey) (*types.AliasResponse, error) {
-	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
-	resp, err := getRequest(ctx, c.client, url)
+func (c *HTTPClient) GetAlias(ctx context.Context, registry, aliasKey string) (*types.AliasResponse, error) {
+	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
+	resp, err := getRequest(ctx, c.client, requestURL)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +48,9 @@ func (c *HTTPClient) GetAlias(ctx context.Context, registry types.RegistryName, 
 }
 
 // UpdateAlias updates an alias in the registry.
-func (c *HTTPClient) UpdateAlias(ctx context.Context, registry types.RegistryName, aliasKey types.AliasKey, req types.AliasRequest) (*types.AliasResponse, error) {
-	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
-	resp, err := putRequest(ctx, c.client, url, req)
+func (c *HTTPClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
+	resp, err := putRequest(ctx, c.client, requestURL, req)
 	if err != nil {
 		return nil, err
 	}
@@ -65,9 +65,9 @@ func (c *HTTPClient) UpdateAlias(ctx context.Context, registry types.RegistryNam
 }
 
 // DeleteAlias deletes an alias from the registry.
-func (c *HTTPClient) DeleteAlias(ctx context.Context, registry types.RegistryName, aliasKey types.AliasKey) error {
-	url := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
-	resp, err := deleteRequest(ctx, c.client, url)
+func (c *HTTPClient) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
+	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
+	resp, err := deleteRequest(ctx, c.client, requestURL)
 	if err != nil {
 		return err
 	}
@@ -77,9 +77,9 @@ func (c *HTTPClient) DeleteAlias(ctx context.Context, registry types.RegistryNam
 }
 
 // ListAliases lists all aliases from a registry.
-func (c *HTTPClient) ListAliases(ctx context.Context, registry types.RegistryName) ([]types.Alias, error) {
-	url := fmt.Sprintf(aliasesPathf, c.config.URL, registry)
-	resp, err := getRequest(ctx, c.client, url)
+func (c *HTTPClient) ListAliases(ctx context.Context, registry string) ([]types.Alias, error) {
+	requestURL := fmt.Sprintf(aliasesPathf, c.config.URL, registry)
+	resp, err := getRequest(ctx, c.client, requestURL)
 	if err != nil {
 		return nil, err
 	}
@@ -94,9 +94,9 @@ func (c *HTTPClient) ListAliases(ctx context.Context, registry types.RegistryNam
 }
 
 // DeleteRegistry deletes a registry, with all the aliases it contained.
-func (c *HTTPClient) DeleteRegistry(ctx context.Context, registry types.RegistryName) error {
-	url := fmt.Sprintf(registryPathf, c.config.URL, registry)
-	resp, err := deleteRequest(ctx, c.client, url)
+func (c *HTTPClient) DeleteRegistry(ctx context.Context, registry string) error {
+	requestURL := fmt.Sprintf(registryPathf, c.config.URL, registry)
+	resp, err := deleteRequest(ctx, c.client, requestURL)
 	if err != nil {
 		return err
 	}
