@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
+	"github.com/consensys/quorum-key-manager/src/aliases/api"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities/testutils"
 	"github.com/consensys/quorum-key-manager/src/aliases/mock"
 )
@@ -30,13 +30,13 @@ type apiHelper struct {
 	mock    *mock.MockService
 	rec     *httptest.ResponseRecorder
 	router  *mux.Router
-	handler *aliasapi.AliasAPI
+	handler *api.AliasAPI
 }
 
 func newAPIHelper(t *testing.T) *apiHelper {
 	ctrl := gomock.NewController(t)
 	srv := mock.NewMockService(ctrl)
-	handler := aliasapi.New(srv)
+	handler := api.New(srv)
 	router := mux.NewRouter()
 	handler.Register(router)
 
@@ -304,7 +304,7 @@ func TestListAliases(t *testing.T) {
 		helper := newAPIHelper(t)
 
 		c := defaultCase()
-		var ents []aliasent.Alias
+		var ents []entities.Alias
 		helper.mock.EXPECT().ListAliases(gomock.Any(), c.reg).Return(ents, nil)
 
 		path := fmt.Sprintf("/registries/%s/aliases", c.reg)
@@ -328,7 +328,7 @@ func TestListAliases(t *testing.T) {
 		helper := newAPIHelper(t)
 
 		c := defaultCase()
-		ents := []aliasent.Alias{
+		ents := []entities.Alias{
 			{
 				Key:   "JPM",
 				Value: []string{`[ "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=" ]`},
@@ -382,7 +382,7 @@ func TestJSONHeader(t *testing.T) {
 			helper.mock.EXPECT().CreateAlias(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(&ent, nil)
 			helper.mock.EXPECT().GetAlias(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(&ent, nil)
 			helper.mock.EXPECT().UpdateAlias(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(&ent, nil)
-			helper.mock.EXPECT().ListAliases(gomock.Any(), gomock.Any()).AnyTimes().Return([]aliasent.Alias{ent}, nil)
+			helper.mock.EXPECT().ListAliases(gomock.Any(), gomock.Any()).AnyTimes().Return([]entities.Alias{ent}, nil)
 
 			helper.router.ServeHTTP(helper.rec, r)
 			assert.Contains(t, helper.rec.Result().Header.Values("Content-Type"), "application/json")

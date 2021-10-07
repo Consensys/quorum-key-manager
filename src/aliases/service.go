@@ -3,7 +3,7 @@ package aliases
 import (
 	"context"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
 //go:generate mockgen -destination=mock/service.go -package=mock . Service,Interactor,Parser
@@ -16,16 +16,16 @@ type Service interface {
 // Interactor handles the aliases storage.
 type Interactor interface {
 	// CreateAlias creates an alias in the registry.
-	CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error)
+	CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
 	// GetAlias gets an alias from the registry.
-	GetAlias(ctx context.Context, registry string, aliasKey string) (*aliasent.Alias, error)
+	GetAlias(ctx context.Context, registry string, aliasKey string) (*entities.Alias, error)
 	// UpdateAlias updates an alias in the registry.
-	UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error)
+	UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
 	// GetAlias deletes an alias from the registry.
 	DeleteAlias(ctx context.Context, registry string, aliasKey string) error
 
 	// ListAlias lists all aliases from a registry.
-	ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error)
+	ListAliases(ctx context.Context, registry string) ([]entities.Alias, error)
 
 	// DeleteRegistry deletes a registry, with all the aliases it contained.
 	DeleteRegistry(ctx context.Context, registry string) error

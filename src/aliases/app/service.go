@@ -2,10 +2,10 @@ package app
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
-	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
-	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
-	aliasmgr "github.com/consensys/quorum-key-manager/src/aliases/manager"
+	"github.com/consensys/quorum-key-manager/src/aliases/api"
+	"github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
+	"github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/manager"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 )
@@ -23,20 +23,20 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	db := aliaspg.NewDatabase(pgClient, logger)
+	db := postgres.NewDatabase(pgClient, logger)
 
-	aliasSrv, err := aliasconn.NewInteractor(db.Alias(), logger)
+	aliasSrv, err := aliases.NewInteractor(db.Alias(), logger)
 	if err != nil {
 		return err
 	}
 
-	m := aliasmgr.New(aliasSrv)
+	m := manager.New(aliasSrv)
 	err = a.RegisterService(m)
 	if err != nil {
 		return err
 	}
 
-	api := aliasapi.New(aliasSrv)
+	api := api.New(aliasSrv)
 	api.Register(a.Router())
 
 	return nil

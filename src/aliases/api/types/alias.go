@@ -1,6 +1,6 @@
 package types
 
-import aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+import "github.com/consensys/quorum-key-manager/src/aliases/entities"
 
 type Alias struct {
 	Key   string   `json:"key"`
@@ -10,7 +10,7 @@ type Alias struct {
 }
 
 // FormatEntityAlias format an alias entity to an alias API type.
-func FormatEntityAlias(ent aliasent.Alias) Alias {
+func FormatEntityAlias(ent entities.Alias) Alias {
 	return Alias{
 		registryName: ent.RegistryName,
 		Key:          ent.Key,
@@ -19,8 +19,8 @@ func FormatEntityAlias(ent aliasent.Alias) Alias {
 }
 
 // FormatAlias format an alias API type to an alias entity.
-func FormatAlias(registry, key string, value []string) aliasent.Alias {
-	return aliasent.Alias{
+func FormatAlias(registry, key string, value []string) entities.Alias {
+	return entities.Alias{
 		RegistryName: registry,
 		Key:          key,
 		Value:        value,
@@ -28,7 +28,7 @@ func FormatAlias(registry, key string, value []string) aliasent.Alias {
 }
 
 // FormatEntityAliases formats a slice of alias entities into a slice of alias API type.
-func FormatEntityAliases(ents []aliasent.Alias) []Alias {
+func FormatEntityAliases(ents []entities.Alias) []Alias {
 	var als = []Alias{}
 	for _, v := range ents {
 		als = append(als, FormatEntityAlias(v))

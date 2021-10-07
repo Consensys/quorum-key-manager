@@ -1,4 +1,4 @@
-package interactors_test
+package aliases_test
 
 import (
 	"context"

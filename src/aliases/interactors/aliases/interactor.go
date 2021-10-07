@@ -1,4 +1,4 @@
-package interactors
+package aliases
 
 import (
 	"context"

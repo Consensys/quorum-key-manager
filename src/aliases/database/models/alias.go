@@ -1,7 +1,7 @@
 package models
 
 import (
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
 // Alias allows the user to associates a RegistryName + a Key to 1 or more
@@ -20,7 +20,7 @@ type Alias struct {
 }
 
 // AliasFromEntitiy transforms an alias entity into an alias model.
-func AliasFromEntity(ent aliasent.Alias) (alias Alias) {
+func AliasFromEntity(ent entities.Alias) (alias Alias) {
 	return Alias{
 		Key:          ent.Key,
 		RegistryName: ent.RegistryName,
@@ -29,8 +29,8 @@ func AliasFromEntity(ent aliasent.Alias) (alias Alias) {
 }
 
 // ToEntity transforms an alias model into an alias entity.
-func (a *Alias) ToEntity() *aliasent.Alias {
-	return &aliasent.Alias{
+func (a *Alias) ToEntity() *entities.Alias {
+	return &entities.Alias{
 		Key:          a.Key,
 		RegistryName: a.RegistryName,
 		Value:        a.Value,
@@ -38,8 +38,8 @@ func (a *Alias) ToEntity() *aliasent.Alias {
 }
 
 // AliasesToEntity transforms an alias model slice into an alias entity slice.
-func AliasesToEntity(aliases []Alias) []aliasent.Alias {
-	var ents []aliasent.Alias
+func AliasesToEntity(aliases []Alias) []entities.Alias {
+	var ents []entities.Alias
 	for _, v := range aliases {
 		ent := v.ToEntity()
 		ents = append(ents, *ent)

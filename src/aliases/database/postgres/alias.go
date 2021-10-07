@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	aliasdb "github.com/consensys/quorum-key-manager/src/aliases/database"
-	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/database/models"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/database"
+	"github.com/consensys/quorum-key-manager/src/aliases/database/models"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
-var _ aliasdb.AliasRepository = &Alias{}
+var _ database.AliasRepository = &Alias{}
 
 // Alias stores the alias data in a postgres DB.
 type Alias struct {
@@ -26,12 +26,12 @@ func NewAlias(pgClient postgres.Client, logger log.Logger) *Alias {
 	}
 }
 
-func (s *Alias) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (s *Alias) CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
-	a := aliasmodels.AliasFromEntity(alias)
+	a := models.AliasFromEntity(alias)
 	a.RegistryName = registry
 
 	err := s.pgClient.Insert(ctx, &a)
@@ -43,12 +43,12 @@ func (s *Alias) CreateAlias(ctx context.Context, registry string, alias aliasent
 	return &alias, nil
 }
 
-func (s *Alias) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
+func (s *Alias) GetAlias(ctx context.Context, registry, aliasKey string) (*entities.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
 	)
-	a := aliasmodels.Alias{
+	a := models.Alias{
 		Key:          aliasKey,
 		RegistryName: registry,
 	}
@@ -61,12 +61,12 @@ func (s *Alias) GetAlias(ctx context.Context, registry, aliasKey string) (*alias
 	return a.ToEntity(), nil
 }
 
-func (s *Alias) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (s *Alias) UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
-	a := aliasmodels.AliasFromEntity(alias)
+	a := models.AliasFromEntity(alias)
 	a.RegistryName = registry
 
 	err := s.pgClient.UpdatePK(ctx, &a)
@@ -83,7 +83,7 @@ func (s *Alias) DeleteAlias(ctx context.Context, registry, aliasKey string) erro
 		"registry_name", registry,
 		"alias_key", aliasKey,
 	)
-	a := aliasmodels.Alias{
+	a := models.Alias{
 		Key:          aliasKey,
 		RegistryName: registry,
 	}
@@ -97,13 +97,13 @@ func (s *Alias) DeleteAlias(ctx context.Context, registry, aliasKey string) erro
 	return nil
 }
 
-func (s *Alias) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
+func (s *Alias) ListAliases(ctx context.Context, registry string) ([]entities.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 	)
 	reg := registry
 
-	var als []aliasmodels.Alias
+	var als []models.Alias
 	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", reg)
 	if err != nil {
 		msg := "failed to list aliases"
@@ -111,7 +111,7 @@ func (s *Alias) ListAliases(ctx context.Context, registry string) ([]aliasent.Al
 		return nil, err
 	}
 
-	return aliasmodels.AliasesToEntity(als), nil
+	return models.AliasesToEntity(als), nil
 }
 
 func (s *Alias) DeleteRegistry(ctx context.Context, registry string) error {

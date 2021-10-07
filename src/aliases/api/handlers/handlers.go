@@ -7,7 +7,7 @@ import (
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/gorilla/mux"
 )
@@ -161,7 +161,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias := &aliasent.Alias{
+	alias := &entities.Alias{
 		RegistryName: regName,
 		Key:          key,
 		Value:        aliasReq.Value,
