@@ -16,15 +16,20 @@ import (
 )
 
 func RegisterService(a *app.App, logger log.Logger) error {
-	// Load manifests service
-	m := new(manifestsmanager.Manager)
-	err := a.Service(m)
+	// Load configuration
+	cfg := new(Config)
+	err := a.ServiceConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	manifestReader, err := manifestsmanager.NewLocalManager(cfg.ManifestPath, logger)
 	if err != nil {
 		return err
 	}
 
 	// Create and register the stores service
-	policyMngr := authmanager.New(*m, logger)
+	policyMngr := authmanager.New(manifestReader, logger)
 	err = a.RegisterService(policyMngr)
 	if err != nil {
 		return err

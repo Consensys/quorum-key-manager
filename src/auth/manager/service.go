@@ -104,13 +104,13 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 	logger := mngr.logger.With("kind", mnf.Kind).With("name", mnf.Name)
 
 	switch mnf.Kind {
-	case RoleKind:
+	case manifest.Role:
 		err := mngr.loadRole(mnf)
 		if err != nil {
 			logger.WithError(err).Error("could not load Role")
 			return err
 		}
-		logger.Info("loaded Role")
+		logger.Info("Role loaded successfully")
 	}
 
 	return nil
