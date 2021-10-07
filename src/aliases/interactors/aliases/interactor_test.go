@@ -1,12 +1,12 @@
-package aliasconn_test
+package aliasint_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/connectors/aliases"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/golang/mock/gomock"
@@ -33,8 +33,8 @@ func TestParseAlias(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	loggerMock := testutils.NewMockLogger(ctrl)
-	backend := mock.NewMockBackend(ctrl)
-	aConn, err := aliasconn.NewConnector(backend, loggerMock)
+	backend := mock.NewMockService(ctrl)
+	aConn, err := aliasconn.NewInteractor(backend, loggerMock)
 	require.NoError(t, err)
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -76,16 +76,16 @@ func TestReplaceAliases(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	backend := mock.NewMockBackend(ctrl)
+	srv := mock.NewMockService(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn, err := aliasconn.NewConnector(backend, loggerMock)
+	aConn, err := aliasconn.NewInteractor(srv, loggerMock)
 	require.NoError(t, err)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			for _, call := range c.calls {
-				backend.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&aliasent.Alias{Value: call.value}, call.err)
+				srv.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&aliasent.Alias{Value: call.value}, call.err)
 			}
 
 			addrs, err := aConn.ReplaceAliases(ctx, c.addrs)

@@ -31,7 +31,7 @@ func TestEthSendTransaction(t *testing.T) {
 	tesseraClient := mocktessera.NewMockClient(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	stores := mockaccounts.NewMockStores(ctrl)
-	aliases := aliasmock.NewMockBackend(ctrl)
+	aliases := aliasmock.NewMockService(ctrl)
 
 	from := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 	userInfo := &types.UserInfo{

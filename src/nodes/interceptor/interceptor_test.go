@@ -19,7 +19,7 @@ import (
 
 func newInterceptor(t *testing.T, ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores) {
 	stores := mockstoremanager.NewMockStores(ctrl)
-	aliases := aliasmock.NewMockBackend(ctrl)
+	aliases := aliasmock.NewMockService(ctrl)
 	i, err := New(stores, aliases, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err)
 	return i, stores

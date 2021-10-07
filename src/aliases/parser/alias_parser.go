@@ -11,5 +11,5 @@ import (
 // AliasParser parses and replace aliases.
 type AliasParser interface {
 	ParseAlias(alias string) (regName string, aliasKey string, isAlias bool)
-	ReplaceAliases(ctx context.Context, aliasBackend aliases.Repository, addrs []string) ([]string, error)
+	ReplaceAliases(ctx context.Context, aliasBackend aliases.Interactor, addrs []string) ([]string, error)
 }

@@ -4,29 +4,29 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/aliases"
+	aliasdb "github.com/consensys/quorum-key-manager/src/aliases/database"
 	aliasmodels "github.com/consensys/quorum-key-manager/src/aliases/database/models"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
-var _ aliases.Repository = &AliasStore{}
+var _ aliasdb.AliasRepository = &Alias{}
 
-// AliasStore stores the alias data in a postgres DB.
-type AliasStore struct {
+// Alias stores the alias data in a postgres DB.
+type Alias struct {
 	pgClient postgres.Client
 	logger   log.Logger
 }
 
-func NewAlias(pgClient postgres.Client, logger log.Logger) *AliasStore {
-	return &AliasStore{
+func NewAlias(pgClient postgres.Client, logger log.Logger) *Alias {
+	return &Alias{
 		pgClient: pgClient,
 		logger:   logger,
 	}
 }
 
-func (s *AliasStore) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (s *Alias) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -43,7 +43,7 @@ func (s *AliasStore) CreateAlias(ctx context.Context, registry string, alias ali
 	return &alias, nil
 }
 
-func (s *AliasStore) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
+func (s *Alias) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
@@ -61,7 +61,7 @@ func (s *AliasStore) GetAlias(ctx context.Context, registry, aliasKey string) (*
 	return a.ToEntity(), nil
 }
 
-func (s *AliasStore) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (s *Alias) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -78,7 +78,7 @@ func (s *AliasStore) UpdateAlias(ctx context.Context, registry string, alias ali
 	return a.ToEntity(), nil
 }
 
-func (s *AliasStore) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
+func (s *Alias) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
 	logger := s.logger.With(
 		"registry_name", registry,
 		"alias_key", aliasKey,
@@ -97,7 +97,7 @@ func (s *AliasStore) DeleteAlias(ctx context.Context, registry, aliasKey string)
 	return nil
 }
 
-func (s *AliasStore) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
+func (s *Alias) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
 	logger := s.logger.With(
 		"registry_name", registry,
 	)
@@ -114,6 +114,6 @@ func (s *AliasStore) ListAliases(ctx context.Context, registry string) ([]aliase
 	return aliasmodels.AliasesToEntity(als), nil
 }
 
-func (s *AliasStore) DeleteRegistry(ctx context.Context, registry string) error {
+func (s *Alias) DeleteRegistry(ctx context.Context, registry string) error {
 	return errors.NotImplementedError("DeleteRegistry not implemented")
 }

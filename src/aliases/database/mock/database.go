@@ -5,9 +5,11 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	aliases "github.com/consensys/quorum-key-manager/src/aliases"
+	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,10 +37,10 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 }
 
 // Alias mocks base method.
-func (m *MockDatabase) Alias() aliases.Repository {
+func (m *MockDatabase) Alias() aliases.Interactor {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Alias")
-	ret0, _ := ret[0].(aliases.Repository)
+	ret0, _ := ret[0].(aliases.Interactor)
 	return ret0
 }
 
@@ -46,4 +48,115 @@ func (m *MockDatabase) Alias() aliases.Repository {
 func (mr *MockDatabaseMockRecorder) Alias() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alias", reflect.TypeOf((*MockDatabase)(nil).Alias))
+}
+
+// MockAliasRepository is a mock of AliasRepository interface.
+type MockAliasRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockAliasRepositoryMockRecorder
+}
+
+// MockAliasRepositoryMockRecorder is the mock recorder for MockAliasRepository.
+type MockAliasRepositoryMockRecorder struct {
+	mock *MockAliasRepository
+}
+
+// NewMockAliasRepository creates a new mock instance.
+func NewMockAliasRepository(ctrl *gomock.Controller) *MockAliasRepository {
+	mock := &MockAliasRepository{ctrl: ctrl}
+	mock.recorder = &MockAliasRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAliasRepository) EXPECT() *MockAliasRepositoryMockRecorder {
+	return m.recorder
+}
+
+// CreateAlias mocks base method.
+func (m *MockAliasRepository) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, alias)
+	ret0, _ := ret[0].(*aliasent.Alias)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAlias indicates an expected call of CreateAlias.
+func (mr *MockAliasRepositoryMockRecorder) CreateAlias(ctx, registry, alias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAlias", reflect.TypeOf((*MockAliasRepository)(nil).CreateAlias), ctx, registry, alias)
+}
+
+// DeleteAlias mocks base method.
+func (m *MockAliasRepository) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAlias", ctx, registry, aliasKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAlias indicates an expected call of DeleteAlias.
+func (mr *MockAliasRepositoryMockRecorder) DeleteAlias(ctx, registry, aliasKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAlias", reflect.TypeOf((*MockAliasRepository)(nil).DeleteAlias), ctx, registry, aliasKey)
+}
+
+// DeleteRegistry mocks base method.
+func (m *MockAliasRepository) DeleteRegistry(ctx context.Context, registry string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRegistry indicates an expected call of DeleteRegistry.
+func (mr *MockAliasRepositoryMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegistry", reflect.TypeOf((*MockAliasRepository)(nil).DeleteRegistry), ctx, registry)
+}
+
+// GetAlias mocks base method.
+func (m *MockAliasRepository) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAlias", ctx, registry, aliasKey)
+	ret0, _ := ret[0].(*aliasent.Alias)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAlias indicates an expected call of GetAlias.
+func (mr *MockAliasRepositoryMockRecorder) GetAlias(ctx, registry, aliasKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAlias", reflect.TypeOf((*MockAliasRepository)(nil).GetAlias), ctx, registry, aliasKey)
+}
+
+// ListAliases mocks base method.
+func (m *MockAliasRepository) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
+	ret0, _ := ret[0].([]aliasent.Alias)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAliases indicates an expected call of ListAliases.
+func (mr *MockAliasRepositoryMockRecorder) ListAliases(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAliases", reflect.TypeOf((*MockAliasRepository)(nil).ListAliases), ctx, registry)
+}
+
+// UpdateAlias mocks base method.
+func (m *MockAliasRepository) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, alias)
+	ret0, _ := ret[0].(*aliasent.Alias)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAlias indicates an expected call of UpdateAlias.
+func (mr *MockAliasRepositoryMockRecorder) UpdateAlias(ctx, registry, alias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAlias", reflect.TypeOf((*MockAliasRepository)(nil).UpdateAlias), ctx, registry, alias)
 }

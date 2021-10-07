@@ -7,10 +7,10 @@ import (
 )
 
 type BaseManager struct {
-	Aliases aliases.Backend
+	Aliases aliases.Service
 }
 
-func New(aliasSrv aliases.Backend) *BaseManager {
+func New(aliasSrv aliases.Service) *BaseManager {
 	return &BaseManager{
 		Aliases: aliasSrv,
 	}

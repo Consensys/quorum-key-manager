@@ -13,12 +13,12 @@ import (
 )
 
 type AliasHandler struct {
-	alias aliases.Repository
+	alias aliases.Interactor
 }
 
-func NewAliasHandler(repo aliases.Repository) *AliasHandler {
+func NewAliasHandler(alias aliases.Interactor) *AliasHandler {
 	h := AliasHandler{
-		alias: repo,
+		alias: alias,
 	}
 
 	return &h

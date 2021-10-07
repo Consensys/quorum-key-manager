@@ -111,7 +111,7 @@ func TestManager(t *testing.T) {
 	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 	mockStoresManager.EXPECT().Stores().Return(mockStores).AnyTimes()
 
-	mockAliasManager := aliasmock.NewMockBackend(ctrl)
+	mockAliasManager := aliasmock.NewMockService(ctrl)
 	mngr := New(mockStoresManager, nil, mockAuthManager, mockAliasManager, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)

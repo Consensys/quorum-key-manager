@@ -16,7 +16,7 @@ import (
 type aliasStoreTestSuite struct {
 	suite.Suite
 	env  *IntegrationEnvironment
-	srv  aliases.Repository
+	srv  aliases.Interactor
 	rand *rand.Rand
 }
 

@@ -2,12 +2,15 @@ package aliaspg
 
 import (
 	"github.com/consensys/quorum-key-manager/src/aliases"
+	aliasdb "github.com/consensys/quorum-key-manager/src/aliases/database"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
+var _ aliasdb.Database = &Database{}
+
 type Database struct {
-	alias *AliasStore
+	alias *Alias
 }
 
 func NewDatabase(pgClient postgres.Client, logger log.Logger) *Database {
@@ -16,6 +19,6 @@ func NewDatabase(pgClient postgres.Client, logger log.Logger) *Database {
 	}
 }
 
-func (db *Database) Alias() aliases.Repository {
+func (db *Database) Alias() aliases.Interactor {
 	return db.alias
 }
