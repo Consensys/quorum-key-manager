@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"net/url"
 
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
 )
@@ -16,10 +15,6 @@ const (
 
 // CreateAlias creates an alias in the registry.
 func (c *HTTPClient) CreateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
-	// we escape path
-	registry = url.PathEscape(registry)
-	aliasKey = url.PathEscape(aliasKey)
-
 	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := postRequest(ctx, c.client, requestURL, req)
 	if err != nil {
@@ -37,10 +32,6 @@ func (c *HTTPClient) CreateAlias(ctx context.Context, registry, aliasKey string,
 
 // GetAlias gets an alias from the registry.
 func (c *HTTPClient) GetAlias(ctx context.Context, registry, aliasKey string) (*types.AliasResponse, error) {
-	// we escape path
-	registry = url.PathEscape(registry)
-	aliasKey = url.PathEscape(aliasKey)
-
 	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := getRequest(ctx, c.client, requestURL)
 	if err != nil {
@@ -58,10 +49,6 @@ func (c *HTTPClient) GetAlias(ctx context.Context, registry, aliasKey string) (*
 
 // UpdateAlias updates an alias in the registry.
 func (c *HTTPClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
-	// we escape path
-	registry = url.PathEscape(registry)
-	aliasKey = url.PathEscape(aliasKey)
-
 	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := putRequest(ctx, c.client, requestURL, req)
 	if err != nil {
@@ -79,10 +66,6 @@ func (c *HTTPClient) UpdateAlias(ctx context.Context, registry, aliasKey string,
 
 // DeleteAlias deletes an alias from the registry.
 func (c *HTTPClient) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
-	// we escape path
-	registry = url.PathEscape(registry)
-	aliasKey = url.PathEscape(aliasKey)
-
 	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
 	resp, err := deleteRequest(ctx, c.client, requestURL)
 	if err != nil {
@@ -95,9 +78,6 @@ func (c *HTTPClient) DeleteAlias(ctx context.Context, registry, aliasKey string)
 
 // ListAliases lists all aliases from a registry.
 func (c *HTTPClient) ListAliases(ctx context.Context, registry string) ([]types.Alias, error) {
-	// we escape path
-	registry = url.PathEscape(registry)
-
 	requestURL := fmt.Sprintf(aliasesPathf, c.config.URL, registry)
 	resp, err := getRequest(ctx, c.client, requestURL)
 	if err != nil {
@@ -115,9 +95,6 @@ func (c *HTTPClient) ListAliases(ctx context.Context, registry string) ([]types.
 
 // DeleteRegistry deletes a registry, with all the aliases it contained.
 func (c *HTTPClient) DeleteRegistry(ctx context.Context, registry string) error {
-	// we escape path
-	registry = url.PathEscape(registry)
-
 	requestURL := fmt.Sprintf(registryPathf, c.config.URL, registry)
 	resp, err := deleteRequest(ctx, c.client, requestURL)
 	if err != nil {
