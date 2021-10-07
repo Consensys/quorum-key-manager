@@ -36,8 +36,8 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	api := api.New(aliasSrv)
-	api.Register(a.Router())
+	apiSrv := api.New(aliasSrv)
+	apiSrv.Register(a.Router())
 
 	return nil
 }
