@@ -14,8 +14,23 @@ services:
       - IPC_LOCK
     volumes:
       - hashicorp-plugin:/vault/plugins
-      - ./tls:/vault/tls:ro
       - ./config/config.hcl:/vault/config.hcl:ro
+    entrypoint: vault server -config=/vault/config.hcl
+    ports:
+      - 8200:8200
+
+  hashicorp-tls:
+    <<: *container-common
+    image: library/vault:1.8.2
+    container_name: hashicorp
+    tty: true
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - hashicorp-plugin:/vault/plugins
+      - ./tls:/vault/tls:ro
+      - ./config/config-tls.hcl:/vault/config.hcl:ro
+      - ./tls/ca.crt:/etc/ssl/certs/vault.crt
     entrypoint: vault server -config=/vault/config.hcl
     ports:
       - 8200:8200
@@ -23,8 +38,9 @@ services:
   hashicorp-init-tls:
     <<: *container-common
     build: .
+    container_name: hashicorp-init
     environment:
-      VAULT_ADDR: ${VAULT_ADDR-https://hashicorp:8202}
+      VAULT_ADDR: ${VAULT_ADDR-https://hashicorp:8200}
       VAULT_CACERT: ${VAULT_CACERT-/vault/tls/ca.crt}
       VAULT_CLIENT_CERT: ${VAULT_CLIENT_CERT-/vault/tls/client.crt}
       VAULT_CLIENT_KEY: ${VAULT_CLIENT_KEY-/vault/tls/client.key}
@@ -33,7 +49,7 @@ services:
       PLUGIN_VERSION: ${PLUGIN_VERSION-v1.0.0}
     restart: "no"
     depends_on:
-      - hashicorp
+      - hashicorp-tls
     volumes:
       - hashicorp-token:/vault/token
       - hashicorp-plugin:/vault/plugins
@@ -66,13 +82,14 @@ services:
 
   hashicorp-agent-tls:
     <<: *container-common
+    container_name: hashicorp-agent
     environment:
       VAULT_ADDR: ${VAULT_ADDR-https://hashicorp:8202}
       VAULT_CACERT: ${VAULT_CACERT-/vault/tls/ca.crt}
     image: library/vault:1.8.2
     tty: true
     depends_on:
-      - hashicorp
+      - hashicorp-tls
       - hashicorp-init-tls
     cap_add:
       - IPC_LOCK
