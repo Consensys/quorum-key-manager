@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -10,7 +11,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/reader"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -56,8 +57,8 @@ func TestBaseManager(t *testing.T) {
 	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
 	require.NoError(t, err, "WriteFile manifest1 must not error")
 
-	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir}, logger)
-	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
+	manifests, err := reader.New(&manifestsmanager.Config{Path: dir}, logger)
+	require.NoError(t, err, "New on %v must not error", dir)
 
 	err = manifests.Start(context.TODO())
 	require.NoError(t, err, "Start manifests manager must not error")

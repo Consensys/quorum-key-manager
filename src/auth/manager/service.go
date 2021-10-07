@@ -3,20 +3,20 @@ package manager
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"sync"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
 const ID = "AuthManager"
 
 type BaseManager struct {
-	manifests manifestsmanager.Manager
+	manifests manifests.Reader
 
 	mux   sync.RWMutex
 	roles map[string]*types.Role
@@ -25,7 +25,7 @@ type BaseManager struct {
 	isLive bool
 }
 
-func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
+func New(manifests manifests.Reader, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests: manifests,
 		roles:     make(map[string]*types.Role),
@@ -34,13 +34,13 @@ func New(manifests manifestsmanager.Manager, logger log.Logger) *BaseManager {
 }
 
 func (mngr *BaseManager) Start(_ context.Context) error {
-	messages, err := mngr.manifests.Load()
+	mnfs, err := mngr.manifests.Load()
 	if err != nil {
 		return err
 	}
 
-	for _, message := range messages {
-		_ = mngr.load(message.Manifest)
+	for _, mnf := range mnfs {
+		_ = mngr.load(mnf)
 		if err != nil {
 			return err
 		}
@@ -101,7 +101,7 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
-	logger := mngr.logger.With("kind", mnf.Kind).With("name", mnf.Name)
+	logger := mngr.logger.With("name", mnf.Name)
 
 	switch mnf.Kind {
 	case manifest.Role:
@@ -110,7 +110,7 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 			logger.WithError(err).Error("could not load Role")
 			return err
 		}
-		logger.Info("Role loaded successfully")
+		logger.Info("Role created successfully")
 	}
 
 	return nil

@@ -8,7 +8,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	"github.com/consensys/quorum-key-manager/src/auth"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/reader"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

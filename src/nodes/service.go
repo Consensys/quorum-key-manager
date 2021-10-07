@@ -4,7 +4,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
 	nodesapi "github.com/consensys/quorum-key-manager/src/nodes/api"
 	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes/manager"
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -18,7 +18,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	}
 
 	// Create manifest reader
-	manifestReader, err := manifestsmanager.NewLocalManager(cfg.ManifestPath, logger)
+	manifestReader, err := manifestsmanager.New(cfg.Manifest)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"io/ioutil"
 	"os"
@@ -24,8 +25,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	keymanager "github.com/consensys/quorum-key-manager/src"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/reader"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"

@@ -1,5 +1,7 @@
 package nodes
 
+import manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+
 type Config struct {
-	ManifestPath string
+	Manifest *manifests.Config
 }

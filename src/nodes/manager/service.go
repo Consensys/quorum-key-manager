@@ -3,6 +3,8 @@ package nodemanager
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"sort"
 	"sync"
 
@@ -13,19 +15,17 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
 	"github.com/consensys/quorum-key-manager/src/nodes/node"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	"github.com/consensys/quorum-key-manager/src/stores"
 )
 
-const NodeManagerID = "NodeManager"
+const ID = "NodeManager"
 
 type BaseManager struct {
 	stores      stores.Manager
-	manifests   manifestsmanager.Manager
+	manifests   manifests.Reader
 	authManager auth.Manager
 
 	mux   sync.RWMutex
@@ -44,7 +44,7 @@ type nodeBundle struct {
 	stop     func(context.Context) error
 }
 
-func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifests manifests.Reader, authManager auth.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:      smng,
 		manifests:   manifests,
@@ -56,13 +56,13 @@ func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager au
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	messages, err := m.manifests.Load()
+	mnfs, err := m.manifests.Load()
 	if err != nil {
 		return err
 	}
 
-	for _, message := range messages {
-		err = m.createNodes(ctx, message.Manifest)
+	for _, mnf := range mnfs {
+		err = m.createNodes(ctx, mnf)
 		if err != nil {
 			return err
 		}
@@ -150,7 +150,7 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
-	logger := m.logger.With("kind", mnf.Kind, "name", mnf.Name)
+	logger := m.logger.With("name", mnf.Name)
 
 	if _, ok := m.nodes[mnf.Name]; ok {
 		errMessage := "node already exists"
@@ -194,13 +194,13 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 		n.node = prxNode
 		n.stop = prxNode.Stop
 
-		logger.Info("node created successfully")
+		logger.Info("Node created successfully")
 	}
 
 	return nil
 }
 
-func (m *BaseManager) ID() string { return NodeManagerID }
+func (m *BaseManager) ID() string { return ID }
 func (m *BaseManager) CheckLiveness(_ context.Context) error {
 	if m.isLive {
 		return nil

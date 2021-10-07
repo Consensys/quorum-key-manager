@@ -4,8 +4,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/stores/api"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
@@ -28,7 +28,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 	db := postgres.New(logger, postgresClient)
 
 	// Create manifest reader
-	manifestReader, err := manifestsmanager.NewLocalManager(cfg.ManifestPath, logger)
+	manifestReader, err := manifestsmanager.New(cfg.Manifest)
 	if err != nil {
 		return err
 	}

@@ -22,10 +22,10 @@ func NewAppConfig(vipr *viper.Viper) (*app.Config, error) {
 	}
 
 	return &app.Config{
-		Logger:       NewLoggerConfig(vipr),
-		HTTP:         httpCfg,
-		ManifestPath: GetManifestPath(vipr),
-		Auth:         authCfg,
-		Postgres:     postgresCfg,
+		Logger:   NewLoggerConfig(vipr),
+		HTTP:     httpCfg,
+		Manifest: NewManifestConfig(vipr),
+		Auth:     authCfg,
+		Postgres: postgresCfg,
 	}, nil
 }

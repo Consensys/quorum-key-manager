@@ -6,6 +6,8 @@ import (
 	json2 "github.com/consensys/quorum-key-manager/pkg/json"
 )
 
+//TODO: Split this file into the different domains where the types belong
+
 type Kind string
 
 const (

@@ -3,10 +3,9 @@ package storemanager
 import (
 	"context"
 	"fmt"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
@@ -14,7 +13,7 @@ import (
 const ID = "StoreManager"
 
 type BaseManager struct {
-	manifests manifestsmanager.Manager
+	manifests manifests.Reader
 
 	isLive bool
 	err    error
@@ -27,7 +26,7 @@ type BaseManager struct {
 
 var _ stores.Manager = &BaseManager{}
 
-func New(storesConnector stores.Stores, manifests manifestsmanager.Manager, db database.Database, logger log.Logger) *BaseManager {
+func New(storesConnector stores.Stores, manifests manifests.Reader, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifests: manifests,
 		logger:    logger,
@@ -37,13 +36,13 @@ func New(storesConnector stores.Stores, manifests manifestsmanager.Manager, db d
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	messages, err := m.manifests.Load()
+	mnfs, err := m.manifests.Load()
 	if err != nil {
 		return err
 	}
 
-	for _, message := range messages {
-		err = m.stores.Create(ctx, message.Manifest)
+	for _, mnf := range mnfs {
+		err = m.stores.Create(ctx, mnf)
 		if err != nil {
 			return err
 		}

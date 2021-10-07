@@ -228,10 +228,10 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	tlsCfg = authtls.NewConfig(tlsAuthCAs)
 
 	return &auth.Config{
-		OIDC:         oidcCfg,
-		APIKEY:       apiKeyCfg,
-		TLS:          tlsCfg,
-		ManifestPath: GetManifestPath(vipr),
+		OIDC:     oidcCfg,
+		APIKEY:   apiKeyCfg,
+		TLS:      tlsCfg,
+		Manifest: NewManifestConfig(vipr),
 	}, nil
 
 }

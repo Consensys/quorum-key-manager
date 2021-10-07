@@ -1,6 +1,7 @@
 package auth
 
 import (
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
@@ -12,7 +13,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
 func RegisterService(a *app.App, logger log.Logger) error {
@@ -23,7 +23,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	manifestReader, err := manifestsmanager.NewLocalManager(cfg.ManifestPath, logger)
+	manifestReader, err := manifestreader.New(cfg.Manifest)
 	if err != nil {
 		return err
 	}

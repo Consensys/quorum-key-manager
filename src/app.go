@@ -7,6 +7,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	stores "github.com/consensys/quorum-key-manager/src/stores/app"
@@ -14,11 +15,11 @@ import (
 )
 
 type Config struct {
-	HTTP         *server.Config
-	Logger       *log.Config
-	Postgres     *client.Config
-	Auth         *auth.Config
-	ManifestPath string
+	HTTP     *server.Config
+	Logger   *log.Config
+	Postgres *client.Config
+	Auth     *auth.Config
+	Manifest *manifests.Config
 }
 
 func New(cfg *Config, logger log.Logger) (*app.App, error) {
@@ -31,12 +32,12 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres, ManifestPath: cfg.ManifestPath})
+	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres, Manifest: cfg.Manifest})
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&nodes.Config{ManifestPath: cfg.ManifestPath})
+	err = a.RegisterServiceConfig(&nodes.Config{Manifest: cfg.Manifest})
 	if err != nil {
 		return nil, err
 	}

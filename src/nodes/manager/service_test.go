@@ -3,6 +3,7 @@ package nodemanager
 import (
 	"context"
 	"encoding/json"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
@@ -14,8 +15,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
-
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 )
 
 var manifestWithTessera = &manifest.Manifest{

@@ -2,11 +2,11 @@ package stores
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	eth "github.com/consensys/quorum-key-manager/src/stores/manager/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
@@ -16,8 +16,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
-	logger := c.logger.With("kind", mnf.Kind).With("name", mnf.Name)
-	logger.Debug("loading store manifest")
+	logger := c.logger.With("name", mnf.Name)
 
 	switch mnf.Kind {
 	case manifest.HashicorpSecrets:
@@ -34,6 +33,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+
+		logger.Info("Hashicorp secret store created successfully")
 	case manifest.HashicorpKeys:
 		spec := &entities.HashicorpSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -48,6 +49,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+
+		logger.Info("Hashicorp key store created successfully")
 	case manifest.AKVSecrets:
 		spec := &secrets.AkvSecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -62,6 +65,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+
+		logger.Info("Azure secret store created successfully")
 	case manifest.AKVKeys:
 		spec := &keys.AkvKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -76,6 +81,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+
+		logger.Info("Azure key store created successfully")
 	case manifest.AWSSecrets:
 		spec := &secrets.AwsSecretSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -90,6 +97,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.secrets[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+
+		logger.Info("AWS secret store created successfully")
 	case manifest.AWSKeys:
 		spec := &keys.AwsKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -104,6 +113,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+
+		logger.Info("AWS key store created successfully")
 	case manifest.LocalKeys:
 		spec := &keys.LocalKeySpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -118,6 +129,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.keys[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+
+		logger.Info("Local key store created successfully")
 	case manifest.Ethereum:
 		spec := &eth.LocalEthSpecs{}
 		if err := mnf.UnmarshalSpecs(spec); err != nil {
@@ -132,8 +145,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		}
 
 		c.ethAccounts[mnf.Name] = &storeBundle{manifest: mnf, store: store, logger: logger}
+		logger.Info("Ethereum store created successfully")
 	}
 
-	logger.Info("store manifest loaded successfully")
 	return nil
 }
