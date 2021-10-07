@@ -3,6 +3,7 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -158,6 +159,9 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Manifest: manifestreader.NewConfig(tmpYml),
 		Postgres: postgresCfg,
 		Logger:   log.NewConfig(log.DebugLevel, log.TextFormat),
+		Auth: &auth.Config{
+			Manifest: manifestreader.NewConfig(tmpYml),
+		},
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
