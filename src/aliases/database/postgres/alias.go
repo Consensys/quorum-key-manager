@@ -1,4 +1,4 @@
-package aliaspg
+package postgres
 
 import (
 	"context"

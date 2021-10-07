@@ -1,4 +1,4 @@
-package aliasent
+package entities
 
 // Alias allows the user to associates a RegistryName + a Key to 1 or more
 // public keys stored in Value.

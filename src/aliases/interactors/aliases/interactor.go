@@ -1,4 +1,4 @@
-package aliasint
+package interactors
 
 import (
 	"context"

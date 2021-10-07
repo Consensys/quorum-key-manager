@@ -1,4 +1,4 @@
-package aliasmodels
+package models
 
 import (
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"

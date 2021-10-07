@@ -1,4 +1,4 @@
-package aliasmanager
+package manager
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package aliasdb
+package database
 
 import (
 	"context"
