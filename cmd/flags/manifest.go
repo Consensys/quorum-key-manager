@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

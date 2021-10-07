@@ -7,7 +7,7 @@ import (
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	stores "github.com/consensys/quorum-key-manager/src/stores/app"

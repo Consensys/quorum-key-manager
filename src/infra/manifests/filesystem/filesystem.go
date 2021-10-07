@@ -1,4 +1,4 @@
-package reader
+package filesystem
 
 import (
 	"io/ioutil"
@@ -12,26 +12,26 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type FilesystemReader struct {
+type Reader struct {
 	path  string
 	isDir bool
 }
 
-var _ manifests.Reader = &FilesystemReader{}
+var _ manifests.Reader = &Reader{}
 
-func New(cfg *Config) (*FilesystemReader, error) {
+func New(cfg *Config) (*Reader, error) {
 	fs, err := os.Stat(cfg.Path)
 	if err != nil {
 		return nil, err
 	}
 
-	return &FilesystemReader{
+	return &Reader{
 		path:  cfg.Path,
 		isDir: fs.IsDir(),
 	}, nil
 }
 
-func (ll *FilesystemReader) Load() ([]*manifest.Manifest, error) {
+func (ll *Reader) Load() ([]*manifest.Manifest, error) {
 	if !ll.isDir {
 		return ll.buildMessages(ll.path)
 	}
@@ -67,7 +67,7 @@ func (ll *FilesystemReader) Load() ([]*manifest.Manifest, error) {
 	return mnfs, nil
 }
 
-func (ll *FilesystemReader) buildMessages(fp string) ([]*manifest.Manifest, error) {
+func (ll *Reader) buildMessages(fp string) ([]*manifest.Manifest, error) {
 	val := validator.New()
 	data, err := ioutil.ReadFile(fp)
 	if err != nil {

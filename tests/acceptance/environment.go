@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"io/ioutil"
 	"os"

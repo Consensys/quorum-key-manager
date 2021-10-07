@@ -4,7 +4,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/consensys/quorum-key-manager/src/stores/api"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/stores"

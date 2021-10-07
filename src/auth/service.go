@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 

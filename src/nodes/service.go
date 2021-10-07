@@ -5,7 +5,7 @@ import (
 	aliasmgr "github.com/consensys/quorum-key-manager/src/aliases/manager"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+	manifestsmanager "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	nodesapi "github.com/consensys/quorum-key-manager/src/nodes/api"
 	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes/manager"
 	"github.com/consensys/quorum-key-manager/src/stores"

@@ -1,7 +1,7 @@
 package app
 
 import (
-	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
+	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	pg "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 )
 
