@@ -3,6 +3,7 @@ package storemanager
 import (
 	"context"
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests"
@@ -13,7 +14,7 @@ import (
 const ID = "StoreManager"
 
 type BaseManager struct {
-	manifests manifests.Reader
+	manifestReader manifests.Reader
 
 	isLive bool
 	err    error
@@ -26,19 +27,21 @@ type BaseManager struct {
 
 var _ stores.Manager = &BaseManager{}
 
-func New(storesConnector stores.Stores, manifests manifests.Reader, db database.Database, logger log.Logger) *BaseManager {
+func New(storesConnector stores.Stores, manifestReader manifests.Reader, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests: manifests,
-		logger:    logger,
-		db:        db,
-		stores:    storesConnector,
+		manifestReader: manifestReader,
+		logger:         logger,
+		db:             db,
+		stores:         storesConnector,
 	}
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	mnfs, err := m.manifests.Load()
+	mnfs, err := m.manifestReader.Load()
 	if err != nil {
-		return err
+		errMessage := "failed to load manifest file"
+		m.logger.WithError(err).Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	for _, mnf := range mnfs {
@@ -47,6 +50,8 @@ func (m *BaseManager) Start(ctx context.Context) error {
 			return err
 		}
 	}
+
+	m.isLive = true
 
 	return nil
 }

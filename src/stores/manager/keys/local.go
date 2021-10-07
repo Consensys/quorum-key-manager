@@ -2,7 +2,7 @@ package keys
 
 import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"

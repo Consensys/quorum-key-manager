@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/reader"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"io/ioutil"
 	"os"
@@ -25,7 +26,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	keymanager "github.com/consensys/quorum-key-manager/src"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/reader"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
@@ -154,10 +154,10 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Database: "postgres",
 	}
 	keyManager, err := keymanager.New(&keymanager.Config{
-		HTTP:      httpConfig,
-		Manifests: &manifestsmanager.Config{Path: tmpYml},
-		Postgres:  postgresCfg,
-		Logger:    log.NewConfig(log.DebugLevel, log.TextFormat),
+		HTTP:     httpConfig,
+		Manifest: manifestreader.NewConfig(tmpYml),
+		Postgres: postgresCfg,
+		Logger:   log.NewConfig(log.DebugLevel, log.TextFormat),
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")

@@ -1,11 +1,12 @@
 package reader
 
 import (
-	"github.com/consensys/quorum-key-manager/src/infra/manifests"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"

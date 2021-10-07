@@ -3,10 +3,11 @@ package nodemanager
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"sort"
 	"sync"
+
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
@@ -38,16 +39,16 @@ type BaseManager struct {
 }
 
 type nodeBundle struct {
-	manifest *manifest.Manifest
-	node     node.Node
-	err      error
-	stop     func(context.Context) error
+	manifestReader *manifest.Manifest
+	node           node.Node
+	err            error
+	stop           func(context.Context) error
 }
 
-func New(smng stores.Manager, manifests manifests.Reader, authManager auth.Manager, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:      smng,
-		manifests:   manifests,
+		manifests:   manifestReader,
 		mux:         sync.RWMutex{},
 		nodes:       make(map[string]*nodeBundle),
 		authManager: authManager,
@@ -58,7 +59,9 @@ func New(smng stores.Manager, manifests manifests.Reader, authManager auth.Manag
 func (m *BaseManager) Start(ctx context.Context) error {
 	mnfs, err := m.manifests.Load()
 	if err != nil {
-		return err
+		errMessage := "failed to load manifestReader file"
+		m.logger.WithError(err).Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	for _, mnf := range mnfs {
@@ -67,6 +70,8 @@ func (m *BaseManager) Start(ctx context.Context) error {
 			return err
 		}
 	}
+
+	m.isLive = true
 
 	return nil
 }
@@ -110,7 +115,7 @@ func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.U
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
 
-		err := resolver.CheckAccess(nodeBundle.manifest.AllowedTenants)
+		err := resolver.CheckAccess(nodeBundle.manifestReader.AllowedTenants)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +140,7 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
 
-		if err := resolver.CheckAccess(nodeBundle.manifest.AllowedTenants); err != nil {
+		if err := resolver.CheckAccess(nodeBundle.manifestReader.AllowedTenants); err != nil {
 			continue
 		}
 		nodeNames = append(nodeNames, name)
@@ -158,10 +163,9 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 		return errors.AlreadyExistsError(errMessage)
 	}
 
-	switch mnf.Kind {
-	case manifest.Node:
+	if mnf.Kind == manifest.Node {
 		n := new(nodeBundle)
-		n.manifest = mnf
+		n.manifestReader = mnf
 		m.nodes[mnf.Name] = n
 
 		cfg := new(proxynode.Config)
@@ -211,6 +215,4 @@ func (m *BaseManager) CheckLiveness(_ context.Context) error {
 	return errors.HealthcheckError(errMessage)
 }
 
-func (m *BaseManager) CheckReadiness(_ context.Context) error {
-	return m.Error()
-}
+func (m *BaseManager) CheckReadiness(_ context.Context) error { return m.Error() }

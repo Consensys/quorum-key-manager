@@ -3,9 +3,10 @@ package manager
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"sync"
+
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -16,27 +17,28 @@ import (
 const ID = "AuthManager"
 
 type BaseManager struct {
-	manifests manifests.Reader
+	manifestReader manifests.Reader
 
 	mux   sync.RWMutex
 	roles map[string]*types.Role
 
 	logger log.Logger
-	isLive bool
 }
 
-func New(manifests manifests.Reader, logger log.Logger) *BaseManager {
+func New(manifestReader manifests.Reader, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests: manifests,
-		roles:     make(map[string]*types.Role),
-		logger:    logger,
+		manifestReader: manifestReader,
+		roles:          make(map[string]*types.Role),
+		logger:         logger,
 	}
 }
 
 func (mngr *BaseManager) Start(_ context.Context) error {
-	mnfs, err := mngr.manifests.Load()
+	mnfs, err := mngr.manifestReader.Load()
 	if err != nil {
-		return err
+		errMessage := "failed to load manifest file"
+		mngr.logger.WithError(err).Error(errMessage)
+		return errors.ConfigError(errMessage)
 	}
 
 	for _, mnf := range mnfs {
@@ -78,7 +80,13 @@ func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permissio
 }
 
 func (mngr *BaseManager) Role(name string) (*types.Role, error) {
-	return mngr.role(name)
+	if group, ok := mngr.roles[name]; ok {
+		return group, nil
+	}
+
+	errMessage := "role not found"
+	mngr.logger.With("name", name).Error(errMessage)
+	return nil, errors.NotFoundError(errMessage)
 }
 
 func (mngr *BaseManager) Roles() ([]string, error) {
@@ -86,15 +94,8 @@ func (mngr *BaseManager) Roles() ([]string, error) {
 	for role := range mngr.roles {
 		roles = append(roles, role)
 	}
+
 	return roles, nil
-}
-
-func (mngr *BaseManager) role(name string) (*types.Role, error) {
-	if group, ok := mngr.roles[name]; ok {
-		return group, nil
-	}
-
-	return nil, fmt.Errorf("role %q not found", name)
 }
 
 func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
@@ -103,45 +104,32 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 
 	logger := mngr.logger.With("name", mnf.Name)
 
-	switch mnf.Kind {
-	case manifest.Role:
-		err := mngr.loadRole(mnf)
-		if err != nil {
-			logger.WithError(err).Error("could not load Role")
-			return err
+	if mnf.Kind == manifest.Role {
+		if _, ok := mngr.roles[mnf.Name]; ok {
+			errMessage := fmt.Sprintf("role %s already exist", mnf.Name)
+			logger.Error(errMessage)
+			return errors.AlreadyExistsError(errMessage)
 		}
+
+		specs := new(RoleSpecs)
+		if err := mnf.UnmarshalSpecs(specs); err != nil {
+			errMessage := fmt.Sprintf("invalid Role specs for role %s", mnf.Name)
+			logger.WithError(err).Error(errMessage)
+			return errors.InvalidParameterError(errMessage)
+		}
+
+		mngr.roles[mnf.Name] = &types.Role{
+			Name:        mnf.Name,
+			Permissions: specs.Permissions,
+		}
+
 		logger.Info("Role created successfully")
-	}
-
-	return nil
-}
-
-func (mngr *BaseManager) loadRole(mnf *manifest.Manifest) error {
-	if _, ok := mngr.roles[mnf.Name]; ok {
-		return fmt.Errorf("role %q already exist", mnf.Name)
-	}
-
-	specs := new(RoleSpecs)
-	if err := mnf.UnmarshalSpecs(specs); err != nil {
-		return fmt.Errorf("invalid Role specs: %v", err)
-	}
-
-	mngr.roles[mnf.Name] = &types.Role{
-		Name:        mnf.Name,
-		Permissions: specs.Permissions,
-	}
-
-	return nil
-}
-
-func (mngr *BaseManager) ID() string { return ID }
-func (mngr *BaseManager) CheckLiveness(_ context.Context) error {
-	if mngr.isLive {
 		return nil
 	}
 
-	errMessage := fmt.Sprintf("service %s is not live", mngr.ID())
-	mngr.logger.Error(errMessage, "id", mngr.ID())
-	return errors.HealthcheckError(errMessage)
+	return nil
 }
+
+func (mngr *BaseManager) ID() string                             { return ID }
+func (mngr *BaseManager) CheckLiveness(_ context.Context) error  { return nil }
 func (mngr *BaseManager) CheckReadiness(_ context.Context) error { return mngr.Error() }
