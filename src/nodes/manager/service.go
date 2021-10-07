@@ -39,10 +39,10 @@ type BaseManager struct {
 }
 
 type nodeBundle struct {
-	manifestReader *manifest.Manifest
-	node           node.Node
-	err            error
-	stop           func(context.Context) error
+	mnf  *manifest.Manifest
+	node node.Node
+	err  error
+	stop func(context.Context) error
 }
 
 func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, logger log.Logger) *BaseManager {
@@ -59,7 +59,7 @@ func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.
 func (m *BaseManager) Start(ctx context.Context) error {
 	mnfs, err := m.manifests.Load()
 	if err != nil {
-		errMessage := "failed to load manifestReader file"
+		errMessage := "failed to load manifest file"
 		m.logger.WithError(err).Error(errMessage)
 		return errors.ConfigError(errMessage)
 	}
@@ -115,7 +115,7 @@ func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.U
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
 
-		err := resolver.CheckAccess(nodeBundle.manifestReader.AllowedTenants)
+		err := resolver.CheckAccess(nodeBundle.mnf.AllowedTenants)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +140,7 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
 
-		if err := resolver.CheckAccess(nodeBundle.manifestReader.AllowedTenants); err != nil {
+		if err := resolver.CheckAccess(nodeBundle.mnf.AllowedTenants); err != nil {
 			continue
 		}
 		nodeNames = append(nodeNames, name)
@@ -165,7 +165,7 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 
 	if mnf.Kind == manifest.Node {
 		n := new(nodeBundle)
-		n.manifestReader = mnf
+		n.mnf = mnf
 		m.nodes[mnf.Name] = n
 
 		cfg := new(proxynode.Config)

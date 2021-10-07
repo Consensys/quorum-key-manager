@@ -45,7 +45,7 @@ func TestManagerService(t *testing.T) {
 	storesConnector := stores2.NewConnector(mockAuthMngr, mockDB, mockLogger)
 	mngr := New(storesConnector, mockManifestReader, mockDB, mockLogger)
 
-	t.Run("should load manifestReader successfully", func(t *testing.T) {
+	t.Run("should start stores service successfully by loading stores", func(t *testing.T) {
 		testManifests := []*manifest.Manifest{
 			{
 				Kind:  "HashicorpSecrets",

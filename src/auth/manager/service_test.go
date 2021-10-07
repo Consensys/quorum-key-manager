@@ -28,7 +28,7 @@ func TestBaseManager(t *testing.T) {
 
 	mngr := New(mockManifestReader, mockLogger)
 
-	t.Run("should load manifestReader successfully", func(t *testing.T) {
+	t.Run("should start service successfully by loading roles", func(t *testing.T) {
 		testManifests := []*manifest.Manifest{
 			{
 				Kind:  "Role",

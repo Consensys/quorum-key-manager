@@ -115,7 +115,7 @@ func TestManager(t *testing.T) {
 
 	mngr := New(mockStoresManager, mockManifestReader, mockAuthManager, testutils.NewMockLogger(ctrl))
 
-	t.Run("should start service successfully loading nodes from manifestReader", func(t *testing.T) {
+	t.Run("should start service successfully loading nodes from mnf", func(t *testing.T) {
 		mockManifestReader.EXPECT().Load().Return([]*manifest.Manifest{manifestWithTessera, manifestRPCOnly, manifestWithTenant}, nil)
 		mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 		mockStoresManager.EXPECT().Stores().Return(mockStores).AnyTimes()
@@ -136,7 +136,7 @@ func TestManager(t *testing.T) {
 		require.Contains(t, l, "node-test3")
 	})
 
-	t.Run("should fail with ConfigError if manifestReader fails to load", func(t *testing.T) {
+	t.Run("should fail with ConfigError if mnf fails to load", func(t *testing.T) {
 		mockManifestReader.EXPECT().Load().Return(nil, fmt.Errorf("error"))
 
 		err := mngr.Start(ctx)

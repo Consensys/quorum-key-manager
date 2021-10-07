@@ -22,6 +22,8 @@ type BaseManager struct {
 	mux   sync.RWMutex
 	roles map[string]*types.Role
 
+	isLive bool
+
 	logger log.Logger
 }
 
@@ -47,6 +49,8 @@ func (mngr *BaseManager) Start(_ context.Context) error {
 			return err
 		}
 	}
+
+	mngr.isLive = true
 
 	return nil
 }
@@ -130,6 +134,14 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 	return nil
 }
 
-func (mngr *BaseManager) ID() string                             { return ID }
-func (mngr *BaseManager) CheckLiveness(_ context.Context) error  { return nil }
+func (mngr *BaseManager) ID() string { return ID }
+func (mngr *BaseManager) CheckLiveness(_ context.Context) error {
+	if mngr.isLive {
+		return nil
+	}
+
+	errMessage := fmt.Sprintf("service %s is not live", mngr.ID())
+	mngr.logger.Error(errMessage, "id", mngr.ID())
+	return errors.HealthcheckError(errMessage)
+}
 func (mngr *BaseManager) CheckReadiness(_ context.Context) error { return mngr.Error() }
