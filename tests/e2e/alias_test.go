@@ -48,20 +48,20 @@ func TestAlias(t *testing.T) {
 }
 
 type testAlias struct {
-	reg    types.RegistryName
-	key    types.AliasKey
-	val    types.AliasValue
-	newVal types.AliasValue
+	reg    string
+	key    string
+	val    []string
+	newVal []string
 }
 
 func (s *aliasTestSuite) fakeAlias() testAlias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
 	return testAlias{
-		reg:    types.RegistryName("JPM-" + randID),
-		key:    types.AliasKey("GoldmanSachs-" + randID),
-		val:    `["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
-		newVal: `["ZOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=","2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="]`,
+		reg:    "JPM-" + randID,
+		key:    "GoldmanSachs-" + randID,
+		val:    []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
+		newVal: []string{"ZOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
 	}
 }
 
@@ -120,7 +120,23 @@ func (s *aliasTestSuite) TestCreateAlias() {
 
 		s.checkErr(err, http.StatusBadRequest)
 	})
+	s.Run("should not fail if registry use chars that need to be URL encoded", func() {
+		fakeAlias := fakeAlias
+		fakeAlias.reg = "bad registry"
+		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
+		s.Require().Error(err)
+
+		s.checkErr(err, http.StatusBadRequest)
+	})
 	s.Run("should fail with bad request if key has a bad format", func() {
+		fakeAlias := fakeAlias
+		fakeAlias.key = "bad@key"
+		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
+		s.Require().Error(err)
+
+		s.checkErr(err, http.StatusBadRequest)
+	})
+	s.Run("should not fail if key has a bad format", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "bad@key"
 		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})

@@ -4,11 +4,12 @@ import (
 	"context"
 	"math/big"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func (i *Interceptor) ethSendTransaction(ctx context.Context, msg *ethereum.SendTxMsg) (*ethcommon.Hash, error) {
@@ -52,6 +53,13 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 
 	if msg.Data == nil {
 		msg.Data = new([]byte)
+	}
+
+	// extract aliases from PrivateFor
+	*msg.PrivateFor, err = i.aliases.ReplaceAliases(ctx, *msg.PrivateFor)
+	if err != nil {
+		i.logger.WithError(err).Error("failed to replace aliases in privateFor")
+		return nil, err
 	}
 
 	// Store payload on Tessera

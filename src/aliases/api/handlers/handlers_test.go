@@ -18,30 +18,31 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
+	"github.com/consensys/quorum-key-manager/src/aliases/api"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities/mock"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/aliases/mock"
 )
 
 type apiHelper struct {
 	ctx     context.Context
-	mock    *mock.MockAliasBackend
+	mock    *mock.MockService
 	rec     *httptest.ResponseRecorder
 	router  *mux.Router
-	handler *aliasapi.AliasAPI
+	handler *api.AliasAPI
 }
 
 func newAPIHelper(t *testing.T) *apiHelper {
 	ctrl := gomock.NewController(t)
-	store := mock.NewMockAliasBackend(ctrl)
-	handler := aliasapi.New(store)
+	srv := mock.NewMockService(ctrl)
+	handler := api.New(srv)
 	router := mux.NewRouter()
 	handler.Register(router)
 
 	return &apiHelper{
 		ctx:     context.Background(),
-		mock:    store,
+		mock:    srv,
 		rec:     httptest.NewRecorder(),
 		router:  router,
 		handler: handler,
@@ -53,13 +54,13 @@ const nonExistingKey = "non_existing_key"
 type Case struct {
 	reg   string
 	key   string
-	value string
+	value []string
 
 	status int
 }
 
 func defaultCase() Case {
-	return Case{"my-registry", "group-A", `[ “ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=”, ”2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=” ]`, http.StatusOK}
+	return Case{"my-registry", "group-A", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, http.StatusOK}
 }
 
 func TestCreateAlias(t *testing.T) {
@@ -68,13 +69,13 @@ func TestCreateAlias(t *testing.T) {
 		helper := newAPIHelper(t)
 		c := defaultCase()
 		req := types.AliasRequest{
-			Value: types.AliasValue(c.value),
+			Value: c.value,
 		}
 		var b bytes.Buffer
 		err := json.NewEncoder(&b).Encode(req)
 		require.NoError(t, err)
 
-		ent := newEntAlias(c.reg, c.key, c.value)
+		ent := testutils.NewEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().CreateAlias(gomock.Any(), ent.RegistryName, ent).Return(&ent, nil)
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -90,7 +91,7 @@ func TestCreateAlias(t *testing.T) {
 		err = json.Unmarshal(res, &resp)
 		require.NoError(t, err)
 
-		assert.Equal(t, types.AliasResponse{Value: types.AliasValue(c.value)}, resp)
+		assert.Equal(t, types.AliasResponse{Value: c.value}, resp)
 	})
 
 	t.Run("already existing alias", func(t *testing.T) {
@@ -101,13 +102,13 @@ func TestCreateAlias(t *testing.T) {
 		c.status = http.StatusConflict
 
 		req := types.AliasRequest{
-			Value: types.AliasValue(c.value),
+			Value: c.value,
 		}
 		var b bytes.Buffer
 		err := json.NewEncoder(&b).Encode(req)
 		require.NoError(t, err)
 
-		ent := newEntAlias(c.reg, c.key, c.value)
+		ent := testutils.NewEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().CreateAlias(gomock.Any(), ent.RegistryName, ent).Return(nil, errors.AlreadyExistsError(""))
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -130,13 +131,13 @@ func TestUpdateAlias(t *testing.T) {
 
 		c := defaultCase()
 		req := types.AliasRequest{
-			Value: types.AliasValue(c.value),
+			Value: c.value,
 		}
 		var b bytes.Buffer
 		err := json.NewEncoder(&b).Encode(req)
 		require.NoError(t, err)
 
-		ent := newEntAlias(c.reg, c.key, c.value)
+		ent := testutils.NewEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().UpdateAlias(gomock.Any(), ent.RegistryName, ent).Return(&ent, nil)
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -153,7 +154,7 @@ func TestUpdateAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, types.AliasResponse{
-			Value: types.AliasValue(c.value),
+			Value: c.value,
 		},
 			resp)
 	})
@@ -166,13 +167,13 @@ func TestUpdateAlias(t *testing.T) {
 		c.key = nonExistingKey
 		c.status = http.StatusNotFound
 		alias := types.AliasRequest{
-			Value: types.AliasValue(c.value),
+			Value: c.value,
 		}
 		var b bytes.Buffer
 		err := json.NewEncoder(&b).Encode(alias)
 		require.NoError(t, err)
 
-		ent := newEntAlias(c.reg, c.key, c.value)
+		ent := testutils.NewEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().UpdateAlias(gomock.Any(), ent.RegistryName, ent).Return(nil, errors.NotFoundError(""))
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -193,7 +194,7 @@ func TestGetAlias(t *testing.T) {
 		helper := newAPIHelper(t)
 
 		c := defaultCase()
-		ent := newEntAlias(c.reg, c.key, c.value)
+		ent := testutils.NewEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().GetAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(&ent, nil)
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -210,7 +211,7 @@ func TestGetAlias(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, types.AliasResponse{
-			Value: types.AliasValue(c.value),
+			Value: c.value,
 		}, resp)
 
 	})
@@ -222,7 +223,7 @@ func TestGetAlias(t *testing.T) {
 		c := defaultCase()
 		c.key = nonExistingKey
 		c.status = http.StatusNotFound
-		ent := newEntAlias(c.reg, c.key, "")
+		ent := testutils.NewEntAlias(c.reg, c.key, nil)
 		helper.mock.EXPECT().GetAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(nil, errors.NotFoundError(""))
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -244,7 +245,7 @@ func TestDeleteAlias(t *testing.T) {
 
 		c := defaultCase()
 		c.status = http.StatusNoContent
-		ent := newEntAlias(c.reg, c.key, c.value)
+		ent := testutils.NewEntAlias(c.reg, c.key, c.value)
 		helper.mock.EXPECT().DeleteAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(nil)
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -261,7 +262,7 @@ func TestDeleteAlias(t *testing.T) {
 		c := defaultCase()
 		c.key = nonExistingKey
 		c.status = http.StatusNotFound
-		ent := newEntAlias(c.reg, c.key, "")
+		ent := testutils.NewEntAlias(c.reg, c.key, nil)
 		helper.mock.EXPECT().DeleteAlias(gomock.Any(), ent.RegistryName, ent.Key).Return(errors.NotFoundError(""))
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
@@ -285,7 +286,7 @@ func TestListAliases(t *testing.T) {
 		c := defaultCase()
 		c.reg = "non_existing_registry"
 		c.status = http.StatusNotFound
-		helper.mock.EXPECT().ListAliases(gomock.Any(), aliasent.RegistryName(c.reg)).Return(nil, errors.NotFoundError(""))
+		helper.mock.EXPECT().ListAliases(gomock.Any(), c.reg).Return(nil, errors.NotFoundError(""))
 
 		path := fmt.Sprintf("/registries/%s/aliases", c.reg)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
@@ -303,8 +304,8 @@ func TestListAliases(t *testing.T) {
 		helper := newAPIHelper(t)
 
 		c := defaultCase()
-		var ents []aliasent.Alias
-		helper.mock.EXPECT().ListAliases(gomock.Any(), aliasent.RegistryName(c.reg)).Return(ents, nil)
+		var ents []entities.Alias
+		helper.mock.EXPECT().ListAliases(gomock.Any(), c.reg).Return(ents, nil)
 
 		path := fmt.Sprintf("/registries/%s/aliases", c.reg)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
@@ -327,17 +328,17 @@ func TestListAliases(t *testing.T) {
 		helper := newAPIHelper(t)
 
 		c := defaultCase()
-		ents := []aliasent.Alias{
+		ents := []entities.Alias{
 			{
 				Key:   "JPM",
-				Value: `[ "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=" ]`,
+				Value: []string{`[ "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=" ]`},
 			},
 			{
 				Key:   "GS",
-				Value: `[ "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=" ]`,
+				Value: []string{`[ "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=" ]`},
 			},
 		}
-		helper.mock.EXPECT().ListAliases(gomock.Any(), aliasent.RegistryName(c.reg)).Return(ents, nil)
+		helper.mock.EXPECT().ListAliases(gomock.Any(), c.reg).Return(ents, nil)
 
 		path := fmt.Sprintf("/registries/%s/aliases", c.reg)
 		r, err := newJSONRequest(helper.ctx, "GET", path, nil)
@@ -353,52 +354,16 @@ func TestListAliases(t *testing.T) {
 	})
 }
 
-func TestPathValidate(t *testing.T) {
-	cases := []struct {
-		path string
-	}{
-		{"/registries/bad*registry/aliases/ok-key"},
-		{"/registries/ok_registry/aliases/bad@key"},
-	}
-
-	requests := []struct {
-		method string
-		input  string
-	}{
-		{"GET", ``},
-		{"POST", `{"value": "[ \"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=\" ]"}`},
-		{"PUT", `{"value": "[ \"XOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=\" ]"}`},
-		{"DELETE", ``},
-	}
-
-	for _, c := range cases {
-		for _, r := range requests {
-			t.Run(fmt.Sprintf("%s %s", r.method, c.path), func(t *testing.T) {
-				t.Parallel()
-				helper := newAPIHelper(t)
-
-				input := strings.NewReader(r.input)
-
-				r, err := newJSONRequest(helper.ctx, r.method, c.path, input)
-				require.NoError(t, err)
-
-				helper.router.ServeHTTP(helper.rec, r)
-				assert.Equal(t, http.StatusBadRequest, helper.rec.Result().StatusCode)
-			})
-		}
-	}
-}
-
 func TestJSONHeader(t *testing.T) {
 	cases := []struct {
 		method string
 		path   string
 		input  string
 	}{
-		{"POST", "/registries/1/aliases", `{"key": "1", "value": "[ \"0123\" ]"}`},
+		{"POST", "/registries/1/aliases", `{"key": "1", "value": "0123"}`},
 		{"GET", "/registries/1/aliases", ``},
 		{"GET", "/registries/1/aliases/1", ``},
-		{"PUT", "/registries/1/aliases/1", `{"key": "1", "value": "[ \"01234\" ]"}`},
+		{"PUT", "/registries/1/aliases/1", `{"key": "1", "value": "01234"}`},
 		// DELETE doesn't return any content, only 204 or 404
 	}
 
@@ -412,24 +377,16 @@ func TestJSONHeader(t *testing.T) {
 			r, err := newJSONRequest(helper.ctx, c.method, c.path, input)
 			require.NoError(t, err)
 
-			ent := newEntAlias("1", "1", `[ \"0123\" ]`)
+			ent := testutils.NewEntAlias("1", "1", []string{"0123"})
 			// accept any call just to make the test work
 			helper.mock.EXPECT().CreateAlias(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(&ent, nil)
 			helper.mock.EXPECT().GetAlias(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(&ent, nil)
 			helper.mock.EXPECT().UpdateAlias(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(&ent, nil)
-			helper.mock.EXPECT().ListAliases(gomock.Any(), gomock.Any()).AnyTimes().Return([]aliasent.Alias{ent}, nil)
+			helper.mock.EXPECT().ListAliases(gomock.Any(), gomock.Any()).AnyTimes().Return([]entities.Alias{ent}, nil)
 
 			helper.router.ServeHTTP(helper.rec, r)
 			assert.Contains(t, helper.rec.Result().Header.Values("Content-Type"), "application/json")
 		})
-	}
-}
-
-func newEntAlias(registry, key, value string) aliasent.Alias {
-	return aliasent.Alias{
-		RegistryName: aliasent.RegistryName(registry),
-		Key:          aliasent.AliasKey(key),
-		Value:        aliasent.AliasValue(value),
 	}
 }
 
