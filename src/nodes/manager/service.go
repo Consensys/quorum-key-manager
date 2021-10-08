@@ -160,13 +160,13 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 
 	logger := m.logger.With("name", mnf.Name)
 
-	if _, ok := m.nodes[mnf.Name]; ok {
-		errMessage := "node already exists"
-		logger.Error(errMessage)
-		return errors.AlreadyExistsError(errMessage)
-	}
-
 	if mnf.Kind == manifest.Node {
+		if _, ok := m.nodes[mnf.Name]; ok {
+			errMessage := "node already exists"
+			logger.Error(errMessage)
+			return errors.AlreadyExistsError(errMessage)
+		}
+
 		n := new(nodeBundle)
 		n.mnf = mnf
 		m.nodes[mnf.Name] = n

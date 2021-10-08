@@ -9,7 +9,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/nodes"
+	app2 "github.com/consensys/quorum-key-manager/src/nodes/app"
 	stores "github.com/consensys/quorum-key-manager/src/stores/app"
 	"github.com/justinas/alice"
 )
@@ -37,7 +37,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&nodes.Config{Manifest: cfg.Manifest})
+	err = a.RegisterServiceConfig(&app2.Config{Manifest: cfg.Manifest})
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = nodes.RegisterService(a, logger.WithComponent("nodes"))
+	err = app2.RegisterService(a, logger.WithComponent("nodes"))
 	if err != nil {
 		return nil, err
 	}
