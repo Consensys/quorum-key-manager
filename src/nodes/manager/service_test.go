@@ -8,6 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
 	storesmock "github.com/consensys/quorum-key-manager/src/stores/mock"
 
+	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
@@ -110,7 +111,8 @@ func TestManager(t *testing.T) {
 	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 	mockStoresManager.EXPECT().Stores().Return(mockStores).AnyTimes()
 
-	mngr := New(mockStoresManager, nil, mockAuthManager, testutils.NewMockLogger(ctrl))
+	mockAliasManager := aliasmock.NewMockService(ctrl)
+	mngr := New(mockStoresManager, nil, mockAuthManager, mockAliasManager, testutils.NewMockLogger(ctrl))
 
 	err := mngr.load(context.Background(), manifestWithTessera)
 	require.NoError(t, err, "Load must not error")

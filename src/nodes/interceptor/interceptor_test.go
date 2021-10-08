@@ -10,15 +10,19 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
+	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	mockstoremanager "github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func newInterceptor(ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores) {
+func newInterceptor(t *testing.T, ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores) {
 	stores := mockstoremanager.NewMockStores(ctrl)
-	return New(stores, testutils.NewMockLogger(ctrl)), stores
+	aliases := aliasmock.NewMockService(ctrl)
+	i, err := New(stores, aliases, testutils.NewMockLogger(ctrl))
+	require.NoError(t, err)
+	return i, stores
 }
 
 type testHandlerCase struct {
@@ -56,7 +60,7 @@ func TestPersonal(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, _ := newInterceptor(ctrl)
+	i, _ := newInterceptor(t, ctrl)
 	tests := []*testHandlerCase{
 		{
 			desc:             "Personal",
