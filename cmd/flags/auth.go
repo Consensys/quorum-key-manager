@@ -115,20 +115,6 @@ const (
 	authOIDCClaimRolesEnv      = "AUTH_OIDC_CLAIM_ROLES"
 )
 
-func authTLSCertFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
-Environment variable: %q`, authTLSCertsFileEnv)
-	f.String(authTLSCertsFileFlag, authTLSCertsFileDefault, desc)
-	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
-}
-
-func authAPIKeyFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
-Environment variable: %q`, authAPIKeyFileEnv)
-	f.String(authAPIKeyFileFlag, authAPIKeyDefaultFileFlag, desc)
-	_ = viper.BindPFlag(authAPIKeyFileViperKey, f.Lookup(authAPIKeyFileFlag))
-}
-
 func AuthFlags(f *pflag.FlagSet) {
 	authOIDCCAFile(f)
 	authOIDCIssuerServer(f)
@@ -187,6 +173,20 @@ Environment variable: %q`, authOIDCClaimRolesEnv)
 	_ = viper.BindPFlag(authOIDCClaimRolesViperKey, f.Lookup(authOIDCClaimRolesFlag))
 }
 
+func authTLSCertFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
+Environment variable: %q`, authTLSCertsFileEnv)
+	f.String(authTLSCertsFileFlag, authTLSCertsFileDefault, desc)
+	_ = viper.BindPFlag(authTLSCertsFileViperKey, f.Lookup(authTLSCertsFileFlag))
+}
+
+func authAPIKeyFile(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`TLS Authenticator Cert filepath.
+Environment variable: %q`, authAPIKeyFileEnv)
+	f.String(authAPIKeyFileFlag, authAPIKeyDefaultFileFlag, desc)
+	_ = viper.BindPFlag(authAPIKeyFileViperKey, f.Lookup(authAPIKeyFileFlag))
+}
+
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	// OIDC
 	var certsOIDC []*x509.Certificate
@@ -228,9 +228,10 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	tlsCfg = authtls.NewConfig(tlsAuthCAs)
 
 	return &auth.Config{
-		OIDC:   oidcCfg,
-		APIKEY: apiKeyCfg,
-		TLS:    tlsCfg,
+		OIDC:     oidcCfg,
+		APIKEY:   apiKeyCfg,
+		TLS:      tlsCfg,
+		Manifest: NewManifestConfig(vipr),
 	}, nil
 
 }

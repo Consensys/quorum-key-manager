@@ -6,9 +6,15 @@ import (
 	json2 "github.com/consensys/quorum-key-manager/pkg/json"
 )
 
+//TODO: Split this file into the different domains where the types belong
+
 type Kind string
 
 const (
+	Role Kind = "Role"
+
+	Node Kind = "Node"
+
 	Ethereum Kind = "Ethereum"
 
 	HashicorpKeys Kind = "HashicorpKeys"
@@ -20,17 +26,6 @@ const (
 	AKVSecrets       Kind = "AKVSecrets"
 	AWSSecrets       Kind = "AWSSecrets"
 )
-
-var StoreKinds = []Kind{
-	HashicorpSecrets,
-	HashicorpKeys,
-	AKVSecrets,
-	AKVKeys,
-	AWSSecrets,
-	AWSKeys,
-	LocalKeys,
-	Ethereum,
-}
 
 // Manifest for a store
 type Manifest struct {

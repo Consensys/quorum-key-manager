@@ -3,9 +3,10 @@ package stores
 import (
 	"sync"
 
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 )

@@ -7,7 +7,7 @@ package mock
 import (
 	context "context"
 	types "github.com/consensys/quorum-key-manager/src/auth/types"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	stores "github.com/consensys/quorum-key-manager/src/stores"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"

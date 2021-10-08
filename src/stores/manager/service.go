@@ -6,8 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 )
@@ -15,10 +14,7 @@ import (
 const ID = "StoreManager"
 
 type BaseManager struct {
-	manifests manifestsmanager.Manager
-
-	sub    manifestsmanager.Subscription
-	mnfsts chan []manifestsmanager.Message
+	manifestReader manifests.Reader
 
 	isLive bool
 	err    error
@@ -31,37 +27,37 @@ type BaseManager struct {
 
 var _ stores.Manager = &BaseManager{}
 
-func New(storesConnector stores.Stores, manifests manifestsmanager.Manager, db database.Database, logger log.Logger) *BaseManager {
+func New(storesConnector stores.Stores, manifestReader manifests.Reader, db database.Database, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifests: manifests,
-		mnfsts:    make(chan []manifestsmanager.Message),
-		logger:    logger,
-		db:        db,
-		stores:    storesConnector,
+		manifestReader: manifestReader,
+		logger:         logger,
+		db:             db,
+		stores:         storesConnector,
 	}
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	defer func() {
-		m.isLive = true
-	}()
+	mnfs, err := m.manifestReader.Load()
+	if err != nil {
+		errMessage := "failed to load manifest file"
+		m.logger.WithError(err).Error(errMessage)
+		return errors.ConfigError(errMessage)
+	}
 
-	// Subscribe to manifest of Kind node
-	m.sub = m.manifests.Subscribe(manifest.StoreKinds, m.mnfsts)
+	for _, mnf := range mnfs {
+		err = m.stores.Create(ctx, mnf)
+		if err != nil {
+			return err
+		}
+	}
 
-	// Start loading manifest
-	go m.loadAll(ctx)
+	m.isLive = true
 
 	return nil
 }
 
 func (m *BaseManager) Stop(context.Context) error {
 	m.isLive = false
-
-	if m.sub != nil {
-		_ = m.sub.Unsubscribe()
-	}
-	close(m.mnfsts)
 	return nil
 }
 
@@ -75,16 +71,6 @@ func (m *BaseManager) Close() error {
 
 func (m *BaseManager) Stores() stores.Stores {
 	return m.stores
-}
-
-func (m *BaseManager) loadAll(ctx context.Context) {
-	for mnfsts := range m.mnfsts {
-		for _, mnf := range mnfsts {
-			if err := m.stores.Create(ctx, mnf.Manifest); err != nil {
-				m.err = errors.CombineErrors(m.err, err)
-			}
-		}
-	}
 }
 
 func (m *BaseManager) ID() string { return ID }

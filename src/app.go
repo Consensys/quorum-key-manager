@@ -7,20 +7,19 @@ import (
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	"github.com/consensys/quorum-key-manager/src/manifests"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
-	"github.com/consensys/quorum-key-manager/src/nodes"
+	app2 "github.com/consensys/quorum-key-manager/src/nodes/app"
 	stores "github.com/consensys/quorum-key-manager/src/stores/app"
 	"github.com/justinas/alice"
 )
 
 type Config struct {
-	HTTP      *server.Config
-	Logger    *log.Config
-	Manifests *manifestsmanager.Config
-	Postgres  *client.Config
-	Auth      *auth.Config
+	HTTP     *server.Config
+	Logger   *log.Config
+	Postgres *client.Config
+	Auth     *auth.Config
+	Manifest *manifests.Config
 }
 
 func New(cfg *Config, logger log.Logger) (*app.App, error) {
@@ -28,27 +27,22 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
 	// Register Service Configuration
-	err := a.RegisterServiceConfig(cfg.Manifests)
+	err := a.RegisterServiceConfig(cfg.Auth)
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(cfg.Auth)
+	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres, Manifest: cfg.Manifest})
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres})
+	err = a.RegisterServiceConfig(&app2.Config{Manifest: cfg.Manifest})
 	if err != nil {
 		return nil, err
 	}
 
 	// Register Services
-	err = manifests.RegisterService(a, logger.WithComponent("manifests"))
-	if err != nil {
-		return nil, err
-	}
-
 	err = auth.RegisterService(a, logger.WithComponent("auth"))
 	if err != nil {
 		return nil, err
@@ -69,7 +63,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
-	err = nodes.RegisterService(a, logger.WithComponent("nodes"))
+	err = app2.RegisterService(a, logger.WithComponent("nodes"))
 	if err != nil {
 		return nil, err
 	}

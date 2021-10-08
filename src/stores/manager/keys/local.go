@@ -2,6 +2,7 @@ package keys
 
 import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -9,7 +10,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )
 

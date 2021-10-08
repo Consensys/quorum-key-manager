@@ -25,6 +25,10 @@ func ConfigError(format string, a ...interface{}) *Error {
 	return Errorf(Config, format, a...)
 }
 
+func IsConfigError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), Config)
+}
+
 func DependencyFailureError(format string, a ...interface{}) *Error {
 	return Errorf(DependencyFailure, format, a...)
 }
