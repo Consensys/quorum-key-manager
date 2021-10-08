@@ -55,7 +55,6 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 	config.HttpClient = cleanhttp.DefaultClient()
 	config.HttpClient.Timeout = time.Second * 60
 
-
 	// Create Transport
 	transport := config.HttpClient.Transport.(*http.Transport)
 	transport.TLSHandshakeTimeout = 10 * time.Second
