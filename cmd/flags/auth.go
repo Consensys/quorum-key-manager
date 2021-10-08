@@ -168,7 +168,7 @@ Environment variable: %q`, authOIDCClaimPermissionsEnv)
 
 func AuthOIDCClaimRoles(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Token path claims for roles.
-Environment variable: %q`, authOIDCClaimRolesEnv)
+Environment variable: %q`, authOIDCClaimPermissionsEnv)
 	f.String(authOIDCClaimRolesFlag, AuthOIDCClaimRolesDefault, desc)
 	_ = viper.BindPFlag(authOIDCClaimRolesViperKey, f.Lookup(authOIDCClaimRolesFlag))
 }

@@ -20,14 +20,7 @@ x-default-variables: &default-variables
 
 x-container-common: &container-common
   image: golang:1.16-buster
-  restart: ${CONTAINER_RESTART-on-failure}
   entrypoint: /bin/main
-  tty: true
-  networks:
-    - quorum
-    - besu
-    - hashicorp
-    - qkm
 
 x-qkm-common: &qkm-common
   DB_HOST: postgres
@@ -38,7 +31,10 @@ services:
     environment:
       <<: *default-variables
       <<: *qkm-common
+    networks:
+      - qkm
     command: migrate up
+    restart: "on-failure"
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro
@@ -64,14 +60,20 @@ services:
       - 8443:8443
     depends_on:
       - migration
+    networks:
+      - quorum
+      - besu
+      - hashicorp
+      - qkm
     command: run
+    restart: "on-failure"
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - ./deps/config/certificates:/certificates:ro
       - ./deps/config/ca:/ca:ro
       - ./deps/config/apikey:/apikey:ro
-      - hashicorp-token:/vault/token:ro
+      - hashicorp-token:/vault/token:rw
 
   generate-jwt:
     <<: *container-common
@@ -83,6 +85,21 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/ca:/ca:ro
     command: utils generate-jwt --sub=${SUB-tenant0|user0} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-72h}
+
+  import-secrets:
+    <<: *container-common
+    networks:
+      - hashicorp
+      - qkm
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+      IMPORT_STORE_NAME: ${IMPORT_STORE_NAME-}
+    volumes:
+      - ./deps/config/manifests:/manifests:ro
+      - ./build/bin/key-manager:/bin/main:ro
+      - hashicorp-token:/vault/token:rw
+    command: import secrets
 
 networks:
   quorum:
