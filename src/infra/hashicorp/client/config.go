@@ -74,6 +74,7 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 		ClientCert:    c.ClientCert,
 		ClientKey:     c.ClientKey,
 		TLSServerName: c.TLSServerName,
+		Insecure:      c.SkipVerify,
 	}
 
 	if err := config.ConfigureTLS(tlsConfig); err != nil {

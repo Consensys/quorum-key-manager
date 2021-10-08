@@ -5,14 +5,11 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/hashicorp/vault/api"
-	"os"
-	"strconv"
 )
 
 type HashicorpVaultClient struct {
 	client *api.Client
 	cfg    *Config
-	SkipVerifyUsed bool
 }
 
 var _ hashicorp.VaultClient = &HashicorpVaultClient{}
@@ -30,13 +27,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
 	client.SetNamespace(cfg.Namespace)
 
-	skipVerifyUsed := false
-
-	if v := os.Getenv(api.EnvVaultSkipVerify); v != "" {
-		skipVerifyUsed, _ = strconv.ParseBool(v)
-	}
-
-	return &HashicorpVaultClient{client, cfg, skipVerifyUsed}, nil
+	return &HashicorpVaultClient{client, cfg}, nil
 }
 
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {
