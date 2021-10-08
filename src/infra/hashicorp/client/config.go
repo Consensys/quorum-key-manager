@@ -55,6 +55,7 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 	config.HttpClient = cleanhttp.DefaultClient()
 	config.HttpClient.Timeout = time.Second * 60
 
+
 	// Create Transport
 	transport := config.HttpClient.Transport.(*http.Transport)
 	transport.TLSHandshakeTimeout = 10 * time.Second
@@ -73,10 +74,12 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 		ClientCert:    c.ClientCert,
 		ClientKey:     c.ClientKey,
 		TLSServerName: c.TLSServerName,
-		Insecure:      c.SkipVerify,
 	}
 
-	_ = config.ConfigureTLS(tlsConfig)
+	if err := config.ConfigureTLS(tlsConfig); err != nil {
+		config.Error = err
+		return config
+	}
 
 	config.Limiter = rate.NewLimiter(rate.Limit(c.RateLimit), c.BurstLimit)
 	config.MaxRetries = c.MaxRetries

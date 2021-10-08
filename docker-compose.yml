@@ -22,6 +22,7 @@ x-default-variables: &default-variables
   HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
   AUTH_TLS_CA: ${AUTH_TLS_CA-}
   AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
+  VAULT_SKIP_VERIFY: ${VAULT_SKIP_VERIFY-}
 
 services:
   postgres:

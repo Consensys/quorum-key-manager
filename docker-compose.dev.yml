@@ -17,6 +17,7 @@ x-default-variables: &default-variables
   DB_DATABASE: ${DB_DATABASE-}
   DB_POOLSIZE: ${DB_POOLSIZE-}
   DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
+  VAULT_SKIP_VERIFY: ${VAULT_SKIP_VERIFY-}
 
 x-container-common: &container-common
   image: golang:1.16-buster
