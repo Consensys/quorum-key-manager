@@ -19,7 +19,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
 	clientConfig, err := cfg.ToHashicorpConfig()
 	if err != nil {
-		return nil, clientConfig.Error
+		return nil, err
 	}
 	client, err := api.NewClient(clientConfig)
 	if err != nil {

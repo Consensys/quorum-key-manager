@@ -62,7 +62,6 @@ func (c *Config) ToHashicorpConfig() (*api.Config, error) {
 		MinVersion: tls.VersionTLS12,
 	}
 	if err := http2.ConfigureTransport(transport); err != nil {
-		config.Error = err
 		return config, err
 	}
 
@@ -77,7 +76,6 @@ func (c *Config) ToHashicorpConfig() (*api.Config, error) {
 	}
 
 	if err := config.ConfigureTLS(tlsConfig); err != nil {
-		config.Error = err
 		return config, err
 	}
 
