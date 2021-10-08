@@ -2,10 +2,11 @@ package api
 
 import (
 	"fmt"
-	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes"
 	"net/http"
 	"net/url"
 	"strings"
+
+	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes"
 
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
