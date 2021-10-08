@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/pkg/json"
 
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
@@ -22,7 +23,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 	switch mnf.Kind {
 	case manifest.HashicorpSecrets:
 		spec := &entities.HashicorpSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
@@ -38,7 +39,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		logger.Info("Hashicorp secret store created successfully")
 	case manifest.HashicorpKeys:
 		spec := &entities.HashicorpSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal Hashicorp key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
@@ -54,7 +55,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		logger.Info("Hashicorp key store created successfully")
 	case manifest.AKVSecrets:
 		spec := &secrets.AkvSecretSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
@@ -70,7 +71,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		logger.Info("Azure secret store created successfully")
 	case manifest.AKVKeys:
 		spec := &keys.AkvKeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
@@ -86,7 +87,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		logger.Info("Azure key store created successfully")
 	case manifest.AWSSecrets:
 		spec := &secrets.AwsSecretSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
@@ -102,7 +103,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		logger.Info("AWS secret store created successfully")
 	case manifest.AWSKeys:
 		spec := &keys.AwsKeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
@@ -118,7 +119,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		logger.Info("AWS key store created successfully")
 	case manifest.LocalKeys:
 		spec := &keys.LocalKeySpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal local key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
@@ -134,7 +135,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 		logger.Info("Local key store created successfully")
 	case manifest.Ethereum:
 		spec := &eth.LocalEthSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal Eth store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)

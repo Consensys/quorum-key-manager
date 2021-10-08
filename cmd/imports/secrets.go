@@ -2,6 +2,7 @@ package imports
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/pkg/json"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -54,7 +55,7 @@ func getStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretStore, er
 	switch mnf.Kind {
 	case manifest.HashicorpSecrets:
 		spec := &entities.HashicorpSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "invalid Hashicorp secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
@@ -64,7 +65,7 @@ func getStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretStore, er
 		return secrets.NewHashicorpSecretStore(spec, nil, logger) // DB here is nil and not the DB we instantiate for the import
 	case manifest.AKVSecrets:
 		spec := &secrets.AkvSecretSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "invalid AKV secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
@@ -74,7 +75,7 @@ func getStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretStore, er
 		return secrets.NewAkvSecretStore(spec, logger)
 	case manifest.AWSSecrets:
 		spec := &secrets.AwsSecretSpecs{}
-		if err := mnf.UnmarshalSpecs(spec); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "invalid AWS secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)

@@ -3,6 +3,7 @@ package nodemanager
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/pkg/json"
 	"sort"
 	"sync"
 
@@ -172,7 +173,7 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 		m.nodes[mnf.Name] = n
 
 		cfg := new(proxynode.Config)
-		if err := mnf.UnmarshalSpecs(cfg); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, cfg); err != nil {
 			errMessage := "invalid node specs"
 			logger.WithError(err).Error(errMessage)
 			n.err = errors.InvalidParameterError(errMessage)

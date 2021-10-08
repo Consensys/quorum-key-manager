@@ -1,11 +1,5 @@
 package manifest
 
-import (
-	"encoding/json"
-
-	json2 "github.com/consensys/quorum-key-manager/pkg/json"
-)
-
 //TODO: Split this file into the different domains where the types belong
 
 type Kind string
@@ -48,15 +42,4 @@ type Manifest struct {
 	Specs interface{} `json:"specs" validate:"required"`
 }
 
-func (mnfst *Manifest) UnmarshalSpecs(specs interface{}) error {
-	return UnmarshalSpecs(mnfst.Specs, specs)
-}
 
-func UnmarshalSpecs(src, dest interface{}) error {
-	bdata, err := json.Marshal(json2.RecursiveToJSON(src))
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(bdata, dest)
-}
