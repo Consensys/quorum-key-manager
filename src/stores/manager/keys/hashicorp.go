@@ -22,10 +22,6 @@ func NewHashicorpKeyStore(specs *entities.HashicorpSpecs, logger log.Logger) (*h
 		return nil, errors.ConfigError(errMessage)
 	}
 
-	if cfg.SkipVerify {
-		logger.Warn("skipping certs verification will make your connection insecure and is not recommended in production")
-	}
-
 	if specs.Token != "" {
 		cli.SetToken(specs.Token)
 	} else if specs.TokenPath != "" {
