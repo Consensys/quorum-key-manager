@@ -2,6 +2,7 @@ package keys
 
 import (
 	"context"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 )
+
+const MaxRetries = 3
 
 func NewHashicorpKeyStore(specs *entities.HashicorpSpecs, logger log.Logger) (*hashicorp.Store, error) {
 	cfg := client.NewConfig(specs)
@@ -38,6 +41,19 @@ func NewHashicorpKeyStore(specs *entities.HashicorpSpecs, logger log.Logger) (*h
 				logger.Warn("token watcher has exited gracefully")
 			}
 		}()
+
+		// If the client token is read from filesystem, wait for it to be loaded before we continue
+		retries := 0
+		for retries < MaxRetries {
+			err = cli.HealthCheck()
+			if err == nil {
+				break
+			}
+
+			logger.WithError(err).Debug("waiting for hashicorp client to be ready...", "retries", retries)
+			time.Sleep(100 * time.Millisecond)
+			retries++
+		}
 	}
 
 	store := hashicorp.New(cli, specs.MountPoint, logger)

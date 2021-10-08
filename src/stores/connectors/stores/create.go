@@ -54,7 +54,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 		logger.Info("Hashicorp key store created successfully")
 	case manifest.AKVSecrets:
-		spec := &secrets.AkvSecretSpecs{}
+		spec := &entities.AkvSpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV secret store specs"
 			logger.WithError(err).Error(errMessage)
@@ -70,7 +70,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 		logger.Info("Azure secret store created successfully")
 	case manifest.AKVKeys:
-		spec := &keys.AkvKeySpecs{}
+		spec := &entities.AkvSpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV key store specs"
 			logger.WithError(err).Error(errMessage)
@@ -86,7 +86,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 		logger.Info("Azure key store created successfully")
 	case manifest.AWSSecrets:
-		spec := &secrets.AwsSecretSpecs{}
+		spec := &entities.AwsSpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS secret store specs"
 			logger.WithError(err).Error(errMessage)
@@ -102,7 +102,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 		logger.Info("AWS secret store created successfully")
 	case manifest.AWSKeys:
-		spec := &keys.AwsKeySpecs{}
+		spec := &entities.AwsSpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS key store specs"
 			logger.WithError(err).Error(errMessage)
@@ -118,7 +118,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 		logger.Info("AWS key store created successfully")
 	case manifest.LocalKeys:
-		spec := &keys.LocalKeySpecs{}
+		spec := &entities.LocalKeySpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal local key store specs"
 			logger.WithError(err).Error(errMessage)
@@ -134,7 +134,7 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 		logger.Info("Local key store created successfully")
 	case manifest.Ethereum:
-		spec := &eth.LocalEthSpecs{}
+		spec := &entities.LocalEthSpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal Eth store specs"
 			logger.WithError(err).Error(errMessage)

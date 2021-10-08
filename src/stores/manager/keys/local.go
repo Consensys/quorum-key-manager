@@ -14,12 +14,7 @@ import (
 	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )
 
-type LocalKeySpecs struct {
-	SecretStore manifest.Kind
-	Specs       interface{}
-}
-
-func NewLocalKeyStore(localKeyStoreSpecs *LocalKeySpecs, db database.Secrets, logger log.Logger) (*localkeys.Store, error) {
+func NewLocalKeyStore(localKeyStoreSpecs *entities.LocalKeySpecs, db database.Secrets, logger log.Logger) (*localkeys.Store, error) {
 	var secretStore stores.SecretStore
 	var err error
 
@@ -33,7 +28,7 @@ func NewLocalKeyStore(localKeyStoreSpecs *LocalKeySpecs, db database.Secrets, lo
 		}
 		secretStore, err = msecrets.NewHashicorpSecretStore(spec, db, logger)
 	case manifest.AKVSecrets:
-		spec := &msecrets.AkvSecretSpecs{}
+		spec := &entities.AkvSpecs{}
 		if err = json.UnmarshalJSON(localKeyStoreSpecs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV secret store localKeyStoreSpecs"
 			logger.WithError(err).Error(errMessage)
@@ -41,7 +36,7 @@ func NewLocalKeyStore(localKeyStoreSpecs *LocalKeySpecs, db database.Secrets, lo
 		}
 		secretStore, err = msecrets.NewAkvSecretStore(spec, logger)
 	case manifest.AWSSecrets:
-		spec := &msecrets.AwsSecretSpecs{}
+		spec := &entities.AwsSpecs{}
 		if err = json.UnmarshalJSON(localKeyStoreSpecs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS secret store localKeyStoreSpecs"
 			logger.WithError(err).Error(errMessage)

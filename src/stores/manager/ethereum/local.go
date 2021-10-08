@@ -12,12 +12,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-type LocalEthSpecs struct {
-	Keystore manifest.Kind
-	Specs    interface{}
-}
-
-func NewLocalEth(localETHSpecs *LocalEthSpecs, db database.Secrets, logger log.Logger) (stores.KeyStore, error) {
+func NewLocalEth(localETHSpecs *entities.LocalEthSpecs, db database.Secrets, logger log.Logger) (stores.KeyStore, error) {
 	var keyStore stores.KeyStore
 	var err error
 
@@ -32,7 +27,7 @@ func NewLocalEth(localETHSpecs *LocalEthSpecs, db database.Secrets, logger log.L
 
 		keyStore, err = mkeys.NewHashicorpKeyStore(spec, logger)
 	case manifest.AKVKeys:
-		spec := &mkeys.AkvKeySpecs{}
+		spec := &entities.AkvSpecs{}
 		if err = json.UnmarshalJSON(localETHSpecs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AKV keystore localETHSpecs"
 			logger.WithError(err).Error(errMessage)
@@ -41,7 +36,7 @@ func NewLocalEth(localETHSpecs *LocalEthSpecs, db database.Secrets, logger log.L
 
 		keyStore, err = mkeys.NewAkvKeyStore(spec, logger)
 	case manifest.AWSKeys:
-		spec := &mkeys.AwsKeySpecs{}
+		spec := &entities.AwsSpecs{}
 		if err = json.UnmarshalJSON(localETHSpecs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal AWS keystore localETHSpecs"
 			logger.WithError(err).Error(errMessage)
@@ -50,7 +45,7 @@ func NewLocalEth(localETHSpecs *LocalEthSpecs, db database.Secrets, logger log.L
 
 		keyStore, err = mkeys.NewAwsKeyStore(spec, logger)
 	case manifest.LocalKeys:
-		spec := &mkeys.LocalKeySpecs{}
+		spec := &entities.LocalKeySpecs{}
 		if err = json.UnmarshalJSON(localETHSpecs.Specs, spec); err != nil {
 			errMessage := "failed to unmarshal local keystore localETHSpecs"
 			logger.WithError(err).Error(errMessage)

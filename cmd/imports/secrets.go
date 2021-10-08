@@ -2,10 +2,8 @@ package imports
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/pkg/json"
-	"time"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -15,9 +13,7 @@ import (
 )
 
 func ImportSecrets(ctx context.Context, db database.Secrets, mnf *manifest.Manifest, logger log.Logger) error {
-	startTime := time.Now()
-
-	store, err := getStore(mnf, logger)
+	store, err := getSecretStore(mnf, logger)
 	if err != nil {
 		return err
 	}
@@ -47,11 +43,11 @@ func ImportSecrets(ctx context.Context, db database.Secrets, mnf *manifest.Manif
 		}
 	}
 
-	logger.Info("secrets successfully imported", "n", len(ids), "start_time", startTime, "end_time", time.Now())
+	logger.Info("secrets successfully imported", "n", len(ids))
 	return nil
 }
 
-func getStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretStore, error) {
+func getSecretStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretStore, error) {
 	switch mnf.Kind {
 	case manifest.HashicorpSecrets:
 		spec := &entities.HashicorpSpecs{}
@@ -64,7 +60,7 @@ func getStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretStore, er
 		logger.Info("importing secrets from hashicorp vault...")
 		return secrets.NewHashicorpSecretStore(spec, nil, logger) // DB here is nil and not the DB we instantiate for the import
 	case manifest.AKVSecrets:
-		spec := &secrets.AkvSecretSpecs{}
+		spec := &entities.AkvSpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "invalid AKV secret store specs"
 			logger.WithError(err).Error(errMessage)
@@ -74,7 +70,7 @@ func getStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretStore, er
 		logger.Info("importing secrets from AKV...")
 		return secrets.NewAkvSecretStore(spec, logger)
 	case manifest.AWSSecrets:
-		spec := &secrets.AwsSecretSpecs{}
+		spec := &entities.AwsSpecs{}
 		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
 			errMessage := "invalid AWS secret store specs"
 			logger.WithError(err).Error(errMessage)

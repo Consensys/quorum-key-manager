@@ -4,26 +4,11 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/akv"
 )
 
-// KeySpecs is the specs format for an Azure Key Vault key store
-type AkvKeySpecs struct {
-	VaultName           string `json:"vaultName"`
-	SubscriptionID      string `json:"subscriptionID"`
-	TenantID            string `json:"tenantID"`
-	AuxiliaryTenantIDs  string `json:"auxiliaryTenantIDs"`
-	ClientID            string `json:"clientID"`
-	ClientSecret        string `json:"clientSecret"`
-	CertificatePath     string `json:"certificatePath"`
-	CertificatePassword string `json:"certificatePassword"`
-	Username            string `json:"username"`
-	Password            string `json:"password"`
-	EnvironmentName     string `json:"environmentName"`
-	Resource            string `json:"resource"`
-}
-
-func NewAkvKeyStore(spec *AkvKeySpecs, logger log.Logger) (*akv.Store, error) {
+func NewAkvKeyStore(spec *entities.AkvSpecs, logger log.Logger) (*akv.Store, error) {
 	cfg := client.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret)
 	cli, err := client.NewClient(cfg)
 	if err != nil {

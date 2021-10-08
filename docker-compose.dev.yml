@@ -72,7 +72,7 @@ services:
       - ./deps/config/certificates:/certificates:ro
       - ./deps/config/ca:/ca:ro
       - ./deps/config/apikey:/apikey:ro
-      - hashicorp-token:/vault/token:rw
+      - hashicorp-token:/vault/token:ro
 
   generate-jwt:
     <<: *container-common
@@ -97,7 +97,7 @@ services:
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
-      - hashicorp-token:/vault/token:rw
+      - hashicorp-token:/vault/token:ro
     command: import ${IMPORT_STORE_TYPE-secrets}
 
 networks:
