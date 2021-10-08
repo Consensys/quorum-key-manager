@@ -17,8 +17,8 @@ var _ hashicorp.VaultClient = &HashicorpVaultClient{}
 
 func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
-	clientConfig := cfg.ToHashicorpConfig()
-	if clientConfig.Error != nil {
+	clientConfig, err := cfg.ToHashicorpConfig()
+	if err != nil {
 		return nil, clientConfig.Error
 	}
 	client, err := api.NewClient(clientConfig)
