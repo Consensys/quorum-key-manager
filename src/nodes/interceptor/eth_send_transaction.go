@@ -55,11 +55,25 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 		msg.Data = new([]byte)
 	}
 
-	// extract aliases from PrivateFor
-	*msg.PrivateFor, err = i.aliases.ReplaceAliases(ctx, *msg.PrivateFor)
-	if err != nil {
-		i.logger.WithError(err).Error("failed to replace aliases in privateFor")
-		return nil, err
+	if msg.PrivateFor != nil {
+		// extract aliases from PrivateFor
+		*msg.PrivateFor, err = i.aliases.ReplaceAliases(ctx, *msg.PrivateFor)
+		if err != nil {
+			i.logger.WithError(err).Error("failed to replace aliases in privateFor")
+			return nil, err
+		}
+	}
+
+	if msg.PrivacyGroupID != nil {
+		privacyGroup, err := i.aliases.ReplaceAliases(ctx, []string{*msg.PrivacyGroupID})
+		if err != nil {
+			i.logger.WithError(err).Error("failed to replace aliases in privacyGroupID")
+			return nil, err
+		}
+		if msg.PrivateFor == nil {
+			msg.PrivateFor = &[]string{}
+		}
+		*msg.PrivateFor = append(*msg.PrivateFor, privacyGroup...)
 	}
 
 	// Store payload on Tessera
