@@ -129,6 +129,7 @@ func (rtl *RenewTokenWatcher) refreshToken() error {
 	}
 
 	rtl.client.SetToken(token)
+
 	// Immediately delete the file after it was read
 	err = os.Remove(rtl.tokenPath)
 	if err != nil {

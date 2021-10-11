@@ -4,18 +4,11 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/aws/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 )
 
-// KeySpecs is the specs format for an AWS Key Vault key store
-type AwsKeySpecs struct {
-	Region    string `json:"region"`
-	AccessID  string `json:"accessID"`
-	SecretKey string `json:"secretKey"`
-	Debug     bool   `json:"debug"`
-}
-
-func NewAwsKeyStore(specs *AwsKeySpecs, logger log.Logger) (*aws.Store, error) {
+func NewAwsKeyStore(specs *entities.AwsSpecs, logger log.Logger) (*aws.Store, error) {
 	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
 	cli, err := client.NewKmsClient(cfg)
 	if err != nil {

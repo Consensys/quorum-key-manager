@@ -20,14 +20,7 @@ x-default-variables: &default-variables
 
 x-container-common: &container-common
   image: golang:1.16-buster
-  restart: ${CONTAINER_RESTART-on-failure}
   entrypoint: /bin/main
-  tty: true
-  networks:
-    - quorum
-    - besu
-    - hashicorp
-    - qkm
 
 x-qkm-common: &qkm-common
   DB_HOST: postgres
@@ -38,7 +31,10 @@ services:
     environment:
       <<: *default-variables
       <<: *qkm-common
+    networks:
+      - qkm
     command: migrate up
+    restart: "on-failure"
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/migrations:/migrations:ro
@@ -57,14 +53,19 @@ services:
       HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
       AUTH_TLS_CA: ${AUTH_TLS_CA-}
       AUTH_API_KEY_FILE: ${AUTH_API_KEY_FILE-}
-      GODEBUG: x509ignoreCN=0 # Temporary ENV var while we generate new certs that are compliant with the new golang behavior: https://geekflare.com/san-ssl-certificate/
     ports:
       - 8080:8080
       - 8081:8081
       - 8443:8443
     depends_on:
       - migration
+    networks:
+      - quorum
+      - besu
+      - hashicorp
+      - qkm
     command: run
+    restart: "on-failure"
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
@@ -83,6 +84,21 @@ services:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/ca:/ca:ro
     command: utils generate-jwt --sub=${SUB-tenant0|user0} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-72h}
+
+  import:
+    <<: *container-common
+    networks:
+      - hashicorp
+      - qkm
+    environment:
+      <<: *default-variables
+      <<: *qkm-common
+      IMPORT_STORE_NAME: ${IMPORT_STORE_NAME-}
+    volumes:
+      - ./build/bin/key-manager:/bin/main:ro
+      - ./deps/config/manifests:/manifests:ro
+      - hashicorp-token:/vault/token:ro
+    command: import ${IMPORT_STORE_TYPE-secrets}
 
 networks:
   quorum:

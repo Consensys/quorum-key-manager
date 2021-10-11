@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"context"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
@@ -13,9 +14,10 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 )
 
+const MaxRetries = 3
+
 func NewHashicorpSecretStore(specs *entities.HashicorpSpecs, db database.Secrets, logger log.Logger) (*hashicorp.Store, error) {
-	cfg := client.NewConfig(specs)
-	cli, err := client.NewClient(cfg)
+	cli, err := client.NewClient(client.NewConfig(specs))
 	if err != nil {
 		errMessage := "failed to instantiate Hashicorp client (secrets)"
 		logger.WithError(err).Error(errMessage, "specs", specs)
@@ -38,6 +40,23 @@ func NewHashicorpSecretStore(specs *entities.HashicorpSpecs, db database.Secrets
 				logger.Warn("token watcher has exited gracefully")
 			}
 		}()
+
+		// If the client token is read from filesystem, wait for it to be loaded before we continue
+		retries := 0
+		for retries < MaxRetries {
+			err = cli.HealthCheck()
+			if err == nil {
+				break
+			}
+
+			logger.WithError(err).Debug("waiting for hashicorp client to be ready...", "retries", retries)
+			time.Sleep(100 * time.Millisecond)
+			retries++
+		}
+
+		errMessage := "failed to reach hashicorp vault (secrets). Please verify that the server is reachable"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.ConfigError(errMessage)
 	}
 
 	store := hashicorp.New(cli, db, specs.MountPoint, logger)

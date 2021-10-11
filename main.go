@@ -10,5 +10,4 @@ func main() {
 	if err := command.Execute(); err != nil {
 		log.WithError(err).Fatalf("execution failed")
 	}
-	log.Info("execution completed")
 }

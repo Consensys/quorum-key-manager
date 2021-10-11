@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/pkg/json"
+
 	"github.com/consensys/quorum-key-manager/src/infra/manifests"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
@@ -116,7 +118,7 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 		}
 
 		specs := new(RoleSpecs)
-		if err := mnf.UnmarshalSpecs(specs); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, specs); err != nil {
 			errMessage := fmt.Sprintf("invalid Role specs for role %s", mnf.Name)
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidParameterError(errMessage)

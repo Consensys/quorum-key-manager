@@ -373,7 +373,6 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		require.NoError(s.T(), err)
 		assert.Error(s.T(), resp.Error)
 	})
-
 }
 
 func (s *jsonRPCTestSuite) TestSignEEATransaction() {
