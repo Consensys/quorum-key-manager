@@ -1,8 +1,9 @@
 package entities
 
 import (
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"time"
+
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 )
 
 // TODO: Remove annotations when types from service layer are used

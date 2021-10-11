@@ -3,8 +3,9 @@ package manager
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/json"
 	"sync"
+
+	"github.com/consensys/quorum-key-manager/pkg/json"
 
 	"github.com/consensys/quorum-key-manager/src/infra/manifests"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"

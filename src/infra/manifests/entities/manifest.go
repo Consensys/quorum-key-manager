@@ -41,5 +41,3 @@ type Manifest struct {
 	// Specs specifications of a store
 	Specs interface{} `json:"specs" validate:"required"`
 }
-
-

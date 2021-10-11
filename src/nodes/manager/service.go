@@ -3,9 +3,10 @@ package nodemanager
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/json"
 	"sort"
 	"sync"
+
+	"github.com/consensys/quorum-key-manager/pkg/json"
 
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests"

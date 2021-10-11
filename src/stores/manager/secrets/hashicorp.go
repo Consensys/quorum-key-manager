@@ -2,12 +2,13 @@ package secrets
 
 import (
 	"context"
+	"time"
+
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"

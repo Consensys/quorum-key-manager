@@ -2,6 +2,7 @@ package imports
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -9,7 +10,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
-	eth "github.com/consensys/quorum-key-manager/src/stores/manager/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 )
 
@@ -79,15 +79,6 @@ func getKeyStore(mnf *manifest.Manifest, logger log.Logger) (stores.KeyStore, er
 		}
 
 		return keys.NewAwsKeyStore(spec, logger)
-	case manifest.Ethereum:
-		spec := &entities.LocalEthSpecs{}
-		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
-			errMessage := "invalid ethereum store specs"
-			logger.WithError(err).Error(errMessage)
-			return nil, errors.InvalidFormatError(errMessage)
-		}
-
-		return eth.NewLocalEth(spec, nil, logger) // DB here is nil and not the DB we instantiate for the import
 	}
 
 	errMessage := "invalid manifest kind for key store"
