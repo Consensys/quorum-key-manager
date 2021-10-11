@@ -65,7 +65,8 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 	}
 
 	if msg.PrivacyGroupID != nil {
-		privacyGroup, err := i.aliases.ReplaceAliases(ctx, []string{*msg.PrivacyGroupID})
+		var privacyGroup []string
+		privacyGroup, err = i.aliases.ReplaceAliases(ctx, []string{*msg.PrivacyGroupID})
 		if err != nil {
 			i.logger.WithError(err).Error("failed to replace aliases in privacyGroupID")
 			return nil, err
