@@ -110,29 +110,9 @@ func (s *aliasTestSuite) TestFull() {
 	})
 }
 
-func (s *aliasTestSuite) TestCreateAlias() {
-	fakeAlias := s.fakeAlias()
-
-	s.Run("should not fail if key has a bad format", func() {
-		fakeAlias := fakeAlias
-		fakeAlias.key = "bad@key"
-		_, err := s.client.CreateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
-		s.Require().Error(err)
-
-		s.checkErr(err, http.StatusBadRequest)
-	})
-}
-
 func (s *aliasTestSuite) TestUpdateAlias() {
 	fakeAlias := s.fakeAlias()
-	s.Run("should fail with bad request if key has a bad format", func() {
-		fakeAlias := fakeAlias
-		fakeAlias.key = "bad@key"
-		_, err := s.client.UpdateAlias(s.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.newVal})
-		s.Require().Error(err)
 
-		s.checkErr(err, http.StatusBadRequest)
-	})
 	s.Run("should fail with not found if key does not exist", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "notfound-key"
