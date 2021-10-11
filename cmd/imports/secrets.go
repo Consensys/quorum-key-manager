@@ -13,37 +13,39 @@ import (
 )
 
 func ImportSecrets(ctx context.Context, db database.Secrets, mnf *manifest.Manifest, logger log.Logger) error {
+	logger.Info("importing secrets...", "store", mnf.Kind, "store_name", mnf.Name)
+
 	store, err := getSecretStore(mnf, logger)
 	if err != nil {
 		return err
 	}
 
-	ids, err := store.List(ctx, 0, 0)
+	storeIDs, err := store.List(ctx, 0, 0)
 	if err != nil {
 		return err
 	}
 
-	for _, id := range ids {
+	dbIDs, err := db.SearchIDs(ctx, false, 0, 0)
+	if err != nil {
+		return err
+	}
+
+	var n uint
+	for _, id := range difference(storeIDs, dbIDs) {
 		secret, err := store.Get(ctx, id, "")
 		if err != nil {
 			return err
-		}
-
-		// If secret already exists in DB, we skip. This allows idempotency of the import script (run it multiple times)
-		// No need to treat the error here
-		dbSecret, _ := db.Get(ctx, id, secret.Metadata.Version)
-		if dbSecret != nil {
-			logger.Debug("secret already exists, skipping", "id", id)
-			continue
 		}
 
 		_, err = db.Add(ctx, secret)
 		if err != nil {
 			return err
 		}
+
+		n++
 	}
 
-	logger.Info("secrets successfully imported", "n", len(ids))
+	logger.Info("secrets imported successfully", "n", n)
 	return nil
 }
 
@@ -57,7 +59,6 @@ func getSecretStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretSto
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 
-		logger.Info("importing secrets from hashicorp vault...")
 		return secrets.NewHashicorpSecretStore(spec, nil, logger) // DB here is nil and not the DB we instantiate for the import
 	case manifest.AKVSecrets:
 		spec := &entities.AkvSpecs{}
@@ -67,7 +68,6 @@ func getSecretStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretSto
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 
-		logger.Info("importing secrets from AKV...")
 		return secrets.NewAkvSecretStore(spec, logger)
 	case manifest.AWSSecrets:
 		spec := &entities.AwsSpecs{}
@@ -77,7 +77,6 @@ func getSecretStore(mnf *manifest.Manifest, logger log.Logger) (stores.SecretSto
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 
-		logger.Info("importing secrets from AWS...")
 		return secrets.NewAwsSecretStore(spec, logger)
 	}
 

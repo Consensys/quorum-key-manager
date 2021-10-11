@@ -9,41 +9,44 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	eth "github.com/consensys/quorum-key-manager/src/stores/manager/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/manager/keys"
 )
 
 func ImportKeys(ctx context.Context, db database.Keys, mnf *manifest.Manifest, logger log.Logger) error {
+	logger.Info("importing keys...", "store", mnf.Kind, "store_name", mnf.Name)
+
 	store, err := getKeyStore(mnf, logger)
 	if err != nil {
 		return err
 	}
 
-	ids, err := store.List(ctx, 0, 0)
+	storeIDs, err := store.List(ctx, 0, 0)
 	if err != nil {
 		return err
 	}
 
-	for _, id := range ids {
+	dbIDs, err := db.SearchIDs(ctx, false, 0, 0)
+	if err != nil {
+		return err
+	}
+
+	var n uint
+	for _, id := range difference(storeIDs, dbIDs) {
 		secret, err := store.Get(ctx, id)
 		if err != nil {
 			return err
-		}
-
-		// If key already exists in DB, we skip. This allows idempotency of the import script (run it multiple times)
-		// No need to treat the error here
-		dbKey, _ := db.Get(ctx, id)
-		if dbKey != nil {
-			logger.Debug("key already exists, skipping", "id", id)
-			continue
 		}
 
 		_, err = db.Add(ctx, secret)
 		if err != nil {
 			return err
 		}
+
+		n++
 	}
 
-	logger.Info("keys successfully imported", "n", len(ids))
+	logger.Info("keys imported successfully", "n", n)
 	return nil
 }
 
@@ -57,7 +60,6 @@ func getKeyStore(mnf *manifest.Manifest, logger log.Logger) (stores.KeyStore, er
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 
-		logger.Info("importing keys from hashicorp vault...")
 		return keys.NewHashicorpKeyStore(spec, logger)
 	case manifest.AKVKeys:
 		spec := &entities.AkvSpecs{}
@@ -67,7 +69,6 @@ func getKeyStore(mnf *manifest.Manifest, logger log.Logger) (stores.KeyStore, er
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 
-		logger.Info("importing keys from AKV...")
 		return keys.NewAkvKeyStore(spec, logger)
 	case manifest.AWSKeys:
 		spec := &entities.AwsSpecs{}
@@ -77,8 +78,16 @@ func getKeyStore(mnf *manifest.Manifest, logger log.Logger) (stores.KeyStore, er
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 
-		logger.Info("importing keys from AWS KMS...")
 		return keys.NewAwsKeyStore(spec, logger)
+	case manifest.Ethereum:
+		spec := &entities.LocalEthSpecs{}
+		if err := json.UnmarshalJSON(mnf.Specs, spec); err != nil {
+			errMessage := "invalid ethereum store specs"
+			logger.WithError(err).Error(errMessage)
+			return nil, errors.InvalidFormatError(errMessage)
+		}
+
+		return eth.NewLocalEth(spec, nil, logger) // DB here is nil and not the DB we instantiate for the import
 	}
 
 	errMessage := "invalid manifest kind for key store"
