@@ -1,5 +1,10 @@
 # Quorum Key Manager Release Notes
 
+## v21.9.2 (WIP)
+
+### 🆕 Features
+* Support for import of secrets, keys and ethereum accounts through command line (`import` command)
+
 ## v21.9.1 (2021-10-05)
 
 ### 🛠 Bug fixes
