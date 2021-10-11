@@ -53,6 +53,10 @@ func NewHashicorpSecretStore(specs *entities.HashicorpSpecs, db database.Secrets
 			time.Sleep(100 * time.Millisecond)
 			retries++
 		}
+
+		errMessage := "failed to reach hashicorp vault (secrets). Please verify that the server is reachable"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.ConfigError(errMessage)
 	}
 
 	store := hashicorp.New(cli, db, specs.MountPoint, logger)

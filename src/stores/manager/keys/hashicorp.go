@@ -21,7 +21,7 @@ func NewHashicorpKeyStore(specs *entities.HashicorpSpecs, logger log.Logger) (*h
 	cli, err := client.NewClient(cfg)
 	if err != nil {
 		errMessage := "failed to instantiate Hashicorp client (keys)"
-		logger.WithError(err).Error(errMessage, "specs", specs)
+		logger.WithError(err).Error(errMessage)
 		return nil, errors.ConfigError(errMessage)
 	}
 
@@ -54,6 +54,10 @@ func NewHashicorpKeyStore(specs *entities.HashicorpSpecs, logger log.Logger) (*h
 			time.Sleep(100 * time.Millisecond)
 			retries++
 		}
+
+		errMessage := "failed to reach hashicorp vault (keys). Please verify that the server is reachable"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.ConfigError(errMessage)
 	}
 
 	store := hashicorp.New(cli, specs.MountPoint, logger)
