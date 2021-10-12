@@ -282,8 +282,8 @@ workflows:
           filters:
             branches:
               only: fix/deploy
-          requires:
-            - push-dev-image
+ #         requires:
+ #           - push-dev-image
       - wait-for-approval:
           type: approval
           requires:
@@ -301,11 +301,11 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
-      - deploy-staging:
-          filters:
-            tags:
-              only: fix/deploy
-            branches:
-              ignore: /.*/
-          requires:
-            - release-tag
+#      - deploy-staging:
+#          filters:
+#            tags:
+#              only: fix/deploy
+#            branches:
+#              ignore: /.*/
+#          requires:
+#            - release-tag
