@@ -75,6 +75,8 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 			msg.PrivateFor = &[]string{}
 		}
 		*msg.PrivateFor = append(*msg.PrivateFor, privacyGroup...)
+		// We set it to nil to avoid downstream services making wrong assumptions
+		msg.PrivacyGroupID = nil
 	}
 
 	// Store payload on Tessera
