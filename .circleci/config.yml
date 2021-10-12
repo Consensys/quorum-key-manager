@@ -103,6 +103,7 @@ commands:
                   elif [ "${CIRCLE_BRANCH}" == "main" ]; then echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm' >> $BASH_ENV;
                   else echo 'export TAG=${CIRCLE_BRANCH#"maintenance/"}' >> $BASH_ENV && echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm-${TAG//./-}' >> $BASH_ENV;
                   fi
+                  echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm' >> $BASH_ENV
 
 jobs:
   lint:
