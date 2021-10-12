@@ -278,12 +278,12 @@ workflows:
               only: /^v.*/
           requires:
             - e2e
-#      - deploy-qa:
-#          filters:
-#            branches:
-#              only: main
-#          requires:
-#            - push-dev-image
+      - deploy-qa:
+          filters:
+            branches:
+              only: fix/deploy
+          requires:
+            - push-dev-image
       - wait-for-approval:
           type: approval
           requires:
@@ -301,11 +301,11 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
-#      - deploy-staging:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              ignore: /.*/
-#          requires:
-#            - release-tag
+      - deploy-staging:
+          filters:
+            tags:
+              only: fix/deploy
+            branches:
+              ignore: /.*/
+          requires:
+            - release-tag
