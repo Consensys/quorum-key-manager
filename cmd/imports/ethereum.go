@@ -39,17 +39,19 @@ func ImportEthereum(ctx context.Context, db database.ETHAccounts, mnf *manifest.
 			return err
 		}
 
-		if key.IsETHAccount() {
-			acc := models.NewETHAccountFromKey(key, &entities.Attributes{})
+		if !key.IsETHAccount() {
+			continue
+		}
 
-			if !contains(acc.Address.Hex(), dbAddresses) {
-				_, err = db.Add(ctx, acc)
-				if err != nil {
-					return err
-				}
+		acc := models.NewETHAccountFromKey(key, &entities.Attributes{})
 
-				n++
+		if !contains(acc.Address.Hex(), dbAddresses) {
+			_, err = db.Add(ctx, acc)
+			if err != nil {
+				return err
 			}
+
+			n++
 		}
 	}
 
