@@ -216,8 +216,8 @@ jobs:
       - run:
           name: Deploy QA environment
           command: >-
-            QKM_TAG=${CIRCLE_SHA1:0:7}
-            QKM_REPOSITORY=${DOCKER_REGISTRY_DEV_REPO_2}/quorum-key-manager
+            QKM_TAG=latest
+            QKM_REPOSITORY=${DOCKER_REGISTRY_REPO_2}/quorum-key-manager
             make deploy-remote-env
 
   deploy-staging:
