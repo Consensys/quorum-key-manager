@@ -6,18 +6,19 @@ import (
 	"net/url"
 	"strings"
 
+	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes"
+
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
-	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes/manager"
 	"github.com/gorilla/mux"
 )
 
 type NodesAPI struct {
-	nodes nodesmanager.Manager
+	nodes nodesmanager.Service
 }
 
 // New creates a http.Handler to be served on JSON-RPC
-func New(mngr nodesmanager.Manager) *NodesAPI {
+func New(mngr nodesmanager.Service) *NodesAPI {
 	return &NodesAPI{
 		nodes: mngr,
 	}

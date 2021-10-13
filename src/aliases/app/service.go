@@ -18,7 +18,7 @@ func RegisterService(a *app.App, logger log.Logger) error {
 		return err
 	}
 
-	pgClient, err := client.NewClient(cfg.Postgres)
+	pgClient, err := client.New(cfg.Postgres)
 	if err != nil {
 		return err
 	}

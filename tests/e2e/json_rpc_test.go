@@ -4,21 +4,16 @@ package e2e
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/consensys/quorum-key-manager/pkg/client"
-	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/tests"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -204,61 +199,6 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 	})
 }
 
-func (s *jsonRPCTestSuite) TestAliasEthSendTransaction() {
-	toAddr := "0xd46e8dd67c5d32be8058bb8eb970870f07244567"
-
-	b64Addr := base64.StdEncoding.EncodeToString([]byte(toAddr))
-
-	randGen := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
-	randInt := randGen.Intn(1 << 32)
-	randID := strconv.Itoa(randInt)
-	alias := struct {
-		reg string
-		key string
-		val []string
-	}{
-		reg: "JPM-" + randID,
-		key: "GoldmanSachs-" + randID,
-		val: []string{b64Addr},
-	}
-
-	_, err := s.keyManagerClient.CreateAlias(s.ctx, alias.reg, alias.key, aliastypes.AliasRequest{Value: alias.val})
-	s.Require().NoError(err)
-
-	toAddr = fmt.Sprintf("{{%s:%s}}", alias.reg, alias.key)
-
-	s.Run("should call eth_sendTransaction with an alias, successfully", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
-			"data": "0xa2",
-			"from": s.acc.Address,
-			"to":   toAddr,
-			"gas":  "0x989680",
-		})
-
-		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
-
-		var result string
-		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
-		assert.NoError(s.T(), err)
-		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
-	})
-
-	s.Run("should call eth_sendTransaction and fail if an invalid account", func() {
-		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
-			"data": "0xa2",
-			"from": "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852",
-			"to":   toAddr,
-			"gas":  "0x989680",
-		})
-
-		require.NoError(s.T(), err)
-		assert.Error(s.T(), resp.Error)
-	})
-}
-
 func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 	toAddr := "0xd46e8dd67c5d32be8058bb8eb970870f07244567"
 
@@ -373,7 +313,6 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		require.NoError(s.T(), err)
 		assert.Error(s.T(), resp.Error)
 	})
-
 }
 
 func (s *jsonRPCTestSuite) TestSignEEATransaction() {

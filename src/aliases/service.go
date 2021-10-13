@@ -13,7 +13,7 @@ type Service interface {
 	Parser
 }
 
-// Interactor handles the aliases storage.
+// Interactor handles the alias storage.
 type Interactor interface {
 	// CreateAlias creates an alias in the registry.
 	CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
@@ -21,10 +21,9 @@ type Interactor interface {
 	GetAlias(ctx context.Context, registry string, aliasKey string) (*entities.Alias, error)
 	// UpdateAlias updates an alias in the registry.
 	UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
-	// GetAlias deletes an alias from the registry.
+	// DeleteAlias deletes an alias from the registry.
 	DeleteAlias(ctx context.Context, registry string, aliasKey string) error
-
-	// ListAlias lists all aliases from a registry.
+	// ListAliases lists all aliases from a registry.
 	ListAliases(ctx context.Context, registry string) ([]entities.Alias, error)
 
 	// DeleteRegistry deletes a registry, with all the aliases it contained.

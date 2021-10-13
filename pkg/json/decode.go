@@ -36,3 +36,12 @@ func UnmarshalBody(body io.Reader, req interface{}) error {
 
 	return nil
 }
+
+func UnmarshalJSON(src, dest interface{}) error {
+	bdata, err := MarshalJSON(src)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(bdata, dest)
+}

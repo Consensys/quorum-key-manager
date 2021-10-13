@@ -10,7 +10,6 @@ import (
 
 type HashicorpVaultClient struct {
 	client *api.Client
-	cfg    *Config
 }
 
 var _ hashicorp.VaultClient = &HashicorpVaultClient{}
@@ -28,7 +27,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
 	client.SetNamespace(cfg.Namespace)
 
-	return &HashicorpVaultClient{client, cfg}, nil
+	return &HashicorpVaultClient{client}, nil
 }
 
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {

@@ -3,7 +3,12 @@ package nodemanager
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	manifestmock "github.com/consensys/quorum-key-manager/src/infra/manifests/mock"
 
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
 	storesmock "github.com/consensys/quorum-key-manager/src/stores/mock"
@@ -15,8 +20,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
-
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 )
 
 var manifestWithTessera = &manifest.Manifest{
@@ -101,37 +104,44 @@ var manifestWithTenant = &manifest.Manifest{
 }
 
 func TestManager(t *testing.T) {
+	ctx := context.Background()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockAuthManager := mock.NewMockManager(ctrl)
 	mockStoresManager := storesmock.NewMockManager(ctrl)
 	mockStores := storesmock.NewMockStores(ctrl)
-
-	mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
-	mockStoresManager.EXPECT().Stores().Return(mockStores).AnyTimes()
-
+	mockManifestReader := manifestmock.NewMockReader(ctrl)
 	mockAliasManager := aliasmock.NewMockService(ctrl)
-	mngr := New(mockStoresManager, nil, mockAuthManager, mockAliasManager, testutils.NewMockLogger(ctrl))
 
-	err := mngr.load(context.Background(), manifestWithTessera)
-	require.NoError(t, err, "Load must not error")
+	mngr := New(mockStoresManager, mockManifestReader, mockAuthManager, mockAliasManager, testutils.NewMockLogger(ctrl))
 
-	err = mngr.load(context.Background(), manifestRPCOnly)
-	require.NoError(t, err, "Load must not error")
+	t.Run("should start service successfully loading nodes from mnf", func(t *testing.T) {
+		mockManifestReader.EXPECT().Load().Return([]*manifest.Manifest{manifestWithTessera, manifestRPCOnly, manifestWithTenant}, nil)
+		mockAuthManager.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
+		mockStoresManager.EXPECT().Stores().Return(mockStores).AnyTimes()
 
-	err = mngr.load(context.Background(), manifestWithTenant)
-	require.NoError(t, err, "Load must not error")
+		err := mngr.Start(ctx)
+		require.NoError(t, err)
 
-	n, err := mngr.Node(context.Background(), "node-test1", &types.UserInfo{})
-	require.NoError(t, err, "Node must not error")
-	require.NotNil(t, n, "Node must not be nil")
+		n, err := mngr.Node(ctx, "node-test1", &types.UserInfo{})
+		require.NoError(t, err)
+		require.NotNil(t, n)
 
-	l, err := mngr.List(context.Background(), &types.UserInfo{})
-	require.NoError(t, err, "List must not error")
-	require.Equal(t, []string{"node-test1", "node-test2"}, l, "List must return correct value")
+		l, err := mngr.List(ctx, &types.UserInfo{})
+		require.NoError(t, err)
+		require.Equal(t, []string{"node-test1", "node-test2"}, l)
 
-	l, err = mngr.List(context.Background(), &types.UserInfo{Tenant: "tenantOne"})
-	require.NoError(t, err, "List must not error")
-	require.Contains(t, l, "node-test3")
+		l, err = mngr.List(ctx, &types.UserInfo{Tenant: "tenantOne"})
+		require.NoError(t, err)
+		require.Contains(t, l, "node-test3")
+	})
+
+	t.Run("should fail with ConfigError if mnf fails to load", func(t *testing.T) {
+		mockManifestReader.EXPECT().Load().Return(nil, fmt.Errorf("error"))
+
+		err := mngr.Start(ctx)
+		require.True(t, errors.IsConfigError(err))
+	})
 }

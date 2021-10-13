@@ -124,6 +124,9 @@ down-geth:
 generate-jwt: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up generate-jwt
 
+import: gobuild
+	@docker-compose -f ./docker-compose.dev.yml up import
+
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)
 	@golangci-lint run --fix

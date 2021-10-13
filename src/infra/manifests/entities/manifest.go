@@ -1,14 +1,14 @@
 package manifest
 
-import (
-	"encoding/json"
-
-	json2 "github.com/consensys/quorum-key-manager/pkg/json"
-)
+//TODO: Split this file into the different domains where the types belong
 
 type Kind string
 
 const (
+	Role Kind = "Role"
+
+	Node Kind = "Node"
+
 	Ethereum Kind = "Ethereum"
 
 	HashicorpKeys Kind = "HashicorpKeys"
@@ -20,17 +20,6 @@ const (
 	AKVSecrets       Kind = "AKVSecrets"
 	AWSSecrets       Kind = "AWSSecrets"
 )
-
-var StoreKinds = []Kind{
-	HashicorpSecrets,
-	HashicorpKeys,
-	AKVSecrets,
-	AKVKeys,
-	AWSSecrets,
-	AWSKeys,
-	LocalKeys,
-	Ethereum,
-}
 
 // Manifest for a store
 type Manifest struct {
@@ -51,17 +40,4 @@ type Manifest struct {
 
 	// Specs specifications of a store
 	Specs interface{} `json:"specs" validate:"required"`
-}
-
-func (mnfst *Manifest) UnmarshalSpecs(specs interface{}) error {
-	return UnmarshalSpecs(mnfst.Specs, specs)
-}
-
-func UnmarshalSpecs(src, dest interface{}) error {
-	bdata, err := json.Marshal(json2.RecursiveToJSON(src))
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(bdata, dest)
 }

@@ -1,7 +1,9 @@
 package keys
 
 import (
+	"github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -9,47 +11,41 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
 	msecrets "github.com/consensys/quorum-key-manager/src/stores/manager/secrets"
 )
 
-type LocalKeySpecs struct {
-	SecretStore manifest.Kind
-	Specs       interface{}
-}
-
-func NewLocalKeyStore(specs *LocalKeySpecs, db database.Secrets, logger log.Logger) (*localkeys.Store, error) {
+func NewLocalKeyStore(localKeyStoreSpecs *entities.LocalKeySpecs, db database.Secrets, logger log.Logger) (*localkeys.Store, error) {
 	var secretStore stores.SecretStore
 	var err error
 
-	switch specs.SecretStore {
+	switch localKeyStoreSpecs.SecretStore {
 	case manifest.HashicorpSecrets:
 		spec := &entities.HashicorpSpecs{}
-		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
-			errMessage := "failed to unmarshal Hashicorp secret store specs"
+		if err = json.UnmarshalJSON(localKeyStoreSpecs.Specs, spec); err != nil {
+			errMessage := "failed to unmarshal Hashicorp secret store localKeyStoreSpecs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 		secretStore, err = msecrets.NewHashicorpSecretStore(spec, db, logger)
 	case manifest.AKVSecrets:
-		spec := &msecrets.AkvSecretSpecs{}
-		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
-			errMessage := "failed to unmarshal AKV secret store specs"
+		spec := &entities.AkvSpecs{}
+		if err = json.UnmarshalJSON(localKeyStoreSpecs.Specs, spec); err != nil {
+			errMessage := "failed to unmarshal AKV secret store localKeyStoreSpecs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 		secretStore, err = msecrets.NewAkvSecretStore(spec, logger)
 	case manifest.AWSSecrets:
-		spec := &msecrets.AwsSecretSpecs{}
-		if err = manifest.UnmarshalSpecs(specs.Specs, spec); err != nil {
-			errMessage := "failed to unmarshal AWS secret store specs"
+		spec := &entities.AwsSpecs{}
+		if err = json.UnmarshalJSON(localKeyStoreSpecs.Specs, spec); err != nil {
+			errMessage := "failed to unmarshal AWS secret store localKeyStoreSpecs"
 			logger.WithError(err).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 		secretStore, err = msecrets.NewAwsSecretStore(spec, logger)
 	default:
 		errMessage := "invalid secret store kind"
-		logger.Error(errMessage, "kind", specs.SecretStore)
+		logger.Error(errMessage, "kind", localKeyStoreSpecs.SecretStore)
 		return nil, errors.InvalidFormatError(errMessage)
 	}
 	if err != nil {
