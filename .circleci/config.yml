@@ -218,6 +218,7 @@ jobs:
           command: >-
             QKM_TAG=latest
             QKM_REPOSITORY=${DOCKER_REGISTRY_2}/quorum-key-manager
+            BRANCH=fix/deploy
             make deploy-remote-env
 
   deploy-staging:
