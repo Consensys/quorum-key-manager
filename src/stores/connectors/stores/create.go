@@ -21,6 +21,8 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 
 	logger := c.logger.With("name", mnf.Name)
 
+	const skipVerifyWarning = "skipping certs verification will make your connection insecure and is not recommended in production"
+
 	switch mnf.Kind {
 	case manifest.HashicorpSecrets:
 		spec := &entities.HashicorpSpecs{}
@@ -28,6 +30,10 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 			errMessage := "failed to unmarshal Hashicorp secret store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
+		}
+
+		if spec.SkipVerify {
+			logger.Warn(skipVerifyWarning)
 		}
 
 		store, err := secrets.NewHashicorpSecretStore(spec, c.db.Secrets(mnf.Name), logger)
@@ -44,6 +50,10 @@ func (c *Connector) Create(_ context.Context, mnf *manifest.Manifest) error {
 			errMessage := "failed to unmarshal Hashicorp key store specs"
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidFormatError(errMessage)
+		}
+
+		if spec.SkipVerify {
+			logger.Warn(skipVerifyWarning)
 		}
 
 		store, err := keys.NewHashicorpKeyStore(spec, logger)
