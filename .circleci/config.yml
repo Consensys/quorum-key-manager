@@ -217,7 +217,7 @@ jobs:
           name: Deploy QA environment
           command: >-
             QKM_TAG=latest
-            QKM_REPOSITORY=${DOCKER_REGISTRY_2}/quorum-key-manager
+            QKM_REPOSITORY=${DOCKER_REGISTRY_REPO_2}/quorum-key-manager
             BRANCH=qkm_tls_postgres_fixes
             make deploy-remote-env
 
