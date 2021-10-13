@@ -218,7 +218,7 @@ jobs:
           command: >-
             QKM_TAG=latest
             QKM_REPOSITORY=${DOCKER_REGISTRY_2}/quorum-key-manager
-            BRANCH=fix/deploy
+            BRANCH=qkm_tls_postgres_fixes
             make deploy-remote-env
 
   deploy-staging:
