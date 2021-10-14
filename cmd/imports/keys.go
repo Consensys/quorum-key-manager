@@ -14,7 +14,7 @@ import (
 )
 
 func ImportKeys(ctx context.Context, db database.Keys, mnf *manifest.Manifest, logger log.Logger) error {
-	logger.Info("importing keys...", "store", mnf.Kind, "store_name", mnf.Name)
+	logger.Info("importing keys...")
 
 	store, err := getKeyStore(mnf, logger)
 	if err != nil {
@@ -35,18 +35,18 @@ func ImportKeys(ctx context.Context, db database.Keys, mnf *manifest.Manifest, l
 	for _, id := range difference(storeIDs, dbIDs) {
 		secret, err := store.Get(ctx, id)
 		if err != nil {
-			return err
+			continue
 		}
 
 		_, err = db.Add(ctx, secret)
 		if err != nil {
-			return err
+			continue
 		}
 
 		n++
 	}
 
-	logger.Info("keys imported successfully", "n", n)
+	logger.Info("keys import completed", "n", n)
 	return nil
 }
 

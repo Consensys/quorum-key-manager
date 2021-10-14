@@ -15,7 +15,7 @@ import (
 )
 
 func ImportEthereum(ctx context.Context, db database.ETHAccounts, mnf *manifest.Manifest, logger log.Logger) error {
-	logger.Info("importing ethereum accounts...", "store", mnf.Kind, "store_name", mnf.Name)
+	logger.Info("importing ethereum accounts...")
 
 	store, err := getEthStore(mnf, logger)
 	if err != nil {
@@ -36,24 +36,25 @@ func ImportEthereum(ctx context.Context, db database.ETHAccounts, mnf *manifest.
 	for _, id := range storeIDs {
 		key, err := store.Get(ctx, id)
 		if err != nil {
-			return err
+			continue
 		}
 
-		if key.IsETHAccount() {
-			acc := models.NewETHAccountFromKey(key, &entities.Attributes{})
+		if !key.IsETHAccount() {
+			continue
+		}
 
-			if !contains(acc.Address.Hex(), dbAddresses) {
-				_, err = db.Add(ctx, acc)
-				if err != nil {
-					return err
-				}
-
-				n++
+		acc := models.NewETHAccountFromKey(key, &entities.Attributes{})
+		if !contains(acc.Address.Hex(), dbAddresses) {
+			_, err = db.Add(ctx, acc)
+			if err != nil {
+				continue
 			}
+
+			n++
 		}
 	}
 
-	logger.Info("ethereum accounts imported successfully", "n", n)
+	logger.Info("ethereum accounts import completed", "n", n)
 	return nil
 }
 

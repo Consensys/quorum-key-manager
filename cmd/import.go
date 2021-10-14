@@ -42,6 +42,8 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
+			logger = logger.With("store", mnf.Kind, "store_name", mnf.Name)
+
 			return nil
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {

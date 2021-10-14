@@ -14,7 +14,7 @@ import (
 )
 
 func ImportSecrets(ctx context.Context, db database.Secrets, mnf *manifest.Manifest, logger log.Logger) error {
-	logger.Info("importing secrets...", "store", mnf.Kind, "store_name", mnf.Name)
+	logger.Info("importing secrets...")
 
 	store, err := getSecretStore(mnf, logger)
 	if err != nil {
@@ -35,18 +35,18 @@ func ImportSecrets(ctx context.Context, db database.Secrets, mnf *manifest.Manif
 	for _, id := range difference(storeIDs, dbIDs) {
 		secret, err := store.Get(ctx, id, "")
 		if err != nil {
-			return err
+			continue
 		}
 
 		_, err = db.Add(ctx, secret)
 		if err != nil {
-			return err
+			continue
 		}
 
 		n++
 	}
 
-	logger.Info("secrets imported successfully", "n", n)
+	logger.Info("secrets import completed", "n", n)
 	return nil
 }
 
