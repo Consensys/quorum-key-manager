@@ -31,11 +31,14 @@ func ImportEthereum(ctx context.Context, db database.ETHAccounts, mnf *manifest.
 	if err != nil {
 		return err
 	}
+	addressMap := arrToMap(dbAddresses)
 
-	var n uint
+	var nSuccesses uint
+	var nFailures uint
 	for _, id := range storeIDs {
 		key, err := store.Get(ctx, id)
 		if err != nil {
+			nFailures++
 			continue
 		}
 
@@ -44,17 +47,18 @@ func ImportEthereum(ctx context.Context, db database.ETHAccounts, mnf *manifest.
 		}
 
 		acc := models.NewETHAccountFromKey(key, &entities.Attributes{})
-		if !contains(acc.Address.Hex(), dbAddresses) {
+		if _, found := addressMap[acc.Address.Hex()]; !found {
 			_, err = db.Add(ctx, acc)
 			if err != nil {
+				nFailures++
 				continue
 			}
 
-			n++
+			nSuccesses++
 		}
 	}
 
-	logger.Info("ethereum accounts import completed", "n", n)
+	logger.Info("ethereum accounts import completed", "n_successes", nSuccesses, "n_failures", nFailures)
 	return nil
 }
 

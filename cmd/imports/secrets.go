@@ -31,22 +31,25 @@ func ImportSecrets(ctx context.Context, db database.Secrets, mnf *manifest.Manif
 		return err
 	}
 
-	var n uint
+	var nSuccesses uint
+	var nFailures uint
 	for _, id := range difference(storeIDs, dbIDs) {
 		secret, err := store.Get(ctx, id, "")
 		if err != nil {
+			nFailures++
 			continue
 		}
 
 		_, err = db.Add(ctx, secret)
 		if err != nil {
+			nFailures++
 			continue
 		}
 
-		n++
+		nSuccesses++
 	}
 
-	logger.Info("secrets import completed", "n", n)
+	logger.Info("secrets import completed", "n_successes", nSuccesses, "n_failures", nFailures)
 	return nil
 }
 

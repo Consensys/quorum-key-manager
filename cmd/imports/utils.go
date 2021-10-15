@@ -3,10 +3,8 @@ package imports
 // difference returns the elements in `a` that aren't in `b`
 // Good algorithm as it's O(n) instead of a naive O(n2)
 func difference(a, b []string) []string {
-	mb := make(map[string]struct{}, len(b))
-	for _, x := range b {
-		mb[x] = struct{}{}
-	}
+	mb := arrToMap(b)
+
 	var diff []string
 	for _, x := range a {
 		if _, found := mb[x]; !found {
@@ -16,12 +14,11 @@ func difference(a, b []string) []string {
 	return diff
 }
 
-func contains(val string, arr []string) bool {
-	for _, x := range arr {
-		if val == x {
-			return true
-		}
+func arrToMap(a []string) map[string]struct{} {
+	mb := make(map[string]struct{}, len(a))
+	for _, x := range a {
+		mb[x] = struct{}{}
 	}
 
-	return false
+	return mb
 }
