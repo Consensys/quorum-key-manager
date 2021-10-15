@@ -140,9 +140,8 @@ func TestEthSendTransaction(t *testing.T) {
 		}
 
 		privateArgsExp := &ethereum.PrivateArgs{
-			PrivateFrom:    &privateFrom,
-			PrivateFor:     &privateForExp,
-			PrivacyGroupID: &privacyGroupIDAlias,
+			PrivateFrom: &privateFrom,
+			PrivateFor:  &privateForExp,
 		}
 
 		msg := &ethereum.SendTxMsg{
