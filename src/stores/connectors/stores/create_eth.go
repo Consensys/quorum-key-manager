@@ -22,7 +22,12 @@ func (c *Connector) CreateEthereum(_ context.Context, storeName string, vaultTyp
 	}
 
 	c.mux.Lock()
-	c.stores[storeName] = &entities.StoreInfo{AllowedTenants: allowedTenants, Store: store, StoreType: manifest.Ethereum}
+	c.stores[storeName] = &entities.StoreInfo{
+		AllowedTenants: allowedTenants,
+		Store:          store,
+		StoreType:      manifest.Ethereum,
+		VaultType:      vaultType,
+	}
 	c.mux.Unlock()
 
 	logger.Info("Ethereum store created successfully")

@@ -6,4 +6,5 @@ type StoreInfo struct {
 	AllowedTenants []string
 	Store          interface{}
 	StoreType      manifest.StoreType
+	VaultType      manifest.VaultType
 }

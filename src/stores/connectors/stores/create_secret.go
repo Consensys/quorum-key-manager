@@ -34,7 +34,12 @@ func (c *Connector) CreateSecret(_ context.Context, storeName string, vaultType 
 	}
 
 	c.mux.Lock()
-	c.stores[storeName] = &entities.StoreInfo{AllowedTenants: allowedTenants, Store: store, StoreType: manifest.Secrets}
+	c.stores[storeName] = &entities.StoreInfo{
+		AllowedTenants: allowedTenants,
+		Store:          store,
+		StoreType:      manifest.Secrets,
+		VaultType:      vaultType,
+	}
 	c.mux.Unlock()
 
 	logger.Info("secret store created successfully")

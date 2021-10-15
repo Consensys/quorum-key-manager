@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/stores"
+
 	"github.com/consensys/quorum-key-manager/pkg/json"
 	akvclient "github.com/consensys/quorum-key-manager/src/infra/akv/client"
 	"github.com/consensys/quorum-key-manager/src/infra/aws/client"
@@ -15,8 +17,8 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
@@ -31,14 +33,19 @@ func (c *Connector) CreateKey(_ context.Context, storeName string, vaultType man
 	}
 
 	c.mux.Lock()
-	c.stores[storeName] = &entities.StoreInfo{AllowedTenants: allowedTenants, Store: store, StoreType: manifest.Keys}
+	c.stores[storeName] = &entities.StoreInfo{
+		AllowedTenants: allowedTenants,
+		Store:          store,
+		StoreType:      manifest.Keys,
+		VaultType:      vaultType,
+	}
 	c.mux.Unlock()
 
 	logger.Info("key store created successfully")
 	return nil
 }
 
-func (c *Connector) createKeyStore(storeName string, vaultType manifest.VaultType, specs interface{}) (interface{}, error) {
+func (c *Connector) createKeyStore(storeName string, vaultType manifest.VaultType, specs interface{}) (stores.KeyStore, error) {
 	logger := c.logger.With("vault_type", vaultType, "store_name", storeName)
 
 	switch vaultType {
@@ -77,7 +84,12 @@ func (c *Connector) createKeyStore(storeName string, vaultType manifest.VaultTyp
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 
-		return c.createSecretStore(storeName, localKeySpecs.SecretStore, localKeySpecs.Specs)
+		secretStore, err := c.createSecretStore(storeName, localKeySpecs.SecretStore, localKeySpecs.Specs)
+		if err != nil {
+			return nil, err
+		}
+
+		return localkeys.New(secretStore, c.db.Secrets(storeName), c.logger), nil
 	default:
 		errMessage := "invalid store type for key store"
 		logger.Error(errMessage)
