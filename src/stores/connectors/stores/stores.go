@@ -16,17 +16,16 @@ type Connector struct {
 	mux         sync.RWMutex
 	authManager auth.Manager
 
-	secrets     map[string]*storeBundle
-	keys        map[string]*storeBundle
-	ethAccounts map[string]*storeBundle
+	secrets map[string]storeBundle
+	keys    map[string]storeBundle
 
 	db database.Database
 }
 
 type storeBundle struct {
-	manifest *manifest.Manifest
-	logger   log.Logger
-	store    interface{}
+	allowedTenants []string
+	store          interface{}
+	storeType      manifest.StoreType
 }
 
 var _ stores.Stores = &Connector{}
@@ -36,9 +35,8 @@ func NewConnector(authMngr auth.Manager, db database.Database, logger log.Logger
 		logger:      logger,
 		mux:         sync.RWMutex{},
 		authManager: authMngr,
-		secrets:     make(map[string]*storeBundle),
-		keys:        make(map[string]*storeBundle),
-		ethAccounts: make(map[string]*storeBundle),
+		secrets:     make(map[string]storeBundle),
+		keys:        make(map[string]storeBundle),
 		db:          db,
 	}
 }

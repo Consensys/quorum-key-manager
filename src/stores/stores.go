@@ -12,23 +12,38 @@ import (
 //go:generate mockgen -source=stores.go -destination=mock/stores.go -package=mock
 
 type Stores interface {
-	// Create create a store given a manifest
-	Create(ctx context.Context, mnf *manifest.Manifest) error
+	// CreateEthereum creates an ethereum store
+	CreateEthereum(_ context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error
 
-	// GetSecretStore get secret store by name
-	GetSecretStore(ctx context.Context, storeName string, userInfo *auth.UserInfo) (SecretStore, error)
+	// CreateKey creates a key store
+	CreateKey(_ context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error
 
-	// GetKeyStore get key store by name
-	GetKeyStore(ctx context.Context, storeName string, userInfo *auth.UserInfo) (KeyStore, error)
+	// CreateSecret creates a secret store
+	CreateSecret(_ context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error
 
-	// GetEthStore get ethereum store by name
-	GetEthStore(ctx context.Context, storeName string, userInfo *auth.UserInfo) (EthStore, error)
+	// ImportEthereum import ethereum accounts from the vault into an ethereum store
+	ImportEthereum(ctx context.Context, storeName string, userInfo *auth.UserInfo) error
+
+	// ImportKeys import keys from the vault into a key store
+	ImportKeys(ctx context.Context, storeName string, userInfo *auth.UserInfo) error
+
+	// ImportSecrets import secrets from the vault into a secret store
+	ImportSecrets(ctx context.Context, storeName string, userInfo *auth.UserInfo) error
+
+	// GetSecrets get secret store by name
+	GetSecrets(ctx context.Context, storeName string, userInfo *auth.UserInfo) (SecretStore, error)
+
+	// GetKeys get key store by name
+	GetKeys(ctx context.Context, storeName string, userInfo *auth.UserInfo) (KeyStore, error)
+
+	// GetEthereum get ethereum store by name
+	GetEthereum(ctx context.Context, storeName string, userInfo *auth.UserInfo) (EthStore, error)
 
 	// GetEthStoreByAddr gets ethereum store by address
 	GetEthStoreByAddr(ctx context.Context, addr common.Address, userInfo *auth.UserInfo) (EthStore, error)
 
 	// List stores
-	List(ctx context.Context, kind manifest.Kind, userInfo *auth.UserInfo) ([]string, error)
+	List(ctx context.Context, storeType manifest.StoreType, userInfo *auth.UserInfo) ([]string, error)
 
 	// ListAllAccounts list all accounts from all stores
 	ListAllAccounts(ctx context.Context, userInfo *auth.UserInfo) ([]common.Address, error)

@@ -3,31 +3,29 @@ package manifest
 //TODO: Split this file into the different domains where the types belong
 
 type Kind string
+type StoreType string
 
 const (
-	Role Kind = "Role"
+	Role  Kind = "Role"
+	Node  Kind = "Node"
+	Store Kind = "Store"
 
-	Node Kind = "Node"
+	Ethereum StoreType = "Ethereum"
 
-	Ethereum Kind = "Ethereum"
+	HashicorpKeys StoreType = "HashicorpKeys"
+	AKVKeys       StoreType = "AKVKeys"
+	AWSKeys       StoreType = "AWSKeys"
+	LocalKeys     StoreType = "LocalKeys"
 
-	HashicorpKeys Kind = "HashicorpKeys"
-	AKVKeys       Kind = "AKVKeys"
-	AWSKeys       Kind = "AWSKeys"
-	LocalKeys     Kind = "LocalKeys"
-
-	HashicorpSecrets Kind = "HashicorpSecrets"
-	AKVSecrets       Kind = "AKVSecrets"
-	AWSSecrets       Kind = "AWSSecrets"
+	HashicorpSecrets StoreType = "HashicorpSecrets"
+	AKVSecrets       StoreType = "AKVSecrets"
+	AWSSecrets       StoreType = "AWSSecrets"
 )
 
 // Manifest for a store
 type Manifest struct {
 	// Kind of item (Store, Node,...)
 	Kind Kind `json:"kind" validate:"required"`
-
-	// Version of item
-	Version string `json:"version"`
 
 	// Name of the item
 	Name string `json:"name" validate:"required"`

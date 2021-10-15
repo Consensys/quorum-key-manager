@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests"
@@ -45,7 +47,20 @@ func (m *BaseManager) Start(ctx context.Context) error {
 	}
 
 	for _, mnf := range mnfs {
-		err = m.stores.Create(ctx, mnf)
+		// TODO: Filter on Load() function from reader when Kind Store implemented
+		if mnf.Kind == manifest.Role || mnf.Kind == manifest.Node {
+			continue
+		}
+
+		storeType := manifest.StoreType(mnf.Kind)
+		switch storeType {
+		case manifest.HashicorpSecrets, manifest.AKVSecrets, manifest.AWSSecrets:
+			err = m.stores.CreateSecret(ctx, mnf.Name, storeType, mnf.Specs, mnf.AllowedTenants)
+		case manifest.HashicorpKeys, manifest.AKVKeys, manifest.AWSKeys, manifest.LocalKeys:
+			err = m.stores.CreateKey(ctx, mnf.Name, storeType, mnf.Specs, mnf.AllowedTenants)
+		case manifest.Ethereum:
+			err = m.stores.CreateEthereum(ctx, mnf.Name, storeType, mnf.Specs, mnf.AllowedTenants)
+		}
 		if err != nil {
 			return err
 		}

@@ -23,9 +23,8 @@ import (
 )
 
 var manifestWithTessera = &manifest.Manifest{
-	Kind:    "Node",
-	Version: "v1alpha",
-	Name:    "node-test1",
+	Kind: "Node",
+	Name: "node-test1",
 	Tags: map[string]string{
 		"key1": "value1",
 		"key2": "value2",
@@ -57,9 +56,8 @@ var manifestWithTessera = &manifest.Manifest{
 }
 
 var manifestRPCOnly = &manifest.Manifest{
-	Kind:    "Node",
-	Version: "v1alpha",
-	Name:    "node-test2",
+	Kind: "Node",
+	Name: "node-test2",
 	Tags: map[string]string{
 		"key1": "value1",
 		"key2": "value2",
@@ -83,7 +81,6 @@ var manifestRPCOnly = &manifest.Manifest{
 
 var manifestWithTenant = &manifest.Manifest{
 	Kind:           "Node",
-	Version:        "v2alpha",
 	Name:           "node-test3",
 	AllowedTenants: []string{"tenantOne"},
 	Specs: json.RawMessage(`

@@ -59,7 +59,7 @@ func (s *keysHandlerTestSuite) SetupTest() {
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.keyStore = mock.NewMockKeyStore(s.ctrl)
 
-	s.stores.EXPECT().GetKeyStore(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil).AnyTimes()
+	s.stores.EXPECT().GetKeys(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
 	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
