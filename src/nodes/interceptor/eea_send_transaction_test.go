@@ -53,7 +53,7 @@ func TestEEASendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+				stores.EXPECT().EthereumByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
@@ -83,7 +83,7 @@ func TestEEASendTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 				// Get accounts
-				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+				stores.EXPECT().EthereumByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 
 				// Get ChainID
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)

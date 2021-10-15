@@ -52,14 +52,15 @@ func (m *BaseManager) Start(ctx context.Context) error {
 			continue
 		}
 
-		storeType := manifest.StoreType(mnf.Kind)
-		switch storeType {
+		// TODO: Get StoreType from Store request instead of switching from Kind when implemented
+		vaultType := manifest.VaultType(mnf.Kind)
+		switch vaultType {
 		case manifest.HashicorpSecrets, manifest.AKVSecrets, manifest.AWSSecrets:
-			err = m.stores.CreateSecret(ctx, mnf.Name, storeType, mnf.Specs, mnf.AllowedTenants)
+			err = m.stores.CreateSecret(ctx, mnf.Name, vaultType, mnf.Specs, mnf.AllowedTenants)
 		case manifest.HashicorpKeys, manifest.AKVKeys, manifest.AWSKeys, manifest.LocalKeys:
-			err = m.stores.CreateKey(ctx, mnf.Name, storeType, mnf.Specs, mnf.AllowedTenants)
-		case manifest.Ethereum:
-			err = m.stores.CreateEthereum(ctx, mnf.Name, storeType, mnf.Specs, mnf.AllowedTenants)
+			err = m.stores.CreateKey(ctx, mnf.Name, vaultType, mnf.Specs, mnf.AllowedTenants)
+		case manifest.LocalEthereum:
+			err = m.stores.CreateEthereum(ctx, mnf.Name, vaultType, mnf.Specs, mnf.AllowedTenants)
 		}
 		if err != nil {
 			return err

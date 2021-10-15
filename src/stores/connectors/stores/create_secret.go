@@ -24,27 +24,27 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *Connector) CreateSecret(_ context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error {
-	logger := c.logger.With("store_type", storeType, "store_name", storeName)
+func (c *Connector) CreateSecret(_ context.Context, storeName string, vaultType manifest.VaultType, specs interface{}, allowedTenants []string) error {
+	logger := c.logger.With("vault_type", vaultType, "store_name", storeName)
 	logger.Debug("creating secret store")
 
-	store, err := c.createSecretStore(storeName, storeType, specs)
+	store, err := c.createSecretStore(storeName, vaultType, specs)
 	if err != nil {
 		return err
 	}
 
 	c.mux.Lock()
-	c.secrets[storeName] = storeBundle{allowedTenants: allowedTenants, store: store, storeType: storeType}
+	c.stores[storeName] = &entities.StoreInfo{AllowedTenants: allowedTenants, Store: store, StoreType: manifest.Secrets}
 	c.mux.Unlock()
 
 	logger.Info("secret store created successfully")
 	return nil
 }
 
-func (c *Connector) createSecretStore(storeName string, storeType manifest.StoreType, specs interface{}) (stores.SecretStore, error) {
-	logger := c.logger.With("store_type", storeType, "store_name", storeName)
+func (c *Connector) createSecretStore(storeName string, vaultType manifest.VaultType, specs interface{}) (stores.SecretStore, error) {
+	logger := c.logger.With("vault_type", vaultType, "store_name", storeName)
 
-	switch storeType {
+	switch vaultType {
 	case manifest.HashicorpSecrets:
 		hashicorpSpecs := &entities.HashicorpSpecs{}
 		if err := json.UnmarshalJSON(specs, hashicorpSpecs); err != nil {

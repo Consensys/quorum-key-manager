@@ -15,13 +15,19 @@ func (c *Connector) List(_ context.Context, storeType manifest.StoreType, userIn
 	defer c.mux.RUnlock()
 
 	var storeNames []string
-	switch storeType {
-	case "":
-		storeNames = append(c.listStores(c.secrets, storeType, userInfo), c.listStores(c.keys, storeType, userInfo)...)
-	case manifest.HashicorpSecrets, manifest.AKVSecrets, manifest.AWSSecrets:
-		storeNames = c.listStores(c.secrets, storeType, userInfo)
-	case manifest.AKVKeys, manifest.HashicorpKeys, manifest.AWSKeys, manifest.Ethereum:
-		storeNames = c.listStores(c.keys, storeType, userInfo)
+	for k, storeInfo := range c.stores {
+		if storeType != "" && storeInfo.StoreType != storeType {
+			continue
+		}
+
+		permissions := c.authManager.UserPermissions(userInfo)
+		resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
+
+		if err := resolver.CheckAccess(storeInfo.AllowedTenants); err != nil {
+			continue
+		}
+
+		storeNames = append(storeNames, k)
 	}
 
 	return storeNames, nil
@@ -38,7 +44,7 @@ func (c *Connector) ListAllAccounts(ctx context.Context, userInfo *authtypes.Use
 	}
 
 	for _, storeName := range stores {
-		store, err := c.GetEthereum(ctx, storeName, userInfo)
+		store, err := c.Ethereum(ctx, storeName, userInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -51,22 +57,4 @@ func (c *Connector) ListAllAccounts(ctx context.Context, userInfo *authtypes.Use
 	}
 
 	return accs, nil
-}
-
-func (c *Connector) listStores(list map[string]storeBundle, storeType manifest.StoreType, userInfo *authtypes.UserInfo) []string {
-	var storeNames []string
-	for k, storeBundle := range list {
-		permissions := c.authManager.UserPermissions(userInfo)
-		resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
-
-		if err := resolver.CheckAccess(storeBundle.allowedTenants); err != nil {
-			continue
-		}
-
-		if storeType == "" || storeBundle.storeType == storeType {
-			storeNames = append(storeNames, k)
-		}
-	}
-
-	return storeNames
 }

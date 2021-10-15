@@ -41,11 +41,11 @@ type AwsSpecs struct {
 }
 
 type LocalKeySpecs struct {
-	SecretStore manifest.StoreType `json:"secretStore" validate:"required" example:"HashicorpSecrets"`
+	SecretStore manifest.VaultType `json:"secretStore" validate:"required" example:"HashicorpSecrets"`
 	Specs       interface{}        `json:"specs" validate:"required"`
 }
 
 type LocalEthSpecs struct {
-	Keystore manifest.StoreType `json:"keyStore" validate:"required" example:"HashicorpKeys"`
+	Keystore manifest.VaultType `json:"keyStore" validate:"required" example:"HashicorpKeys"`
 	Specs    interface{}        `json:"specs" validate:"required"`
 }

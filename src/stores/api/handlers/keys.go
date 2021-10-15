@@ -67,7 +67,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	userCtx := authenticator.UserContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -118,7 +118,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -169,7 +169,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -203,7 +203,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -250,7 +250,7 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -285,7 +285,7 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -319,7 +319,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -363,7 +363,7 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -395,7 +395,7 @@ func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	keyStore, err := h.stores.GetKeys(ctx, StoreNameFromContext(ctx), userInfo)
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

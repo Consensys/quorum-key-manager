@@ -4,29 +4,35 @@ import (
 	"context"
 
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/stores"
-	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
-	"github.com/ethereum/go-ethereum/common"
 )
 
-func (c *Connector) GetEthereum(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
+func (c *Connector) Ethereum(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
 	permissions := c.authManager.UserPermissions(userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
-	store, err := c.getKeyStore(ctx, storeName, resolver)
+	storeInfo, err := c.getStore(ctx, storeName, resolver)
 	if err != nil {
 		return nil, err
 	}
 
+	if storeInfo.StoreType != manifest.Ethereum {
+		errMessage := "not an ethereum store"
+		c.logger.Error(errMessage, "store_name", storeName)
+		return nil, errors.NotFoundError(errMessage)
+	}
+
 	c.logger.Debug("ethereum store found successfully", "store_name", storeName)
-	return eth.NewConnector(store, c.db.ETHAccounts(storeName), resolver, c.logger), nil
+	return eth.NewConnector(storeInfo.Store.(stores.KeyStore), c.db.ETHAccounts(storeName), resolver, c.logger), nil
 }
 
-func (c *Connector) GetEthStoreByAddr(ctx context.Context, addr common.Address, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
+func (c *Connector) EthereumByAddr(ctx context.Context, addr common.Address, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
 	logger := c.logger.With("address", addr.Hex())
 
 	ethStores, err := c.List(ctx, manifest.Ethereum, userInfo)
@@ -35,7 +41,7 @@ func (c *Connector) GetEthStoreByAddr(ctx context.Context, addr common.Address, 
 	}
 
 	for _, storeName := range ethStores {
-		ethStore, err := c.GetEthereum(ctx, storeName, userInfo)
+		ethStore, err := c.Ethereum(ctx, storeName, userInfo)
 		if err != nil {
 			return nil, err
 		}

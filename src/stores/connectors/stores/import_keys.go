@@ -13,7 +13,7 @@ func (c *Connector) ImportKeys(ctx context.Context, storeName string, userInfo *
 	logger.Info("importing keys...")
 
 	// TODO: Uncomment when authManager no longer a runnable
-	//permissions := c.authManager.UserPermissions(userInfo)
+	// permissions := c.authManager.UserPermissions(userInfo)
 	resolver := authorizator.New(userInfo.Permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getKeyStore(ctx, storeName, resolver)

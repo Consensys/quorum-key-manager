@@ -39,7 +39,7 @@ func (m *MockSecretsManagerClient) EXPECT() *MockSecretsManagerClientMockRecorde
 // GetSecret mocks base method
 func (m *MockSecretsManagerClient) GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, id, version)
+	ret := m.ctrl.Call(m, "Secret", ctx, id, version)
 	ret0, _ := ret[0].(*secretsmanager.GetSecretValueOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -48,7 +48,7 @@ func (m *MockSecretsManagerClient) GetSecret(ctx context.Context, id, version st
 // GetSecret indicates an expected call of GetSecret
 func (mr *MockSecretsManagerClientMockRecorder) GetSecret(ctx, id, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsManagerClient)(nil).GetSecret), ctx, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockSecretsManagerClient)(nil).GetSecret), ctx, id, version)
 }
 
 // CreateSecret mocks base method

@@ -53,7 +53,7 @@ func (mr *MockClientMockRecorder) SetSecret(ctx, secretName, value, tags interfa
 // GetSecret mocks base method
 func (m *MockClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, secretName, secretVersion)
+	ret := m.ctrl.Call(m, "Secret", ctx, secretName, secretVersion)
 	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -62,7 +62,7 @@ func (m *MockClient) GetSecret(ctx context.Context, secretName, secretVersion st
 // GetSecret indicates an expected call of GetSecret
 func (mr *MockClientMockRecorder) GetSecret(ctx, secretName, secretVersion interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockClient)(nil).GetSecret), ctx, secretName, secretVersion)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockClient)(nil).GetSecret), ctx, secretName, secretVersion)
 }
 
 // ListSecrets mocks base method
@@ -218,7 +218,7 @@ func (mr *MockClientMockRecorder) GetKey(ctx, name, version interface{}) *gomock
 // GetKeys mocks base method
 func (m *MockClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKeys", ctx, maxResults)
+	ret := m.ctrl.Call(m, "Key", ctx, maxResults)
 	ret0, _ := ret[0].([]keyvault.KeyItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -227,7 +227,7 @@ func (m *MockClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.
 // GetKeys indicates an expected call of GetKeys
 func (mr *MockClientMockRecorder) GetKeys(ctx, maxResults interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeys", reflect.TypeOf((*MockClient)(nil).GetKeys), ctx, maxResults)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Key", reflect.TypeOf((*MockClient)(nil).GetKeys), ctx, maxResults)
 }
 
 // UpdateKey mocks base method
@@ -406,7 +406,7 @@ func (mr *MockSecretClientMockRecorder) SetSecret(ctx, secretName, value, tags i
 // GetSecret mocks base method
 func (m *MockSecretClient) GetSecret(ctx context.Context, secretName, secretVersion string) (keyvault.SecretBundle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, secretName, secretVersion)
+	ret := m.ctrl.Call(m, "Secret", ctx, secretName, secretVersion)
 	ret0, _ := ret[0].(keyvault.SecretBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -415,7 +415,7 @@ func (m *MockSecretClient) GetSecret(ctx context.Context, secretName, secretVers
 // GetSecret indicates an expected call of GetSecret
 func (mr *MockSecretClientMockRecorder) GetSecret(ctx, secretName, secretVersion interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretClient)(nil).GetSecret), ctx, secretName, secretVersion)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockSecretClient)(nil).GetSecret), ctx, secretName, secretVersion)
 }
 
 // ListSecrets mocks base method
@@ -594,7 +594,7 @@ func (mr *MockKeysClientMockRecorder) GetKey(ctx, name, version interface{}) *go
 // GetKeys mocks base method
 func (m *MockKeysClient) GetKeys(ctx context.Context, maxResults int32) ([]keyvault.KeyItem, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKeys", ctx, maxResults)
+	ret := m.ctrl.Call(m, "Key", ctx, maxResults)
 	ret0, _ := ret[0].([]keyvault.KeyItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -603,7 +603,7 @@ func (m *MockKeysClient) GetKeys(ctx context.Context, maxResults int32) ([]keyva
 // GetKeys indicates an expected call of GetKeys
 func (mr *MockKeysClientMockRecorder) GetKeys(ctx, maxResults interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeys", reflect.TypeOf((*MockKeysClient)(nil).GetKeys), ctx, maxResults)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Key", reflect.TypeOf((*MockKeysClient)(nil).GetKeys), ctx, maxResults)
 }
 
 // UpdateKey mocks base method

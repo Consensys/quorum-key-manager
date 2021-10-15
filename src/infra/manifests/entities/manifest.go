@@ -4,6 +4,7 @@ package manifest
 
 type Kind string
 type StoreType string
+type VaultType string
 
 const (
 	Role  Kind = "Role"
@@ -11,15 +12,18 @@ const (
 	Store Kind = "Store"
 
 	Ethereum StoreType = "Ethereum"
+	Keys     StoreType = "Keys"
+	Secrets  StoreType = "Secrets"
 
-	HashicorpKeys StoreType = "HashicorpKeys"
-	AKVKeys       StoreType = "AKVKeys"
-	AWSKeys       StoreType = "AWSKeys"
-	LocalKeys     StoreType = "LocalKeys"
+	LocalEthereum VaultType = "Ethereum"
+	HashicorpKeys VaultType = "HashicorpKeys"
+	AKVKeys       VaultType = "AKVKeys"
+	AWSKeys       VaultType = "AWSKeys"
+	LocalKeys     VaultType = "LocalKeys"
 
-	HashicorpSecrets StoreType = "HashicorpSecrets"
-	AKVSecrets       StoreType = "AKVSecrets"
-	AWSSecrets       StoreType = "AWSSecrets"
+	HashicorpSecrets VaultType = "HashicorpSecrets"
+	AKVSecrets       VaultType = "AKVSecrets"
+	AWSSecrets       VaultType = "AWSSecrets"
 )
 
 // Manifest for a store

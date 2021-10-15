@@ -21,27 +21,27 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *Connector) CreateKey(_ context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error {
-	logger := c.logger.With("store_type", storeType, "store_name", storeName)
+func (c *Connector) CreateKey(_ context.Context, storeName string, vaultType manifest.VaultType, specs interface{}, allowedTenants []string) error {
+	logger := c.logger.With("vault_type", vaultType, "store_name", storeName)
 	logger.Debug("creating key store")
 
-	store, err := c.createKeyStore(storeName, storeType, specs)
+	store, err := c.createKeyStore(storeName, vaultType, specs)
 	if err != nil {
 		return err
 	}
 
 	c.mux.Lock()
-	c.keys[storeName] = storeBundle{allowedTenants: allowedTenants, store: store, storeType: storeType}
+	c.stores[storeName] = &entities.StoreInfo{AllowedTenants: allowedTenants, Store: store, StoreType: manifest.Keys}
 	c.mux.Unlock()
 
 	logger.Info("key store created successfully")
 	return nil
 }
 
-func (c *Connector) createKeyStore(storeName string, storeType manifest.StoreType, specs interface{}) (interface{}, error) {
-	logger := c.logger.With("store_type", storeType, "store_name", storeName)
+func (c *Connector) createKeyStore(storeName string, vaultType manifest.VaultType, specs interface{}) (interface{}, error) {
+	logger := c.logger.With("vault_type", vaultType, "store_name", storeName)
 
-	switch storeType {
+	switch vaultType {
 	case manifest.HashicorpKeys:
 		spec := &entities.HashicorpSpecs{}
 		if err := json.UnmarshalJSON(specs, spec); err != nil {

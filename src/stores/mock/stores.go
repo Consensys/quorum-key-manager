@@ -38,45 +38,45 @@ func (m *MockStores) EXPECT() *MockStoresMockRecorder {
 }
 
 // CreateEthereum mocks base method
-func (m *MockStores) CreateEthereum(arg0 context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error {
+func (m *MockStores) CreateEthereum(arg0 context.Context, storeName string, vaultType manifest.VaultType, specs interface{}, allowedTenants []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateEthereum", arg0, storeName, storeType, specs, allowedTenants)
+	ret := m.ctrl.Call(m, "CreateEthereum", arg0, storeName, vaultType, specs, allowedTenants)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateEthereum indicates an expected call of CreateEthereum
-func (mr *MockStoresMockRecorder) CreateEthereum(arg0, storeName, storeType, specs, allowedTenants interface{}) *gomock.Call {
+func (mr *MockStoresMockRecorder) CreateEthereum(arg0, storeName, vaultType, specs, allowedTenants interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEthereum", reflect.TypeOf((*MockStores)(nil).CreateEthereum), arg0, storeName, storeType, specs, allowedTenants)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEthereum", reflect.TypeOf((*MockStores)(nil).CreateEthereum), arg0, storeName, vaultType, specs, allowedTenants)
 }
 
 // CreateKey mocks base method
-func (m *MockStores) CreateKey(arg0 context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error {
+func (m *MockStores) CreateKey(arg0 context.Context, storeName string, vaultType manifest.VaultType, specs interface{}, allowedTenants []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateKey", arg0, storeName, storeType, specs, allowedTenants)
+	ret := m.ctrl.Call(m, "CreateKey", arg0, storeName, vaultType, specs, allowedTenants)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateKey indicates an expected call of CreateKey
-func (mr *MockStoresMockRecorder) CreateKey(arg0, storeName, storeType, specs, allowedTenants interface{}) *gomock.Call {
+func (mr *MockStoresMockRecorder) CreateKey(arg0, storeName, vaultType, specs, allowedTenants interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockStores)(nil).CreateKey), arg0, storeName, storeType, specs, allowedTenants)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockStores)(nil).CreateKey), arg0, storeName, vaultType, specs, allowedTenants)
 }
 
 // CreateSecret mocks base method
-func (m *MockStores) CreateSecret(arg0 context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error {
+func (m *MockStores) CreateSecret(arg0 context.Context, storeName string, vaultType manifest.VaultType, specs interface{}, allowedTenants []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSecret", arg0, storeName, storeType, specs, allowedTenants)
+	ret := m.ctrl.Call(m, "CreateSecret", arg0, storeName, vaultType, specs, allowedTenants)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateSecret indicates an expected call of CreateSecret
-func (mr *MockStoresMockRecorder) CreateSecret(arg0, storeName, storeType, specs, allowedTenants interface{}) *gomock.Call {
+func (mr *MockStoresMockRecorder) CreateSecret(arg0, storeName, vaultType, specs, allowedTenants interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockStores)(nil).CreateSecret), arg0, storeName, storeType, specs, allowedTenants)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockStores)(nil).CreateSecret), arg0, storeName, vaultType, specs, allowedTenants)
 }
 
 // ImportEthereum mocks base method
@@ -121,64 +121,64 @@ func (mr *MockStoresMockRecorder) ImportSecrets(ctx, storeName, userInfo interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportSecrets", reflect.TypeOf((*MockStores)(nil).ImportSecrets), ctx, storeName, userInfo)
 }
 
-// GetSecrets mocks base method
-func (m *MockStores) GetSecrets(ctx context.Context, storeName string, userInfo *types.UserInfo) (stores.SecretStore, error) {
+// Secret mocks base method
+func (m *MockStores) Secret(ctx context.Context, storeName string, userInfo *types.UserInfo) (stores.SecretStore, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecrets", ctx, storeName, userInfo)
+	ret := m.ctrl.Call(m, "Secret", ctx, storeName, userInfo)
 	ret0, _ := ret[0].(stores.SecretStore)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetSecrets indicates an expected call of GetSecrets
-func (mr *MockStoresMockRecorder) GetSecrets(ctx, storeName, userInfo interface{}) *gomock.Call {
+// Secret indicates an expected call of Secret
+func (mr *MockStoresMockRecorder) Secret(ctx, storeName, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecrets", reflect.TypeOf((*MockStores)(nil).GetSecrets), ctx, storeName, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockStores)(nil).Secret), ctx, storeName, userInfo)
 }
 
-// GetKeys mocks base method
-func (m *MockStores) GetKeys(ctx context.Context, storeName string, userInfo *types.UserInfo) (stores.KeyStore, error) {
+// Key mocks base method
+func (m *MockStores) Key(ctx context.Context, storeName string, userInfo *types.UserInfo) (stores.KeyStore, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKeys", ctx, storeName, userInfo)
+	ret := m.ctrl.Call(m, "Key", ctx, storeName, userInfo)
 	ret0, _ := ret[0].(stores.KeyStore)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetKeys indicates an expected call of GetKeys
-func (mr *MockStoresMockRecorder) GetKeys(ctx, storeName, userInfo interface{}) *gomock.Call {
+// Key indicates an expected call of Key
+func (mr *MockStoresMockRecorder) Key(ctx, storeName, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeys", reflect.TypeOf((*MockStores)(nil).GetKeys), ctx, storeName, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Key", reflect.TypeOf((*MockStores)(nil).Key), ctx, storeName, userInfo)
 }
 
-// GetEthereum mocks base method
-func (m *MockStores) GetEthereum(ctx context.Context, storeName string, userInfo *types.UserInfo) (stores.EthStore, error) {
+// Ethereum mocks base method
+func (m *MockStores) Ethereum(ctx context.Context, storeName string, userInfo *types.UserInfo) (stores.EthStore, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEthereum", ctx, storeName, userInfo)
+	ret := m.ctrl.Call(m, "Ethereum", ctx, storeName, userInfo)
 	ret0, _ := ret[0].(stores.EthStore)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetEthereum indicates an expected call of GetEthereum
-func (mr *MockStoresMockRecorder) GetEthereum(ctx, storeName, userInfo interface{}) *gomock.Call {
+// Ethereum indicates an expected call of Ethereum
+func (mr *MockStoresMockRecorder) Ethereum(ctx, storeName, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEthereum", reflect.TypeOf((*MockStores)(nil).GetEthereum), ctx, storeName, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ethereum", reflect.TypeOf((*MockStores)(nil).Ethereum), ctx, storeName, userInfo)
 }
 
-// GetEthStoreByAddr mocks base method
-func (m *MockStores) GetEthStoreByAddr(ctx context.Context, addr common.Address, userInfo *types.UserInfo) (stores.EthStore, error) {
+// EthereumByAddr mocks base method
+func (m *MockStores) EthereumByAddr(ctx context.Context, addr common.Address, userInfo *types.UserInfo) (stores.EthStore, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEthStoreByAddr", ctx, addr, userInfo)
+	ret := m.ctrl.Call(m, "EthereumByAddr", ctx, addr, userInfo)
 	ret0, _ := ret[0].(stores.EthStore)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetEthStoreByAddr indicates an expected call of GetEthStoreByAddr
-func (mr *MockStoresMockRecorder) GetEthStoreByAddr(ctx, addr, userInfo interface{}) *gomock.Call {
+// EthereumByAddr indicates an expected call of EthereumByAddr
+func (mr *MockStoresMockRecorder) EthereumByAddr(ctx, addr, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEthStoreByAddr", reflect.TypeOf((*MockStores)(nil).GetEthStoreByAddr), ctx, addr, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EthereumByAddr", reflect.TypeOf((*MockStores)(nil).EthereumByAddr), ctx, addr, userInfo)
 }
 
 // List mocks base method

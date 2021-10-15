@@ -54,7 +54,7 @@ func newImportCmd() *cobra.Command {
 		Short: "import secrets from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if err := storesConnector.CreateSecret(ctx, mnf.Name, manifest.StoreType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
+			if err := storesConnector.CreateSecret(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
 				return err
 			}
 
@@ -68,7 +68,7 @@ func newImportCmd() *cobra.Command {
 		Short: "import keys from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if err := storesConnector.CreateKey(ctx, mnf.Name, manifest.StoreType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
+			if err := storesConnector.CreateKey(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
 				return err
 			}
 
@@ -82,7 +82,7 @@ func newImportCmd() *cobra.Command {
 		Short: "import ethereum accounts from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if err := storesConnector.CreateEthereum(ctx, mnf.Name, manifest.StoreType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
+			if err := storesConnector.CreateEthereum(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
 				return err
 			}
 
