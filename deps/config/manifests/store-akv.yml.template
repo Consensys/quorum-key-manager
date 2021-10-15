@@ -7,7 +7,6 @@
     clientSecret: '{REPLACE BY AKV CLIENT SECRET}'
 - kind: AKVKeys
   name: akv-keys
-  # allowedTenants: ['{REPLACE BY ALLOWED TENANT ID}']
   specs:
     vaultName: '{REPLACE BY AKV VAULT NAME}'
     tenantID: '{REPLACE BY AKV TENANT ID}'

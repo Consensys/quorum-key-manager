@@ -1,9 +1,11 @@
 package stores
 
 import (
+	"context"
 	"sync"
 
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -16,17 +18,9 @@ type Connector struct {
 	mux         sync.RWMutex
 	authManager auth.Manager
 
-	secrets     map[string]*storeBundle
-	keys        map[string]*storeBundle
-	ethAccounts map[string]*storeBundle
+	stores map[string]*entities.StoreInfo
 
 	db database.Database
-}
-
-type storeBundle struct {
-	manifest *manifest.Manifest
-	logger   log.Logger
-	store    interface{}
 }
 
 var _ stores.Stores = &Connector{}
@@ -36,9 +30,24 @@ func NewConnector(authMngr auth.Manager, db database.Database, logger log.Logger
 		logger:      logger,
 		mux:         sync.RWMutex{},
 		authManager: authMngr,
-		secrets:     make(map[string]*storeBundle),
-		keys:        make(map[string]*storeBundle),
-		ethAccounts: make(map[string]*storeBundle),
+		stores:      make(map[string]*entities.StoreInfo),
 		db:          db,
 	}
+}
+
+func (c *Connector) getStore(_ context.Context, storeName string, resolver auth.Authorizator) (*entities.StoreInfo, error) {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
+	if bundle, ok := c.stores[storeName]; ok {
+		if err := resolver.CheckAccess(bundle.AllowedTenants); err != nil {
+			return nil, err
+		}
+
+		return bundle, nil
+	}
+
+	errMessage := "store was not found"
+	c.logger.Error(errMessage, "store_name", storeName)
+	return nil, errors.NotFoundError(errMessage)
 }

@@ -1,5 +1,6 @@
 - kind: HashicorpSecrets
   name: hashicorp-secrets
+  # allowedTenants: ['{REPLACE BY ALLOWED TENANT ID}']
   specs:
     mountPoint: secret
     address: http://hashicorp:8200

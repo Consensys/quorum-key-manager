@@ -62,7 +62,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -101,7 +101,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	id := mux.Vars(request)["id"]
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -144,7 +144,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -191,7 +191,7 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	id := mux.Vars(request)["id"]
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -224,7 +224,7 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 
 	id := mux.Vars(request)["id"]
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -259,7 +259,7 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 	id := mux.Vars(request)["id"]
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	secretStore, err := h.stores.GetSecretStore(ctx, StoreNameFromContext(ctx), userInfo)
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
