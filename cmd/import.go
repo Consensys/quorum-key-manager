@@ -19,7 +19,6 @@ import (
 
 func newImportCmd() *cobra.Command {
 	var logger *zap.Logger
-	var storeName string
 	var storesConnector storeservice.Stores
 	var mnf *manifest.Manifest
 
@@ -59,7 +58,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportSecrets(cmd.Context(), storeName, types.WildcardUser)
+			return storesConnector.ImportSecrets(cmd.Context(), mnf.Name, types.WildcardUser)
 		},
 	}
 	importCmd.AddCommand(importSecretsCmd)
@@ -73,7 +72,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportKeys(cmd.Context(), storeName, types.WildcardUser)
+			return storesConnector.ImportKeys(cmd.Context(), mnf.Name, types.WildcardUser)
 		},
 	}
 	importCmd.AddCommand(importKeysCmd)
@@ -87,7 +86,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportEthereum(cmd.Context(), storeName, types.WildcardUser)
+			return storesConnector.ImportEthereum(cmd.Context(), mnf.Name, types.WildcardUser)
 		},
 	}
 	importCmd.AddCommand(importEthereumCmd)

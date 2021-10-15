@@ -14,8 +14,9 @@ func (c *Connector) ImportEthereum(ctx context.Context, storeName string, userIn
 	logger := c.logger.With("store_name", storeName)
 	logger.Info("importing ethereum accounts...")
 
-	permissions := c.authManager.UserPermissions(userInfo)
-	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
+	// TODO: Uncomment when authManager no longer a runnable
+	//permissions := c.authManager.UserPermissions(userInfo)
+	resolver := authorizator.New(userInfo.Permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getKeyStore(ctx, storeName, resolver)
 	if err != nil {

@@ -27,19 +27,18 @@ func (c *Connector) CreateKey(_ context.Context, storeName string, storeType man
 
 	store, err := c.createKeyStore(storeName, storeType, specs)
 	if err != nil {
-		return nil
+		return err
 	}
 
+	c.mux.Lock()
 	c.keys[storeName] = storeBundle{allowedTenants: allowedTenants, store: store, storeType: storeType}
+	c.mux.Unlock()
 
 	logger.Info("key store created successfully")
 	return nil
 }
 
 func (c *Connector) createKeyStore(storeName string, storeType manifest.StoreType, specs interface{}) (interface{}, error) {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
 	logger := c.logger.With("store_type", storeType, "store_name", storeName)
 
 	switch storeType {

@@ -30,19 +30,18 @@ func (c *Connector) CreateSecret(_ context.Context, storeName string, storeType 
 
 	store, err := c.createSecretStore(storeName, storeType, specs)
 	if err != nil {
-		return nil
+		return err
 	}
 
+	c.mux.Lock()
 	c.secrets[storeName] = storeBundle{allowedTenants: allowedTenants, store: store, storeType: storeType}
+	c.mux.Unlock()
 
 	logger.Info("secret store created successfully")
 	return nil
 }
 
 func (c *Connector) createSecretStore(storeName string, storeType manifest.StoreType, specs interface{}) (stores.SecretStore, error) {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
 	logger := c.logger.With("store_type", storeType, "store_name", storeName)
 
 	switch storeType {
@@ -152,6 +151,5 @@ func newAwsSecretStore(specs *entities.AwsSpecs, logger log.Logger) (*aws.Store,
 		return nil, errors.ConfigError(errMessage)
 	}
 
-	store := aws.New(cli, logger)
-	return store, nil
+	return aws.New(cli, logger), nil
 }

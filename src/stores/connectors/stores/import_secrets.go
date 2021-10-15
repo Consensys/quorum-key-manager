@@ -12,8 +12,9 @@ func (c *Connector) ImportSecrets(ctx context.Context, storeName string, userInf
 	logger := c.logger.With("store_name", storeName)
 	logger.Info("importing secrets...")
 
-	permissions := c.authManager.UserPermissions(userInfo)
-	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
+	// TODO: Uncomment when authManager no longer a runnable
+	// permissions := c.authManager.UserPermissions(userInfo)
+	resolver := authorizator.New(userInfo.Permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getSecretStore(ctx, storeName, resolver)
 	if err != nil {

@@ -13,9 +13,6 @@ import (
 )
 
 func (c *Connector) CreateEthereum(_ context.Context, storeName string, storeType manifest.StoreType, specs interface{}, allowedTenants []string) error {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
 	logger := c.logger.With("store_name", storeName)
 	logger.Debug("creating ethereum store")
 
@@ -31,7 +28,9 @@ func (c *Connector) CreateEthereum(_ context.Context, storeName string, storeTyp
 		return err
 	}
 
+	c.mux.Lock()
 	c.keys[storeName] = storeBundle{allowedTenants: allowedTenants, store: store, storeType: storeType}
+	c.mux.Unlock()
 
 	logger.Info("Ethereum store created successfully")
 	return nil

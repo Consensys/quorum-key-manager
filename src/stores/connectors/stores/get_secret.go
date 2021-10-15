@@ -29,7 +29,7 @@ func (c *Connector) getSecretStore(_ context.Context, storeName string, resolver
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 
-	if bundle, ok := c.keys[storeName]; ok {
+	if bundle, ok := c.secrets[storeName]; ok {
 		if err := resolver.CheckAccess(bundle.allowedTenants); err != nil {
 			return nil, err
 		}
