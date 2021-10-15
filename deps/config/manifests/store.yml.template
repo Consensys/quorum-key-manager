@@ -1,28 +1,28 @@
 - kind: AKVSecrets
   version: 0.0.1
   name: akv-secrets
-  allowedTenants: ['{TENANT_ID1}', '{TENANT_ID2}']
+  # allowedTenants: ['{REPLACE BY ALLOWED TENANT ID}']
   specs:
-    vaultName: '{VAULT_NAME}'
-    tenantID: '{TENANT_ID}'
-    clientID: '{CLIENT_ID}'
-    clientSecret: '{SECRET}'
+    vaultName: '{REPLACE BY VAULT NAME}'
+    tenantID: '{REPLACE BY AKV TENANT ID}'
+    clientID: '{REPLACE BY AKV CLIENT ID}'
+    clientSecret: '{REPLACE BY AKV CLIENT SECRET}'
 - kind: AKVKeys
   version: 0.0.1
   name: akv-keys
-  allowedTenants: ['{TENANT_ID1}', '{TENANT_ID2}']
+  # allowedTenants: ['{REPLACE BY ALLOWED TENANT ID}']
   specs:
-    vaultName: '{VAULT_NAME}'
-    tenantID: '{TENANT_ID}'
-    clientID: '{CLIENT_ID}'
-    clientSecret: '{SECRET}'
+    vaultName: '{REPLACE BY AKV VAULT NAME}'
+    tenantID: '{REPLACE BY AKV TENANT ID}'
+    clientID: '{REPLACE BY AKV CLIENT ID}'
+    clientSecret: '{REPLACE BY AKV CLIENT SECRET}'
 - kind: HashicorpSecrets
   version: 0.0.1
   name: hashicorp-secrets
   specs:
     mountPoint: secret
     address: http://hashicorp:8200
-    token: '{VAULT_TOKEN}'
+    tokenPath: /vault/token/.root
     namespace: ''
 - kind: HashicorpKeys
   version: 0.0.1
@@ -30,23 +30,23 @@
   specs:
     mountPoint: quorum
     address: http://hashicorp:8200
-    tokenPath: '{VAULT_TOKEN_PATH}'
+    tokenPath: /vault/token/.root
     namespace: ''
 - kind: AWSSecrets
   version: 0.0.1
   name: aws-secrets
   specs:
-    accessID: '{AWS_ACCESS_ID}'
-    secretKey: '{AWS_SECRET_KEY}'
-    region: '{AWS_REGION}'
+    accessID: '{REPLACE BY AWS ACCESS ID}'
+    secretKey: '{REPLACE BY AWS SECRET KEY}'
+    region: '{REPLACE BY AWS SECRET REGION}'
     debug: false
 - kind: AWSKeys
   version: 0.0.1
   name: aws-keys
   specs:
-    accessID: '{AWS_ACCESS_ID}'
-    secretKey: '{AWS_SECRET_KEY}'
-    region: '{AWS_REGION}'
+    accessID: '{REPLACE BY AWS ACCESS ID}'
+    secretKey: '{REPLACE BY AWS SECRET KEY}'
+    region: '{REPLACE BY AWS SECRET REGION}'
     debug: false
 - kind: LocalKeys
   version: 0.0.1
@@ -56,7 +56,7 @@
     specs:
       mountPoint: secret
       address: http://hashicorp:8200
-      token: '{VAULT_TOKEN}'
+      tokenPath: /vault/token/.root
       namespace: ''
 - kind: Ethereum
   version: 0.0.1
@@ -66,5 +66,5 @@
     specs:
       mountPoint: secret
 	  address: http://hashicorp:8200
-	  token: '{VAULT_TOKEN}'
+      tokenPath: /vault/token/.root
 	  namespace: ''
