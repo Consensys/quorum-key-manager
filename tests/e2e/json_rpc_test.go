@@ -6,14 +6,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
 	"github.com/consensys/quorum-key-manager/pkg/client"
+	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/tests"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -86,6 +88,11 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		KeyID:      fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
 		PrivateKey: privKey,
 	})
+
+	_, err = s.keyManagerClient.CreateAlias(s.ctx, "JPM", "Group-A", aliastypes.AliasRequest{Value: []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="}})
+	if err != nil {
+		s.T().Error(err)
+	}
 
 	if s.err != nil {
 		s.T().Error(s.err)
@@ -275,6 +282,26 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"gas":         "0x989680",
 			"privateFrom": "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=",
 			"privateFor":  []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="},
+		})
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
+	})
+
+	s.Run("should call eth_sendTransaction, for private Quorum Tx, with an privateFor alias successfully", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+			"data":        "0xa2",
+			"from":        s.acc.Address,
+			"to":          toAddr,
+			"gas":         "0x989680",
+			"privateFrom": "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=",
+			"privateFor":  []string{"{{JPM:Group-A}}"},
 		})
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
