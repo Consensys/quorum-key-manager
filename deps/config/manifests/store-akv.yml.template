@@ -1,0 +1,24 @@
+- kind: AKVSecrets
+  name: akv-secrets
+  specs:
+    vaultName: '{REPLACE BY VAULT NAME}'
+    tenantID: '{REPLACE BY AKV TENANT ID}'
+    clientID: '{REPLACE BY AKV CLIENT ID}'
+    clientSecret: '{REPLACE BY AKV CLIENT SECRET}'
+- kind: AKVKeys
+  name: akv-keys
+  # allowedTenants: ['{REPLACE BY ALLOWED TENANT ID}']
+  specs:
+    vaultName: '{REPLACE BY AKV VAULT NAME}'
+    tenantID: '{REPLACE BY AKV TENANT ID}'
+    clientID: '{REPLACE BY AKV CLIENT ID}'
+    clientSecret: '{REPLACE BY AKV CLIENT SECRET}'
+- kind: Ethereum
+  name: eth-accounts
+  specs:
+    keystore: AKVKeys
+    specs:
+      vaultName: '{REPLACE BY AKV VAULT NAME}'
+      tenantID: '{REPLACE BY AKV TENANT ID}'
+      clientID: '{REPLACE BY AKV CLIENT ID}'
+      clientSecret: '{REPLACE BY AKV CLIENT SECRET}'

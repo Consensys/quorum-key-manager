@@ -29,6 +29,7 @@ func syncZapLogger(logger *zap.Logger) {
 	_ = logger.Sync()
 }
 
+// TODO: Use Viper to parse the flags instead of manually doing it
 func preRunBindFlags(vipr *viper.Viper, flgs *pflag.FlagSet, ignore string) {
 	for _, vk := range vipr.AllKeys() {
 		if ignore != "" && strings.HasPrefix(vk, ignore) {

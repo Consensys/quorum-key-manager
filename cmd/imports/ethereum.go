@@ -32,10 +32,12 @@ func ImportEthereum(ctx context.Context, db database.ETHAccounts, mnf *manifest.
 		return err
 	}
 
-	var n uint
+	var nSuccesses uint
+	var nFailures uint
 	for _, id := range storeIDs {
 		key, err := store.Get(ctx, id)
 		if err != nil {
+			nFailures++
 			continue
 		}
 
@@ -47,14 +49,15 @@ func ImportEthereum(ctx context.Context, db database.ETHAccounts, mnf *manifest.
 		if !contains(acc.Address.Hex(), dbAddresses) {
 			_, err = db.Add(ctx, acc)
 			if err != nil {
+				nFailures++
 				continue
 			}
 
-			n++
+			nSuccesses++
 		}
 	}
 
-	logger.Info("ethereum accounts import completed", "n", n)
+	logger.Info("ethereum accounts import completed", "n_successes", nSuccesses, "n_failures", nFailures)
 	return nil
 }
 
