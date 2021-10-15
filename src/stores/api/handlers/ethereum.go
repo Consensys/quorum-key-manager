@@ -76,7 +76,7 @@ func (h *EthHandler) create(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(request.Context()), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(request.Context()), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -124,7 +124,7 @@ func (h *EthHandler) importAccount(rw http.ResponseWriter, request *http.Request
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -173,7 +173,7 @@ func (h *EthHandler) update(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -215,7 +215,7 @@ func (h *EthHandler) signMessage(rw http.ResponseWriter, request *http.Request) 
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -257,7 +257,7 @@ func (h *EthHandler) signTypedData(rw http.ResponseWriter, request *http.Request
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -300,7 +300,7 @@ func (h *EthHandler) signTransaction(rw http.ResponseWriter, request *http.Reque
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -348,7 +348,7 @@ func (h *EthHandler) signEEATransaction(rw http.ResponseWriter, request *http.Re
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -391,7 +391,7 @@ func (h *EthHandler) signPrivateTransaction(rw http.ResponseWriter, request *htt
 	}
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -425,7 +425,7 @@ func (h *EthHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -466,7 +466,7 @@ func (h *EthHandler) list(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -509,7 +509,7 @@ func (h *EthHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userCtx := authenticator.UserContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userCtx.UserInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -540,7 +540,7 @@ func (h *EthHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -571,7 +571,7 @@ func (h *EthHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	ethStore, err := h.stores.GetEthStore(ctx, StoreNameFromContext(ctx), userInfo)
+	ethStore, err := h.stores.Ethereum(ctx, StoreNameFromContext(ctx), userInfo)
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

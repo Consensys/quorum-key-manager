@@ -50,7 +50,7 @@ func TestEthSendTransaction(t *testing.T) {
 	caller.EXPECT().Eth().Return(ethCaller).AnyTimes()
 	session.EXPECT().EthCaller().Return(caller).AnyTimes()
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
-	stores.EXPECT().GetEthStoreByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
+	stores.EXPECT().EthereumByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
 
 	i, err := New(stores, aliases, testutils.NewMockLogger(ctrl))
 	require.NoError(t, err)

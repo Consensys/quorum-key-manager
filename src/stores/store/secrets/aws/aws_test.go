@@ -165,7 +165,7 @@ func (s *awsSecretStoreTestSuite) TestGet() {
 		assert.Equal(s.T(), retValue.ID, expectedSecret.ID)
 	})
 
-	s.Run("should fail with same error if GetSecret fails", func() {
+	s.Run("should fail with same error if Secret fails", func() {
 		s.mockVault.EXPECT().GetSecret(gomock.Any(), id, version).Return(getSecretOutput, expectedErr)
 
 		retValue, err := s.secretStore.Get(ctx, id, version)

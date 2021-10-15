@@ -134,7 +134,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 	tmpYml, err := newTmpManifestYml(
 		&manifest.Manifest{
-			Kind:  manifest.HashicorpKeys,
+			Kind:  manifest.Kind(manifest.HashicorpKeys),
 			Name:  HashicorpKeyStoreName,
 			Specs: hashicorpSpecs,
 		},
