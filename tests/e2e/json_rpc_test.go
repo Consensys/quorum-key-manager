@@ -314,6 +314,26 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})
 
+	s.Run("should call eth_sendTransaction, for private Quorum Tx, with a privacyGroupID alias successfully", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+			"data":           "0xa2",
+			"from":           s.acc.Address,
+			"to":             toAddr,
+			"gas":            "0x989680",
+			"privateFrom":    "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=",
+			"privacyGroupID": "{{JPM:Group-A}}",
+		})
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
+	})
+
 	s.Run("should call eth_sendTransaction and fail if invalid account", func() {
 		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
