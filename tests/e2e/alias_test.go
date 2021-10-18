@@ -30,7 +30,7 @@ func TestAlias(t *testing.T) {
 	cfg, err := tests.NewConfig()
 	require.NoError(t, err)
 
-	token, err := generateJWT("./certificates/client.key", "*:*", "e2e|keys_test")
+	token, err := generateJWT(cfg.AuthOIDCKey, "*:*", "e2e|keys_test")
 	require.NoError(t, err)
 
 	cl := client.NewHTTPClient(
