@@ -78,10 +78,10 @@ coverage: run-coverage
 dev: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
 
-up: deps go-quorum besu geth gobuild
+up: deps go-quorum besu gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --build -d $(KEY_MANAGER_SERVICES)
 	
-down: down-go-quorum down-besu down-geth
+down: down-go-quorum down-besu
 	@docker-compose -f ./docker-compose.dev.yml down --volumes --timeout 0
 	@make down-deps
 
@@ -111,15 +111,6 @@ stop-besu:
 
 down-besu:
 	@docker-compose -f deps/besu/docker-compose.yml down --volumes --timeout 0
-
-geth:
-	@docker-compose -f deps/geth/docker-compose.yml up -d
-
-stop-geth:
-	@docker-compose -f deps/geth/docker-compose.yml stop
-
-down-geth:
-	@docker-compose -f deps/geth/docker-compose.yml down  --volumes --timeout 0
 
 generate-jwt: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up generate-jwt

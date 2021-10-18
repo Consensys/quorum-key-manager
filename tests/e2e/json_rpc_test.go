@@ -69,7 +69,6 @@ func TestJSONRpcHTTP(t *testing.T) {
 
 	s.BesuNodeID = cfg.BesuNodeID
 	s.QuorumNodeID = cfg.QuorumNodeID
-	s.GethNodeID = cfg.GethNodeID
 	s.storeName = cfg.EthStores[0]
 	suite.Run(t, s)
 }
