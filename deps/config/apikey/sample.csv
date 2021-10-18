@@ -1,7 +1,7 @@
 ## Notes: Request headers should be "Authorization: Basic base64({user-key})"
-## Column separator is ";"
+## Column separator is ","
 
 # sha256("admin-user")
-f470213d9ae659187a19b9cb2169b4b400544f4d3f59250eda657154700da616;tenant1|user1;*:*;admin
+f470213d9ae659187a19b9cb2169b4b400544f4d3f59250eda657154700da616,tenant1|user1,"*:*","admin"
 # sha256("guest-user")
-8605f70ff5f55e2a9323d97de3dbf8e61f38314d93298ca00e19f8918fe8971b;tenant2|user2;*:secrets,*:keys,read:ethereum;anonymous
+8605f70ff5f55e2a9323d97de3dbf8e61f38314d93298ca00e19f8918fe8971b,tenant2|user2,"*:secrets,*:keys,read:ethereum","anonymous"
