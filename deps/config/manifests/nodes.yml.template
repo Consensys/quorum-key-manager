@@ -10,3 +10,8 @@
   specs:
     rpc:
       addr: http://validator1:8545
+- kind: Node
+  name: geth-node
+  specs:
+    rpc:
+      addr: http://geth:8545

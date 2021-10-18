@@ -16,6 +16,7 @@ type Config struct {
 	EthStores           []string `json:"eth_stores"`
 	QuorumNodeID        string   `json:"quorum_node_id"`
 	BesuNodeID          string   `json:"besu_node_id"`
+	GethNodeID          string   `json:"geth_node_id"`
 	AuthTLSCAKey        string   `json:"tlsCAKey"`
 	AuthTLSCACert       string   `json:"tlsCACert"`
 	AuthOIDCCAKey       string   `json:"oidcCAKey"`

@@ -91,14 +91,14 @@ services:
       - hashicorp
       - qkm
     environment:
-      TEST_DATA: ${TEST_DATA-}
+      <<: *default-variables
+      <<: *qkm-common
+      IMPORT_STORE_NAME: ${IMPORT_STORE_NAME-}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - hashicorp-token:/vault/token:ro
     command: import ${IMPORT_STORE_TYPE-secrets}
-    depends_on:
-      - migration
 
 networks:
   quorum:

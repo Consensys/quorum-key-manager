@@ -30,7 +30,9 @@ type authTestSuite struct {
 	keyManagerClient *client.HTTPClient
 	keyManagerURL    string
 	storeName        string
-	cfg              *tests.Config
+	tlsCACert        string
+	tlsCAKey         string
+	oidcCAKey        string
 
 	acc    *types.EthAccountResponse
 	logger log.Logger
@@ -46,11 +48,15 @@ func TestAuth(t *testing.T) {
 	})
 	defer sig.Close()
 
-	s.cfg, s.err = tests.NewConfig()
+	var cfg *tests.Config
+	cfg, s.err = tests.NewConfig()
 	if s.err != nil {
 		t.Error(s.err)
 		return
 	}
+	s.tlsCAKey = cfg.AuthTLSCAKey
+	s.tlsCACert = cfg.AuthTLSCACert
+	s.oidcCAKey = cfg.AuthOIDCCAKey
 
 	s.logger, s.err = zap.NewLogger(log.NewConfig(log.WarnLevel, log.TextFormat))
 	if s.err != nil {
@@ -59,7 +65,7 @@ func TestAuth(t *testing.T) {
 	}
 
 	var token string
-	token, s.err = generateJWT(s.cfg.AuthOIDCCAKey, "*:*", "e2e|auth_test")
+	token, s.err = generateJWT(s.oidcCAKey, "*:*", "e2e|auth_test")
 	if s.err != nil {
 		t.Errorf("failed to generate jwt. %s", s.err)
 		return
@@ -67,11 +73,12 @@ func TestAuth(t *testing.T) {
 	s.keyManagerClient = client.NewHTTPClient(&http.Client{
 		Transport: NewTestHttpTransport(token, "", nil),
 	}, &client.Config{
-		URL: s.cfg.KeyManagerURL,
+		URL: cfg.KeyManagerURL,
 	})
 
-	s.keyManagerURL = s.cfg.KeyManagerURL
-	s.storeName = s.cfg.EthStores[0]
+	s.keyManagerURL = cfg.KeyManagerURL
+	s.storeName = cfg.EthStores[0]
+
 	suite.Run(t, s)
 }
 
@@ -103,7 +110,7 @@ func (s *authTestSuite) TearDownSuite() {
 
 func (s *authTestSuite) TestAuth_TLS() {
 	s.Run("should sign payload successfully", func() {
-		clientCert, err := generateClientCert(s.cfg.AuthTLSCACert, s.cfg.AuthTLSCAKey)
+		clientCert, err := generateClientCert(s.tlsCACert, s.tlsCAKey)
 		require.NoError(s.T(), err)
 
 		qkmClient := client.NewHTTPClient(&http.Client{
@@ -155,7 +162,7 @@ func (s *authTestSuite) TestAuth_TLS() {
 func (s *authTestSuite) TestAuth_JWT() {
 	s.Run("should sign payload successfully", func() {
 		var token string
-		token, err := generateJWT(s.cfg.AuthOIDCCAKey, "*:*", "e2e|auth_test_jwt")
+		token, err := generateJWT(s.oidcCAKey, "*:*", "e2e|auth_test_jwt")
 		if s.err != nil {
 			s.T().Errorf("failed to generate jwt. %s", s.err)
 			return
@@ -176,7 +183,7 @@ func (s *authTestSuite) TestAuth_JWT() {
 
 	s.Run("should fail to sign with Status Forbidden", func() {
 		var token string
-		token, err := generateJWT(s.cfg.AuthOIDCCAKey, "*:read", "e2e|auth_test_jwt")
+		token, err := generateJWT(s.oidcCAKey, "*:read", "e2e|auth_test_jwt")
 		if s.err != nil {
 			s.T().Errorf("failed to generate jwt. %s", s.err)
 			return
@@ -199,7 +206,7 @@ func (s *authTestSuite) TestAuth_JWT() {
 
 	s.Run("should fail to sign with StatusForbidden", func() {
 		var token string
-		token, err := generateJWT(s.cfg.AuthOIDCCAKey, "*:read", "e2e|auth_test_jwt")
+		token, err := generateJWT(s.oidcCAKey, "*:read", "e2e|auth_test_jwt")
 		if s.err != nil {
 			s.T().Errorf("failed to generate jwt. %s", s.err)
 			return
