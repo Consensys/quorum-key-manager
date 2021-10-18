@@ -233,7 +233,7 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
-		tx, err := s.retrieveTransaction(s.ctx, s.BesuNodeID, result)
+		tx, err := s.retrieveTransaction(s.ctx, s.GethNodeID, result)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})
@@ -253,7 +253,7 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
 		assert.NoError(s.T(), err)
-		tx, err := s.retrieveTransaction(s.ctx, s.BesuNodeID, result)
+		tx, err := s.retrieveTransaction(s.ctx, s.GethNodeID, result)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})
