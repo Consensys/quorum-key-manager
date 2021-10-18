@@ -142,7 +142,7 @@ func (i *Interactor) ReplaceSimpleAlias(ctx context.Context, addr string) (strin
 
 	if len(alias) != 1 {
 		i.logger.WithError(err).Error("wrong alias type")
-		return "", err
+		return "", errors.EncodingError("alias should only have 1 value")
 	}
 
 	return alias[0], nil
