@@ -54,9 +54,9 @@ func TestAuth(t *testing.T) {
 		t.Error(s.err)
 		return
 	}
-	s.tlsCAKey = cfg.AuthTLSCAKey
-	s.tlsCACert = cfg.AuthTLSCACert
-	s.oidcCAKey = cfg.AuthOIDCCAKey
+	s.tlsCAKey = cfg.AuthTLSKey
+	s.tlsCACert = cfg.AuthTLSCert
+	s.oidcCAKey = cfg.AuthOIDCKey
 
 	s.logger, s.err = zap.NewLogger(log.NewConfig(log.WarnLevel, log.TextFormat))
 	if s.err != nil {
