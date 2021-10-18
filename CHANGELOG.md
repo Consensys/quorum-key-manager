@@ -1,9 +1,14 @@
 # Quorum Key Manager Release Notes
 
-## v21.9.2 (WIP)
+## v21.X.0 (WIP)
 
 ### 🆕 Features
 * Support for import of secrets, keys and ethereum accounts through command line (`import` command)
+
+## v21.9.2 (2021-10-18)
+
+### 🛠 Bug fixes
+* Use comma as column separator in CSV file for API key definition
 
 ## v21.9.1 (2021-10-05)
 
