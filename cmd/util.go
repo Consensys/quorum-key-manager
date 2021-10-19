@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -45,7 +44,6 @@ func newUtilCommand() *cobra.Command {
 	flags.AuthOIDCClaimUsername(generateJWTCmd.Flags())
 	flags.AuthOIDCClaimPermissions(generateJWTCmd.Flags())
 	flags.AuthOIDCClaimRoles(generateJWTCmd.Flags())
-	flags.AuthOIDCCertKeyFile(generateJWTCmd.Flags())
 
 	generateJWTCmd.Flags().StringVar(&sub, flags.AuthOIDCClaimUsernameDefault, "", "username and tenant added in claims")
 	generateJWTCmd.Flags().StringArrayVar(&scope, flags.AuthOIDCClaimPermissionsDefault, []string{}, "permissions added in claims")
@@ -72,7 +70,6 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	defer syncZapLogger(logger)
 
 	keyFile := vipr.GetString(flags.AuthOIDCCAKeyFileViperKey)
-	privKeyPassword := vipr.GetString(flags.AuthOIDCCAKeyPasswordViperKey)
 
 	_, err = os.Stat(keyFile)
 	if err != nil {
@@ -90,16 +87,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	oidcCfg := authCfg.OIDC
 
 	privPem, _ := pem.Decode(keyFileContent)
-	var privPemBytes []byte
-	if privKeyPassword != "" {
-		// nolint
-		privPemBytes, err = x509.DecryptPEMBlock(privPem, []byte(privKeyPassword))
-		if err != nil {
-			return err
-		}
-	} else {
-		privPemBytes = privPem.Bytes
-	}
+	var privPemBytes = privPem.Bytes
 
 	certKey, err := certificate.ParsePrivateKey(privPemBytes)
 	if err != nil {
