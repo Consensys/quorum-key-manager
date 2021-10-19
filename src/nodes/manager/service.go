@@ -6,6 +6,12 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/pkg/json"
+
+	"github.com/consensys/quorum-key-manager/src/aliases"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 
@@ -13,28 +19,22 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
 	"github.com/consensys/quorum-key-manager/src/nodes/node"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	"github.com/consensys/quorum-key-manager/src/stores"
 )
 
-const NodeManagerID = "NodeManager"
-
-var NodeKind manifest.Kind = "Node"
+const ID = "NodeManager"
 
 type BaseManager struct {
 	stores      stores.Manager
-	manifests   manifestsmanager.Manager
+	manifests   manifests.Reader
 	authManager auth.Manager
+	aliasParser aliases.Parser
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
-
-	sub    manifestsmanager.Subscription
-	mnfsts chan []manifestsmanager.Message
 
 	isLive bool
 	err    error
@@ -43,36 +43,40 @@ type BaseManager struct {
 }
 
 type nodeBundle struct {
-	manifest *manifest.Manifest
-	node     node.Node
-	err      error
-	stop     func(context.Context) error
+	mnf  *manifest.Manifest
+	node node.Node
+	err  error
+	stop func(context.Context) error
 }
 
-func New(smng stores.Manager, manifests manifestsmanager.Manager, authManager auth.Manager, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, aliasParser aliases.Parser, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		stores:      smng,
-		manifests:   manifests,
-		mnfsts:      make(chan []manifestsmanager.Message),
+		manifests:   manifestReader,
 		mux:         sync.RWMutex{},
 		nodes:       make(map[string]*nodeBundle),
 		authManager: authManager,
+		aliasParser: aliasParser,
 		logger:      logger,
 	}
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
-	defer func() {
-		m.isLive = true
-	}()
+	mnfs, err := m.manifests.Load()
+	if err != nil {
+		errMessage := "failed to load manifest file"
+		m.logger.WithError(err).Error(errMessage)
+		return errors.ConfigError(errMessage)
+	}
 
-	// Subscribe to manifest of Kind node
-	m.sub = m.manifests.Subscribe([]manifest.Kind{NodeKind}, m.mnfsts)
+	for _, mnf := range mnfs {
+		err = m.createNodes(ctx, mnf)
+		if err != nil {
+			return err
+		}
+	}
 
-	// Start loading manifest
-	go m.loadAll(ctx)
+	m.isLive = true
 
 	return nil
 }
@@ -82,10 +86,6 @@ func (m *BaseManager) Stop(ctx context.Context) error {
 	defer m.mux.Unlock()
 
 	m.isLive = false
-	// Unsubscribe
-	if m.sub != nil {
-		_ = m.sub.Unsubscribe()
-	}
 
 	wg := &sync.WaitGroup{}
 	for name, n := range m.nodes {
@@ -113,16 +113,6 @@ func (m *BaseManager) Error() error {
 	return m.err
 }
 
-func (m *BaseManager) loadAll(ctx context.Context) {
-	for mnfsts := range m.mnfsts {
-		for _, mnf := range mnfsts {
-			if err := m.load(ctx, mnf.Manifest); err != nil {
-				m.err = err
-			}
-		}
-	}
-}
-
 func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.UserInfo) (node.Node, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
@@ -130,7 +120,7 @@ func (m *BaseManager) Node(_ context.Context, name string, userInfo *authtypes.U
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
 
-		err := resolver.CheckAccess(nodeBundle.manifest.AllowedTenants)
+		err := resolver.CheckAccess(nodeBundle.mnf.AllowedTenants)
 		if err != nil {
 			return nil, err
 		}
@@ -155,7 +145,7 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 		permissions := m.authManager.UserPermissions(userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, m.logger)
 
-		if err := resolver.CheckAccess(nodeBundle.manifest.AllowedTenants); err != nil {
+		if err := resolver.CheckAccess(nodeBundle.mnf.AllowedTenants); err != nil {
 			continue
 		}
 		nodeNames = append(nodeNames, name)
@@ -166,26 +156,25 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 	return nodeNames, nil
 }
 
-func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
+func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
-	logger := m.logger.With("kind", mnf.Kind, "name", mnf.Name)
+	logger := m.logger.With("name", mnf.Name)
 
-	if _, ok := m.nodes[mnf.Name]; ok {
-		errMessage := "node already exists"
-		logger.Error(errMessage)
-		return errors.AlreadyExistsError(errMessage)
-	}
+	if mnf.Kind == manifest.Node {
+		if _, ok := m.nodes[mnf.Name]; ok {
+			errMessage := "node already exists"
+			logger.Error(errMessage)
+			return errors.AlreadyExistsError(errMessage)
+		}
 
-	switch mnf.Kind {
-	case NodeKind:
 		n := new(nodeBundle)
-		n.manifest = mnf
+		n.mnf = mnf
 		m.nodes[mnf.Name] = n
 
 		cfg := new(proxynode.Config)
-		if err := mnf.UnmarshalSpecs(cfg); err != nil {
+		if err := json.UnmarshalJSON(mnf.Specs, cfg); err != nil {
 			errMessage := "invalid node specs"
 			logger.WithError(err).Error(errMessage)
 			n.err = errors.InvalidParameterError(errMessage)
@@ -202,7 +191,12 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler = interceptor.New(m.stores.Stores(), m.logger)
+		prxNode.Handler, err = interceptor.New(m.stores.Stores(), m.aliasParser, m.logger)
+		if err != nil {
+			logger.WithError(err).Error("failed to create interceptor")
+			n.err = err
+			return err
+		}
 
 		// Start node
 		err = prxNode.Start(ctx)
@@ -213,17 +207,14 @@ func (m *BaseManager) load(ctx context.Context, mnf *manifest.Manifest) error {
 		}
 		n.node = prxNode
 		n.stop = prxNode.Stop
-	default:
-		errMessage := "invalid manifest kind"
-		logger.Error(errMessage)
-		return errors.InvalidParameterError(errMessage)
+
+		logger.Info("Node created successfully")
 	}
 
-	logger.Info("node loaded successfully")
 	return nil
 }
 
-func (m *BaseManager) ID() string { return NodeManagerID }
+func (m *BaseManager) ID() string { return ID }
 func (m *BaseManager) CheckLiveness(_ context.Context) error {
 	if m.isLive {
 		return nil
@@ -234,6 +225,4 @@ func (m *BaseManager) CheckLiveness(_ context.Context) error {
 	return errors.HealthcheckError(errMessage)
 }
 
-func (m *BaseManager) CheckReadiness(_ context.Context) error {
-	return m.Error()
-}
+func (m *BaseManager) CheckReadiness(_ context.Context) error { return m.Error() }

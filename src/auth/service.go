@@ -3,6 +3,8 @@ package auth
 import (
 	"net/http"
 
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
+
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 
 	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
@@ -12,19 +14,23 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 )
 
 func RegisterService(a *app.App, logger log.Logger) error {
-	// Load manifests service
-	m := new(manifestsmanager.Manager)
-	err := a.Service(m)
+	// Load configuration
+	cfg := new(Config)
+	err := a.ServiceConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	manifestReader, err := manifestreader.New(cfg.Manifest)
 	if err != nil {
 		return err
 	}
 
 	// Create and register the stores service
-	policyMngr := authmanager.New(*m, logger)
+	policyMngr := authmanager.New(manifestReader, logger)
 	err = a.RegisterService(policyMngr)
 	if err != nil {
 		return err
@@ -37,13 +43,6 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 	// Load configuration
 	cfg := new(Config)
 	err := a.ServiceConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	// Load policy manager service
-	policyMngr := new(Manager)
-	err = a.Service(policyMngr)
 	if err != nil {
 		return nil, err
 	}

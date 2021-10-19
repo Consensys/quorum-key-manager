@@ -2,11 +2,13 @@ package storemanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"testing"
-	"time"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	mock3 "github.com/consensys/quorum-key-manager/src/infra/manifests/mock"
 	stores2 "github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
 
 	mock2 "github.com/consensys/quorum-key-manager/src/auth/mock"
@@ -18,61 +20,12 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/stretchr/testify/require"
 )
 
-var testManifest = []byte(`
-- kind: HashicorpSecrets
-  version: 0.0.1
-  name: hashicorp-secrets
-  specs:
-    mountPoint: secret
-    address: http://hashicorp:8200
-    token: fakeToken
-    namespace: ''
-- kind: HashicorpKeys
-  version: 0.0.1
-  name: hashicorp-keys
-  specs:
-    mountPoint: quorum
-    address: http://hashicorp:8200
-    token: fakeToken
-    namespace: ''
-- kind: AKVSecrets
-  version: 0.0.1
-  name: akv-secrets
-  allowedTenants: ['tenantOne']
-  specs:
-    vaultName: fakeVaultName
-    tenantID: fakeTenant
-    clientID: fakeClientID
-    clientSecret: fakeSecret
-- kind: AKVKeys
-  version: 0.0.1
-  name: akv-keys
-  allowedTenants: ['tenantOne', 'tenantTwo']
-  specs:
-    vaultName: quorumkeymanager
-    tenantID: fakeTenant
-    clientID: fakeClientID
-    clientSecret: fakeSecret
-- kind: Ethereum
-  version: 0.0.1
-  name: eth-accounts
-  specs:
-    keystore: HashicorpKeys
-    specs:
-      mountPoint: quorum
-      address: http://hashicorp:8200
-      token: fakeToken
-      namespace: ''
-`)
-
-// This test ensures that we do not get any panic on stores manager process
-// Still this test can not ensure stores are properly created since we do not have access to dependencies
-// (should be responsibility of e2e and ATs)
 func TestManagerService(t *testing.T) {
+	ctx := context.Background()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -82,44 +35,63 @@ func TestManagerService(t *testing.T) {
 	mockKeysDB := mock.NewMockKeys(ctrl)
 	mockEthDB := mock.NewMockETHAccounts(ctrl)
 	mockAuthMngr := mock2.NewMockManager(ctrl)
+	mockManifestReader := mock3.NewMockReader(ctrl)
 
 	mockAuthMngr.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
 	mockDB.EXPECT().Secrets(gomock.Any()).Return(mockSecretDB).AnyTimes()
 	mockDB.EXPECT().Keys(gomock.Any()).Return(mockKeysDB).AnyTimes()
 	mockDB.EXPECT().ETHAccounts(gomock.Any()).Return(mockEthDB).AnyTimes()
 
-	dir := t.TempDir()
-	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
-	require.NoError(t, err, "WriteFile manifest1 must not error")
-
-	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir}, mockLogger)
-	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
-
-	err = manifests.Start(context.TODO())
-	require.NoError(t, err, "Start manifests manager must not error")
-
 	storesConnector := stores2.NewConnector(mockAuthMngr, mockDB, mockLogger)
-	mngr := New(storesConnector, manifests, mockDB, mockLogger)
-	err = mngr.Start(context.TODO())
-	require.NoError(t, err, "Start manager manager must not error")
+	mngr := New(storesConnector, mockManifestReader, mockDB, mockLogger)
 
-	// Give some time to load manifests
-	time.Sleep(500 * time.Millisecond)
+	t.Run("should start stores service successfully by loading stores", func(t *testing.T) {
+		testManifests := []*manifest.Manifest{
+			{
+				Kind:  "HashicorpSecrets",
+				Name:  "hashicorp-secrets",
+				Specs: json.RawMessage(`{"mountPoint": "secret", "address":"http://hashicorp:8200", "token": "fakeToken", "namespace": ""}`),
+			},
+			{
+				Kind:  "HashicorpKeys",
+				Name:  "hashicorp-keys",
+				Specs: json.RawMessage(`{"mountPoint": "quorum", "address":"http://hashicorp:8200", "token": "fakeToken", "namespace": ""}`),
+			},
+			{
+				Kind:           "AKVSecrets",
+				Name:           "akv-secrets",
+				AllowedTenants: []string{"tenantOne"},
+				Specs:          json.RawMessage(`{"vaultName": "fakeVaultName", "tenantID":"fakeTenant", "clientID": "fakeClientID", "clientSecret": "fakeSecret"}`),
+			},
+			{
+				Kind:           "AKVKeys",
+				Name:           "akv-keys",
+				AllowedTenants: []string{"tenantOne", "tenantTwo"},
+				Specs:          json.RawMessage(`{"vaultName": "quorumkeymanager", "tenantID":"fakeTenant", "clientID": "fakeClientID", "clientSecret": "fakeSecret"}`),
+			},
+		}
 
-	stores, err := mngr.Stores().List(context.TODO(), "", &types.UserInfo{})
-	require.NoError(t, err)
-	assert.Contains(t, stores, "hashicorp-secrets")
-	assert.Contains(t, stores, "hashicorp-keys")
-	assert.Contains(t, stores, "eth-accounts")
+		mockManifestReader.EXPECT().Load().Return(testManifests, nil)
 
-	stores, err = mngr.Stores().List(context.TODO(), "", &types.UserInfo{Tenant: "tenantOne"})
-	require.NoError(t, err)
-	assert.Contains(t, stores, "akv-secrets")
-	assert.Contains(t, stores, "akv-keys")
+		err := mngr.Start(ctx)
+		require.NoError(t, err)
 
-	err = manifests.Stop(context.TODO())
-	require.NoError(t, err, "Stop manifests manager must not error")
+		stores, err := mngr.Stores().List(context.TODO(), "", &types.UserInfo{})
+		require.NoError(t, err)
+		assert.Contains(t, stores, "hashicorp-secrets")
+		assert.Contains(t, stores, "hashicorp-keys")
 
-	err = mngr.Stop(context.TODO())
-	require.NoError(t, err, "Stop manager manager must not error")
+		stores, err = mngr.Stores().List(context.TODO(), "", &types.UserInfo{Tenant: "tenantOne"})
+		require.NoError(t, err)
+		assert.Contains(t, stores, "akv-secrets")
+		assert.Contains(t, stores, "akv-keys")
+
+	})
+
+	t.Run("should fail with ConfigError if manifest fails to be loaded", func(t *testing.T) {
+		mockManifestReader.EXPECT().Load().Return(nil, fmt.Errorf("error"))
+
+		err := mngr.Start(ctx)
+		assert.True(t, errors.IsConfigError(err))
+	})
 }

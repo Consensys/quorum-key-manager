@@ -6,14 +6,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
 	"github.com/consensys/quorum-key-manager/pkg/client"
+	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/tests"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -31,6 +33,8 @@ type jsonRPCTestSuite struct {
 	keyManagerClient *client.HTTPClient
 	acc              *types.EthAccountResponse
 	storeName        string
+	alias            string
+	registryName     string
 	QuorumNodeID     string
 	BesuNodeID       string
 	GethNodeID       string
@@ -48,13 +52,12 @@ func TestJSONRpcHTTP(t *testing.T) {
 
 	var cfg *tests.Config
 	cfg, s.err = tests.NewConfig()
-
 	if s.err != nil {
 		return
 	}
 
 	var token string
-	token, s.err = generateJWT("./certificates/client.key", "*:*", "e2e|json_rpc_test")
+	token, s.err = generateJWT(cfg.AuthOIDCKey, "*:*", "e2e|json_rpc_test")
 	if s.err != nil {
 		t.Errorf("failed to generate jwt. %s", s.err)
 		return
@@ -73,22 +76,24 @@ func TestJSONRpcHTTP(t *testing.T) {
 }
 
 func (s *jsonRPCTestSuite) SetupSuite() {
-	if s.err != nil {
-		s.T().Error(s.err)
-	}
-
 	privKey, err := hexutil.Decode("0x56202652fdffd802b7252a456dbd8f3ecc0352bbde76c23b40afe8aebd714e2e")
-	if s.err != nil {
+	if err != nil {
 		s.T().Error(err)
 	}
 
-	s.acc, s.err = s.keyManagerClient.ImportEthAccount(s.ctx, s.storeName, &types.ImportEthAccountRequest{
+	s.acc, err = s.keyManagerClient.ImportEthAccount(s.ctx, s.storeName, &types.ImportEthAccountRequest{
 		KeyID:      fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
 		PrivateKey: privKey,
 	})
+	if err != nil {
+		s.T().Error(err)
+	}
 
-	if s.err != nil {
-		s.T().Error(s.err)
+	s.registryName = fmt.Sprintf("e2e-%s", common.RandString(5))
+	s.alias = fmt.Sprintf("Group-A-%s", common.RandString(5))
+	_, err = s.keyManagerClient.CreateAlias(s.ctx, s.registryName, s.alias, aliastypes.AliasRequest{Value: []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="}})
+	if err != nil {
+		s.T().Error(err)
 	}
 }
 
@@ -97,11 +102,22 @@ func (s *jsonRPCTestSuite) TearDownSuite() {
 		s.T().Error(s.err)
 	}
 
-	_ = s.keyManagerClient.DeleteEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
-	errMsg := fmt.Sprintf("failed to destroy ethAccount {Address: %s}", s.acc.Address.Hex())
-	_ = retryOn(func() error {
+	err := s.keyManagerClient.DeleteEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
+	if err != nil {
+		s.T().Error(err)
+	}
+
+	err = retryOn(func() error {
 		return s.keyManagerClient.DestroyEthAccount(s.ctx, s.storeName, s.acc.Address.Hex())
-	}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
+	}, s.T().Logf, fmt.Sprintf("failed to destroy ethAccount {Address: %s}", s.acc.Address.Hex()), http.StatusConflict, MaxRetries)
+	if err != nil {
+		s.T().Error(err)
+	}
+
+	err = s.keyManagerClient.DeleteAlias(s.ctx, s.registryName, s.alias)
+	if err != nil {
+		s.T().Error(err)
+	}
 }
 
 func (s *jsonRPCTestSuite) TestCallForwarding() {
@@ -287,6 +303,46 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
 	})
 
+	s.Run("should call eth_sendTransaction, for private Quorum Tx, with an privateFor alias successfully", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+			"data":        "0xa2",
+			"from":        s.acc.Address,
+			"to":          toAddr,
+			"gas":         "0x989680",
+			"privateFrom": "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=",
+			"privateFor":  []string{fmt.Sprintf("{{%s:%s}}", s.registryName, s.alias)},
+		})
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
+	})
+
+	s.Run("should call eth_sendTransaction, for private Quorum Tx, with a privacyGroupID alias successfully", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+			"data":           "0xa2",
+			"from":           s.acc.Address,
+			"to":             toAddr,
+			"gas":            "0x989680",
+			"privateFrom":    "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=",
+			"privacyGroupID": fmt.Sprintf("{{%s:%s}}", s.registryName, s.alias),
+		})
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
+	})
+
 	s.Run("should call eth_sendTransaction and fail if invalid account", func() {
 		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",
@@ -313,7 +369,6 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 		require.NoError(s.T(), err)
 		assert.Error(s.T(), resp.Error)
 	})
-
 }
 
 func (s *jsonRPCTestSuite) TestSignEEATransaction() {

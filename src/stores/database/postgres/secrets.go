@@ -51,7 +51,7 @@ func (s *Secrets) Get(ctx context.Context, id, version string) (*entities.Secret
 	item := &models.Secret{ID: id, Version: version, StoreID: s.storeID}
 	err = s.client.SelectPK(ctx, item)
 	if err != nil {
-		errMessage := "failed to get secrets"
+		errMessage := "failed to get secret"
 		s.logger.With("id", id).With("version", version).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
@@ -68,7 +68,7 @@ func (s *Secrets) GetDeleted(ctx context.Context, id string) (*entities.Secret, 
 	item := &models.Secret{ID: id, Version: version, StoreID: s.storeID}
 	err = s.client.SelectDeletedPK(ctx, item)
 	if err != nil {
-		errMessage := "failed to get deleted secrets"
+		errMessage := "failed to get deleted secret"
 		s.logger.With("id", id).With("version", version).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}

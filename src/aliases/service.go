@@ -1,30 +1,37 @@
 package aliases
 
 import (
-	"github.com/consensys/quorum-key-manager/pkg/app"
-	aliasapi "github.com/consensys/quorum-key-manager/src/aliases/api"
-	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
+	"context"
+
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
-// RegisterService creates and register the alias service in the app.
-func RegisterService(a *app.App, logger log.Logger) error {
-	var cfg Config
-	err := a.ServiceConfig(&cfg)
-	if err != nil {
-		return err
-	}
+//go:generate mockgen -destination=mock/service.go -package=mock . Service,Interactor,Parser
 
-	pgClient, err := client.NewClient(cfg.Postgres)
-	if err != nil {
-		return err
-	}
+type Service interface {
+	Interactor
+	Parser
+}
 
-	db := aliaspg.NewDatabase(pgClient)
+// Interactor handles the alias storage.
+type Interactor interface {
+	// CreateAlias creates an alias in the registry.
+	CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
+	// GetAlias gets an alias from the registry.
+	GetAlias(ctx context.Context, registry string, aliasKey string) (*entities.Alias, error)
+	// UpdateAlias updates an alias in the registry.
+	UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
+	// DeleteAlias deletes an alias from the registry.
+	DeleteAlias(ctx context.Context, registry string, aliasKey string) error
+	// ListAliases lists all aliases from a registry.
+	ListAliases(ctx context.Context, registry string) ([]entities.Alias, error)
 
-	api := aliasapi.New(db.Alias())
-	api.Register(a.Router())
+	// DeleteRegistry deletes a registry, with all the aliases it contained.
+	DeleteRegistry(ctx context.Context, registry string) error
+}
 
-	return nil
+// Parser parses and replace aliases.
+type Parser interface {
+	ParseAlias(alias string) (regName string, aliasKey string, isAlias bool)
+	ReplaceAliases(ctx context.Context, addrs []string) ([]string, error)
 }

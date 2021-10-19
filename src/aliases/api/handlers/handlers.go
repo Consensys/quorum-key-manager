@@ -1,31 +1,30 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
-	"sync"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
+	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/gorilla/mux"
 )
 
 type AliasHandler struct {
-	alias aliasent.AliasBackend
+	alias aliases.Interactor
 }
 
-func NewAliasHandler(backend aliasent.AliasBackend) *AliasHandler {
+func NewAliasHandler(alias aliases.Interactor) *AliasHandler {
 	h := AliasHandler{
-		alias: backend,
+		alias: alias,
 	}
 
 	return &h
 }
 
+// Register registers alias handlers to HTTP endpoints.
 func (h *AliasHandler) Register(r *mux.Router) {
 	regRoute := r.PathPrefix("/registries/{registry_name}").Subrouter()
 	regRoute.HandleFunc("", h.deleteRegistry).Methods(http.MethodDelete)
@@ -52,13 +51,7 @@ func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
 	// should always exist in this subrouter
 	regName := vars["registry_name"]
 
-	err := validatePathVars(regName)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	err = h.alias.DeleteRegistry(r.Context(), aliasent.RegistryName(regName))
+	err := h.alias.DeleteRegistry(r.Context(), regName)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -85,20 +78,14 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	var aliasReq types.AliasRequest
-	err = jsonutils.UnmarshalBody(r.Body, &aliasReq)
+	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
-	eAlias := types.FormatAlias(types.RegistryName(regName), key, aliasReq.Value)
+	eAlias := types.FormatAlias(regName, key, aliasReq.Value)
 	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -106,7 +93,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := types.AliasResponse{
-		Value: types.AliasValue(alias.Value),
+		Value: alias.Value,
 	}
 	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
@@ -132,20 +119,14 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	alias, err := h.alias.GetAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(key))
+	alias, err := h.alias.GetAlias(r.Context(), regName, key)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: types.AliasValue(alias.Value),
+		Value: alias.Value,
 	})
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -173,33 +154,27 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
 	var aliasReq types.AliasRequest
-	err = jsonutils.UnmarshalBody(r.Body, &aliasReq)
+	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
-	alias := &aliasent.Alias{
-		RegistryName: aliasent.RegistryName(regName),
-		Key:          aliasent.AliasKey(key),
-		Value:        aliasent.AliasValue(aliasReq.Value),
+	alias := &entities.Alias{
+		RegistryName: regName,
+		Key:          key,
+		Value:        aliasReq.Value,
 	}
 
-	alias, err = h.alias.UpdateAlias(r.Context(), aliasent.RegistryName(regName), *alias)
+	alias, err = h.alias.UpdateAlias(r.Context(), regName, *alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: types.AliasValue(alias.Value),
+		Value: alias.Value,
 	})
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -224,13 +199,7 @@ func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	err := validatePathVars(regName, key)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	err = h.alias.DeleteAlias(r.Context(), aliasent.RegistryName(regName), aliasent.AliasKey(key))
+	err := h.alias.DeleteAlias(r.Context(), regName, key)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -255,13 +224,7 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 	// should always exist in this subrouter
 	regName := vars["registry_name"]
 
-	err := validatePathVars(regName)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, errors.InvalidFormatError(err.Error()))
-		return
-	}
-
-	als, err := h.alias.ListAliases(r.Context(), aliasent.RegistryName(regName))
+	als, err := h.alias.ListAliases(r.Context(), regName)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -272,26 +235,4 @@ func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
-}
-
-var pathVarsRegexCompileOnce sync.Once
-var pathVarsRegex *regexp.Regexp
-
-const pathVarsFormat = "^[a-zA-Z0-9-_+]+$"
-
-func validatePathVars(pathVars ...string) error {
-	var err error
-	pathVarsRegexCompileOnce.Do(func() {
-		pathVarsRegex, err = regexp.Compile(pathVarsFormat)
-	})
-	if err != nil {
-		return err
-	}
-
-	for _, v := range pathVars {
-		if !pathVarsRegex.MatchString(v) {
-			return fmt.Errorf("`%v` in path is not in the correct format: %v", v, pathVarsFormat)
-		}
-	}
-	return nil
 }

@@ -3,6 +3,8 @@ package eth
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/stores/database/models"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	"github.com/consensys/quorum-key-manager/src/auth/types"
@@ -33,7 +35,7 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, attr *
 		return nil, err
 	}
 
-	acc, err := c.db.Add(ctx, newEthAccount(key, attr))
+	acc, err := c.db.Add(ctx, models.NewETHAccountFromKey(key, attr))
 	if err != nil {
 		return nil, err
 	}

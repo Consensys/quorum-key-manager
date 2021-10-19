@@ -7,13 +7,6 @@ listener "tcp" {
   tls_disable = true
 }
 
-listener "tcp" {
-  address = "hashicorp:8202"
-  tls_client_ca_file = "/vault/tls/ca.crt"
-  tls_cert_file = "/vault/tls/tls.crt"
-  tls_key_file = "/vault/tls/tls.key"
-}
-
 default_lease_ttl = "15m"
 max_lease_ttl = 99999999
 api_addr = "http://hashicorp:8200"

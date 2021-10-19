@@ -48,7 +48,7 @@ func NewConfig(specs *entities.HashicorpSpecs) *Config {
 }
 
 // ToHashicorpConfig extracts an api.Config object from self
-func (c *Config) ToHashicorpConfig() *api.Config {
+func (c *Config) ToHashicorpConfig() (*api.Config, error) {
 	// Create Hashicorp Configuration
 	config := api.DefaultConfig()
 	config.Address = c.Address
@@ -62,8 +62,7 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 		MinVersion: tls.VersionTLS12,
 	}
 	if err := http2.ConfigureTransport(transport); err != nil {
-		config.Error = err
-		return config
+		return config, err
 	}
 
 	// Configure TLS
@@ -76,7 +75,9 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 		Insecure:      c.SkipVerify,
 	}
 
-	_ = config.ConfigureTLS(tlsConfig)
+	if err := config.ConfigureTLS(tlsConfig); err != nil {
+		return config, err
+	}
 
 	config.Limiter = rate.NewLimiter(rate.Limit(c.RateLimit), c.BurstLimit)
 	config.MaxRetries = c.MaxRetries
@@ -96,5 +97,5 @@ func (c *Config) ToHashicorpConfig() *api.Config {
 
 	config.Backoff = retryablehttp.LinearJitterBackoff
 
-	return config
+	return config, nil
 }

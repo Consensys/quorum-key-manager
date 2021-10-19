@@ -1,31 +1,34 @@
 package types
 
-import aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+import "github.com/consensys/quorum-key-manager/src/aliases/entities"
 
 type Alias struct {
-	Key   AliasKey   `json:"key"`
-	Value AliasValue `json:"value"`
+	Key   string   `json:"key"`
+	Value []string `json:"value"`
 
-	registryName RegistryName
+	registryName string
 }
 
-func FormatEntityAlias(ent aliasent.Alias) Alias {
+// FormatEntityAlias format an alias entity to an alias API type.
+func FormatEntityAlias(ent entities.Alias) Alias {
 	return Alias{
-		registryName: RegistryName(ent.RegistryName),
-		Key:          AliasKey(ent.Key),
-		Value:        AliasValue(ent.Value),
+		registryName: ent.RegistryName,
+		Key:          ent.Key,
+		Value:        ent.Value,
 	}
 }
 
-func FormatAlias(registry RegistryName, key string, value AliasValue) aliasent.Alias {
-	return aliasent.Alias{
-		RegistryName: aliasent.RegistryName(registry),
-		Key:          aliasent.AliasKey(key),
-		Value:        aliasent.AliasValue(value),
+// FormatAlias format an alias API type to an alias entity.
+func FormatAlias(registry, key string, value []string) entities.Alias {
+	return entities.Alias{
+		RegistryName: registry,
+		Key:          key,
+		Value:        value,
 	}
 }
 
-func FormatEntityAliases(ents []aliasent.Alias) []Alias {
+// FormatEntityAliases formats a slice of alias entities into a slice of alias API type.
+func FormatEntityAliases(ents []entities.Alias) []Alias {
 	var als = []Alias{}
 	for _, v := range ents {
 		als = append(als, FormatEntityAlias(v))
@@ -34,16 +37,12 @@ func FormatEntityAliases(ents []aliasent.Alias) []Alias {
 	return als
 }
 
-type AliasValue string
-
-type AliasKey string
-
-type RegistryName string
-
+// AliasRequest creates or modifies an alias value.
 type AliasRequest struct {
-	Value AliasValue `json:"value"`
+	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 }
 
+// AliasResponse returns the alias value.
 type AliasResponse struct {
-	Value AliasValue `json:"value"`
+	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 }

@@ -3,6 +3,9 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"io/ioutil"
 	"os"
@@ -24,8 +27,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	keymanager "github.com/consensys/quorum-key-manager/src"
-	manifest "github.com/consensys/quorum-key-manager/src/manifests/entities"
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
@@ -133,7 +134,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 	tmpYml, err := newTmpManifestYml(
 		&manifest.Manifest{
-			Kind:  manifest.HashicorpKeys,
+			Kind:  manifest.Kind(manifest.HashicorpKeys),
 			Name:  HashicorpKeyStoreName,
 			Specs: hashicorpSpecs,
 		},
@@ -154,10 +155,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Database: "postgres",
 	}
 	keyManager, err := keymanager.New(&keymanager.Config{
-		HTTP:      httpConfig,
-		Manifests: &manifestsmanager.Config{Path: tmpYml},
-		Postgres:  postgresCfg,
-		Logger:    log.NewConfig(log.DebugLevel, log.TextFormat),
+		HTTP:     httpConfig,
+		Manifest: manifestreader.NewConfig(tmpYml),
+		Postgres: postgresCfg,
+		Logger:   log.NewConfig(log.DebugLevel, log.TextFormat),
+		Auth: &auth.Config{
+			Manifest: manifestreader.NewConfig(tmpYml),
+		},
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")
@@ -173,7 +177,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 	hashicorpClient.SetToken(hashicorpContainer.RootToken)
 
-	postgresClient, err := postgresclient.NewClient(postgresCfg)
+	postgresClient, err := postgresclient.New(postgresCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Postgres client")
 		return nil, err

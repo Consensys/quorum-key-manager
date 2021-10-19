@@ -4,18 +4,19 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
+
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/store/postgres"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
+	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
+	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
@@ -163,7 +164,7 @@ func (s *storeTestSuite) TestKeyManagerAliases() {
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient).Alias()
+	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient, s.env.logger).Alias()
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	testSuite.rand = rand.New(randSrc)
 	suite.Run(s.T(), testSuite)

@@ -2,95 +2,84 @@ package manager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"testing"
-	"time"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	"github.com/consensys/quorum-key-manager/src/infra/manifests/mock"
 
-	manifestsmanager "github.com/consensys/quorum-key-manager/src/manifests/manager"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var testManifest = []byte(`
-- kind: Role
-  name: anonymous
-  specs:
-    permission:
-      - proxy:nodes
-- kind: Role
-  name: guest
-  specs:
-    permission:
-      - read:secrets
-      - proxy:nodes
-- kind: Role
-  name: signer
-  specs:
-    permission:
-      - read:ethereum
-      - read:keys
-      - sign:keys
-      - sign:ethereum
-- kind: Role
-  name: admin
-  specs:
-    permission:
-      - read:ethereum
-      - read:keys
-      - sign:keys
-      - sign:ethereum
-      - create:ethereum
-      - create:keys
-`)
-
 func TestBaseManager(t *testing.T) {
-	dir := t.TempDir()
+	ctx := context.Background()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	logger := testutils.NewMockLogger(ctrl)
-	err := ioutil.WriteFile(fmt.Sprintf("%v/manifest.yml", dir), testManifest, 0644)
-	require.NoError(t, err, "WriteFile manifest1 must not error")
 
-	manifests, err := manifestsmanager.NewLocalManager(&manifestsmanager.Config{Path: dir}, logger)
-	require.NoError(t, err, "NewLocalManager on %v must not error", dir)
+	mockLogger := testutils.NewMockLogger(ctrl)
+	mockManifestReader := mock.NewMockReader(ctrl)
 
-	err = manifests.Start(context.TODO())
-	require.NoError(t, err, "Start manifests manager must not error")
+	mngr := New(mockManifestReader, mockLogger)
 
-	mngr := New(manifests, logger)
-	err = mngr.Start(context.TODO())
-	require.NoError(t, err, "Start manager manager must not error")
+	t.Run("should start service successfully by loading roles", func(t *testing.T) {
+		testManifests := []*manifest.Manifest{
+			{
+				Kind:  "Role",
+				Name:  "anonymous",
+				Specs: json.RawMessage(`{"permission": ["proxy:nodes"]}`),
+			},
+			{
+				Kind:  "Role",
+				Name:  "guest",
+				Specs: json.RawMessage(`{"permission": ["read:secrets","proxy:nodes"]}`),
+			},
+			{
+				Kind:  "Role",
+				Name:  "signer",
+				Specs: json.RawMessage(`{"permission": ["read:ethereum","read:keys","sign:keys","sign:ethereum"]}`),
+			}, {
+				Kind:  "Role",
+				Name:  "admin",
+				Specs: json.RawMessage(`{"permission": ["read:ethereum","read:keys","sign:keys","sign:ethereum","create:ethereum","create:keys"]}`),
+			},
+		}
 
-	// Give some time to load manifests
-	time.Sleep(100 * time.Millisecond)
+		mockManifestReader.EXPECT().Load().Return(testManifests, nil)
 
-	// Verifies that objects have been properly loaded
-	guestRole, err := mngr.Role("guest")
-	require.NoError(t, err)
-	assert.Equal(t, "guest", guestRole.Name)
-	assert.Equal(t, []types.Permission{"read:secrets", "proxy:nodes"}, guestRole.Permissions)
+		err := mngr.Start(ctx)
+		require.NoError(t, err)
 
-	otherPermission := []types.Permission{"destroy:keys"}
-	userInfo := &types.UserInfo{
-		Roles:       []string{"signer", "admin"},
-		Permissions: []types.Permission{"destroy:keys"},
-	}
-	signerRole, err := mngr.Role("signer")
-	require.NoError(t, err)
-	adminRole, err := mngr.Role("admin")
-	require.NoError(t, err)
+		// Verifies that objects have been properly loaded
+		guestRole, err := mngr.Role("guest")
+		require.NoError(t, err)
+		assert.Equal(t, "guest", guestRole.Name)
+		assert.Equal(t, []types.Permission{"read:secrets", "proxy:nodes"}, guestRole.Permissions)
 
-	permissions := mngr.UserPermissions(userInfo)
-	assert.Equal(t, append(append(otherPermission, signerRole.Permissions...), adminRole.Permissions...), permissions)
+		otherPermission := []types.Permission{"destroy:keys"}
+		userInfo := &types.UserInfo{
+			Roles:       []string{"signer", "admin"},
+			Permissions: []types.Permission{"destroy:keys"},
+		}
+		signerRole, err := mngr.Role("signer")
+		require.NoError(t, err)
+		adminRole, err := mngr.Role("admin")
+		require.NoError(t, err)
 
-	err = manifests.Stop(context.TODO())
-	require.NoError(t, err, "Stop manifests manager must not error")
+		permissions := mngr.UserPermissions(userInfo)
+		assert.Equal(t, append(append(otherPermission, signerRole.Permissions...), adminRole.Permissions...), permissions)
+	})
 
-	err = mngr.Stop(context.TODO())
-	require.NoError(t, err, "Stop manager manager must not error")
+	t.Run("should fail with ConfigError if manifest fails to be loaded", func(t *testing.T) {
+		mockManifestReader.EXPECT().Load().Return(nil, fmt.Errorf("error"))
+
+		err := mngr.Start(ctx)
+		assert.True(t, errors.IsConfigError(err))
+	})
 }
