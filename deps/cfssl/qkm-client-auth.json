@@ -2,14 +2,14 @@
   "CN": "tenant0|user0",
   "key": {
     "algo": "rsa",
-    "size": 4096
+    "size": 2048
   },
   "names": [
     {
       "C": "FR",
       "L": "Paris",
       "O": "Consensys",
-      "OU": "Vault Tanuki",
+      "OU": "*:*",
       "ST": "Paris"
     }
 

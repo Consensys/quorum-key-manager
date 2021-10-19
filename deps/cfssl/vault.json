@@ -2,7 +2,7 @@
   "CN": "hashicorp",
   "key": {
     "algo": "rsa",
-    "size": 4096
+    "size": 2048
   },
   "names": [
     {
@@ -17,7 +17,9 @@
   "hosts": [
     "host1.example-company.com",
     "localhost",
+    "127.0.0.1",
     "hashicorp",
-    "vault"
+    "vault",
+    "vault.qa-qkm"
   ]
 }

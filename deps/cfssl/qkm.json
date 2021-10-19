@@ -2,7 +2,7 @@
   "CN": "qkm",
   "key": {
     "algo": "rsa",
-    "size": 4096
+    "size": 2048
   },
   "names": [
     {
