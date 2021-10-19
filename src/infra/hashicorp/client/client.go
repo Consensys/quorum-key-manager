@@ -15,7 +15,12 @@ type HashicorpVaultClient struct {
 var _ hashicorp.VaultClient = &HashicorpVaultClient{}
 
 func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
-	client, err := api.NewClient(cfg.ToHashicorpConfig())
+
+	clientConfig, err := cfg.ToHashicorpConfig()
+	if err != nil {
+		return nil, err
+	}
+	client, err := api.NewClient(clientConfig)
 	if err != nil {
 		return nil, err
 	}

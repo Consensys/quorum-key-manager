@@ -53,7 +53,7 @@ func (mr *MockSecretsClientMockRecorder) SetSecret(ctx, storeName, id, request i
 // GetSecret mocks base method
 func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "Secret", ctx, storeName, id, version)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -62,7 +62,7 @@ func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, versio
 // GetSecret indicates an expected call of GetSecret
 func (mr *MockSecretsClientMockRecorder) GetSecret(ctx, storeName, id, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsClient)(nil).GetSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockSecretsClient)(nil).GetSecret), ctx, storeName, id, version)
 }
 
 // GetDeletedSecret mocks base method
@@ -716,7 +716,7 @@ func (mr *MockKeyManagerClientMockRecorder) SetSecret(ctx, storeName, id, reques
 // GetSecret mocks base method
 func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
+	ret := m.ctrl.Call(m, "Secret", ctx, storeName, id, version)
 	ret0, _ := ret[0].(*types.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -725,7 +725,7 @@ func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, ver
 // GetSecret indicates an expected call of GetSecret
 func (mr *MockKeyManagerClientMockRecorder) GetSecret(ctx, storeName, id, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetSecret), ctx, storeName, id, version)
 }
 
 // GetDeletedSecret mocks base method

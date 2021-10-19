@@ -48,7 +48,7 @@ func TestEthSignTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 
-				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+				stores.EXPECT().EthereumByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 				accountsStore.EXPECT().SignTransaction(gomock.Any(), expectedFrom, big.NewInt(1998), gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
 			},
@@ -62,7 +62,7 @@ func TestEthSignTransaction(t *testing.T) {
 			prepare: func() {
 				expectedFrom := ethcommon.HexToAddress("0x78e6e236592597c09d5c137c2af40aecd42d12a2")
 
-				stores.EXPECT().GetEthStoreByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
+				stores.EXPECT().EthereumByAddr(gomock.Any(), expectedFrom, userInfo).Return(accountsStore, nil)
 				ethCaller.EXPECT().ChainID(gomock.Any()).Return(big.NewInt(1998), nil)
 				accountsStore.EXPECT().SignPrivate(gomock.Any(), expectedFrom, gomock.Any()).Return(ethcommon.FromHex("0xa6122e27"), nil)
 			},

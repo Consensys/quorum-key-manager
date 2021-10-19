@@ -65,7 +65,7 @@ func (s *ethHandlerTestSuite) SetupTest() {
 		UserInfo: ethUserInfo,
 	})
 
-	s.stores.EXPECT().GetEthStore(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
+	s.stores.EXPECT().Ethereum(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(s.stores).Register(s.router)
