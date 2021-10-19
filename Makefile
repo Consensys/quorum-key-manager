@@ -167,3 +167,6 @@ pgadmin:
 
 down-pgadmin:
 	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v pgadmin
+
+generate-pki:
+	@sh scripts/generate-pki.sh
