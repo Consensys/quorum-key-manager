@@ -71,7 +71,7 @@ func TestKeyManagerEth(t *testing.T) {
 	s.destroyQueue = &sync.WaitGroup{}
 
 	var token string
-	token, s.err = generateJWT("./certificates/client.key", "*:*", "e2e|eth_test")
+	token, s.err = generateJWT(cfg.AuthOIDCKey, "*:*", "e2e|eth_test")
 	if s.err != nil {
 		t.Errorf("failed to generate jwt. %s", s.err)
 		return

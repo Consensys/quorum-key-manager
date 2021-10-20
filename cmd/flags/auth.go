@@ -43,7 +43,7 @@ func init() {
 }
 
 const (
-	csvSeparator         = ';'
+	csvSeparator         = ','
 	csvCommentsMarker    = '#'
 	csvRowLen            = 4
 	csvHashOffset        = 0
