@@ -11,6 +11,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/aws/aws-sdk-go v1.38.41
+	github.com/cloudflare/cfssl v1.6.1 // indirect
 	github.com/consensys/gnark-crypto v0.5.0
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/containerd/containerd v1.4.11 // indirect
@@ -27,10 +28,10 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-cleanhttp v0.5.1
-	github.com/hashicorp/go-retryablehttp v0.5.4
+	github.com/hashicorp/go-retryablehttp v0.6.4
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/justinas/alice v1.2.0
-	github.com/lib/pq v1.8.0
+	github.com/lib/pq v1.10.1
 	github.com/magefile/mage v1.10.0 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/sirupsen/logrus v1.8.1
@@ -43,7 +44,7 @@ require (
 	go.uber.org/atomic v1.8.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
+	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	google.golang.org/protobuf v1.26.0 // indirect

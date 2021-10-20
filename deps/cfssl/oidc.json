@@ -15,7 +15,6 @@
 
   ],
   "hosts": [
-    "host1.example-company.com",
     "localhost",
     "127.0.0.1",
     "hashicorp",
