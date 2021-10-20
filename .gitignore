@@ -53,6 +53,13 @@ tests/report/output/report.json
 deps/config/manifests/*.yml
 deps/config/certificates/ca.crt
 
+# pki ,ca, certificates
+deps/config/ca
+deps/config/certificates
+deps/config/oidc
+deps/hashicorp/tls
+deps/postgres/tls
+
 # API Doc
 combined-schema.json
 swagger-combine.yml

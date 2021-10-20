@@ -51,9 +51,9 @@ postgres-tls:
 postgres-down:
 	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0
 
-deps: networks hashicorp postgres
+deps: generate-pki networks hashicorp postgres
 
-deps-tls: networks hashicorp-tls postgres-tls
+deps-tls: generate-pki networks hashicorp-tls postgres-tls
 
 down-deps: postgres-down hashicorp-down down-networks
 
@@ -167,3 +167,6 @@ pgadmin:
 
 down-pgadmin:
 	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v pgadmin
+
+generate-pki:
+	@sh scripts/generate-pki.sh
