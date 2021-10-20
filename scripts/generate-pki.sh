@@ -59,6 +59,6 @@ mv $GEN_DIR/vault-client.pem $DEST_DIR_VAULT_CERTS/client.crt
 mv $GEN_DIR/vault-client-key.pem $DEST_DIR_VAULT_CERTS/client.key
 
 # cleanup
-rm -rf $GEN_DIR/*
+rm -rf $GEN_DIR
 
 
