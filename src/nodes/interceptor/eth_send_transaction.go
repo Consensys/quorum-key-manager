@@ -40,7 +40,8 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 	}
 
 	if msg.GasPrice == nil {
-		gasPrice, err := sess.EthCaller().Eth().GasPrice(ctx)
+		var gasPrice *big.Int
+		gasPrice, err = sess.EthCaller().Eth().GasPrice(ctx)
 		if err != nil {
 			i.logger.WithError(err).Error("failed to fetch gas price")
 			return nil, errors.BlockchainNodeError(err.Error())
