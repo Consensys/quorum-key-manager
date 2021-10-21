@@ -69,7 +69,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	}
 	defer syncZapLogger(logger)
 
-	keyFile := vipr.GetString(flags.AuthOIDCCAKeyFileViperKey)
+	keyFile := vipr.GetString(flags.AuthOIDCPrivKeyViperKey)
 
 	_, err = os.Stat(keyFile)
 	if err != nil {
