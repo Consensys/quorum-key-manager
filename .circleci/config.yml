@@ -265,7 +265,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: main
+              only: /.*/
           requires:
             - acceptance
             - test
