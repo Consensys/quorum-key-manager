@@ -72,13 +72,14 @@ services:
       - ./deps/config/certificates:/certificates:ro
       - ./deps/config/ca:/ca:ro
       - ./deps/config/apikey:/apikey:ro
+      - ./deps/config/oidc:/oidc:ro
       - hashicorp-token:/vault/token:ro
 
   generate-jwt:
     <<: *container-common
     environment:
       <<: *default-variables
-      AUTH_OIDC_CA_KEY: ${AUTH_OIDC_CA_KEY-}
+      AUTH_OIDC_PRIV_KEY: ${AUTH_OIDC_PRIV_KEY-}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/oidc:/oidc:ro

@@ -5,6 +5,9 @@
 ### 🆕 Features
 * Support for import of secrets, keys and ethereum accounts through command line (`import` command)
 
+### 🛠 Changes
+* Env var `AUTH_OIDC_CA_CERT` and flag `--auth-oidc-ca-cert` renamed to `AUTH_OIDC_PUB_KEY` and `--auth-oidc-pub-key`
+
 ## v21.9.2 (2021-10-18)
 
 ### 🛠 Bug fixes
