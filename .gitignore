@@ -51,14 +51,14 @@ tests/report/output/report.json
 
 # Manifests
 deps/config/manifests/*.yml
-deps/config/certificates/ca.crt
 
-# pki ,ca, certificates
-deps/config/ca
-deps/config/certificates
-deps/config/oidc
-deps/hashicorp/tls
+# config pki ,ca, certificates
+deps/config/**/*.crt
+deps/config/**/*.key
+
+# TLS certs for dependencies
 deps/postgres/tls
+deps/hashicorp/tls
 
 # API Doc
 combined-schema.json
