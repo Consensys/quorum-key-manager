@@ -25,7 +25,7 @@ import (
 
 func init() {
 	_ = viper.BindEnv(authOIDCPubKeyFileViperKey, authOIDCPubKeyFileEnv)
-	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
+	_ = viper.BindEnv(AuthOIDCPrivKeyViperKey, authOIDCPrivKeyEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 
 	viper.SetDefault(AuthOIDCClaimUsernameViperKey, AuthOIDCClaimUsernameDefault)
@@ -80,8 +80,8 @@ const (
 )
 
 const (
-	AuthOIDCCAKeyFileViperKey = "auth.oidc.ca.key"
-	authOIDCCAKeyFileEnv      = "AUTH_OIDC_CA_KEY"
+	AuthOIDCPrivKeyViperKey = "auth.oidc.priv.key"
+	authOIDCPrivKeyEnv      = "AUTH_OIDC_PRIV_KEY"
 )
 
 const (
