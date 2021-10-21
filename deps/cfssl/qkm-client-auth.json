@@ -1,5 +1,5 @@
 {
-  "CN": "Tanuki Intermediate CA",
+  "CN": "tenant0|user0",
   "key": {
     "algo": "rsa",
     "size": 2048
@@ -8,12 +8,10 @@
     {
       "C": "FR",
       "L": "Paris",
-      "ST": "Paris",
       "O": "Consensys",
-      "OU": "Tanuki team Intermediate CA"
+      "OU": "*:*",
+      "ST": "Paris"
     }
-  ],
-  "ca": {
-    "expiry": "42720h"
-  }
+
+  ]
 }

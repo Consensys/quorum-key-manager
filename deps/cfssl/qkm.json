@@ -1,5 +1,5 @@
 {
-  "CN": "hashicorp",
+  "CN": "qkm",
   "key": {
     "algo": "rsa",
     "size": 2048
@@ -17,9 +17,7 @@
   "hosts": [
     "host1.example-company.com",
     "localhost",
-    "127.0.0.1",
-    "hashicorp",
-    "vault",
-    "vault.qa-qkm"
+    "qkm",
+    "quorum-key-manager"
   ]
 }
