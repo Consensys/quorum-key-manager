@@ -13,7 +13,7 @@ DEST_DIR_OIDC=./deps/config/oidc
 DEST_DIR_VAULT_CERTS=./deps/hashicorp/tls
 DEST_DIR_PG_CERTS=./deps/postgres/tls
 
-mkdir -p $GEN_DIR $DEST_DIR_CA $DEST_DIR_CERTS $DEST_DIR_VAULT_CERTS $DEST_DIR_PG_CERTS
+mkdir -p $DEST_DIR_VAULT_CERTS $DEST_DIR_PG_CERTS
 
 ROOT_CRT=./deps/cfssl/generated/ca.pem
 ROOT_KEY=./deps/cfssl/generated/ca-key.pem
