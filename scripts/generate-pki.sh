@@ -6,25 +6,25 @@ go get github.com/cloudflare/cfssl/cmd/cfssljson
 
 # useful dirs
 CONF_DIR=./deps/cfssl
-GEN_DIR=./deps/cfssl/generated
+GEN_DIR=./deps/cfssl/tmp
 DEST_DIR_CA=./deps/config/ca
 DEST_DIR_CERTS=./deps/config/certificates
 DEST_DIR_OIDC=./deps/config/oidc
 DEST_DIR_VAULT_CERTS=./deps/hashicorp/tls
 DEST_DIR_PG_CERTS=./deps/postgres/tls
 
-mkdir -p $GEN_DIR $DEST_DIR_CA $DEST_DIR_CERTS $DEST_DIR_VAULT_CERTS $DEST_DIR_PG_CERTS
+mkdir -p $GEN_DIR $DEST_DIR_VAULT_CERTS $DEST_DIR_PG_CERTS
 
-ROOT_CRT=./deps/cfssl/generated/ca.pem
-ROOT_KEY=./deps/cfssl/generated/ca-key.pem
+ROOT_CRT=$GEN_DIR/ca.pem
+ROOT_KEY=$GEN_DIR/ca-key.pem
 
 # Gen root + intermediate
 cfssl gencert -initca $CONF_DIR/root.json | cfssljson -bare $GEN_DIR/ca
 cfssl gencert -initca $CONF_DIR/intermediate.json | cfssljson -bare $GEN_DIR/intermediate_ca
 cfssl sign -ca $ROOT_CRT -ca-key $ROOT_KEY -config $CONF_DIR//cfssl.json -profile intermediate_ca $GEN_DIR/intermediate_ca.csr | cfssljson -bare $GEN_DIR/intermediate_ca
 
-INTER_CRT=./deps/cfssl/generated/intermediate_ca.pem
-INTER_KEY=./deps/cfssl/generated/intermediate_ca-key.pem
+INTER_CRT=$GEN_DIR/intermediate_ca.pem
+INTER_KEY=$GEN_DIR/intermediate_ca-key.pem
 
 # Gen leaves from intermediate
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=client $CONF_DIR/qkm-client-no-auth.json | cfssljson -bare $GEN_DIR/qkm-client-no-auth
