@@ -11,6 +11,7 @@ PARAMETERS=""
 [ "$QKM_TAG" ] && export PARAMETERS=$PARAMETERS,\"qkm_tag\":\"$QKM_TAG\"
 [ "$QKM_REPOSITORY" ] && export PARAMETERS=$PARAMETERS,\"qkm_repository\":\"$QKM_REPOSITORY\"
 [ "$ENVIRONMENT_VALUES" ] && export PARAMETERS=$PARAMETERS,\"environment_values\":\"$ENVIRONMENT_VALUES\"
+[ "$B64_MANIFESTS" ] && export PARAMETERS=$PARAMETERS,\"b64_manifests\":\"$B64_MANIFESTS\"
 [ "$PARAMETERS" ] && PARAMETERS=${PARAMETERS:1}
 
 echo "Pipeline parameters: $PARAMETERS"
