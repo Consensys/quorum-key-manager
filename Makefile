@@ -51,9 +51,9 @@ postgres-tls:
 postgres-down:
 	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0
 
-deps: networks hashicorp postgres
+deps: generate-pki networks hashicorp postgres
 
-deps-tls: networks hashicorp-tls postgres-tls
+deps-tls: generate-pki networks hashicorp-tls postgres-tls
 
 down-deps: postgres-down hashicorp-down down-networks
 
@@ -80,7 +80,10 @@ dev: gobuild
 
 up: deps go-quorum besu geth gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --build -d $(KEY_MANAGER_SERVICES)
-	
+
+up-tls: deps-tls go-quorum besu geth gobuild
+	@docker-compose -f ./docker-compose.dev.yml up --build -d $(KEY_MANAGER_SERVICES)
+
 down: down-go-quorum down-besu down-geth
 	@docker-compose -f ./docker-compose.dev.yml down --volumes --timeout 0
 	@make down-deps
@@ -167,3 +170,6 @@ pgadmin:
 
 down-pgadmin:
 	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v pgadmin
+
+generate-pki:
+	@sh scripts/generate-pki.sh

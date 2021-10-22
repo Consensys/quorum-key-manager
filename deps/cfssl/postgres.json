@@ -2,7 +2,7 @@
   "CN": "postgres",
   "key": {
     "algo": "rsa",
-    "size": 4096
+    "size": 2048
   },
   "names": [
     {
@@ -17,6 +17,7 @@
   "hosts": [
     "host1.example-company.com",
     "localhost",
-    "postgres"
+    "postgres",
+    "postgres-ssl"
   ]
 }

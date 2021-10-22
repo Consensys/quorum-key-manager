@@ -10,6 +10,19 @@ x-postgres-common: &postgres-common
     POSTGRES_PASSWORD: postgres
 
 services:
+  postgres-ssl-init:
+    image: gcr.io/distroless/static:debug
+    volumes:
+      - ./postgres/tls/tls.key:/server.key:ro
+      - postgres-key:/postgres-key
+    entrypoint:
+      - sh
+      - -c
+      - |
+        cp /server.key /postgres-key/server.key
+        chown 70 /postgres-key/server.key
+        chmod 0600 /postgres-key/server.key
+
   postgres-ssl:
     <<: *container-common
     <<: *postgres-common
@@ -19,15 +32,17 @@ services:
     command: >
       -c ssl=on
       -c ssl_cert_file=/var/lib/postgresql/server.crt
-      -c ssl_key_file=/var/lib/postgresql/server.key
+      -c ssl_key_file=/var/lib/postgresql/key/server.key
       -c ssl_ca_file=/var/lib/postgresql/ca.crt
     volumes:
       - db-data-api:/var/lib/postgresql/data
-      - ./postgres/server.crt:/var/lib/postgresql/server.crt:ro
-      - ./postgres/server.key:/var/lib/postgresql/server.key:ro
-      - ./config/ca/ca.crt:/var/lib/postgresql/ca.crt:ro
+      - ./postgres/tls/tls.crt:/var/lib/postgresql/server.crt:ro
+      - postgres-key:/var/lib/postgresql/key:ro
+      - ./postgres/tls/ca.crt:/var/lib/postgresql/ca.crt:ro
     ports:
       - 5432
+    depends_on:
+      - postgres-ssl-init
 
   postgres:
     <<: *container-common
@@ -42,6 +57,8 @@ services:
 
 volumes:
   db-data-api:
+    driver: local
+  postgres-key:
     driver: local
 
 networks:
