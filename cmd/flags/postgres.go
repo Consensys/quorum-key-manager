@@ -2,11 +2,7 @@ package flags
 
 import (
 	"fmt"
-	"io/ioutil"
 	"time"
-
-	"github.com/consensys/quorum-key-manager/pkg/tls"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	"github.com/spf13/pflag"
@@ -238,8 +234,8 @@ Environment variable: %q`, dbTLSCAEnv)
 	_ = viper.BindPFlag(DBTLSCAViperKey, f.Lookup(dbTLSCAFlag))
 }
 
-func NewPostgresConfig(vipr *viper.Viper) (*postgresclient.Config, error) {
-	cfg := &postgresclient.Config{
+func NewPostgresConfig(vipr *viper.Viper) *postgresclient.Config {
+	return &postgresclient.Config{
 		Host:              vipr.GetString(DBHostViperKey),
 		Port:              vipr.GetString(DBPortViperKey),
 		User:              vipr.GetString(DBUserViperKey),
@@ -253,31 +249,5 @@ func NewPostgresConfig(vipr *viper.Viper) (*postgresclient.Config, error) {
 		TLSCert:           vipr.GetString(DBTLSCertViperKey),
 		TLSKey:            vipr.GetString(DBTLSKeyViperKey),
 		TLSCA:             vipr.GetString(DBTLSCAViperKey),
-		TLS:               &tls.Option{},
 	}
-
-	if cfg.TLSCert != "" && cfg.TLSKey != "" {
-		cert, err := ioutil.ReadFile(cfg.TLSCert)
-		if err != nil {
-			return nil, err
-		}
-
-		key, err := ioutil.ReadFile(cfg.TLSKey)
-		if err != nil {
-			return nil, err
-		}
-
-		cfg.TLS.Certificates = []*certificate.KeyPair{{Cert: cert, Key: key}}
-
-		if vipr.GetString(DBTLSCAViperKey) != "" {
-			ca, err := ioutil.ReadFile(cfg.TLSCA)
-			if err != nil {
-				return nil, err
-			}
-
-			cfg.TLS.CAs = [][]byte{ca}
-		}
-	}
-
-	return cfg, nil
 }

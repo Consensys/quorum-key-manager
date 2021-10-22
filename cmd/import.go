@@ -99,15 +99,8 @@ func getLogger() (*zap.Logger, error) {
 }
 
 func getStores(logger log.Logger) (storeservice.Stores, error) {
-	vpr := viper.GetViper()
-
-	pgCfg, err := flags.NewPostgresConfig(vpr)
-	if err != nil {
-		return nil, err
-	}
-
 	// Create Postgres DB
-	postgresClient, err := client.New(pgCfg)
+	postgresClient, err := client.New(flags.NewPostgresConfig(viper.GetViper()))
 	if err != nil {
 		return nil, err
 	}

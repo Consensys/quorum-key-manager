@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/tcp"
@@ -18,14 +19,14 @@ type TLSDialer struct {
 	verifyCAOnly bool
 }
 
-func NewTLSDialer(cfg *Config) (*TLSDialer, error) {
+func NewTLSDialer(sslMode, host string, keepAlive, timeout time.Duration, tlsOption *tls.Option) (*TLSDialer, error) {
 	var verifyCAOnly bool
-	switch cfg.SSLMode {
+	switch sslMode {
 	case requireSSLMode:
 		// Setting InsecureSkipVerify to true
 		// makes client skip server certificate verification
 		// at handshake
-		cfg.TLS.InsecureSkipVerify = true
+		tlsOption.InsecureSkipVerify = true
 	case verifyFullSSLMode:
 		// Setting ServerName
 		// makes client proceed to server certificate verification
@@ -34,12 +35,12 @@ func NewTLSDialer(cfg *Config) (*TLSDialer, error) {
 		// In this case it controls both
 		// - server certificate is ca signed if ca has been passed
 		// - server that is accessed is listed in server certificate domains
-		cfg.TLS.ServerName = cfg.Host
+		tlsOption.ServerName = host
 	case verifyCASSLMode:
 		// golang crypto/tls does not allow to implement
 		// verify-ca behavior (only verify-full)
 		// so we need some customisation
-		cfg.TLS.InsecureSkipVerify = true
+		tlsOption.InsecureSkipVerify = true
 		verifyCAOnly = true
 	case disableSSLMode, "":
 		return nil, nil
@@ -47,7 +48,7 @@ func NewTLSDialer(cfg *Config) (*TLSDialer, error) {
 		return nil, errors.ConfigError("invalid sslmode")
 	}
 
-	tlsConfig, err := tls.NewConfig(cfg.TLS)
+	tlsConfig, err := tls.NewConfig(tlsOption)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func NewTLSDialer(cfg *Config) (*TLSDialer, error) {
 	return &TLSDialer{
 		Dialer: &tls.Dialer{
 			Dialer: &pgTLSDialer{
-				Dialer: Dialer(cfg),
+				Dialer: Dialer(keepAlive, timeout),
 			},
 			TLSConfig: tlsConfig,
 		},
@@ -93,10 +94,10 @@ func (d *TLSDialer) DialContext(ctx context.Context, network, addr string) (net.
 	return conn, nil
 }
 
-func Dialer(cfg *Config) *net.Dialer {
+func Dialer(keepAlive, timeout time.Duration) *net.Dialer {
 	return &net.Dialer{
-		Timeout:   cfg.DialTimeout,
-		KeepAlive: cfg.KeepAliveInterval,
+		Timeout:   timeout,
+		KeepAlive: keepAlive,
 	}
 }
 

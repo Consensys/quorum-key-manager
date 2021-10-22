@@ -1,0 +1,21 @@
+- kind: HashicorpSecrets
+  name: hashicorp-secrets
+  # allowedTenants: ['{REPLACE BY ALLOWED TENANT ID}']
+  specs:
+    mountPoint: secret
+    address: https://hashicorp:8200
+    tokenPath: /vault/token/.root
+    namespace: ''
+    # clientCert: /certificates/client.crt
+    # clientKey: /certificates/client.key
+    # CACert: /ca/ca.crt
+- kind: HashicorpKeys
+  name: hashicorp-keys
+  specs:
+    mountPoint: quorum
+    address: https://hashicorp:8200
+    tokenPath: /vault/token/.root
+    namespace: ''
+    # clientCert: /certificates/client.crt
+    # clientKey: /certificates/client.key
+    # CACert: /ca/ca.crt
