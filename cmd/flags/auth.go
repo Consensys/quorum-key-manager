@@ -24,9 +24,8 @@ import (
 )
 
 func init() {
-	_ = viper.BindEnv(authOIDCCACertFileViperKey, authOIDCCACertFileEnv)
-	_ = viper.BindEnv(AuthOIDCCAKeyFileViperKey, authOIDCCAKeyFileEnv)
-	_ = viper.BindEnv(AuthOIDCCAKeyPasswordViperKey, authOIDCCAKeyPasswordEnv)
+	_ = viper.BindEnv(authOIDCPubKeyFileViperKey, authOIDCPubKeyFileEnv)
+	_ = viper.BindEnv(AuthOIDCPrivKeyViperKey, authOIDCPrivKeyEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 
 	viper.SetDefault(AuthOIDCClaimUsernameViperKey, AuthOIDCClaimUsernameDefault)
@@ -67,10 +66,10 @@ const (
 )
 
 const (
-	authOIDCCACertFileFlag     = "auth-oidc-ca-cert"
-	authOIDCCACertFileViperKey = "auth.oidc.ca.cert"
-	authOIDCCACertFileDefault  = ""
-	authOIDCCACertFileEnv      = "AUTH_OIDC_CA_CERT"
+	authOIDCPubKeyFileFlag     = "auth-oidc-pub-key"
+	authOIDCPubKeyFileViperKey = "auth.oidc.pub.key"
+	authOIDCPubKeyFileDefault  = ""
+	authOIDCPubKeyFileEnv      = "AUTH_OIDC_PUB_KEY"
 )
 
 const (
@@ -81,17 +80,8 @@ const (
 )
 
 const (
-	authOIDCCAKeyFileFlag     = "auth-oidc-ca-key"
-	AuthOIDCCAKeyFileViperKey = "auth.oidc.ca.key"
-	authOIDCCAKeyFileDefault  = ""
-	authOIDCCAKeyFileEnv      = "AUTH_OIDC_CA_KEY"
-)
-
-const (
-	authOIDCCAKeyPasswordFlag     = "auth-oidc-ca-key-password"
-	AuthOIDCCAKeyPasswordViperKey = "auth.oidc.ca.key.password"
-	authOIDCCAKeyPasswordDefault  = ""
-	authOIDCCAKeyPasswordEnv      = "AUTH_OIDC_CA_KEY_PASSWORD"
+	AuthOIDCPrivKeyViperKey = "auth.oidc.priv.key"
+	authOIDCPrivKeyEnv      = "AUTH_OIDC_PRIV_KEY"
 )
 
 const (
@@ -116,7 +106,7 @@ const (
 )
 
 func AuthFlags(f *pflag.FlagSet) {
-	authOIDCCAFile(f)
+	authOIDCPubKey(f)
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimPermissions(f)
@@ -125,24 +115,11 @@ func AuthFlags(f *pflag.FlagSet) {
 	authAPIKeyFile(f)
 }
 
-// AuthOIDCCertKeyFile Use only on generate-token utils
-func AuthOIDCCertKeyFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect CA key filepath.
-Environment variable: %q`, authOIDCCAKeyFileEnv)
-	f.String(authOIDCCAKeyFileFlag, authOIDCCAKeyFileDefault, desc)
-	_ = viper.BindPFlag(AuthOIDCCAKeyFileViperKey, f.Lookup(authOIDCCAKeyFileFlag))
-
-	desc = fmt.Sprintf(`OpenID Connect CA key password.
-Environment variable: %q`, authOIDCCAKeyPasswordEnv)
-	f.String(authOIDCCAKeyPasswordFlag, authOIDCCAKeyPasswordDefault, desc)
-	_ = viper.BindPFlag(AuthOIDCCAKeyPasswordViperKey, f.Lookup(authOIDCCAKeyPasswordFlag))
-}
-
-func authOIDCCAFile(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect ca Key filepath.
-Environment variable: %q`, authOIDCCACertFileEnv)
-	f.String(authOIDCCACertFileFlag, authOIDCCACertFileDefault, desc)
-	_ = viper.BindPFlag(authOIDCCACertFileViperKey, f.Lookup(authOIDCCACertFileFlag))
+func authOIDCPubKey(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`OpenID Connect Public Key filepath.
+Environment variable: %q`, authOIDCPubKeyFileEnv)
+	f.String(authOIDCPubKeyFileFlag, authOIDCPubKeyFileDefault, desc)
+	_ = viper.BindPFlag(authOIDCPubKeyFileViperKey, f.Lookup(authOIDCPubKeyFileFlag))
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
@@ -237,7 +214,7 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 }
 
 func oidcCert(vipr *viper.Viper) (*x509.Certificate, error) {
-	caFile := vipr.GetString(authOIDCCACertFileViperKey)
+	caFile := vipr.GetString(authOIDCPubKeyFileViperKey)
 	if caFile == "" {
 		return nil, nil
 	}
