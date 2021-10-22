@@ -1,7 +1,6 @@
 package flags
 
 import (
-	"context"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
@@ -9,12 +8,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 
-	"github.com/consensys/quorum-key-manager/pkg/jwt"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
@@ -24,7 +20,6 @@ import (
 )
 
 func init() {
-	_ = viper.BindEnv(authOIDCPubKeyFileViperKey, authOIDCPubKeyFileEnv)
 	_ = viper.BindEnv(AuthOIDCPrivKeyViperKey, authOIDCPrivKeyEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 
@@ -66,13 +61,6 @@ const (
 )
 
 const (
-	authOIDCPubKeyFileFlag     = "auth-oidc-pub-key"
-	authOIDCPubKeyFileViperKey = "auth.oidc.pub.key"
-	authOIDCPubKeyFileDefault  = ""
-	authOIDCPubKeyFileEnv      = "AUTH_OIDC_PUB_KEY"
-)
-
-const (
 	authOIDCIssuerURLFlag     = "auth-oidc-issuer-url"
 	authOIDCIssuerURLViperKey = "auth.oidc.issuer.url"
 	authOIDCIssuerURLDefault  = ""
@@ -106,20 +94,12 @@ const (
 )
 
 func AuthFlags(f *pflag.FlagSet) {
-	authOIDCPubKey(f)
 	authOIDCIssuerServer(f)
 	AuthOIDCClaimUsername(f)
 	AuthOIDCClaimPermissions(f)
 	AuthOIDCClaimRoles(f)
 	authTLSCertFile(f)
 	authAPIKeyFile(f)
-}
-
-func authOIDCPubKey(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect Public Key filepath.
-Environment variable: %q`, authOIDCPubKeyFileEnv)
-	f.String(authOIDCPubKeyFileFlag, authOIDCPubKeyFileDefault, desc)
-	_ = viper.BindPFlag(authOIDCPubKeyFileViperKey, f.Lookup(authOIDCPubKeyFileFlag))
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
@@ -166,25 +146,12 @@ Environment variable: %q`, authAPIKeyFileEnv)
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	// OIDC
-	var certsOIDC []*x509.Certificate
-
-	fileCertOIDC, err := oidcCert(vipr)
-	if err != nil {
-		return nil, err
-	} else if fileCertOIDC != nil {
-		certsOIDC = append(certsOIDC, fileCertOIDC)
-	}
-
-	issuerCerts, err := oidcIssuerURL(vipr)
-	if err != nil {
-		return nil, err
-	} else if issuerCerts != nil {
-		certsOIDC = append(certsOIDC, issuerCerts...)
-	}
-
-	oidcCfg := oidc.NewConfig(vipr.GetString(AuthOIDCClaimUsernameViperKey),
+	oidcCfg := oidc.NewConfig(
+		vipr.GetString(authOIDCIssuerURLViperKey),
+		vipr.GetString(AuthOIDCClaimUsernameViperKey),
 		vipr.GetString(AuthOIDCClaimPermissionsViperKey),
-		vipr.GetString(authOIDCClaimRolesViperKey), certsOIDC...)
+		vipr.GetString(authOIDCClaimRolesViperKey),
+	)
 
 	// API-KEY
 	var apiKeyCfg = &apikey.Config{}
@@ -210,54 +177,6 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 		TLS:      tlsCfg,
 		Manifest: NewManifestConfig(vipr),
 	}, nil
-
-}
-
-func oidcCert(vipr *viper.Viper) (*x509.Certificate, error) {
-	caFile := vipr.GetString(authOIDCPubKeyFileViperKey)
-	if caFile == "" {
-		return nil, nil
-	}
-
-	_, err := os.Stat(caFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read ca file. %s", err.Error())
-	}
-
-	caFileContent, err := ioutil.ReadFile(caFile)
-	if err != nil {
-		return nil, err
-	}
-
-	bCert, err := certificate.Decode(caFileContent, "CERTIFICATE")
-	if err != nil {
-		return nil, err
-	}
-	cert, err := x509.ParseCertificate(bCert[0])
-	if err != nil {
-		return nil, err
-	}
-
-	return cert, nil
-}
-
-func oidcIssuerURL(vipr *viper.Viper) ([]*x509.Certificate, error) {
-	issuerServer := vipr.GetString(authOIDCIssuerURLViperKey)
-	if issuerServer == "" {
-		return nil, nil
-	}
-
-	jwks, err := jwt.RetrieveKeySet(context.Background(), http.DefaultClient, issuerServer)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve auth server jwks: %s", issuerServer)
-	}
-
-	var certs []*x509.Certificate
-	for _, kw := range jwks.Keys {
-		certs = append(certs, kw.Certificates...)
-	}
-
-	return certs, nil
 }
 
 func apiKeyCsvFile(vipr *viper.Viper) (map[string]apikey.UserClaims, error) {

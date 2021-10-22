@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto"
 	"crypto/rsa"
 	"encoding/json"
 	"time"
@@ -13,10 +12,8 @@ type TokenGenerator struct {
 	privateKey *rsa.PrivateKey
 }
 
-func NewTokenGenerator(key crypto.PrivateKey) (*TokenGenerator, error) {
-	return &TokenGenerator{
-		privateKey: key.(*rsa.PrivateKey),
-	}, nil
+func NewTokenGenerator(key *rsa.PrivateKey) *TokenGenerator {
+	return &TokenGenerator{privateKey: key}
 }
 
 func (j *TokenGenerator) GenerateAccessToken(claims map[string]interface{}, ttl time.Duration) (tokenValue string, err error) {

@@ -2,10 +2,11 @@ package src
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	"github.com/consensys/quorum-key-manager/pkg/http/middleware"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
+	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/accesslog"
+	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/jwt"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
@@ -69,17 +70,34 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	}
 
 	// Set Middleware
-	authmid, err := auth.Middleware(a, logger.WithComponent("auth-mid"))
+	compositionMiddleware, err := createMiddlewares(cfg, logger.WithComponent("accesslog"))
 	if err != nil {
 		return nil, err
 	}
 
-	mid := alice.New(middleware.AccessLog(logger.WithComponent("accesslog")), authmid)
-
-	err = a.SetMiddleware(mid.Then)
+	err = a.SetMiddleware(compositionMiddleware.Then)
 	if err != nil {
 		return nil, err
 	}
 
 	return a, nil
+}
+
+func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
+	compositionMiddleware := &alice.Chain{}
+
+	// access log middleware
+	// TODO: Make accesslog middleware configurable (at least enable/disable)
+	compositionMiddleware.Append(accesslog.NewMiddleware(logger).Handler)
+
+	if cfg.Auth.OIDC != nil {
+		jwtMiddleware, err := jwt.NewMiddleware(cfg.Auth.OIDC)
+		if err != nil {
+			return nil, err
+		}
+
+		compositionMiddleware.Append(jwtMiddleware.Handler)
+	}
+
+	return compositionMiddleware, nil
 }

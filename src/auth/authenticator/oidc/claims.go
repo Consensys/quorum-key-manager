@@ -12,8 +12,6 @@ type Claims struct {
 
 	Subject string   `json:"subject"`
 	Scope   []string `json:"scope"`
-
-	cfg *ClaimsConfig
 }
 
 func (c *Claims) UnmarshalJSON(b []byte) error {
