@@ -2,9 +2,10 @@ package client
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"io/ioutil"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 
 	"github.com/go-pg/pg/v10"
 
