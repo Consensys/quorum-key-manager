@@ -17,6 +17,7 @@
   "hosts": [
     "host1.example-company.com",
     "localhost",
-    "postgres"
+    "postgres",
+    "postgres-ssl"
   ]
 }

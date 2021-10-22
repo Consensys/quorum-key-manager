@@ -80,7 +80,10 @@ dev: gobuild
 
 up: deps go-quorum besu geth gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --build -d $(KEY_MANAGER_SERVICES)
-	
+
+up-tls: deps-tls go-quorum besu geth gobuild
+	@docker-compose -f ./docker-compose.dev.yml up --build -d $(KEY_MANAGER_SERVICES)
+
 down: down-go-quorum down-besu down-geth
 	@docker-compose -f ./docker-compose.dev.yml down --volumes --timeout 0
 	@make down-deps

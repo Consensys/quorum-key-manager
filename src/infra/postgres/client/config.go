@@ -2,7 +2,10 @@ package client
 
 import (
 	"fmt"
+	"io/ioutil"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 
 	"github.com/go-pg/pg/v10"
 
@@ -26,7 +29,6 @@ type Config struct {
 	PoolTimeout       time.Duration `json:"pool_timeout"`
 	DialTimeout       time.Duration `json:"dial_timeout"`
 	KeepAliveInterval time.Duration `json:"keep_alive_interval"`
-	TLS               *tls.Option   `json:"tls"`
 	ApplicationName   string        `json:"application_name"`
 	SSLMode           string        `json:"ssl_mode"`
 	TLSCert           string        `json:"tls_cert"`
@@ -44,8 +46,14 @@ func (cfg *Config) ToPGOptions() (*pg.Options, error) {
 		ApplicationName: cfg.ApplicationName,
 		PoolTimeout:     cfg.PoolTimeout,
 	}
+	fmt.Println(opt.Addr)
 
-	dialer, err := NewTLSDialer(cfg)
+	tlsOption, err := cfg.getTLSOption()
+	if err != nil {
+		return nil, err
+	}
+
+	dialer, err := NewTLSDialer(cfg.SSLMode, cfg.Host, cfg.KeepAliveInterval, cfg.DialTimeout, tlsOption)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +61,36 @@ func (cfg *Config) ToPGOptions() (*pg.Options, error) {
 	if dialer != nil {
 		opt.Dialer = dialer.DialContext
 	} else {
-		opt.Dialer = Dialer(cfg).DialContext
+		opt.Dialer = Dialer(cfg.KeepAliveInterval, cfg.DialTimeout).DialContext
 	}
 
 	return opt, nil
+}
+
+func (cfg *Config) getTLSOption() (*tls.Option, error) {
+	tlsOption := &tls.Option{}
+	if cfg.TLSCert != "" && cfg.TLSKey != "" {
+		cert, err := ioutil.ReadFile(cfg.TLSCert)
+		if err != nil {
+			return nil, err
+		}
+
+		key, err := ioutil.ReadFile(cfg.TLSKey)
+		if err != nil {
+			return nil, err
+		}
+
+		tlsOption.Certificates = []*certificate.KeyPair{{Cert: cert, Key: key}}
+
+		if cfg.TLSCA != "" {
+			ca, err := ioutil.ReadFile(cfg.TLSCA)
+			if err != nil {
+				return nil, err
+			}
+
+			tlsOption.CAs = [][]byte{ca}
+		}
+	}
+
+	return tlsOption, nil
 }

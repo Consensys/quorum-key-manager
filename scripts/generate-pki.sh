@@ -54,7 +54,7 @@ mv $GEN_DIR/qkm-server.pem $DEST_DIR_CERTS/https.crt
 mv $GEN_DIR/qkm-server-key.pem $DEST_DIR_CERTS/https.key
 mv $GEN_DIR/postgres-server.pem $DEST_DIR_PG_CERTS/tls.crt
 mv $GEN_DIR/postgres-server-key.pem $DEST_DIR_PG_CERTS/tls.key
-cp $GEN_DIR/intermediate_ca.pem $DEST_DIR_PG_CERTS/ca.crt
+cp $DEST_DIR_CA/ca.crt $DEST_DIR_PG_CERTS/ca.crt
 mv $GEN_DIR/vault-server.pem $DEST_DIR_VAULT_CERTS/tls.crt
 mv $GEN_DIR/vault-server-key.pem $DEST_DIR_VAULT_CERTS/tls.key
 mv $GEN_DIR/vault-client.pem $DEST_DIR_VAULT_CERTS/client.crt

@@ -22,15 +22,11 @@ x-container-common: &container-common
   image: golang:1.16-buster
   entrypoint: /bin/main
 
-x-qkm-common: &qkm-common
-  DB_HOST: postgres
-
 services:
   migration:
     <<: *container-common
     environment:
       <<: *default-variables
-      <<: *qkm-common
     networks:
       - qkm
     command: migrate up
@@ -45,7 +41,6 @@ services:
     <<: *container-common
     environment:
       <<: *default-variables
-      <<: *qkm-common
       AUTH_OIDC_PUB_KEY: ${AUTH_OIDC_PUB_KEY-}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
       HTTPS_ENABLED: ${HTTPS_ENABLED-}
@@ -92,7 +87,6 @@ services:
       - qkm
     environment:
       <<: *default-variables
-      <<: *qkm-common
       IMPORT_STORE_NAME: ${IMPORT_STORE_NAME-}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
