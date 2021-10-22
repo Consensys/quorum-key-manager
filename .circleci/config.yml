@@ -104,6 +104,19 @@ commands:
                   else echo 'export TAG=${CIRCLE_BRANCH#"maintenance/"}' >> $BASH_ENV && echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm-${TAG//./-}' >> $BASH_ENV;
                   fi
                   echo 'export QKM_NAMESPACE=${ENVIRONMENT_VALUES}-qkm' >> $BASH_ENV
+      - when:
+          condition: <<parameters.b64_manifests>>
+          steps:
+            - run:
+                name: Set B64 Manifests
+                command: echo 'export B64_MANIFESTS=<<parameters.b64_manifests>>' >> $BASH_ENV
+      - unless:
+          condition: <<parameters.b64_manifests>>
+          steps:
+            - run:
+                name: Set B64 Manifests
+                command: echo 'export B64_MANIFESTS=$B64_MANIFESTS_DEFAULT' >> $BASH_ENV
+
 
 jobs:
   lint:
