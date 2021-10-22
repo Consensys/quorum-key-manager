@@ -88,6 +88,10 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 	if err != nil {
 		s.T().Error(err)
 	}
+	_, err = s.keyManagerClient.CreateAlias(s.ctx, "me", "my-own", aliastypes.AliasRequest{Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
+	if err != nil {
+		s.T().Error(err)
+	}
 
 	s.registryName = fmt.Sprintf("e2e-%s", common.RandString(5))
 	s.alias = fmt.Sprintf("Group-A-%s", common.RandString(5))
@@ -291,6 +295,26 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"gas":         "0x989680",
 			"privateFrom": "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=",
 			"privateFor":  []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="},
+		})
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.ctx, s.QuorumNodeID, result)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), toAddr)
+	})
+
+	s.Run("should call eth_sendTransaction, for private Quorum Tx, with a privateFrom alias successfully", func() {
+		resp, err := s.keyManagerClient.Call(s.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
+			"data":        "0xa2",
+			"from":        s.acc.Address,
+			"to":          toAddr,
+			"gas":         "0x989680",
+			"privateFrom": "{{me:my-own}}",
+			"privateFor":  []string{"{{JPM:Group-A}}"},
 		})
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)

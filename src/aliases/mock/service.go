@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	entities "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,10 +36,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // CreateAlias mocks base method.
-func (m *MockService) CreateAlias(arg0 context.Context, arg1 string, arg2 aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockService) CreateAlias(arg0 context.Context, arg1 string, arg2 entities.Alias) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAlias", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -79,10 +79,10 @@ func (mr *MockServiceMockRecorder) DeleteRegistry(arg0, arg1 interface{}) *gomoc
 }
 
 // GetAlias mocks base method.
-func (m *MockService) GetAlias(arg0 context.Context, arg1, arg2 string) (*aliasent.Alias, error) {
+func (m *MockService) GetAlias(arg0 context.Context, arg1, arg2 string) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAlias", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -94,10 +94,10 @@ func (mr *MockServiceMockRecorder) GetAlias(arg0, arg1, arg2 interface{}) *gomoc
 }
 
 // ListAliases mocks base method.
-func (m *MockService) ListAliases(arg0 context.Context, arg1 string) ([]aliasent.Alias, error) {
+func (m *MockService) ListAliases(arg0 context.Context, arg1 string) ([]entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAliases", arg0, arg1)
-	ret0, _ := ret[0].([]aliasent.Alias)
+	ret0, _ := ret[0].([]entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -139,11 +139,26 @@ func (mr *MockServiceMockRecorder) ReplaceAliases(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceAliases", reflect.TypeOf((*MockService)(nil).ReplaceAliases), arg0, arg1)
 }
 
+// ReplaceSimpleAlias mocks base method.
+func (m *MockService) ReplaceSimpleAlias(arg0 context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceSimpleAlias", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReplaceSimpleAlias indicates an expected call of ReplaceSimpleAlias.
+func (mr *MockServiceMockRecorder) ReplaceSimpleAlias(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceSimpleAlias", reflect.TypeOf((*MockService)(nil).ReplaceSimpleAlias), arg0, arg1)
+}
+
 // UpdateAlias mocks base method.
-func (m *MockService) UpdateAlias(arg0 context.Context, arg1 string, arg2 aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockService) UpdateAlias(arg0 context.Context, arg1 string, arg2 entities.Alias) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAlias", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -178,10 +193,10 @@ func (m *MockInteractor) EXPECT() *MockInteractorMockRecorder {
 }
 
 // CreateAlias mocks base method.
-func (m *MockInteractor) CreateAlias(arg0 context.Context, arg1 string, arg2 aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockInteractor) CreateAlias(arg0 context.Context, arg1 string, arg2 entities.Alias) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAlias", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -221,10 +236,10 @@ func (mr *MockInteractorMockRecorder) DeleteRegistry(arg0, arg1 interface{}) *go
 }
 
 // GetAlias mocks base method.
-func (m *MockInteractor) GetAlias(arg0 context.Context, arg1, arg2 string) (*aliasent.Alias, error) {
+func (m *MockInteractor) GetAlias(arg0 context.Context, arg1, arg2 string) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAlias", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -236,10 +251,10 @@ func (mr *MockInteractorMockRecorder) GetAlias(arg0, arg1, arg2 interface{}) *go
 }
 
 // ListAliases mocks base method.
-func (m *MockInteractor) ListAliases(arg0 context.Context, arg1 string) ([]aliasent.Alias, error) {
+func (m *MockInteractor) ListAliases(arg0 context.Context, arg1 string) ([]entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAliases", arg0, arg1)
-	ret0, _ := ret[0].([]aliasent.Alias)
+	ret0, _ := ret[0].([]entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -251,10 +266,10 @@ func (mr *MockInteractorMockRecorder) ListAliases(arg0, arg1 interface{}) *gomoc
 }
 
 // UpdateAlias mocks base method.
-func (m *MockInteractor) UpdateAlias(arg0 context.Context, arg1 string, arg2 aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockInteractor) UpdateAlias(arg0 context.Context, arg1 string, arg2 entities.Alias) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAlias", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -317,4 +332,19 @@ func (m *MockParser) ReplaceAliases(arg0 context.Context, arg1 []string) ([]stri
 func (mr *MockParserMockRecorder) ReplaceAliases(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceAliases", reflect.TypeOf((*MockParser)(nil).ReplaceAliases), arg0, arg1)
+}
+
+// ReplaceSimpleAlias mocks base method.
+func (m *MockParser) ReplaceSimpleAlias(arg0 context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceSimpleAlias", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReplaceSimpleAlias indicates an expected call of ReplaceSimpleAlias.
+func (mr *MockParserMockRecorder) ReplaceSimpleAlias(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceSimpleAlias", reflect.TypeOf((*MockParser)(nil).ReplaceSimpleAlias), arg0, arg1)
 }

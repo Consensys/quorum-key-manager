@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	aliases "github.com/consensys/quorum-key-manager/src/aliases"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	entities "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -74,10 +74,10 @@ func (m *MockAliasRepository) EXPECT() *MockAliasRepositoryMockRecorder {
 }
 
 // CreateAlias mocks base method.
-func (m *MockAliasRepository) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockAliasRepository) CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, alias)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -117,10 +117,10 @@ func (mr *MockAliasRepositoryMockRecorder) DeleteRegistry(ctx, registry interfac
 }
 
 // GetAlias mocks base method.
-func (m *MockAliasRepository) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
+func (m *MockAliasRepository) GetAlias(ctx context.Context, registry, aliasKey string) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAlias", ctx, registry, aliasKey)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -132,10 +132,10 @@ func (mr *MockAliasRepositoryMockRecorder) GetAlias(ctx, registry, aliasKey inte
 }
 
 // ListAliases mocks base method.
-func (m *MockAliasRepository) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
+func (m *MockAliasRepository) ListAliases(ctx context.Context, registry string) ([]entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
-	ret0, _ := ret[0].([]aliasent.Alias)
+	ret0, _ := ret[0].([]entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -147,10 +147,10 @@ func (mr *MockAliasRepositoryMockRecorder) ListAliases(ctx, registry interface{}
 }
 
 // UpdateAlias mocks base method.
-func (m *MockAliasRepository) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (m *MockAliasRepository) UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, alias)
-	ret0, _ := ret[0].(*aliasent.Alias)
+	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
