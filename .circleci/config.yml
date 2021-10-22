@@ -73,6 +73,9 @@ commands:
       qkm_namespace:
         type: string
         default: ""
+      b64_manifests:
+        type: string
+        default: ""
     steps:
       - when:
           condition: <<parameters.environment_values>>
