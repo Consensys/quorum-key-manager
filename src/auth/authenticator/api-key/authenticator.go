@@ -4,12 +4,12 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/utils"
 	"hash"
 	"net/http"
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/utils"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
 )
 

@@ -6,14 +6,15 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/jwt"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 	apikey "github.com/consensys/quorum-key-manager/src/auth/authenticator/api-key"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator/oidc"
 	authtls "github.com/consensys/quorum-key-manager/src/auth/authenticator/tls"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -146,11 +147,12 @@ Environment variable: %q`, authAPIKeyFileEnv)
 
 func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	// OIDC
-	oidcCfg := oidc.NewConfig(
+	oidcCfg := jwt.NewConfig(
 		vipr.GetString(authOIDCIssuerURLViperKey),
 		vipr.GetString(AuthOIDCClaimUsernameViperKey),
 		vipr.GetString(AuthOIDCClaimPermissionsViperKey),
 		vipr.GetString(authOIDCClaimRolesViperKey),
+		time.Minute, // TODO: Make the cache ttl an ENV var if needed
 	)
 
 	// API-KEY

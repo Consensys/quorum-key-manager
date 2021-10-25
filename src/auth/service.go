@@ -67,11 +67,5 @@ func Middleware(a *app.App, logger log.Logger) (func(http.Handler) http.Handler,
 		}
 	}
 
-	// Create middleware
-	mid := authenticator.NewMiddleware(
-		logger,
-		auths...,
-	)
-
-	return mid.Then, nil
+	return authenticator.NewMiddleware(logger, auths...).Then, nil
 }

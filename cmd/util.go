@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"crypto/rsa"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -93,14 +94,8 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	generator, err := jwt.NewTokenGenerator(signingKey)
 
-	if err != nil {
-		logger.Error("failed to generate access token", "err", err.Error())
-		return err
-	}
-
-	token, err := generator.GenerateAccessToken(map[string]interface{}{
+	token, err := jwt.GenerateAccessToken(signingKey.(*rsa.PrivateKey), map[string]interface{}{
 		oidcCfg.Claims.Subject: sub,
 		oidcCfg.Claims.Scope:   strings.Join(scope, " "),
 		oidcCfg.Claims.Roles:   strings.Join(roles, ","),

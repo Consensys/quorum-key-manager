@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"crypto/rsa"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
@@ -52,19 +53,15 @@ func generateJWT(keyFile, scope, sub string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	certKey, err := certificate.ParsePrivateKey(keys[0])
-	if err != nil {
-		return "", err
-	}
-	generator, err := jwt.NewTokenGenerator(certKey)
 	if err != nil {
 		return "", err
 	}
 
 	cfgSubject := viper.GetString(flags.AuthOIDCClaimUsernameViperKey)
 	cfgScope := viper.GetString(flags.AuthOIDCClaimPermissionsViperKey)
-
-	return generator.GenerateAccessToken(map[string]interface{}{
+	return jwt.GenerateAccessToken(certKey.(*rsa.PrivateKey), map[string]interface{}{
 		cfgSubject: sub,
 		cfgScope:   scope,
 	}, time.Hour)
