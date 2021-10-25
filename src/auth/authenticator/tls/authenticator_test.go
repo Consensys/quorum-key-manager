@@ -8,7 +8,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/pkg/tls/testutils"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,7 +40,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "alice", userInfo.Username)
 		assert.Equal(t, []string{"admin", "signer"}, userInfo.Roles)
-		assert.Equal(t, []types.Permission{"read:accounts", "delete:secrets"}, userInfo.Permissions)
+		assert.Equal(t, []entities.Permission{"read:accounts", "delete:secrets"}, userInfo.Permissions)
 
 	})
 
@@ -57,7 +57,7 @@ func TestAuthenticatorSameCert(t *testing.T) {
 		assert.Equal(t, "eve", userInfo.Username)
 		assert.Equal(t, "auth0", userInfo.Tenant)
 		assert.Equal(t, []string{"signer"}, userInfo.Roles)
-		assert.Equal(t, types.ListWildcardPermission("*:ethereum"), userInfo.Permissions)
+		assert.Equal(t, entities.ListWildcardPermission("*:ethereum"), userInfo.Permissions)
 	})
 }
 

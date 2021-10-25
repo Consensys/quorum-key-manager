@@ -6,17 +6,17 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 type Authorizator struct {
 	logger      log.Logger
-	permissions map[types.Permission]bool // We use a map to avoid iterating an array, the boolean is irrelevant and always true
+	permissions map[entities.Permission]bool // We use a map to avoid iterating an array, the boolean is irrelevant and always true
 	tenant      string
 }
 
-func New(permissions []types.Permission, tenant string, logger log.Logger) *Authorizator {
-	pMap := map[types.Permission]bool{}
+func New(permissions []entities.Permission, tenant string, logger log.Logger) *Authorizator {
+	pMap := map[entities.Permission]bool{}
 	for _, p := range permissions {
 		pMap[p] = true
 	}
@@ -28,7 +28,7 @@ func New(permissions []types.Permission, tenant string, logger log.Logger) *Auth
 	}
 }
 
-func (auth *Authorizator) CheckPermission(ops ...*types.Operation) error {
+func (auth *Authorizator) CheckPermission(ops ...*entities.Operation) error {
 	for _, op := range ops {
 		permission := buildPermission(op.Action, op.Resource)
 		if _, ok := auth.permissions[permission]; !ok {
@@ -63,6 +63,6 @@ func (auth *Authorizator) CheckAccess(allowedTenants []string) error {
 	return errors.NotFoundError(errMessage)
 }
 
-func buildPermission(action types.OpAction, resource types.OpResource) types.Permission {
-	return types.Permission(fmt.Sprintf("%s:%s", action, resource))
+func buildPermission(action entities.OpAction, resource entities.OpResource) entities.Permission {
+	return entities.Permission(fmt.Sprintf("%s:%s", action, resource))
 }

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -39,8 +39,8 @@ func TestRestoreEthAccount(t *testing.T) {
 		}).AnyTimes()
 
 	t.Run("should restore ethAccount successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError("error"))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
@@ -53,8 +53,8 @@ func TestRestoreEthAccount(t *testing.T) {
 
 	t.Run("should restore ethAccount successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)
@@ -66,8 +66,8 @@ func TestRestoreEthAccount(t *testing.T) {
 	})
 
 	t.Run("should be idempotent if ethAccount already exists", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, nil)
 
 		err := connector.Restore(ctx, acc.Address)
@@ -76,7 +76,7 @@ func TestRestoreEthAccount(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount}).Return(expectedErr)
 
 		err := connector.Restore(ctx, acc.Address)
 
@@ -85,8 +85,8 @@ func TestRestoreEthAccount(t *testing.T) {
 	})
 
 	t.Run("should fail to restore ethAccount if ethAccount is not yet deleted", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
@@ -96,8 +96,8 @@ func TestRestoreEthAccount(t *testing.T) {
 	})
 
 	t.Run("should fail to restore ethAccount if db fails to restore", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(expectedErr)
@@ -109,8 +109,8 @@ func TestRestoreEthAccount(t *testing.T) {
 	})
 
 	t.Run("should fail to restore ethAccount if store fails to restore", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount}).Return(nil)
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, errors.NotFoundError(""))
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Restore(gomock.Any(), acc.Address.Hex()).Return(nil)

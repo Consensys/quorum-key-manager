@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -41,7 +41,7 @@ func TestDestroyKey(t *testing.T) {
 		}).AnyTimes()
 
 	t.Run("should destroy ethAccount successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDestroy, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(nil)
@@ -54,7 +54,7 @@ func TestDestroyKey(t *testing.T) {
 	t.Run("should destroy key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDestroy, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(rErr)
@@ -65,7 +65,7 @@ func TestDestroyKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEthAccount}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDestroy, Resource: entities.ResourceEthAccount}).Return(expectedErr)
 
 		err := connector.Destroy(ctx, acc.Address)
 
@@ -74,7 +74,7 @@ func TestDestroyKey(t *testing.T) {
 	})
 
 	t.Run("should fail to destroy key if db fail to get", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDestroy, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, expectedErr)
 
 		err := connector.Destroy(ctx, acc.Address)
@@ -84,7 +84,7 @@ func TestDestroyKey(t *testing.T) {
 	})
 
 	t.Run("should fail to destroy key if db fail to destroy", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDestroy, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(expectedErr)
 
@@ -95,7 +95,7 @@ func TestDestroyKey(t *testing.T) {
 	})
 
 	t.Run("should fail to destroy key if store fail to destroy", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionDestroy, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		db.EXPECT().Purge(gomock.Any(), acc.Address.Hex()).Return(nil)
 		store.EXPECT().Destroy(gomock.Any(), key.ID).Return(expectedErr)

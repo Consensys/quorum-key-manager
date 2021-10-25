@@ -23,17 +23,8 @@ import (
 func init() {
 	_ = viper.BindEnv(AuthOIDCPrivKeyViperKey, authOIDCPrivKeyEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
-
-	viper.SetDefault(AuthOIDCClaimUsernameViperKey, AuthOIDCClaimUsernameDefault)
-	_ = viper.BindEnv(AuthOIDCClaimUsernameViperKey, authOIDCClaimUsernameEnv)
-	viper.SetDefault(AuthOIDCClaimPermissionsViperKey, AuthOIDCClaimPermissionsDefault)
-	_ = viper.BindEnv(AuthOIDCClaimPermissionsViperKey, authOIDCClaimPermissionsEnv)
-	viper.SetDefault(authOIDCClaimRolesViperKey, AuthOIDCClaimRolesDefault)
-	_ = viper.BindEnv(authOIDCClaimRolesViperKey, authOIDCClaimRolesEnv)
-
-	viper.SetDefault(authAPIKeyFileViperKey, authAPIKeyDefaultFileFlag)
+	_ = viper.BindEnv(AuthOIDCAudienceViperKey, authOIDCAudienceEnv)
 	_ = viper.BindEnv(authAPIKeyFileViperKey, authAPIKeyFileEnv)
-
 	_ = viper.BindEnv(authTLSCertsFileViperKey, authTLSCertsFileEnv)
 }
 
@@ -74,31 +65,14 @@ const (
 )
 
 const (
-	authOIDCClaimUsernameFlag     = "auth-oidc-claim-username"
-	AuthOIDCClaimUsernameViperKey = "auth.oidc.claim.username"
-	AuthOIDCClaimUsernameDefault  = "sub"
-	authOIDCClaimUsernameEnv      = "AUTH_OIDC_CLAIM_USERNAME"
-)
-
-const (
-	authOIDCClaimPermissionsFlag     = "auth-oidc-claim-permissions"
-	AuthOIDCClaimPermissionsViperKey = "auth.oidc.claim.permissions"
-	AuthOIDCClaimPermissionsDefault  = "scope"
-	authOIDCClaimPermissionsEnv      = "AUTH_OIDC_CLAIM_PERMISSIONS"
-)
-
-const (
-	authOIDCClaimRolesFlag     = "auth-oidc-claim-roles"
-	authOIDCClaimRolesViperKey = "auth.oidc.claim.roles"
-	AuthOIDCClaimRolesDefault  = "qkm.roles"
-	authOIDCClaimRolesEnv      = "AUTH_OIDC_CLAIM_ROLES"
+	authOIDCAudienceFlag     = "auth-oidc-audience"
+	AuthOIDCAudienceViperKey = "auth.oidc.audience"
+	authOIDCAudienceEnv      = "AUTH_OIDC_AUDIENCE"
 )
 
 func AuthFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
-	AuthOIDCClaimUsername(f)
-	AuthOIDCClaimPermissions(f)
-	AuthOIDCClaimRoles(f)
+	AuthOIDCAudience(f)
 	authTLSCertFile(f)
 	authAPIKeyFile(f)
 }
@@ -110,25 +84,11 @@ Environment variable: %q`, authOIDCIssuerURLEnv)
 	_ = viper.BindPFlag(authOIDCIssuerURLViperKey, f.Lookup(authOIDCIssuerURLFlag))
 }
 
-func AuthOIDCClaimUsername(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Token path claims for username.
-Environment variable: %q`, authOIDCClaimUsernameEnv)
-	f.String(authOIDCClaimUsernameFlag, AuthOIDCClaimUsernameDefault, desc)
-	_ = viper.BindPFlag(AuthOIDCClaimUsernameViperKey, f.Lookup(authOIDCClaimUsernameFlag))
-}
-
-func AuthOIDCClaimPermissions(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Token path claims for permissions.
-Environment variable: %q`, authOIDCClaimPermissionsEnv)
-	f.String(authOIDCClaimPermissionsFlag, AuthOIDCClaimPermissionsDefault, desc)
-	_ = viper.BindPFlag(AuthOIDCClaimPermissionsViperKey, f.Lookup(authOIDCClaimPermissionsFlag))
-}
-
-func AuthOIDCClaimRoles(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Token path claims for roles.
-Environment variable: %q`, authOIDCClaimRolesEnv)
-	f.String(authOIDCClaimRolesFlag, AuthOIDCClaimRolesDefault, desc)
-	_ = viper.BindPFlag(authOIDCClaimRolesViperKey, f.Lookup(authOIDCClaimRolesFlag))
+func AuthOIDCAudience(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Expected audience ("aud" field) of JWT tokens.
+Environment variable: %q`, authOIDCAudienceEnv)
+	f.StringArray(authOIDCAudienceFlag, []string{}, desc)
+	_ = viper.BindPFlag(AuthOIDCAudienceViperKey, f.Lookup(authOIDCAudienceFlag))
 }
 
 func authTLSCertFile(f *pflag.FlagSet) {
@@ -149,10 +109,8 @@ func NewAuthConfig(vipr *viper.Viper) (*auth.Config, error) {
 	// OIDC
 	oidcCfg := jwt.NewConfig(
 		vipr.GetString(authOIDCIssuerURLViperKey),
-		vipr.GetString(AuthOIDCClaimUsernameViperKey),
-		vipr.GetString(AuthOIDCClaimPermissionsViperKey),
-		vipr.GetString(authOIDCClaimRolesViperKey),
-		time.Minute, // TODO: Make the cache ttl an ENV var if needed
+		vipr.GetStringSlice(AuthOIDCAudienceViperKey),
+		5*time.Minute, // TODO: Make the cache ttl an ENV var if needed
 	)
 
 	// API-KEY

@@ -41,7 +41,7 @@ services:
     <<: *container-common
     environment:
       <<: *default-variables
-      AUTH_OIDC_PUB_KEY: ${AUTH_OIDC_PUB_KEY-}
+      AUTH_OIDC_AUDIENCE: ${AUTH_OIDC_AUDIENCE-}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
       HTTPS_ENABLED: ${HTTPS_ENABLED-}
       HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-}

@@ -5,7 +5,7 @@ import (
 
 	arrays "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )

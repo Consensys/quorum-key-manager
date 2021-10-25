@@ -7,7 +7,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 
 	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
@@ -19,10 +19,10 @@ func TestEthSign(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	userInfo := &types.UserInfo{
+	userInfo := &entities.UserInfo{
 		Username:    "username",
 		Roles:       []string{"role1", "role2"},
-		Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
+		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 
 	session := proxynode.NewMockSession(ctrl)

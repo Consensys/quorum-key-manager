@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
@@ -14,10 +14,10 @@ import (
 func TestEthAccounts(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	userInfo := &types.UserInfo{
+	userInfo := &entities.UserInfo{
 		Username:    "username",
 		Roles:       []string{"role1", "role2"},
-		Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
+		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 
 	session := proxynode.NewMockSession(ctrl)

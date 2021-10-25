@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/golang/mock/gomock"
@@ -69,7 +69,7 @@ func TestAuthenticatorApiKey_sh256Hasher(t *testing.T) {
 		assert.Equal(t, "Alice", userInfo.Username)
 		assert.Equal(t, "TenantOne", userInfo.Tenant)
 		assert.Equal(t, []string{"guest", "admin"}, userInfo.Roles)
-		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
+		assert.Equal(t, []entities.Permission{"read:key", "write:key"}, userInfo.Permissions)
 
 		reqBob := httptest.NewRequest("GET", "https://test.url", nil)
 		reqBob.Header.Add("Authorization", fmt.Sprintf("%s %s", BasicSchema, b64BobAPIKey))
@@ -79,7 +79,7 @@ func TestAuthenticatorApiKey_sh256Hasher(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Bob", userInfo.Username)
 		assert.Equal(t, []string{"signer", "reader"}, userInfo.Roles)
-		assert.Equal(t, []types.Permission{"read:secret", "write:secret"}, userInfo.Permissions)
+		assert.Equal(t, []entities.Permission{"read:secret", "write:secret"}, userInfo.Permissions)
 	})
 }
 
@@ -118,7 +118,7 @@ func TestAuthenticatorApiKey_ChangingHashers(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Alice", userInfo.Username)
 		assert.Equal(t, []string{"guest", "admin"}, userInfo.Roles)
-		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
+		assert.Equal(t, []entities.Permission{"read:key", "write:key"}, userInfo.Permissions)
 
 		reqBob := httptest.NewRequest("GET", "https://test.url", nil)
 		reqBob.Header.Add("Authorization", fmt.Sprintf("%s %s", BasicSchema, b64BobAPIKey))
@@ -127,7 +127,7 @@ func TestAuthenticatorApiKey_ChangingHashers(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Bob", userInfo.Username)
 		assert.Equal(t, []string{"signer", "reader"}, userInfo.Roles)
-		assert.Equal(t, []types.Permission{"read:secret", "write:secret"}, userInfo.Permissions)
+		assert.Equal(t, []entities.Permission{"read:secret", "write:secret"}, userInfo.Permissions)
 
 	})
 }
@@ -167,7 +167,7 @@ func TestAuthenticatorApiKey_base64encoder(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Alice", userInfo.Username)
 		assert.Equal(t, []string{"guest", "admin"}, userInfo.Roles)
-		assert.Equal(t, []types.Permission{"read:key", "write:key"}, userInfo.Permissions)
+		assert.Equal(t, []entities.Permission{"read:key", "write:key"}, userInfo.Permissions)
 
 		reqBob := httptest.NewRequest("GET", "https://test.url", nil)
 		reqBob.Header.Add("Authorization", fmt.Sprintf("%s %s", BasicSchema, b64BobAPIKey))
@@ -177,7 +177,7 @@ func TestAuthenticatorApiKey_base64encoder(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Bob", userInfo.Username)
 		assert.Equal(t, []string{"signer", "reader"}, userInfo.Roles)
-		assert.Equal(t, []types.Permission{"read:secret", "write:secret"}, userInfo.Permissions)
+		assert.Equal(t, []entities.Permission{"read:secret", "write:secret"}, userInfo.Permissions)
 	})
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
@@ -41,7 +41,7 @@ func TestImport(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should import eth account successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceEthAccount}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, ethAlgo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), models.NewETHAccountFromKey(key, attributes)).Return(acc, nil)
 
@@ -52,7 +52,7 @@ func TestImport(t *testing.T) {
 	})
 
 	t.Run("should import eth account successfully if it already exists in the vault", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceEthAccount}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, ethAlgo, attributes).Return(nil, errors.AlreadyExistsError("error"))
 		store.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), models.NewETHAccountFromKey(key, attributes)).Return(acc, nil)
@@ -64,7 +64,7 @@ func TestImport(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEthAccount}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceEthAccount}).Return(expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, attributes)
 
@@ -73,7 +73,7 @@ func TestImport(t *testing.T) {
 	})
 
 	t.Run("should fail to create ethAccount if store fail to create", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceEthAccount}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, ethAlgo, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, attributes)
@@ -83,7 +83,7 @@ func TestImport(t *testing.T) {
 	})
 
 	t.Run("should fail to create ethAccount if db fail to add", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceEthAccount}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, ethAlgo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), models.NewETHAccountFromKey(key, attributes)).Return(acc, expectedErr)
 

@@ -8,7 +8,7 @@ import (
 	http "net/http"
 	reflect "reflect"
 
-	types "github.com/consensys/quorum-key-manager/src/auth/types"
+	types "github.com/consensys/quorum-key-manager/src/auth/entities"
 	gomock "github.com/golang/mock/gomock"
 )
 

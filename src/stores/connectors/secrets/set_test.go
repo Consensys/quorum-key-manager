@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
@@ -35,7 +35,7 @@ func TestSetSecret(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should set secret successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceSecret}).Return(nil)
 		store.EXPECT().Set(gomock.Any(), secret.ID, secret.Value, attributes).Return(secret, nil)
 		db.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
@@ -46,7 +46,7 @@ func TestSetSecret(t *testing.T) {
 	})
 
 	t.Run("should create key successfully if it already exists in the vault", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceSecret}).Return(nil)
 		store.EXPECT().Set(gomock.Any(), secret.ID, secret.Value, attributes).Return(nil, errors.AlreadyExistsError("error"))
 		store.EXPECT().Get(gomock.Any(), secret.ID, "").Return(secret, nil)
 		db.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
@@ -58,7 +58,7 @@ func TestSetSecret(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceSecret}).Return(expectedErr)
 
 		_, err := connector.Set(ctx, secret.ID, secret.Value, attributes)
 
@@ -67,7 +67,7 @@ func TestSetSecret(t *testing.T) {
 	})
 
 	t.Run("should fail to delete secret if store fail to set", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceSecret}).Return(nil)
 		store.EXPECT().Set(gomock.Any(), secret.ID, secret.Value, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Set(ctx, secret.ID, secret.Value, attributes)
@@ -77,7 +77,7 @@ func TestSetSecret(t *testing.T) {
 	})
 
 	t.Run("should fail to set secret if db fail to add", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceSecret}).Return(nil)
 		store.EXPECT().Set(gomock.Any(), secret.ID, secret.Value, attributes).Return(secret, nil)
 		db.EXPECT().Add(gomock.Any(), secret).Return(nil, expectedErr)
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	apiTypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -33,10 +33,10 @@ const (
 	accAddress   = "0x7E654d251Da770A068413677967F6d3Ea2FeA9E4"
 )
 
-var ethUserInfo = &types.UserInfo{
+var ethUserInfo = &entities.UserInfo{
 	Username:    "username",
 	Roles:       []string{"role1", "role2"},
-	Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
+	Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 }
 
 var defaultPageSize = uint64(100)

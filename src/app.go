@@ -2,6 +2,7 @@ package src
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
@@ -91,9 +92,11 @@ func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
 	compositionMiddleware = compositionMiddleware.Append(accesslog.NewMiddleware(logger).Handler)
 
 	if cfg.Auth.OIDC.IssuerURL != "" {
-		jwtMiddleware, err := jwt.NewMiddleware(cfg.Auth.OIDC)
+		jwtMiddleware, err := jwt.New(cfg.Auth.OIDC)
 		if err != nil {
-			return nil, err
+			errMessage := "failed to create jwt middleware"
+			logger.WithError(err).Error(errMessage, "issuer_url", cfg.Auth.OIDC.IssuerURL)
+			return nil, errors.ConfigError(errMessage)
 		}
 
 		compositionMiddleware = compositionMiddleware.Append(jwtMiddleware.Handler)

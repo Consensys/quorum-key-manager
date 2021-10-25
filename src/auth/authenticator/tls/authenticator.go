@@ -2,14 +2,14 @@ package tls
 
 import (
 	"crypto/x509"
-	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/utils"
+	"github.com/consensys/quorum-key-manager/src/infra/http/utils"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/tls"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 const AuthMode = "Tls"
@@ -29,7 +29,7 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 }
 
 // Authenticate checks rootCAs and retrieve user Info
-func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
+func (auth Authenticator) Authenticate(req *http.Request) (*entities.UserInfo, error) {
 	// extract Certificate info from request if any
 	// let go without error when no cert found
 	if req.TLS == nil || req.TLS.PeerCertificates == nil || len(req.TLS.PeerCertificates) == 0 {
@@ -46,14 +46,14 @@ func (auth Authenticator) Authenticate(req *http.Request) (*types.UserInfo, erro
 	}
 
 	// UserInfo returned is retrieved from cert contents
-	userInfo := &types.UserInfo{
+	userInfo := &entities.UserInfo{
 		AuthMode: AuthMode,
 	}
 
 	// first array element is the leaf
 	clientCert := req.TLS.PeerCertificates[0]
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(clientCert.Subject.CommonName)
-	userInfo.Permissions = utils.ExtractPermissions(clientCert.Subject.OrganizationalUnit)
+	userInfo.Permissions = utils.ExtractPermissionsArr(clientCert.Subject.OrganizationalUnit)
 	userInfo.Roles = clientCert.Subject.Organization
 
 	return userInfo, nil

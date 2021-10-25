@@ -4,12 +4,14 @@ import (
 	"context"
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/auth0/go-jwt-middleware/validate/josev2"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	httpinfra "github.com/consensys/quorum-key-manager/src/infra/http/middlewares"
-	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/utils"
+	"github.com/consensys/quorum-key-manager/src/infra/http/utils"
 	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const authMode = "JWT"
@@ -20,7 +22,7 @@ type Middleware struct {
 
 var _ httpinfra.Middleware = &Middleware{}
 
-func NewMiddleware(cfg *Config) (*Middleware, error) {
+func New(cfg *Config) (*Middleware, error) {
 	issuerURL, err := url.Parse(cfg.IssuerURL)
 	if err != nil {
 		return nil, err
@@ -30,6 +32,12 @@ func NewMiddleware(cfg *Config) (*Middleware, error) {
 		josev2.NewCachingJWKSProvider(*issuerURL, cfg.CacheTTL).KeyFunc,
 		jose.RS256,
 		josev2.WithCustomClaims(func() josev2.CustomClaims { return &CustomClaims{} }),
+		josev2.WithExpectedClaims(func() jwt.Expected {
+			return jwt.Expected{
+				Audience: cfg.Audience,
+				Time:     time.Now(),
+			}
+		}),
 	)
 	if err != nil {
 		return nil, err
@@ -40,12 +48,13 @@ func NewMiddleware(cfg *Config) (*Middleware, error) {
 
 func (m *Middleware) Handler(next http.Handler) http.Handler {
 	return jwtmiddleware.New(
-		m.validateAndParseToken,
+		m.validateToken,
 		jwtmiddleware.WithCredentialsOptional(true),
+		jwtmiddleware.WithErrorHandler(parseErrorResponse),
 	).CheckJWT(next)
 }
 
-func (m *Middleware) validateAndParseToken(ctx context.Context, token string) (interface{}, error) {
+func (m *Middleware) validateToken(ctx context.Context, token string) (interface{}, error) {
 	userCtx, err := m.validator.ValidateToken(ctx, token)
 	if err != nil {
 		return nil, err
@@ -54,7 +63,7 @@ func (m *Middleware) validateAndParseToken(ctx context.Context, token string) (i
 	scope := userCtx.(*josev2.UserContext).CustomClaims.(*CustomClaims).Scope
 	roles := userCtx.(*josev2.UserContext).CustomClaims.(*CustomClaims).Roles
 
-	userInfo := &types.UserInfo{AuthMode: authMode}
+	userInfo := &entities.UserInfo{AuthMode: authMode}
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(subject)
 	userInfo.Permissions = utils.ExtractPermissions(scope)
 	if roles != "" {

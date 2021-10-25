@@ -3,8 +3,8 @@ package jwt
 import "context"
 
 type CustomClaims struct {
-	Roles string   `json:"roles"`
-	Scope []string `json:"scope"`
+	Roles string `json:"roles"`
+	Scope string `json:"scope"`
 }
 
 func (claims *CustomClaims) Validate(_ context.Context) error {

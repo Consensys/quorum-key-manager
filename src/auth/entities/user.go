@@ -1,4 +1,4 @@
-package types
+package entities
 
 // UserInfo are extracted from request credentials by authentication middleware
 type UserInfo struct {

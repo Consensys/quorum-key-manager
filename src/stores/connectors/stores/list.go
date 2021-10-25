@@ -6,7 +6,7 @@ import (
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/ethereum/go-ethereum/common"
 )
 

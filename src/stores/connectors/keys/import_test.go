@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
@@ -36,7 +36,7 @@ func TestImportKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should import key successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, key.Algo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), key).Return(key, nil)
 
@@ -47,7 +47,7 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should import key successfully if it already exists in the vault", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, key.Algo, attributes).Return(nil, errors.AlreadyExistsError("error"))
 		store.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), key).Return(key, nil)
@@ -59,7 +59,7 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, key.Algo, attributes)
 
@@ -68,7 +68,7 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should fail to delete key if store fail to import", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, key.Algo, attributes).Return(nil, expectedErr)
 
 		_, err := connector.Import(ctx, key.ID, privKey, key.Algo, attributes)
@@ -78,7 +78,7 @@ func TestImportKey(t *testing.T) {
 	})
 
 	t.Run("should fail to import key if db fail to add", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		store.EXPECT().Import(gomock.Any(), key.ID, privKey, key.Algo, attributes).Return(key, nil)
 		db.EXPECT().Add(gomock.Any(), key).Return(nil, expectedErr)
 

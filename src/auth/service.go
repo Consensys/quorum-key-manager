@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"net/http"
 
 	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
@@ -14,6 +16,10 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	authmanager "github.com/consensys/quorum-key-manager/src/auth/manager"
 )
+
+type Authenticator interface {
+	Authenticate(ctx context.Context, credentials string) (*entities.UserInfo, error)
+}
 
 func RegisterService(a *app.App, logger log.Logger) error {
 	// Load configuration

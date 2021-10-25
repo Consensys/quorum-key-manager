@@ -3,7 +3,7 @@ package authenticator
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 type ctxKey string
@@ -17,7 +17,7 @@ func UserContextFromContext(ctx context.Context) *UserContext {
 	return nil
 }
 
-func UserInfoContextFromContext(ctx context.Context) *types.UserInfo {
+func UserInfoContextFromContext(ctx context.Context) *entities.UserInfo {
 	userCtx := UserContextFromContext(ctx)
 	if userCtx == nil {
 		return nil
@@ -32,9 +32,9 @@ func WithUserContext(ctx context.Context, reqCtx *UserContext) context.Context {
 // UserContext is a set of data attached to every incoming request
 type UserContext struct {
 	// UserInfo records user information
-	UserInfo *types.UserInfo
+	UserInfo *entities.UserInfo
 }
 
-func NewUserContext(userInfo *types.UserInfo) *UserContext {
+func NewUserContext(userInfo *entities.UserInfo) *UserContext {
 	return &UserContext{userInfo}
 }

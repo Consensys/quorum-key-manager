@@ -12,7 +12,7 @@ import (
 	stores2 "github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
 
 	mock2 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/stretchr/testify/assert"
 
@@ -37,7 +37,7 @@ func TestManagerService(t *testing.T) {
 	mockAuthMngr := mock2.NewMockManager(ctrl)
 	mockManifestReader := mock3.NewMockReader(ctrl)
 
-	mockAuthMngr.EXPECT().UserPermissions(gomock.Any()).Return(types.ListPermissions()).AnyTimes()
+	mockAuthMngr.EXPECT().UserPermissions(gomock.Any()).Return(entities.ListPermissions()).AnyTimes()
 	mockDB.EXPECT().Secrets(gomock.Any()).Return(mockSecretDB).AnyTimes()
 	mockDB.EXPECT().Keys(gomock.Any()).Return(mockKeysDB).AnyTimes()
 	mockDB.EXPECT().ETHAccounts(gomock.Any()).Return(mockEthDB).AnyTimes()
@@ -76,12 +76,12 @@ func TestManagerService(t *testing.T) {
 		err := mngr.Start(ctx)
 		require.NoError(t, err)
 
-		stores, err := mngr.Stores().List(context.TODO(), "", &types.UserInfo{})
+		stores, err := mngr.Stores().List(context.TODO(), "", &entities.UserInfo{})
 		require.NoError(t, err)
 		assert.Contains(t, stores, "hashicorp-secrets")
 		assert.Contains(t, stores, "hashicorp-keys")
 
-		stores, err = mngr.Stores().List(context.TODO(), "", &types.UserInfo{Tenant: "tenantOne"})
+		stores, err = mngr.Stores().List(context.TODO(), "", &entities.UserInfo{Tenant: "tenantOne"})
 		require.NoError(t, err)
 		assert.Contains(t, stores, "akv-secrets")
 		assert.Contains(t, stores, "akv-keys")

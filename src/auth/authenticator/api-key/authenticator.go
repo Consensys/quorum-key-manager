@@ -4,13 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/utils"
+	"github.com/consensys/quorum-key-manager/src/infra/http/utils"
 	"hash"
 	"net/http"
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 const (
@@ -37,7 +37,7 @@ func NewAuthenticator(cfg *Config) (*Authenticator, error) {
 	return auth, nil
 }
 
-func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserInfo, error) {
+func (authenticator Authenticator) Authenticate(req *http.Request) (*entities.UserInfo, error) {
 	// In case of no credentials are sent we authenticate with Anonymous user
 	if req.Header.Get("Authorization") == "" {
 		return nil, nil
@@ -62,14 +62,14 @@ func (authenticator Authenticator) Authenticate(req *http.Request) (*types.UserI
 		return nil, errors.UnauthorizedError("invalid api-key")
 	}
 
-	userInfo := &types.UserInfo{
+	userInfo := &entities.UserInfo{
 		AuthMode:    AuthMode,
 		Roles:       []string{},
-		Permissions: []types.Permission{},
+		Permissions: []entities.Permission{},
 	}
 
 	userInfo.Username, userInfo.Tenant = utils.ExtractUsernameAndTenant(auth.UserName)
-	userInfo.Permissions = utils.ExtractPermissions(auth.Permissions)
+	userInfo.Permissions = utils.ExtractPermissionsArr(auth.Permissions)
 	userInfo.Roles = auth.Roles
 
 	return userInfo, nil

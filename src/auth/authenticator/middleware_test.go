@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	mockauth "github.com/consensys/quorum-key-manager/src/auth/authenticator/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 type testHandler struct {
 	t        *testing.T
-	userInfo *types.UserInfo
+	userInfo *entities.UserInfo
 }
 
 func (h *testHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
@@ -53,13 +53,13 @@ func TestMiddleware(t *testing.T) {
 	})
 
 	t.Run("authentication accepted", func(t *testing.T) {
-		user := &types.UserInfo{
+		user := &entities.UserInfo{
 			Username: "test-username",
 			Roles: []string{
 				"role1",
 				"role2",
 			},
-			Permissions: []types.Permission{"read:key", "write:key"},
+			Permissions: []entities.Permission{"read:key", "write:key"},
 		}
 
 		h := mid.Then(&testHandler{t, user})
@@ -71,7 +71,7 @@ func TestMiddleware(t *testing.T) {
 	})
 
 	t.Run("authentication ignored", func(t *testing.T) {
-		h := mid.Then(&testHandler{t, types.AnonymousUser})
+		h := mid.Then(&testHandler{t, entities.AnonymousUser})
 		auth1.EXPECT().Authenticate(gomock.Any()).Return(nil, nil)
 
 		req, _ := http.NewRequest(http.MethodGet, "", nil)

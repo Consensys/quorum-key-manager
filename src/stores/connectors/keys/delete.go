@@ -3,7 +3,7 @@ package keys
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
@@ -14,7 +14,7 @@ func (c Connector) Delete(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 	logger.Debug("deleting key")
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceKey})
 	if err != nil {
 		return err
 	}

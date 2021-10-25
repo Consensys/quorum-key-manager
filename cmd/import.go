@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
@@ -58,7 +58,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportSecrets(cmd.Context(), mnf.Name, types.WildcardUser)
+			return storesConnector.ImportSecrets(cmd.Context(), mnf.Name, entities.WildcardUser)
 		},
 	}
 	importCmd.AddCommand(importSecretsCmd)
@@ -72,7 +72,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportKeys(cmd.Context(), mnf.Name, types.WildcardUser)
+			return storesConnector.ImportKeys(cmd.Context(), mnf.Name, entities.WildcardUser)
 		},
 	}
 	importCmd.AddCommand(importKeysCmd)
@@ -86,7 +86,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportEthereum(cmd.Context(), mnf.Name, types.WildcardUser)
+			return storesConnector.ImportEthereum(cmd.Context(), mnf.Name, entities.WildcardUser)
 		},
 	}
 	importCmd.AddCommand(importEthereumCmd)

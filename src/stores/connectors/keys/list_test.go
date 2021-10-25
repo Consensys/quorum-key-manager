@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
@@ -36,7 +36,7 @@ func TestListKey(t *testing.T) {
 		limit := uint64(2)
 		offset := uint64(4)
 
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().SearchIDs(gomock.Any(), false, limit, offset).Return([]string{keyOne.ID, keyTwo.ID}, nil)
 
 		keyIDs, err := connector.List(ctx, limit, offset)
@@ -46,7 +46,7 @@ func TestListKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.List(ctx, 0, 0)
 
@@ -55,7 +55,7 @@ func TestListKey(t *testing.T) {
 	})
 
 	t.Run("should fail to list keys if db fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().SearchIDs(gomock.Any(), false, uint64(0), uint64(0)).Return(nil, expectedErr)
 
 		_, err := connector.List(ctx, uint64(0), uint64(0))
@@ -85,7 +85,7 @@ func TestListDeletedKey(t *testing.T) {
 		limit := uint64(2)
 		offset := uint64(4)
 
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().SearchIDs(gomock.Any(), true, limit, offset).Return([]string{keyOne.ID, keyTwo.ID}, nil)
 
 		keyIDs, err := connector.ListDeleted(ctx, limit, offset)
@@ -95,7 +95,7 @@ func TestListDeletedKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.ListDeleted(ctx, uint64(0), uint64(0))
 
@@ -104,7 +104,7 @@ func TestListDeletedKey(t *testing.T) {
 	})
 
 	t.Run("should fail to list deleted key if db fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().SearchIDs(gomock.Any(), true, uint64(0), uint64(0)).Return(nil, expectedErr)
 
 		_, err := connector.ListDeleted(ctx, uint64(0), uint64(0))

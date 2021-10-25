@@ -6,7 +6,7 @@ import (
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 // Middleware synchronize authentication
@@ -33,7 +33,7 @@ func (mid *Middleware) Then(h http.Handler) http.Handler {
 func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next http.Handler) {
 	ctx := req.Context()
 	if !mid.authEnabled {
-		ctx = WithUserContext(ctx, NewUserContext(types.WildcardUser))
+		ctx = WithUserContext(ctx, NewUserContext(entities.WildcardUser))
 		next.ServeHTTP(rw, req.WithContext(ctx))
 		return
 	}
@@ -56,7 +56,7 @@ func (mid *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request, next
 			Debug("request successfully authenticated")
 	} else {
 		// If no authentication then sets info to anonymous user
-		info = types.AnonymousUser
+		info = entities.AnonymousUser
 		mid.logger.
 			With("username", info.Username).
 			With("roles", info.Roles).
