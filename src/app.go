@@ -84,20 +84,20 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 }
 
 func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
-	compositionMiddleware := &alice.Chain{}
+	compositionMiddleware := alice.Chain{}
 
 	// access log middleware
 	// TODO: Make accesslog middleware configurable (at least enable/disable)
-	compositionMiddleware.Append(accesslog.NewMiddleware(logger).Handler)
+	compositionMiddleware = compositionMiddleware.Append(accesslog.NewMiddleware(logger).Handler)
 
-	if cfg.Auth.OIDC != nil {
+	if cfg.Auth.OIDC.IssuerURL != "" {
 		jwtMiddleware, err := jwt.NewMiddleware(cfg.Auth.OIDC)
 		if err != nil {
 			return nil, err
 		}
 
-		compositionMiddleware.Append(jwtMiddleware.Handler)
+		compositionMiddleware = compositionMiddleware.Append(jwtMiddleware.Handler)
 	}
 
-	return compositionMiddleware, nil
+	return &compositionMiddleware, nil
 }

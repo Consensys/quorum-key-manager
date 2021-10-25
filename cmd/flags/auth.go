@@ -104,7 +104,7 @@ func AuthFlags(f *pflag.FlagSet) {
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`OpenID Connect issuer server domain (ie. https://quorum-key-manager.eu.auth0.com/.well-known/jwks.json).
+	desc := fmt.Sprintf(`OpenID Connect issuer server domain (ie. https://quorum-key-manager.eu.auth0.com).
 Environment variable: %q`, authOIDCIssuerURLEnv)
 	f.String(authOIDCIssuerURLFlag, authOIDCIssuerURLDefault, desc)
 	_ = viper.BindPFlag(authOIDCIssuerURLViperKey, f.Lookup(authOIDCIssuerURLFlag))

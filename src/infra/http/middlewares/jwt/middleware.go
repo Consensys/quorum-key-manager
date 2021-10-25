@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"context"
-	"fmt"
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/auth0/go-jwt-middleware/validate/josev2"
 	"github.com/consensys/quorum-key-manager/src/auth/types"
@@ -61,8 +60,6 @@ func (m *Middleware) validateAndParseToken(ctx context.Context, token string) (i
 	if roles != "" {
 		userInfo.Roles = utils.ExtractRoles(roles)
 	}
-
-	fmt.Println(userInfo)
 
 	return userInfo, nil
 }
