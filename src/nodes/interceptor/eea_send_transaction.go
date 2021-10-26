@@ -6,7 +6,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	"github.com/consensys/quorum-key-manager/src/auth/api/handlers"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -16,7 +16,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	i.logger.Debug("sending EEA transaction")
 
 	// Get store for from
-	store, err := i.stores.EthereumByAddr(ctx, msg.From, handlers.UserInfoFromContext(ctx))
+	store, err := i.stores.EthereumByAddr(ctx, msg.From, middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}

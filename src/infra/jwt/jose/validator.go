@@ -45,6 +45,7 @@ func New(cfg *Config) (*Validator, error) {
 func (v *Validator) ValidateToken(ctx context.Context, token string) (*entities.UserClaims, error) {
 	userCtx, err := v.validator.ValidateToken(ctx, token)
 	if err != nil {
+		// There is no fine-grained handling of the error provided from the package
 		return nil, errors.UnauthorizedError(err.Error())
 	}
 

@@ -1,4 +1,4 @@
-package handlers
+package middlewares
 
 import (
 	"encoding/base64"
@@ -14,17 +14,17 @@ import (
 
 const BasicSchema = "Basic"
 
-type AuthHandler struct {
+type Auth struct {
 	authenticator auth.Authenticator
 }
 
-func New(authenticator auth.Authenticator) *AuthHandler {
-	return &AuthHandler{
+func NewAuth(authenticator auth.Authenticator) *Auth {
+	return &Auth{
 		authenticator: authenticator,
 	}
 }
 
-func (h *AuthHandler) authMiddleware(next http.Handler) http.Handler {
+func (m *Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -35,7 +35,7 @@ func (h *AuthHandler) authMiddleware(next http.Handler) http.Handler {
 		}
 
 		if jwtToken != "" {
-			userInfo, err := h.authenticator.AuthenticateJWT(r.Context(), jwtToken)
+			userInfo, err := m.authenticator.AuthenticateJWT(r.Context(), jwtToken)
 			if err != nil {
 				httpinfra.WriteHTTPErrorResponse(rw, err)
 			}
@@ -51,7 +51,7 @@ func (h *AuthHandler) authMiddleware(next http.Handler) http.Handler {
 		}
 
 		if apiKey != nil {
-			userInfo, err := h.authenticator.AuthenticateAPIKey(r.Context(), apiKey)
+			userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), apiKey)
 			if err != nil {
 				httpinfra.WriteHTTPErrorResponse(rw, err)
 			}

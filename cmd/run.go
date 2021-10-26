@@ -28,8 +28,10 @@ func newRunCommand() *cobra.Command {
 	flags.HTTPFlags(runCmd.Flags())
 	flags.ManifestFlags(runCmd.Flags())
 	flags.LoggerFlags(runCmd.Flags())
-	flags.AuthFlags(runCmd.Flags())
 	flags.PGFlags(runCmd.Flags())
+	flags.OIDCFlags(runCmd.Flags())
+	flags.APIKeyFlags(runCmd.Flags())
+	flags.TLSFlags(runCmd.Flags())
 
 	return runCmd
 }

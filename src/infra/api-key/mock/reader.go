@@ -5,7 +5,8 @@
 package mock
 
 import (
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	context "context"
+	entities "github.com/consensys/quorum-key-manager/src/auth/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -33,17 +34,17 @@ func (m *MockReader) EXPECT() *MockReaderMockRecorder {
 	return m.recorder
 }
 
-// Load mocks base method
-func (m *MockReader) Load() ([]*manifest.Manifest, error) {
+// Get mocks base method
+func (m *MockReader) Get(ctx context.Context, apiKey []byte) (*entities.UserClaims, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Load")
-	ret0, _ := ret[0].([]*manifest.Manifest)
+	ret := m.ctrl.Call(m, "Get", ctx, apiKey)
+	ret0, _ := ret[0].(*entities.UserClaims)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Load indicates an expected call of Load
-func (mr *MockReaderMockRecorder) Load() *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockReaderMockRecorder) Get(ctx, apiKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockReader)(nil).Load))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockReader)(nil).Get), ctx, apiKey)
 }

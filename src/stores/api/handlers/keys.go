@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/api/handlers"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -67,7 +67,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -117,7 +117,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -167,7 +167,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -200,8 +200,8 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	fmt.Println(handlers.UserInfoFromContext(ctx))
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	fmt.Println(middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -247,7 +247,7 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -281,7 +281,7 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -314,7 +314,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -357,7 +357,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -388,7 +388,7 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

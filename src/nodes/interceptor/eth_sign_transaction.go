@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/auth/api/handlers"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -32,7 +32,7 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	// Get store for from
-	store, err := i.stores.EthereumByAddr(ctx, msg.From, handlers.UserInfoFromContext(ctx))
+	store, err := i.stores.EthereumByAddr(ctx, msg.From, middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}

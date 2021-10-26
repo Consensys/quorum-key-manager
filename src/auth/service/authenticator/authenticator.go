@@ -2,14 +2,11 @@ package authenticator
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/hex"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	apikey "github.com/consensys/quorum-key-manager/src/infra/api-key"
 	"github.com/consensys/quorum-key-manager/src/infra/jwt"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"hash"
 	"strings"
 )
 
@@ -20,17 +17,16 @@ const (
 
 type Authenticator struct {
 	logger       log.Logger
-	jwtvalidator jwt.Validator
-	APIKeyFile   map[string]UserClaims
-	Hasher       *hash.Hash
-	B64Encoder   *base64.Encoding
+	jwtValidator jwt.Validator
+	apikeyReader apikey.Reader
 }
 
 var _ auth.Authenticator = &Authenticator{}
 
-func New(jwtvalidator jwt.Validator, logger log.Logger) *Authenticator {
+func New(jwtValidator jwt.Validator, apikeyReader apikey.Reader, logger log.Logger) *Authenticator {
 	return &Authenticator{
-		jwtvalidator: jwtvalidator,
+		jwtValidator: jwtValidator,
+		apikeyReader: apikeyReader,
 		logger:       logger,
 	}
 }
@@ -38,10 +34,9 @@ func New(jwtvalidator jwt.Validator, logger log.Logger) *Authenticator {
 func (auth *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*entities.UserInfo, error) {
 	auth.logger.Debug("extracting user info from jwt token")
 
-	claims, err := auth.jwtvalidator.ValidateToken(ctx, token)
+	claims, err := auth.jwtValidator.ValidateToken(ctx, token)
 	if err != nil {
-		errMessage := "failed to validate jwt token"
-		auth.logger.WithError(err).Error(errMessage)
+		auth.logger.WithError(err).Error("failed to validate jwt token")
 		return nil, err
 	}
 
@@ -49,41 +44,15 @@ func (auth *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*
 }
 
 func (auth *Authenticator) AuthenticateAPIKey(ctx context.Context, apiKey []byte) (*entities.UserInfo, error) {
-	auth.logger.Debug("extracting user info from api key file")
+	auth.logger.Debug("extracting user info from api key")
 
-	h := *auth.Hasher
-	h.Reset()
-	_, err := h.Write(apiKey)
+	claims, err := auth.apikeyReader.Get(ctx, apiKey)
 	if err != nil {
-		return nil, errors.UnauthorizedError(err.Error())
-	}
-	clientAPIKeyHash := h.Sum(nil)
-
-	strClientHash := hex.EncodeToString(clientAPIKeyHash)
-	claims, ok := auth.APIKeyFile[strClientHash]
-	if !ok {
-		return nil, errors.UnauthorizedError("invalid api-key")
+		auth.logger.WithError(err).Error("failed to validate api key")
+		return nil, err
 	}
 
-	userInfo := &entities.UserInfo{
-		AuthMode:    AuthMode,
-		Roles:       []string{},
-		Permissions: []entities.Permission{},
-	}
-
-	userInfo.Username, userInfo.Tenant = ExtractUsernameAndTenant(claims.UserName)
-	userInfo.Permissions = ExtractPermissionsArr(claims.Permissions)
-	userInfo.Roles = claims.Roles
-
-	auth.logger.Info(
-		"user info extracted from api key successfully",
-		"username", userInfo.Username,
-		"tenant", userInfo.Tenant,
-		"permissions", userInfo.Permissions,
-		"roles", userInfo.Roles,
-	)
-
-	return userInfo, nil
+	return auth.userInfoFromClaims(APIKeyAuthMode, claims), nil
 }
 
 func (auth *Authenticator) userInfoFromClaims(authMode string, claims *entities.UserClaims) *entities.UserInfo {
@@ -93,7 +62,6 @@ func (auth *Authenticator) userInfoFromClaims(authMode string, claims *entities.
 	subject := strings.Split(claims.Subject, "|")
 	if len(subject) > 1 {
 		userInfo.Username = subject[1]
-
 	}
 	userInfo.Tenant = subject[0]
 
@@ -114,7 +82,7 @@ func (auth *Authenticator) userInfoFromClaims(authMode string, claims *entities.
 		userInfo.Roles = strings.Split(claims.Roles, " ")
 	}
 
-	auth.logger.Info(
+	auth.logger.Debug(
 		"user info extracted successfully",
 		"username", userInfo.Username,
 		"tenant", userInfo.Tenant,

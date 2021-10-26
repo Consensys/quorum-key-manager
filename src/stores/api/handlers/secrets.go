@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/consensys/quorum-key-manager/src/auth/api/handlers"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -61,7 +61,7 @@ func (h *SecretsHandler) set(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -99,7 +99,7 @@ func (h *SecretsHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 
 	id := mux.Vars(request)["id"]
 
-	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -141,7 +141,7 @@ func (h *SecretsHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -187,7 +187,7 @@ func (h *SecretsHandler) delete(rw http.ResponseWriter, request *http.Request) {
 
 	id := mux.Vars(request)["id"]
 
-	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -219,7 +219,7 @@ func (h *SecretsHandler) destroy(rw http.ResponseWriter, request *http.Request) 
 	ctx := request.Context()
 
 	id := mux.Vars(request)["id"]
-	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -253,7 +253,7 @@ func (h *SecretsHandler) restore(rw http.ResponseWriter, request *http.Request) 
 
 	id := mux.Vars(request)["id"]
 
-	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), handlers.UserInfoFromContext(ctx))
+	secretStore, err := h.stores.Secret(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
