@@ -6,7 +6,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
-	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/accesslog"
+	app3 "github.com/consensys/quorum-key-manager/src/auth/app"
+	"github.com/consensys/quorum-key-manager/src/infra/http/accesslog"
 	"github.com/consensys/quorum-key-manager/src/infra/http/middlewares/jwt"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
@@ -45,7 +46,7 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	}
 
 	// Register Services
-	err = auth.RegisterService(a, logger.WithComponent("auth"))
+	err = app3.RegisterService(a, logger.WithComponent("auth"))
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ package acceptancetests
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"math/rand"
 	"os"
 	"testing"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"

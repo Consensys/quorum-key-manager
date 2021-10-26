@@ -2,12 +2,10 @@ package interceptor
 
 import (
 	"context"
-
+	"github.com/consensys/quorum-key-manager/src/auth/api/handlers"
 	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
@@ -33,9 +31,8 @@ func (i *Interceptor) ethSignTransaction(ctx context.Context, msg *ethereum.Send
 		msg.Data = &[]byte{}
 	}
 
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	// Get store for from
-	store, err := i.stores.EthereumByAddr(ctx, msg.From, userInfo)
+	store, err := i.stores.EthereumByAddr(ctx, msg.From, handlers.UserInfoFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}

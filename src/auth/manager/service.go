@@ -117,7 +117,7 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 			return errors.AlreadyExistsError(errMessage)
 		}
 
-		specs := new(RoleSpecs)
+		specs := new(entities.RoleSpecs)
 		if err := json.UnmarshalJSON(mnf.Specs, specs); err != nil {
 			errMessage := fmt.Sprintf("invalid Role specs for role %s", mnf.Name)
 			logger.WithError(err).Error(errMessage)

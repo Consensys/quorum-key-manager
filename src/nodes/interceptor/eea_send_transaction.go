@@ -2,12 +2,11 @@ package interceptor
 
 import (
 	"context"
-
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	"github.com/consensys/quorum-key-manager/src/auth/api/handlers"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -16,9 +15,8 @@ import (
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
 	i.logger.Debug("sending EEA transaction")
 
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
 	// Get store for from
-	store, err := i.stores.EthereumByAddr(ctx, msg.From, userInfo)
+	store, err := i.stores.EthereumByAddr(ctx, msg.From, handlers.UserInfoFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}

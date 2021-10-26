@@ -1,6 +1,12 @@
 package entities
 
-// UserInfo are extracted from request credentials by authentication middleware
+// UserClaims represent raw claims extracted from an authentication method
+type UserClaims struct {
+	Subject string
+	Scope   string
+	Roles   string
+}
+
 type UserInfo struct {
 	// AuthMode records the mode that succeeded to Authenticate the request ('tls', 'api-key', 'oidc' or '')
 	AuthMode string
@@ -18,12 +24,16 @@ type UserInfo struct {
 	Permissions []Permission
 }
 
-var WildcardUser = &UserInfo{
-	Permissions: ListPermissions(),
+func NewWildcardUser() *UserInfo {
+	return &UserInfo{
+		Permissions: ListPermissions(),
+	}
 }
 
-var AnonymousUser = &UserInfo{
-	Username:    "anonymous",
-	Roles:       []string{AnonymousRole},
-	Permissions: []Permission{},
+func NewAnonymousUser() *UserInfo {
+	return &UserInfo{
+		Username:    "anonymous",
+		Roles:       []string{AnonymousRole},
+		Permissions: []Permission{},
+	}
 }

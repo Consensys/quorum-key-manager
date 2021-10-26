@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 )

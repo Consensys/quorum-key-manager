@@ -2,12 +2,12 @@ package stores
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"

@@ -3,6 +3,7 @@ package nodemanager
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"sort"
 	"sync"
 
@@ -13,8 +14,6 @@ import (
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
