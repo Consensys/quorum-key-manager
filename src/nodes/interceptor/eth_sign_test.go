@@ -3,10 +3,10 @@ package interceptor
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 
@@ -29,9 +29,7 @@ func TestEthSign(t *testing.T) {
 	i, stores := newInterceptor(t, ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
-		UserInfo: userInfo,
-	})
+	ctx = middlewares.WithUserInfo(ctx, userInfo)
 
 	tests := []*testHandlerCase{
 		{

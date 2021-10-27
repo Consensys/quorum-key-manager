@@ -2,11 +2,11 @@ package interceptor
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"math/big"
 	"testing"
 
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
@@ -28,9 +28,7 @@ func TestEthSignTransaction(t *testing.T) {
 		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
-		UserInfo: userInfo,
-	})
+	ctx = middlewares.WithUserInfo(ctx, userInfo)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)

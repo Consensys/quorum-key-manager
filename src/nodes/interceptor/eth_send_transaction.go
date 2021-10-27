@@ -31,8 +31,17 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 
 	sess := proxynode.SessionFromContext(ctx)
 
+	// get the alias in PrivateFrom if any
+	var err error
+	*msg.PrivateFrom, err = i.aliases.ReplaceSimpleAlias(ctx, *msg.PrivateFrom)
+	if err != nil {
+		i.logger.WithError(err).Error("failed to replace alias")
+		return nil, err
+	}
+
 	if msg.GasPrice == nil {
-		gasPrice, err := sess.EthCaller().Eth().GasPrice(ctx)
+		var gasPrice *big.Int
+		gasPrice, err = sess.EthCaller().Eth().GasPrice(ctx)
 		if err != nil {
 			i.logger.WithError(err).Error("failed to fetch gas price")
 			return nil, errors.BlockchainNodeError(err.Error())
@@ -41,7 +50,7 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 		msg.GasPrice = gasPrice
 	}
 
-	err := i.fillGas(ctx, sess, msg)
+	err = i.fillGas(ctx, sess, msg)
 	if err != nil {
 		return nil, err
 	}

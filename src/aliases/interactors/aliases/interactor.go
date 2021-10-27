@@ -131,3 +131,19 @@ func (i *Interactor) ReplaceAliases(ctx context.Context, addrs []string) ([]stri
 	}
 	return values, nil
 }
+
+// ReplaceSimpleAlias replace a potential alias with its first and only value.
+// It will fail if no aliases can be found.
+func (i *Interactor) ReplaceSimpleAlias(ctx context.Context, addr string) (string, error) {
+	alias, err := i.ReplaceAliases(ctx, []string{addr})
+	if err != nil {
+		return "", err
+	}
+
+	if len(alias) != 1 {
+		i.logger.WithError(err).Error("wrong alias type")
+		return "", errors.EncodingError("alias should only have 1 value")
+	}
+
+	return alias[0], nil
+}

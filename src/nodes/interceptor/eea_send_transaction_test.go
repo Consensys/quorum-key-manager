@@ -2,13 +2,13 @@ package interceptor
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"math/big"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
@@ -30,9 +30,7 @@ func TestEEASendTransaction(t *testing.T) {
 	}
 	session := proxynode.NewMockSession(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
-		UserInfo: userInfo,
-	})
+	ctx = middlewares.WithUserInfo(ctx, userInfo)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)
