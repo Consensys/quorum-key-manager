@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"net/http"
 
@@ -200,7 +199,6 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	fmt.Println(middlewares.UserInfoFromContext(ctx))
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
