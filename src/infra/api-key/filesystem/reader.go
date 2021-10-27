@@ -3,7 +3,7 @@ package filesystem
 import (
 	"context"
 	csv2 "encoding/csv"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"fmt"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/api-key"
 	"io"
@@ -21,22 +21,22 @@ const (
 )
 
 type Reader struct {
-	fs os.FileInfo
+	path string
 }
 
 var _ apikey.Reader = &Reader{}
 
 func New(cfg *Config) (*Reader, error) {
-	fs, err := os.Stat(cfg.Path)
+	_, err := os.Stat(cfg.Path)
 	if err != nil {
-		return nil, errors.ConfigError(err.Error())
+		return nil, err
 	}
 
-	return &Reader{fs: fs}, nil
+	return &Reader{path: cfg.Path}, nil
 }
 
 func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error) {
-	csvfile, err := os.Open(r.fs.Name())
+	csvfile, err := os.Open(r.path)
 	if err != nil {
 		return nil, err
 	}
@@ -54,10 +54,10 @@ func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error
 			break
 		}
 		if err != nil {
-			return nil, errors.ConfigError(err.Error())
+			return nil, err
 		}
 		if len(cells) != csvRowLen {
-			return nil, errors.ConfigError("invalid number of cells, should be %d", csvRowLen)
+			return nil, fmt.Errorf("invalid number of cells, should be %d", csvRowLen)
 		}
 
 		claims[cells[csvHashOffset]] = &entities.UserClaims{

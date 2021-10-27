@@ -2,7 +2,6 @@ package filesystem
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,7 +14,8 @@ import (
 )
 
 type Reader struct {
-	fs os.FileInfo
+	path  string
+	isDir bool
 }
 
 var _ manifests.Reader = &Reader{}
@@ -23,21 +23,21 @@ var _ manifests.Reader = &Reader{}
 func New(cfg *Config) (*Reader, error) {
 	fs, err := os.Stat(cfg.Path)
 	if err != nil {
-		return nil, errors.ConfigError(err.Error())
+		return nil, err
 	}
 
-	return &Reader{fs: fs}, nil
+	return &Reader{path: cfg.Path, isDir: fs.IsDir()}, nil
 }
 
 func (r *Reader) Load(_ context.Context) ([]*manifest.Manifest, error) {
-	if !r.fs.IsDir() {
-		return r.buildMessages(r.fs.Name())
+	if !r.isDir {
+		return r.buildMessages(r.path)
 	}
 
 	var mnfs []*manifest.Manifest
-	err := filepath.Walk(r.fs.Name(), func(fp string, info os.FileInfo, err error) error {
+	err := filepath.Walk(r.path, func(fp string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.ConfigError(err.Error())
+			return err
 		}
 
 		if info.IsDir() {
@@ -68,19 +68,19 @@ func (r *Reader) Load(_ context.Context) ([]*manifest.Manifest, error) {
 func (r *Reader) buildMessages(fp string) ([]*manifest.Manifest, error) {
 	data, err := ioutil.ReadFile(fp)
 	if err != nil {
-		return nil, errors.ConfigError(err.Error())
+		return nil, err
 	}
 
 	var mnfs []*manifest.Manifest
 	err = yaml.Unmarshal(data, &mnfs)
 	if err != nil {
-		return nil, errors.InvalidFormatError(err.Error())
+		return nil, err
 	}
 
 	for _, mnf := range mnfs {
 		err = validator.New().Struct(mnf)
 		if err != nil {
-			return nil, errors.InvalidFormatError(err.Error())
+			return nil, err
 		}
 	}
 

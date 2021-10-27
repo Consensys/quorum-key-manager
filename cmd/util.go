@@ -90,7 +90,7 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	token, err := jwt.GenerateAccessToken(signingKey.(*rsa.PrivateKey), map[string]interface{}{
 		"sub":   sub,
 		"scope": strings.Join(scope, " "),
-		"roles": strings.Join(roles, ","),
+		"roles": strings.Join(roles, " "),
 		"aud":   strings.Join(audience, " "),
 	}, expiration)
 	if err != nil {

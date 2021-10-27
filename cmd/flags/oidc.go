@@ -57,7 +57,7 @@ func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 
 	if issuerURL != "" {
 		return jose.NewConfig(
-			vipr.GetString(authOIDCIssuerURLViperKey),
+			issuerURL,
 			vipr.GetStringSlice(AuthOIDCAudienceViperKey),
 			5*time.Minute, // TODO: Make the cache ttl an ENV var if needed
 		)

@@ -33,7 +33,7 @@ func NewAPIKeyConfig(vipr *viper.Viper) *filesystem.Config {
 	path := vipr.GetString(authAPIKeyFileViperKey)
 
 	if path != "" {
-		filesystem.NewConfig(path)
+		return filesystem.NewConfig(path)
 	}
 
 	return nil

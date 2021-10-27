@@ -12,7 +12,7 @@ x-default-variables: &default-variables
   DB_TLS_CERT: ${DB_TLS_CERT-}
   DB_TLS_KEY: ${DB_TLS_KEY-}
   DB_TLS_CA: ${DB_TLS_CA-}
-  DB_HOST: ${DB_HOST-}
+  DB_HOST: ${DB_HOST-postgres}
   DB_PORT: ${DB_PORT-}
   DB_DATABASE: ${DB_DATABASE-}
   DB_POOLSIZE: ${DB_POOLSIZE-}

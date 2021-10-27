@@ -2,8 +2,6 @@ package middlewares
 
 import (
 	"encoding/base64"
-	"fmt"
-	"github.com/auth0/go-jwt-middleware"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -12,7 +10,8 @@ import (
 	"strings"
 )
 
-const BasicSchema = "Basic"
+const BasicSchema = "basic"
+const BearerSchema = "bearer"
 
 type Auth struct {
 	authenticator auth.Authenticator
@@ -28,68 +27,62 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		// JWT Token
-		jwtToken, err := jwtmiddleware.AuthHeaderTokenExtractor(r)
-		if err != nil {
-			httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-		}
+		authHeader := r.Header.Get("Authorization")
 
-		if jwtToken != "" {
-			userInfo, err := m.authenticator.AuthenticateJWT(r.Context(), jwtToken)
-			if err != nil {
-				httpinfra.WriteHTTPErrorResponse(rw, err)
+		// If Auth header is provided, try JWT or API key
+		if authHeader != "" {
+			authHeaderParts := strings.Fields(authHeader)
+			if len(authHeaderParts) != 2 {
+				httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("malformed authorization header"))
+				return
 			}
+			authSchema := authHeaderParts[0]
+			authValue := authHeaderParts[1]
 
-			next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
-		}
+			switch strings.ToLower(authSchema) {
+			case BearerSchema:
+				userInfo, err := m.authenticator.AuthenticateJWT(r.Context(), authValue)
+				if err != nil {
+					httpinfra.WriteHTTPErrorResponse(rw, err)
+					return
+				}
 
-		// API key
-		apiKey, err := extractApiKey(r)
-		if err != nil {
-			httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
-			return
-		}
+				next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
+				return
+			case BasicSchema:
+				decodedAPIKey, err := base64.StdEncoding.DecodeString(authValue)
+				if err != nil {
+					httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("failed to decode api key header. %s", err.Error()))
+					return
+				}
 
-		if apiKey != nil {
-			userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), apiKey)
-			if err != nil {
-				httpinfra.WriteHTTPErrorResponse(rw, err)
+				userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), decodedAPIKey)
+				if err != nil {
+					httpinfra.WriteHTTPErrorResponse(rw, err)
+					return
+				}
+
+				next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
+				return
+			default:
+				httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("unsupported authorization schema &s", authSchema))
+				return
 			}
-
-			next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
 		}
 
-		// TLS
+		// if no Authorization header, try TLS, otherwise anonymous
 		if r.TLS != nil && r.TLS.PeerCertificates != nil && len(r.TLS.PeerCertificates) > 0 {
 			userInfo, err := m.authenticator.AuthenticateTLS(r.Context(), r.TLS)
 			if err != nil {
 				httpinfra.WriteHTTPErrorResponse(rw, err)
+				return
 			}
 
 			next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
+			return
 		}
 
 		// Anonymous user if no authentication method has succeeded
 		next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, entities.NewAnonymousUser())))
 	})
-}
-
-func extractApiKey(r *http.Request) ([]byte, error) {
-	authHeader := r.Header.Get("Authorization")
-
-	if authHeader == "" {
-		return nil, nil
-	}
-
-	if len(authHeader) <= len(BasicSchema) || !strings.EqualFold(authHeader[:len(BasicSchema)], BasicSchema) {
-		return nil, fmt.Errorf("api key was not provided in Authorization header")
-	}
-
-	b64EncodedAPIKey := authHeader[len(BasicSchema)+1:]
-	decodedAPIKey, err := base64.StdEncoding.DecodeString(b64EncodedAPIKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return decodedAPIKey, nil
 }

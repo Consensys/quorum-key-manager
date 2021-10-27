@@ -30,7 +30,11 @@ Environment variable: %q`, authTLSCertsFileEnv)
 }
 
 func NewTLSConfig(vipr *viper.Viper) *tls.Config {
-	return &tls.Config{
-		Path: vipr.GetString(authTLSCertsFileViperKey),
+	path := vipr.GetString(authTLSCertsFileViperKey)
+
+	if path != "" {
+		return tls.NewConfig(vipr.GetString(authTLSCertsFileViperKey))
 	}
+
+	return nil
 }

@@ -47,8 +47,9 @@ func (auth *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*
 
 	claims, err := auth.jwtValidator.ValidateToken(ctx, token)
 	if err != nil {
-		auth.logger.WithError(err).Error("failed to validate jwt token")
-		return nil, err
+		errMessage := "failed to validate jwt token"
+		auth.logger.WithError(err).Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
 	}
 
 	return auth.userInfoFromClaims(JWTAuthMode, claims), nil
@@ -95,7 +96,6 @@ func (auth Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.Con
 
 	// first array element is the leaf
 	clientCert := connState.PeerCertificates[0]
-
 	claims := &entities.UserClaims{
 		Subject: clientCert.Subject.CommonName,
 		Scope:   strings.Join(clientCert.Subject.OrganizationalUnit, " "),
@@ -114,7 +114,7 @@ func (auth *Authenticator) userInfoFromClaims(authMode string, claims *entities.
 	}
 	userInfo.Tenant = subject[0]
 
-	for _, permission := range strings.Split(claims.Scope, " ") {
+	for _, permission := range strings.Fields(claims.Scope) {
 		if !strings.Contains(permission, ":") {
 			// Ignore invalid permissions
 			continue
@@ -128,7 +128,7 @@ func (auth *Authenticator) userInfoFromClaims(authMode string, claims *entities.
 	}
 
 	if claims.Roles != "" {
-		userInfo.Roles = strings.Split(claims.Roles, " ")
+		userInfo.Roles = strings.Fields(claims.Roles)
 	}
 
 	auth.logger.Debug(

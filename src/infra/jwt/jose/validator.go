@@ -3,7 +3,6 @@ package jose
 import (
 	"context"
 	"github.com/auth0/go-jwt-middleware/validate/josev2"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	jwtinfra "github.com/consensys/quorum-key-manager/src/infra/jwt"
 	"gopkg.in/square/go-jose.v2"
@@ -21,7 +20,7 @@ var _ jwtinfra.Validator = &Validator{}
 func New(cfg *Config) (*Validator, error) {
 	issuerURL, err := url.Parse(cfg.IssuerURL)
 	if err != nil {
-		return nil, errors.ConfigError(err.Error())
+		return nil, err
 	}
 
 	validator, err := josev2.New(
@@ -46,7 +45,7 @@ func (v *Validator) ValidateToken(ctx context.Context, token string) (*entities.
 	userCtx, err := v.validator.ValidateToken(ctx, token)
 	if err != nil {
 		// There is no fine-grained handling of the error provided from the package
-		return nil, errors.UnauthorizedError(err.Error())
+		return nil, err
 	}
 
 	return &entities.UserClaims{

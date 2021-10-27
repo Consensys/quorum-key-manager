@@ -66,6 +66,8 @@ func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			logger.Info("JWT authentication enabled")
 		}
 
 		if cfg.APIKey != nil {
@@ -78,6 +80,8 @@ func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			logger.Info("API key authentication enabled")
 		}
 
 		if cfg.TLS != nil {
@@ -90,6 +94,8 @@ func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			logger.Info("TLS authentication enabled")
 		}
 
 		authMiddleware = middlewares.NewAuth(authenticator.New(jwtValidator, apikeyClaims, rootCAs, logger)).Middleware
