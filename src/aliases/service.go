@@ -34,4 +34,5 @@ type Interactor interface {
 type Parser interface {
 	ParseAlias(alias string) (regName string, aliasKey string, isAlias bool)
 	ReplaceAliases(ctx context.Context, addrs []string) ([]string, error)
+	ReplaceSimpleAlias(ctx context.Context, addr string) (string, error)
 }

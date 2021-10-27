@@ -112,3 +112,42 @@ func TestReplaceAliases(t *testing.T) {
 		})
 	}
 }
+
+func TestReplaceSingleAlias(t *testing.T) {
+	type backendCall struct {
+		reg   string
+		key   string
+		value []string
+		err   error
+	}
+
+	groupACall := backendCall{"my-registry", "group-A", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
+
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	srv := mock.NewMockService(ctrl)
+	loggerMock := testutils.NewMockLogger(ctrl)
+
+	aConn, err := aliasconn.NewInteractor(srv, loggerMock)
+	require.NoError(t, err)
+
+	t.Run("no alias found", func(t *testing.T) {
+		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&aliasent.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))
+		_, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:group-A}}")
+		require.Error(t, err)
+		assert.True(t, errors.IsNotFoundError(err))
+	})
+	t.Run("more than 1 alias value", func(t *testing.T) {
+		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&aliasent.Alias{Value: groupACall.value}, groupACall.err)
+		_, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:group-A}}")
+		require.Error(t, err)
+		assert.True(t, errors.IsEncodingError(err))
+	})
+	t.Run("1 alias value", func(t *testing.T) {
+		srv.EXPECT().GetAlias(gomock.Any(), JPMCall.reg, JPMCall.key).Return(&aliasent.Alias{Value: JPMCall.value}, JPMCall.err)
+		addr, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:JPM}}")
+		require.NoError(t, err)
+		assert.Equal(t, groupACall.value[0], addr)
+	})
+}
