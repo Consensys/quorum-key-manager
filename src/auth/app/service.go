@@ -1,13 +1,18 @@
 package app
 
 import (
+	"context"
+	"crypto/x509"
 	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/manager"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authenticator"
-	"github.com/consensys/quorum-key-manager/src/infra/api-key/csv"
+	apikey "github.com/consensys/quorum-key-manager/src/infra/api-key/filesystem"
+	"github.com/consensys/quorum-key-manager/src/infra/jwt"
 	"github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
+	tls "github.com/consensys/quorum-key-manager/src/infra/tls/filesystem"
 	"github.com/justinas/alice"
 
 	"github.com/consensys/quorum-key-manager/pkg/app"
@@ -46,20 +51,48 @@ func RegisterService(a *app.App, logger log.Logger) error {
 }
 
 func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
+	ctx := context.Background()
+
 	var authMiddleware alice.Constructor
-	authEnabled := cfg.OIDC != nil && cfg.APIKey != nil && cfg.TLS != nil
+	authEnabled := cfg.OIDC != nil || cfg.APIKey != nil || cfg.TLS != nil
 	if authEnabled {
-		jwtValidator, err := jose.New(cfg.OIDC)
-		if err != nil {
-			return nil, err
+		var jwtValidator jwt.Validator
+		var apikeyClaims map[string]*entities.UserClaims
+		var rootCAs *x509.CertPool
+		var err error
+
+		if cfg.OIDC != nil {
+			jwtValidator, err = jose.New(cfg.OIDC)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		csvReader, err := csv.New(cfg.APIKey)
-		if err != nil {
-			return nil, err
+		if cfg.APIKey != nil {
+			apiKeyReader, err := apikey.New(cfg.APIKey)
+			if err != nil {
+				return nil, err
+			}
+
+			apikeyClaims, err = apiKeyReader.Load(ctx)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		authMiddleware = middlewares.NewAuth(authenticator.New(jwtValidator, csvReader, logger)).Middleware
+		if cfg.TLS != nil {
+			tlsReader, err := tls.New(cfg.TLS)
+			if err != nil {
+				return nil, err
+			}
+
+			rootCAs, err = tlsReader.Load(ctx)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		authMiddleware = middlewares.NewAuth(authenticator.New(jwtValidator, apikeyClaims, rootCAs, logger)).Middleware
 	} else {
 		authMiddleware = middlewares.WildcardMiddleware
 	}

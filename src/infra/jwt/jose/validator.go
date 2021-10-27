@@ -21,7 +21,7 @@ var _ jwtinfra.Validator = &Validator{}
 func New(cfg *Config) (*Validator, error) {
 	issuerURL, err := url.Parse(cfg.IssuerURL)
 	if err != nil {
-		return nil, err
+		return nil, errors.ConfigError(err.Error())
 	}
 
 	validator, err := josev2.New(

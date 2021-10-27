@@ -1,4 +1,4 @@
-package tls
+package authenticator
 
 import (
 	"crypto/tls"

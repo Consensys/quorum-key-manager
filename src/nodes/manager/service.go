@@ -61,7 +61,7 @@ func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	mnfs, err := m.manifests.Load()
+	mnfs, err := m.manifests.Load(ctx)
 	if err != nil {
 		errMessage := "failed to load manifest file"
 		m.logger.WithError(err).Error(errMessage)

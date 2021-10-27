@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	entities "github.com/consensys/quorum-key-manager/src/auth/entities"
+	x509 "crypto/x509"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,10 +35,10 @@ func (m *MockReader) EXPECT() *MockReaderMockRecorder {
 }
 
 // Load mocks base method
-func (m *MockReader) Load(ctx context.Context) (map[string]*entities.UserClaims, error) {
+func (m *MockReader) Load(ctx context.Context) (*x509.CertPool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Load", ctx)
-	ret0, _ := ret[0].(map[string]*entities.UserClaims)
+	ret0, _ := ret[0].(*x509.CertPool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -1,14 +1,15 @@
 package app
 
 import (
-	"github.com/consensys/quorum-key-manager/src/infra/api-key/csv"
-	"github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
+	apikey "github.com/consensys/quorum-key-manager/src/infra/api-key/filesystem"
+	jwt "github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
 	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
+	tls "github.com/consensys/quorum-key-manager/src/infra/tls/filesystem"
 )
 
 type Config struct {
 	Manifest *manifests.Config
-	OIDC     *jose.Config
-	APIKey   *csv.Config
-	TLS      interface{}
+	OIDC     *jwt.Config
+	APIKey   *apikey.Config
+	TLS      *tls.Config
 }

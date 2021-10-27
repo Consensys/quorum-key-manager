@@ -17,6 +17,7 @@ func NewAppConfig(vipr *viper.Viper) (*app.Config, error) {
 		Manifest: NewManifestConfig(vipr),
 		OIDC:     NewOIDCConfig(vipr),
 		APIKey:   NewAPIKeyConfig(vipr),
+		TLS:      NewTLSConfig(vipr),
 		Postgres: NewPostgresConfig(vipr),
 	}, nil
 }

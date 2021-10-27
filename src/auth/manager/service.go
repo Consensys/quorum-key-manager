@@ -37,8 +37,8 @@ func New(manifestReader manifests.Reader, logger log.Logger) *BaseManager {
 	}
 }
 
-func (mngr *BaseManager) Start(_ context.Context) error {
-	mnfs, err := mngr.manifestReader.Load()
+func (mngr *BaseManager) Start(ctx context.Context) error {
+	mnfs, err := mngr.manifestReader.Load(ctx)
 	if err != nil {
 		errMessage := "failed to load manifest file"
 		mngr.logger.WithError(err).Error(errMessage)

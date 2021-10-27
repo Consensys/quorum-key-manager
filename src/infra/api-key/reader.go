@@ -9,5 +9,5 @@ import (
 
 // Reader reads manifests from filesystem
 type Reader interface {
-	Get(ctx context.Context, apiKey []byte) (*entities.UserClaims, error)
+	Load(ctx context.Context) (map[string]*entities.UserClaims, error)
 }

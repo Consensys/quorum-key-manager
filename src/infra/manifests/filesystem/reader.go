@@ -1,6 +1,8 @@
 package filesystem
 
 import (
+	"context"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,8 +15,7 @@ import (
 )
 
 type Reader struct {
-	path  string
-	isDir bool
+	fs os.FileInfo
 }
 
 var _ manifests.Reader = &Reader{}
@@ -22,24 +23,21 @@ var _ manifests.Reader = &Reader{}
 func New(cfg *Config) (*Reader, error) {
 	fs, err := os.Stat(cfg.Path)
 	if err != nil {
-		return nil, err
+		return nil, errors.ConfigError(err.Error())
 	}
 
-	return &Reader{
-		path:  cfg.Path,
-		isDir: fs.IsDir(),
-	}, nil
+	return &Reader{fs: fs}, nil
 }
 
-func (ll *Reader) Load() ([]*manifest.Manifest, error) {
-	if !ll.isDir {
-		return ll.buildMessages(ll.path)
+func (r *Reader) Load(_ context.Context) ([]*manifest.Manifest, error) {
+	if !r.fs.IsDir() {
+		return r.buildMessages(r.fs.Name())
 	}
 
 	var mnfs []*manifest.Manifest
-	err := filepath.Walk(ll.path, func(fp string, info os.FileInfo, err error) error {
+	err := filepath.Walk(r.fs.Name(), func(fp string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return errors.ConfigError(err.Error())
 		}
 
 		if info.IsDir() {
@@ -48,7 +46,7 @@ func (ll *Reader) Load() ([]*manifest.Manifest, error) {
 
 		fileExtension := filepath.Ext(fp)
 		if fileExtension == ".yml" || fileExtension == ".yaml" {
-			currManifests, err := ll.buildMessages(fp)
+			currManifests, err := r.buildMessages(fp)
 			if err != nil {
 				return err
 			}
@@ -67,23 +65,22 @@ func (ll *Reader) Load() ([]*manifest.Manifest, error) {
 	return mnfs, nil
 }
 
-func (ll *Reader) buildMessages(fp string) ([]*manifest.Manifest, error) {
-	val := validator.New()
+func (r *Reader) buildMessages(fp string) ([]*manifest.Manifest, error) {
 	data, err := ioutil.ReadFile(fp)
 	if err != nil {
-		return nil, err
+		return nil, errors.ConfigError(err.Error())
 	}
 
 	var mnfs []*manifest.Manifest
 	err = yaml.Unmarshal(data, &mnfs)
 	if err != nil {
-		return nil, err
+		return nil, errors.InvalidFormatError(err.Error())
 	}
 
 	for _, mnf := range mnfs {
-		err = val.Struct(mnf)
+		err = validator.New().Struct(mnf)
 		if err != nil {
-			return nil, err
+			return nil, errors.InvalidFormatError(err.Error())
 		}
 	}
 

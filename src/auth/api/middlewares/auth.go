@@ -60,7 +60,14 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 		}
 
 		// TLS
-		// TODO: Implement TLS authenticator
+		if r.TLS != nil && r.TLS.PeerCertificates != nil && len(r.TLS.PeerCertificates) > 0 {
+			userInfo, err := m.authenticator.AuthenticateTLS(r.Context(), r.TLS)
+			if err != nil {
+				httpinfra.WriteHTTPErrorResponse(rw, err)
+			}
+
+			next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
+		}
 
 		// Anonymous user if no authentication method has succeeded
 		next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, entities.NewAnonymousUser())))

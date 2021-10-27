@@ -1,4 +1,4 @@
-package apikey
+package authenticator
 
 import (
 	"crypto/sha256"
@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/api-key/csv"
+	"github.com/consensys/quorum-key-manager/src/infra/api-key/filesystem"
 	"net/http/httptest"
 	"testing"
 
@@ -52,7 +52,7 @@ func TestAuthenticatorApiKey_sh256Hasher(t *testing.T) {
 	b64BobAPIKey := b64Encoder.EncodeToString([]byte(bobAPIKey))
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
 
-	auth, _ := NewAuthenticator(&csv.Config{APIKeyFile: map[string]UserClaims{
+	auth, _ := NewAuthenticator(&filesystem.Config{APIKeyFile: map[string]UserClaims{
 		hexStrAliceAPIKeyHash: userAliceClaims,
 		hexStrBobAPIKeyHash:   userBobClaims,
 	},
@@ -101,7 +101,7 @@ func TestAuthenticatorApiKey_ChangingHashers(t *testing.T) {
 	b64BobAPIKey := b64Encoder.EncodeToString([]byte(bobAPIKey))
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
 
-	auth, _ := NewAuthenticator(&csv.Config{APIKeyFile: map[string]UserClaims{
+	auth, _ := NewAuthenticator(&filesystem.Config{APIKeyFile: map[string]UserClaims{
 		hexStrAliceAPIKeyHash: userAliceClaims,
 		hexStrBobAPIKeyHash:   userBobClaims,
 	},
@@ -150,7 +150,7 @@ func TestAuthenticatorApiKey_base64encoder(t *testing.T) {
 	b64BobAPIKey := b64Encoder.EncodeToString([]byte(bobAPIKey))
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash[:])
 
-	auth, _ := NewAuthenticator(&csv.Config{APIKeyFile: map[string]UserClaims{
+	auth, _ := NewAuthenticator(&filesystem.Config{APIKeyFile: map[string]UserClaims{
 		hexStrAliceAPIKeyHash: userAliceClaims,
 		hexStrBobAPIKeyHash:   userBobClaims,
 	},
@@ -193,7 +193,7 @@ func TestAuthenticatorApiKey_InvalidEncoder(t *testing.T) {
 	aliceAPIKeyHash := hasher.Sum([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash)
 
-	auth, _ := NewAuthenticator(&csv.Config{APIKeyFile: map[string]UserClaims{
+	auth, _ := NewAuthenticator(&filesystem.Config{APIKeyFile: map[string]UserClaims{
 		hexStrAliceAPIKeyHash: userAliceClaims,
 	},
 		Hasher:     &hasher,
@@ -225,7 +225,7 @@ func TestAuthenticatorApiKey_InvalidApiKey(t *testing.T) {
 	bobAPIKeyHash := hasher.Sum([]byte(bobAPIKey))
 	hexStrBobAPIKeyHash := hex.EncodeToString(bobAPIKeyHash)
 
-	auth, _ := NewAuthenticator(&csv.Config{APIKeyFile: map[string]UserClaims{
+	auth, _ := NewAuthenticator(&filesystem.Config{APIKeyFile: map[string]UserClaims{
 		hexStrBobAPIKeyHash: userBobClaims,
 	},
 		Hasher:     &hasher,
@@ -255,7 +255,7 @@ func TestAuthenticatorApiKey_EmptyApiKey(t *testing.T) {
 	aliceAPIKeyHash := hasher.Sum([]byte(aliceAPIKey))
 	hexStrAliceAPIKeyHash := hex.EncodeToString(aliceAPIKeyHash)
 
-	auth, _ := NewAuthenticator(&csv.Config{APIKeyFile: map[string]UserClaims{
+	auth, _ := NewAuthenticator(&filesystem.Config{APIKeyFile: map[string]UserClaims{
 		hexStrAliceAPIKeyHash: userAliceClaims,
 	},
 		Hasher:     &hasher,
@@ -271,7 +271,7 @@ func TestAuthenticatorApiKey_EmptyApiKey(t *testing.T) {
 }
 
 func TestAuthenticatorApiKey_NilAuth(t *testing.T) {
-	auth, _ := NewAuthenticator(&csv.Config{})
+	auth, _ := NewAuthenticator(&filesystem.Config{})
 	t.Run("should not instantiate when no config provided", func(t *testing.T) {
 		assert.Nil(t, auth)
 	})
