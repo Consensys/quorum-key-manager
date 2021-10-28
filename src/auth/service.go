@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"crypto/tls"
+
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 

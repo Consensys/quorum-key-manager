@@ -4,13 +4,14 @@ import (
 	"context"
 	tls2 "crypto/tls"
 	"crypto/x509"
+	"strings"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/tls"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/jwt"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"strings"
 )
 
 const (

@@ -2,9 +2,10 @@ package interceptor
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"math/big"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"

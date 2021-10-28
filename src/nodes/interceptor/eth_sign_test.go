@@ -3,8 +3,9 @@ package interceptor
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"

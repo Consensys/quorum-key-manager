@@ -4,9 +4,10 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/tls"
 	"io/ioutil"
 	"os"
+
+	"github.com/consensys/quorum-key-manager/src/infra/tls"
 )
 
 type Reader struct {

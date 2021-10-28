@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"net/http"
+
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"

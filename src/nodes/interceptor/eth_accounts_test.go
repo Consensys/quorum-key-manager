@@ -2,8 +2,9 @@ package interceptor
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"

@@ -1,4 +1,4 @@
-package testutils
+package testdata
 
 import (
 	"github.com/consensys/quorum-key-manager/src/auth/entities"

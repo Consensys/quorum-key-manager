@@ -1,21 +1,15 @@
 package e2e
 
 import (
-	"crypto/rsa"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/pkg/client"
-	"github.com/consensys/quorum-key-manager/pkg/jwt"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
-	"github.com/spf13/viper"
 )
 
 const MaxRetries = 5
@@ -39,32 +33,6 @@ func retryOn(call callFunc, logger logFunc, errMsg string, httpStatusCode, retri
 	}
 
 	return nil
-}
-
-func generateJWT(keyFile, scope, sub string) (string, error) {
-	curDir, _ := os.Getwd()
-	keyFileContent, err := ioutil.ReadFile(path.Join(curDir, keyFile))
-	if err != nil {
-		return "", err
-	}
-
-	var keys [][]byte
-	keys, err = certificate.Decode(keyFileContent, "PRIVATE KEY")
-	if err != nil {
-		return "", err
-	}
-
-	certKey, err := certificate.ParsePrivateKey(keys[0])
-	if err != nil {
-		return "", err
-	}
-
-	cfgSubject := viper.GetString(flags.AuthOIDCClaimUsernameViperKey)
-	cfgScope := viper.GetString(flags.AuthOIDCClaimPermissionsViperKey)
-	return jwt.GenerateAccessToken(certKey.(*rsa.PrivateKey), map[string]interface{}{
-		cfgSubject: sub,
-		cfgScope:   scope,
-	}, time.Hour)
 }
 
 func generateAPIKey(key string) string {

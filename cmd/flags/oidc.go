@@ -2,8 +2,9 @@ package flags
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"

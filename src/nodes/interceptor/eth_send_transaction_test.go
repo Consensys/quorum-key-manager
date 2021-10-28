@@ -2,9 +2,10 @@ package interceptor
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"math/big"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 
 	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"

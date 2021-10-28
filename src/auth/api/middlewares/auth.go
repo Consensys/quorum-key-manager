@@ -1,12 +1,13 @@
 package middlewares
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	httpinfra "github.com/consensys/quorum-key-manager/src/infra/http"
-	"net/http"
-	"strings"
 )
 
 const BasicSchema = "basic"

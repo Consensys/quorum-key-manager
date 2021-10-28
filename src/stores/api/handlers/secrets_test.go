@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"

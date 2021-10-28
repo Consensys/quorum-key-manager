@@ -2,6 +2,7 @@ package apikey
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 

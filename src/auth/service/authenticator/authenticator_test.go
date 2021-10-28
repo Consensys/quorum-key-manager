@@ -5,12 +5,13 @@ import (
 	tls2 "crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"testing"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/auth/entities/testdata"
 	"github.com/consensys/quorum-key-manager/src/infra/jwt/mock"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/stretchr/testify/suite"
-	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -43,8 +44,8 @@ func (s *authenticatorTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	// User claims
-	aliceClaims := testutils.FakeUserClaims()
-	bobClaims := testutils.FakeUserClaims()
+	aliceClaims := testdata.FakeUserClaims()
+	bobClaims := testdata.FakeUserClaims()
 	bobClaims.Scope = "*:*"
 	s.userClaims = map[string]*entities.UserClaims{
 		aliceAPIKey: aliceClaims,
@@ -52,9 +53,9 @@ func (s *authenticatorTestSuite) SetupTest() {
 	}
 
 	// TLS certs
-	aliceCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
+	aliceCert, err := certificate.X509KeyPair([]byte(testdata.TLSClientAliceCert), []byte(testdata.TLSAuthKey))
 	require.NoError(s.T(), err)
-	eveCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKeyEve))
+	eveCert, err := certificate.X509KeyPair([]byte(testdata.TLSClientEveCert), []byte(testdata.TLSAuthKeyEve))
 	require.NoError(s.T(), err)
 
 	s.aliceCert = aliceCert.Leaf
@@ -74,7 +75,7 @@ func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 	token := "myToken"
 
 	s.Run("should authenticate a jwt token successfully", func() {
-		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testutils.FakeUserClaims(), nil)
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testdata.FakeUserClaims(), nil)
 
 		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
 
@@ -87,7 +88,7 @@ func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 	})
 
 	s.Run("should authenticate a jwt token successfully with wildcard permissions", func() {
-		userClaims := testutils.FakeUserClaims()
+		userClaims := testdata.FakeUserClaims()
 		userClaims.Scope = "*:*"
 		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(userClaims, nil)
 
@@ -98,7 +99,7 @@ func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 	})
 
 	s.Run("should return UnauthorizedError if the token fails validation", func() {
-		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testutils.FakeUserClaims(), fmt.Errorf("error"))
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testdata.FakeUserClaims(), fmt.Errorf("error"))
 
 		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
 

@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	arrays "github.com/consensys/quorum-key-manager/pkg/common"

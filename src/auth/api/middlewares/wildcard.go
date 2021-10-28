@@ -1,8 +1,9 @@
 package middlewares
 
 import (
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"net/http"
+
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 func WildcardMiddleware(next http.Handler) http.Handler {

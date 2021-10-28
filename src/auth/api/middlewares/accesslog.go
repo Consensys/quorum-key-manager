@@ -1,9 +1,10 @@
 package middlewares
 
 import (
-	"github.com/gorilla/handlers"
 	"io"
 	"net/http"
+
+	"github.com/gorilla/handlers"
 )
 
 // TODO: Make accesslog middleware configurable (at least enable/disable)

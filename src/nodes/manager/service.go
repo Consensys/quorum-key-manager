@@ -3,9 +3,10 @@ package nodemanager
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"sort"
 	"sync"
+
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	"github.com/consensys/quorum-key-manager/pkg/json"
 

@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/src/infra/api-key/filesystem"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"

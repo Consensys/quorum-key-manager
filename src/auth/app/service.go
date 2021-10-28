@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/x509"
+
 	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/manager"

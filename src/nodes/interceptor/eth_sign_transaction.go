@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"github.com/ethereum/go-ethereum/core/types"
 

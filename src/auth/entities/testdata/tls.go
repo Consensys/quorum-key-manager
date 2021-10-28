@@ -1,4 +1,4 @@
-package testutils
+package testdata
 
 var (
 	TLSAuthKey = `-----BEGIN RSA PRIVATE KEY-----
@@ -133,10 +133,4 @@ t2s/3jmb5omQXzeFXjswy+DoRKdEHwIGaH2MbpK/DSan5pkpGSQyb7cdx4Gbx9LJ
 AZTMHcdfKFqEnmcO6PEytSV8JSVEZLdcAU6xg1hD9dNcwmiSYVEhKvdXIBs1yidI
 yHbK2wKaCIi0g0DpdRZZGLpprBhw7j1Wy8NKLkEvph2SYJgF0w8c6qHNr/PM1w==
 -----END CERTIFICATE-----`
-
-	NonSensePEM = `
------BEGIN NONSENSE-----
-Zm9vZm9vZm9v
------END NONSENSE-----
-`
 )

@@ -6,11 +6,12 @@ import (
 	"encoding/base64"
 	csv2 "encoding/csv"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
-	"github.com/consensys/quorum-key-manager/src/infra/api-key"
 	"hash"
 	"io"
 	"os"
+
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	apikey "github.com/consensys/quorum-key-manager/src/infra/api-key"
 )
 
 const (

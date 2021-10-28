@@ -7,8 +7,8 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
