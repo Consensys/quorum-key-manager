@@ -5,13 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
@@ -29,10 +29,10 @@ const (
 	secretID        = "my-secret"
 )
 
-var secretUserInfo = &entities.UserInfo{
+var secretUserInfo = &authentities.UserInfo{
 	Username:    "username",
 	Roles:       []string{"role1", "role2"},
-	Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
+	Permissions: []authentities.Permission{"write:key", "read:key", "sign:key"},
 }
 
 type secretsHandlerTestSuite struct {
@@ -58,9 +58,7 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 
 	s.stores.EXPECT().Secret(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil).AnyTimes()
 
-	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
-		UserInfo: secretUserInfo,
-	})
+	s.ctx = middlewares.WithUserInfo(context.Background(), secretUserInfo)
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(s.stores).Register(s.router)

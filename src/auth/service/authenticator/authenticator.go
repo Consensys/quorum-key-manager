@@ -2,17 +2,14 @@ package authenticator
 
 import (
 	"context"
-	"crypto/sha256"
 	tls2 "crypto/tls"
 	"crypto/x509"
-	"encoding/hex"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/tls"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/jwt"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"hash"
 	"strings"
 )
 
@@ -25,7 +22,6 @@ const (
 type Authenticator struct {
 	logger       log.Logger
 	jwtValidator jwt.Validator
-	hasher       hash.Hash
 	apiKeyClaims map[string]*entities.UserClaims
 	rootCAs      *x509.CertPool
 }
@@ -36,7 +32,6 @@ func New(jwtValidator jwt.Validator, apiKeyClaims map[string]*entities.UserClaim
 	return &Authenticator{
 		jwtValidator: jwtValidator,
 		apiKeyClaims: apiKeyClaims,
-		hasher:       sha256.New(),
 		rootCAs:      rootCAs,
 		logger:       logger,
 	}
@@ -55,24 +50,13 @@ func (auth *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*
 	return auth.userInfoFromClaims(JWTAuthMode, claims), nil
 }
 
-func (auth *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte) (*entities.UserInfo, error) {
+func (auth *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey string) (*entities.UserInfo, error) {
 	auth.logger.Debug("extracting user info from api key")
 
-	h := auth.hasher
-	h.Reset()
-	_, err := h.Write(apiKey)
-	if err != nil {
-		errMessage := "invalid api key"
-		auth.logger.WithError(err).Error(errMessage)
-		return nil, errors.UnauthorizedError(errMessage)
-	}
-	clientAPIKeyHash := h.Sum(nil)
-
-	strClientHash := hex.EncodeToString(clientAPIKeyHash)
-	claims, ok := auth.apiKeyClaims[strClientHash]
+	claims, ok := auth.apiKeyClaims[apiKey]
 	if !ok {
 		errMessage := "api key not found"
-		auth.logger.Warn(errMessage, "api_key_hash", strClientHash)
+		auth.logger.Warn(errMessage, "api_key_hash", apiKey)
 		return nil, errors.UnauthorizedError(errMessage)
 	}
 
@@ -89,7 +73,7 @@ func (auth Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.Con
 
 	err := tls.VerifyCertificateAuthority(connState.PeerCertificates, connState.ServerName, auth.rootCAs, true)
 	if err != nil {
-		errMessage := "invalid tls certificate authority"
+		errMessage := "invalid tls certificate"
 		auth.logger.WithError(err).Warn(errMessage)
 		return nil, errors.UnauthorizedError(errMessage)
 	}

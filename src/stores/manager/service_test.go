@@ -11,8 +11,8 @@ import (
 	mock3 "github.com/consensys/quorum-key-manager/src/infra/manifests/mock"
 	stores2 "github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
 
-	mock2 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	mock2 "github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/stretchr/testify/assert"
 
@@ -71,7 +71,7 @@ func TestManagerService(t *testing.T) {
 			},
 		}
 
-		mockManifestReader.EXPECT().Load().Return(testManifests, nil)
+		mockManifestReader.EXPECT().Load(ctx).Return(testManifests, nil)
 
 		err := mngr.Start(ctx)
 		require.NoError(t, err)
@@ -89,7 +89,7 @@ func TestManagerService(t *testing.T) {
 	})
 
 	t.Run("should fail with ConfigError if manifest fails to be loaded", func(t *testing.T) {
-		mockManifestReader.EXPECT().Load().Return(nil, fmt.Errorf("error"))
+		mockManifestReader.EXPECT().Load(ctx).Return(nil, fmt.Errorf("error"))
 
 		err := mngr.Start(ctx)
 		assert.True(t, errors.IsConfigError(err))

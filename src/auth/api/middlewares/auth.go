@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"encoding/base64"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -50,13 +49,7 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 				next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
 				return
 			case BasicSchema:
-				decodedAPIKey, err := base64.StdEncoding.DecodeString(authValue)
-				if err != nil {
-					httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("failed to decode api key header. %s", err.Error()))
-					return
-				}
-
-				userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), decodedAPIKey)
+				userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), authValue)
 				if err != nil {
 					httpinfra.WriteHTTPErrorResponse(rw, err)
 					return
@@ -65,7 +58,7 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 				next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
 				return
 			default:
-				httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("unsupported authorization schema &s", authSchema))
+				httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("unsupported authorization schema %s", authSchema))
 				return
 			}
 		}

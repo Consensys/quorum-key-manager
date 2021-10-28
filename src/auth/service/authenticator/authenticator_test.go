@@ -1,95 +1,181 @@
 package authenticator
 
 import (
-	"crypto/tls"
+	"context"
+	tls2 "crypto/tls"
 	"crypto/x509"
-	"net/http/httptest"
+	"fmt"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth/entities/testutils"
+	"github.com/consensys/quorum-key-manager/src/infra/jwt/mock"
+	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
+	"github.com/stretchr/testify/suite"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
-	"github.com/consensys/quorum-key-manager/pkg/tls/testutils"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuthenticatorSameCert(t *testing.T) {
-	ctrl := gomock.NewController(t)
+const (
+	bobAPIKey   = "bobAPIKey"
+	aliceAPIKey = "aliceAPIKey"
+)
+
+type authenticatorTestSuite struct {
+	suite.Suite
+	mockJWTValidator *mock.MockValidator
+	userClaims       map[string]*entities.UserClaims
+	aliceCert        *x509.Certificate
+	eveCert          *x509.Certificate
+	auth             *Authenticator
+}
+
+func TestAuthenticator(t *testing.T) {
+	s := new(authenticatorTestSuite)
+	suite.Run(t, s)
+}
+
+func (s *authenticatorTestSuite) SetupTest() {
+	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
+	// User claims
+	aliceClaims := testutils.FakeUserClaims()
+	bobClaims := testutils.FakeUserClaims()
+	bobClaims.Scope = "*:*"
+	s.userClaims = map[string]*entities.UserClaims{
+		aliceAPIKey: aliceClaims,
+		bobAPIKey:   bobClaims,
+	}
+
+	// TLS certs
 	aliceCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
-	require.NoError(t, err)
+	require.NoError(s.T(), err)
 	eveCert, err := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKeyEve))
-	require.NoError(t, err)
+	require.NoError(s.T(), err)
+
+	s.aliceCert = aliceCert.Leaf
+	s.eveCert = eveCert.Leaf
 
 	caCertPool := x509.NewCertPool()
-	caCertPool.AddCert(aliceCert.Leaf)
-	caCertPool.AddCert(eveCert.Leaf)
-	auth, _ := NewAuthenticator(&Config{CAs: caCertPool})
+	caCertPool.AddCert(s.aliceCert)
+	caCertPool.AddCert(s.eveCert)
 
-	t.Run("should accept cert and extract username and roles successfully", func(t *testing.T) {
-		reqAlice := httptest.NewRequest("GET", "https://test.url", nil)
-		reqAlice.TLS = &tls.ConnectionState{}
-		reqAlice.TLS.PeerCertificates = make([]*x509.Certificate, 1)
-		reqAlice.TLS.PeerCertificates[0] = aliceCert.Leaf
-		reqAlice.TLS.HandshakeComplete = true
+	s.mockJWTValidator = mock.NewMockValidator(ctrl)
 
-		userInfo, err := auth.Authenticate(reqAlice)
+	s.auth = New(s.mockJWTValidator, s.userClaims, caCertPool, testutils2.NewMockLogger(ctrl))
+}
 
-		require.NoError(t, err)
-		assert.Equal(t, "alice", userInfo.Username)
-		assert.Equal(t, []string{"admin", "signer"}, userInfo.Roles)
-		assert.Equal(t, []entities.Permission{"read:accounts", "delete:secrets"}, userInfo.Permissions)
+func (s *authenticatorTestSuite) TestAuthenticateJWT() {
+	ctx := context.Background()
+	token := "myToken"
 
+	s.Run("should authenticate a jwt token successfully", func() {
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testutils.FakeUserClaims(), nil)
+
+		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), "Alice", userInfo.Username)
+		assert.Equal(s.T(), "TenantOne", userInfo.Tenant)
+		assert.Equal(s.T(), []string{"guest", "admin"}, userInfo.Roles)
+		assert.Equal(s.T(), []entities.Permission{"read:key", "write:key"}, userInfo.Permissions)
+		assert.Equal(s.T(), JWTAuthMode, userInfo.AuthMode)
 	})
 
-	t.Run("should accept cert and extract username|tenant and roles|permissions successfully", func(t *testing.T) {
-		reqEve := httptest.NewRequest("GET", "https://test.url", nil)
-		reqEve.TLS = &tls.ConnectionState{}
-		reqEve.TLS.PeerCertificates = make([]*x509.Certificate, 1)
-		reqEve.TLS.PeerCertificates[0] = eveCert.Leaf
-		reqEve.TLS.HandshakeComplete = true
+	s.Run("should authenticate a jwt token successfully with wildcard permissions", func() {
+		userClaims := testutils.FakeUserClaims()
+		userClaims.Scope = "*:*"
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(userClaims, nil)
 
-		userInfo, err := auth.Authenticate(reqEve)
+		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
 
-		require.NoError(t, err)
-		assert.Equal(t, "eve", userInfo.Username)
-		assert.Equal(t, "auth0", userInfo.Tenant)
-		assert.Equal(t, []string{"signer"}, userInfo.Roles)
-		assert.Equal(t, entities.ListWildcardPermission("*:ethereum"), userInfo.Permissions)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), entities.NewWildcardUser().Permissions, userInfo.Permissions)
+	})
+
+	s.Run("should return UnauthorizedError if the token fails validation", func() {
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testutils.FakeUserClaims(), fmt.Errorf("error"))
+
+		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
+
+		require.Nil(s.T(), userInfo)
+		assert.True(s.T(), errors.IsUnauthorizedError(err))
 	})
 }
 
-func TestAuthenticatorDifferentCert(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func (s *authenticatorTestSuite) TestAuthenticateAPIKey() {
+	ctx := context.Background()
 
-	aliceCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientAliceCert), []byte(testutils.TLSAuthKey))
-	eveCert, _ := certificate.X509KeyPair([]byte(testutils.TLSClientEveCert), []byte(testutils.TLSAuthKeyEve))
-	caCertPool := x509.NewCertPool()
-	caCertPool.AddCert(aliceCert.Leaf)
-	caCertPool.AddCert(eveCert.Leaf)
-	auth, _ := NewAuthenticator(&Config{CAs: caCertPool})
+	s.Run("should authenticate with api key successfully", func() {
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, aliceAPIKey)
 
-	t.Run("should NOT reject cert and leave ID empty", func(t *testing.T) {
-
-		reqEve := httptest.NewRequest("GET", "https://test.url", nil)
-		reqEve.TLS = &tls.ConnectionState{}
-		reqEve.TLS.PeerCertificates = nil
-
-		userInfo, err := auth.Authenticate(reqEve)
-
-		require.NoError(t, err)
-		assert.Nil(t, userInfo)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), "Alice", userInfo.Username)
+		assert.Equal(s.T(), "TenantOne", userInfo.Tenant)
+		assert.Equal(s.T(), []string{"guest", "admin"}, userInfo.Roles)
+		assert.Equal(s.T(), []entities.Permission{"read:key", "write:key"}, userInfo.Permissions)
+		assert.Equal(s.T(), APIKeyAuthMode, userInfo.AuthMode)
 	})
 
+	s.Run("should authenticate an api key successfully with wildcard permissions", func() {
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, bobAPIKey)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), entities.NewWildcardUser().Permissions, userInfo.Permissions)
+	})
+
+	s.Run("should return UnauthorizedError if api key is not found", func() {
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, "inexistent-api-key")
+
+		require.Nil(s.T(), userInfo)
+		assert.True(s.T(), errors.IsUnauthorizedError(err))
+	})
 }
 
-func TestEmptyAuthenticator(t *testing.T) {
-	auth, _ := NewAuthenticator(&Config{})
-	t.Run("should not instantiate new authenticator", func(t *testing.T) {
-		assert.Nil(t, auth)
+func (s *authenticatorTestSuite) TestAuthenticateTLS() {
+	ctx := context.Background()
+
+	s.Run("should authenticate with TLS successfully", func() {
+		connState := &tls2.ConnectionState{
+			PeerCertificates: []*x509.Certificate{s.aliceCert},
+		}
+		connState.HandshakeComplete = true
+
+		userInfo, err := s.auth.AuthenticateTLS(ctx, connState)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), "", userInfo.Username)
+		assert.Equal(s.T(), "alice", userInfo.Tenant)
+		assert.Equal(s.T(), []string{"admin", "signer"}, userInfo.Roles)
+		assert.Equal(s.T(), []entities.Permission{"read:accounts", "delete:secrets"}, userInfo.Permissions)
+		assert.Equal(s.T(), TLSAuthMode, userInfo.AuthMode)
 	})
 
+	s.Run("should authenticate an api key successfully with wildcard permissions", func() {
+		connState := &tls2.ConnectionState{
+			PeerCertificates: []*x509.Certificate{s.eveCert},
+		}
+		connState.HandshakeComplete = true
+
+		userInfo, err := s.auth.AuthenticateTLS(ctx, connState)
+
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), []entities.Permission{"read:ethereum", "write:ethereum", "delete:ethereum", "destroy:ethereum", "sign:ethereum", "encrypt:ethereum"}, userInfo.Permissions)
+	})
+
+	s.Run("should return UnauthorizedError if tls has not handshaked", func() {
+		connState := &tls2.ConnectionState{
+			PeerCertificates: []*x509.Certificate{s.eveCert},
+		}
+		connState.HandshakeComplete = false
+
+		userInfo, err := s.auth.AuthenticateTLS(ctx, connState)
+
+		require.Nil(s.T(), userInfo)
+		assert.True(s.T(), errors.IsUnauthorizedError(err))
+	})
 }

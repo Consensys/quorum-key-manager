@@ -2,10 +2,13 @@ package filesystem
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	csv2 "encoding/csv"
 	"fmt"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/api-key"
+	"hash"
 	"io"
 	"os"
 )
@@ -21,7 +24,8 @@ const (
 )
 
 type Reader struct {
-	path string
+	path   string
+	hasher hash.Hash
 }
 
 var _ apikey.Reader = &Reader{}
@@ -32,7 +36,7 @@ func New(cfg *Config) (*Reader, error) {
 		return nil, err
 	}
 
-	return &Reader{path: cfg.Path}, nil
+	return &Reader{path: cfg.Path, hasher: sha256.New()}, nil
 }
 
 func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error) {
@@ -60,7 +64,14 @@ func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error
 			return nil, fmt.Errorf("invalid number of cells, should be %d", csvRowLen)
 		}
 
-		claims[cells[csvHashOffset]] = &entities.UserClaims{
+		r.hasher.Reset()
+		_, err = r.hasher.Write([]byte(cells[csvHashOffset]))
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash api key")
+		}
+
+		apiKeyHash := base64.StdEncoding.EncodeToString(r.hasher.Sum(nil))
+		claims[apiKeyHash] = &entities.UserClaims{
 			Subject: cells[csvUserOffset],
 			Scope:   cells[csvPermissionsOffset],
 			Roles:   cells[csvRolesOffset],
