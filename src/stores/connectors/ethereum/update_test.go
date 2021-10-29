@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"

@@ -3,11 +3,11 @@ package keys
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 func (c Connector) List(ctx context.Context, limit, offset uint64) ([]string, error) {
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey})
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (c Connector) List(ctx context.Context, limit, offset uint64) ([]string, er
 }
 
 func (c Connector) ListDeleted(ctx context.Context, limit, offset uint64) ([]string, error) {
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey})
 	if err != nil {
 		return nil, err
 	}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -43,7 +43,7 @@ func TestUpdateKey(t *testing.T) {
 		updatedKey := testutils2.FakeKey()
 		updatedKey.Tags = attributes.Tags
 
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Update(gomock.Any(), key).Return(updatedKey, nil)
 		store.EXPECT().Update(gomock.Any(), key.ID, attributes).Return(updatedKey, nil)
@@ -57,7 +57,7 @@ func TestUpdateKey(t *testing.T) {
 	t.Run("should update key successfully, ignoring not supported error", func(t *testing.T) {
 		rErr := errors.NotSupportedError("not supported")
 
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Update(gomock.Any(), key).Return(key, nil)
 		store.EXPECT().Update(gomock.Any(), key.ID, attributes).Return(nil, rErr)
@@ -68,7 +68,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.Update(ctx, key.ID, attributes)
 
@@ -77,7 +77,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if key is not found", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, expectedErr)
 
 		_, err := connector.Update(ctx, key.ID, attributes)
@@ -87,7 +87,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if db fail to update", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Update(gomock.Any(), key).Return(nil, expectedErr)
 
@@ -98,7 +98,7 @@ func TestUpdateKey(t *testing.T) {
 	})
 
 	t.Run("should fail to update key if store fail to update", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionWrite, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 		db.EXPECT().Update(gomock.Any(), key).Return(key, nil)
 		store.EXPECT().Update(gomock.Any(), key.ID, attributes).Return(nil, expectedErr)

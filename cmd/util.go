@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"crypto/rsa"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -21,6 +22,7 @@ var (
 	sub        string
 	scope      []string
 	roles      []string
+	audience   []string
 	expiration time.Duration
 )
 
@@ -41,14 +43,12 @@ func newUtilCommand() *cobra.Command {
 	}
 
 	flags.LoggerFlags(generateJWTCmd.Flags())
-	flags.AuthOIDCClaimUsername(generateJWTCmd.Flags())
-	flags.AuthOIDCClaimPermissions(generateJWTCmd.Flags())
-	flags.AuthOIDCClaimRoles(generateJWTCmd.Flags())
 
-	generateJWTCmd.Flags().StringVar(&sub, flags.AuthOIDCClaimUsernameDefault, "", "username and tenant added in claims")
-	generateJWTCmd.Flags().StringArrayVar(&scope, flags.AuthOIDCClaimPermissionsDefault, []string{}, "permissions added in claims")
-	generateJWTCmd.Flags().StringArrayVar(&roles, flags.AuthOIDCClaimRolesDefault, []string{}, "roles added in claims")
+	generateJWTCmd.Flags().StringVar(&sub, "sub", "", "username and tenant added in claims")
+	generateJWTCmd.Flags().StringArrayVar(&scope, "scope", []string{}, "permissions added in claims")
+	generateJWTCmd.Flags().StringSliceVar(&roles, "roles", []string{}, "roles added in claims")
 	generateJWTCmd.Flags().DurationVar(&expiration, "expiration", time.Hour, "token expiration time")
+	generateJWTCmd.Flags().StringArrayVar(&audience, "aud", []string{}, "audience to be added in claims")
 
 	utilCmd.AddCommand(generateJWTCmd)
 
@@ -57,11 +57,6 @@ func newUtilCommand() *cobra.Command {
 
 func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	vipr := viper.GetViper()
-	authCfg, err := flags.NewAuthConfig(vipr)
-	if err != nil {
-		return err
-	}
-
 	loggerCfg := flags.NewLoggerConfig(vipr)
 	logger, err := zap.NewLogger(loggerCfg)
 	if err != nil {
@@ -84,8 +79,6 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	oidcCfg := authCfg.OIDC
-
 	privPem, _ := pem.Decode(keyFileContent)
 	privPemBytes := privPem.Bytes
 
@@ -93,17 +86,12 @@ func runGenerateJWT(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	generator, err := jwt.NewTokenGenerator(signingKey)
 
-	if err != nil {
-		logger.Error("failed to generate access token", "err", err.Error())
-		return err
-	}
-
-	token, err := generator.GenerateAccessToken(map[string]interface{}{
-		oidcCfg.Claims.Subject: sub,
-		oidcCfg.Claims.Scope:   strings.Join(scope, " "),
-		oidcCfg.Claims.Roles:   strings.Join(roles, ","),
+	token, err := jwt.GenerateAccessToken(signingKey.(*rsa.PrivateKey), map[string]interface{}{
+		"sub":   sub,
+		"scope": strings.Join(scope, " "),
+		"roles": strings.Join(roles, " "),
+		"aud":   strings.Join(audience, " "),
 	}, expiration)
 	if err != nil {
 		logger.Error("failed to generate access token", "err", err.Error())

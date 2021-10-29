@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests/mock"
@@ -51,7 +51,7 @@ func TestBaseManager(t *testing.T) {
 			},
 		}
 
-		mockManifestReader.EXPECT().Load().Return(testManifests, nil)
+		mockManifestReader.EXPECT().Load(ctx).Return(testManifests, nil)
 
 		err := mngr.Start(ctx)
 		require.NoError(t, err)
@@ -60,12 +60,12 @@ func TestBaseManager(t *testing.T) {
 		guestRole, err := mngr.Role("guest")
 		require.NoError(t, err)
 		assert.Equal(t, "guest", guestRole.Name)
-		assert.Equal(t, []types.Permission{"read:secrets", "proxy:nodes"}, guestRole.Permissions)
+		assert.Equal(t, []entities.Permission{"read:secrets", "proxy:nodes"}, guestRole.Permissions)
 
-		otherPermission := []types.Permission{"destroy:keys"}
-		userInfo := &types.UserInfo{
+		otherPermission := []entities.Permission{"destroy:keys"}
+		userInfo := &entities.UserInfo{
 			Roles:       []string{"signer", "admin"},
-			Permissions: []types.Permission{"destroy:keys"},
+			Permissions: []entities.Permission{"destroy:keys"},
 		}
 		signerRole, err := mngr.Role("signer")
 		require.NoError(t, err)
@@ -77,7 +77,7 @@ func TestBaseManager(t *testing.T) {
 	})
 
 	t.Run("should fail with ConfigError if manifest fails to be loaded", func(t *testing.T) {
-		mockManifestReader.EXPECT().Load().Return(nil, fmt.Errorf("error"))
+		mockManifestReader.EXPECT().Load(ctx).Return(nil, fmt.Errorf("error"))
 
 		err := mngr.Start(ctx)
 		assert.True(t, errors.IsConfigError(err))

@@ -5,7 +5,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
@@ -20,7 +20,7 @@ func (c Connector) Import(ctx context.Context, id string, privKey []byte, alg *e
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&authentities.Operation{Action: authentities.ActionWrite, Resource: authentities.ResourceKey})
 	if err != nil {
 		return nil, err
 	}

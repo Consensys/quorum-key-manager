@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	types "github.com/consensys/quorum-key-manager/src/auth/types"
+	types "github.com/consensys/quorum-key-manager/src/auth/entities"
 	node "github.com/consensys/quorum-key-manager/src/nodes/node"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"

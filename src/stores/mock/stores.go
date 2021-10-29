@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	types "github.com/consensys/quorum-key-manager/src/auth/types"
+	types "github.com/consensys/quorum-key-manager/src/auth/entities"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	stores "github.com/consensys/quorum-key-manager/src/stores"
 	common "github.com/ethereum/go-ethereum/common"

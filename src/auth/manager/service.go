@@ -13,7 +13,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 const ID = "AuthManager"
@@ -22,7 +22,7 @@ type BaseManager struct {
 	manifestReader manifests.Reader
 
 	mux   sync.RWMutex
-	roles map[string]*types.Role
+	roles map[string]*entities.Role
 
 	isLive bool
 
@@ -32,13 +32,13 @@ type BaseManager struct {
 func New(manifestReader manifests.Reader, logger log.Logger) *BaseManager {
 	return &BaseManager{
 		manifestReader: manifestReader,
-		roles:          make(map[string]*types.Role),
+		roles:          make(map[string]*entities.Role),
 		logger:         logger,
 	}
 }
 
-func (mngr *BaseManager) Start(_ context.Context) error {
-	mnfs, err := mngr.manifestReader.Load()
+func (mngr *BaseManager) Start(ctx context.Context) error {
+	mnfs, err := mngr.manifestReader.Load(ctx)
 	if err != nil {
 		errMessage := "failed to load manifest file"
 		mngr.logger.WithError(err).Error(errMessage)
@@ -61,8 +61,8 @@ func (mngr *BaseManager) Stop(context.Context) error { return nil }
 func (mngr *BaseManager) Error() error               { return nil }
 func (mngr *BaseManager) Close() error               { return nil }
 
-func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permission {
-	var permissions []types.Permission
+func (mngr *BaseManager) UserPermissions(user *entities.UserInfo) []entities.Permission {
+	var permissions []entities.Permission
 	if user == nil {
 		return permissions
 	}
@@ -78,14 +78,14 @@ func (mngr *BaseManager) UserPermissions(user *types.UserInfo) []types.Permissio
 
 		permissions = append(permissions, role.Permissions...)
 		for _, p := range role.Permissions {
-			permissions = append(permissions, types.ListWildcardPermission(string(p))...)
+			permissions = append(permissions, entities.ListWildcardPermission(string(p))...)
 		}
 	}
 
 	return permissions
 }
 
-func (mngr *BaseManager) Role(name string) (*types.Role, error) {
+func (mngr *BaseManager) Role(name string) (*entities.Role, error) {
 	if group, ok := mngr.roles[name]; ok {
 		return group, nil
 	}
@@ -117,14 +117,14 @@ func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
 			return errors.AlreadyExistsError(errMessage)
 		}
 
-		specs := new(RoleSpecs)
+		specs := new(entities.RoleSpecs)
 		if err := json.UnmarshalJSON(mnf.Specs, specs); err != nil {
 			errMessage := fmt.Sprintf("invalid Role specs for role %s", mnf.Name)
 			logger.WithError(err).Error(errMessage)
 			return errors.InvalidParameterError(errMessage)
 		}
 
-		mngr.roles[mnf.Name] = &types.Role{
+		mngr.roles[mnf.Name] = &entities.Role{
 			Name:        mnf.Name,
 			Permissions: specs.Permissions,
 		}

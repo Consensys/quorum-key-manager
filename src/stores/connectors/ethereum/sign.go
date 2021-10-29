@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"math/big"
 
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"

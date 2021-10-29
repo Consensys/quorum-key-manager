@@ -46,7 +46,6 @@ func (cfg *Config) ToPGOptions() (*pg.Options, error) {
 		ApplicationName: cfg.ApplicationName,
 		PoolTimeout:     cfg.PoolTimeout,
 	}
-	fmt.Println(opt.Addr)
 
 	tlsOption, err := cfg.getTLSOption()
 	if err != nil {
