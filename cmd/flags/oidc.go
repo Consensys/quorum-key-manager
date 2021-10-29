@@ -11,7 +11,6 @@ import (
 )
 
 func init() {
-	_ = viper.BindEnv(AuthOIDCPrivKeyViperKey, authOIDCPrivKeyEnv)
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 	_ = viper.BindEnv(AuthOIDCAudienceViperKey, authOIDCAudienceEnv)
 }
@@ -21,11 +20,6 @@ const (
 	authOIDCIssuerURLViperKey = "auth.oidc.issuer.url"
 	authOIDCIssuerURLDefault  = ""
 	authOIDCIssuerURLEnv      = "AUTH_OIDC_ISSUER_URL"
-)
-
-const (
-	AuthOIDCPrivKeyViperKey = "auth.oidc.priv.key"
-	authOIDCPrivKeyEnv      = "AUTH_OIDC_PRIV_KEY"
 )
 
 const (

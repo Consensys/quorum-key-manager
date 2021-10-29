@@ -51,7 +51,7 @@ func (mr *MockAuthenticatorMockRecorder) AuthenticateJWT(ctx, token interface{})
 }
 
 // AuthenticateAPIKey mocks base method
-func (m *MockAuthenticator) AuthenticateAPIKey(ctx context.Context, apiKey string) (*entities.UserInfo, error) {
+func (m *MockAuthenticator) AuthenticateAPIKey(ctx context.Context, apiKey []byte) (*entities.UserInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthenticateAPIKey", ctx, apiKey)
 	ret0, _ := ret[0].(*entities.UserInfo)

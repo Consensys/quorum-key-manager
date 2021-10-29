@@ -2,8 +2,12 @@ package authenticator
 
 import (
 	"context"
+	"crypto/sha256"
 	tls2 "crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
+	"fmt"
+	"hash"
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -24,6 +28,7 @@ type Authenticator struct {
 	logger       log.Logger
 	jwtValidator jwt.Validator
 	apiKeyClaims map[string]*entities.UserClaims
+	hasher       hash.Hash
 	rootCAs      *x509.CertPool
 }
 
@@ -34,6 +39,7 @@ func New(jwtValidator jwt.Validator, apiKeyClaims map[string]*entities.UserClaim
 		jwtValidator: jwtValidator,
 		apiKeyClaims: apiKeyClaims,
 		rootCAs:      rootCAs,
+		hasher:       sha256.New(),
 		logger:       logger,
 	}
 }
@@ -51,10 +57,16 @@ func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) 
 	return authen.userInfoFromClaims(JWTAuthMode, claims), nil
 }
 
-func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey string) (*entities.UserInfo, error) {
+func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte) (*entities.UserInfo, error) {
 	authen.logger.Debug("extracting user info from api key")
 
-	claims, ok := authen.apiKeyClaims[apiKey]
+	authen.hasher.Reset()
+	_, err := authen.hasher.Write(apiKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash api key")
+	}
+
+	claims, ok := authen.apiKeyClaims[base64.StdEncoding.EncodeToString(authen.hasher.Sum(nil))]
 	if !ok {
 		errMessage := "api key not found"
 		authen.logger.Warn(errMessage, "api_key_hash", apiKey)

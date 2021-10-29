@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"encoding/base64"
 	"net/http"
 	"strings"
 
@@ -50,7 +51,13 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 				next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
 				return
 			case BasicSchema:
-				userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), authValue)
+				apiKey, err := base64.StdEncoding.DecodeString(authValue)
+				if err != nil {
+					httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+					return
+				}
+
+				userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), apiKey)
 				if err != nil {
 					httpinfra.WriteHTTPErrorResponse(rw, err)
 					return

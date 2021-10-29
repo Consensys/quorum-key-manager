@@ -70,16 +70,6 @@ services:
       - ./deps/config/oidc:/oidc:ro
       - hashicorp-token:/vault/token:ro
 
-  generate-jwt:
-    <<: *container-common
-    environment:
-      <<: *default-variables
-      AUTH_OIDC_PRIV_KEY: ${AUTH_OIDC_PRIV_KEY-}
-    volumes:
-      - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config/oidc:/oidc:ro
-    command: utils generate-jwt --sub=${SUB-tenant0|user0} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-72h}
-
   import:
     <<: *container-common
     networks:

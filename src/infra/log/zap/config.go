@@ -1,4 +1,4 @@
-package log
+package zap
 
 type LoggerLevel string
 type LoggerFormat string

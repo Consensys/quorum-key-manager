@@ -9,7 +9,6 @@ CONF_DIR=./deps/cfssl
 GEN_DIR=./deps/cfssl/tmp
 DEST_DIR_CA=./deps/config/ca
 DEST_DIR_CERTS=./deps/config/certificates
-DEST_DIR_OIDC=./deps/config/oidc
 DEST_DIR_VAULT_CERTS=./deps/hashicorp/tls
 DEST_DIR_PG_CERTS=./deps/postgres/tls
 
@@ -34,14 +33,13 @@ cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -pr
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=client $CONF_DIR/vault.json | cfssljson -bare $GEN_DIR/vault-client
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=server $CONF_DIR/postgres.json | cfssljson -bare $GEN_DIR/postgres-server
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=client $CONF_DIR/postgres.json | cfssljson -bare $GEN_DIR/postgres-client
-cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=server $CONF_DIR/oidc.json | cfssljson -bare $GEN_DIR/oidc-signer
 
 # ca.crt is ca.pem >> intermediate.pem
 cat $GEN_DIR/ca.pem > $GEN_DIR/ca.crt
 cat $GEN_DIR/intermediate_ca.pem >> $GEN_DIR/ca.crt
 
 # Verify certs
-openssl verify -CAfile $GEN_DIR/ca.crt $GEN_DIR/qkm-client-no-auth.pem $GEN_DIR/qkm-client-auth.pem $GEN_DIR/vault-server.pem $GEN_DIR/vault-client.pem $GEN_DIR/qkm-server.pem $GEN_DIR/postgres-server.pem $GEN_DIR/postgres-client.pem $GEN_DIR/oidc-signer.pem
+openssl verify -CAfile $GEN_DIR/ca.crt $GEN_DIR/qkm-client-no-auth.pem $GEN_DIR/qkm-client-auth.pem $GEN_DIR/vault-server.pem $GEN_DIR/vault-client.pem $GEN_DIR/qkm-server.pem $GEN_DIR/postgres-server.pem $GEN_DIR/postgres-client.pem
 
 # Relocate
 mv $GEN_DIR/ca.crt $DEST_DIR_CA/ca.crt
@@ -59,8 +57,6 @@ mv $GEN_DIR/vault-server.pem $DEST_DIR_VAULT_CERTS/tls.crt
 mv $GEN_DIR/vault-server-key.pem $DEST_DIR_VAULT_CERTS/tls.key
 mv $GEN_DIR/vault-client.pem $DEST_DIR_VAULT_CERTS/client.crt
 mv $GEN_DIR/vault-client-key.pem $DEST_DIR_VAULT_CERTS/client.key
-mv $GEN_DIR/oidc-signer.pem $DEST_DIR_OIDC/oidc.crt
-mv $GEN_DIR/oidc-signer-key.pem $DEST_DIR_OIDC/oidc.key
 
 # cleanup
 rm -rf $GEN_DIR
