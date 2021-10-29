@@ -38,44 +38,44 @@ func New(jwtValidator jwt.Validator, apiKeyClaims map[string]*entities.UserClaim
 	}
 }
 
-func (auth *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*entities.UserInfo, error) {
-	auth.logger.Debug("extracting user info from jwt token")
+func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*entities.UserInfo, error) {
+	authen.logger.Debug("extracting user info from jwt token")
 
-	claims, err := auth.jwtValidator.ValidateToken(ctx, token)
+	claims, err := authen.jwtValidator.ValidateToken(ctx, token)
 	if err != nil {
 		errMessage := "failed to validate jwt token"
-		auth.logger.WithError(err).Error(errMessage)
+		authen.logger.WithError(err).Error(errMessage)
 		return nil, errors.UnauthorizedError(errMessage)
 	}
 
-	return auth.userInfoFromClaims(JWTAuthMode, claims), nil
+	return authen.userInfoFromClaims(JWTAuthMode, claims), nil
 }
 
-func (auth *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey string) (*entities.UserInfo, error) {
-	auth.logger.Debug("extracting user info from api key")
+func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey string) (*entities.UserInfo, error) {
+	authen.logger.Debug("extracting user info from api key")
 
-	claims, ok := auth.apiKeyClaims[apiKey]
+	claims, ok := authen.apiKeyClaims[apiKey]
 	if !ok {
 		errMessage := "api key not found"
-		auth.logger.Warn(errMessage, "api_key_hash", apiKey)
+		authen.logger.Warn(errMessage, "api_key_hash", apiKey)
 		return nil, errors.UnauthorizedError(errMessage)
 	}
 
-	return auth.userInfoFromClaims(APIKeyAuthMode, claims), nil
+	return authen.userInfoFromClaims(APIKeyAuthMode, claims), nil
 }
 
 // AuthenticateTLS checks rootCAs and retrieve user info
-func (auth Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.ConnectionState) (*entities.UserInfo, error) {
+func (authen Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.ConnectionState) (*entities.UserInfo, error) {
 	if !connState.HandshakeComplete {
 		errMessage := "request must complete valid handshake"
-		auth.logger.Warn(errMessage)
+		authen.logger.Warn(errMessage)
 		return nil, errors.UnauthorizedError(errMessage)
 	}
 
-	err := tls.VerifyCertificateAuthority(connState.PeerCertificates, connState.ServerName, auth.rootCAs, true)
+	err := tls.VerifyCertificateAuthority(connState.PeerCertificates, connState.ServerName, authen.rootCAs, true)
 	if err != nil {
 		errMessage := "invalid tls certificate"
-		auth.logger.WithError(err).Warn(errMessage)
+		authen.logger.WithError(err).Warn(errMessage)
 		return nil, errors.UnauthorizedError(errMessage)
 	}
 
@@ -86,10 +86,10 @@ func (auth Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.Con
 		Scope:   strings.Join(clientCert.Subject.OrganizationalUnit, " "),
 		Roles:   strings.Join(clientCert.Subject.Organization, " "),
 	}
-	return auth.userInfoFromClaims(TLSAuthMode, claims), nil
+	return authen.userInfoFromClaims(TLSAuthMode, claims), nil
 }
 
-func (auth *Authenticator) userInfoFromClaims(authMode string, claims *entities.UserClaims) *entities.UserInfo {
+func (authen *Authenticator) userInfoFromClaims(authMode string, claims *entities.UserClaims) *entities.UserInfo {
 	userInfo := &entities.UserInfo{AuthMode: authMode}
 
 	// If more than one element in subject, then the username has been specified
@@ -116,7 +116,7 @@ func (auth *Authenticator) userInfoFromClaims(authMode string, claims *entities.
 		userInfo.Roles = strings.Fields(claims.Roles)
 	}
 
-	auth.logger.Debug(
+	authen.logger.Debug(
 		"user info extracted successfully",
 		"username", userInfo.Username,
 		"tenant", userInfo.Tenant,

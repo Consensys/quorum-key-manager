@@ -31,12 +31,12 @@ func New(permissions []entities.Permission, tenant string, logger log.Logger) *A
 	}
 }
 
-func (auth *Authorizator) CheckPermission(ops ...*entities.Operation) error {
+func (author *Authorizator) CheckPermission(ops ...*entities.Operation) error {
 	for _, op := range ops {
 		permission := buildPermission(op.Action, op.Resource)
-		if _, ok := auth.permissions[permission]; !ok {
+		if _, ok := author.permissions[permission]; !ok {
 			errMessage := "user is not authorized to perform this operation"
-			auth.logger.With("permission", permission).Error(errMessage)
+			author.logger.With("permission", permission).Error(errMessage)
 			return errors.ForbiddenError(errMessage)
 		}
 	}
@@ -44,25 +44,25 @@ func (auth *Authorizator) CheckPermission(ops ...*entities.Operation) error {
 	return nil
 }
 
-func (auth *Authorizator) CheckAccess(allowedTenants []string) error {
+func (author *Authorizator) CheckAccess(allowedTenants []string) error {
 	if len(allowedTenants) == 0 {
 		return nil
 	}
 
-	if auth.tenant == "" {
+	if author.tenant == "" {
 		errMessage := "missing tenant in credentials"
-		auth.logger.Error(errMessage)
+		author.logger.Error(errMessage)
 		return errors.UnauthorizedError(errMessage)
 	}
 
 	for _, t := range allowedTenants {
-		if t == auth.tenant {
+		if t == author.tenant {
 			return nil
 		}
 	}
 
 	errMessage := "resource not found"
-	auth.logger.With("tenant", auth.tenant, "allowed_tenants", allowedTenants).Error(errMessage)
+	author.logger.With("tenant", author.tenant, "allowed_tenants", allowedTenants).Error(errMessage)
 	return errors.NotFoundError(errMessage)
 }
 
