@@ -12,7 +12,6 @@ require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/auth0/go-jwt-middleware v1.0.1-0.20210716212939-b4ac45bdac0c
 	github.com/aws/aws-sdk-go v1.38.41
-	github.com/cloudflare/cfssl v1.6.1 // indirect
 	github.com/consensys/gnark-crypto v0.5.0
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/containerd/containerd v1.4.11 // indirect
@@ -21,7 +20,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.8
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/go-kit/kit v0.10.0 // indirect
+	github.com/go-kit/kit v0.10.0
 	github.com/go-pg/pg/v10 v10.10.1
 	github.com/go-playground/validator/v10 v10.5.0
 	github.com/golang-jwt/jwt v3.2.1+incompatible
