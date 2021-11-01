@@ -2,13 +2,14 @@ package jose
 
 import (
 	"context"
+	"net/url"
+	"time"
+
 	"github.com/auth0/go-jwt-middleware/validate/josev2"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	jwtinfra "github.com/consensys/quorum-key-manager/src/infra/jwt"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"net/url"
-	"time"
 )
 
 type Validator struct {
