@@ -122,8 +122,7 @@ func (s *authTestSuite) TestAuth_TLS() {
 
 func (s *authTestSuite) TestAuth_JWT() {
 	s.Run("should sign payload successfully", func() {
-		var token string
-		token, err := getJWT(s.env.cfg.AuthOIDCTokenURL, s.env.cfg.AuthOIDCClientID, s.env.cfg.AuthOIDCClientSecret, s.env.cfg.AuthOIDCAudience)
+		token, err := getJWT(s.env.cfg.AuthOIDCTokenURL, s.env.cfg.AuthOIDCClientID, s.env.cfg.AuthOIDCClientSecret, "https://quorum-key-manager.consensys.net/admin")
 		if s.err != nil {
 			s.T().Errorf("failed to generate jwt. %s", s.err)
 			return
@@ -140,6 +139,28 @@ func (s *authTestSuite) TestAuth_JWT() {
 			Message: hexutil.MustDecode("0x1234"),
 		})
 		assert.NoError(s.T(), err)
+	})
+
+	s.Run("should fail to sign with status Forbidden if token is not authorized", func() {
+		token, err := getJWT(s.env.cfg.AuthOIDCTokenURL, s.env.cfg.AuthOIDCClientID, s.env.cfg.AuthOIDCClientSecret, "https://quorum-key-manager.consensys.net")
+		if s.err != nil {
+			s.T().Errorf("failed to generate jwt. %s", s.err)
+			return
+		}
+		require.NoError(s.T(), err)
+
+		qkmClient := client.NewHTTPClient(&http.Client{
+			Transport: NewTestHttpTransport(token, "", nil),
+		}, &client.Config{
+			URL: s.env.cfg.KeyManagerURL,
+		})
+
+		_, err = qkmClient.SignMessage(s.env.ctx, s.storeName, s.acc.Address.Hex(), &types.SignMessageRequest{
+			Message: hexutil.MustDecode("0x1234"),
+		})
+		httpError, ok := err.(*client.ResponseError)
+		require.True(s.T(), ok)
+		assert.Equal(s.T(), http.StatusForbidden, httpError.StatusCode)
 	})
 
 	s.Run("should fail to sign with Status Unauthorized if token is invalid", func() {

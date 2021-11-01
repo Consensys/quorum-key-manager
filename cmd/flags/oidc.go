@@ -43,7 +43,7 @@ Environment variable: %q`, authOIDCIssuerURLEnv)
 func authOIDCAudience(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Expected audience ("aud" field) of JWT tokens.
 Environment variable: %q`, authOIDCAudienceEnv)
-	f.StringArray(authOIDCAudienceFlag, []string{}, desc)
+	f.StringSlice(authOIDCAudienceFlag, []string{}, desc)
 	_ = viper.BindPFlag(AuthOIDCAudienceViperKey, f.Lookup(authOIDCAudienceFlag))
 }
 
