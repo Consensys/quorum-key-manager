@@ -156,29 +156,6 @@ func (s *authTestSuite) TestAuth_JWT() {
 		require.True(s.T(), ok)
 		assert.Equal(s.T(), http.StatusUnauthorized, httpError.StatusCode)
 	})
-
-	s.Run("should fail to sign with StatusForbidden if token is valid but permissions are missing", func() {
-		var token string
-		token, err := getJWT(s.env.cfg.AuthOIDCTokenURL, s.env.cfg.AuthOIDCClientID, s.env.cfg.AuthOIDCClientSecret, s.env.cfg.AuthOIDCAudience)
-		if s.err != nil {
-			s.T().Errorf("failed to generate jwt. %s", s.err)
-			return
-		}
-		require.NoError(s.T(), err)
-
-		qkmClient := client.NewHTTPClient(&http.Client{
-			Transport: NewTestHttpTransport(token, "", nil),
-		}, &client.Config{
-			URL: s.env.cfg.KeyManagerURL,
-		})
-
-		_, err = qkmClient.SignMessage(s.env.ctx, s.storeName, s.acc.Address.Hex(), &types.SignMessageRequest{
-			Message: hexutil.MustDecode("0x1234"),
-		})
-		httpError, ok := err.(*client.ResponseError)
-		require.True(s.T(), ok)
-		assert.Equal(s.T(), http.StatusForbidden, httpError.StatusCode)
-	})
 }
 
 func (s *authTestSuite) TestAuth_APIKEY() {
