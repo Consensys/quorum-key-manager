@@ -66,6 +66,7 @@ func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte
 		return nil, fmt.Errorf("failed to hash api key")
 	}
 
+	fmt.Println(base64.StdEncoding.EncodeToString(authen.hasher.Sum(nil)))
 	claims, ok := authen.apiKeyClaims[base64.StdEncoding.EncodeToString(authen.hasher.Sum(nil))]
 	if !ok {
 		errMessage := "api key not found"

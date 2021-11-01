@@ -4,6 +4,7 @@ import (
 	"context"
 	tls2 "crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"testing"
 
@@ -48,8 +49,8 @@ func (s *authenticatorTestSuite) SetupTest() {
 	bobClaims := testdata.FakeUserClaims()
 	bobClaims.Scope = "*:*"
 	s.userClaims = map[string]*entities.UserClaims{
-		aliceAPIKey: aliceClaims,
-		bobAPIKey:   bobClaims,
+		"BRqrbYycs44wSi40uij02ZlPd5zBxuWIMessUGcdxtI=": aliceClaims, // base64 of alice key
+		"XWubgVAkP8ug1MD+9JqFuMYvKE6phwFYRC/9ALdvFss=": bobClaims,   // base64 of bob key
 	}
 
 	// TLS certs
@@ -112,7 +113,9 @@ func (s *authenticatorTestSuite) TestAuthenticateAPIKey() {
 	ctx := context.Background()
 
 	s.Run("should authenticate with api key successfully", func() {
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, aliceAPIKey)
+		aliceKey, _ := base64.StdEncoding.DecodeString(aliceAPIKey)
+
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, aliceKey)
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), "Alice", userInfo.Username)
@@ -123,14 +126,17 @@ func (s *authenticatorTestSuite) TestAuthenticateAPIKey() {
 	})
 
 	s.Run("should authenticate an api key successfully with wildcard permissions", func() {
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, bobAPIKey)
+		bobKey, _ := base64.StdEncoding.DecodeString(bobAPIKey)
+
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, bobKey)
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), entities.NewWildcardUser().Permissions, userInfo.Permissions)
 	})
 
 	s.Run("should return UnauthorizedError if api key is not found", func() {
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, "inexistent-api-key")
+		invalidKey, _ := base64.StdEncoding.DecodeString("invalid-key")
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, invalidKey)
 
 		require.Nil(s.T(), userInfo)
 		assert.True(s.T(), errors.IsUnauthorizedError(err))
