@@ -23,7 +23,6 @@ type Config struct {
 	AuthOIDCTokenURL     string   `json:"oidc_token_url"`
 	AuthOIDCClientID     string   `json:"oidc_client_id"`
 	AuthOIDCClientSecret string   `json:"oidc_client_secret"`
-	AuthOIDCAudience     string   `json:"oidc_audience"`
 }
 
 func NewConfig() (*Config, error) {
