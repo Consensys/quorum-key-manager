@@ -2,8 +2,12 @@ package authenticator
 
 import (
 	"context"
+	"crypto/sha256"
 	tls2 "crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
+	"fmt"
+	"hash"
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -24,6 +28,7 @@ type Authenticator struct {
 	logger       log.Logger
 	jwtValidator jwt.Validator
 	apiKeyClaims map[string]*entities.UserClaims
+	hasher       hash.Hash
 	rootCAs      *x509.CertPool
 }
 
@@ -34,11 +39,18 @@ func New(jwtValidator jwt.Validator, apiKeyClaims map[string]*entities.UserClaim
 		jwtValidator: jwtValidator,
 		apiKeyClaims: apiKeyClaims,
 		rootCAs:      rootCAs,
+		hasher:       sha256.New(),
 		logger:       logger,
 	}
 }
 
 func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*entities.UserInfo, error) {
+	if authen.jwtValidator == nil {
+		errMessage := "jwt authentication method is not enabled"
+		authen.logger.Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
 	authen.logger.Debug("extracting user info from jwt token")
 
 	claims, err := authen.jwtValidator.ValidateToken(ctx, token)
@@ -51,10 +63,22 @@ func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) 
 	return authen.userInfoFromClaims(JWTAuthMode, claims), nil
 }
 
-func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey string) (*entities.UserInfo, error) {
+func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte) (*entities.UserInfo, error) {
+	if authen.apiKeyClaims == nil {
+		errMessage := "api key authentication method is not enabled"
+		authen.logger.Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
 	authen.logger.Debug("extracting user info from api key")
 
-	claims, ok := authen.apiKeyClaims[apiKey]
+	authen.hasher.Reset()
+	_, err := authen.hasher.Write(apiKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash api key")
+	}
+
+	claims, ok := authen.apiKeyClaims[base64.StdEncoding.EncodeToString(authen.hasher.Sum(nil))]
 	if !ok {
 		errMessage := "api key not found"
 		authen.logger.Warn(errMessage, "api_key_hash", apiKey)
@@ -66,6 +90,12 @@ func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey string
 
 // AuthenticateTLS checks rootCAs and retrieve user info
 func (authen Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.ConnectionState) (*entities.UserInfo, error) {
+	if authen.rootCAs == nil {
+		errMessage := "tls authentication method is not enabled"
+		authen.logger.Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
 	if !connState.HandshakeComplete {
 		errMessage := "request must complete valid handshake"
 		authen.logger.Warn(errMessage)

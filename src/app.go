@@ -8,6 +8,7 @@ import (
 	apikey "github.com/consensys/quorum-key-manager/src/infra/api-key/filesystem"
 	jwt "github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	tls "github.com/consensys/quorum-key-manager/src/infra/tls/filesystem"
@@ -17,7 +18,7 @@ import (
 
 type Config struct {
 	HTTP     *server.Config
-	Logger   *log.Config
+	Logger   *zap.Config
 	Postgres *client.Config
 	OIDC     *jwt.Config
 	APIKey   *apikey.Config

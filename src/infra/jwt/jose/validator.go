@@ -24,15 +24,17 @@ func New(cfg *Config) (*Validator, error) {
 		return nil, err
 	}
 
+	expectedClaims := jwt.Expected{Time: time.Now()}
+	if len(cfg.Audience) == 0 {
+		expectedClaims.Audience = cfg.Audience
+	}
+
 	validator, err := josev2.New(
 		josev2.NewCachingJWKSProvider(*issuerURL, cfg.CacheTTL).KeyFunc,
 		jose.RS256,
 		josev2.WithCustomClaims(func() josev2.CustomClaims { return &CustomClaims{} }),
 		josev2.WithExpectedClaims(func() jwt.Expected {
-			return jwt.Expected{
-				Audience: cfg.Audience,
-				Time:     time.Now(),
-			}
+			return expectedClaims.WithTime(time.Now())
 		}),
 	)
 	if err != nil {

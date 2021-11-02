@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
+	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 )
 
@@ -57,6 +58,15 @@ type UtilsClient interface {
 	VerifyTypedData(ctx context.Context, request *types.VerifyTypedDataRequest) error
 }
 
+type AliasClient interface {
+	CreateAlias(ctx context.Context, registry, aliasKey string, req aliastypes.AliasRequest) (*aliastypes.AliasResponse, error)
+	GetAlias(ctx context.Context, registry, aliasKey string) (*aliastypes.AliasResponse, error)
+	UpdateAlias(ctx context.Context, registry, aliasKey string, req aliastypes.AliasRequest) (*aliastypes.AliasResponse, error)
+	DeleteAlias(ctx context.Context, registry, aliasKey string) error
+	ListAliases(ctx context.Context, registry string) ([]aliastypes.Alias, error)
+	DeleteRegistry(ctx context.Context, registry string) error
+}
+
 type JSONRPC interface {
 	Call(ctx context.Context, nodeID, method string, args ...interface{}) (*jsonrpc.ResponseMsg, error)
 }
@@ -66,5 +76,6 @@ type KeyManagerClient interface {
 	KeysClient
 	EthClient
 	UtilsClient
+	AliasClient
 	JSONRPC
 }

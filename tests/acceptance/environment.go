@@ -47,7 +47,6 @@ const (
 	WaitContainerTime         = 15 * time.Second
 )
 
-// IntegrationEnvironment holds all connected clients needed to ready docker containers.
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
@@ -86,7 +85,7 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger, err := zap.NewLogger(log.NewConfig(log.InfoLevel, log.JSONFormat))
+	logger, err := zap.NewLogger(zap.NewConfig(zap.InfoLevel, zap.JSONFormat))
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +156,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		HTTP:     httpConfig,
 		Manifest: manifestreader.NewConfig(tmpYml),
 		Postgres: postgresCfg,
-		Logger:   log.NewConfig(log.DebugLevel, log.TextFormat),
+		Logger:   zap.NewConfig(zap.DebugLevel, zap.TextFormat),
 	}, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Key Manager server")

@@ -101,6 +101,7 @@ func createMiddlewares(cfg *Config, logger log.Logger) (*alice.Chain, error) {
 
 		authMiddleware = middlewares.NewAuth(authenticator.New(jwtValidator, apikeyClaims, rootCAs, logger)).Middleware
 	} else {
+		logger.Warn("No authentication method enabled")
 		authMiddleware = middlewares.WildcardMiddleware
 	}
 

@@ -4,8 +4,11 @@ import (
 	"context"
 	tls2 "crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"testing"
+
+	mock2 "github.com/consensys/quorum-key-manager/src/infra/log/mock"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/entities/testdata"
@@ -31,6 +34,7 @@ type authenticatorTestSuite struct {
 	userClaims       map[string]*entities.UserClaims
 	aliceCert        *x509.Certificate
 	eveCert          *x509.Certificate
+	logger           *mock2.MockLogger
 	auth             *Authenticator
 }
 
@@ -48,8 +52,8 @@ func (s *authenticatorTestSuite) SetupTest() {
 	bobClaims := testdata.FakeUserClaims()
 	bobClaims.Scope = "*:*"
 	s.userClaims = map[string]*entities.UserClaims{
-		aliceAPIKey: aliceClaims,
-		bobAPIKey:   bobClaims,
+		"BRqrbYycs44wSi40uij02ZlPd5zBxuWIMessUGcdxtI=": aliceClaims, // base64 of alice key
+		"XWubgVAkP8ug1MD+9JqFuMYvKE6phwFYRC/9ALdvFss=": bobClaims,   // base64 of bob key
 	}
 
 	// TLS certs
@@ -66,8 +70,9 @@ func (s *authenticatorTestSuite) SetupTest() {
 	caCertPool.AddCert(s.eveCert)
 
 	s.mockJWTValidator = mock.NewMockValidator(ctrl)
+	s.logger = testutils2.NewMockLogger(ctrl)
 
-	s.auth = New(s.mockJWTValidator, s.userClaims, caCertPool, testutils2.NewMockLogger(ctrl))
+	s.auth = New(s.mockJWTValidator, s.userClaims, caCertPool, s.logger)
 }
 
 func (s *authenticatorTestSuite) TestAuthenticateJWT() {
@@ -106,13 +111,24 @@ func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 		require.Nil(s.T(), userInfo)
 		assert.True(s.T(), errors.IsUnauthorizedError(err))
 	})
+
+	s.Run("should return UnauthorizedError if the authentication method is not enabled", func() {
+		auth := New(nil, nil, nil, s.logger)
+
+		userInfo, err := auth.AuthenticateJWT(ctx, token)
+
+		require.Nil(s.T(), userInfo)
+		assert.True(s.T(), errors.IsUnauthorizedError(err))
+	})
 }
 
 func (s *authenticatorTestSuite) TestAuthenticateAPIKey() {
 	ctx := context.Background()
 
 	s.Run("should authenticate with api key successfully", func() {
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, aliceAPIKey)
+		aliceKey, _ := base64.StdEncoding.DecodeString(aliceAPIKey)
+
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, aliceKey)
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), "Alice", userInfo.Username)
@@ -123,14 +139,27 @@ func (s *authenticatorTestSuite) TestAuthenticateAPIKey() {
 	})
 
 	s.Run("should authenticate an api key successfully with wildcard permissions", func() {
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, bobAPIKey)
+		bobKey, _ := base64.StdEncoding.DecodeString(bobAPIKey)
+
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, bobKey)
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), entities.NewWildcardUser().Permissions, userInfo.Permissions)
 	})
 
 	s.Run("should return UnauthorizedError if api key is not found", func() {
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, "inexistent-api-key")
+		invalidKey, _ := base64.StdEncoding.DecodeString("invalid-key")
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, invalidKey)
+
+		require.Nil(s.T(), userInfo)
+		assert.True(s.T(), errors.IsUnauthorizedError(err))
+	})
+
+	s.Run("should return UnauthorizedError if the authentication method is not enabled", func() {
+		aliceKey, _ := base64.StdEncoding.DecodeString(aliceAPIKey)
+		auth := New(nil, nil, nil, s.logger)
+
+		userInfo, err := auth.AuthenticateAPIKey(ctx, aliceKey)
 
 		require.Nil(s.T(), userInfo)
 		assert.True(s.T(), errors.IsUnauthorizedError(err))
@@ -175,6 +204,20 @@ func (s *authenticatorTestSuite) TestAuthenticateTLS() {
 		connState.HandshakeComplete = false
 
 		userInfo, err := s.auth.AuthenticateTLS(ctx, connState)
+
+		require.Nil(s.T(), userInfo)
+		assert.True(s.T(), errors.IsUnauthorizedError(err))
+	})
+
+	s.Run("should return UnauthorizedError if the authentication method is not enabled", func() {
+		connState := &tls2.ConnectionState{
+			PeerCertificates: []*x509.Certificate{s.eveCert},
+		}
+		connState.HandshakeComplete = false
+
+		auth := New(nil, nil, nil, s.logger)
+
+		userInfo, err := auth.AuthenticateTLS(ctx, connState)
 
 		require.Nil(s.T(), userInfo)
 		assert.True(s.T(), errors.IsUnauthorizedError(err))

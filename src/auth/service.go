@@ -12,7 +12,7 @@ import (
 // Authenticator retrieves user info given an authentication method
 type Authenticator interface {
 	AuthenticateJWT(ctx context.Context, token string) (*entities.UserInfo, error)
-	AuthenticateAPIKey(ctx context.Context, apiKey string) (*entities.UserInfo, error)
+	AuthenticateAPIKey(ctx context.Context, apiKey []byte) (*entities.UserInfo, error)
 	AuthenticateTLS(ctx context.Context, connState *tls.ConnectionState) (*entities.UserInfo, error)
 }
 
