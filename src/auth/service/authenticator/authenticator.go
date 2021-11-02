@@ -45,6 +45,12 @@ func New(jwtValidator jwt.Validator, apiKeyClaims map[string]*entities.UserClaim
 }
 
 func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) (*entities.UserInfo, error) {
+	if authen.jwtValidator == nil {
+		errMessage := "jwt authentication method is not enabled"
+		authen.logger.Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
 	authen.logger.Debug("extracting user info from jwt token")
 
 	claims, err := authen.jwtValidator.ValidateToken(ctx, token)
@@ -58,6 +64,12 @@ func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) 
 }
 
 func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte) (*entities.UserInfo, error) {
+	if authen.apiKeyClaims == nil {
+		errMessage := "api key authentication method is not enabled"
+		authen.logger.Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
 	authen.logger.Debug("extracting user info from api key")
 
 	authen.hasher.Reset()
@@ -78,6 +90,12 @@ func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte
 
 // AuthenticateTLS checks rootCAs and retrieve user info
 func (authen Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.ConnectionState) (*entities.UserInfo, error) {
+	if authen.rootCAs == nil {
+		errMessage := "tls authentication method is not enabled"
+		authen.logger.Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
 	if !connState.HandshakeComplete {
 		errMessage := "request must complete valid handshake"
 		authen.logger.Warn(errMessage)
