@@ -6,8 +6,9 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
-	mock2 "github.com/consensys/quorum-key-manager/src/infra/log/mock"
 	"testing"
+
+	mock2 "github.com/consensys/quorum-key-manager/src/infra/log/mock"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/entities/testdata"
