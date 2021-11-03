@@ -6,11 +6,6 @@ import (
 )
 
 func NewAppConfig(vipr *viper.Viper) (*app.Config, error) {
-	authCfg, err := NewAuthConfig(vipr)
-	if err != nil {
-		return nil, err
-	}
-
 	httpCfg, err := newHTTPConfig(vipr)
 	if err != nil {
 		return nil, err
@@ -20,7 +15,9 @@ func NewAppConfig(vipr *viper.Viper) (*app.Config, error) {
 		Logger:   NewLoggerConfig(vipr),
 		HTTP:     httpCfg,
 		Manifest: NewManifestConfig(vipr),
-		Auth:     authCfg,
+		OIDC:     NewOIDCConfig(vipr),
+		APIKey:   NewAPIKeyConfig(vipr),
+		TLS:      NewTLSConfig(vipr),
 		Postgres: NewPostgresConfig(vipr),
 	}, nil
 }

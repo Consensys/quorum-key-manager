@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
@@ -34,7 +35,7 @@ func newImportCmd() *cobra.Command {
 			if storesConnector, err = getStores(logger); err != nil {
 				return err
 			}
-			if mnf, err = getManifest(); err != nil {
+			if mnf, err = getManifest(cmd.Context()); err != nil {
 				return err
 			}
 
@@ -58,7 +59,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportSecrets(cmd.Context(), mnf.Name, types.WildcardUser)
+			return storesConnector.ImportSecrets(cmd.Context(), mnf.Name, entities.NewWildcardUser())
 		},
 	}
 	importCmd.AddCommand(importSecretsCmd)
@@ -72,7 +73,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportKeys(cmd.Context(), mnf.Name, types.WildcardUser)
+			return storesConnector.ImportKeys(cmd.Context(), mnf.Name, entities.NewWildcardUser())
 		},
 	}
 	importCmd.AddCommand(importKeysCmd)
@@ -86,7 +87,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			return storesConnector.ImportEthereum(cmd.Context(), mnf.Name, types.WildcardUser)
+			return storesConnector.ImportEthereum(cmd.Context(), mnf.Name, entities.NewWildcardUser())
 		},
 	}
 	importCmd.AddCommand(importEthereumCmd)
@@ -108,7 +109,7 @@ func getStores(logger log.Logger) (storeservice.Stores, error) {
 	return stores.NewConnector(nil, postgres.New(logger, postgresClient), logger), nil
 }
 
-func getManifest() (*manifest.Manifest, error) {
+func getManifest(ctx context.Context) (*manifest.Manifest, error) {
 	vipr := viper.GetViper()
 	// Get manifests
 	manifestReader, err := manifestreader.New(flags.NewManifestConfig(vipr))
@@ -116,7 +117,7 @@ func getManifest() (*manifest.Manifest, error) {
 		return nil, err
 	}
 
-	manifests, err := manifestReader.Load()
+	manifests, err := manifestReader.Load(ctx)
 	if err != nil {
 		return nil, err
 	}

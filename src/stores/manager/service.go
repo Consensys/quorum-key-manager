@@ -39,7 +39,7 @@ func New(storesConnector stores.Stores, manifestReader manifests.Reader, db data
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	mnfs, err := m.manifestReader.Load()
+	mnfs, err := m.manifestReader.Load(ctx)
 	if err != nil {
 		errMessage := "failed to load manifest file"
 		m.logger.WithError(err).Error(errMessage)

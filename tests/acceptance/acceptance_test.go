@@ -4,6 +4,7 @@ package acceptancetests
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"math/rand"
 	"os"
 	"testing"
@@ -11,8 +12,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
@@ -76,7 +76,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Secrets-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
+	auth := authorizator.New(entities.ListPermissions(), "", s.env.logger)
 
 	// Hashicorp
 	storeName := "Secrets-Hashicorp"
@@ -95,7 +95,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Keys-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
+	auth := authorizator.New(entities.ListPermissions(), "", s.env.logger)
 	utilsConnector := utils.NewConnector(s.env.logger)
 
 	// Hashicorp
@@ -128,7 +128,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 	}
 
 	db := postgres.New(s.env.logger.WithComponent("Eth-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
+	auth := authorizator.New(entities.ListPermissions(), "", s.env.logger)
 	utilsConnector := utils.NewConnector(s.env.logger)
 
 	// Hashicorp

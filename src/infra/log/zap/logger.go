@@ -8,19 +8,19 @@ import (
 
 type Logger struct {
 	logger *zap.SugaredLogger
-	cfg    *log.Config
+	cfg    *Config
 }
 
 var _ log.Logger = &Logger{}
 
-func NewLogger(cfg *log.Config) (*Logger, error) {
+func NewLogger(cfg *Config) (*Logger, error) {
 	var logger *zap.Logger
 	var err error
 
 	level := getLevel(cfg.Level)
 
 	switch cfg.Format {
-	case log.TextFormat:
+	case TextFormat:
 		zapCfg := zap.NewDevelopmentConfig()
 		zapCfg.Level = level
 		zapCfg.DisableStacktrace = true
@@ -88,15 +88,15 @@ func (l Logger) WithComponent(component string) log.Logger {
 
 func (l *Logger) Write(p []byte) (n int, err error) {
 	switch l.cfg.Level {
-	case log.DebugLevel:
+	case DebugLevel:
 		l.Debug(string(p))
-	case log.InfoLevel:
+	case InfoLevel:
 		l.Info(string(p))
-	case log.WarnLevel:
+	case WarnLevel:
 		l.Warn(string(p))
-	case log.ErrorLevel:
+	case ErrorLevel:
 		l.Error(string(p))
-	case log.PanicLevel:
+	case PanicLevel:
 		l.Panic(string(p))
 	default:
 		l.Info(string(p))
@@ -109,17 +109,17 @@ func (l Logger) Sync() error {
 	return l.logger.Sync()
 }
 
-func getLevel(level log.LoggerLevel) zap.AtomicLevel {
+func getLevel(level LoggerLevel) zap.AtomicLevel {
 	switch level {
-	case log.DebugLevel:
+	case DebugLevel:
 		return zap.NewAtomicLevelAt(zap.DebugLevel)
-	case log.InfoLevel:
+	case InfoLevel:
 		return zap.NewAtomicLevelAt(zap.InfoLevel)
-	case log.WarnLevel:
+	case WarnLevel:
 		return zap.NewAtomicLevelAt(zap.WarnLevel)
-	case log.ErrorLevel:
+	case ErrorLevel:
 		return zap.NewAtomicLevelAt(zap.ErrorLevel)
-	case log.PanicLevel:
+	case PanicLevel:
 		return zap.NewAtomicLevelAt(zap.PanicLevel)
 	default:
 		return zap.NewAtomicLevelAt(zap.InfoLevel)

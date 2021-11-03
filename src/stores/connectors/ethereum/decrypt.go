@@ -3,7 +3,7 @@ package eth
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -11,7 +11,7 @@ import (
 func (c Connector) Decrypt(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEthAccount})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionEncrypt, Resource: entities.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}

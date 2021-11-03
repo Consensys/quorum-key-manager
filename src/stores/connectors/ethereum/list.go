@@ -3,13 +3,13 @@ package eth
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/ethereum/go-ethereum/common"
 )
 
 func (c Connector) List(ctx context.Context, limit, offset uint64) ([]common.Address, error) {
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (c Connector) List(ctx context.Context, limit, offset uint64) ([]common.Add
 }
 
 func (c Connector) ListDeleted(ctx context.Context, limit, offset uint64) ([]common.Address, error) {
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}

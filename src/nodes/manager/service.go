@@ -6,6 +6,8 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+
 	"github.com/consensys/quorum-key-manager/pkg/json"
 
 	"github.com/consensys/quorum-key-manager/src/aliases"
@@ -13,9 +15,7 @@ import (
 	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -62,7 +62,7 @@ func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	mnfs, err := m.manifests.Load()
+	mnfs, err := m.manifests.Load(ctx)
 	if err != nil {
 		errMessage := "failed to load manifest file"
 		m.logger.WithError(err).Error(errMessage)

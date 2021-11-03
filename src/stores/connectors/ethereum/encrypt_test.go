@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
@@ -36,7 +36,7 @@ func TestEncryptKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should encrypt data successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionEncrypt, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Encrypt(gomock.Any(), key.ID, data).Return(result, nil)
 
@@ -47,7 +47,7 @@ func TestEncryptKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEthAccount}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionEncrypt, Resource: entities.ResourceEthAccount}).Return(expectedErr)
 
 		_, err := connector.Encrypt(ctx, acc.Address, data)
 
@@ -56,7 +56,7 @@ func TestEncryptKey(t *testing.T) {
 	})
 
 	t.Run("should fail to encrypt data if db fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionEncrypt, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(nil, expectedErr)
 
 		_, err := connector.Encrypt(ctx, acc.Address, data)
@@ -66,7 +66,7 @@ func TestEncryptKey(t *testing.T) {
 	})
 
 	t.Run("should fail to encrypt data if store fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionEncrypt, Resource: types.ResourceEthAccount}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionEncrypt, Resource: entities.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Encrypt(gomock.Any(), key.ID, data).Return(nil, expectedErr)
 

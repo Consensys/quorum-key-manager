@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto"
 	"crypto/rsa"
 	"encoding/json"
 	"time"
@@ -9,17 +8,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-type TokenGenerator struct {
-	privateKey *rsa.PrivateKey
-}
-
-func NewTokenGenerator(key crypto.PrivateKey) (*TokenGenerator, error) {
-	return &TokenGenerator{
-		privateKey: key.(*rsa.PrivateKey),
-	}, nil
-}
-
-func (j *TokenGenerator) GenerateAccessToken(claims map[string]interface{}, ttl time.Duration) (tokenValue string, err error) {
+func GenerateAccessToken(key *rsa.PrivateKey, claims map[string]interface{}, ttl time.Duration) (tokenValue string, err error) {
 	sc := jwt.StandardClaims{
 		Issuer:    "quorum-key-manager",
 		IssuedAt:  time.Now().UTC().Unix(),
@@ -38,7 +27,7 @@ func (j *TokenGenerator) GenerateAccessToken(claims map[string]interface{}, ttl 
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, c)
-	s, err := token.SignedString(j.privateKey)
+	s, err := token.SignedString(key)
 	if err != nil {
 		return "", err
 	}

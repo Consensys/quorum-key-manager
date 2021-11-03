@@ -124,9 +124,6 @@ stop-geth:
 down-geth:
 	@docker-compose -f deps/geth/docker-compose.yml down  --volumes --timeout 0
 
-generate-jwt: gobuild
-	@docker-compose -f ./docker-compose.dev.yml up generate-jwt
-
 import: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up import
 

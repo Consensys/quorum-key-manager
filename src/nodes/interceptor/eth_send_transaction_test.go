@@ -5,9 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+
 	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
 	"github.com/stretchr/testify/assert"
@@ -36,15 +37,13 @@ func TestEthSendTransaction(t *testing.T) {
 	hexFrom := "0x78e6e236592597c09d5c137c2af40aecd42d12a2"
 	from := ethcommon.HexToAddress(hexFrom)
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
-	userInfo := &types.UserInfo{
+	userInfo := &entities.UserInfo{
 		Username:    "username",
 		Roles:       []string{"role1", "role2"},
-		Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
+		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
-		UserInfo: userInfo,
-	})
+	ctx = middlewares.WithUserInfo(ctx, userInfo)
 	gasPrice := big.NewInt(38)
 	chainID := big.NewInt(1)
 	value := big.NewInt(45)

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
@@ -32,7 +32,7 @@ func TestGetKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should get key successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(key, nil)
 
 		rKey, err := connector.Get(ctx, key.ID)
@@ -42,7 +42,7 @@ func TestGetKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.Get(ctx, key.ID)
 
@@ -51,7 +51,7 @@ func TestGetKey(t *testing.T) {
 	})
 
 	t.Run("should fail to get key if db fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), key.ID).Return(nil, expectedErr)
 
 		_, err := connector.Get(ctx, key.ID)
@@ -77,7 +77,7 @@ func TestGetDeletedKey(t *testing.T) {
 	connector := NewConnector(store, db, auth, logger)
 
 	t.Run("should get deleted key successfully", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(key, nil)
 
 		rKey, err := connector.GetDeleted(ctx, key.ID)
@@ -87,7 +87,7 @@ func TestGetDeletedKey(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(expectedErr)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(expectedErr)
 
 		_, err := connector.GetDeleted(ctx, key.ID)
 
@@ -96,7 +96,7 @@ func TestGetDeletedKey(t *testing.T) {
 	})
 
 	t.Run("should fail to get deleted key if db fails", func(t *testing.T) {
-		auth.EXPECT().CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey}).Return(nil)
+		auth.EXPECT().CheckPermission(&entities.Operation{Action: entities.ActionRead, Resource: entities.ResourceKey}).Return(nil)
 		db.EXPECT().GetDeleted(gomock.Any(), key.ID).Return(nil, expectedErr)
 
 		_, err := connector.GetDeleted(ctx, key.ID)

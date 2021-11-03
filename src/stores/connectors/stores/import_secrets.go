@@ -3,9 +3,10 @@ package stores
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+
 	arrays "github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 func (c *Connector) ImportSecrets(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) error {
