@@ -7,7 +7,8 @@ package mock
 import (
 	context "context"
 	jsonrpc "github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	types "github.com/consensys/quorum-key-manager/src/stores/api/types"
+	types "github.com/consensys/quorum-key-manager/src/aliases/api/types"
+	types0 "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -36,10 +37,10 @@ func (m *MockSecretsClient) EXPECT() *MockSecretsClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockSecretsClient) SetSecret(ctx context.Context, storeName, id string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) SetSecret(ctx context.Context, storeName, id string, request *types0.SetSecretRequest) (*types0.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, id, request)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types0.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +52,10 @@ func (mr *MockSecretsClientMockRecorder) SetSecret(ctx, storeName, id, request i
 }
 
 // GetSecret mocks base method
-func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, version string) (*types0.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Secret", ctx, storeName, id, version)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
+	ret0, _ := ret[0].(*types0.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -62,14 +63,14 @@ func (m *MockSecretsClient) GetSecret(ctx context.Context, storeName, id, versio
 // GetSecret indicates an expected call of GetSecret
 func (mr *MockSecretsClientMockRecorder) GetSecret(ctx, storeName, id, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockSecretsClient)(nil).GetSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockSecretsClient)(nil).GetSecret), ctx, storeName, id, version)
 }
 
 // GetDeletedSecret mocks base method
-func (m *MockSecretsClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
+func (m *MockSecretsClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types0.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types0.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -176,10 +177,10 @@ func (m *MockKeysClient) EXPECT() *MockKeysClientMockRecorder {
 }
 
 // CreateKey mocks base method
-func (m *MockKeysClient) CreateKey(ctx context.Context, storeName, id string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeysClient) CreateKey(ctx context.Context, storeName, id string, request *types0.CreateKeyRequest) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, id, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -191,10 +192,10 @@ func (mr *MockKeysClientMockRecorder) CreateKey(ctx, storeName, id, request inte
 }
 
 // ImportKey mocks base method
-func (m *MockKeysClient) ImportKey(ctx context.Context, storeName, id string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeysClient) ImportKey(ctx context.Context, storeName, id string, request *types0.ImportKeyRequest) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, id, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -206,7 +207,7 @@ func (mr *MockKeysClientMockRecorder) ImportKey(ctx, storeName, id, request inte
 }
 
 // SignKey mocks base method
-func (m *MockKeysClient) SignKey(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error) {
+func (m *MockKeysClient) SignKey(ctx context.Context, storeName, id string, request *types0.SignBase64PayloadRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignKey", ctx, storeName, id, request)
 	ret0, _ := ret[0].(string)
@@ -221,10 +222,10 @@ func (mr *MockKeysClientMockRecorder) SignKey(ctx, storeName, id, request interf
 }
 
 // GetKey mocks base method
-func (m *MockKeysClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+func (m *MockKeysClient) GetKey(ctx context.Context, storeName, id string) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -265,10 +266,10 @@ func (mr *MockKeysClientMockRecorder) DeleteKey(ctx, storeName, id interface{}) 
 }
 
 // GetDeletedKey mocks base method
-func (m *MockKeysClient) GetDeletedKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+func (m *MockKeysClient) GetDeletedKey(ctx context.Context, storeName, id string) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedKey", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -346,10 +347,10 @@ func (m *MockEthClient) EXPECT() *MockEthClientMockRecorder {
 }
 
 // CreateEthAccount mocks base method
-func (m *MockEthClient) CreateEthAccount(ctx context.Context, storeName string, request *types.CreateEthAccountRequest) (*types.EthAccountResponse, error) {
+func (m *MockEthClient) CreateEthAccount(ctx context.Context, storeName string, request *types0.CreateEthAccountRequest) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateEthAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -361,10 +362,10 @@ func (mr *MockEthClientMockRecorder) CreateEthAccount(ctx, storeName, request in
 }
 
 // ImportEthAccount mocks base method
-func (m *MockEthClient) ImportEthAccount(ctx context.Context, storeName string, request *types.ImportEthAccountRequest) (*types.EthAccountResponse, error) {
+func (m *MockEthClient) ImportEthAccount(ctx context.Context, storeName string, request *types0.ImportEthAccountRequest) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportEthAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -376,10 +377,10 @@ func (mr *MockEthClientMockRecorder) ImportEthAccount(ctx, storeName, request in
 }
 
 // UpdateEthAccount mocks base method
-func (m *MockEthClient) UpdateEthAccount(ctx context.Context, storeName, address string, request *types.UpdateEthAccountRequest) (*types.EthAccountResponse, error) {
+func (m *MockEthClient) UpdateEthAccount(ctx context.Context, storeName, address string, request *types0.UpdateEthAccountRequest) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateEthAccount", ctx, storeName, address, request)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -391,7 +392,7 @@ func (mr *MockEthClientMockRecorder) UpdateEthAccount(ctx, storeName, address, r
 }
 
 // SignMessage mocks base method
-func (m *MockEthClient) SignMessage(ctx context.Context, storeName, account string, request *types.SignMessageRequest) (string, error) {
+func (m *MockEthClient) SignMessage(ctx context.Context, storeName, account string, request *types0.SignMessageRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignMessage", ctx, storeName, account, request)
 	ret0, _ := ret[0].(string)
@@ -406,7 +407,7 @@ func (mr *MockEthClientMockRecorder) SignMessage(ctx, storeName, account, reques
 }
 
 // SignTypedData mocks base method
-func (m *MockEthClient) SignTypedData(ctx context.Context, storeName, address string, request *types.SignTypedDataRequest) (string, error) {
+func (m *MockEthClient) SignTypedData(ctx context.Context, storeName, address string, request *types0.SignTypedDataRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTypedData", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -421,7 +422,7 @@ func (mr *MockEthClientMockRecorder) SignTypedData(ctx, storeName, address, requ
 }
 
 // SignTransaction mocks base method
-func (m *MockEthClient) SignTransaction(ctx context.Context, storeName, address string, request *types.SignETHTransactionRequest) (string, error) {
+func (m *MockEthClient) SignTransaction(ctx context.Context, storeName, address string, request *types0.SignETHTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -436,7 +437,7 @@ func (mr *MockEthClientMockRecorder) SignTransaction(ctx, storeName, address, re
 }
 
 // SignQuorumPrivateTransaction mocks base method
-func (m *MockEthClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types.SignQuorumPrivateTransactionRequest) (string, error) {
+func (m *MockEthClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types0.SignQuorumPrivateTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignQuorumPrivateTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -451,7 +452,7 @@ func (mr *MockEthClientMockRecorder) SignQuorumPrivateTransaction(ctx, storeName
 }
 
 // SignEEATransaction mocks base method
-func (m *MockEthClient) SignEEATransaction(ctx context.Context, storeName, address string, request *types.SignEEATransactionRequest) (string, error) {
+func (m *MockEthClient) SignEEATransaction(ctx context.Context, storeName, address string, request *types0.SignEEATransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignEEATransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -466,10 +467,10 @@ func (mr *MockEthClientMockRecorder) SignEEATransaction(ctx, storeName, address,
 }
 
 // GetEthAccount mocks base method
-func (m *MockEthClient) GetEthAccount(ctx context.Context, storeName, address string) (*types.EthAccountResponse, error) {
+func (m *MockEthClient) GetEthAccount(ctx context.Context, storeName, address string) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEthAccount", ctx, storeName, address)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -576,7 +577,7 @@ func (m *MockUtilsClient) EXPECT() *MockUtilsClientMockRecorder {
 }
 
 // VerifyKeySignature mocks base method
-func (m *MockUtilsClient) VerifyKeySignature(ctx context.Context, request *types.VerifyKeySignatureRequest) error {
+func (m *MockUtilsClient) VerifyKeySignature(ctx context.Context, request *types0.VerifyKeySignatureRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -590,7 +591,7 @@ func (mr *MockUtilsClientMockRecorder) VerifyKeySignature(ctx, request interface
 }
 
 // ECRecover mocks base method
-func (m *MockUtilsClient) ECRecover(ctx context.Context, request *types.ECRecoverRequest) (string, error) {
+func (m *MockUtilsClient) ECRecover(ctx context.Context, request *types0.ECRecoverRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ECRecover", ctx, request)
 	ret0, _ := ret[0].(string)
@@ -605,7 +606,7 @@ func (mr *MockUtilsClientMockRecorder) ECRecover(ctx, request interface{}) *gomo
 }
 
 // VerifyMessage mocks base method
-func (m *MockUtilsClient) VerifyMessage(ctx context.Context, request *types.VerifyRequest) error {
+func (m *MockUtilsClient) VerifyMessage(ctx context.Context, request *types0.VerifyRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMessage", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -619,7 +620,7 @@ func (mr *MockUtilsClientMockRecorder) VerifyMessage(ctx, request interface{}) *
 }
 
 // VerifyTypedData mocks base method
-func (m *MockUtilsClient) VerifyTypedData(ctx context.Context, request *types.VerifyTypedDataRequest) error {
+func (m *MockUtilsClient) VerifyTypedData(ctx context.Context, request *types0.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -630,6 +631,117 @@ func (m *MockUtilsClient) VerifyTypedData(ctx context.Context, request *types.Ve
 func (mr *MockUtilsClientMockRecorder) VerifyTypedData(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockUtilsClient)(nil).VerifyTypedData), ctx, request)
+}
+
+// MockAliasClient is a mock of AliasClient interface
+type MockAliasClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockAliasClientMockRecorder
+}
+
+// MockAliasClientMockRecorder is the mock recorder for MockAliasClient
+type MockAliasClientMockRecorder struct {
+	mock *MockAliasClient
+}
+
+// NewMockAliasClient creates a new mock instance
+func NewMockAliasClient(ctrl *gomock.Controller) *MockAliasClient {
+	mock := &MockAliasClient{ctrl: ctrl}
+	mock.recorder = &MockAliasClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockAliasClient) EXPECT() *MockAliasClientMockRecorder {
+	return m.recorder
+}
+
+// CreateAlias mocks base method
+func (m *MockAliasClient) CreateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, aliasKey, req)
+	ret0, _ := ret[0].(*types.AliasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAlias indicates an expected call of CreateAlias
+func (mr *MockAliasClientMockRecorder) CreateAlias(ctx, registry, aliasKey, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAlias", reflect.TypeOf((*MockAliasClient)(nil).CreateAlias), ctx, registry, aliasKey, req)
+}
+
+// GetAlias mocks base method
+func (m *MockAliasClient) GetAlias(ctx context.Context, registry, aliasKey string) (*types.AliasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAlias", ctx, registry, aliasKey)
+	ret0, _ := ret[0].(*types.AliasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAlias indicates an expected call of GetAlias
+func (mr *MockAliasClientMockRecorder) GetAlias(ctx, registry, aliasKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAlias", reflect.TypeOf((*MockAliasClient)(nil).GetAlias), ctx, registry, aliasKey)
+}
+
+// UpdateAlias mocks base method
+func (m *MockAliasClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, aliasKey, req)
+	ret0, _ := ret[0].(*types.AliasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAlias indicates an expected call of UpdateAlias
+func (mr *MockAliasClientMockRecorder) UpdateAlias(ctx, registry, aliasKey, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAlias", reflect.TypeOf((*MockAliasClient)(nil).UpdateAlias), ctx, registry, aliasKey, req)
+}
+
+// DeleteAlias mocks base method
+func (m *MockAliasClient) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAlias", ctx, registry, aliasKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAlias indicates an expected call of DeleteAlias
+func (mr *MockAliasClientMockRecorder) DeleteAlias(ctx, registry, aliasKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAlias", reflect.TypeOf((*MockAliasClient)(nil).DeleteAlias), ctx, registry, aliasKey)
+}
+
+// ListAliases mocks base method
+func (m *MockAliasClient) ListAliases(ctx context.Context, registry string) ([]types.Alias, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
+	ret0, _ := ret[0].([]types.Alias)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAliases indicates an expected call of ListAliases
+func (mr *MockAliasClientMockRecorder) ListAliases(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAliases", reflect.TypeOf((*MockAliasClient)(nil).ListAliases), ctx, registry)
+}
+
+// DeleteRegistry mocks base method
+func (m *MockAliasClient) DeleteRegistry(ctx context.Context, registry string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRegistry indicates an expected call of DeleteRegistry
+func (mr *MockAliasClientMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegistry", reflect.TypeOf((*MockAliasClient)(nil).DeleteRegistry), ctx, registry)
 }
 
 // MockJSONRPC is a mock of JSONRPC interface
@@ -699,10 +811,10 @@ func (m *MockKeyManagerClient) EXPECT() *MockKeyManagerClientMockRecorder {
 }
 
 // SetSecret mocks base method
-func (m *MockKeyManagerClient) SetSecret(ctx context.Context, storeName, id string, request *types.SetSecretRequest) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) SetSecret(ctx context.Context, storeName, id string, request *types0.SetSecretRequest) (*types0.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSecret", ctx, storeName, id, request)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types0.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -714,10 +826,10 @@ func (mr *MockKeyManagerClientMockRecorder) SetSecret(ctx, storeName, id, reques
 }
 
 // GetSecret mocks base method
-func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, version string) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, version string) (*types0.SecretResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Secret", ctx, storeName, id, version)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret := m.ctrl.Call(m, "GetSecret", ctx, storeName, id, version)
+	ret0, _ := ret[0].(*types0.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -725,14 +837,14 @@ func (m *MockKeyManagerClient) GetSecret(ctx context.Context, storeName, id, ver
 // GetSecret indicates an expected call of GetSecret
 func (mr *MockKeyManagerClientMockRecorder) GetSecret(ctx, storeName, id, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Secret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetSecret), ctx, storeName, id, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockKeyManagerClient)(nil).GetSecret), ctx, storeName, id, version)
 }
 
 // GetDeletedSecret mocks base method
-func (m *MockKeyManagerClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types.SecretResponse, error) {
+func (m *MockKeyManagerClient) GetDeletedSecret(ctx context.Context, storeName, id string) (*types0.SecretResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedSecret", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.SecretResponse)
+	ret0, _ := ret[0].(*types0.SecretResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -816,10 +928,10 @@ func (mr *MockKeyManagerClientMockRecorder) ListDeletedSecrets(ctx, storeName, l
 }
 
 // CreateKey mocks base method
-func (m *MockKeyManagerClient) CreateKey(ctx context.Context, storeName, id string, request *types.CreateKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) CreateKey(ctx context.Context, storeName, id string, request *types0.CreateKeyRequest) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateKey", ctx, storeName, id, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -831,10 +943,10 @@ func (mr *MockKeyManagerClientMockRecorder) CreateKey(ctx, storeName, id, reques
 }
 
 // ImportKey mocks base method
-func (m *MockKeyManagerClient) ImportKey(ctx context.Context, storeName, id string, request *types.ImportKeyRequest) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) ImportKey(ctx context.Context, storeName, id string, request *types0.ImportKeyRequest) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportKey", ctx, storeName, id, request)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -846,7 +958,7 @@ func (mr *MockKeyManagerClientMockRecorder) ImportKey(ctx, storeName, id, reques
 }
 
 // SignKey mocks base method
-func (m *MockKeyManagerClient) SignKey(ctx context.Context, storeName, id string, request *types.SignBase64PayloadRequest) (string, error) {
+func (m *MockKeyManagerClient) SignKey(ctx context.Context, storeName, id string, request *types0.SignBase64PayloadRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignKey", ctx, storeName, id, request)
 	ret0, _ := ret[0].(string)
@@ -861,10 +973,10 @@ func (mr *MockKeyManagerClientMockRecorder) SignKey(ctx, storeName, id, request 
 }
 
 // GetKey mocks base method
-func (m *MockKeyManagerClient) GetKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) GetKey(ctx context.Context, storeName, id string) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKey", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -905,10 +1017,10 @@ func (mr *MockKeyManagerClientMockRecorder) DeleteKey(ctx, storeName, id interfa
 }
 
 // GetDeletedKey mocks base method
-func (m *MockKeyManagerClient) GetDeletedKey(ctx context.Context, storeName, id string) (*types.KeyResponse, error) {
+func (m *MockKeyManagerClient) GetDeletedKey(ctx context.Context, storeName, id string) (*types0.KeyResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedKey", ctx, storeName, id)
-	ret0, _ := ret[0].(*types.KeyResponse)
+	ret0, _ := ret[0].(*types0.KeyResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -963,10 +1075,10 @@ func (mr *MockKeyManagerClientMockRecorder) DestroyKey(ctx, storeName, id interf
 }
 
 // CreateEthAccount mocks base method
-func (m *MockKeyManagerClient) CreateEthAccount(ctx context.Context, storeName string, request *types.CreateEthAccountRequest) (*types.EthAccountResponse, error) {
+func (m *MockKeyManagerClient) CreateEthAccount(ctx context.Context, storeName string, request *types0.CreateEthAccountRequest) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateEthAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -978,10 +1090,10 @@ func (mr *MockKeyManagerClientMockRecorder) CreateEthAccount(ctx, storeName, req
 }
 
 // ImportEthAccount mocks base method
-func (m *MockKeyManagerClient) ImportEthAccount(ctx context.Context, storeName string, request *types.ImportEthAccountRequest) (*types.EthAccountResponse, error) {
+func (m *MockKeyManagerClient) ImportEthAccount(ctx context.Context, storeName string, request *types0.ImportEthAccountRequest) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportEthAccount", ctx, storeName, request)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -993,10 +1105,10 @@ func (mr *MockKeyManagerClientMockRecorder) ImportEthAccount(ctx, storeName, req
 }
 
 // UpdateEthAccount mocks base method
-func (m *MockKeyManagerClient) UpdateEthAccount(ctx context.Context, storeName, address string, request *types.UpdateEthAccountRequest) (*types.EthAccountResponse, error) {
+func (m *MockKeyManagerClient) UpdateEthAccount(ctx context.Context, storeName, address string, request *types0.UpdateEthAccountRequest) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateEthAccount", ctx, storeName, address, request)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1008,7 +1120,7 @@ func (mr *MockKeyManagerClientMockRecorder) UpdateEthAccount(ctx, storeName, add
 }
 
 // SignMessage mocks base method
-func (m *MockKeyManagerClient) SignMessage(ctx context.Context, storeName, account string, request *types.SignMessageRequest) (string, error) {
+func (m *MockKeyManagerClient) SignMessage(ctx context.Context, storeName, account string, request *types0.SignMessageRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignMessage", ctx, storeName, account, request)
 	ret0, _ := ret[0].(string)
@@ -1023,7 +1135,7 @@ func (mr *MockKeyManagerClientMockRecorder) SignMessage(ctx, storeName, account,
 }
 
 // SignTypedData mocks base method
-func (m *MockKeyManagerClient) SignTypedData(ctx context.Context, storeName, address string, request *types.SignTypedDataRequest) (string, error) {
+func (m *MockKeyManagerClient) SignTypedData(ctx context.Context, storeName, address string, request *types0.SignTypedDataRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTypedData", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -1038,7 +1150,7 @@ func (mr *MockKeyManagerClientMockRecorder) SignTypedData(ctx, storeName, addres
 }
 
 // SignTransaction mocks base method
-func (m *MockKeyManagerClient) SignTransaction(ctx context.Context, storeName, address string, request *types.SignETHTransactionRequest) (string, error) {
+func (m *MockKeyManagerClient) SignTransaction(ctx context.Context, storeName, address string, request *types0.SignETHTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -1053,7 +1165,7 @@ func (mr *MockKeyManagerClientMockRecorder) SignTransaction(ctx, storeName, addr
 }
 
 // SignQuorumPrivateTransaction mocks base method
-func (m *MockKeyManagerClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types.SignQuorumPrivateTransactionRequest) (string, error) {
+func (m *MockKeyManagerClient) SignQuorumPrivateTransaction(ctx context.Context, storeName, address string, request *types0.SignQuorumPrivateTransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignQuorumPrivateTransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -1068,7 +1180,7 @@ func (mr *MockKeyManagerClientMockRecorder) SignQuorumPrivateTransaction(ctx, st
 }
 
 // SignEEATransaction mocks base method
-func (m *MockKeyManagerClient) SignEEATransaction(ctx context.Context, storeName, address string, request *types.SignEEATransactionRequest) (string, error) {
+func (m *MockKeyManagerClient) SignEEATransaction(ctx context.Context, storeName, address string, request *types0.SignEEATransactionRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignEEATransaction", ctx, storeName, address, request)
 	ret0, _ := ret[0].(string)
@@ -1083,10 +1195,10 @@ func (mr *MockKeyManagerClientMockRecorder) SignEEATransaction(ctx, storeName, a
 }
 
 // GetEthAccount mocks base method
-func (m *MockKeyManagerClient) GetEthAccount(ctx context.Context, storeName, address string) (*types.EthAccountResponse, error) {
+func (m *MockKeyManagerClient) GetEthAccount(ctx context.Context, storeName, address string) (*types0.EthAccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEthAccount", ctx, storeName, address)
-	ret0, _ := ret[0].(*types.EthAccountResponse)
+	ret0, _ := ret[0].(*types0.EthAccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1170,7 +1282,7 @@ func (mr *MockKeyManagerClientMockRecorder) RestoreEthAccount(ctx, storeName, ad
 }
 
 // VerifyKeySignature mocks base method
-func (m *MockKeyManagerClient) VerifyKeySignature(ctx context.Context, request *types.VerifyKeySignatureRequest) error {
+func (m *MockKeyManagerClient) VerifyKeySignature(ctx context.Context, request *types0.VerifyKeySignatureRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1184,7 +1296,7 @@ func (mr *MockKeyManagerClientMockRecorder) VerifyKeySignature(ctx, request inte
 }
 
 // ECRecover mocks base method
-func (m *MockKeyManagerClient) ECRecover(ctx context.Context, request *types.ECRecoverRequest) (string, error) {
+func (m *MockKeyManagerClient) ECRecover(ctx context.Context, request *types0.ECRecoverRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ECRecover", ctx, request)
 	ret0, _ := ret[0].(string)
@@ -1199,7 +1311,7 @@ func (mr *MockKeyManagerClientMockRecorder) ECRecover(ctx, request interface{}) 
 }
 
 // VerifyMessage mocks base method
-func (m *MockKeyManagerClient) VerifyMessage(ctx context.Context, request *types.VerifyRequest) error {
+func (m *MockKeyManagerClient) VerifyMessage(ctx context.Context, request *types0.VerifyRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMessage", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1213,7 +1325,7 @@ func (mr *MockKeyManagerClientMockRecorder) VerifyMessage(ctx, request interface
 }
 
 // VerifyTypedData mocks base method
-func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, request *types.VerifyTypedDataRequest) error {
+func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, request *types0.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1224,6 +1336,94 @@ func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, request *typ
 func (mr *MockKeyManagerClientMockRecorder) VerifyTypedData(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyTypedData), ctx, request)
+}
+
+// CreateAlias mocks base method
+func (m *MockKeyManagerClient) CreateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, aliasKey, req)
+	ret0, _ := ret[0].(*types.AliasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAlias indicates an expected call of CreateAlias
+func (mr *MockKeyManagerClientMockRecorder) CreateAlias(ctx, registry, aliasKey, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAlias", reflect.TypeOf((*MockKeyManagerClient)(nil).CreateAlias), ctx, registry, aliasKey, req)
+}
+
+// GetAlias mocks base method
+func (m *MockKeyManagerClient) GetAlias(ctx context.Context, registry, aliasKey string) (*types.AliasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAlias", ctx, registry, aliasKey)
+	ret0, _ := ret[0].(*types.AliasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAlias indicates an expected call of GetAlias
+func (mr *MockKeyManagerClientMockRecorder) GetAlias(ctx, registry, aliasKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAlias", reflect.TypeOf((*MockKeyManagerClient)(nil).GetAlias), ctx, registry, aliasKey)
+}
+
+// UpdateAlias mocks base method
+func (m *MockKeyManagerClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, aliasKey, req)
+	ret0, _ := ret[0].(*types.AliasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAlias indicates an expected call of UpdateAlias
+func (mr *MockKeyManagerClientMockRecorder) UpdateAlias(ctx, registry, aliasKey, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAlias", reflect.TypeOf((*MockKeyManagerClient)(nil).UpdateAlias), ctx, registry, aliasKey, req)
+}
+
+// DeleteAlias mocks base method
+func (m *MockKeyManagerClient) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAlias", ctx, registry, aliasKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAlias indicates an expected call of DeleteAlias
+func (mr *MockKeyManagerClientMockRecorder) DeleteAlias(ctx, registry, aliasKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAlias", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteAlias), ctx, registry, aliasKey)
+}
+
+// ListAliases mocks base method
+func (m *MockKeyManagerClient) ListAliases(ctx context.Context, registry string) ([]types.Alias, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
+	ret0, _ := ret[0].([]types.Alias)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAliases indicates an expected call of ListAliases
+func (mr *MockKeyManagerClientMockRecorder) ListAliases(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAliases", reflect.TypeOf((*MockKeyManagerClient)(nil).ListAliases), ctx, registry)
+}
+
+// DeleteRegistry mocks base method
+func (m *MockKeyManagerClient) DeleteRegistry(ctx context.Context, registry string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRegistry indicates an expected call of DeleteRegistry
+func (mr *MockKeyManagerClientMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegistry", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteRegistry), ctx, registry)
 }
 
 // Call mocks base method

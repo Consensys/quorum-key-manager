@@ -5,7 +5,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
@@ -14,7 +14,7 @@ func (c Connector) Set(ctx context.Context, id, value string, attr *entities.Att
 	logger := c.logger.With("id", id)
 	logger.Debug("creating secret")
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionWrite, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&authentities.Operation{Action: authentities.ActionWrite, Resource: authentities.ResourceSecret})
 	if err != nil {
 		return nil, err
 	}

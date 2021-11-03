@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -49,9 +49,9 @@ Environment variable: %q`, []string{"text", "json"}, formatEnv)
 	_ = viper.BindPFlag(FormatViperKey, f.Lookup(formatFlag))
 }
 
-func NewLoggerConfig(vipr *viper.Viper) *log.Config {
-	return log.NewConfig(
-		log.LoggerLevel(vipr.GetString(LevelViperKey)),
-		log.LoggerFormat(vipr.GetString(FormatViperKey)),
+func NewLoggerConfig(vipr *viper.Viper) *zap.Config {
+	return zap.NewConfig(
+		zap.LoggerLevel(vipr.GetString(LevelViperKey)),
+		zap.LoggerFormat(vipr.GetString(FormatViperKey)),
 	)
 }

@@ -3,7 +3,7 @@ package eth
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -14,7 +14,7 @@ func (c Connector) Delete(ctx context.Context, addr ethcommon.Address) error {
 	logger := c.logger.With("address", addr.Hex())
 	logger.Debug("deleting ethereum account")
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDelete, Resource: types.ResourceEthAccount})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionDelete, Resource: entities.ResourceEthAccount})
 	if err != nil {
 		return err
 	}

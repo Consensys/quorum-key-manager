@@ -2,23 +2,27 @@ package src
 
 import (
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	"github.com/consensys/quorum-key-manager/pkg/http/middleware"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
-	"github.com/consensys/quorum-key-manager/src/auth"
+	authapp "github.com/consensys/quorum-key-manager/src/auth/app"
+	apikey "github.com/consensys/quorum-key-manager/src/infra/api-key/filesystem"
+	jwt "github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
+	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	manifests "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	app2 "github.com/consensys/quorum-key-manager/src/nodes/app"
-	stores "github.com/consensys/quorum-key-manager/src/stores/app"
-	"github.com/justinas/alice"
+	tls "github.com/consensys/quorum-key-manager/src/infra/tls/filesystem"
+	nodesapp "github.com/consensys/quorum-key-manager/src/nodes/app"
+	storesapp "github.com/consensys/quorum-key-manager/src/stores/app"
 )
 
 type Config struct {
 	HTTP     *server.Config
-	Logger   *log.Config
+	Logger   *zap.Config
 	Postgres *client.Config
-	Auth     *auth.Config
+	OIDC     *jwt.Config
+	APIKey   *apikey.Config
+	TLS      *tls.Config
 	Manifest *manifests.Config
 }
 
@@ -27,28 +31,17 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
 	// Register Service Configuration
-	err := a.RegisterServiceConfig(cfg.Auth)
+	err := a.RegisterServiceConfig(&authapp.Config{Manifest: cfg.Manifest, OIDC: cfg.OIDC, TLS: cfg.TLS, APIKey: cfg.APIKey})
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&stores.Config{Postgres: cfg.Postgres, Manifest: cfg.Manifest})
+	err = a.RegisterServiceConfig(&storesapp.Config{Postgres: cfg.Postgres, Manifest: cfg.Manifest})
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.RegisterServiceConfig(&app2.Config{Manifest: cfg.Manifest})
-	if err != nil {
-		return nil, err
-	}
-
-	// Register Services
-	err = auth.RegisterService(a, logger.WithComponent("auth"))
-	if err != nil {
-		return nil, err
-	}
-
-	err = stores.RegisterService(a, logger.WithComponent("stores"))
+	err = a.RegisterServiceConfig(&nodesapp.Config{Manifest: cfg.Manifest})
 	if err != nil {
 		return nil, err
 	}
@@ -58,25 +51,23 @@ func New(cfg *Config, logger log.Logger) (*app.App, error) {
 		return nil, err
 	}
 
+	// Register Services
+	err = authapp.RegisterService(a, logger.WithComponent("auth"))
+	if err != nil {
+		return nil, err
+	}
+
+	err = storesapp.RegisterService(a, logger.WithComponent("stores"))
+	if err != nil {
+		return nil, err
+	}
+
 	err = aliasapp.RegisterService(a, logger.WithComponent("aliases"))
 	if err != nil {
 		return nil, err
 	}
 
-	err = app2.RegisterService(a, logger.WithComponent("nodes"))
-	if err != nil {
-		return nil, err
-	}
-
-	// Set Middleware
-	authmid, err := auth.Middleware(a, logger.WithComponent("auth-mid"))
-	if err != nil {
-		return nil, err
-	}
-
-	mid := alice.New(middleware.AccessLog(logger.WithComponent("accesslog")), authmid)
-
-	err = a.SetMiddleware(mid.Then)
+	err = nodesapp.RegisterService(a, logger.WithComponent("nodes"))
 	if err != nil {
 		return nil, err
 	}

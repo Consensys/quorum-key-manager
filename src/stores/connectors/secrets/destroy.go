@@ -3,7 +3,7 @@ package secrets
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -13,7 +13,7 @@ func (c Connector) Destroy(ctx context.Context, id string) error {
 	logger := c.logger.With("id", id)
 	logger.Debug("permanently deleting secret")
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionDestroy, Resource: types.ResourceSecret})
+	err := c.authorizator.CheckPermission(&entities.Operation{Action: entities.ActionDestroy, Resource: entities.ResourceSecret})
 	if err != nil {
 		return err
 	}

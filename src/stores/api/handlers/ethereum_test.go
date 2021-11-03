@@ -9,9 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	apiTypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -33,10 +34,10 @@ const (
 	accAddress   = "0x7E654d251Da770A068413677967F6d3Ea2FeA9E4"
 )
 
-var ethUserInfo = &types.UserInfo{
+var ethUserInfo = &authentities.UserInfo{
 	Username:    "username",
 	Roles:       []string{"role1", "role2"},
-	Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
+	Permissions: []authentities.Permission{"write:key", "read:key", "sign:key"},
 }
 
 var defaultPageSize = uint64(100)
@@ -61,9 +62,7 @@ func (s *ethHandlerTestSuite) SetupTest() {
 
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.ethStore = mock.NewMockEthStore(s.ctrl)
-	s.ctx = authenticator.WithUserContext(context.Background(), &authenticator.UserContext{
-		UserInfo: ethUserInfo,
-	})
+	s.ctx = middlewares.WithUserInfo(context.Background(), ethUserInfo)
 
 	s.stores.EXPECT().Ethereum(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
 
