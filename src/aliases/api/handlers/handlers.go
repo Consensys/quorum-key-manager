@@ -1,13 +1,13 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/gorilla/mux"
 )
@@ -85,7 +85,10 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	eAlias := types.FormatAlias(regName, key, aliasReq.Value)
+	eAlias := types.FormatAlias(regName, key, aliasReq.AliasValue)
+	log.Printf("DBGTHE2: %T: %+v", eAlias, eAlias)
+	log.Printf("DBGTHE2: %T: %+v", eAlias.Value, eAlias.Value)
+	log.Printf("DBGTHE2: %T: %+v", eAlias.Value.Value, eAlias.Value.Value)
 	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
@@ -93,7 +96,10 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := types.AliasResponse{
-		Value: alias.Value,
+		AliasValue: types.AliasValue{
+			RawKind:  alias.Value.Kind,
+			RawValue: alias.Value.Value,
+		},
 	}
 	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
@@ -125,9 +131,13 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: alias.Value,
-	})
+	resp := types.AliasResponse{
+		AliasValue: types.AliasValue{
+			RawKind:  alias.Value.Kind,
+			RawValue: alias.Value.Value,
+		},
+	}
+	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -161,21 +171,21 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias := &entities.Alias{
-		RegistryName: regName,
-		Key:          key,
-		Value:        aliasReq.Value,
-	}
+	alias := types.FormatAlias(regName, key, aliasReq.AliasValue)
 
-	alias, err = h.alias.UpdateAlias(r.Context(), regName, *alias)
+	newAlias, err := h.alias.UpdateAlias(r.Context(), regName, alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
-	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: alias.Value,
-	})
+	resp := types.AliasResponse{
+		AliasValue: types.AliasValue{
+			RawKind:  newAlias.Value.Kind,
+			RawValue: newAlias.Value.Value,
+		},
+	}
+	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return

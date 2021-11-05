@@ -6,6 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
@@ -127,7 +128,15 @@ func (i *Interactor) ReplaceAliases(ctx context.Context, addrs []string) ([]stri
 			return nil, err
 		}
 
-		values = append(values, alias.Value...)
+		switch alias.Value.Kind {
+		case entities.KindArray:
+			values = append(values, alias.Value.Value.([]string)...)
+		case entities.KindString:
+			values = append(values, alias.Value.Value.(string))
+		default:
+			return nil, errors.InvalidFormatError("bad value kind")
+		}
+
 	}
 	return values, nil
 }

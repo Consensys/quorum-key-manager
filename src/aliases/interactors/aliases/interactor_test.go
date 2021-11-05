@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/mock"
@@ -51,14 +52,14 @@ func TestReplaceAliases(t *testing.T) {
 	type backendCall struct {
 		reg   string
 		key   string
-		value []string
+		value entities.AliasValue
 		err   error
 	}
 
-	groupACall := backendCall{"my-registry", "group-A", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
-	JPMCall := backendCall{"my-registry", "JPM", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
-	GSCall := backendCall{"my-registry", "GS", []string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
-	errCall := backendCall{"unknown-registry", "unknown-key", []string{""}, errors.InvalidFormatError("bad format")}
+	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.KindArray, Value: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.KindArray, Value: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
+	GSCall := backendCall{"my-registry", "GS", entities.AliasValue{Kind: entities.KindArray, Value: []string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
+	errCall := backendCall{"unknown-registry", "unknown-key", entities.AliasValue{Kind: entities.KindArray, Value: []string{""}}, errors.InvalidFormatError("bad format")}
 
 	cases := map[string]struct {
 		addrs  []string
@@ -99,7 +100,7 @@ func TestReplaceAliases(t *testing.T) {
 			for _, call := range c.calls {
 				present := false
 				for _, addr := range addrs {
-					for _, v := range call.value {
+					for _, v := range call.value.Value.([]string) {
 						if addr == v {
 							present = true
 							break
@@ -117,12 +118,12 @@ func TestReplaceSingleAlias(t *testing.T) {
 	type backendCall struct {
 		reg   string
 		key   string
-		value []string
+		value entities.AliasValue
 		err   error
 	}
 
-	groupACall := backendCall{"my-registry", "group-A", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
-	JPMCall := backendCall{"my-registry", "JPM", []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
+	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.KindArray, Value: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.KindArray, Value: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
@@ -148,6 +149,6 @@ func TestReplaceSingleAlias(t *testing.T) {
 		srv.EXPECT().GetAlias(gomock.Any(), JPMCall.reg, JPMCall.key).Return(&aliasent.Alias{Value: JPMCall.value}, JPMCall.err)
 		addr, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:JPM}}")
 		require.NoError(t, err)
-		assert.Equal(t, groupACall.value[0], addr)
+		assert.Equal(t, groupACall.value.Value.([]string)[0], addr)
 	})
 }
