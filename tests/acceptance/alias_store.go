@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/consensys/quorum-key-manager/src/aliases"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
 type aliasStoreTestSuite struct {
@@ -20,13 +20,13 @@ type aliasStoreTestSuite struct {
 	rand *rand.Rand
 }
 
-func (s *aliasStoreTestSuite) fakeAlias() aliasent.Alias {
+func (s *aliasStoreTestSuite) fakeAlias() entities.Alias {
 	randInt := s.rand.Intn(1 << 32)
 	randID := strconv.Itoa(randInt)
-	return aliasent.Alias{
+	return entities.Alias{
 		RegistryName: "JPM-" + randID,
 		Key:          "Goldman Sachs-" + randID,
-		Value:        []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
+		Value:        entities.AliasValue{Kind: entities.KindArray, Value: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
 	}
 }
 
@@ -72,7 +72,7 @@ func (s *aliasStoreTestSuite) TestUpdateAlias() {
 		require.Equal(s.T(), in, *out)
 
 		updated := in
-		updated.Value = []string{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}
+		updated.Value = entities.AliasValue{Kind: entities.KindArray, Value: []string{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}
 
 		out, err = s.srv.UpdateAlias(s.env.ctx, in.RegistryName, updated)
 		require.NoError(s.T(), err)
@@ -120,7 +120,7 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
-		newAlias.Value = []string{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}
+		newAlias.Value = entities.AliasValue{Kind: entities.KindArray, Value: []string{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}
 		out, err = s.srv.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), newAlias, *out)
