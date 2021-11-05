@@ -27,8 +27,8 @@ type Kind string
 
 const (
 	KindUnknown Kind = ""
-	KindString       = "string"
-	KindArray        = "array"
+	KindString  Kind = "string"
+	KindArray   Kind = "array"
 )
 
 type StringValue string

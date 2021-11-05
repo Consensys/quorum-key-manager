@@ -34,8 +34,7 @@ func (a *Alias) ToEntity() *entities.Alias {
 	return &entities.Alias{
 		Key:          a.Key,
 		RegistryName: a.RegistryName,
-		//TODO check for casting
-		Value: a.Value,
+		Value:        a.Value,
 	}
 }
 

@@ -6,8 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	aliasconn "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/golang/mock/gomock"
@@ -35,7 +34,7 @@ func TestParseAlias(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	loggerMock := testutils.NewMockLogger(ctrl)
 	backend := mock.NewMockService(ctrl)
-	aConn, err := aliasconn.NewInteractor(backend, loggerMock)
+	aConn, err := aliases.NewInteractor(backend, loggerMock)
 	require.NoError(t, err)
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -80,13 +79,13 @@ func TestReplaceAliases(t *testing.T) {
 	srv := mock.NewMockService(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn, err := aliasconn.NewInteractor(srv, loggerMock)
+	aConn, err := aliases.NewInteractor(srv, loggerMock)
 	require.NoError(t, err)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			for _, call := range c.calls {
-				srv.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&aliasent.Alias{Value: call.value}, call.err)
+				srv.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&entities.Alias{Value: call.value}, call.err)
 			}
 
 			addrs, err := aConn.ReplaceAliases(ctx, c.addrs)
@@ -129,23 +128,23 @@ func TestReplaceSingleAlias(t *testing.T) {
 	srv := mock.NewMockService(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn, err := aliasconn.NewInteractor(srv, loggerMock)
+	aConn, err := aliases.NewInteractor(srv, loggerMock)
 	require.NoError(t, err)
 
 	t.Run("no alias found", func(t *testing.T) {
-		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&aliasent.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))
+		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&entities.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))
 		_, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:group-A}}")
 		require.Error(t, err)
 		assert.True(t, errors.IsNotFoundError(err))
 	})
 	t.Run("more than 1 alias value", func(t *testing.T) {
-		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&aliasent.Alias{Value: groupACall.value}, groupACall.err)
+		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&entities.Alias{Value: groupACall.value}, groupACall.err)
 		_, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:group-A}}")
 		require.Error(t, err)
 		assert.True(t, errors.IsEncodingError(err))
 	})
 	t.Run("1 alias value", func(t *testing.T) {
-		srv.EXPECT().GetAlias(gomock.Any(), JPMCall.reg, JPMCall.key).Return(&aliasent.Alias{Value: JPMCall.value}, JPMCall.err)
+		srv.EXPECT().GetAlias(gomock.Any(), JPMCall.reg, JPMCall.key).Return(&entities.Alias{Value: JPMCall.value}, JPMCall.err)
 		addr, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:JPM}}")
 		require.NoError(t, err)
 		assert.Equal(t, groupACall.value.Value.([]string)[0], addr)

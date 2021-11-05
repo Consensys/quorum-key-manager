@@ -35,7 +35,7 @@ func (av AliasValue) MarshalJSON() ([]byte, error) {
 	}
 
 	// We use a local type to avoid recursive call on this
-	// marshalling method.
+	// marshaling method.
 	type loc AliasValue
 	l := loc(av)
 	b, err := json.Marshal(l)

@@ -64,7 +64,6 @@ func defaultCase() Case {
 		RawKind:  entities.KindArray,
 		RawValue: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
 	}
-	//av := types.FormatEntityAlias(ent)
 	return Case{"my-registry", "group-A", av, http.StatusOK}
 }
 
@@ -126,8 +125,8 @@ func TestCreateAlias(t *testing.T) {
 		assert.Equal(t, c.status, helper.rec.Code)
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
-		_ = res
-		//assert.Contains(t, string(res), `"code":"ST200"`)
+		// _ = res
+		assert.Contains(t, string(res), `"code":"ST200"`)
 	})
 
 }

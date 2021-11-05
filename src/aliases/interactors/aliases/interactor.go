@@ -7,7 +7,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
@@ -36,7 +35,7 @@ func NewInteractor(db aliases.Interactor, logger log.Logger) (*Interactor, error
 	}, nil
 }
 
-func (i *Interactor) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (i *Interactor) CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	logger := i.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -49,11 +48,11 @@ func (i *Interactor) CreateAlias(ctx context.Context, registry string, alias ali
 	return a, nil
 }
 
-func (i *Interactor) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
+func (i *Interactor) GetAlias(ctx context.Context, registry, aliasKey string) (*entities.Alias, error) {
 	return i.db.GetAlias(ctx, registry, aliasKey)
 }
 
-func (i *Interactor) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (i *Interactor) UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	logger := i.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
@@ -79,7 +78,7 @@ func (i *Interactor) DeleteAlias(ctx context.Context, registry, aliasKey string)
 	return nil
 }
 
-func (i *Interactor) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
+func (i *Interactor) ListAliases(ctx context.Context, registry string) ([]entities.Alias, error) {
 	return i.db.ListAliases(ctx, registry)
 }
 
