@@ -93,15 +93,9 @@ func TestCreateAlias(t *testing.T) {
 		res, err := ioutil.ReadAll(helper.rec.Body)
 		require.NoError(t, err)
 
-		oriJson, err := c.value.MarshalJSON()
-		require.NoError(t, err)
-
-		t.Log("original json resp:", string(oriJson))
-		t.Log("json resp:", string(res))
 		var resp types.AliasResponse
 		err = json.Unmarshal(res, &resp)
 		require.NoError(t, err)
-		t.Logf("after json resp: %T", resp.AliasValue.RawValue)
 
 		assert.Equal(t, types.AliasResponse{AliasValue: c.value}, resp)
 	})
@@ -122,13 +116,10 @@ func TestCreateAlias(t *testing.T) {
 
 		eVal := types.FormatAliasValue(c.value)
 		ent := testutils.NewEntAlias(c.reg, c.key, eVal)
-		t.Log("DBGTHE: ent:", ent)
-		t.Log("DBGTHE: val:", c.value)
 		helper.mock.EXPECT().CreateAlias(gomock.Any(), ent.RegistryName, ent).Return(nil, errors.AlreadyExistsError(""))
 
 		path := fmt.Sprintf("/registries/%s/aliases/%s", c.reg, c.key)
 		r, err := newJSONRequest(helper.ctx, "POST", path, &b)
-		t.Log("DBGTHE: req:", r)
 		require.NoError(t, err)
 
 		helper.router.ServeHTTP(helper.rec, r)

@@ -2,8 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities"
@@ -29,28 +27,27 @@ type AliasValue struct {
 }
 
 func (av AliasValue) MarshalJSON() ([]byte, error) {
-	fmt.Fprintf(os.Stderr, "marshal1: %+v\n", av)
 	switch av.RawKind {
 	case entities.KindArray, entities.KindString:
-		fmt.Fprintf(os.Stderr, "marshal: %+v\n", av)
+	// Nothing to do, we're good
 	default:
 		return nil, errors.InvalidFormatError(`bad alias value type: "%v"`, av.RawKind)
 	}
+
+	// We use a local type to avoid recursive call on this
+	// marshalling method.
 	type loc AliasValue
 	l := loc(av)
 	b, err := json.Marshal(l)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(os.Stderr, "%+v", av)
 
 	return b, nil
 
 }
 
 func (av *AliasValue) UnmarshalJSON(b []byte) error {
-	//fmt.Fprintf(os.Stderr, "in unmarshal: %+v, %s\n", av, b)
-	//type loc AliasValue
 	type loc struct {
 		RawKind  entities.Kind   `json:"type"`
 		RawValue json.RawMessage `json:"value"`
@@ -58,7 +55,6 @@ func (av *AliasValue) UnmarshalJSON(b []byte) error {
 	var vv loc
 
 	err := json.Unmarshal(b, &vv)
-	//fmt.Fprintf(os.Stderr, "unmarshal2: %+v, %v\n", vv, err)
 	if err != nil {
 		return err
 	}
@@ -83,14 +79,10 @@ func (av *AliasValue) UnmarshalJSON(b []byte) error {
 		}
 
 		av.RawValue = s
-		//fmt.Fprintf(os.Stderr, "unmarshal4: %+v, %v", vv, err)
 	default:
-		//fmt.Fprintf(os.Stderr, "unmarshal44: %+v, %v", vv, err)
 		return errors.InvalidFormatError(`bad alias value type: "%v"`, av.RawKind)
 	}
 
-	//fmt.Fprintf(os.Stderr, "unmarshal3: %+v, %v\n", vv, err)
-	//*av = AliasValue(vv)
 	return nil
 }
 

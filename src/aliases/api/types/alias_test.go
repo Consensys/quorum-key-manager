@@ -23,7 +23,6 @@ func TestMarshallingJSONOK(t *testing.T) {
 	for _, c := range cases {
 		var av AliasRequest
 		err := json.Unmarshal([]byte(c), &av)
-		t.Log("log:", &av, av)
 		assert.NoError(t, err)
 		b, err := json.Marshal(av)
 		assert.NoError(t, err)

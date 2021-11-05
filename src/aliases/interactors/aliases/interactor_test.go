@@ -109,7 +109,6 @@ func TestReplaceAliases(t *testing.T) {
 				}
 				assert.True(t, present)
 			}
-			t.Log(c.addrs, addrs)
 		})
 	}
 }
