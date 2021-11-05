@@ -4,26 +4,26 @@ package acceptancetests
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
-
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
+	aliasint "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
 	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
-	"github.com/stretchr/testify/suite"
 )
 
 type storeTestSuite struct {
@@ -164,7 +164,12 @@ func (s *storeTestSuite) TestKeyManagerAliases() {
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient, s.env.logger).Alias()
+	db := aliaspg.NewDatabase(s.env.postgresClient, s.env.logger).Alias()
+	testSuite.srv, s.err = aliasint.NewInteractor(db, s.env.logger)
+	if s.err != nil {
+		s.T().Error(s.err)
+		return
+	}
 	randSrc := rand.NewSource(time.Now().UnixNano())
 	testSuite.rand = rand.New(randSrc)
 	suite.Run(s.T(), testSuite)

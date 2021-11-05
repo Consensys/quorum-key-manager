@@ -26,7 +26,7 @@ func (s *aliasStoreTestSuite) fakeAlias() entities.Alias {
 	return entities.Alias{
 		RegistryName: "JPM-" + randID,
 		Key:          "Goldman Sachs-" + randID,
-		Value:        entities.AliasValue{Kind: entities.KindArray, Value: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
+		Value:        entities.AliasValue{Kind: entities.KindString, Value: "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="},
 	}
 }
 
@@ -130,6 +130,8 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 		require.NotEmpty(s.T(), als)
 		require.Len(s.T(), als, 2)
 		require.Equal(s.T(), als[0].Key, in.Key)
+		require.Equal(s.T(), als[0].Value, in.Value)
 		require.Equal(s.T(), als[1].Key, newAlias.Key)
+		require.Equal(s.T(), als[1].Value, newAlias.Value)
 	})
 }
