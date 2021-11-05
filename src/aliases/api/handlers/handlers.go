@@ -93,8 +93,8 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 
 	resp := types.AliasResponse{
 		AliasValue: types.AliasValue{
-			RawKind:  alias.Value.Kind,
-			RawValue: alias.Value.Value,
+			Kind:  alias.Value.Kind,
+			Value: alias.Value.Value,
 		},
 	}
 	err = infrahttp.WriteJSON(w, resp)
@@ -129,8 +129,8 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 
 	resp := types.AliasResponse{
 		AliasValue: types.AliasValue{
-			RawKind:  alias.Value.Kind,
-			RawValue: alias.Value.Value,
+			Kind:  alias.Value.Kind,
+			Value: alias.Value.Value,
 		},
 	}
 	err = infrahttp.WriteJSON(w, resp)
@@ -177,8 +177,8 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 
 	resp := types.AliasResponse{
 		AliasValue: types.AliasValue{
-			RawKind:  newAlias.Value.Kind,
-			RawValue: newAlias.Value.Value,
+			Kind:  newAlias.Value.Kind,
+			Value: newAlias.Value.Value,
 		},
 	}
 	err = infrahttp.WriteJSON(w, resp)

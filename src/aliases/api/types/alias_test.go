@@ -40,7 +40,7 @@ func TestUnmarshalJSONError(t *testing.T) {
 		"type": "arrayzzz",
 		"value": ["key3"]
 	}`,
-			req: AliasRequest{AliasValue: AliasValue{RawKind: "arrayzzz", RawValue: []string{"key3"}}},
+			req: AliasRequest{AliasValue: AliasValue{Kind: "arrayzzz", Value: []string{"key3"}}},
 		},
 	}
 	for _, c := range cases {

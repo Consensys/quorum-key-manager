@@ -61,8 +61,8 @@ type Case struct {
 
 func defaultCase() Case {
 	av := types.AliasValue{
-		RawKind:  entities.KindArray,
-		RawValue: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
+		Kind:  entities.KindArray,
+		Value: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="},
 	}
 	return Case{"my-registry", "group-A", av, http.StatusOK}
 }

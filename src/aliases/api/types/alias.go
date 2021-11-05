@@ -16,22 +16,22 @@ type Alias struct {
 
 func FormatAliasValue(aliasValue AliasValue) entities.AliasValue {
 	return entities.AliasValue{
-		Kind:  aliasValue.RawKind,
-		Value: aliasValue.RawValue,
+		Kind:  aliasValue.Kind,
+		Value: aliasValue.Value,
 	}
 }
 
 type AliasValue struct {
-	RawKind  entities.Kind `json:"type"`
-	RawValue interface{}   `json:"value"`
+	Kind  entities.Kind `json:"type"`
+	Value interface{}   `json:"value"`
 }
 
 func (av AliasValue) MarshalJSON() ([]byte, error) {
-	switch av.RawKind {
+	switch av.Kind {
 	case entities.KindArray, entities.KindString:
 	// Nothing to do, we're good
 	default:
-		return nil, errors.InvalidFormatError(`bad alias value type: "%v"`, av.RawKind)
+		return nil, errors.InvalidFormatError(`bad alias value type: "%v"`, av.Kind)
 	}
 
 	// We use a local type to avoid recursive call on this
@@ -49,7 +49,7 @@ func (av AliasValue) MarshalJSON() ([]byte, error) {
 
 func (av *AliasValue) UnmarshalJSON(b []byte) error {
 	type loc struct {
-		RawKind  entities.Kind   `json:"type"`
+		Kind     entities.Kind   `json:"type"`
 		RawValue json.RawMessage `json:"value"`
 	}
 	var vv loc
@@ -59,10 +59,10 @@ func (av *AliasValue) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*av = AliasValue{
-		RawKind: vv.RawKind,
+		Kind: vv.Kind,
 	}
 
-	switch av.RawKind {
+	switch av.Kind {
 	case entities.KindArray:
 		var array []string
 		err = json.Unmarshal(vv.RawValue, &array)
@@ -70,7 +70,7 @@ func (av *AliasValue) UnmarshalJSON(b []byte) error {
 			return errors.InvalidFormatError(`bad alias array value: "%+v"`, string(vv.RawValue))
 		}
 
-		av.RawValue = array
+		av.Value = array
 	case entities.KindString:
 		var s string
 		err = json.Unmarshal(vv.RawValue, &s)
@@ -78,9 +78,9 @@ func (av *AliasValue) UnmarshalJSON(b []byte) error {
 			return errors.InvalidFormatError(`bad alias string value: "%+v"`, string(vv.RawValue))
 		}
 
-		av.RawValue = s
+		av.Value = s
 	default:
-		return errors.InvalidFormatError(`bad alias value type: "%v"`, av.RawKind)
+		return errors.InvalidFormatError(`bad alias value type: "%v"`, av.Kind)
 	}
 
 	return nil
@@ -89,8 +89,8 @@ func (av *AliasValue) UnmarshalJSON(b []byte) error {
 // FormatEntityAlias format an alias entity to an alias API type.
 func FormatEntityAlias(ent entities.Alias) Alias {
 	av := AliasValue{
-		RawKind:  ent.Value.Kind,
-		RawValue: ent.Value.Value,
+		Kind:  ent.Value.Kind,
+		Value: ent.Value.Value,
 	}
 
 	return Alias{
@@ -103,8 +103,8 @@ func FormatEntityAlias(ent entities.Alias) Alias {
 // FormatAlias format an alias API type to an alias entity.
 func FormatAlias(registry, key string, value AliasValue) entities.Alias {
 	av := entities.AliasValue{
-		Kind:  value.RawKind,
-		Value: value.RawValue,
+		Kind:  value.Kind,
+		Value: value.Value,
 	}
 	return entities.Alias{
 		RegistryName: registry,
