@@ -121,7 +121,7 @@ func (s *Alias) ListAliases(ctx context.Context, registry string) ([]entities.Al
 	for i := range als {
 		als[i].Value, err = s.convertAliasValueFromDB(als[i].Value)
 		if err != nil {
-			msg := "failed to convert alias value"
+			msg := "failed to convert array alias value"
 			logger.WithError(err).Error(msg)
 			return nil, err
 		}
