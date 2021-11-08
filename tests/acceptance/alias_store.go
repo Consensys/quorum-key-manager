@@ -72,7 +72,7 @@ func (s *aliasStoreTestSuite) TestUpdateAlias() {
 		require.Equal(s.T(), in, *out)
 
 		updated := in
-		updated.Value = entities.AliasValue{Kind: entities.KindArray, Value: []string{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}
+		updated.Value = entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}
 
 		out, err = s.srv.UpdateAlias(s.env.ctx, in.RegistryName, updated)
 		require.NoError(s.T(), err)
@@ -120,7 +120,7 @@ func (s *aliasStoreTestSuite) TestListAlias() {
 
 		newAlias := in
 		newAlias.Key = `Crédit Mutuel`
-		newAlias.Value = entities.AliasValue{Kind: entities.KindArray, Value: []string{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}
+		newAlias.Value = entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"SOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}
 		out, err = s.srv.CreateAlias(s.env.ctx, in.RegistryName, newAlias)
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), newAlias, *out)

@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // Alias allows the user to associates a RegistryName + a Key to 1 or more
 // public keys stored in Value.
 type Alias struct {
@@ -13,16 +17,6 @@ type Alias struct {
 	Value AliasValue
 }
 
-type AliasValueInterface interface {
-	Kind() Kind
-	Value() interface{}
-}
-
-type AliasValue struct {
-	Kind  Kind
-	Value interface{}
-}
-
 type Kind string
 
 const (
@@ -31,22 +25,30 @@ const (
 	KindArray   Kind = "array"
 )
 
-type StringValue string
-
-func (sv StringValue) Kind() Kind {
-	return KindString
+type AliasValue struct {
+	Kind  Kind
+	Value interface{}
 }
 
-func (sv StringValue) Value() interface{} {
-	return sv
+func (av AliasValue) Array() ([]string, error) {
+	keys, ok := av.Value.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf(`alias value is not an array`)
+	}
+	var array []string
+	for _, v := range keys {
+		val, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf(`element in array is not a string: %+v`, v)
+		}
+		array = append(array, val)
+	}
+	return array, nil
 }
-
-type ArrayValue string
-
-func (av ArrayValue) Kind() Kind {
-	return KindString
-}
-
-func (av ArrayValue) Value() interface{} {
-	return av
+func (av AliasValue) String() (string, error) {
+	value, ok := av.Value.(string)
+	if !ok {
+		return "", fmt.Errorf("alias value is not a string")
+	}
+	return value, nil
 }

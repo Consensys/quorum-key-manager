@@ -1,110 +1,21 @@
 package types
 
 import (
-	"encoding/json"
-
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
 type Alias struct {
-	Key   string     `json:"key"`
-	Value AliasValue `json:"value"`
+	Key   string              `json:"key"`
+	Value entities.AliasValue `json:"value"`
 
 	registryName string
 }
 
-func FormatAliasValue(aliasValue AliasValue) entities.AliasValue {
-	return entities.AliasValue{
-		Kind:  aliasValue.Kind,
-		Value: aliasValue.Value,
-	}
-}
-
-type AliasValue struct {
-	Kind  entities.Kind `json:"type"`
-	Value interface{}   `json:"value"`
-}
-
-func (av AliasValue) MarshalJSON() ([]byte, error) {
-	switch av.Kind {
-	case entities.KindArray, entities.KindString:
-	// Nothing to do, we're good
-	default:
-		return nil, errors.InvalidFormatError(`bad alias value type: "%v"`, av.Kind)
-	}
-
-	// We use a local type to avoid recursive call on this
-	// marshaling method.
-	type loc AliasValue
-	l := loc(av)
-	b, err := json.Marshal(l)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-
-}
-
-func (av *AliasValue) UnmarshalJSON(b []byte) error {
-	type loc struct {
-		Kind     entities.Kind   `json:"type"`
-		RawValue json.RawMessage `json:"value"`
-	}
-	var vv loc
-
-	err := json.Unmarshal(b, &vv)
-	if err != nil {
-		return err
-	}
-	*av = AliasValue{
-		Kind: vv.Kind,
-	}
-
-	switch av.Kind {
-	case entities.KindArray:
-		var array []string
-		err = json.Unmarshal(vv.RawValue, &array)
-		if err != nil {
-			return errors.InvalidFormatError(`bad alias array value: "%+v"`, string(vv.RawValue))
-		}
-
-		av.Value = array
-	case entities.KindString:
-		var s string
-		err = json.Unmarshal(vv.RawValue, &s)
-		if err != nil {
-			return errors.InvalidFormatError(`bad alias string value: "%+v"`, string(vv.RawValue))
-		}
-
-		av.Value = s
-	default:
-		return errors.InvalidFormatError(`bad alias value type: "%v"`, av.Kind)
-	}
-
-	return nil
-}
-
-// FormatEntityAlias format an alias entity to an alias API type.
-func FormatEntityAlias(ent entities.Alias) Alias {
-	av := AliasValue{
-		Kind:  ent.Value.Kind,
-		Value: ent.Value.Value,
-	}
-
-	return Alias{
-		registryName: ent.RegistryName,
-		Key:          ent.Key,
-		Value:        av,
-	}
-}
-
 // FormatAlias format an alias API type to an alias entity.
-func FormatAlias(registry, key string, value AliasValue) entities.Alias {
+func FormatAlias(registry, key string, kind entities.Kind, value interface{}) entities.Alias {
 	av := entities.AliasValue{
-		Kind:  value.Kind,
-		Value: value.Value,
+		Kind:  kind,
+		Value: value,
 	}
 	return entities.Alias{
 		RegistryName: registry,
@@ -117,7 +28,11 @@ func FormatAlias(registry, key string, value AliasValue) entities.Alias {
 func FormatEntityAliases(ents []entities.Alias) []Alias {
 	var als = []Alias{}
 	for _, v := range ents {
-		als = append(als, FormatEntityAlias(v))
+		als = append(als, Alias{
+			registryName: v.RegistryName,
+			Key:          v.Key,
+			Value:        v.Value,
+		})
 	}
 
 	return als
@@ -125,10 +40,12 @@ func FormatEntityAliases(ents []entities.Alias) []Alias {
 
 // AliasRequest creates or modifies an alias value.
 type AliasRequest struct {
-	AliasValue
+	Kind  entities.Kind `json:"type" validate:"required" example:"string"`
+	Value interface{}   `json:"value" validate:"required" example:"a2V5MQo=" swaggertype:"string"`
 }
 
 // AliasResponse returns the alias value.
 type AliasResponse struct {
-	AliasValue
+	Kind  entities.Kind `json:"type"`
+	Value interface{}   `json:"value"`
 }

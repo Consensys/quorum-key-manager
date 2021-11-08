@@ -59,13 +59,6 @@ func (s *Alias) GetAlias(ctx context.Context, registry, aliasKey string) (*entit
 		return nil, err
 	}
 
-	a.Value, err = s.convertAliasValueFromDB(a.Value)
-	if err != nil {
-		msg := "failed to convert alias value"
-		logger.WithError(err).Error(msg)
-		return nil, err
-	}
-
 	return a.ToEntity(), nil
 }
 
@@ -118,43 +111,10 @@ func (s *Alias) ListAliases(ctx context.Context, registry string) ([]entities.Al
 		logger.WithError(err).Error(msg)
 		return nil, err
 	}
-	for i := range als {
-		als[i].Value, err = s.convertAliasValueFromDB(als[i].Value)
-		if err != nil {
-			msg := "failed to convert array alias value"
-			logger.WithError(err).Error(msg)
-			return nil, err
-		}
-	}
 
 	return models.AliasesToEntity(als), nil
 }
 
 func (s *Alias) DeleteRegistry(ctx context.Context, registry string) error {
 	return errors.NotImplementedError("DeleteRegistry not implemented")
-}
-
-func (s *Alias) convertAliasValueFromDB(a entities.AliasValue) (entities.AliasValue, error) {
-	switch a.Kind {
-	case entities.KindArray:
-		// go-pg gets the stored []string as []interface{}, we need to convert
-		stored, ok := a.Value.([]interface{})
-		if !ok {
-			return a, errors.EncodingError("failed to get correct alias array value")
-		}
-		var s []string
-		for _, v := range stored {
-			val, ok := v.(string)
-			if !ok {
-				return a, errors.EncodingError("failed to get correct alias array item value")
-			}
-			s = append(s, val)
-		}
-		a.Value = s
-	case entities.KindString:
-		// we don't need anything specific for KindString as the go-pg unmarshaller converts to the right type.
-	default:
-		return a, errors.EncodingError("failed to get correct alias value")
-	}
-	return a, nil
 }

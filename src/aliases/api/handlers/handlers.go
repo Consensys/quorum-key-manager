@@ -84,18 +84,16 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	eAlias := types.FormatAlias(regName, key, aliasReq.AliasValue)
-	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
+	alias := types.FormatAlias(regName, key, aliasReq.Kind, aliasReq.Value)
+	respAlias, err := h.alias.CreateAlias(r.Context(), alias.RegistryName, alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	resp := types.AliasResponse{
-		AliasValue: types.AliasValue{
-			Kind:  alias.Value.Kind,
-			Value: alias.Value.Value,
-		},
+		Kind:  respAlias.Value.Kind,
+		Value: respAlias.Value.Value,
 	}
 	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
@@ -128,10 +126,8 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := types.AliasResponse{
-		AliasValue: types.AliasValue{
-			Kind:  alias.Value.Kind,
-			Value: alias.Value.Value,
-		},
+		Kind:  alias.Value.Kind,
+		Value: alias.Value.Value,
 	}
 	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
@@ -167,7 +163,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias := types.FormatAlias(regName, key, aliasReq.AliasValue)
+	alias := types.FormatAlias(regName, key, aliasReq.Kind, aliasReq.Value)
 
 	newAlias, err := h.alias.UpdateAlias(r.Context(), regName, alias)
 	if err != nil {
@@ -176,10 +172,8 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := types.AliasResponse{
-		AliasValue: types.AliasValue{
-			Kind:  newAlias.Value.Kind,
-			Value: newAlias.Value.Value,
-		},
+		Kind:  newAlias.Value.Kind,
+		Value: newAlias.Value.Value,
 	}
 	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {

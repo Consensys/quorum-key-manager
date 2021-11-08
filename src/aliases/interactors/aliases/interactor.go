@@ -35,11 +35,41 @@ func NewInteractor(db aliases.Interactor, logger log.Logger) (*Interactor, error
 	}, nil
 }
 
+func (i *Interactor) validateAliasValue(av entities.AliasValue) error {
+	switch av.Kind {
+	case entities.KindArray:
+		_, err := av.Array()
+		if err != nil {
+			msg := "bad alias array value"
+			i.logger.WithError(err).Error(msg)
+			return errors.InvalidParameterError(msg)
+		}
+	case entities.KindString:
+		_, err := av.String()
+		if err != nil {
+			msg := "bad alias string value"
+			i.logger.WithError(err).Error(msg)
+			return errors.InvalidParameterError(msg)
+		}
+	default:
+		msg := "bad alias value type"
+		i.logger.Error(msg)
+		return errors.InvalidParameterError(msg)
+	}
+	return nil
+}
+
 func (i *Interactor) CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	logger := i.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
+
+	err := i.validateAliasValue(alias.Value)
+	if err != nil {
+		return nil, err
+	}
+
 	a, err := i.db.CreateAlias(ctx, registry, alias)
 	if err != nil {
 		return nil, err
@@ -57,6 +87,12 @@ func (i *Interactor) UpdateAlias(ctx context.Context, registry string, alias ent
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
+
+	err := i.validateAliasValue(alias.Value)
+	if err != nil {
+		return nil, err
+	}
+
 	a, err := i.db.UpdateAlias(ctx, registry, alias)
 	if err != nil {
 		return nil, err
@@ -129,7 +165,19 @@ func (i *Interactor) ReplaceAliases(ctx context.Context, addrs []string) ([]stri
 
 		switch alias.Value.Kind {
 		case entities.KindArray:
-			values = append(values, alias.Value.Value.([]string)...)
+			vals, ok := alias.Value.Value.([]interface{})
+			if !ok {
+				return nil, errors.InvalidFormatError("bad array format")
+			}
+
+			for _, v := range vals {
+				str, ok := v.(string)
+				if !ok {
+					return nil, errors.InvalidFormatError("bad array value type")
+				}
+
+				values = append(values, str)
+			}
 		case entities.KindString:
 			values = append(values, alias.Value.Value.(string))
 		default:
