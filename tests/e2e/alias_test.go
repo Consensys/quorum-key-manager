@@ -14,7 +14,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -39,8 +38,8 @@ func TestAlias(t *testing.T) {
 type testAlias struct {
 	reg    string
 	key    string
-	val    types.AliasValue
-	newVal types.AliasValue
+	val    entities.AliasValue
+	newVal entities.AliasValue
 }
 
 func (s *aliasTestSuite) fakeAlias() testAlias {
@@ -49,8 +48,8 @@ func (s *aliasTestSuite) fakeAlias() testAlias {
 	return testAlias{
 		reg:    "JPM-" + randID,
 		key:    "GoldmanSachs-" + randID,
-		val:    types.AliasValue{RawKind: entities.KindArray, RawValue: []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
-		newVal: types.AliasValue{RawKind: entities.KindArray, RawValue: []string{"ZOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
+		val:    entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
+		newVal: entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ZOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
 	}
 }
 
@@ -58,31 +57,35 @@ func (s *aliasTestSuite) TestFull() {
 	fakeAlias := s.fakeAlias()
 
 	s.Run("should create a new alias successfully", func() {
-		a, err := s.env.client.CreateAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.val})
+		a, err := s.env.client.CreateAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Kind: fakeAlias.val.Kind, Value: fakeAlias.val.Value})
 		s.Require().NoError(err)
 
-		s.Equal(fakeAlias.val, a.AliasValue)
+		s.Equal(fakeAlias.val.Kind, a.Kind)
+		s.Equal(fakeAlias.val.Value, a.Value)
 	})
 
 	s.Run("should get the new alias successfully", func() {
 		a, err := s.env.client.GetAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key)
 		s.Require().NoError(err)
 
-		s.Equal(fakeAlias.val, a.AliasValue)
+		s.Equal(fakeAlias.val.Kind, a.Kind)
+		s.Equal(fakeAlias.val.Value, a.Value)
 	})
 
 	s.Run("should update the new alias with a new value successfully", func() {
-		a, err := s.env.client.UpdateAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.newVal})
+		a, err := s.env.client.UpdateAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Kind: fakeAlias.newVal.Kind, Value: fakeAlias.newVal.Value})
 		s.Require().NoError(err)
 
-		s.Equal(fakeAlias.newVal, a.AliasValue)
+		s.Equal(fakeAlias.newVal.Kind, a.Kind)
+		s.Equal(fakeAlias.newVal.Value, a.Value)
 	})
 
 	s.Run("should get the update alias successfully", func() {
 		a, err := s.env.client.GetAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key)
 		s.Require().NoError(err)
 
-		s.Equal(fakeAlias.newVal, a.AliasValue)
+		s.Equal(fakeAlias.newVal.Kind, a.Kind)
+		s.Equal(fakeAlias.newVal.Value, a.Value)
 	})
 
 	s.Run("should list the updated alias successfully", func() {
@@ -112,7 +115,7 @@ func (s *aliasTestSuite) TestUpdateAlias() {
 	s.Run("should fail with not found if key does not exist", func() {
 		fakeAlias := fakeAlias
 		fakeAlias.key = "notfound-key"
-		_, err := s.env.client.UpdateAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Value: fakeAlias.newVal})
+		_, err := s.env.client.UpdateAlias(s.env.ctx, fakeAlias.reg, fakeAlias.key, types.AliasRequest{Kind: fakeAlias.newVal.Kind, Value: fakeAlias.newVal.Value})
 		s.Require().Error(err)
 
 		s.checkErr(err, http.StatusNotFound)
