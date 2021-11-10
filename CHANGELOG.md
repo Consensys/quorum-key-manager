@@ -1,5 +1,10 @@
 # Quorum Key Manager Release Notes
 
+## v21.9.3 (2021-10-18)
+
+### 🛠 Bug fixes
+* Fixes bug in Hashicorp client that prevents the process from exiting when a new token is written or updated from filesystem.
+
 ## v21.9.2 (2021-10-18)
 
 ### 🛠 Bug fixes
