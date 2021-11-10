@@ -77,17 +77,16 @@ func (rtl *RenewTokenWatcher) Start(ctx context.Context) error {
 			}
 
 			if event.Op&fsnotify.Write == fsnotify.Write {
-				rtl.logger.With("event_name", event.Name).Debug("file has been updated")
+				rtl.logger.Debug("token file has been updated")
 				if err := rtl.refreshToken(); err != nil {
 					return err
 				}
 			} else if event.Op&fsnotify.Create == fsnotify.Create {
-				rtl.logger.With("event_name", event.Name).Debug("file has been created")
+				rtl.logger.Debug("token file has been created")
 				if err := rtl.refreshToken(); err != nil {
 					return err
 				}
 			}
-			rtl.logger.Debug("event:", event)
 		case err, ok := <-rtl.watcher.Errors:
 			if !ok {
 				return nil

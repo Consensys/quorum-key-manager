@@ -58,6 +58,7 @@ func (s *Alias) GetAlias(ctx context.Context, registry, aliasKey string) (*entit
 		logger.WithError(err).Error(msg)
 		return nil, err
 	}
+
 	return a.ToEntity(), nil
 }
 

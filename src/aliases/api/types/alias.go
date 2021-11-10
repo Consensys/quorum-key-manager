@@ -1,29 +1,26 @@
 package types
 
-import "github.com/consensys/quorum-key-manager/src/aliases/entities"
+import (
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
+)
 
 type Alias struct {
-	Key   string   `json:"key"`
-	Value []string `json:"value"`
+	Key   string              `json:"key"`
+	Value entities.AliasValue `json:"value"`
 
 	registryName string
 }
 
-// FormatEntityAlias format an alias entity to an alias API type.
-func FormatEntityAlias(ent entities.Alias) Alias {
-	return Alias{
-		registryName: ent.RegistryName,
-		Key:          ent.Key,
-		Value:        ent.Value,
-	}
-}
-
 // FormatAlias format an alias API type to an alias entity.
-func FormatAlias(registry, key string, value []string) entities.Alias {
+func FormatAlias(registry, key string, kind entities.Kind, value interface{}) entities.Alias {
+	av := entities.AliasValue{
+		Kind:  kind,
+		Value: value,
+	}
 	return entities.Alias{
 		RegistryName: registry,
 		Key:          key,
-		Value:        value,
+		Value:        av,
 	}
 }
 
@@ -31,7 +28,11 @@ func FormatAlias(registry, key string, value []string) entities.Alias {
 func FormatEntityAliases(ents []entities.Alias) []Alias {
 	var als = []Alias{}
 	for _, v := range ents {
-		als = append(als, FormatEntityAlias(v))
+		als = append(als, Alias{
+			registryName: v.RegistryName,
+			Key:          v.Key,
+			Value:        v.Value,
+		})
 	}
 
 	return als
@@ -39,10 +40,12 @@ func FormatEntityAliases(ents []entities.Alias) []Alias {
 
 // AliasRequest creates or modifies an alias value.
 type AliasRequest struct {
-	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
+	Kind  entities.Kind `json:"type" validate:"required" example:"string"`
+	Value interface{}   `json:"value" validate:"required" example:"a2V5MQo=" swaggertype:"string"`
 }
 
 // AliasResponse returns the alias value.
 type AliasResponse struct {
-	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
+	Kind  entities.Kind `json:"type"`
+	Value interface{}   `json:"value"`
 }

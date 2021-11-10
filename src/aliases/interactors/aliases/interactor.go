@@ -6,7 +6,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases"
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
@@ -35,11 +35,41 @@ func NewInteractor(db aliases.Interactor, logger log.Logger) (*Interactor, error
 	}, nil
 }
 
-func (i *Interactor) CreateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (i *Interactor) validateAliasValue(av entities.AliasValue) error {
+	switch av.Kind {
+	case entities.KindArray:
+		_, err := av.Array()
+		if err != nil {
+			msg := "bad alias array value"
+			i.logger.WithError(err).Error(msg)
+			return errors.InvalidParameterError(msg)
+		}
+	case entities.KindString:
+		_, err := av.String()
+		if err != nil {
+			msg := "bad alias string value"
+			i.logger.WithError(err).Error(msg)
+			return errors.InvalidParameterError(msg)
+		}
+	default:
+		msg := "bad alias value type"
+		i.logger.Error(msg)
+		return errors.InvalidParameterError(msg)
+	}
+	return nil
+}
+
+func (i *Interactor) CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	logger := i.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
+
+	err := i.validateAliasValue(alias.Value)
+	if err != nil {
+		return nil, err
+	}
+
 	a, err := i.db.CreateAlias(ctx, registry, alias)
 	if err != nil {
 		return nil, err
@@ -48,15 +78,21 @@ func (i *Interactor) CreateAlias(ctx context.Context, registry string, alias ali
 	return a, nil
 }
 
-func (i *Interactor) GetAlias(ctx context.Context, registry, aliasKey string) (*aliasent.Alias, error) {
+func (i *Interactor) GetAlias(ctx context.Context, registry, aliasKey string) (*entities.Alias, error) {
 	return i.db.GetAlias(ctx, registry, aliasKey)
 }
 
-func (i *Interactor) UpdateAlias(ctx context.Context, registry string, alias aliasent.Alias) (*aliasent.Alias, error) {
+func (i *Interactor) UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
 	logger := i.logger.With(
 		"registry_name", registry,
 		"alias_key", alias.Key,
 	)
+
+	err := i.validateAliasValue(alias.Value)
+	if err != nil {
+		return nil, err
+	}
+
 	a, err := i.db.UpdateAlias(ctx, registry, alias)
 	if err != nil {
 		return nil, err
@@ -78,7 +114,7 @@ func (i *Interactor) DeleteAlias(ctx context.Context, registry, aliasKey string)
 	return nil
 }
 
-func (i *Interactor) ListAliases(ctx context.Context, registry string) ([]aliasent.Alias, error) {
+func (i *Interactor) ListAliases(ctx context.Context, registry string) ([]entities.Alias, error) {
 	return i.db.ListAliases(ctx, registry)
 }
 
@@ -127,7 +163,27 @@ func (i *Interactor) ReplaceAliases(ctx context.Context, addrs []string) ([]stri
 			return nil, err
 		}
 
-		values = append(values, alias.Value...)
+		switch alias.Value.Kind {
+		case entities.KindArray:
+			vals, ok := alias.Value.Value.([]interface{})
+			if !ok {
+				return nil, errors.InvalidFormatError("bad array format")
+			}
+
+			for _, v := range vals {
+				str, ok := v.(string)
+				if !ok {
+					return nil, errors.InvalidFormatError("bad array value type")
+				}
+
+				values = append(values, str)
+			}
+		case entities.KindString:
+			values = append(values, alias.Value.Value.(string))
+		default:
+			return nil, errors.InvalidFormatError("bad value kind")
+		}
+
 	}
 	return values, nil
 }

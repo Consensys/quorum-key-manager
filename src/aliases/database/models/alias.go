@@ -15,17 +15,18 @@ type Alias struct {
 	// RegistryName is the unique registry name.
 	RegistryName string `pg:",pk"`
 
-	// Value is a slice containing Tessera/Orion keys base64 encoded in strings.
-	Value []string
+	Value entities.AliasValue
 }
 
 // AliasFromEntitiy transforms an alias entity into an alias model.
-func AliasFromEntity(ent entities.Alias) (alias Alias) {
-	return Alias{
+func AliasFromEntity(ent entities.Alias) Alias {
+	av := Alias{
 		Key:          ent.Key,
 		RegistryName: ent.RegistryName,
 		Value:        ent.Value,
 	}
+
+	return av
 }
 
 // ToEntity transforms an alias model into an alias entity.

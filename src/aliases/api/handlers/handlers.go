@@ -7,7 +7,6 @@ import (
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/gorilla/mux"
 )
@@ -85,15 +84,16 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	eAlias := types.FormatAlias(regName, key, aliasReq.Value)
-	alias, err := h.alias.CreateAlias(r.Context(), eAlias.RegistryName, eAlias)
+	alias := types.FormatAlias(regName, key, aliasReq.Kind, aliasReq.Value)
+	respAlias, err := h.alias.CreateAlias(r.Context(), alias.RegistryName, alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
 	resp := types.AliasResponse{
-		Value: alias.Value,
+		Kind:  respAlias.Value.Kind,
+		Value: respAlias.Value.Value,
 	}
 	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
@@ -125,9 +125,11 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: alias.Value,
-	})
+	resp := types.AliasResponse{
+		Kind:  alias.Value.Kind,
+		Value: alias.Value.Value,
+	}
+	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -161,21 +163,19 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias := &entities.Alias{
-		RegistryName: regName,
-		Key:          key,
-		Value:        aliasReq.Value,
-	}
+	alias := types.FormatAlias(regName, key, aliasReq.Kind, aliasReq.Value)
 
-	alias, err = h.alias.UpdateAlias(r.Context(), regName, *alias)
+	newAlias, err := h.alias.UpdateAlias(r.Context(), regName, alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
 	}
 
-	err = infrahttp.WriteJSON(w, types.AliasResponse{
-		Value: alias.Value,
-	})
+	resp := types.AliasResponse{
+		Kind:  newAlias.Value.Kind,
+		Value: newAlias.Value.Value,
+	}
+	err = infrahttp.WriteJSON(w, resp)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
