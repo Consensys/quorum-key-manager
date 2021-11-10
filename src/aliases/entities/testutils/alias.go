@@ -1,11 +1,11 @@
 package testutils
 
 import (
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 )
 
-func NewEntAlias(registry, key string, value []string) aliasent.Alias {
-	return aliasent.Alias{
+func NewEntAlias(registry, key string, value entities.AliasValue) entities.Alias {
+	return entities.Alias{
 		RegistryName: registry,
 		Key:          key,
 		Value:        value,
