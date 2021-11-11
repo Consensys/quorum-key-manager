@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	"github.com/consensys/quorum-key-manager/src/infra/api-key/filesystem"
+	"github.com/consensys/quorum-key-manager/src/infra/api-key/csv"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -30,11 +30,11 @@ Environment variable: %q`, authAPIKeyFileEnv)
 	_ = viper.BindPFlag(authAPIKeyFileViperKey, f.Lookup(authAPIKeyFileFlag))
 }
 
-func NewAPIKeyConfig(vipr *viper.Viper) *filesystem.Config {
+func NewAPIKeyConfig(vipr *viper.Viper) *csv.Config {
 	path := vipr.GetString(authAPIKeyFileViperKey)
 
 	if path != "" {
-		return filesystem.NewConfig(path)
+		return csv.NewConfig(path)
 	}
 
 	return nil

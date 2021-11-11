@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+	manifest "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
 
 	akvclient "github.com/consensys/quorum-key-manager/src/infra/akv/client"
@@ -16,8 +17,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 
 	"github.com/consensys/quorum-key-manager/pkg/json"
-
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 

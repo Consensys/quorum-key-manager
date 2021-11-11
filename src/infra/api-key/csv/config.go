@@ -1,4 +1,4 @@
-package filesystem
+package csv
 
 type Config struct {
 	Path string

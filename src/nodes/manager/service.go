@@ -3,6 +3,8 @@ package nodemanager
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/entities"
+	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/yaml"
 	"sort"
 	"sync"
 
@@ -10,15 +12,11 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/json"
 
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-
 	"github.com/consensys/quorum-key-manager/src/auth"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"
 	"github.com/consensys/quorum-key-manager/src/nodes/node"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
@@ -28,10 +26,10 @@ import (
 const ID = "NodeManager"
 
 type BaseManager struct {
-	stores      stores.Manager
-	manifests   manifests.Reader
-	authManager auth.Manager
-	aliasParser aliases.Parser
+	storesService stores.Stores
+	manifests     []entities.Manifest
+	authManager   auth.Manager
+	aliasParser   aliases.Parser
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
@@ -43,34 +41,27 @@ type BaseManager struct {
 }
 
 type nodeBundle struct {
-	mnf  *manifest.Manifest
+	mnf  *entities.Manifest
 	node node.Node
 	err  error
 	stop func(context.Context) error
 }
 
-func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, aliasParser aliases.Parser, logger log.Logger) *BaseManager {
+func New(storesService stores.Stores, manifests []entities.Manifest, authManager auth.Manager, aliasParser aliases.Parser, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		stores:      smng,
-		manifests:   manifestReader,
-		mux:         sync.RWMutex{},
-		nodes:       make(map[string]*nodeBundle),
-		authManager: authManager,
-		aliasParser: aliasParser,
-		logger:      logger,
+		storesService: storesService,
+		manifests:     manifests,
+		mux:           sync.RWMutex{},
+		nodes:         make(map[string]*nodeBundle),
+		authManager:   authManager,
+		aliasParser:   aliasParser,
+		logger:        logger,
 	}
 }
 
 func (m *BaseManager) Start(ctx context.Context) error {
-	mnfs, err := m.manifests.Load(ctx)
-	if err != nil {
-		errMessage := "failed to load manifest file"
-		m.logger.WithError(err).Error(errMessage)
-		return errors.ConfigError(errMessage)
-	}
-
-	for _, mnf := range mnfs {
-		err = m.createNodes(ctx, mnf)
+	for _, mnf := range m.manifests {
+		err := m.createNodes(ctx, &mnf)
 		if err != nil {
 			return err
 		}
@@ -156,7 +147,7 @@ func (m *BaseManager) List(_ context.Context, userInfo *authtypes.UserInfo) ([]s
 	return nodeNames, nil
 }
 
-func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) error {
+func (m *BaseManager) createNodes(ctx context.Context, mnf *entities.Manifest) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
@@ -191,7 +182,7 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler, err = interceptor.New(m.stores.Stores(), m.aliasParser, m.logger)
+		prxNode.Handler, err = interceptor.New(m.storesService, m.aliasParser, m.logger)
 		if err != nil {
 			logger.WithError(err).Error("failed to create interceptor")
 			n.err = err

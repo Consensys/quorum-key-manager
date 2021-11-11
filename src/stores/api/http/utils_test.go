@@ -1,14 +1,14 @@
-package handlers
+package http
 
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"

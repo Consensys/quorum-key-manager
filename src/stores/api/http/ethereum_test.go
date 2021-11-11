@@ -1,10 +1,11 @@
-package handlers
+package http
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +15,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	apiTypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"

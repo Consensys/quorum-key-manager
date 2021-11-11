@@ -1,4 +1,4 @@
-package handlers
+package http
 
 // @TODO Remove duplicated types once make gen-swagger issue is identified
 

@@ -20,7 +20,25 @@ func UnmarshalBody(body io.Reader, req interface{}) error {
 		return err
 	}
 
-	err = getValidator().Struct(req)
+	return validateStruct(req)
+}
+
+func UnmarshalJSON(src, dest interface{}) error {
+	bdata, err := MarshalJSON(src)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(bdata, dest)
+	if err != nil {
+		return err
+	}
+
+	return validateStruct(dest)
+}
+
+func validateStruct(s interface{}) error {
+	err := getValidator().Struct(s)
 	if err != nil {
 		if ves, ok := err.(validator.ValidationErrors); ok {
 			var errMessage string
@@ -35,13 +53,4 @@ func UnmarshalBody(body io.Reader, req interface{}) error {
 	}
 
 	return nil
-}
-
-func UnmarshalJSON(src, dest interface{}) error {
-	bdata, err := MarshalJSON(src)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(bdata, dest)
 }

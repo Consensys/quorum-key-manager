@@ -1,4 +1,4 @@
-package filesystem
+package csv
 
 import (
 	"context"

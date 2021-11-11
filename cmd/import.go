@@ -3,13 +3,13 @@ package cmd
 import (
 	"context"
 	"fmt"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/yaml"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
 	storeservice "github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
@@ -21,7 +21,7 @@ import (
 func newImportCmd() *cobra.Command {
 	var logger *zap.Logger
 	var storesConnector storeservice.Stores
-	var mnf *manifest.Manifest
+	var mnf *entities2.Manifest
 
 	importCmd := &cobra.Command{
 		Use:   "import",
@@ -55,7 +55,7 @@ func newImportCmd() *cobra.Command {
 		Short: "import secrets from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if err := storesConnector.CreateSecret(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
+			if err := storesConnector.CreateSecret(ctx, mnf.Name, entities2.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
 				return err
 			}
 
@@ -69,7 +69,7 @@ func newImportCmd() *cobra.Command {
 		Short: "import keys from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if err := storesConnector.CreateKey(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
+			if err := storesConnector.CreateKey(ctx, mnf.Name, entities2.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
 				return err
 			}
 
@@ -83,7 +83,7 @@ func newImportCmd() *cobra.Command {
 		Short: "import ethereum accounts from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if err := storesConnector.CreateEthereum(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
+			if err := storesConnector.CreateEthereum(ctx, mnf.Name, entities2.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
 				return err
 			}
 
@@ -109,7 +109,7 @@ func getStores(logger log.Logger) (storeservice.Stores, error) {
 	return stores.NewConnector(nil, postgres.New(logger, postgresClient), logger), nil
 }
 
-func getManifest(ctx context.Context) (*manifest.Manifest, error) {
+func getManifest(ctx context.Context) (*entities2.Manifest, error) {
 	vipr := viper.GetViper()
 	// Get manifests
 	manifestReader, err := manifestreader.New(flags.NewManifestConfig(vipr))
@@ -125,8 +125,8 @@ func getManifest(ctx context.Context) (*manifest.Manifest, error) {
 	storeName := flags.GetStoreName(vipr)
 
 	for _, mnf := range manifests {
-		// TODO: Filter on Load() function from reader when Kind Store implemented
-		if mnf.Kind == manifest.Role || mnf.Kind == manifest.Node {
+		// TODO: Filter on Load() function from reader when ManifestKind Store implemented
+		if mnf.Kind == manifestreader.Role || mnf.Kind == manifestreader.Node {
 			continue
 		}
 

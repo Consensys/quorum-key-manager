@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/yaml"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"io/ioutil"
 	"os"
@@ -131,8 +131,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Namespace:  "",
 	}
 	tmpYml, err := newTmpManifestYml(
-		&manifest.Manifest{
-			Kind:  manifest.Kind(manifest.HashicorpKeys),
+		&manifestreader.manifest{
+			Kind:  manifestreader.manifest.Kind(manifestreader.manifest.HashicorpKeys),
 			Name:  HashicorpKeyStoreName,
 			Specs: hashicorpSpecs,
 		},
@@ -310,7 +310,7 @@ func newTmpFile(data interface{}) (string, error) {
 	return file.Name(), nil
 }
 
-func newTmpManifestYml(manifests ...*manifest.Manifest) (string, error) {
+func newTmpManifestYml(manifests ...*manifestreader.manifest) (string, error) {
 	file, err := ioutil.TempFile(os.TempDir(), "acceptanceTest_")
 	if err != nil {
 		return "", err

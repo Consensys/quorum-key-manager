@@ -1,4 +1,4 @@
-package filesystem
+package yaml
 
 type Config struct {
 	Path string

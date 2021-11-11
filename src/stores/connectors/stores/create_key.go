@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+	manifest "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -16,7 +17,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 

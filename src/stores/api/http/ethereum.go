@@ -1,8 +1,9 @@
-package handlers
+package http
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
@@ -15,7 +16,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/stores"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/gorilla/mux"

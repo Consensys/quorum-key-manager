@@ -1,0 +1,41 @@
+- kind: Vault
+  type: hashicorp
+  name: hashicorp-kv-v2
+  specs:
+    mountPoint: secret
+    address: http://hashicorp:8200
+    tokenPath: /vault/token/.root
+    namespace: ''
+    # clientCert: /certificates/client.crt
+    # clientKey: /certificates/client.key
+    # CACert: /ca/ca.crt
+
+- kind: Vault
+  type: hashicorp
+  name: hashicorp-quorum
+  specs:
+    mountPoint: quorum
+    address: http://hashicorp:8200
+    tokenPath: /vault/token/.root
+    namespace: ''
+    # clientCert: /certificates/client.crt
+    # clientKey: /certificates/client.key
+    # CACert: /ca/ca.crt
+
+- kind: Vault
+  type: azure
+  name: akv-europe
+  specs:
+    vaultName: {REPLACE BY VAULT NAME}
+    tenantID: {REPLACE BY AKV TENANT ID}
+    clientID: {REPLACE BY AKV CLIENT ID}
+    clientSecret: {REPLACE BY AKV CLIENT SECRET}
+
+- kind: Vault
+  type: aws
+  name: aws-europe
+  specs:
+    accessID: {REPLACE BY AWS ACCESS ID}
+    secretKey: {REPLACE BY AWS SECRET KEY}
+    region: {REPLACE BY AWS SECRET REGION}
+    debug: false

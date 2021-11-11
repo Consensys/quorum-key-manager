@@ -2,12 +2,11 @@ package stores
 
 import (
 	"context"
-
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+	manifest "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/ethereum/go-ethereum/common"
 

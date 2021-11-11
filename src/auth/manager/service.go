@@ -3,50 +3,37 @@ package manager
 import (
 	"context"
 	"fmt"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"sync"
 
 	"github.com/consensys/quorum-key-manager/pkg/json"
 
-	"github.com/consensys/quorum-key-manager/src/infra/manifests"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
-
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
 const ID = "AuthManager"
 
 type BaseManager struct {
-	manifestReader manifests.Reader
-
-	mux   sync.RWMutex
-	roles map[string]*entities.Role
-
-	isLive bool
-
-	logger log.Logger
+	manifests []entities2.Manifest
+	mux       sync.RWMutex
+	roles     map[string]*entities.Role
+	isLive    bool
+	logger    log.Logger
 }
 
-func New(manifestReader manifests.Reader, logger log.Logger) *BaseManager {
+func New(manifests []entities2.Manifest, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		manifestReader: manifestReader,
-		roles:          make(map[string]*entities.Role),
-		logger:         logger,
+		manifests: manifests,
+		roles:     make(map[string]*entities.Role),
+		logger:    logger,
 	}
 }
 
-func (mngr *BaseManager) Start(ctx context.Context) error {
-	mnfs, err := mngr.manifestReader.Load(ctx)
-	if err != nil {
-		errMessage := "failed to load manifest file"
-		mngr.logger.WithError(err).Error(errMessage)
-		return errors.ConfigError(errMessage)
-	}
-
-	for _, mnf := range mnfs {
-		_ = mngr.load(mnf)
+func (mngr *BaseManager) Start(_ context.Context) error {
+	for _, mnf := range mngr.manifests {
+		err := mngr.load(&mnf)
 		if err != nil {
 			return err
 		}
@@ -104,35 +91,31 @@ func (mngr *BaseManager) Roles() ([]string, error) {
 	return roles, nil
 }
 
-func (mngr *BaseManager) load(mnf *manifest.Manifest) error {
+func (mngr *BaseManager) load(mnf *entities2.Manifest) error {
 	mngr.mux.Lock()
 	defer mngr.mux.Unlock()
 
 	logger := mngr.logger.With("name", mnf.Name)
 
-	if mnf.Kind == manifest.Role {
-		if _, ok := mngr.roles[mnf.Name]; ok {
-			errMessage := fmt.Sprintf("role %s already exist", mnf.Name)
-			logger.Error(errMessage)
-			return errors.AlreadyExistsError(errMessage)
-		}
-
-		specs := new(entities.RoleSpecs)
-		if err := json.UnmarshalJSON(mnf.Specs, specs); err != nil {
-			errMessage := fmt.Sprintf("invalid Role specs for role %s", mnf.Name)
-			logger.WithError(err).Error(errMessage)
-			return errors.InvalidParameterError(errMessage)
-		}
-
-		mngr.roles[mnf.Name] = &entities.Role{
-			Name:        mnf.Name,
-			Permissions: specs.Permissions,
-		}
-
-		logger.Info("Role created successfully")
-		return nil
+	if _, ok := mngr.roles[mnf.Name]; ok {
+		errMessage := fmt.Sprintf("role %s already exist", mnf.Name)
+		logger.Error(errMessage)
+		return errors.AlreadyExistsError(errMessage)
 	}
 
+	specs := new(entities.RoleSpecs)
+	if err := json.UnmarshalJSON(mnf.Specs, specs); err != nil {
+		errMessage := fmt.Sprintf("invalid Role specs for role %s", mnf.Name)
+		logger.WithError(err).Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
+	}
+
+	mngr.roles[mnf.Name] = &entities.Role{
+		Name:        mnf.Name,
+		Permissions: specs.Permissions,
+	}
+
+	logger.Info("Role created successfully")
 	return nil
 }
 

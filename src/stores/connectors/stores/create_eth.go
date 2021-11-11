@@ -2,10 +2,8 @@ package stores
 
 import (
 	"context"
-
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-
 	"github.com/consensys/quorum-key-manager/pkg/json"
+	manifest "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 

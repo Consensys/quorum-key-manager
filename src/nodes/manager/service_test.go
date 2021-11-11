@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	manifest "github.com/consensys/quorum-key-manager/src/entities"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	manifestmock "github.com/consensys/quorum-key-manager/src/infra/manifests/mock"
 
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
