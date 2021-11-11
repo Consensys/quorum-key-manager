@@ -71,14 +71,14 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 	if err != nil {
 		s.T().Error(err)
 	}
-	_, err = s.env.client.CreateAlias(s.env.ctx, "me", "my-own", aliastypes.AliasRequest{AliasValue: aliastypes.AliasValue{RawKind: entities.KindArray, RawValue: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}}})
+	_, err = s.env.client.CreateAlias(s.env.ctx, "me", "my-own", aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
 	if err != nil {
 		s.T().Error(err)
 	}
 
 	s.registryName = fmt.Sprintf("e2e-%s", common.RandString(5))
 	s.alias = fmt.Sprintf("Group-A-%s", common.RandString(5))
-	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.alias, aliastypes.AliasRequest{AliasValue: aliastypes.AliasValue{RawKind: entities.KindArray, RawValue: []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="}}})
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.alias, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="}})
 	if err != nil {
 		s.T().Error(err)
 	}
