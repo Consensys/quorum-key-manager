@@ -27,15 +27,17 @@ import (
 
 type jsonRPCTestSuite struct {
 	suite.Suite
-	err          error
-	env          *Environment
-	acc          *types.EthAccountResponse
-	storeName    string
-	alias        string
-	registryName string
-	QuorumNodeID string
-	BesuNodeID   string
-	GethNodeID   string
+	err             error
+	env             *Environment
+	acc             *types.EthAccountResponse
+	storeName       string
+	registryName    string
+	alias           string
+	ownRegistryName string
+	ownAlias        string
+	QuorumNodeID    string
+	BesuNodeID      string
+	GethNodeID      string
 }
 
 func TestJSONRpcHTTP(t *testing.T) {
@@ -71,7 +73,9 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 	if err != nil {
 		s.T().Error(err)
 	}
-	_, err = s.env.client.CreateAlias(s.env.ctx, "me", "my-own", aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
+	s.ownRegistryName = fmt.Sprintf("e2e-%s", common.RandString(5))
+	s.ownAlias = fmt.Sprintf("own-%s", common.RandString(5))
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.ownRegistryName, s.ownAlias, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
 	if err != nil {
 		s.T().Error(err)
 	}
@@ -296,8 +300,8 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"from":        s.acc.Address,
 			"to":          toAddr,
 			"gas":         "0x989680",
-			"privateFrom": "{{me:my-own}}",
-			"privateFor":  []string{"{{JPM:Group-A}}"},
+			"privateFrom": fmt.Sprintf("{{%s:%s}}", s.ownRegistryName, s.ownAlias),
+			"privateFor":  []string{fmt.Sprintf("{{%s:%s}}", s.registryName, s.alias)},
 		})
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
