@@ -8,6 +8,11 @@
 ### 🛠 Changes
 * Env var `AUTH_OIDC_CA_CERT` and flag `--auth-oidc-ca-cert` renamed to `AUTH_OIDC_PUB_KEY` and `--auth-oidc-pub-key`
 
+## v21.9.3 (2021-11-10)
+
+### 🛠 Bug fixes
+* Fixes bug in Hashicorp client that prevents the process from exiting when a new token is written or updated from filesystem.
+
 ## v21.9.2 (2021-10-18)
 
 ### 🛠 Bug fixes
