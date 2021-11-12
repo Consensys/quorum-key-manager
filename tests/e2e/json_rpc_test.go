@@ -483,6 +483,29 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 		assert.Equal(s.T(), strings.ToLower(tx.To().String()), "0x000000000000000000000000000000000000007e")
 	})
 
+	s.Run("should call eea_sendTransaction successfully, with alias privacyGroupID as array", func() {
+		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+			"data":           "0xa2",
+			"from":           s.acc.Address,
+			"to":             "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+			"privateFrom":    "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
+			"privacyGroupId": fmt.Sprintf("{{%s:%s}}", s.eeaPrivateForRegistryName, s.eeaPrivateForAliasKey),
+			//"privateFor":  []string{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="},
+		})
+
+		require.NoError(s.T(), err)
+		//s.T().Log("DBGTHE: resp.Error.Message", string(resp.Error.Data.(json.RawMessage)))
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.env.ctx, s.BesuNodeID, result)
+		require.NoError(s.T(), err)
+		// Sent to precompiled besu contract
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), "0x000000000000000000000000000000000000007e")
+	})
+
 	s.Run("should call eea_sendTransaction and fail if invalid account", func() {
 		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
 			"data":        "0xa2",

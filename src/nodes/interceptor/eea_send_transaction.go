@@ -61,7 +61,8 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 				}
 			case entities.KindArray:
 				if msg.PrivateFor == nil {
-					*msg.PrivateFor = []string{}
+					slice := []string{}
+					msg.PrivateFor = &slice
 				}
 
 				aliasArray, err := alias.Value.Array()
@@ -71,6 +72,12 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 				}
 
 				*msg.PrivateFor = append(*msg.PrivateFor, aliasArray...)
+				msg.PrivacyGroupID = nil
+			default:
+				msg := "wrong alias type"
+				err = fmt.Errorf(msg)
+				i.logger.WithError(err).Error(msg)
+				return nil, err
 			}
 		}
 	}
