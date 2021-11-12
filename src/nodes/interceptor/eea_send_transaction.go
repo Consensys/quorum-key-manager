@@ -46,7 +46,8 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	if msg.PrivacyGroupID != nil {
 		reg, key, isAlias := i.aliases.ParseAlias(*msg.PrivacyGroupID)
 		if isAlias {
-			alias, err := i.aliases.GetAlias(ctx, reg, key)
+			var alias *entities.Alias
+			alias, err = i.aliases.GetAlias(ctx, reg, key)
 			if err != nil {
 				i.logger.WithError(err).Error("failed to get alias for privacyGroupID")
 				return nil, err
@@ -65,7 +66,8 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 					msg.PrivateFor = &slice
 				}
 
-				aliasArray, err := alias.Value.Array()
+				var aliasArray []string
+				aliasArray, err = alias.Value.Array()
 				if err != nil {
 					i.logger.WithError(err).Error("wrong alias value, should be a string")
 					return nil, err
