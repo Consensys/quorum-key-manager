@@ -45,5 +45,5 @@ type AWSConfig struct {
 	Region    string `json:"region" yaml:"region" validate:"required" example:"eu-west-3"`
 	AccessID  string `json:"accessID" yaml:"access_id" validate:"required" example:"AKIAQX7AV2NLJTF5ZZOB"`
 	SecretKey string `json:"secretKey" yaml:"secret_key" validate:"required" example:"my-secert"`
-	Debug     bool   `json:"debug" yaml:"debug" validate:"required" example:"true"`
+	Debug     bool   `json:"debug,omitempty" yaml:"debug" example:"true"`
 }
