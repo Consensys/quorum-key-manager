@@ -25,7 +25,7 @@ func TestEthAccounts(t *testing.T) {
 	ctx := proxynode.WithSession(context.TODO(), session)
 	ctx = middlewares.WithUserInfo(ctx, userInfo)
 
-	i, stores := newInterceptor(t, ctrl)
+	i, stores, _ := newInterceptor(t, ctrl)
 	tests := []*testHandlerCase{
 		{
 			desc:    "Signature",

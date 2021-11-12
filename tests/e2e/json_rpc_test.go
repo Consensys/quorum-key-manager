@@ -27,15 +27,26 @@ import (
 
 type jsonRPCTestSuite struct {
 	suite.Suite
-	err          error
-	env          *Environment
-	acc          *types.EthAccountResponse
-	storeName    string
-	alias        string
-	registryName string
-	QuorumNodeID string
-	BesuNodeID   string
-	GethNodeID   string
+	err             error
+	env             *Environment
+	acc             *types.EthAccountResponse
+	storeName       string
+	registryName    string
+	alias           string
+	ownRegistryName string
+	ownAlias        string
+	QuorumNodeID    string
+	BesuNodeID      string
+	GethNodeID      string
+
+	eeaPrivateFromRegistryName          string
+	eeaPrivateFromAliasKey              string
+	eeaPrivateForRegistryName           string
+	eeaPrivateForAliasKey               string
+	eeaPrivacyGroupIDStringRegistryName string
+	eeaPrivacyGroupIDStringAliasKey     string
+	eeaPrivacyGroupIDArrayRegistryName  string
+	eeaPrivacyGroupIDArrayAliasKey      string
 }
 
 func TestJSONRpcHTTP(t *testing.T) {
@@ -71,7 +82,37 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 	if err != nil {
 		s.T().Error(err)
 	}
-	_, err = s.env.client.CreateAlias(s.env.ctx, "me", "my-own", aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
+	s.ownRegistryName = fmt.Sprintf("eth-from-e2e-%s", common.RandString(5))
+	s.ownAlias = fmt.Sprintf("eth-from-e2e-%s", common.RandString(5))
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.ownRegistryName, s.ownAlias, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
+	if err != nil {
+		s.T().Error(err)
+	}
+
+	s.eeaPrivateFromRegistryName = fmt.Sprintf("eea-from-e2e-%s", common.RandString(5))
+	s.eeaPrivateFromAliasKey = fmt.Sprintf("eea-from-e2e-%s", common.RandString(5))
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivateFromRegistryName, s.eeaPrivateFromAliasKey, aliastypes.AliasRequest{Kind: entities.KindString, Value: "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="})
+	if err != nil {
+		s.T().Error(err)
+	}
+
+	s.eeaPrivateForRegistryName = fmt.Sprintf("eea-for-e2e-%s", common.RandString(5))
+	s.eeaPrivateForAliasKey = fmt.Sprintf("eea-for-e2e-%s", common.RandString(5))
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivateForRegistryName, s.eeaPrivateForAliasKey, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []interface{}{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="}})
+	if err != nil {
+		s.T().Error(err)
+	}
+
+	s.eeaPrivacyGroupIDStringRegistryName = fmt.Sprintf("eea-groupIDString-e2e-%s", common.RandString(5))
+	s.eeaPrivacyGroupIDStringAliasKey = fmt.Sprintf("eea-groupIDString-e2e-%s", common.RandString(5))
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivacyGroupIDStringRegistryName, s.eeaPrivacyGroupIDStringAliasKey, aliastypes.AliasRequest{Kind: entities.KindString, Value: "// TODO: CHANGE"})
+	if err != nil {
+		s.T().Error(err)
+	}
+
+	s.eeaPrivacyGroupIDArrayRegistryName = fmt.Sprintf("eea-groupIDArray-e2e-%s", common.RandString(5))
+	s.eeaPrivacyGroupIDArrayAliasKey = fmt.Sprintf("eea-groupIDArray-e2e-%s", common.RandString(5))
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivacyGroupIDArrayRegistryName, s.eeaPrivacyGroupIDArrayAliasKey, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"// TODO: CHANGE"}})
 	if err != nil {
 		s.T().Error(err)
 	}
@@ -296,8 +337,8 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"from":        s.acc.Address,
 			"to":          toAddr,
 			"gas":         "0x989680",
-			"privateFrom": "{{me:my-own}}",
-			"privateFor":  []string{"{{JPM:Group-A}}"},
+			"privateFrom": fmt.Sprintf("{{%s:%s}}", s.ownRegistryName, s.ownAlias),
+			"privateFor":  []string{fmt.Sprintf("{{%s:%s}}", s.registryName, s.alias)},
 		})
 		require.NoError(s.T(), err)
 		require.Nil(s.T(), resp.Error)
@@ -389,6 +430,71 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 		})
 
 		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.env.ctx, s.BesuNodeID, result)
+		require.NoError(s.T(), err)
+		// Sent to precompiled besu contract
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), "0x000000000000000000000000000000000000007e")
+	})
+
+	s.Run("should call eea_sendTransaction successfully, with alias privateFrom", func() {
+		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+			"data":        "0xa2",
+			"from":        s.acc.Address,
+			"to":          "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+			"privateFrom": fmt.Sprintf("{{%s:%s}}", s.eeaPrivateFromRegistryName, s.eeaPrivateFromAliasKey),
+			"privateFor":  []string{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="},
+		})
+
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.env.ctx, s.BesuNodeID, result)
+		require.NoError(s.T(), err)
+		// Sent to precompiled besu contract
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), "0x000000000000000000000000000000000000007e")
+	})
+
+	s.Run("should call eea_sendTransaction successfully, with alias privateFor", func() {
+		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+			"data":        "0xa2",
+			"from":        s.acc.Address,
+			"to":          "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+			"privateFrom": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
+			"privateFor":  []string{fmt.Sprintf("{{%s:%s}}", s.eeaPrivateForRegistryName, s.eeaPrivateForAliasKey)},
+		})
+
+		require.NoError(s.T(), err)
+		require.Nil(s.T(), resp.Error)
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.env.ctx, s.BesuNodeID, result)
+		require.NoError(s.T(), err)
+		// Sent to precompiled besu contract
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), "0x000000000000000000000000000000000000007e")
+	})
+
+	s.Run("should call eea_sendTransaction successfully, with alias privacyGroupID as array", func() {
+		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+			"data":           "0xa2",
+			"from":           s.acc.Address,
+			"to":             "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+			"privateFrom":    "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
+			"privacyGroupId": fmt.Sprintf("{{%s:%s}}", s.eeaPrivateForRegistryName, s.eeaPrivateForAliasKey),
+			//"privateFor":  []string{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="},
+		})
+
+		require.NoError(s.T(), err)
+		//s.T().Log("DBGTHE: resp.Error.Message", string(resp.Error.Data.(json.RawMessage)))
 		require.Nil(s.T(), resp.Error)
 
 		var result string
