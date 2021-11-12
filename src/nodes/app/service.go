@@ -19,8 +19,9 @@ func RegisterService(a *app.App, logger log.Logger, manifests []entities2.Manife
 		return err
 	}
 
-	// Service layer
 	nodes := nodesmanager.New(storesService, manifests, *authManager, aliasService, logger)
+
+	// Service layer
 	api.New(nodes).Register(a.Router())
 
 	return nil

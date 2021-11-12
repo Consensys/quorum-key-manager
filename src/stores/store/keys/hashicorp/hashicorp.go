@@ -42,7 +42,7 @@ func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *St
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.Store, error) {
 	return nil, errors.ErrNotImplemented
 }
 

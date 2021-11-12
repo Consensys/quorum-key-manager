@@ -3,7 +3,7 @@ package stores
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
-	manifest "github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
@@ -32,7 +32,7 @@ func (c *Connector) getKeyStore(ctx context.Context, storeName string, resolver 
 		return nil, err
 	}
 
-	if storeInfo.StoreType != manifest.Keys {
+	if storeInfo.StoreType != entities.KeyStoreType {
 		errMessage := "not a key store"
 		c.logger.Error(errMessage, "store_name", storeName)
 		return nil, errors.NotFoundError(errMessage)

@@ -7,7 +7,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	authapp "github.com/consensys/quorum-key-manager/src/auth/app"
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/api-key/csv"
 	"github.com/consensys/quorum-key-manager/src/infra/jwt"
@@ -70,7 +70,7 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 		return nil, err
 	}
 
-	storesService, err := storesapp.RegisterService(ctx, a, logger.WithComponent("stores"), pgClient, manifests[entities2.StoreKind])
+	storesService, err := storesapp.RegisterService(ctx, a, logger.WithComponent("stores"), pgClient, manifests)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 	return a, nil
 }
 
-func getAPIKeys(ctx context.Context, cfg *csv.Config, logger log.Logger) (map[string]*entities.UserClaims, error) {
+func getAPIKeys(ctx context.Context, cfg *csv.Config, logger log.Logger) (map[string]*authtypes.UserClaims, error) {
 	if cfg != nil {
 		apiKeyReader, err := csv.New(cfg)
 		if err != nil {

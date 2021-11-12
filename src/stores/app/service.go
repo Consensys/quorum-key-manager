@@ -11,10 +11,17 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/manifest"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/vaults"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
 )
 
-func RegisterService(ctx context.Context, a *app.App, logger log.Logger, postgresClient postgresinfra.Client, manifests []entities.Manifest) (*stores.Connector, error) {
+func RegisterService(
+	ctx context.Context,
+	a *app.App,
+	logger log.Logger,
+	postgresClient postgresinfra.Client,
+	manifests map[string][]entities.Manifest,
+) (*stores.Connector, error) {
 	// Data layer
 	db := postgres.New(logger, postgresClient)
 
@@ -25,7 +32,8 @@ func RegisterService(ctx context.Context, a *app.App, logger log.Logger, postgre
 		return nil, err
 	}
 
-	storesConnector := stores.NewConnector(*authManager, db, logger)
+	vaultsConnector := vaults.NewConnector(logger)
+	storesConnector := stores.NewConnector(*authManager, db, vaultsConnector, logger)
 	utilsConnector := utils.NewConnector(logger)
 
 	// Service layer
@@ -33,8 +41,16 @@ func RegisterService(ctx context.Context, a *app.App, logger log.Logger, postgre
 	http.NewStoresHandler(storesConnector).Register(router)
 	http.NewUtilsHandler(utilsConnector).Register(router)
 
+	manifestVaultHandler := manifest.NewVaultsHandler(vaultsConnector) // Manifest reading is synchronous, similar to a config file
+	for _, mnf := range manifests[entities.VaultKind] {
+		err = manifestVaultHandler.Register(ctx, mnf)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	manifestStoreHandler := manifest.NewStoresHandler(storesConnector) // Manifest reading is synchronous, similar to a config file
-	for _, mnf := range manifests {
+	for _, mnf := range manifests[entities.StoreKind] {
 		err = manifestStoreHandler.Register(ctx, mnf)
 		if err != nil {
 			return nil, err

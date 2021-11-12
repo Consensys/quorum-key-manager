@@ -48,7 +48,20 @@ func isSigningAlgorithm(fl validator.FieldLevel) bool {
 func isManifestKind(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case entities2.StoreKind, entities2.NodeKind, entities2.RoleKind:
+		case entities2.StoreKind, entities2.NodeKind, entities2.RoleKind, entities2.VaultKind:
+			return true
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
+func isStoreType(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		switch fl.Field().String() {
+		case entities2.SecretStoreType, entities2.KeyStoreType, entities2.EthereumStoreType:
 			return true
 		default:
 			return false
@@ -68,6 +81,7 @@ func init() {
 	_ = validate.RegisterValidation("isCurve", isCurve)
 	_ = validate.RegisterValidation("isSigningAlgorithm", isSigningAlgorithm)
 	_ = validate.RegisterValidation("isManifestKind", isManifestKind)
+	_ = validate.RegisterValidation("isStoreType", isStoreType)
 }
 
 func getValidator() *validator.Validate {

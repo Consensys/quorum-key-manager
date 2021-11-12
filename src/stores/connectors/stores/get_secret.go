@@ -3,7 +3,7 @@ package stores
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
-	manifest "github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth"
@@ -31,7 +31,7 @@ func (c *Connector) getSecretStore(ctx context.Context, storeName string, resolv
 		return nil, err
 	}
 
-	if storeInfo.StoreType != manifest.Secrets {
+	if storeInfo.StoreType != entities.SecretStoreType {
 		errMessage := "not a secret store"
 		c.logger.Error(errMessage, "store_name", storeName)
 		return nil, errors.NotFoundError(errMessage)

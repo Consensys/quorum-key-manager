@@ -30,7 +30,7 @@ type Config struct {
 	SkipVerify    bool
 }
 
-func NewConfig(specs *entities.HashicorpSpecs) *Config {
+func NewConfig(specs *entities.HashicorpConfig) *Config {
 	return &Config{
 		Address:       specs.Address,
 		CACert:        specs.CACert,

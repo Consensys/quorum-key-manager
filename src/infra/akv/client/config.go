@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -23,12 +24,12 @@ type Config struct {
 	Resource            string
 }
 
-func NewConfig(vaultName, tenantID, clientID, clientSecret string) *Config {
+func NewConfig(cfg *entities.AzureConfig) *Config {
 	return &Config{
-		Endpoint:     fmt.Sprintf("https://%s.%s", vaultName, azure.PublicCloud.KeyVaultDNSSuffix),
-		TenantID:     tenantID,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		Endpoint:     fmt.Sprintf("https://%s.%s", cfg.VaultName, azure.PublicCloud.KeyVaultDNSSuffix),
+		TenantID:     cfg.TenantID,
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
 	}
 }
 

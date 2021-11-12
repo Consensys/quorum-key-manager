@@ -3,13 +3,13 @@ package stores
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
-	manifest "github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (c *Connector) List(_ context.Context, storeType manifest.StoreType, userInfo *authtypes.UserInfo) ([]string, error) {
+func (c *Connector) List(_ context.Context, storeType string, userInfo *authtypes.UserInfo) ([]string, error) {
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 
@@ -37,7 +37,7 @@ func (c *Connector) ListAllAccounts(ctx context.Context, userInfo *authtypes.Use
 	defer c.mux.RUnlock()
 
 	var accs []common.Address
-	stores, err := c.List(ctx, manifest.Ethereum, userInfo)
+	stores, err := c.List(ctx, entities.EthereumStoreType, userInfo)
 	if err != nil {
 		return nil, err
 	}

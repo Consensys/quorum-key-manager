@@ -1,13 +1,7 @@
 package types
 
-const (
-	EthereumStoreType = "Ethereum"
-	KeysStoreType     = "Keys"
-	SecretsStoreType  = "Secrets"
-)
-
 type CreateStoreRequest struct {
-	StoreType string      `json:"type" yaml:"type" validate:"required" example:"ethereum"`
+	StoreType string      `json:"type" yaml:"type" validate:"required,isStoreType" example:"ethereum"`
 	Params    interface{} `json:"params" yaml:"params" validate:"required"`
 }
 
