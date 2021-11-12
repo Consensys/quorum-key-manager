@@ -27,7 +27,7 @@ func TestEthSign(t *testing.T) {
 	}
 
 	session := proxynode.NewMockSession(ctrl)
-	i, stores := newInterceptor(t, ctrl)
+	i, stores, _ := newInterceptor(t, ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
 	ctx = middlewares.WithUserInfo(ctx, userInfo)
