@@ -14,7 +14,7 @@ import (
 )
 
 func (c *Connector) Key(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.KeyStore, error) {
-	permissions := c.authManager.UserPermissions(userInfo)
+	permissions := c.roles.UserPermissions(ctx, userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getKeyStore(ctx, storeName, resolver)

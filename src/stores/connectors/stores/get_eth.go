@@ -16,7 +16,7 @@ import (
 )
 
 func (c *Connector) Ethereum(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
-	permissions := c.authManager.UserPermissions(userInfo)
+	permissions := c.roles.UserPermissions(ctx, userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getEthStore(ctx, storeName, resolver)

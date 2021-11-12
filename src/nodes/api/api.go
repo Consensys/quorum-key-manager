@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
 
 	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes"
 
@@ -68,7 +68,7 @@ func (h *NodesAPI) serveHTTPDownstream(rw http.ResponseWriter, req *http.Request
 	ctx := req.Context()
 	nodeName := mux.Vars(req)["nodeName"]
 
-	n, err := h.nodes.Node(req.Context(), nodeName, middlewares.UserInfoFromContext(ctx))
+	n, err := h.nodes.Node(req.Context(), nodeName, http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

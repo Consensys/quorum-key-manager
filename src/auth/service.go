@@ -22,14 +22,10 @@ type Authorizator interface {
 	CheckAccess(allowedTenants []string) error
 }
 
-// Manager allows managing policies and roles
-type Manager interface {
-	// Role returns role
-	Role(name string) (*entities.Role, error)
-
-	// Roles returns roles
-	Roles() ([]string, error)
-
-	// UserPermissions Extract User Permissions from UserInfo
-	UserPermissions(info *entities.UserInfo) []entities.Permission
+// Roles allows managing policies and roles
+type Roles interface {
+	Create(ctx context.Context, name string, permissions []entities.Permission, userInfo *entities.UserInfo) error
+	Get(ctx context.Context, name string, userInfo *entities.UserInfo) (*entities.Role, error)
+	List(ctx context.Context, userInfo *entities.UserInfo) ([]string, error)
+	UserPermissions(ctx context.Context, userInfo *entities.UserInfo) []entities.Permission
 }

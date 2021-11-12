@@ -6,52 +6,66 @@ package mock
 
 import (
 	context "context"
-	types "github.com/consensys/quorum-key-manager/src/auth/entities"
-	node "github.com/consensys/quorum-key-manager/src/nodes/node"
+	entities "github.com/consensys/quorum-key-manager/src/auth/entities"
+	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
 
-// MockService is a mock of Service interface
-type MockService struct {
+// MockNodes is a mock of Nodes interface
+type MockNodes struct {
 	ctrl     *gomock.Controller
-	recorder *MockServiceMockRecorder
+	recorder *MockNodesMockRecorder
 }
 
-// MockServiceMockRecorder is the mock recorder for MockService
-type MockServiceMockRecorder struct {
-	mock *MockService
+// MockNodesMockRecorder is the mock recorder for MockNodes
+type MockNodesMockRecorder struct {
+	mock *MockNodes
 }
 
-// NewMockService creates a new mock instance
-func NewMockService(ctrl *gomock.Controller) *MockService {
-	mock := &MockService{ctrl: ctrl}
-	mock.recorder = &MockServiceMockRecorder{mock}
+// NewMockNodes creates a new mock instance
+func NewMockNodes(ctrl *gomock.Controller) *MockNodes {
+	mock := &MockNodes{ctrl: ctrl}
+	mock.recorder = &MockNodesMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockService) EXPECT() *MockServiceMockRecorder {
+func (m *MockNodes) EXPECT() *MockNodesMockRecorder {
 	return m.recorder
 }
 
-// Node mocks base method
-func (m *MockService) Node(ctx context.Context, name string, userInfo *types.UserInfo) (node.Node, error) {
+// Create mocks base method
+func (m *MockNodes) Create(ctx context.Context, name string, config *proxynode.Config, allowedTenants []string, userInfo *entities.UserInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Node", ctx, name, userInfo)
-	ret0, _ := ret[0].(node.Node)
+	ret := m.ctrl.Call(m, "Create", ctx, name, config, allowedTenants, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create
+func (mr *MockNodesMockRecorder) Create(ctx, name, config, allowedTenants, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNodes)(nil).Create), ctx, name, config, allowedTenants, userInfo)
+}
+
+// Get mocks base method
+func (m *MockNodes) Get(ctx context.Context, name string, userInfo *entities.UserInfo) (*proxynode.Node, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, name, userInfo)
+	ret0, _ := ret[0].(*proxynode.Node)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Node indicates an expected call of Node
-func (mr *MockServiceMockRecorder) Node(ctx, name, userInfo interface{}) *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockNodesMockRecorder) Get(ctx, name, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Node", reflect.TypeOf((*MockService)(nil).Node), ctx, name, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockNodes)(nil).Get), ctx, name, userInfo)
 }
 
 // List mocks base method
-func (m *MockService) List(ctx context.Context, userInfo *types.UserInfo) ([]string, error) {
+func (m *MockNodes) List(ctx context.Context, userInfo *entities.UserInfo) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", ctx, userInfo)
 	ret0, _ := ret[0].([]string)
@@ -60,7 +74,7 @@ func (m *MockService) List(ctx context.Context, userInfo *types.UserInfo) ([]str
 }
 
 // List indicates an expected call of List
-func (mr *MockServiceMockRecorder) List(ctx, userInfo interface{}) *gomock.Call {
+func (mr *MockNodesMockRecorder) List(ctx, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockService)(nil).List), ctx, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockNodes)(nil).List), ctx, userInfo)
 }

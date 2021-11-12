@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -30,7 +30,7 @@ func TestEthSign(t *testing.T) {
 	i, stores := newInterceptor(t, ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = middlewares.WithUserInfo(ctx, userInfo)
+	ctx = http_middlewares.WithUserInfo(ctx, userInfo)
 
 	tests := []*testHandlerCase{
 		{

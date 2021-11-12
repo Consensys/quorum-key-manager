@@ -14,24 +14,24 @@ import (
 )
 
 type Connector struct {
-	logger      log.Logger
-	mux         sync.RWMutex
-	authManager auth.Manager
-	stores      map[string]*entities.Store
-	vaults      stores.Vaults
-	db          database.Database
+	logger log.Logger
+	mux    sync.RWMutex
+	roles  auth.Roles
+	stores map[string]*entities.Store
+	vaults stores.Vaults
+	db     database.Database
 }
 
 var _ stores.Stores = &Connector{}
 
-func NewConnector(authMngr auth.Manager, db database.Database, vaults stores.Vaults, logger log.Logger) *Connector {
+func NewConnector(roles auth.Roles, db database.Database, vaults stores.Vaults, logger log.Logger) *Connector {
 	return &Connector{
-		logger:      logger,
-		mux:         sync.RWMutex{},
-		authManager: authMngr,
-		stores:      make(map[string]*entities.Store),
-		vaults:      vaults,
-		db:          db,
+		logger: logger,
+		mux:    sync.RWMutex{},
+		roles:  roles,
+		stores: make(map[string]*entities.Store),
+		vaults: vaults,
+		db:     db,
 	}
 }
 
@@ -53,12 +53,12 @@ func (c *Connector) getStore(_ context.Context, name string, resolver auth.Autho
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 
-	if bundle, ok := c.stores[name]; ok {
-		if err := resolver.CheckAccess(bundle.AllowedTenants); err != nil {
+	if store, ok := c.stores[name]; ok {
+		if err := resolver.CheckAccess(store.AllowedTenants); err != nil {
 			return nil, err
 		}
 
-		return bundle, nil
+		return store, nil
 	}
 
 	errMessage := "store was not found"

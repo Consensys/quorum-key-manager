@@ -21,19 +21,14 @@ func RegisterService(
 	logger log.Logger,
 	postgresClient postgresinfra.Client,
 	manifests map[string][]entities.Manifest,
+	roles auth.Roles,
 ) (*stores.Connector, error) {
 	// Data layer
 	db := postgres.New(logger, postgresClient)
 
 	// Business layer
-	authManager := new(auth.Manager)
-	err := a.Service(authManager)
-	if err != nil {
-		return nil, err
-	}
-
 	vaultsConnector := vaults.NewConnector(logger)
-	storesConnector := stores.NewConnector(*authManager, db, vaultsConnector, logger)
+	storesConnector := stores.NewConnector(roles, db, vaultsConnector, logger)
 	utilsConnector := utils.NewConnector(logger)
 
 	// Service layer
@@ -43,7 +38,7 @@ func RegisterService(
 
 	manifestVaultHandler := manifest.NewVaultsHandler(vaultsConnector) // Manifest reading is synchronous, similar to a config file
 	for _, mnf := range manifests[entities.VaultKind] {
-		err = manifestVaultHandler.Register(ctx, mnf)
+		err := manifestVaultHandler.Register(ctx, mnf.Specs)
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +46,7 @@ func RegisterService(
 
 	manifestStoreHandler := manifest.NewStoresHandler(storesConnector) // Manifest reading is synchronous, similar to a config file
 	for _, mnf := range manifests[entities.StoreKind] {
-		err = manifestStoreHandler.Register(ctx, mnf)
+		err := manifestStoreHandler.Register(ctx, mnf.Specs)
 		if err != nil {
 			return nil, err
 		}

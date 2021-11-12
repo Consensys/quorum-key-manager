@@ -1,4 +1,4 @@
-package middlewares
+package http_middlewares
 
 import (
 	"encoding/base64"

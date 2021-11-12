@@ -61,7 +61,7 @@ func isManifestKind(fl validator.FieldLevel) bool {
 func isStoreType(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case entities2.SecretStoreType, entities2.KeyStoreType, entities2.EthereumStoreType:
+		case entities.SecretStoreType, entities.KeyStoreType, entities.EthereumStoreType:
 			return true
 		default:
 			return false

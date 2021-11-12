@@ -13,7 +13,7 @@ import (
 )
 
 func (c *Connector) Secret(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.SecretStore, error) {
-	permissions := c.authManager.UserPermissions(userInfo)
+	permissions := c.roles.UserPermissions(ctx, userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getSecretStore(ctx, storeName, resolver)

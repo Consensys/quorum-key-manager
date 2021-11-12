@@ -60,7 +60,7 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
 
 	// Register Services
-	err = authapp.RegisterService(a, logger.WithComponent("auth"), manifests[entities2.RoleKind], jwtValidator, apikeyClaims, rootCAs)
+	authService, err := authapp.RegisterService(ctx, a, logger.WithComponent("auth"), manifests, jwtValidator, apikeyClaims, rootCAs)
 	if err != nil {
 		return nil, err
 	}
@@ -70,12 +70,12 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 		return nil, err
 	}
 
-	storesService, err := storesapp.RegisterService(ctx, a, logger.WithComponent("stores"), pgClient, manifests)
+	storesService, err := storesapp.RegisterService(ctx, a, logger.WithComponent("stores"), pgClient, manifests, authService)
 	if err != nil {
 		return nil, err
 	}
 
-	err = nodesapp.RegisterService(a, logger.WithComponent("nodes"), manifests[entities2.NodeKind], storesService, aliasService)
+	_, err = nodesapp.RegisterService(ctx, a, logger.WithComponent("nodes"), manifests, authService, storesService, aliasService)
 	if err != nil {
 		return nil, err
 	}

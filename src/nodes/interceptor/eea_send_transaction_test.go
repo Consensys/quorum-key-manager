@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
@@ -31,7 +31,7 @@ func TestEEASendTransaction(t *testing.T) {
 	}
 	session := proxynode.NewMockSession(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = middlewares.WithUserInfo(ctx, userInfo)
+	ctx = http_middlewares.WithUserInfo(ctx, userInfo)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)
@@ -45,7 +45,7 @@ func TestEEASendTransaction(t *testing.T) {
 
 	tests := []*testHandlerCase{
 		{
-			desc:    "Transaction with Privacy Role ID",
+			desc:    "Transaction with Privacy Get ID",
 			handler: i,
 			reqBody: []byte(`{"jsonrpc":"2.0","method":"eea_sendTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","gas":"0x5208","gasPrice":"0x9184e72a000","privacyGroupId":"kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M="}],"id":"abcd"}`),
 			ctx:     ctx,

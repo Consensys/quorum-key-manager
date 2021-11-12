@@ -135,69 +135,83 @@ func (mr *MockAuthorizatorMockRecorder) CheckAccess(allowedTenants interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAccess", reflect.TypeOf((*MockAuthorizator)(nil).CheckAccess), allowedTenants)
 }
 
-// MockManager is a mock of Manager interface
-type MockManager struct {
+// MockRoles is a mock of Roles interface
+type MockRoles struct {
 	ctrl     *gomock.Controller
-	recorder *MockManagerMockRecorder
+	recorder *MockRolesMockRecorder
 }
 
-// MockManagerMockRecorder is the mock recorder for MockManager
-type MockManagerMockRecorder struct {
-	mock *MockManager
+// MockRolesMockRecorder is the mock recorder for MockRoles
+type MockRolesMockRecorder struct {
+	mock *MockRoles
 }
 
-// NewMockManager creates a new mock instance
-func NewMockManager(ctrl *gomock.Controller) *MockManager {
-	mock := &MockManager{ctrl: ctrl}
-	mock.recorder = &MockManagerMockRecorder{mock}
+// NewMockRoles creates a new mock instance
+func NewMockRoles(ctrl *gomock.Controller) *MockRoles {
+	mock := &MockRoles{ctrl: ctrl}
+	mock.recorder = &MockRolesMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockManager) EXPECT() *MockManagerMockRecorder {
+func (m *MockRoles) EXPECT() *MockRolesMockRecorder {
 	return m.recorder
 }
 
-// Role mocks base method
-func (m *MockManager) Role(name string) (*entities.Role, error) {
+// Create mocks base method
+func (m *MockRoles) Create(ctx context.Context, name string, permissions []entities.Permission, userInfo *entities.UserInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Role", name)
+	ret := m.ctrl.Call(m, "Create", ctx, name, permissions, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create
+func (mr *MockRolesMockRecorder) Create(ctx, name, permissions, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoles)(nil).Create), ctx, name, permissions, userInfo)
+}
+
+// Get mocks base method
+func (m *MockRoles) Get(ctx context.Context, name string, userInfo *entities.UserInfo) (*entities.Role, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, name, userInfo)
 	ret0, _ := ret[0].(*entities.Role)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Role indicates an expected call of Role
-func (mr *MockManagerMockRecorder) Role(name interface{}) *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockRolesMockRecorder) Get(ctx, name, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Role", reflect.TypeOf((*MockManager)(nil).Role), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRoles)(nil).Get), ctx, name, userInfo)
 }
 
-// Roles mocks base method
-func (m *MockManager) Roles() ([]string, error) {
+// List mocks base method
+func (m *MockRoles) List(ctx context.Context, userInfo *entities.UserInfo) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Roles")
+	ret := m.ctrl.Call(m, "List", ctx, userInfo)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Roles indicates an expected call of Roles
-func (mr *MockManagerMockRecorder) Roles() *gomock.Call {
+// List indicates an expected call of List
+func (mr *MockRolesMockRecorder) List(ctx, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Roles", reflect.TypeOf((*MockManager)(nil).Roles))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRoles)(nil).List), ctx, userInfo)
 }
 
 // UserPermissions mocks base method
-func (m *MockManager) UserPermissions(info *entities.UserInfo) []entities.Permission {
+func (m *MockRoles) UserPermissions(ctx context.Context, userInfo *entities.UserInfo) []entities.Permission {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UserPermissions", info)
+	ret := m.ctrl.Call(m, "UserPermissions", ctx, userInfo)
 	ret0, _ := ret[0].([]entities.Permission)
 	return ret0
 }
 
 // UserPermissions indicates an expected call of UserPermissions
-func (mr *MockManagerMockRecorder) UserPermissions(info interface{}) *gomock.Call {
+func (mr *MockRolesMockRecorder) UserPermissions(ctx, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserPermissions", reflect.TypeOf((*MockManager)(nil).UserPermissions), info)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserPermissions", reflect.TypeOf((*MockRoles)(nil).UserPermissions), ctx, userInfo)
 }

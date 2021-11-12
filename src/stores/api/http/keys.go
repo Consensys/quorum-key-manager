@@ -6,7 +6,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
@@ -67,7 +67,7 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -117,7 +117,7 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -167,7 +167,7 @@ func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -200,7 +200,7 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -246,7 +246,7 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -280,7 +280,7 @@ func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -313,7 +313,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -356,7 +356,7 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return
@@ -387,7 +387,7 @@ func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), middlewares.UserInfoFromContext(ctx))
+	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), http_middlewares.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

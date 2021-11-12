@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
 
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
@@ -23,7 +23,7 @@ func TestEthAccounts(t *testing.T) {
 
 	session := proxynode.NewMockSession(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = middlewares.WithUserInfo(ctx, userInfo)
+	ctx = http_middlewares.WithUserInfo(ctx, userInfo)
 
 	i, stores := newInterceptor(t, ctrl)
 	tests := []*testHandlerCase{

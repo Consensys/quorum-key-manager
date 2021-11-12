@@ -4,20 +4,21 @@ import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/json"
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 type StoresHandler struct {
 	stores   stores.Stores
-	userInfo *entities.UserInfo
+	userInfo *auth.UserInfo
 }
 
 func NewStoresHandler(storesConnector stores.Stores) *StoresHandler {
 	return &StoresHandler{
 		stores:   storesConnector,
-		userInfo: entities.NewWildcardUser(), // This handler always use the wildcard user because it's a manifest handler
+		userInfo: auth.NewWildcardUser(), // This handler always use the wildcard user because it's a manifest handler
 	}
 }
 
@@ -29,11 +30,11 @@ func (h *StoresHandler) Register(ctx context.Context, specs interface{}) error {
 	}
 
 	switch createReq.StoreType {
-	case types.SecretsStoreType:
+	case entities.SecretStoreType:
 		return h.CreateSecret(ctx, createReq.Params)
-	case types.KeysStoreType:
+	case entities.KeyStoreType:
 		return h.CreateSecret(ctx, createReq.Params)
-	case types.EthereumStoreType:
+	case entities.EthereumStoreType:
 		return h.CreateSecret(ctx, createReq.Params)
 	default:
 		return errors.InvalidFormatError("invalid store type")

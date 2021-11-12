@@ -1,6 +1,8 @@
 package vaults
 
 import (
+	"context"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -33,4 +35,18 @@ func (c *Connector) createVault(name, vaultType string, cli interface{}) {
 		Client:    cli,
 		VaultType: vaultType,
 	}
+}
+
+// TODO: Move to data layer
+func (c *Connector) getVault(_ context.Context, name string) (*entities.Vault, error) {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
+	if vault, ok := c.vaults[name]; ok {
+		return vault, nil
+	}
+
+	errMessage := "vault was not found"
+	c.logger.Error(errMessage, "name", name)
+	return nil, errors.NotFoundError(errMessage)
 }

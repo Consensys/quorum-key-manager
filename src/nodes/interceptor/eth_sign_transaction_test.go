@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
 
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -29,7 +29,7 @@ func TestEthSignTransaction(t *testing.T) {
 		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = middlewares.WithUserInfo(ctx, userInfo)
+	ctx = http_middlewares.WithUserInfo(ctx, userInfo)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)
