@@ -51,8 +51,6 @@ func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) 
 		return nil, errors.UnauthorizedError(errMessage)
 	}
 
-	authen.logger.Debug("extracting user info from jwt token")
-
 	claims, err := authen.jwtValidator.ValidateToken(ctx, token)
 	if err != nil {
 		errMessage := "failed to validate jwt token"
@@ -69,8 +67,6 @@ func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte
 		authen.logger.Error(errMessage)
 		return nil, errors.UnauthorizedError(errMessage)
 	}
-
-	authen.logger.Debug("extracting user info from api key")
 
 	authen.hasher.Reset()
 	_, err := authen.hasher.Write(apiKey)

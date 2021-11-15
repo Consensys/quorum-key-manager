@@ -11,7 +11,7 @@
 ## v21.9.3 (2021-11-10)
 
 ### 🛠 Bug fixes
-* Fixes bug in Hashicorp client that prevents the process from exiting when a new token is written or updated from filesystem.
+* Hashicorp client fails to renew token.
 
 ## v21.9.2 (2021-10-18)
 
