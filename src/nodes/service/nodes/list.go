@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-func (i *Interactor) List(ctx context.Context, userInfo *entities.UserInfo) ([]string, error) {
+func (i *Nodes) List(ctx context.Context, userInfo *entities.UserInfo) ([]string, error) {
 	i.mux.RLock()
 	defer i.mux.RUnlock()
 

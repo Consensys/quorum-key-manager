@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (c *Connector) List(_ context.Context, storeType string, userInfo *authtypes.UserInfo) ([]string, error) {
+func (c *Connector) List(ctx context.Context, storeType string, userInfo *authtypes.UserInfo) ([]string, error) {
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 
@@ -19,7 +19,7 @@ func (c *Connector) List(_ context.Context, storeType string, userInfo *authtype
 			continue
 		}
 
-		permissions := c.authManager.UserPermissions(userInfo)
+		permissions := c.roles.UserPermissions(ctx, userInfo)
 		resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
 		if err := resolver.CheckAccess(storeInfo.AllowedTenants); err != nil {

@@ -8,7 +8,7 @@ import (
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 )
 
-func (i *Interactor) Create(ctx context.Context, name string, config *proxynode.Config, allowedTenants []string, _ *entities.UserInfo) error {
+func (i *Nodes) Create(ctx context.Context, name string, config *proxynode.Config, allowedTenants []string, _ *entities.UserInfo) error {
 	i.mux.Lock()
 	defer i.mux.Unlock()
 
@@ -29,7 +29,7 @@ func (i *Interactor) Create(ctx context.Context, name string, config *proxynode.
 	}
 
 	// Set interceptor on proxy node
-	prxNode.Handler = interceptor.New(i.storesService, i.aliasParser, i.logger)
+	prxNode.Handler = interceptor.New(i.storesService, i.aliases, i.logger)
 
 	// Start node
 	err = prxNode.Start(ctx)

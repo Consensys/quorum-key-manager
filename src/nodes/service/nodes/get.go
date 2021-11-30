@@ -7,7 +7,7 @@ import (
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 )
 
-func (i *Interactor) Get(ctx context.Context, name string, userInfo *authtypes.UserInfo) (*proxynode.Node, error) {
+func (i *Nodes) Get(ctx context.Context, name string, userInfo *authtypes.UserInfo) (*proxynode.Node, error) {
 	permissions := i.roles.UserPermissions(ctx, userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, i.logger)
 

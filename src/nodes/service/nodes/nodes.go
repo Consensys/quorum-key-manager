@@ -14,22 +14,22 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
-type Interactor struct {
+type Nodes struct {
 	storesService stores.Stores
 	roles         auth.Roles
-	aliasParser   aliases.Parser
+	aliases       aliases.Service
 	mux           sync.RWMutex
 	nodes         map[string]*entities.Node
 	logger        log.Logger
 }
 
-var _ nodes.Nodes = &Interactor{}
+var _ nodes.Nodes = &Nodes{}
 
-func New(storesService stores.Stores, rolesService auth.Roles, aliasParser aliases.Parser, logger log.Logger) *Interactor {
-	return &Interactor{
+func New(storesService stores.Stores, rolesService auth.Roles, aliasesService aliases.Service, logger log.Logger) *Nodes {
+	return &Nodes{
 		storesService: storesService,
 		roles:         rolesService,
-		aliasParser:   aliasParser,
+		aliases:       aliasesService,
 		mux:           sync.RWMutex{},
 		nodes:         make(map[string]*entities.Node),
 		logger:        logger,
@@ -37,7 +37,7 @@ func New(storesService stores.Stores, rolesService auth.Roles, aliasParser alias
 }
 
 // TODO: Move to data layer
-func (i *Interactor) createNode(_ context.Context, name string, prxNode *proxynode.Node, allowedTenants []string) {
+func (i *Nodes) createNode(_ context.Context, name string, prxNode *proxynode.Node, allowedTenants []string) {
 	i.mux.Lock()
 	defer i.mux.Unlock()
 
@@ -49,7 +49,7 @@ func (i *Interactor) createNode(_ context.Context, name string, prxNode *proxyno
 }
 
 // TODO: Move to data layer
-func (i *Interactor) getNode(_ context.Context, name string) (*entities.Node, error) {
+func (i *Nodes) getNode(_ context.Context, name string) (*entities.Node, error) {
 	i.mux.RLock()
 	defer i.mux.RUnlock()
 
