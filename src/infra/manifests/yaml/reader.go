@@ -37,7 +37,7 @@ func (r *Reader) Load(_ context.Context) (map[string][]entities.Manifest, error)
 			return nil, err
 		}
 
-		fillMap(mnfs, manifestsMap)
+		addManifests(mnfs, manifestsMap)
 		return manifestsMap, nil
 	}
 
@@ -57,7 +57,7 @@ func (r *Reader) Load(_ context.Context) (map[string][]entities.Manifest, error)
 				return err
 			}
 
-			fillMap(mnfs, manifestsMap)
+			addManifests(mnfs, manifestsMap)
 			return nil
 		}
 
@@ -92,7 +92,7 @@ func (r *Reader) loadFile(fp string) ([]entities.Manifest, error) {
 	return mnfs, nil
 }
 
-func fillMap(mnfs []entities.Manifest, manifestsMap map[string][]entities.Manifest) {
+func addManifests(mnfs []entities.Manifest, manifestsMap map[string][]entities.Manifest) {
 	for _, mnf := range mnfs {
 		storedManifests, ok := manifestsMap[mnf.Kind]
 		if !ok {
