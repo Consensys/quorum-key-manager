@@ -28,10 +28,10 @@ import (
 const ID = "NodeManager"
 
 type BaseManager struct {
-	stores      stores.Manager
-	manifests   manifests.Reader
-	authManager auth.Manager
-	aliasParser aliases.Parser
+	stores       stores.Manager
+	manifests    manifests.Reader
+	authManager  auth.Manager
+	aliasService aliases.Service
 
 	mux   sync.RWMutex
 	nodes map[string]*nodeBundle
@@ -49,15 +49,15 @@ type nodeBundle struct {
 	stop func(context.Context) error
 }
 
-func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, aliasParser aliases.Parser, logger log.Logger) *BaseManager {
+func New(smng stores.Manager, manifestReader manifests.Reader, authManager auth.Manager, aliasService aliases.Service, logger log.Logger) *BaseManager {
 	return &BaseManager{
-		stores:      smng,
-		manifests:   manifestReader,
-		mux:         sync.RWMutex{},
-		nodes:       make(map[string]*nodeBundle),
-		authManager: authManager,
-		aliasParser: aliasParser,
-		logger:      logger,
+		stores:       smng,
+		manifests:    manifestReader,
+		mux:          sync.RWMutex{},
+		nodes:        make(map[string]*nodeBundle),
+		authManager:  authManager,
+		aliasService: aliasService,
+		logger:       logger,
 	}
 }
 
@@ -191,7 +191,7 @@ func (m *BaseManager) createNodes(ctx context.Context, mnf *manifest.Manifest) e
 		}
 
 		// Set interceptor on proxy node
-		prxNode.Handler, err = interceptor.New(m.stores.Stores(), m.aliasParser, m.logger)
+		prxNode.Handler, err = interceptor.New(m.stores.Stores(), m.aliasService, m.logger)
 		if err != nil {
 			logger.WithError(err).Error("failed to create interceptor")
 			n.err = err
