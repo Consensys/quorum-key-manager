@@ -22,7 +22,7 @@ type Authorizator interface {
 	CheckAccess(allowedTenants []string) error
 }
 
-// Roles allows managing policies and roles
+// Roles allows managing permissions and roles
 type Roles interface {
 	Create(ctx context.Context, name string, permissions []entities.Permission, userInfo *entities.UserInfo) error
 	Get(ctx context.Context, name string, userInfo *entities.UserInfo) (*entities.Role, error)
