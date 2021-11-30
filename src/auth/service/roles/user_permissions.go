@@ -5,7 +5,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
-func (i *Interactor) UserPermissions(ctx context.Context, userInfo *entities.UserInfo) []entities.Permission {
+func (i *Roles) UserPermissions(ctx context.Context, userInfo *entities.UserInfo) []entities.Permission {
 	if userInfo == nil {
 		return []entities.Permission{}
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -13,7 +13,7 @@ func (i *Interceptor) ethSign(ctx context.Context, from ethcommon.Address, data 
 	logger := i.logger.With("from_account", from.Hex())
 	logger.Debug("signing payload")
 
-	store, err := i.stores.EthereumByAddr(ctx, from, http_middlewares.UserInfoFromContext(ctx))
+	store, err := i.stores.EthereumByAddr(ctx, from, http.UserInfoFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}

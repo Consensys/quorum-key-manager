@@ -10,23 +10,23 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
-type Interactor struct {
+type Roles struct {
 	mux    sync.RWMutex
 	roles  map[string]*entities.Role
 	logger log.Logger
 }
 
-var _ auth.Roles = &Interactor{}
+var _ auth.Roles = &Roles{}
 
-func New(logger log.Logger) *Interactor {
-	return &Interactor{
+func New(logger log.Logger) *Roles {
+	return &Roles{
 		roles:  make(map[string]*entities.Role),
 		logger: logger,
 	}
 }
 
 // TODO: Move to data layer
-func (i *Interactor) createRole(_ context.Context, name string, permissions []entities.Permission) {
+func (i *Roles) createRole(_ context.Context, name string, permissions []entities.Permission) {
 	i.mux.Lock()
 	defer i.mux.Unlock()
 
@@ -37,7 +37,7 @@ func (i *Interactor) createRole(_ context.Context, name string, permissions []en
 }
 
 // TODO: Move to data layer
-func (i *Interactor) getRole(_ context.Context, name string) (*entities.Role, error) {
+func (i *Roles) getRole(_ context.Context, name string) (*entities.Role, error) {
 	i.mux.RLock()
 	defer i.mux.RUnlock()
 

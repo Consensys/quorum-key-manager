@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	service "github.com/consensys/quorum-key-manager/src/auth"
-	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 	"github.com/consensys/quorum-key-manager/src/auth/api/manifest"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authenticator"
@@ -24,7 +24,7 @@ func RegisterService(
 	jwtValidator jwt.Validator,
 	apikeyClaims map[string]*authtypes.UserClaims,
 	rootCAs *x509.CertPool,
-) (*roles.Interactor, error) {
+) (*roles.Roles, error) {
 	// Business layer
 	// TODO: Create authorizator service here
 
@@ -61,14 +61,14 @@ func createMiddlewares(logger log.Logger, authenticator service.Authenticator) (
 	var authMiddleware alice.Constructor
 
 	if authenticator != nil {
-		authMiddleware = http_middlewares.NewAuth(authenticator).Middleware
+		authMiddleware = http.NewAuth(authenticator).Middleware
 	} else {
 		logger.Warn("No authentication method enabled")
-		authMiddleware = http_middlewares.WildcardMiddleware
+		authMiddleware = http.WildcardMiddleware
 	}
 
 	return alice.New(
-		http_middlewares.NewAccessLog(logger.WithComponent("accesslog")).Middleware, // TODO: Move to correct domain when it exists
+		http.NewAccessLog(logger.WithComponent("accesslog")).Middleware, // TODO: Move to correct domain when it exists
 		authMiddleware,
 	), nil
 }

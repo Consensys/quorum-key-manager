@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -59,7 +59,7 @@ func (s *secretsHandlerTestSuite) SetupTest() {
 
 	s.stores.EXPECT().Secret(gomock.Any(), secretStoreName, secretUserInfo).Return(s.secretStore, nil).AnyTimes()
 
-	s.ctx = http_middlewares.WithUserInfo(context.Background(), secretUserInfo)
+	s.ctx = http.WithUserInfo(context.Background(), secretUserInfo)
 
 	s.router = mux.NewRouter()
 	NewStoresHandler(s.stores).Register(s.router)

@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -19,7 +19,7 @@ func TestEthSignTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, stores := newInterceptor(t, ctrl)
+	i, stores, _ := newInterceptor(t, ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 
 	session := proxynode.NewMockSession(ctrl)
@@ -29,7 +29,7 @@ func TestEthSignTransaction(t *testing.T) {
 		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = http_middlewares.WithUserInfo(ctx, userInfo)
+	ctx = http.WithUserInfo(ctx, userInfo)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)

@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -62,7 +62,7 @@ func (s *ethHandlerTestSuite) SetupTest() {
 
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.ethStore = mock.NewMockEthStore(s.ctrl)
-	s.ctx = http_middlewares.WithUserInfo(context.Background(), ethUserInfo)
+	s.ctx = http.WithUserInfo(context.Background(), ethUserInfo)
 
 	s.stores.EXPECT().Ethereum(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
 

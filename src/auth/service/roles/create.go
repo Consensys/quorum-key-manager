@@ -7,7 +7,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
-func (i *Interactor) Create(ctx context.Context, name string, permissions []entities.Permission, _ *entities.UserInfo) error {
+func (i *Roles) Create(ctx context.Context, name string, permissions []entities.Permission, _ *entities.UserInfo) error {
 	logger := i.logger.With("name", name, "permissions", permissions)
 	logger.Debug("creating role")
 

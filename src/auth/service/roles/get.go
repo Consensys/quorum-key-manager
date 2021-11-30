@@ -5,7 +5,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
-func (i *Interactor) Get(ctx context.Context, name string, _ *entities.UserInfo) (*entities.Role, error) {
+func (i *Roles) Get(ctx context.Context, name string, _ *entities.UserInfo) (*entities.Role, error) {
 	logger := i.logger.With("name", name)
 
 	// TODO: Implement {Resource/Role}BAC for roles

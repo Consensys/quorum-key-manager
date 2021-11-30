@@ -1,4 +1,4 @@
-package http_middlewares
+package http
 
 import (
 	"net/http"

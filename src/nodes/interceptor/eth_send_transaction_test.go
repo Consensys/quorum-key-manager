@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/http_middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -43,7 +43,7 @@ func TestEthSendTransaction(t *testing.T) {
 		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = http_middlewares.WithUserInfo(ctx, userInfo)
+	ctx = http.WithUserInfo(ctx, userInfo)
 	gasPrice := big.NewInt(38)
 	chainID := big.NewInt(1)
 	value := big.NewInt(45)
