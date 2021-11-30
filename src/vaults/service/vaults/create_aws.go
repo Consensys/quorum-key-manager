@@ -3,11 +3,11 @@ package vaults
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/aws/client"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
-func (c *Connector) CreateAWS(_ context.Context, name string, config *entities.AWSConfig) error {
+func (c *Vaults) CreateAWS(_ context.Context, name string, config *entities.AWSConfig) error {
 	logger := c.logger.With("name", name)
 	logger.Debug("creating aws vault client")
 

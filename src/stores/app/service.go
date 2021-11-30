@@ -1,56 +1,25 @@
 package app
 
 import (
-	"context"
-	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	postgresinfra "github.com/consensys/quorum-key-manager/src/infra/postgres"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/consensys/quorum-key-manager/src/stores/api/http"
-	"github.com/consensys/quorum-key-manager/src/stores/api/manifest"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/vaults"
-	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
+	db "github.com/consensys/quorum-key-manager/src/stores/database/postgres"
+	"github.com/consensys/quorum-key-manager/src/vaults"
+	"github.com/gorilla/mux"
 )
 
-func RegisterService(
-	ctx context.Context,
-	a *app.App,
-	logger log.Logger,
-	postgresClient postgresinfra.Client,
-	manifests map[string][]entities.Manifest,
-	roles auth.Roles,
-) (*stores.Connector, error) {
+func RegisterService(router *mux.Router, logger log.Logger, postgresClient postgres.Client, roles auth.Roles, vaultsService vaults.Vaults) *stores.Connector {
 	// Data layer
-	db := postgres.New(logger, postgresClient)
+	storesDB := db.New(logger, postgresClient)
 
 	// Business layer
-	vaultsConnector := vaults.NewConnector(logger)
-	storesConnector := stores.NewConnector(roles, db, vaultsConnector, logger)
-	utilsConnector := utils.NewConnector(logger)
+	storesService := stores.NewConnector(roles, storesDB, vaultsService, logger)
 
 	// Service layer
-	router := a.Router()
-	http.NewStoresHandler(storesConnector).Register(router)
-	http.NewUtilsHandler(utilsConnector).Register(router)
+	http.NewStoresHandler(storesService).Register(router)
 
-	manifestVaultHandler := manifest.NewVaultsHandler(vaultsConnector) // Manifest reading is synchronous, similar to a config file
-	for _, mnf := range manifests[entities.VaultKind] {
-		err := manifestVaultHandler.Register(ctx, mnf.Specs)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	manifestStoreHandler := manifest.NewStoresHandler(storesConnector) // Manifest reading is synchronous, similar to a config file
-	for _, mnf := range manifests[entities.StoreKind] {
-		err := manifestStoreHandler.Register(ctx, mnf.Specs)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return storesConnector, nil
+	return storesService
 }

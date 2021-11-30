@@ -4,18 +4,18 @@ import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/json"
-	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/vaults"
 )
 
 type VaultsHandler struct {
-	vaults stores.Vaults
+	vaults vaults.Vaults
 }
 
-func NewVaultsHandler(vaultsConnector stores.Vaults) *VaultsHandler {
+func NewVaultsHandler(vaultsService vaults.Vaults) *VaultsHandler {
 	return &VaultsHandler{
-		vaults: vaultsConnector,
+		vaults: vaultsService,
 	}
 }
 

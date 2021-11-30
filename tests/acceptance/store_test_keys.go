@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -37,9 +38,9 @@ func (s *keysTestSuite) TestCreate() {
 		id := s.newID("my-key-create")
 		tags := testutils.FakeTags()
 
-		key, err := s.store.Create(ctx, id, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
+		key, err := s.store.Create(ctx, id, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
+			EllipticCurve: entities2.Secp256k1,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -49,8 +50,8 @@ func (s *keysTestSuite) TestCreate() {
 		assert.Equal(s.T(), id, key.ID)
 		assert.NotNil(s.T(), key.PublicKey)
 		assert.Equal(s.T(), tags, key.Tags)
-		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -61,9 +62,9 @@ func (s *keysTestSuite) TestCreate() {
 		id := s.newID("my-key-create")
 		tags := testutils.FakeTags()
 
-		key, err := s.store.Create(ctx, id, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
+		key, err := s.store.Create(ctx, id, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
+			EllipticCurve: entities2.Secp256k1,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -74,9 +75,9 @@ func (s *keysTestSuite) TestCreate() {
 		err = s.db.Purge(ctx, id)
 		require.NoError(s.T(), err)
 
-		key, err = s.store.Create(ctx, id, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
+		key, err = s.store.Create(ctx, id, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
+			EllipticCurve: entities2.Secp256k1,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -85,8 +86,8 @@ func (s *keysTestSuite) TestCreate() {
 		assert.Equal(s.T(), id, key.ID)
 		assert.NotNil(s.T(), key.PublicKey)
 		assert.Equal(s.T(), tags, key.Tags)
-		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -97,8 +98,8 @@ func (s *keysTestSuite) TestCreate() {
 		id := "my-key"
 		tags := testutils.FakeTags()
 
-		key, err := s.store.Create(ctx, id, &entities.Algorithm{
-			Type:          entities.Ecdsa,
+		key, err := s.store.Create(ctx, id, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
 			EllipticCurve: "invalidCurve",
 		}, &entities.Attributes{
 			Tags: tags,
@@ -117,9 +118,9 @@ func (s *keysTestSuite) TestImport() {
 		id := fmt.Sprintf("%s-%d", "my-key-ecdsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
-		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
+		key, err := s.store.Import(ctx, id, privKey, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
+			EllipticCurve: entities2.Secp256k1,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -131,8 +132,8 @@ func (s *keysTestSuite) TestImport() {
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), "BFVSFJhqUh9DQJwcayNtsWdDMvqq8R_EKnBHqwd4Hr5vCXTyJlqKfYIgj4jCGixVZjsz5a-S2RklJRFjjoLf-LI=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), tags, key.Tags)
-		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
-		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities2.Secp256k1, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities2.Ecdsa, key.Algo.Type)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -144,9 +145,9 @@ func (s *keysTestSuite) TestImport() {
 		id := fmt.Sprintf("%s-%d", "my-key-eddsa-import", common.RandInt(10000))
 		privKey, _ := hex.DecodeString(privKeyEDDSA)
 
-		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
-			Type:          entities.Eddsa,
-			EllipticCurve: entities.Babyjubjub,
+		key, err := s.store.Import(ctx, id, privKey, &entities2.Algorithm{
+			Type:          entities2.Eddsa,
+			EllipticCurve: entities2.Babyjubjub,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -160,8 +161,8 @@ func (s *keysTestSuite) TestImport() {
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), "X9Yz_5-O42-eOodHCUBhA4VMD2ZQy5CMAQ6lXqvDUZE=", base64.URLEncoding.EncodeToString(key.PublicKey))
 		assert.Equal(s.T(), tags, key.Tags)
-		assert.Equal(s.T(), entities.Babyjubjub, key.Algo.EllipticCurve)
-		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
+		assert.Equal(s.T(), entities2.Babyjubjub, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities2.Eddsa, key.Algo.Type)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
@@ -173,8 +174,8 @@ func (s *keysTestSuite) TestImport() {
 		id := "my-key"
 		privKey, _ := hex.DecodeString(privKeyECDSA)
 
-		key, err := s.store.Import(ctx, id, privKey, &entities.Algorithm{
-			Type:          entities.Ecdsa,
+		key, err := s.store.Import(ctx, id, privKey, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
 			EllipticCurve: "invalidCurve",
 		}, &entities.Attributes{
 			Tags: tags,
@@ -193,9 +194,9 @@ func (s *keysTestSuite) TestGet() {
 	id := s.newID("my-key-get")
 	tags := testutils.FakeTags()
 
-	_, err := s.store.Create(ctx, id, &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
+	_, err := s.store.Create(ctx, id, &entities2.Algorithm{
+		Type:          entities2.Ecdsa,
+		EllipticCurve: entities2.Secp256k1,
 	}, &entities.Attributes{
 		Tags: tags,
 	})
@@ -207,8 +208,8 @@ func (s *keysTestSuite) TestGet() {
 
 		assert.Equal(s.T(), id, keyRetrieved.ID)
 		assert.Equal(s.T(), tags, keyRetrieved.Tags)
-		assert.Equal(s.T(), entities.Secp256k1, keyRetrieved.Algo.EllipticCurve)
-		assert.Equal(s.T(), entities.Ecdsa, keyRetrieved.Algo.Type)
+		assert.Equal(s.T(), entities2.Secp256k1, keyRetrieved.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities2.Ecdsa, keyRetrieved.Algo.Type)
 		assert.NotEmpty(s.T(), keyRetrieved.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), keyRetrieved.Metadata.UpdatedAt)
 		assert.True(s.T(), keyRetrieved.Metadata.DeletedAt.IsZero())
@@ -231,25 +232,25 @@ func (s *keysTestSuite) TestList() {
 	id2 := s.newID("my-key-list-2")
 	id3 := s.newID("my-key-list-3")
 
-	_, err := s.store.Create(ctx, id, &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
+	_, err := s.store.Create(ctx, id, &entities2.Algorithm{
+		Type:          entities2.Ecdsa,
+		EllipticCurve: entities2.Secp256k1,
 	}, &entities.Attributes{
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
 
-	_, err = s.store.Create(ctx, id2, &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
+	_, err = s.store.Create(ctx, id2, &entities2.Algorithm{
+		Type:          entities2.Ecdsa,
+		EllipticCurve: entities2.Secp256k1,
 	}, &entities.Attributes{
 		Tags: tags,
 	})
 	require.NoError(s.T(), err)
 
-	_, err = s.store.Create(ctx, id3, &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
+	_, err = s.store.Create(ctx, id3, &entities2.Algorithm{
+		Type:          entities2.Ecdsa,
+		EllipticCurve: entities2.Secp256k1,
 	}, &entities.Attributes{
 		Tags: tags,
 	})
@@ -285,9 +286,9 @@ func (s *keysTestSuite) TestUpdate() {
 	ctx := s.env.ctx
 	id := s.newID("my-key-update")
 	tags := testutils.FakeTags()
-	_, err := s.store.Create(ctx, id, &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
+	_, err := s.store.Create(ctx, id, &entities2.Algorithm{
+		Type:          entities2.Ecdsa,
+		EllipticCurve: entities2.Secp256k1,
 	}, &entities.Attributes{
 		Tags: tags,
 	})
@@ -309,8 +310,8 @@ func (s *keysTestSuite) TestUpdate() {
 
 		assert.Equal(s.T(), id, updatedKey.ID)
 		assert.Equal(s.T(), newTags, updatedKey.Tags)
-		assert.Equal(s.T(), entities.Secp256k1, updatedKey.Algo.EllipticCurve)
-		assert.Equal(s.T(), entities.Ecdsa, updatedKey.Algo.Type)
+		assert.Equal(s.T(), entities2.Secp256k1, updatedKey.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities2.Ecdsa, updatedKey.Algo.Type)
 		assert.NotEmpty(s.T(), updatedKey.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), updatedKey.Metadata.UpdatedAt)
 		assert.True(s.T(), updatedKey.Metadata.DeletedAt.IsZero())
@@ -335,9 +336,9 @@ func (s *keysTestSuite) TestSignVerify() {
 	s.Run("should sign and verify a message successfully: ECDSA/Secp256k1", func() {
 		id := s.newID("mykey-sign-ecdsa")
 		payload := crypto.Keccak256([]byte("my data to sign"))
-		key, err := s.store.Create(ctx, id, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
+		key, err := s.store.Create(ctx, id, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
+			EllipticCurve: entities2.Secp256k1,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -346,9 +347,9 @@ func (s *keysTestSuite) TestSignVerify() {
 		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
-		err = s.utils.Verify(key.PublicKey, payload, signature, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
+		err = s.utils.Verify(key.PublicKey, payload, signature, &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
+			EllipticCurve: entities2.Secp256k1,
 		})
 		require.NoError(s.T(), err)
 	})
@@ -356,9 +357,9 @@ func (s *keysTestSuite) TestSignVerify() {
 	s.Run("should sign and verify a message successfully: EDDSA/Babyjubjub", func() {
 		id := fmt.Sprintf("mykey-sign-eddsa-%d", common.RandInt(1000))
 		payload := []byte("my data to sign")
-		key, err := s.store.Create(ctx, id, &entities.Algorithm{
-			Type:          entities.Eddsa,
-			EllipticCurve: entities.Babyjubjub,
+		key, err := s.store.Create(ctx, id, &entities2.Algorithm{
+			Type:          entities2.Eddsa,
+			EllipticCurve: entities2.Babyjubjub,
 		}, &entities.Attributes{
 			Tags: tags,
 		})
@@ -370,7 +371,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		signature, err := s.store.Sign(ctx, id, payload, nil)
 		require.NoError(s.T(), err)
 
-		err = s.utils.Verify(key.PublicKey, payload, signature, &entities.Algorithm{
+		err = s.utils.Verify(key.PublicKey, payload, signature, &entities2.Algorithm{
 			Type:          key.Algo.Type,
 			EllipticCurve: key.Algo.EllipticCurve,
 		})

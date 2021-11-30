@@ -1,11 +1,11 @@
-package stores
+package vaults
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-//go:generate mockgen -source=vaults.go -destination=mock/vaults.go -package=mock
+//go:generate mockgen -source=service.go -destination=mock/service.go -package=mock
 
 type Vaults interface {
 	// CreateHashicorp creates a Hashicorp Vault client

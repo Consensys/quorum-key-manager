@@ -2,11 +2,10 @@ package client
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 type Config struct {

@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/base64"
 	"encoding/json"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 
@@ -76,9 +77,9 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 	key, err := keyStore.Create(
 		ctx,
 		getID(request),
-		&entities.Algorithm{
-			Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
-			EllipticCurve: entities.Curve(createKeyRequest.Curve),
+		&entities2.Algorithm{
+			Type:          entities2.KeyType(createKeyRequest.SigningAlgorithm),
+			EllipticCurve: entities2.Curve(createKeyRequest.Curve),
 		},
 		&entities.Attributes{
 			Tags: createKeyRequest.Tags,
@@ -127,9 +128,9 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 		ctx,
 		getID(request),
 		importKeyRequest.PrivateKey,
-		&entities.Algorithm{
-			Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
-			EllipticCurve: entities.Curve(importKeyRequest.Curve),
+		&entities2.Algorithm{
+			Type:          entities2.KeyType(importKeyRequest.SigningAlgorithm),
+			EllipticCurve: entities2.Curve(importKeyRequest.Curve),
 		},
 		&entities.Attributes{
 			Tags: importKeyRequest.Tags,

@@ -3,6 +3,7 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"path"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -46,7 +47,7 @@ func (s *Store) Info(context.Context) (*entities.Store, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Create(_ context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -62,7 +63,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities.Algorithm, at
 	return parseAPISecretToKey(res)
 }
 
-func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -171,7 +172,7 @@ func (s *Store) Destroy(_ context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities.Algorithm) ([]byte, error) {
+func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities2.Algorithm) ([]byte, error) {
 	logger := s.logger.With("id", id)
 
 	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
@@ -193,7 +194,7 @@ func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities.Algo
 	return signature, nil
 }
 
-func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities2.Algorithm) error {
 	err := errors.NotSupportedError("verify signature is not supported")
 	s.logger.Warn(err.Error())
 	return err

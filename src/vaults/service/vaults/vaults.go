@@ -3,30 +3,33 @@ package vaults
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	"github.com/consensys/quorum-key-manager/src/stores"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/vaults"
 	"sync"
 )
 
-type Connector struct {
+type Vaults struct {
 	logger log.Logger
 	mux    sync.RWMutex
 	vaults map[string]*entities.Vault
+	roles  auth.Roles
 }
 
-var _ stores.Vaults = &Connector{}
+var _ vaults.Vaults = &Vaults{}
 
-func NewConnector(logger log.Logger) *Connector {
-	return &Connector{
+func New(roles auth.Roles, logger log.Logger) *Vaults {
+	return &Vaults{
 		logger: logger,
 		mux:    sync.RWMutex{},
 		vaults: make(map[string]*entities.Vault),
+		roles:  roles,
 	}
 }
 
 // TODO: Move to in-memory data layer
-func (c *Connector) createVault(name, vaultType string, cli interface{}) {
+func (c *Vaults) createVault(name, vaultType string, cli interface{}) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
@@ -38,7 +41,7 @@ func (c *Connector) createVault(name, vaultType string, cli interface{}) {
 }
 
 // TODO: Move to data layer
-func (c *Connector) getVault(_ context.Context, name string) (*entities.Vault, error) {
+func (c *Vaults) getVault(_ context.Context, name string) (*entities.Vault, error) {
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 

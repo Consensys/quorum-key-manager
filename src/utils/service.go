@@ -1,12 +1,12 @@
-package stores
+package utils
 
 import (
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/signer/core"
 )
 
-//go:generate mockgen -source=utils.go -destination=mock/utils.go -package=mock
+//go:generate mockgen -source=service.go -destination=mock/service.go -package=mock
 
 type Utilities interface {
 	// Verify verifies the signature belongs to the corresponding key

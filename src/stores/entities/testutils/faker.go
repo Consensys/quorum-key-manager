@@ -3,6 +3,7 @@ package testutils
 import (
 	"encoding/base64"
 	"fmt"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
 
 	common2 "github.com/consensys/quorum-key-manager/pkg/common"
@@ -64,10 +65,10 @@ func FakeAttributes() *entities.Attributes {
 	}
 }
 
-func FakeAlgorithm() *entities.Algorithm {
-	return &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
+func FakeAlgorithm() *entities2.Algorithm {
+	return &entities2.Algorithm{
+		Type:          entities2.Ecdsa,
+		EllipticCurve: entities2.Secp256k1,
 	}
 }
 

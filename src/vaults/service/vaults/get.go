@@ -2,10 +2,10 @@ package vaults
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func (c *Connector) Get(ctx context.Context, name string) (*entities.Vault, error) {
+func (c *Vaults) Get(ctx context.Context, name string) (*entities.Vault, error) {
 	logger := c.logger.With("name", name)
 
 	vault, err := c.getVault(ctx, name)

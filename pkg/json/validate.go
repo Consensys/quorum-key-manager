@@ -22,7 +22,7 @@ func isHexAddress(fl validator.FieldLevel) bool {
 func isCurve(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case string(entities.Secp256k1), string(entities.Babyjubjub):
+		case string(entities2.Secp256k1), string(entities2.Babyjubjub):
 			return true
 		default:
 			return false
@@ -35,7 +35,7 @@ func isCurve(fl validator.FieldLevel) bool {
 func isSigningAlgorithm(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case string(entities.Ecdsa), string(entities.Eddsa):
+		case string(entities2.Ecdsa), string(entities2.Eddsa):
 			return true
 		default:
 			return false

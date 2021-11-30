@@ -3,6 +3,7 @@ package akv
 import (
 	"crypto/ecdsa"
 	"encoding/base64"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"math/big"
 	"strings"
 	"time"
@@ -38,14 +39,14 @@ func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	return kAttr
 }
 
-func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities.Algorithm {
-	algo := &entities.Algorithm{}
+func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities2.Algorithm {
+	algo := &entities2.Algorithm{}
 	if kty == keyvault.EC {
-		algo.Type = entities.Ecdsa
+		algo.Type = entities2.Ecdsa
 	}
 
 	if crv == keyvault.P256K {
-		algo.EllipticCurve = entities.Secp256k1
+		algo.EllipticCurve = entities2.Secp256k1
 	}
 
 	return algo

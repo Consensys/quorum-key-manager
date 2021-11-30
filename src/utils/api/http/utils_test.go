@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+	http2 "github.com/consensys/quorum-key-manager/src/stores/api/http"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -53,11 +54,11 @@ func (s *utilsHandlerTestSuite) TestECRecover() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/ec-recover", bytes.NewReader(requestBytes))
 
-		s.utilities.EXPECT().ECRecover(ecRecoverRequest.Data, ecRecoverRequest.Signature).Return(ethcommon.HexToAddress(accAddress), nil)
+		s.utilities.EXPECT().ECRecover(ecRecoverRequest.Data, ecRecoverRequest.Signature).Return(ethcommon.HexToAddress(http2.accAddress), nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		assert.Equal(s.T(), ethcommon.HexToAddress(accAddress).String(), rw.Body.String())
+		assert.Equal(s.T(), ethcommon.HexToAddress(http2.accAddress).String(), rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 

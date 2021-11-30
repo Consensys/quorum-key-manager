@@ -3,10 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/yaml"
@@ -21,7 +20,7 @@ import (
 func newImportCmd() *cobra.Command {
 	var logger *zap.Logger
 	var storesConnector storeservice.Stores
-	var mnf *entities2.Manifest
+	var mnf *entities.Manifest
 
 	importCmd := &cobra.Command{
 		Use:   "import",
@@ -55,7 +54,7 @@ func newImportCmd() *cobra.Command {
 		Short: "import secrets from a vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if err := storesConnector.CreateSecret(ctx, mnf.Name, entities2.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
+			if err := storesConnector.CreateSecret(ctx, mnf.Name, mnf.Kind, mnf.Specs, mnf.AllowedTenants); err != nil {
 				return err
 			}
 

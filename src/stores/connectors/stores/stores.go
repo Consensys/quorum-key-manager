@@ -2,6 +2,7 @@ package stores
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/vaults"
 	"sync"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -18,13 +19,13 @@ type Connector struct {
 	mux    sync.RWMutex
 	roles  auth.Roles
 	stores map[string]*entities.Store
-	vaults stores.Vaults
+	vaults vaults.Vaults
 	db     database.Database
 }
 
 var _ stores.Stores = &Connector{}
 
-func NewConnector(roles auth.Roles, db database.Database, vaults stores.Vaults, logger log.Logger) *Connector {
+func NewConnector(roles auth.Roles, db database.Database, vaults vaults.Vaults, logger log.Logger) *Connector {
 	return &Connector{
 		logger: logger,
 		mux:    sync.RWMutex{},

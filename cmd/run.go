@@ -51,7 +51,7 @@ func runCmd(cmd *cobra.Command, _ []string) error {
 	}
 	defer syncZapLogger(logger)
 
-	appli, err := app.New(cfg, logger)
+	appli, err := app.New(ctx, cfg, logger)
 	if err != nil {
 		logger.WithError(err).Error("could not create app")
 		return err

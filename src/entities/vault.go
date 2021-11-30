@@ -11,9 +11,10 @@ const (
 )
 
 type Vault struct {
-	Client    interface{}
-	VaultType string
-	Name      string
+	Client         interface{}
+	VaultType      string
+	Name           string
+	AllowedTenants []string
 }
 
 type HashicorpConfig struct {

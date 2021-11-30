@@ -9,6 +9,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/websocket"
 )
 
+// TODO: Add YAML annotations for these types
 type ProxyConfig struct {
 	Request   *request.ProxyConfig   `json:"request,omitempty"`
 	Response  *response.ProxyConfig  `json:"response,omitempty"`
@@ -34,6 +35,7 @@ func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
 	return cfg
 }
 
+// TODO: Add YAML annotations for these types
 type DownstreamConfig struct {
 	Addr          string            `json:"addr,omitempty"`
 	Transport     *transport.Config `json:"transport,omitempty"`

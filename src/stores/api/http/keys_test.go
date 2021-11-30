@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 	"net/http/httptest"
@@ -84,9 +85,9 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			keyID,
-			&entities.Algorithm{
-				Type:          entities.KeyType(createKeyRequest.SigningAlgorithm),
-				EllipticCurve: entities.Curve(createKeyRequest.Curve),
+			&entities2.Algorithm{
+				Type:          entities2.KeyType(createKeyRequest.SigningAlgorithm),
+				EllipticCurve: entities2.Curve(createKeyRequest.Curve),
 			},
 			&entities.Attributes{
 				Tags: createKeyRequest.Tags,
@@ -109,7 +110,7 @@ func (s *keysHandlerTestSuite) TestCreate() {
 		s.keyStore.EXPECT().Create(
 			gomock.Any(),
 			gomock.Any(),
-			&entities.Algorithm{},
+			&entities2.Algorithm{},
 			&entities.Attributes{}).Return(key, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
@@ -172,9 +173,9 @@ func (s *keysHandlerTestSuite) TestImport() {
 			gomock.Any(),
 			keyID,
 			importKeyRequest.PrivateKey,
-			&entities.Algorithm{
-				Type:          entities.KeyType(importKeyRequest.SigningAlgorithm),
-				EllipticCurve: entities.Curve(importKeyRequest.Curve),
+			&entities2.Algorithm{
+				Type:          entities2.KeyType(importKeyRequest.SigningAlgorithm),
+				EllipticCurve: entities2.Curve(importKeyRequest.Curve),
 			},
 			&entities.Attributes{
 				Tags: importKeyRequest.Tags,

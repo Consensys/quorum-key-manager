@@ -4,6 +4,7 @@ package acceptancetests
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/utils/service/utils"
 	"math/rand"
 	"os"
 	"testing"
@@ -19,7 +20,6 @@ import (
 	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
 	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"

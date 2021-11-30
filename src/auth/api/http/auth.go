@@ -28,6 +28,12 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
+		// If no auth method, return wildcard user
+		if m.authenticator == nil {
+			next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, entities.NewWildcardUser())))
+			return
+		}
+
 		authHeader := r.Header.Get("Authorization")
 
 		// If Auth header is provided, try JWT or API key

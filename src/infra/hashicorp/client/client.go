@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
@@ -9,7 +10,8 @@ import (
 )
 
 type HashicorpVaultClient struct {
-	client *api.Client
+	client     *api.Client
+	mountPoint string
 }
 
 var _ hashicorp.VaultClient = &HashicorpVaultClient{}
@@ -127,4 +129,20 @@ func (c *HashicorpVaultClient) Mount(path string, mountInfo *api.MountInput) err
 	}
 
 	return nil
+}
+
+func (s *Store) pathUndeleteID(id string) string {
+	return path.Join(s.mountPoint, "undelete", id)
+}
+
+func (s *Store) pathDestroyID(id string) string {
+	return path.Join(s.mountPoint, "destroy", id)
+}
+
+func (s *Store) pathData(id string) string {
+	return path.Join(s.mountPoint, dataLabel, id)
+}
+
+func (s *Store) pathMetadata(id string) string {
+	return path.Join(s.mountPoint, metadataLabel, id)
 }

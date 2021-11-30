@@ -3,6 +3,7 @@ package stores
 import (
 	"context"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	akvinfra "github.com/consensys/quorum-key-manager/src/infra/akv"
 	awsinfra "github.com/consensys/quorum-key-manager/src/infra/aws"
 	hashicorpinfra "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
@@ -40,11 +41,11 @@ func (c *Connector) createSecretStore(ctx context.Context, vaultName, storeName 
 	}
 
 	switch vault.VaultType {
-	case entities.HashicorpVaultType:
+	case entities2.HashicorpVaultType:
 		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), c.db.Secrets(storeName), specs.MountPoint, logger), nil
-	case entities.AzureVaultType:
+	case entities2.AzureVaultType:
 		return akv.New(vault.Client.(akvinfra.SecretClient), logger), nil
-	case entities.AWSVaultType:
+	case entities2.AWSVaultType:
 		return aws.New(vault.Client.(awsinfra.SecretsManagerClient), logger), nil
 	default:
 		errMessage := "invalid vault for secret store"

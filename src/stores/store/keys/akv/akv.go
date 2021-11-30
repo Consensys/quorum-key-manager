@@ -3,6 +3,7 @@ package akv
 import (
 	"context"
 	"encoding/base64"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -34,13 +35,13 @@ func (s *Store) Info(context.Context) (*entities.Store, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
 
 	logger := s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type)
 	switch {
-	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
+	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
 		kty = keyvault.EC
 		crv = keyvault.P256K
 	default:
@@ -59,13 +60,13 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 	return parseKeyBundleRes(&res), nil
 }
 
-func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(ctx context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	var pKeyD, pKeyX, pKeyY string
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
 
 	switch {
-	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
+	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
 		pKey, err := crypto.ToECDSA(privKey)
 		if err != nil {
 			errMessage := "invalid private key"
@@ -204,12 +205,12 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
+func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities2.Algorithm) ([]byte, error) {
 	logger := s.logger.With("id", id)
 
 	var akvAlgo keyvault.JSONWebKeySignatureAlgorithm
 	switch {
-	case algo.EllipticCurve == entities.Secp256k1 && algo.Type == entities.Ecdsa:
+	case algo.EllipticCurve == entities2.Secp256k1 && algo.Type == entities2.Ecdsa:
 		akvAlgo = keyvault.ES256K
 	default:
 		errMessage := "invalid elliptic curve and signing algorithm combination for signing"
@@ -234,7 +235,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	return signature, nil
 }
 
-func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities2.Algorithm) error {
 	err := errors.NotSupportedError("verify signature is not supported")
 	s.logger.Warn(err.Error())
 	return err

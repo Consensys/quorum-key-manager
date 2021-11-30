@@ -3,6 +3,7 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"testing"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/golang/mock/gomock"
 	hashicorp "github.com/hashicorp/vault/api"

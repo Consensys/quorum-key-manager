@@ -2,8 +2,9 @@ package stores
 
 import (
 	"context"
-	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	akvinfra "github.com/consensys/quorum-key-manager/src/infra/akv"
 	awsinfra "github.com/consensys/quorum-key-manager/src/infra/aws"
 	hashicorpinfra "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
@@ -19,7 +20,7 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *Connector) CreateKey(ctx context.Context, name, vault, secretStore string, allowedTenants []string, userInfo *auth.UserInfo) error {
+func (c *Connector) CreateKey(ctx context.Context, name, vault, secretStore string, allowedTenants []string, userInfo *authtypes.UserInfo) error {
 	logger := c.logger.With("name", name, "vault", vault, "secret_store", secretStore)
 	logger.Debug("creating key store")
 
@@ -28,6 +29,10 @@ func (c *Connector) CreateKey(ctx context.Context, name, vault, secretStore stri
 		logger.Error(errMessage)
 		return errors.InvalidParameterError(errMessage)
 	}
+
+	// TODO: Uncomment when authManager no longer a runnable
+	// permissions := c.authManager.UserPermissions(userInfo)
+	resolver := authorizator.New(userInfo.Permissions, userInfo.Tenant, c.logger)
 
 	// If vault is specified, it is a remote key store, otherwise it's a local key store
 	var store stores.KeyStore
@@ -39,10 +44,6 @@ func (c *Connector) CreateKey(ctx context.Context, name, vault, secretStore stri
 			return err
 		}
 	case secretStore != "":
-		// TODO: Uncomment when authManager no longer a runnable
-		// permissions := c.authManager.UserPermissions(userInfo)
-		resolver := authorizator.New(userInfo.Permissions, userInfo.Tenant, c.logger)
-
 		secretstore, err := c.getSecretStore(ctx, secretStore, resolver)
 		if err != nil {
 			return err
@@ -70,11 +71,11 @@ func (c *Connector) createKeyStore(ctx context.Context, vaultName string) (store
 	}
 
 	switch vault.VaultType {
-	case entities.HashicorpVaultType:
+	case entities2.HashicorpVaultType:
 		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), specs.MountPoint, logger), nil
-	case entities.AzureVaultType:
+	case entities2.AzureVaultType:
 		return akv.New(vault.Client.(akvinfra.KeysClient), logger), nil
-	case entities.AWSVaultType:
+	case entities2.AWSVaultType:
 		return aws.New(vault.Client.(awsinfra.KmsClient), logger), nil
 	default:
 		errMessage := "invalid vault for key store"

@@ -3,11 +3,11 @@ package utils
 import (
 	"github.com/consensys/quorum-key-manager/pkg/crypto"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func (c Connector) Verify(pubKey, data, sig []byte, algo *entities.Algorithm) error {
-	logger := c.logger.With("pub_key", pubKey, "curve", algo.EllipticCurve, "signing_algorithm", algo.Type)
+func (u *Utilities) Verify(pubKey, data, sig []byte, algo *entities.Algorithm) error {
+	logger := u.logger.With("pub_key", pubKey, "curve", algo.EllipticCurve, "signing_algorithm", algo.Type)
 
 	var err error
 	var verified bool
@@ -33,6 +33,6 @@ func (c Connector) Verify(pubKey, data, sig []byte, algo *entities.Algorithm) er
 		return errors.InvalidParameterError(errMessage)
 	}
 
-	c.logger.Debug("data verified successfully")
+	u.logger.Debug("data verified successfully")
 	return nil
 }

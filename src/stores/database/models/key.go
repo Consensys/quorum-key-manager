@@ -1,6 +1,7 @@
 package models
 
 import (
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -41,9 +42,9 @@ func (k *Key) ToEntity() *entities.Key {
 	return &entities.Key{
 		ID:        k.ID,
 		PublicKey: k.PublicKey,
-		Algo: &entities.Algorithm{
-			Type:          entities.KeyType(k.SigningAlgorithm),
-			EllipticCurve: entities.Curve(k.EllipticCurve),
+		Algo: &entities2.Algorithm{
+			Type:          entities2.KeyType(k.SigningAlgorithm),
+			EllipticCurve: entities2.Curve(k.EllipticCurve),
 		},
 		Tags:        k.Tags,
 		Annotations: k.Annotations,
