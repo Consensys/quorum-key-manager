@@ -23,20 +23,18 @@ const (
 )
 
 type Store struct {
-	client     hashicorp.VaultClient
-	db         database.Secrets
-	mountPoint string
-	logger     log.Logger
+	client hashicorp.VaultClient
+	db     database.Secrets
+	logger log.Logger
 }
 
 var _ stores.SecretStore = &Store{}
 
-func New(client hashicorp.VaultClient, db database.Secrets, mountPoint string, logger log.Logger) *Store {
+func New(client hashicorp.VaultClient, db database.Secrets, logger log.Logger) *Store {
 	return &Store{
-		client:     client,
-		mountPoint: mountPoint,
-		logger:     logger,
-		db:         db,
+		client: client,
+		logger: logger,
+		db:     db,
 	}
 }
 

@@ -8,8 +8,8 @@ const (
 )
 
 type Manifest struct {
-	Kind      string      `yaml:"kind" validate:"required,isManifestKind" example:"store"`
-	Name      string      `json:"name" yaml:"name" validate:"required" example:"my-store"`
-	StoreType string      `json:"type,omitempty" yaml:"type,omitempty" validate:"isStoreType" example:"ethereum"`
-	Specs     interface{} `yaml:"specs" validate:"required"`
+	Kind         string      `yaml:"kind" validate:"required,isManifestKind" example:"store"`
+	Name         string      `json:"name" yaml:"name" validate:"required" example:"my-store"`
+	ResourceType string      `json:"type,omitempty" yaml:"type,omitempty" example:"ethereum"`
+	Specs        interface{} `yaml:"specs" validate:"required"`
 }

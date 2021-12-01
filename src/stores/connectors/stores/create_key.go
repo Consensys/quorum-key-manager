@@ -72,7 +72,7 @@ func (c *Connector) createKeyStore(ctx context.Context, vaultName string) (store
 
 	switch vault.VaultType {
 	case entities2.HashicorpVaultType:
-		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), specs.MountPoint, logger), nil
+		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), logger), nil
 	case entities2.AzureVaultType:
 		return akv.New(vault.Client.(akvinfra.KeysClient), logger), nil
 	case entities2.AWSVaultType:

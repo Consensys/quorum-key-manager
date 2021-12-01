@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/json"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/vaults"
 )
@@ -16,25 +15,6 @@ type VaultsHandler struct {
 func NewVaultsHandler(vaultsService vaults.Vaults) *VaultsHandler {
 	return &VaultsHandler{
 		vaults: vaultsService,
-	}
-}
-
-func (h *VaultsHandler) Register(ctx context.Context, specs interface{}) error {
-	createReq := &types.CreateVaultRequest{}
-	err := json.UnmarshalJSON(specs, createReq)
-	if err != nil {
-		return errors.InvalidFormatError(err.Error())
-	}
-
-	switch createReq.VaultType {
-	case entities.HashicorpVaultType:
-		return h.CreateHashicorp(ctx, createReq.Params)
-	case entities.AzureVaultType:
-		return h.CreateAzure(ctx, createReq.Params)
-	case entities.AWSVaultType:
-		return h.CreateAWS(ctx, createReq.Params)
-	default:
-		return errors.InvalidFormatError("invalid vault type")
 	}
 }
 

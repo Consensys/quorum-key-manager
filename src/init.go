@@ -46,15 +46,21 @@ func initialize(
 
 	manifestVaultHandler := vaultsapi.NewVaultsHandler(vaultsService)
 	for _, mnf := range manifests[entities.VaultKind] {
-		err = manifestVaultHandler.Register(ctx, mnf.Specs)
-		if err != nil {
-			return err
+		switch mnf.ResourceType {
+		case entities.HashicorpVaultType:
+			return manifestVaultHandler.CreateHashicorp(ctx, mnf.Specs)
+		case entities.AzureVaultType:
+			return manifestVaultHandler.CreateAzure(ctx, mnf.Specs)
+		case entities.AWSVaultType:
+			return manifestVaultHandler.CreateAWS(ctx, mnf.Specs)
+		default:
+			return errors.InvalidFormatError("invalid vault type")
 		}
 	}
 
 	manifestStoreHandler := storesapi.NewStoresHandler(storesService)
 	for _, mnf := range manifests[entities.StoreKind] {
-		switch mnf.StoreType {
+		switch mnf.ResourceType {
 		case entities2.SecretStoreType:
 			err = manifestStoreHandler.CreateSecret(ctx, mnf.Name, mnf.Specs)
 		case entities2.KeyStoreType:

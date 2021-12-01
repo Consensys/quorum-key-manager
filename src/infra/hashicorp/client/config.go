@@ -16,6 +16,7 @@ import (
 
 // Config object that be converted into an api.Config later
 type Config struct {
+	MountPoint    string
 	Address       string
 	CACert        string
 	CAPath        string
@@ -44,6 +45,7 @@ func NewConfig(specs *entities.HashicorpConfig) *Config {
 		BurstLimit:    specs.BurstLimit,
 		MaxRetries:    specs.MaxRetries,
 		SkipVerify:    specs.SkipVerify,
+		MountPoint:    specs.MountPoint,
 	}
 }
 

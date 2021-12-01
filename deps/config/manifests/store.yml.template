@@ -1,63 +1,55 @@
 - kind: store
+  type: secret
+  name: hashicorp-secrets
   specs:
-    type: secret
-    params:
-      name: hashicorp-secrets
-      #    allowed_tenants: []
-      vault: hashicorp-kv-v2
+    #    allowed_tenants: []
+    vault: hashicorp-kv-v2
 
 - kind: store
+  type: key
+  name: hashicorp-keys
   specs:
-    type: key
-    params:
-      name: hashicorp-keys
-      #    allowed_tenants: []
-      vault: hashicorp-quorum
+    #    allowed_tenants: []
+    vault: hashicorp-quorum
 
 - kind: store
+  type: secret
+  name: akv-secrets
   specs:
-    type: secret
-    params:
-      name: akv-secrets
-      #    allowed_tenants: []
-      vault: akv-europe
+    #    allowed_tenants: []
+    vault: akv-europe
 
 - kind: store
+  type: key
+  name: akv-keys
   specs:
-    type: key
-    params:
-      name: akv-keys
-      #    allowed_tenants: []
-      vault: akv-europe
+    #    allowed_tenants: []
+    vault: akv-europe
 
 - kind: store
+  type: secret
+  name: aws-secrets
   specs:
-    type: secret
-    params:
-      name: aws-secrets
-      #    allowed_tenants: []
-      vault: aws-europe
+    #    allowed_tenants: []
+    vault: aws-europe
 
 - kind: store
+  type: key
+  name: aws-keys
   specs:
-    type: key
-    params:
-      name: aws-keys
-      #   allowed_tenants: []
-      vault: aws-europe
+    #   allowed_tenants: []
+    vault: aws-europe
 
 - kind: store
+  type: key
+  name: local-keys
   specs:
-    type: key
-    params:
-      name: local-keys
-      #   allowed_tenants: []
-      store: hashicorp-secrets
+    #   allowed_tenants: []
+    store: hashicorp-secrets
 
 - kind: store
+  type: ethereum
+  name: eth-accounts
   specs:
-    type: ethereum
-    params:
-      name: eth-accounts
-      #    allowed_tenants: []
-      store: hashicorp-keys
+    #    allowed_tenants: []
+    store: hashicorp-keys

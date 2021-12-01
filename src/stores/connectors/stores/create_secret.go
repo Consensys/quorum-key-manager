@@ -42,7 +42,7 @@ func (c *Connector) createSecretStore(ctx context.Context, vaultName, storeName 
 
 	switch vault.VaultType {
 	case entities2.HashicorpVaultType:
-		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), c.db.Secrets(storeName), specs.MountPoint, logger), nil
+		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), c.db.Secrets(storeName), logger), nil
 	case entities2.AzureVaultType:
 		return akv.New(vault.Client.(akvinfra.SecretClient), logger), nil
 	case entities2.AWSVaultType:

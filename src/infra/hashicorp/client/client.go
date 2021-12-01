@@ -2,8 +2,6 @@ package client
 
 import (
 	"fmt"
-	"path"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/hashicorp/vault/api"
@@ -28,7 +26,7 @@ func NewClient(cfg *Config) (*HashicorpVaultClient, error) {
 
 	client.SetNamespace(cfg.Namespace)
 
-	return &HashicorpVaultClient{client}, nil
+	return &HashicorpVaultClient{client: client, mountPoint: cfg.MountPoint}, nil
 }
 
 func (c *HashicorpVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {
@@ -129,20 +127,4 @@ func (c *HashicorpVaultClient) Mount(path string, mountInfo *api.MountInput) err
 	}
 
 	return nil
-}
-
-func (s *Store) pathUndeleteID(id string) string {
-	return path.Join(s.mountPoint, "undelete", id)
-}
-
-func (s *Store) pathDestroyID(id string) string {
-	return path.Join(s.mountPoint, "destroy", id)
-}
-
-func (s *Store) pathData(id string) string {
-	return path.Join(s.mountPoint, dataLabel, id)
-}
-
-func (s *Store) pathMetadata(id string) string {
-	return path.Join(s.mountPoint, metadataLabel, id)
 }

@@ -28,18 +28,16 @@ const (
 )
 
 type Store struct {
-	client     hashicorp.VaultClient
-	mountPoint string
-	logger     log.Logger
+	client hashicorp.VaultClient
+	logger log.Logger
 }
 
 var _ stores.KeyStore = &Store{}
 
-func New(client hashicorp.VaultClient, mountPoint string, logger log.Logger) *Store {
+func New(client hashicorp.VaultClient, logger log.Logger) *Store {
 	return &Store{
-		client:     client,
-		mountPoint: mountPoint,
-		logger:     logger,
+		client: client,
+		logger: logger,
 	}
 }
 

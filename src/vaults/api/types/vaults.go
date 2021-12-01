@@ -4,11 +4,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-type CreateVaultRequest struct {
-	VaultType string      `json:"type" yaml:"type" validate:"required,isVaultType" example:"hashicorp"`
-	Params    interface{} `json:"params" yaml:"params" validate:"required"`
-}
-
 type CreateHashicorpVaultRequest struct {
 	Name   string                   `json:"name" yaml:"name" validate:"required" example:"hashicorp-kv-v2"`
 	Config entities.HashicorpConfig `json:"config" yaml:"config" validate:"required"`
