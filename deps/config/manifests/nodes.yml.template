@@ -1,19 +1,19 @@
 - kind: node
+  name: quorum-node
   specs:
-    name: quorum-node
     rpc:
       addr: http://quorum1:8545
     tessera:
       addr: http://tessera1:9080
 
 - kind: node
+  name: besu-node
   specs:
-    name: besu-node
     rpc:
       addr: http://validator1:8545
 
 - kind: node
+  name: geth-node
   specs:
-    name: geth-node
     rpc:
       addr: http://geth:8545

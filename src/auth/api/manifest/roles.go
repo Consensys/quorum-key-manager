@@ -21,14 +21,14 @@ func NewRolesHandler(roles auth.Roles) *RolesHandler {
 	}
 }
 
-func (h *RolesHandler) Create(ctx context.Context, specs interface{}) error {
+func (h *RolesHandler) Create(ctx context.Context, name string, specs interface{}) error {
 	createReq := &types.CreateRoleRequest{}
 	err := json.UnmarshalJSON(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.roles.Create(ctx, createReq.Name, createReq.Permissions, h.userInfo)
+	err = h.roles.Create(ctx, name, createReq.Permissions, h.userInfo)
 	if err != nil {
 		return err
 	}

@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	urlPath         = "keys"
 	idLabel         = "id"
 	curveLabel      = "curve"
 	algorithmLabel  = "signing_algorithm"
@@ -28,25 +27,21 @@ const (
 )
 
 type Store struct {
-	client hashicorp.VaultClient
+	client hashicorp.PluginClient
 	logger log.Logger
 }
 
 var _ stores.KeyStore = &Store{}
 
-func New(client hashicorp.VaultClient, logger log.Logger) *Store {
+func New(client hashicorp.PluginClient, logger log.Logger) *Store {
 	return &Store{
 		client: client,
 		logger: logger,
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities.Store, error) {
-	return nil, errors.ErrNotImplemented
-}
-
 func (s *Store) Create(_ context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	res, err := s.client.Write(s.pathKeys(""), map[string]interface{}{
+	res, err := s.client.CreateKey(map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
 		algorithmLabel: alg.Type,
@@ -62,7 +57,7 @@ func (s *Store) Create(_ context.Context, id string, alg *entities2.Algorithm, a
 }
 
 func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
-	res, err := s.client.Write(s.pathKeys("import"), map[string]interface{}{
+	res, err := s.client.ImportKey(map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
 		algorithmLabel:  alg.Type,
@@ -81,7 +76,7 @@ func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entiti
 func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 	logger := s.logger.With("id", id)
 
-	res, err := s.client.Read(s.pathKeys(id), nil)
+	res, err := s.client.GetKey(id)
 	if err != nil {
 		errMessage := "failed to get Hashicorp key"
 		logger.WithError(err).Error(errMessage)
@@ -98,7 +93,7 @@ func (s *Store) Get(_ context.Context, id string) (*entities.Key, error) {
 }
 
 func (s *Store) List(_ context.Context, _, _ uint64) ([]string, error) {
-	res, err := s.client.List(s.pathKeys(""))
+	res, err := s.client.ListKeys()
 	if err != nil {
 		errMessage := "failed to list Hashicorp keys"
 		s.logger.WithError(err).Error(errMessage)
@@ -123,7 +118,7 @@ func (s *Store) List(_ context.Context, _, _ uint64) ([]string, error) {
 }
 
 func (s *Store) Update(_ context.Context, id string, attr *entities.Attributes) (*entities.Key, error) {
-	res, err := s.client.Write(s.pathKeys(id), map[string]interface{}{
+	res, err := s.client.UpdateKey(id, map[string]interface{}{
 		tagsLabel: attr.Tags,
 	})
 	if err != nil {
@@ -160,7 +155,7 @@ func (s *Store) Restore(_ context.Context, _ string) error {
 }
 
 func (s *Store) Destroy(_ context.Context, id string) error {
-	err := s.client.Delete(path.Join(s.pathKeys(id), "destroy"), map[string][]string{})
+	err := s.client.DestroyKey(path.Join(id))
 	if err != nil {
 		errMessage := "failed to permanently delete Hashicorp key"
 		s.logger.WithError(err).Error(errMessage)
@@ -173,9 +168,7 @@ func (s *Store) Destroy(_ context.Context, id string) error {
 func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities2.Algorithm) ([]byte, error) {
 	logger := s.logger.With("id", id)
 
-	res, err := s.client.Write(path.Join(s.pathKeys(id), "sign"), map[string]interface{}{
-		dataLabel: base64.URLEncoding.EncodeToString(data),
-	})
+	res, err := s.client.Sign(id, data)
 	if err != nil {
 		errMessage := "failed to sign using Hashicorp key"
 		logger.WithError(err).Error(errMessage)
@@ -192,20 +185,10 @@ func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities2.Alg
 	return signature, nil
 }
 
-func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities2.Algorithm) error {
-	err := errors.NotSupportedError("verify signature is not supported")
-	s.logger.Warn(err.Error())
-	return err
-}
-
 func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) pathKeys(suffix string) string {
-	return path.Join(s.mountPoint, urlPath, suffix)
 }

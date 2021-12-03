@@ -3,11 +3,12 @@ package vaults
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/aws/client"
 )
 
-func (c *Vaults) CreateAWS(_ context.Context, name string, config *entities.AWSConfig) error {
+func (c *Vaults) CreateAWS(_ context.Context, name string, config *entities.AWSConfig, allowedTenants []string, _ *auth.UserInfo) error {
 	logger := c.logger.With("name", name)
 	logger.Debug("creating aws vault client")
 
@@ -18,7 +19,7 @@ func (c *Vaults) CreateAWS(_ context.Context, name string, config *entities.AWSC
 		return errors.InvalidParameterError(errMessage)
 	}
 
-	c.createVault(name, entities.AWSVaultType, cli)
+	c.createVault(name, entities.AWSVaultType, allowedTenants, cli)
 
 	logger.Info("aws vault created successfully")
 	return nil

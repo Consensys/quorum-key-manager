@@ -1,25 +1,25 @@
 - kind: role
+  name: anonymous
   specs:
-    name: anonymous
     permissions:
       - "proxy:nodes"
 
 - kind: role
+  name: guest
   specs:
-    name: guest
     permissions:
       - "read:*"
 
 - kind: role
+  name: signer
   specs:
-    name: signer
-    permission:
+    permissions:
       - "read:*"
       - "sign:keys"
       - "sign:ethereum"
 
 - kind: role
+  name: admin
   specs:
-    name: admin
     permissions:
       - "*:*"

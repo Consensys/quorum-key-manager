@@ -20,8 +20,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *Connector) CreateKey(ctx context.Context, name, vault, secretStore string, allowedTenants []string, userInfo *authtypes.UserInfo) error {
-	logger := c.logger.With("name", name, "vault", vault, "secret_store", secretStore)
+func (c *Connector) CreateKey(ctx context.Context, name, vaultName, secretStore string, allowedTenants []string, userInfo *authtypes.UserInfo) error {
+	logger := c.logger.With("name", name, "vault", vaultName, "secret_store", secretStore)
 	logger.Debug("creating key store")
 
 	if name != "" && secretStore != "" {
@@ -36,10 +36,25 @@ func (c *Connector) CreateKey(ctx context.Context, name, vault, secretStore stri
 
 	// If vault is specified, it is a remote key store, otherwise it's a local key store
 	var store stores.KeyStore
-	var err error
 	switch {
-	case vault != "":
-		store, err = c.createKeyStore(ctx, vault)
+	case vaultName != "":
+		vault, err := c.vaults.Get(ctx, vaultName, userInfo)
+		if err != nil {
+			return err
+		}
+
+		switch vault.VaultType {
+		case entities2.HashicorpVaultType:
+			store, err = hashicorp.New(vault.Client.(hashicorpinfra.PluginClient), logger), nil
+		case entities2.AzureVaultType:
+			store, err = akv.New(vault.Client.(akvinfra.KeysClient), logger), nil
+		case entities2.AWSVaultType:
+			store, err = aws.New(vault.Client.(awsinfra.KmsClient), logger), nil
+		default:
+			errMessage := "invalid vault for key store"
+			logger.Error(errMessage)
+			return errors.InvalidParameterError(errMessage)
+		}
 		if err != nil {
 			return err
 		}
@@ -60,26 +75,4 @@ func (c *Connector) CreateKey(ctx context.Context, name, vault, secretStore stri
 
 	logger.Info("key store created successfully")
 	return nil
-}
-
-func (c *Connector) createKeyStore(ctx context.Context, vaultName string) (stores.KeyStore, error) {
-	logger := c.logger.With("vault", vaultName)
-
-	vault, err := c.vaults.Get(ctx, vaultName)
-	if err != nil {
-		return nil, err
-	}
-
-	switch vault.VaultType {
-	case entities2.HashicorpVaultType:
-		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), logger), nil
-	case entities2.AzureVaultType:
-		return akv.New(vault.Client.(akvinfra.KeysClient), logger), nil
-	case entities2.AWSVaultType:
-		return aws.New(vault.Client.(awsinfra.KmsClient), logger), nil
-	default:
-		errMessage := "invalid vault for key store"
-		logger.Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
-	}
 }

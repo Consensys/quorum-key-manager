@@ -21,14 +21,14 @@ func NewNodesHandler(nodesInteractor nodes.Nodes) *NodesHandler {
 	}
 }
 
-func (h *NodesHandler) Create(ctx context.Context, specs interface{}) error {
+func (h *NodesHandler) Create(ctx context.Context, name string, specs interface{}) error {
 	createReq := &types.CreateNodeRequest{}
 	err := json.UnmarshalJSON(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.nodes.Create(ctx, createReq.Name, createReq.Config.SetDefault(), createReq.AllowedTenants, h.userInfo)
+	err = h.nodes.Create(ctx, name, createReq.Config.SetDefault(), createReq.AllowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}

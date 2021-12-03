@@ -2,6 +2,7 @@ package vaults
 
 import (
 	"context"
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
 )
 
-func (c *Vaults) CreateHashicorp(_ context.Context, name string, config *entities.HashicorpConfig) error {
+func (c *Vaults) CreateHashicorp(_ context.Context, name string, config *entities.HashicorpConfig, allowedTenants []string, _ *auth.UserInfo) error {
 	logger := c.logger.With("name", name)
 	logger.Debug("creating hashicorp vault client")
 
@@ -63,7 +64,7 @@ func (c *Vaults) CreateHashicorp(_ context.Context, name string, config *entitie
 		}
 	}
 
-	c.createVault(name, entities.HashicorpVaultType, cli)
+	c.createVault(name, entities.HashicorpVaultType, allowedTenants, cli)
 
 	logger.Info("hashicorp vault created successfully")
 	return nil

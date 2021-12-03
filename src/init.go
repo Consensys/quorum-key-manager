@@ -38,7 +38,7 @@ func initialize(
 
 	manifestRolesHandler := authapi.NewRolesHandler(rolesService)
 	for _, mnf := range manifests[entities.RoleKind] {
-		err = manifestRolesHandler.Create(ctx, mnf.Specs)
+		err = manifestRolesHandler.Create(ctx, mnf.Name, mnf.Specs)
 		if err != nil {
 			return err
 		}
@@ -48,13 +48,17 @@ func initialize(
 	for _, mnf := range manifests[entities.VaultKind] {
 		switch mnf.ResourceType {
 		case entities.HashicorpVaultType:
-			return manifestVaultHandler.CreateHashicorp(ctx, mnf.Specs)
+			err = manifestVaultHandler.CreateHashicorp(ctx, mnf.Name, mnf.Specs)
 		case entities.AzureVaultType:
-			return manifestVaultHandler.CreateAzure(ctx, mnf.Specs)
+			err = manifestVaultHandler.CreateAzure(ctx, mnf.Name, mnf.Specs)
 		case entities.AWSVaultType:
-			return manifestVaultHandler.CreateAWS(ctx, mnf.Specs)
+			err = manifestVaultHandler.CreateAWS(ctx, mnf.Name, mnf.Specs)
 		default:
 			return errors.InvalidFormatError("invalid vault type")
+		}
+
+		if err != nil {
+			return err
 		}
 	}
 
@@ -78,7 +82,7 @@ func initialize(
 
 	manifestNodesHandler := nodesapi.NewNodesHandler(nodesService)
 	for _, mnf := range manifests[entities.NodeKind] {
-		err = manifestNodesHandler.Create(ctx, mnf.Specs)
+		err = manifestNodesHandler.Create(ctx, mnf.Name, mnf.Specs)
 		if err != nil {
 			return err
 		}

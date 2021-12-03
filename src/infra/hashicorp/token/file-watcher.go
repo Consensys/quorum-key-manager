@@ -21,13 +21,13 @@ import (
 // RenewTokenWatcher handle the token tokenWatcher of the application
 type RenewTokenWatcher struct {
 	tokenPath     string
-	client        hashicorp.VaultClient
+	client        hashicorp.Client
 	watcher       *fsnotify.Watcher
 	logger        log.Logger
 	isTokenLoaded bool
 }
 
-func NewRenewTokenWatcher(client hashicorp.VaultClient, tokenPath string, logger log.Logger) (*RenewTokenWatcher, error) {
+func NewRenewTokenWatcher(client hashicorp.Client, tokenPath string, logger log.Logger) (*RenewTokenWatcher, error) {
 	logger = logger.With("token_path", tokenPath)
 
 	watcher, err := fsnotify.NewWatcher()

@@ -29,23 +29,28 @@ func New(roles auth.Roles, logger log.Logger) *Vaults {
 }
 
 // TODO: Move to in-memory data layer
-func (c *Vaults) createVault(name, vaultType string, cli interface{}) {
+func (c *Vaults) createVault(name, vaultType string, allowedTenants []string, cli interface{}) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
 	c.vaults[name] = &entities.Vault{
-		Name:      name,
-		Client:    cli,
-		VaultType: vaultType,
+		Name:           name,
+		Client:         cli,
+		VaultType:      vaultType,
+		AllowedTenants: allowedTenants,
 	}
 }
 
 // TODO: Move to data layer
-func (c *Vaults) getVault(_ context.Context, name string) (*entities.Vault, error) {
+func (c *Vaults) getVault(_ context.Context, name string, resolver auth.Authorizator) (*entities.Vault, error) {
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 
 	if vault, ok := c.vaults[name]; ok {
+		if err := resolver.CheckAccess(vault.AllowedTenants); err != nil {
+			return nil, err
+		}
+
 		return vault, nil
 	}
 

@@ -35,10 +35,10 @@ func (m *MockReader) EXPECT() *MockReaderMockRecorder {
 }
 
 // Load mocks base method
-func (m *MockReader) Load(ctx context.Context) (map[string][]entities.Manifest, error) {
+func (m *MockReader) Load(ctx context.Context) (*entities.Manifest, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Load", ctx)
-	ret0, _ := ret[0].(map[string][]entities.Manifest)
+	ret0, _ := ret[0].(*entities.Manifest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

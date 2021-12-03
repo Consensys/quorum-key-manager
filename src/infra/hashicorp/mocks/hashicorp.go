@@ -10,116 +10,249 @@ import (
 	reflect "reflect"
 )
 
-// MockVaultClient is a mock of VaultClient interface
-type MockVaultClient struct {
+// MockClient is a mock of Client interface
+type MockClient struct {
 	ctrl     *gomock.Controller
-	recorder *MockVaultClientMockRecorder
+	recorder *MockClientMockRecorder
 }
 
-// MockVaultClientMockRecorder is the mock recorder for MockVaultClient
-type MockVaultClientMockRecorder struct {
-	mock *MockVaultClient
+// MockClientMockRecorder is the mock recorder for MockClient
+type MockClientMockRecorder struct {
+	mock *MockClient
 }
 
-// NewMockVaultClient creates a new mock instance
-func NewMockVaultClient(ctrl *gomock.Controller) *MockVaultClient {
-	mock := &MockVaultClient{ctrl: ctrl}
-	mock.recorder = &MockVaultClientMockRecorder{mock}
+// NewMockClient creates a new mock instance
+func NewMockClient(ctrl *gomock.Controller) *MockClient {
+	mock := &MockClient{ctrl: ctrl}
+	mock.recorder = &MockClientMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockVaultClient) EXPECT() *MockVaultClientMockRecorder {
+func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// Read mocks base method
-func (m *MockVaultClient) Read(path string, data map[string][]string) (*api.Secret, error) {
+// ReadData mocks base method
+func (m *MockClient) ReadData(id string, data map[string][]string) (*api.Secret, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Read", path, data)
+	ret := m.ctrl.Call(m, "ReadData", id, data)
 	ret0, _ := ret[0].(*api.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Read indicates an expected call of Read
-func (mr *MockVaultClientMockRecorder) Read(path, data interface{}) *gomock.Call {
+// ReadData indicates an expected call of ReadData
+func (mr *MockClientMockRecorder) ReadData(id, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockVaultClient)(nil).Read), path, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadData", reflect.TypeOf((*MockClient)(nil).ReadData), id, data)
 }
 
-// Write mocks base method
-func (m *MockVaultClient) Write(path string, data map[string]interface{}) (*api.Secret, error) {
+// ReadMetadata mocks base method
+func (m *MockClient) ReadMetadata(id string) (*api.Secret, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Write", path, data)
+	ret := m.ctrl.Call(m, "ReadMetadata", id)
 	ret0, _ := ret[0].(*api.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Write indicates an expected call of Write
-func (mr *MockVaultClientMockRecorder) Write(path, data interface{}) *gomock.Call {
+// ReadMetadata indicates an expected call of ReadMetadata
+func (mr *MockClientMockRecorder) ReadMetadata(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockVaultClient)(nil).Write), path, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadMetadata", reflect.TypeOf((*MockClient)(nil).ReadMetadata), id)
 }
 
-// WritePost mocks base method
-func (m *MockVaultClient) WritePost(path string, data map[string][]string) error {
+// SetSecret mocks base method
+func (m *MockClient) SetSecret(id string, data map[string]interface{}) (*api.Secret, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WritePost", path, data)
+	ret := m.ctrl.Call(m, "SetSecret", id, data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetSecret indicates an expected call of SetSecret
+func (mr *MockClientMockRecorder) SetSecret(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockClient)(nil).SetSecret), id, data)
+}
+
+// ListSecrets mocks base method
+func (m *MockClient) ListSecrets() (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSecrets")
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSecrets indicates an expected call of ListSecrets
+func (mr *MockClientMockRecorder) ListSecrets() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockClient)(nil).ListSecrets))
+}
+
+// DeleteSecret mocks base method
+func (m *MockClient) DeleteSecret(id string, data map[string][]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSecret", id, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// WritePost indicates an expected call of WritePost
-func (mr *MockVaultClientMockRecorder) WritePost(path, data interface{}) *gomock.Call {
+// DeleteSecret indicates an expected call of DeleteSecret
+func (mr *MockClientMockRecorder) DeleteSecret(id, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WritePost", reflect.TypeOf((*MockVaultClient)(nil).WritePost), path, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockClient)(nil).DeleteSecret), id, data)
 }
 
-// Delete mocks base method
-func (m *MockVaultClient) Delete(path string, data map[string][]string) error {
+// RestoreSecret mocks base method
+func (m *MockClient) RestoreSecret(id string, data map[string][]string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", path, data)
+	ret := m.ctrl.Call(m, "RestoreSecret", id, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Delete indicates an expected call of Delete
-func (mr *MockVaultClientMockRecorder) Delete(path, data interface{}) *gomock.Call {
+// RestoreSecret indicates an expected call of RestoreSecret
+func (mr *MockClientMockRecorder) RestoreSecret(id, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockVaultClient)(nil).Delete), path, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockClient)(nil).RestoreSecret), id, data)
 }
 
-// List mocks base method
-func (m *MockVaultClient) List(path string) (*api.Secret, error) {
+// DestroySecret mocks base method
+func (m *MockClient) DestroySecret(id string, data map[string][]string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", path)
+	ret := m.ctrl.Call(m, "DestroySecret", id, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DestroySecret indicates an expected call of DestroySecret
+func (mr *MockClientMockRecorder) DestroySecret(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroySecret", reflect.TypeOf((*MockClient)(nil).DestroySecret), id, data)
+}
+
+// GetKey mocks base method
+func (m *MockClient) GetKey(id string) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetKey", id)
 	ret0, _ := ret[0].(*api.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// List indicates an expected call of List
-func (mr *MockVaultClientMockRecorder) List(path interface{}) *gomock.Call {
+// GetKey indicates an expected call of GetKey
+func (mr *MockClientMockRecorder) GetKey(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockVaultClient)(nil).List), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKey", reflect.TypeOf((*MockClient)(nil).GetKey), id)
+}
+
+// CreateKey mocks base method
+func (m *MockClient) CreateKey(data map[string]interface{}) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateKey", data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateKey indicates an expected call of CreateKey
+func (mr *MockClientMockRecorder) CreateKey(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockClient)(nil).CreateKey), data)
+}
+
+// ImportKey mocks base method
+func (m *MockClient) ImportKey(data map[string]interface{}) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ImportKey", data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ImportKey indicates an expected call of ImportKey
+func (mr *MockClientMockRecorder) ImportKey(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockClient)(nil).ImportKey), data)
+}
+
+// ListKeys mocks base method
+func (m *MockClient) ListKeys() (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListKeys")
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListKeys indicates an expected call of ListKeys
+func (mr *MockClientMockRecorder) ListKeys() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockClient)(nil).ListKeys))
+}
+
+// UpdateKey mocks base method
+func (m *MockClient) UpdateKey(id string, data map[string]interface{}) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateKey", id, data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateKey indicates an expected call of UpdateKey
+func (mr *MockClientMockRecorder) UpdateKey(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKey", reflect.TypeOf((*MockClient)(nil).UpdateKey), id, data)
+}
+
+// DestroyKey mocks base method
+func (m *MockClient) DestroyKey(id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DestroyKey", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DestroyKey indicates an expected call of DestroyKey
+func (mr *MockClientMockRecorder) DestroyKey(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyKey", reflect.TypeOf((*MockClient)(nil).DestroyKey), id)
+}
+
+// Sign mocks base method
+func (m *MockClient) Sign(id string, data []byte) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sign", id, data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Sign indicates an expected call of Sign
+func (mr *MockClientMockRecorder) Sign(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockClient)(nil).Sign), id, data)
 }
 
 // SetToken mocks base method
-func (m *MockVaultClient) SetToken(token string) {
+func (m *MockClient) SetToken(token string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetToken", token)
 }
 
 // SetToken indicates an expected call of SetToken
-func (mr *MockVaultClientMockRecorder) SetToken(token interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SetToken(token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockVaultClient)(nil).SetToken), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockClient)(nil).SetToken), token)
 }
 
 // UnwrapToken mocks base method
-func (m *MockVaultClient) UnwrapToken(token string) (*api.Secret, error) {
+func (m *MockClient) UnwrapToken(token string) (*api.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnwrapToken", token)
 	ret0, _ := ret[0].(*api.Secret)
@@ -128,13 +261,13 @@ func (m *MockVaultClient) UnwrapToken(token string) (*api.Secret, error) {
 }
 
 // UnwrapToken indicates an expected call of UnwrapToken
-func (mr *MockVaultClientMockRecorder) UnwrapToken(token interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) UnwrapToken(token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnwrapToken", reflect.TypeOf((*MockVaultClient)(nil).UnwrapToken), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnwrapToken", reflect.TypeOf((*MockClient)(nil).UnwrapToken), token)
 }
 
 // Mount mocks base method
-func (m *MockVaultClient) Mount(path string, mountInfo *api.MountInput) error {
+func (m *MockClient) Mount(path string, mountInfo *api.MountInput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Mount", path, mountInfo)
 	ret0, _ := ret[0].(error)
@@ -142,13 +275,13 @@ func (m *MockVaultClient) Mount(path string, mountInfo *api.MountInput) error {
 }
 
 // Mount indicates an expected call of Mount
-func (mr *MockVaultClientMockRecorder) Mount(path, mountInfo interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Mount(path, mountInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mount", reflect.TypeOf((*MockVaultClient)(nil).Mount), path, mountInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mount", reflect.TypeOf((*MockClient)(nil).Mount), path, mountInfo)
 }
 
 // HealthCheck mocks base method
-func (m *MockVaultClient) HealthCheck() error {
+func (m *MockClient) HealthCheck() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HealthCheck")
 	ret0, _ := ret[0].(error)
@@ -156,7 +289,259 @@ func (m *MockVaultClient) HealthCheck() error {
 }
 
 // HealthCheck indicates an expected call of HealthCheck
-func (mr *MockVaultClientMockRecorder) HealthCheck() *gomock.Call {
+func (mr *MockClientMockRecorder) HealthCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockVaultClient)(nil).HealthCheck))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockClient)(nil).HealthCheck))
+}
+
+// MockKvv2Client is a mock of Kvv2Client interface
+type MockKvv2Client struct {
+	ctrl     *gomock.Controller
+	recorder *MockKvv2ClientMockRecorder
+}
+
+// MockKvv2ClientMockRecorder is the mock recorder for MockKvv2Client
+type MockKvv2ClientMockRecorder struct {
+	mock *MockKvv2Client
+}
+
+// NewMockKvv2Client creates a new mock instance
+func NewMockKvv2Client(ctrl *gomock.Controller) *MockKvv2Client {
+	mock := &MockKvv2Client{ctrl: ctrl}
+	mock.recorder = &MockKvv2ClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockKvv2Client) EXPECT() *MockKvv2ClientMockRecorder {
+	return m.recorder
+}
+
+// ReadData mocks base method
+func (m *MockKvv2Client) ReadData(id string, data map[string][]string) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadData", id, data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadData indicates an expected call of ReadData
+func (mr *MockKvv2ClientMockRecorder) ReadData(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadData", reflect.TypeOf((*MockKvv2Client)(nil).ReadData), id, data)
+}
+
+// ReadMetadata mocks base method
+func (m *MockKvv2Client) ReadMetadata(id string) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadMetadata", id)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadMetadata indicates an expected call of ReadMetadata
+func (mr *MockKvv2ClientMockRecorder) ReadMetadata(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadMetadata", reflect.TypeOf((*MockKvv2Client)(nil).ReadMetadata), id)
+}
+
+// SetSecret mocks base method
+func (m *MockKvv2Client) SetSecret(id string, data map[string]interface{}) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetSecret", id, data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetSecret indicates an expected call of SetSecret
+func (mr *MockKvv2ClientMockRecorder) SetSecret(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecret", reflect.TypeOf((*MockKvv2Client)(nil).SetSecret), id, data)
+}
+
+// ListSecrets mocks base method
+func (m *MockKvv2Client) ListSecrets() (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSecrets")
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSecrets indicates an expected call of ListSecrets
+func (mr *MockKvv2ClientMockRecorder) ListSecrets() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecrets", reflect.TypeOf((*MockKvv2Client)(nil).ListSecrets))
+}
+
+// DeleteSecret mocks base method
+func (m *MockKvv2Client) DeleteSecret(id string, data map[string][]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSecret", id, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteSecret indicates an expected call of DeleteSecret
+func (mr *MockKvv2ClientMockRecorder) DeleteSecret(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockKvv2Client)(nil).DeleteSecret), id, data)
+}
+
+// RestoreSecret mocks base method
+func (m *MockKvv2Client) RestoreSecret(id string, data map[string][]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreSecret", id, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RestoreSecret indicates an expected call of RestoreSecret
+func (mr *MockKvv2ClientMockRecorder) RestoreSecret(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreSecret", reflect.TypeOf((*MockKvv2Client)(nil).RestoreSecret), id, data)
+}
+
+// DestroySecret mocks base method
+func (m *MockKvv2Client) DestroySecret(id string, data map[string][]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DestroySecret", id, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DestroySecret indicates an expected call of DestroySecret
+func (mr *MockKvv2ClientMockRecorder) DestroySecret(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroySecret", reflect.TypeOf((*MockKvv2Client)(nil).DestroySecret), id, data)
+}
+
+// MockPluginClient is a mock of PluginClient interface
+type MockPluginClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockPluginClientMockRecorder
+}
+
+// MockPluginClientMockRecorder is the mock recorder for MockPluginClient
+type MockPluginClientMockRecorder struct {
+	mock *MockPluginClient
+}
+
+// NewMockPluginClient creates a new mock instance
+func NewMockPluginClient(ctrl *gomock.Controller) *MockPluginClient {
+	mock := &MockPluginClient{ctrl: ctrl}
+	mock.recorder = &MockPluginClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPluginClient) EXPECT() *MockPluginClientMockRecorder {
+	return m.recorder
+}
+
+// GetKey mocks base method
+func (m *MockPluginClient) GetKey(id string) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetKey", id)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetKey indicates an expected call of GetKey
+func (mr *MockPluginClientMockRecorder) GetKey(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKey", reflect.TypeOf((*MockPluginClient)(nil).GetKey), id)
+}
+
+// CreateKey mocks base method
+func (m *MockPluginClient) CreateKey(data map[string]interface{}) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateKey", data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateKey indicates an expected call of CreateKey
+func (mr *MockPluginClientMockRecorder) CreateKey(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockPluginClient)(nil).CreateKey), data)
+}
+
+// ImportKey mocks base method
+func (m *MockPluginClient) ImportKey(data map[string]interface{}) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ImportKey", data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ImportKey indicates an expected call of ImportKey
+func (mr *MockPluginClientMockRecorder) ImportKey(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportKey", reflect.TypeOf((*MockPluginClient)(nil).ImportKey), data)
+}
+
+// ListKeys mocks base method
+func (m *MockPluginClient) ListKeys() (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListKeys")
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListKeys indicates an expected call of ListKeys
+func (mr *MockPluginClientMockRecorder) ListKeys() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockPluginClient)(nil).ListKeys))
+}
+
+// UpdateKey mocks base method
+func (m *MockPluginClient) UpdateKey(id string, data map[string]interface{}) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateKey", id, data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateKey indicates an expected call of UpdateKey
+func (mr *MockPluginClientMockRecorder) UpdateKey(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKey", reflect.TypeOf((*MockPluginClient)(nil).UpdateKey), id, data)
+}
+
+// DestroyKey mocks base method
+func (m *MockPluginClient) DestroyKey(id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DestroyKey", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DestroyKey indicates an expected call of DestroyKey
+func (mr *MockPluginClientMockRecorder) DestroyKey(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DestroyKey", reflect.TypeOf((*MockPluginClient)(nil).DestroyKey), id)
+}
+
+// Sign mocks base method
+func (m *MockPluginClient) Sign(id string, data []byte) (*api.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sign", id, data)
+	ret0, _ := ret[0].(*api.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Sign indicates an expected call of Sign
+func (mr *MockPluginClientMockRecorder) Sign(id, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockPluginClient)(nil).Sign), id, data)
 }

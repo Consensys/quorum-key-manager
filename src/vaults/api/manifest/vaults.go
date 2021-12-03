@@ -4,28 +4,31 @@ import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/json"
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/vaults"
 )
 
 type VaultsHandler struct {
-	vaults vaults.Vaults
+	vaults   vaults.Vaults
+	userInfo *auth.UserInfo
 }
 
 func NewVaultsHandler(vaultsService vaults.Vaults) *VaultsHandler {
 	return &VaultsHandler{
-		vaults: vaultsService,
+		vaults:   vaultsService,
+		userInfo: auth.NewWildcardUser(),
 	}
 }
 
-func (h *VaultsHandler) CreateHashicorp(ctx context.Context, config interface{}) error {
+func (h *VaultsHandler) CreateHashicorp(ctx context.Context, name string, config interface{}) error {
 	createReq := &types.CreateHashicorpVaultRequest{}
 	err := json.UnmarshalJSON(config, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.vaults.CreateHashicorp(ctx, createReq.Name, &createReq.Config)
+	err = h.vaults.CreateHashicorp(ctx, name, &createReq.Config, createReq.AllowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}
@@ -33,14 +36,14 @@ func (h *VaultsHandler) CreateHashicorp(ctx context.Context, config interface{})
 	return nil
 }
 
-func (h *VaultsHandler) CreateAzure(ctx context.Context, params interface{}) error {
+func (h *VaultsHandler) CreateAzure(ctx context.Context, name string, config interface{}) error {
 	createReq := &types.CreateAzureVaultRequest{}
-	err := json.UnmarshalJSON(params, createReq)
+	err := json.UnmarshalJSON(config, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.vaults.CreateAzure(ctx, createReq.Name, &createReq.Config)
+	err = h.vaults.CreateAzure(ctx, name, &createReq.Config, createReq.AllowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}
@@ -48,14 +51,14 @@ func (h *VaultsHandler) CreateAzure(ctx context.Context, params interface{}) err
 	return nil
 }
 
-func (h *VaultsHandler) CreateAWS(ctx context.Context, params interface{}) error {
+func (h *VaultsHandler) CreateAWS(ctx context.Context, name string, config interface{}) error {
 	createReq := &types.CreateAWSVaultRequest{}
-	err := json.UnmarshalJSON(params, createReq)
+	err := json.UnmarshalJSON(config, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.vaults.CreateAWS(ctx, createReq.Name, &createReq.Config)
+	err = h.vaults.CreateAWS(ctx, name, &createReq.Config, createReq.AllowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}

@@ -17,11 +17,28 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *Connector) CreateSecret(ctx context.Context, name, vault string, allowedTenants []string, _ *auth.UserInfo) error {
-	logger := c.logger.With("name", name, "vault", vault)
+func (c *Connector) CreateSecret(ctx context.Context, name, vaultName string, allowedTenants []string, userInfo *auth.UserInfo) error {
+	logger := c.logger.With("name", name, "vault", vaultName)
 	logger.Debug("creating secret store")
 
-	store, err := c.createSecretStore(ctx, vault, name)
+	vault, err := c.vaults.Get(ctx, vaultName, userInfo)
+	if err != nil {
+		return err
+	}
+
+	var store stores.SecretStore
+	switch vault.VaultType {
+	case entities2.HashicorpVaultType:
+		store, err = hashicorp.New(vault.Client.(hashicorpinfra.Kvv2Client), c.db.Secrets(name), logger), nil
+	case entities2.AzureVaultType:
+		store, err = akv.New(vault.Client.(akvinfra.SecretClient), logger), nil
+	case entities2.AWSVaultType:
+		store, err = aws.New(vault.Client.(awsinfra.SecretsManagerClient), logger), nil
+	default:
+		errMessage := "invalid vault for secret store"
+		logger.Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
+	}
 	if err != nil {
 		return err
 	}
@@ -30,26 +47,4 @@ func (c *Connector) CreateSecret(ctx context.Context, name, vault string, allowe
 
 	logger.Info("secret store created successfully")
 	return nil
-}
-
-func (c *Connector) createSecretStore(ctx context.Context, vaultName, storeName string) (stores.SecretStore, error) {
-	logger := c.logger.With("vault", vaultName)
-
-	vault, err := c.vaults.Get(ctx, vaultName)
-	if err != nil {
-		return nil, err
-	}
-
-	switch vault.VaultType {
-	case entities2.HashicorpVaultType:
-		return hashicorp.New(vault.Client.(hashicorpinfra.VaultClient), c.db.Secrets(storeName), logger), nil
-	case entities2.AzureVaultType:
-		return akv.New(vault.Client.(akvinfra.SecretClient), logger), nil
-	case entities2.AWSVaultType:
-		return aws.New(vault.Client.(awsinfra.SecretsManagerClient), logger), nil
-	default:
-		errMessage := "invalid vault for secret store"
-		logger.Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
-	}
 }
