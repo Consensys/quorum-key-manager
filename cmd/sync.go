@@ -23,9 +23,9 @@ func newImportCmd() *cobra.Command {
 	var storesConnector storeservice.Stores
 	var mnf *manifest.Manifest
 
-	importCmd := &cobra.Command{
-		Use:   "import",
-		Short: "Import management tool",
+	syncCmd := &cobra.Command{
+		Use:   "sync",
+		Short: "Resource synchronization management tool",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 
@@ -46,13 +46,13 @@ func newImportCmd() *cobra.Command {
 		},
 	}
 
-	flags.PGFlags(importCmd.Flags())
-	flags.ImportFlags(importCmd.Flags())
-	flags.ManifestFlags(importCmd.Flags())
+	flags.PGFlags(syncCmd.Flags())
+	flags.ImportFlags(syncCmd.Flags())
+	flags.ManifestFlags(syncCmd.Flags())
 
-	importSecretsCmd := &cobra.Command{
+	syncSecretsCmd := &cobra.Command{
 		Use:   "secrets",
-		Short: "import secrets from a vault",
+		Short: "indexing secrets from remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			if err := storesConnector.CreateSecret(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
@@ -62,11 +62,11 @@ func newImportCmd() *cobra.Command {
 			return storesConnector.ImportSecrets(cmd.Context(), mnf.Name, entities.NewWildcardUser())
 		},
 	}
-	importCmd.AddCommand(importSecretsCmd)
+	syncCmd.AddCommand(syncSecretsCmd)
 
-	importKeysCmd := &cobra.Command{
+	syncKeysCmd := &cobra.Command{
 		Use:   "keys",
-		Short: "import keys from a vault",
+		Short: "indexing keys from remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			if err := storesConnector.CreateKey(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
@@ -76,11 +76,11 @@ func newImportCmd() *cobra.Command {
 			return storesConnector.ImportKeys(cmd.Context(), mnf.Name, entities.NewWildcardUser())
 		},
 	}
-	importCmd.AddCommand(importKeysCmd)
+	syncCmd.AddCommand(syncKeysCmd)
 
-	importEthereumCmd := &cobra.Command{
+	syncEthereumCmd := &cobra.Command{
 		Use:   "ethereum",
-		Short: "import ethereum accounts from a vault",
+		Short: "indexing ethereum accounts remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			if err := storesConnector.CreateEthereum(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
@@ -90,9 +90,9 @@ func newImportCmd() *cobra.Command {
 			return storesConnector.ImportEthereum(cmd.Context(), mnf.Name, entities.NewWildcardUser())
 		},
 	}
-	importCmd.AddCommand(importEthereumCmd)
+	syncCmd.AddCommand(syncEthereumCmd)
 
-	return importCmd
+	return syncCmd
 }
 
 func getLogger() (*zap.Logger, error) {
