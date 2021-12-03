@@ -13,10 +13,10 @@ func init() {
 }
 
 const (
-	storeNameFlag     = "import-store-name"
-	storeNameViperKey = "import.store.name"
+	storeNameFlag     = "sync-store-name"
+	storeNameViperKey = "sync.store.name"
 	storeNameDefault  = ""
-	storeNameEnv      = "IMPORT_STORE_NAME"
+	storeNameEnv      = "SYNC_STORE_NAME"
 )
 
 func ImportFlags(f *pflag.FlagSet) {
@@ -24,7 +24,7 @@ func ImportFlags(f *pflag.FlagSet) {
 }
 
 func storeName(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Name of the store
+	desc := fmt.Sprintf(`Name of the store to index
 Environment variable: %q`, storeNameEnv)
 	f.String(storeNameFlag, storeNameDefault, desc)
 	_ = viper.BindPFlag(storeNameViperKey, f.Lookup(storeNameFlag))
