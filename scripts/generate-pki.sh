@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# get cfssl + cfssljson
-go get github.com/cloudflare/cfssl/cmd/cfssl
-go get github.com/cloudflare/cfssl/cmd/cfssljson
-
 # useful dirs
 CONF_DIR=./deps/cfssl
 GEN_DIR=./deps/cfssl/tmp

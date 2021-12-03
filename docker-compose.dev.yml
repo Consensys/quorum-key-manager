@@ -70,19 +70,19 @@ services:
       - ./deps/config/oidc:/oidc:ro
       - hashicorp-token:/vault/token:ro
 
-  import:
+  sync:
     <<: *container-common
     networks:
       - hashicorp
       - qkm
     environment:
       <<: *default-variables
-      IMPORT_STORE_NAME: ${IMPORT_STORE_NAME-}
+      SYNC_STORE_NAME: ${SYNC_STORE_NAME-}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - hashicorp-token:/vault/token:ro
-    command: import ${IMPORT_STORE_TYPE-secrets}
+    command: sync ${SYNC_STORE_TYPE-secrets}
 
 networks:
   quorum:
