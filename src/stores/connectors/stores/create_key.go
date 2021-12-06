@@ -24,7 +24,7 @@ func (c *Connector) CreateKey(ctx context.Context, name, vaultName, secretStore 
 	logger := c.logger.With("name", name, "vault", vaultName, "secret_store", secretStore)
 	logger.Debug("creating key store")
 
-	if name != "" && secretStore != "" {
+	if vaultName != "" && secretStore != "" {
 		errMessage := "cannot specify vault and secret store simultaneously. Please choose one option"
 		logger.Error(errMessage)
 		return errors.InvalidParameterError(errMessage)

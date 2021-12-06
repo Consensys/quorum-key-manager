@@ -4,26 +4,50 @@ import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/json"
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
 type StoresHandler struct {
 	stores   stores.Stores
-	userInfo *entities.UserInfo
+	userInfo *authtypes.UserInfo
 }
 
-func NewStoresHandler(storesConnector stores.Stores) *StoresHandler {
+func NewStoresHandler(storesService stores.Stores) *StoresHandler {
 	return &StoresHandler{
-		stores:   storesConnector,
-		userInfo: entities.NewWildcardUser(), // This handler always use the wildcard user because it's a manifest handler
+		stores:   storesService,
+		userInfo: authtypes.NewWildcardUser(), // This handler always use the wildcard user because it's a manifest handler
 	}
 }
 
-func (h *StoresHandler) CreateSecret(ctx context.Context, name string, params interface{}) error {
+func (h *StoresHandler) Register(ctx context.Context, mnfs []entities2.Manifest) error {
+	for _, mnf := range mnfs {
+		var err error
+		switch mnf.ResourceType {
+		case entities.SecretStoreType:
+			err = h.CreateSecret(ctx, mnf.Name, mnf.Specs)
+		case entities.KeyStoreType:
+			err = h.CreateKey(ctx, mnf.Name, mnf.Specs)
+		case entities.EthereumStoreType:
+			err = h.CreateEthereum(ctx, mnf.Name, mnf.Specs)
+		default:
+			err = errors.InvalidFormatError("invalid store type")
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (h *StoresHandler) CreateSecret(ctx context.Context, name string, specs interface{}) error {
 	createReq := &types.CreateSecretStoreRequest{}
-	err := json.UnmarshalJSON(params, createReq)
+	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
@@ -36,9 +60,9 @@ func (h *StoresHandler) CreateSecret(ctx context.Context, name string, params in
 	return nil
 }
 
-func (h *StoresHandler) CreateKey(ctx context.Context, name string, params interface{}) error {
+func (h *StoresHandler) CreateKey(ctx context.Context, name string, specs interface{}) error {
 	createReq := &types.CreateKeyStoreRequest{}
-	err := json.UnmarshalJSON(params, createReq)
+	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
@@ -51,9 +75,9 @@ func (h *StoresHandler) CreateKey(ctx context.Context, name string, params inter
 	return nil
 }
 
-func (h *StoresHandler) CreateEthereum(ctx context.Context, name string, params interface{}) error {
+func (h *StoresHandler) CreateEthereum(ctx context.Context, name string, specs interface{}) error {
 	createReq := &types.CreateEthereumStoreRequest{}
-	err := json.UnmarshalJSON(params, createReq)
+	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}

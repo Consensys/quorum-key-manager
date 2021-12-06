@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -128,12 +127,6 @@ func (rtl *RenewTokenWatcher) refreshToken() error {
 	}
 
 	rtl.client.SetToken(token)
-
-	// Immediately delete the file after it was read
-	err = os.Remove(rtl.tokenPath)
-	if err != nil {
-		rtl.logger.WithError(err).Warn("could not delete token file")
-	}
 
 	rtl.logger.Info("token has been successfully renewed")
 	return nil

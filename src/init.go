@@ -2,7 +2,6 @@ package src
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	authapi "github.com/consensys/quorum-key-manager/src/auth/api/manifest"
 	"github.com/consensys/quorum-key-manager/src/entities"
@@ -11,7 +10,6 @@ import (
 	nodesapi "github.com/consensys/quorum-key-manager/src/nodes/api/manifest"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	storesapi "github.com/consensys/quorum-key-manager/src/stores/api/manifest"
-	entities2 "github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/vaults"
 	vaultsapi "github.com/consensys/quorum-key-manager/src/vaults/api/manifest"
 )
@@ -44,40 +42,14 @@ func initialize(
 		}
 	}
 
-	manifestVaultHandler := vaultsapi.NewVaultsHandler(vaultsService)
-	for _, mnf := range manifests[entities.VaultKind] {
-		switch mnf.ResourceType {
-		case entities.HashicorpVaultType:
-			err = manifestVaultHandler.CreateHashicorp(ctx, mnf.Name, mnf.Specs)
-		case entities.AzureVaultType:
-			err = manifestVaultHandler.CreateAzure(ctx, mnf.Name, mnf.Specs)
-		case entities.AWSVaultType:
-			err = manifestVaultHandler.CreateAWS(ctx, mnf.Name, mnf.Specs)
-		default:
-			return errors.InvalidFormatError("invalid vault type")
-		}
-
-		if err != nil {
-			return err
-		}
+	err = vaultsapi.NewVaultsHandler(vaultsService).Register(ctx, manifests[entities.VaultKind])
+	if err != nil {
+		return err
 	}
 
-	manifestStoreHandler := storesapi.NewStoresHandler(storesService)
-	for _, mnf := range manifests[entities.StoreKind] {
-		switch mnf.ResourceType {
-		case entities2.SecretStoreType:
-			err = manifestStoreHandler.CreateSecret(ctx, mnf.Name, mnf.Specs)
-		case entities2.KeyStoreType:
-			err = manifestStoreHandler.CreateKey(ctx, mnf.Name, mnf.Specs)
-		case entities2.EthereumStoreType:
-			err = manifestStoreHandler.CreateEthereum(ctx, mnf.Name, mnf.Specs)
-		default:
-			err = errors.InvalidFormatError("invalid store type")
-		}
-
-		if err != nil {
-			return err
-		}
+	err = storesapi.NewStoresHandler(storesService).Register(ctx, manifests[entities.StoreKind])
+	if err != nil {
+		return err
 	}
 
 	manifestNodesHandler := nodesapi.NewNodesHandler(nodesService)

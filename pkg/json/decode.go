@@ -3,6 +3,7 @@ package json
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -37,6 +38,20 @@ func UnmarshalJSON(src, dest interface{}) error {
 	return validateStruct(dest)
 }
 
+func UnmarshalYAML(src, dest interface{}) error {
+	bdata, err := yaml.Marshal(src)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(bdata, dest)
+	if err != nil {
+		return err
+	}
+
+	return validateStruct(dest)
+}
+
 func validateStruct(s interface{}) error {
 	err := getValidator().Struct(s)
 	if err != nil {
@@ -49,7 +64,7 @@ func validateStruct(s interface{}) error {
 			return fmt.Errorf(errMessage)
 		}
 
-		return fmt.Errorf("invalid body")
+		return err
 	}
 
 	return nil

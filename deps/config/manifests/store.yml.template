@@ -45,11 +45,11 @@
   name: local-keys
   specs:
     #   allowed_tenants: []
-    store: hashicorp-secrets
+    secret_store: hashicorp-secrets
 
 - kind: store
   type: ethereum
   name: eth-accounts
   specs:
     #    allowed_tenants: []
-    store: hashicorp-keys
+    key_store: hashicorp-keys

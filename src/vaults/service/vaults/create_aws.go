@@ -12,7 +12,7 @@ func (c *Vaults) CreateAWS(_ context.Context, name string, config *entities.AWSC
 	logger := c.logger.With("name", name)
 	logger.Debug("creating aws vault client")
 
-	cli, err := client.NewSecretsClient(client.NewConfig(config))
+	cli, err := client.New(client.NewConfig(config))
 	if err != nil {
 		errMessage := "failed to instantiate AWS client"
 		logger.WithError(err).Error(errMessage)

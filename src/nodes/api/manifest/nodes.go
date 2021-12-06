@@ -14,16 +14,16 @@ type NodesHandler struct {
 	userInfo *auth.UserInfo
 }
 
-func NewNodesHandler(nodesInteractor nodes.Nodes) *NodesHandler {
+func NewNodesHandler(nodesService nodes.Nodes) *NodesHandler {
 	return &NodesHandler{
-		nodes:    nodesInteractor,
+		nodes:    nodesService,
 		userInfo: auth.NewWildcardUser(), // This handler always use the wildcard user because it's a manifest handler
 	}
 }
 
 func (h *NodesHandler) Create(ctx context.Context, name string, specs interface{}) error {
 	createReq := &types.CreateNodeRequest{}
-	err := json.UnmarshalJSON(specs, createReq)
+	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}

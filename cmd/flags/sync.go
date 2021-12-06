@@ -19,7 +19,7 @@ const (
 	storeNameEnv      = "SYNC_STORE_NAME"
 )
 
-func ImportFlags(f *pflag.FlagSet) {
+func SyncFlags(f *pflag.FlagSet) {
 	storeName(f)
 }
 

@@ -3,18 +3,19 @@ package yaml
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/go-playground/validator/v10"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/consensys/quorum-key-manager/src/infra/manifests"
-	"github.com/go-playground/validator/v10"
-	"gopkg.in/yaml.v2"
 )
 
 type Reader struct {
-	path  string
-	isDir bool
+	path     string
+	isDir    bool
+	validate *validator.Validate
 }
 
 var _ manifests.Reader = &Reader{}
@@ -25,7 +26,13 @@ func New(cfg *Config) (*Reader, error) {
 		return nil, err
 	}
 
-	return &Reader{path: cfg.Path, isDir: fs.IsDir()}, nil
+	validate := validator.New()
+	err = validate.RegisterValidation("isManifestKind", isManifestKind)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Reader{path: cfg.Path, isDir: fs.IsDir(), validate: validate}, nil
 }
 
 func (r *Reader) Load(_ context.Context) (map[string][]entities.Manifest, error) {
@@ -83,7 +90,7 @@ func (r *Reader) loadFile(fp string) ([]entities.Manifest, error) {
 	}
 
 	for _, mnf := range mnfs {
-		err = validator.New().Struct(mnf)
+		err = r.validate.Struct(mnf)
 		if err != nil {
 			return nil, err
 		}
@@ -94,12 +101,24 @@ func (r *Reader) loadFile(fp string) ([]entities.Manifest, error) {
 
 func addManifests(mnfs []entities.Manifest, manifestsMap map[string][]entities.Manifest) {
 	for _, mnf := range mnfs {
-		storedManifests, ok := manifestsMap[mnf.Kind]
-		if !ok {
-			storedManifests = []entities.Manifest{mnf}
+		if _, ok := manifestsMap[mnf.Kind]; !ok {
+			manifestsMap[mnf.Kind] = []entities.Manifest{mnf}
 			continue
 		}
 
-		storedManifests = append(storedManifests, mnf)
+		manifestsMap[mnf.Kind] = append(manifestsMap[mnf.Kind], mnf)
 	}
+}
+
+func isManifestKind(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		switch fl.Field().String() {
+		case entities.RoleKind, entities.StoreKind, entities.NodeKind, entities.VaultKind:
+			return true
+		default:
+			return false
+		}
+	}
+
+	return true
 }

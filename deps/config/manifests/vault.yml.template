@@ -38,8 +38,8 @@
       client_secret: {REPLACE BY AKV CLIENT SECRET}
 
 - kind: vault
-  type: azure
-  name: akv-europe
+  type: aws
+  name: aws-europe
   specs:
     # allowed_tenants: [tenant1, tenant2]
     config:

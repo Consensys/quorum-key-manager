@@ -23,7 +23,7 @@ func NewRolesHandler(roles auth.Roles) *RolesHandler {
 
 func (h *RolesHandler) Create(ctx context.Context, name string, specs interface{}) error {
 	createReq := &types.CreateRoleRequest{}
-	err := json.UnmarshalJSON(specs, createReq)
+	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
