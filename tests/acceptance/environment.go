@@ -3,10 +3,7 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/yaml"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
-	"io/ioutil"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"os"
 	"strconv"
 	"time"
@@ -22,16 +19,12 @@ import (
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 
-	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
-	keymanager "github.com/consensys/quorum-key-manager/src"
-	"github.com/consensys/quorum-key-manager/tests"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
 	"github.com/hashicorp/vault/api"
-	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -40,9 +33,7 @@ const (
 	postgresContainerID       = "postgres"
 	networkName               = "key-manager"
 	localhostPath             = "http://localhost"
-	HashicorpKeyStoreName     = "HashicorpKeys"
-	HashicorpSecretMountPoint = "secret"
-	HashicorpKeyMountPoint    = "quorum"
+	HashicorpPluginMountPoint = "quorum"
 	MaxRetries                = 4
 	WaitContainerTime         = 15 * time.Second
 )
@@ -50,15 +41,13 @@ const (
 type IntegrationEnvironment struct {
 	ctx               context.Context
 	logger            log.Logger
-	hashicorpClient   hashicorp.VaultClient
+	hashicorpClient   hashicorp.Client
 	dockerClient      *docker.Client
 	postgresClient    *postgresclient.PostgresClient
-	keyManager        *app.App
 	baseURL           string
 	Cancel            context.CancelFunc
 	tmpManifestYaml   string
 	tmpHashicorpToken string
-	cfg               *tests.Config
 }
 
 type TestSuiteEnv interface {
@@ -90,15 +79,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		return nil, err
 	}
 
+	// Hashicorp
 	hashicorpContainer, err := utils.HashicorpContainer(logger)
 	if err != nil {
 		return nil, err
 	}
-	tmpTokenFile, err := newTmpFile(hashicorpContainer.RootToken)
-	if err != nil {
-		return nil, err
-	}
 
+	// Postgres
 	postgresPort := strconv.Itoa(10000 + rand.Intn(10000))
 	postgresContainer := postgres.NewDefault().SetPort(postgresPort)
 
@@ -110,39 +97,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		},
 	}
 
-	// Docker client
 	dockerClient, err := docker.NewClient(composition, logger)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize new environment")
 		return nil, err
 	}
 
-	testCfg, err := tests.NewConfig()
-	if err != nil {
-		logger.WithError(err).Error("could not load config")
-		return nil, err
-	}
-
 	envHTTPPort := rand.IntnRange(20000, 28080)
-	hashicorpSpecs := &entities.HashicorpSpecs{
-		MountPoint: HashicorpKeyMountPoint,
-		Address:    fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
-		TokenPath:  tmpTokenFile,
-		Namespace:  "",
-	}
-	tmpYml, err := newTmpManifestYml(
-		&manifestreader.manifest{
-			Kind:  manifestreader.manifest.Kind(manifestreader.manifest.HashicorpKeys),
-			Name:  HashicorpKeyStoreName,
-			Specs: hashicorpSpecs,
-		},
-	)
-
-	if err != nil {
-		logger.WithError(err).Error("cannot create keymanager manifest")
-		return nil, err
-	}
-
 	httpConfig := server.NewDefaultConfig()
 	httpConfig.Port = uint32(envHTTPPort)
 	postgresCfg := &postgresclient.Config{
@@ -152,22 +113,15 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Password: postgresContainer.Password,
 		Database: "postgres",
 	}
-	keyManager, err := keymanager.New(&keymanager.Config{
-		HTTP:     httpConfig,
-		Manifest: manifestreader.NewConfig(tmpYml),
-		Postgres: postgresCfg,
-		Logger:   zap.NewConfig(zap.DebugLevel, zap.TextFormat),
-	}, logger)
-	if err != nil {
-		logger.WithError(err).Error("cannot initialize Key Manager server")
-		return nil, err
-	}
 
 	// Hashicorp client for direct integration tests
-	hashicorpCfg := hashicorpclient.NewConfig(hashicorpSpecs)
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpCfg)
+	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewConfig(&entities.HashicorpConfig{
+		MountPoint: HashicorpPluginMountPoint,
+		Address:    fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
+		Token:      hashicorpContainer.RootToken,
+	}))
 	if err != nil {
-		logger.WithError(err).Error("cannot initialize hashicorp vault client")
+		logger.WithError(err).Error("cannot initialize hashicorp vault kvv2 client")
 		return nil, err
 	}
 	hashicorpClient.SetToken(hashicorpContainer.RootToken)
@@ -180,17 +134,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
-		ctx:               ctx,
-		logger:            logger,
-		hashicorpClient:   hashicorpClient,
-		dockerClient:      dockerClient,
-		postgresClient:    postgresClient,
-		keyManager:        keyManager,
-		baseURL:           fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
-		Cancel:            cancel,
-		tmpManifestYaml:   tmpYml,
-		tmpHashicorpToken: tmpTokenFile,
-		cfg:               testCfg,
+		ctx:             ctx,
+		logger:          logger,
+		hashicorpClient: hashicorpClient,
+		dockerClient:    dockerClient,
+		postgresClient:  postgresClient,
+		baseURL:         fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
+		Cancel:          cancel,
 	}, nil
 }
 
@@ -220,7 +170,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	err = env.hashicorpClient.Mount("quorum", &api.MountInput{
+	err = env.hashicorpClient.Mount(HashicorpPluginMountPoint, &api.MountInput{
 		Type:        "plugin",
 		Description: "Quorum Hashicorp Vault Plugin",
 		Config: api.MountConfigInput{
@@ -259,12 +209,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	env.logger.Info("tearing test suite down")
 
-	err := env.keyManager.Stop(ctx)
-	if err != nil {
-		env.logger.WithError(err).Error("failed to stop key manager")
-	}
-
-	err = env.dockerClient.Down(ctx, hashicorpContainerID)
+	err := env.dockerClient.Down(ctx, hashicorpContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down vault")
 	}
@@ -288,46 +233,6 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	if err != nil {
 		env.logger.WithError(err).Error("cannot remove temporary hashicorp token file")
 	}
-}
-
-func newTmpFile(data interface{}) (string, error) {
-	file, err := ioutil.TempFile(os.TempDir(), "acceptanceTest_")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	bData, err := yaml.Marshal(data)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = file.Write(bData)
-	if err != nil {
-		return "", err
-	}
-
-	return file.Name(), nil
-}
-
-func newTmpManifestYml(manifests ...*manifestreader.manifest) (string, error) {
-	file, err := ioutil.TempFile(os.TempDir(), "acceptanceTest_")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	data, err := yaml.Marshal(manifests)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = file.Write(data)
-	if err != nil {
-		return "", err
-	}
-
-	return file.Name(), nil
 }
 
 func (env *IntegrationEnvironment) createTables() error {

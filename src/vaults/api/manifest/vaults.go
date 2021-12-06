@@ -6,8 +6,8 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/json"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/vaults"
+	"github.com/consensys/quorum-key-manager/src/vaults/api/types"
 )
 
 type VaultsHandler struct {

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/utils"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -27,7 +28,7 @@ type keysTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.KeyStore
-	utils stores.Utilities
+	utils utils.Utilities
 	db    database.Keys
 }
 

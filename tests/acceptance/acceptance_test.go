@@ -84,7 +84,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
 	testSuite := new(secretsTestSuite)
 	testSuite.env = s.env
 	testSuite.db = db.Secrets(storeName)
-	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, testSuite.db, HashicorpSecretMountPoint, logger), db.Secrets(storeName), auth, logger)
+	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, testSuite.db, logger), db.Secrets(storeName), auth, logger)
 	suite.Run(s.T(), testSuite)
 }
 
@@ -96,7 +96,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 
 	db := postgres.New(s.env.logger.WithComponent("Keys-DB"), s.env.postgresClient)
 	auth := authorizator.New(entities.ListPermissions(), "", s.env.logger)
-	utilsConnector := utils.NewConnector(s.env.logger)
+	utilsConnector := utils.New(s.env.logger)
 
 	// Hashicorp
 	storeName := "Keys-Hashicorp"
@@ -104,7 +104,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	testSuite := new(keysTestSuite)
 	testSuite.env = s.env
 	testSuite.db = db.Keys(storeName)
-	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db.Keys(storeName), auth, logger)
+	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, logger), db.Keys(storeName), auth, logger)
 	testSuite.utils = utilsConnector
 	suite.Run(s.T(), testSuite)
 
@@ -115,7 +115,7 @@ func (s *storeTestSuite) TestKeyManager_Keys() {
 	testSuite.env = s.env
 	testSuite.db = db.Keys(storeName)
 	secretsDB := db.Secrets(storeName)
-	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
+	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, logger)
 	testSuite.store = keys.NewConnector(local.New(hashicorpSecretStore, secretsDB, logger), db.Keys(storeName), auth, logger)
 	testSuite.utils = utilsConnector
 	suite.Run(s.T(), testSuite)
@@ -129,12 +129,12 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 
 	db := postgres.New(s.env.logger.WithComponent("Eth-DB"), s.env.postgresClient)
 	auth := authorizator.New(entities.ListPermissions(), "", s.env.logger)
-	utilsConnector := utils.NewConnector(s.env.logger)
+	utilsConnector := utils.New(s.env.logger)
 
 	// Hashicorp
 	storeName := "Eth-Hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
-	hashicorpStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
+	hashicorpStore := hashicorpkey.New(s.env.hashicorpClient, logger)
 	testSuite := new(ethTestSuite)
 	testSuite.env = s.env
 	testSuite.store = eth.NewConnector(hashicorpStore, db.ETHAccounts(storeName), auth, logger)
@@ -146,7 +146,7 @@ func (s *storeTestSuite) TestKeyManagerStore_Eth() {
 	storeName = "Eth-Local-Hashicorp"
 	logger = s.env.logger.WithComponent(storeName)
 	secretsDB := db.Secrets(storeName)
-	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
+	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, logger)
 	localStore := local.New(hashicorpSecretStore, secretsDB, logger)
 	testSuite = new(ethTestSuite)
 	testSuite.env = s.env

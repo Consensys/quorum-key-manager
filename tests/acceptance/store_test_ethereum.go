@@ -2,6 +2,7 @@ package acceptancetests
 
 import (
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/utils"
 	"math/big"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -25,7 +26,7 @@ type ethTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.EthStore
-	utils stores.Utilities
+	utils utils.Utilities
 	db    database.ETHAccounts
 }
 
