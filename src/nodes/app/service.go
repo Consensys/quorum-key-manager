@@ -1,17 +1,17 @@
 package app
 
 import (
-	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/nodes/api"
 	"github.com/consensys/quorum-key-manager/src/nodes/service/nodes"
 	"github.com/consensys/quorum-key-manager/src/stores"
+	"github.com/gorilla/mux"
 )
 
 func RegisterService(
-	a *app.App,
+	router *mux.Router,
 	logger log.Logger,
 	authService auth.Roles,
 	storesService stores.Stores,
@@ -21,7 +21,7 @@ func RegisterService(
 	nodesService := nodes.New(storesService, authService, aliasService, logger)
 
 	// Service layer
-	api.New(nodesService).Register(a.Router())
+	api.New(nodesService).Register(router)
 
 	return nodesService
 }

@@ -10,14 +10,16 @@ import (
 )
 
 func (i *Nodes) Create(ctx context.Context, name string, config *proxynode.Config, allowedTenants []string, _ *entities.UserInfo) error {
-	i.mux.Lock()
-	defer i.mux.Unlock()
-
 	logger := i.logger.With("name", name, "allowed_tenants", allowedTenants)
 
 	// TODO: Add authorization checks
 
-	if _, ok := i.nodes[name]; ok {
+	node, err := i.getNode(ctx, name)
+	if err != nil {
+		return err
+	}
+
+	if node != nil {
 		errMessage := "node already exists"
 		logger.Error(errMessage)
 		return errors.AlreadyExistsError(errMessage)

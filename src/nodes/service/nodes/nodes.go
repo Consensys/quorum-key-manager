@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/consensys/quorum-key-manager/src/nodes/entities"
@@ -58,7 +57,5 @@ func (i *Nodes) getNode(_ context.Context, name string) (*entities.Node, error) 
 		return node, nil
 	}
 
-	errMessage := "node was not found"
-	i.logger.Error(errMessage, "name", name)
-	return nil, errors.NotFoundError(errMessage)
+	return nil, nil
 }

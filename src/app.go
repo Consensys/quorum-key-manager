@@ -53,23 +53,24 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 
 	// Register Services
 	a := app.New(&app.Config{HTTP: cfg.HTTP}, logger.WithComponent("app"))
+	router := a.Router()
 
 	authService, err := authapp.RegisterService(a, logger.WithComponent("auth"), jwtValidator, apikeyClaims, rootCAs)
 	if err != nil {
 		return nil, err
 	}
 
-	aliasService := aliasapp.RegisterService(a, logger.WithComponent("aliases"), pgClient)
+	aliasService := aliasapp.RegisterService(router, logger.WithComponent("aliases"), pgClient)
 	vaultsService := vaultsapp.RegisterService(logger.WithComponent("vaults"), authService)
-	storesService := storesapp.RegisterService(a.Router(), logger.WithComponent("stores"), pgClient, authService, vaultsService)
-	nodesService := nodesapp.RegisterService(a, logger.WithComponent("nodes"), authService, storesService, aliasService)
-	_ = utilsapp.RegisterService(a, logger.WithComponent("utilities"))
+	storesService := storesapp.RegisterService(router, logger.WithComponent("stores"), pgClient, authService, vaultsService)
+	nodesService := nodesapp.RegisterService(router, logger.WithComponent("nodes"), authService, storesService, aliasService)
+	_ = utilsapp.RegisterService(router, logger.WithComponent("utilities"))
 
 	err = initialize(ctx, cfg.Manifest, authService, vaultsService, storesService, nodesService)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return a, nil
 }
 

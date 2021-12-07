@@ -5,6 +5,7 @@ package e2e
 import (
 	"encoding/base64"
 	"fmt"
+	utilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
 	"net/http"
 	"os"
 	"sync"
@@ -574,7 +575,7 @@ func (s *keysTestSuite) TestSignVerify() {
 		pubKeyB, err := base64.StdEncoding.DecodeString(key.PublicKey)
 		require.NoError(s.T(), err)
 
-		verifyRequest := &types.VerifyKeySignatureRequest{
+		verifyRequest := &utilstypes.VerifyKeySignatureRequest{
 			Data:             hashedPayload,
 			Signature:        sigB,
 			Curve:            key.Curve,
@@ -610,7 +611,7 @@ func (s *keysTestSuite) TestSignVerify() {
 
 		sigB, _ := base64.StdEncoding.DecodeString(signature)
 		pubKeyB, _ := base64.StdEncoding.DecodeString(key.PublicKey)
-		verifyRequest := &types.VerifyKeySignatureRequest{
+		verifyRequest := &utilstypes.VerifyKeySignatureRequest{
 			Data:             data,
 			Signature:        sigB,
 			Curve:            key.Curve,

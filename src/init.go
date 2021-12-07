@@ -2,9 +2,8 @@ package src
 
 import (
 	"context"
-
 	"github.com/consensys/quorum-key-manager/src/auth"
-	authapi "github.com/consensys/quorum-key-manager/src/auth/api/manifest"
+	rolesapi "github.com/consensys/quorum-key-manager/src/auth/api/manifest"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/yaml"
 	"github.com/consensys/quorum-key-manager/src/nodes"
@@ -35,12 +34,9 @@ func initialize(
 
 	// Note that order is important here as stores depend on the existing vaults, do not use a switch!
 
-	manifestRolesHandler := authapi.NewRolesHandler(rolesService)
-	for _, mnf := range manifests[entities.RoleKind] {
-		err = manifestRolesHandler.Create(ctx, mnf.Name, mnf.Specs)
-		if err != nil {
-			return err
-		}
+	err = rolesapi.NewRolesHandler(rolesService).Register(ctx, manifests[entities.RoleKind])
+	if err != nil {
+		return err
 	}
 
 	err = vaultsapi.NewVaultsHandler(vaultsService).Register(ctx, manifests[entities.VaultKind])
@@ -53,12 +49,9 @@ func initialize(
 		return err
 	}
 
-	manifestNodesHandler := nodesapi.NewNodesHandler(nodesService)
-	for _, mnf := range manifests[entities.NodeKind] {
-		err = manifestNodesHandler.Create(ctx, mnf.Name, mnf.Specs)
-		if err != nil {
-			return err
-		}
+	err = nodesapi.NewNodesHandler(nodesService).Register(ctx, manifests[entities.NodeKind])
+	if err != nil {
+		return err
 	}
 
 	return nil

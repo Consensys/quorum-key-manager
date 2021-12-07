@@ -2,10 +2,10 @@ package manifest
 
 import (
 	"context"
-
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/json"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/consensys/quorum-key-manager/src/nodes/api/types"
 )
@@ -20,6 +20,17 @@ func NewNodesHandler(nodesService nodes.Nodes) *NodesHandler {
 		nodes:    nodesService,
 		userInfo: auth.NewWildcardUser(), // This handler always use the wildcard user because it's a manifest handler
 	}
+}
+
+func (h *NodesHandler) Register(ctx context.Context, mnfs []entities2.Manifest) error {
+	for _, mnf := range mnfs {
+		err := h.Create(ctx, mnf.Name, mnf.Specs)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (h *NodesHandler) Create(ctx context.Context, name string, specs interface{}) error {
