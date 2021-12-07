@@ -3,14 +3,11 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"os"
 	"strconv"
 	"time"
 
 	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
-	hashicorpclient "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
@@ -24,30 +21,25 @@ import (
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
-	"github.com/hashicorp/vault/api"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 const (
-	hashicorpContainerID      = "hashicorp-vault"
-	postgresContainerID       = "postgres"
-	networkName               = "key-manager"
-	localhostPath             = "http://localhost"
-	HashicorpPluginMountPoint = "quorum"
-	MaxRetries                = 4
-	WaitContainerTime         = 15 * time.Second
+	hashicorpContainerID = "hashicorp-vault"
+	postgresContainerID  = "postgres"
+	networkName          = "key-manager"
+	localhostPath        = "http://localhost"
+	MaxRetries           = 4
+	WaitContainerTime    = 15 * time.Second
 )
 
 type IntegrationEnvironment struct {
-	ctx               context.Context
-	logger            log.Logger
-	hashicorpClient   hashicorp.Client
-	dockerClient      *docker.Client
-	postgresClient    *postgresclient.PostgresClient
-	baseURL           string
-	Cancel            context.CancelFunc
-	tmpManifestYaml   string
-	tmpHashicorpToken string
+	logger           log.Logger
+	hashicorpAddress string
+	hashicorpToken   string
+	dockerClient     *docker.Client
+	postgresClient   *postgresclient.PostgresClient
+	baseURL          string
 }
 
 type TestSuiteEnv interface {
@@ -73,8 +65,8 @@ func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
 	return
 }
 
-func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
-	logger, err := zap.NewLogger(zap.NewConfig(zap.InfoLevel, zap.JSONFormat))
+func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
+	logger, err := zap.NewLogger(zap.NewConfig(zap.PanicLevel, zap.JSONFormat)) // We log panic as we do not need logs
 	if err != nil {
 		return nil, err
 	}
@@ -114,33 +106,19 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		Database: "postgres",
 	}
 
-	// Hashicorp client for direct integration tests
-	hashicorpClient, err := hashicorpclient.NewClient(hashicorpclient.NewConfig(&entities.HashicorpConfig{
-		MountPoint: HashicorpPluginMountPoint,
-		Address:    fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
-		Token:      hashicorpContainer.RootToken,
-	}))
-	if err != nil {
-		logger.WithError(err).Error("cannot initialize hashicorp vault kvv2 client")
-		return nil, err
-	}
-	hashicorpClient.SetToken(hashicorpContainer.RootToken)
-
 	postgresClient, err := postgresclient.New(postgresCfg)
 	if err != nil {
 		logger.WithError(err).Error("cannot initialize Postgres client")
 		return nil, err
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
 	return &IntegrationEnvironment{
-		ctx:             ctx,
-		logger:          logger,
-		hashicorpClient: hashicorpClient,
-		dockerClient:    dockerClient,
-		postgresClient:  postgresClient,
-		baseURL:         fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
-		Cancel:          cancel,
+		logger:           logger,
+		hashicorpAddress: fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
+		hashicorpToken:   hashicorpContainer.RootToken,
+		dockerClient:     dockerClient,
+		postgresClient:   postgresClient,
+		baseURL:          fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
 	}, nil
 }
 
@@ -161,26 +139,6 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	err = env.dockerClient.WaitTillIsReady(ctx, hashicorpContainerID, WaitContainerTime)
 	if err != nil {
 		env.logger.WithError(err).Error("could not start vault")
-		return err
-	}
-
-	err = env.hashicorpClient.HealthCheck()
-	if err != nil {
-		env.logger.WithError(err).Error("failed to connect to hashicorp plugin")
-		return err
-	}
-
-	err = env.hashicorpClient.Mount(HashicorpPluginMountPoint, &api.MountInput{
-		Type:        "plugin",
-		Description: "Quorum Hashicorp Vault Plugin",
-		Config: api.MountConfigInput{
-			ForceNoCache:              true,
-			PassthroughRequestHeaders: []string{"X-Vault-Namespace"},
-		},
-		PluginName: utils.HashicorpPluginFilename,
-	})
-	if err != nil {
-		env.logger.WithError(err).Error("failed to mount (enable) Quorum Hashicorp Vault plugin")
 		return err
 	}
 
@@ -222,16 +180,6 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	err = env.dockerClient.RemoveNetwork(ctx, networkName)
 	if err != nil {
 		env.logger.WithError(err).Error("could not remove network")
-	}
-
-	err = os.Remove(env.tmpManifestYaml)
-	if err != nil {
-		env.logger.WithError(err).Error("cannot remove temporary manifest yml file")
-	}
-
-	err = os.Remove(env.tmpHashicorpToken)
-	if err != nil {
-		env.logger.WithError(err).Error("cannot remove temporary hashicorp token file")
 	}
 }
 

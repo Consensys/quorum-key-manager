@@ -1,6 +1,7 @@
 package acceptancetests
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -33,7 +34,7 @@ type keysTestSuite struct {
 }
 
 func (s *keysTestSuite) TestCreate() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 
 	s.Run("should create a new key pair successfully", func() {
 		id := s.newID("my-key-create")
@@ -112,7 +113,7 @@ func (s *keysTestSuite) TestCreate() {
 }
 
 func (s *keysTestSuite) TestImport() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	tags := testutils.FakeTags()
 
 	s.Run("should import a new key pair successfully: ECDSA/Secp256k1", func() {
@@ -191,7 +192,7 @@ func (s *keysTestSuite) TestImport() {
 }
 
 func (s *keysTestSuite) TestGet() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-key-get")
 	tags := testutils.FakeTags()
 
@@ -227,7 +228,7 @@ func (s *keysTestSuite) TestGet() {
 }
 
 func (s *keysTestSuite) TestList() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	tags := testutils.FakeTags()
 	id := s.newID("my-key-list")
 	id2 := s.newID("my-key-list-2")
@@ -284,7 +285,7 @@ func (s *keysTestSuite) TestList() {
 }
 
 func (s *keysTestSuite) TestUpdate() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-key-update")
 	tags := testutils.FakeTags()
 	_, err := s.store.Create(ctx, id, &entities2.Algorithm{
@@ -331,7 +332,7 @@ func (s *keysTestSuite) TestUpdate() {
 }
 
 func (s *keysTestSuite) TestSignVerify() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	tags := testutils.FakeTags()
 
 	s.Run("should sign and verify a message successfully: ECDSA/Secp256k1", func() {

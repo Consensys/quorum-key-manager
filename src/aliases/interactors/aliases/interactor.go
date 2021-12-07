@@ -18,18 +18,15 @@ type Interactor struct {
 
 var _ aliases.Interactor = &Interactor{}
 
-func NewInteractor(db aliases.Interactor, logger log.Logger) (*Interactor, error) {
+func NewInteractor(db aliases.Interactor, logger log.Logger) *Interactor {
 	const aliasParseFormat = `{{(?m)(?P<registry>[a-zA-Z0-9-_+]+):(?P<alias>[a-zA-Z0-9-_+]+)}}$`
-	regex, err := regexp.Compile(aliasParseFormat)
-	if err != nil {
-		return nil, errors.ConfigError("bad regexp format '%v': %v", aliasParseFormat, err)
-	}
+	regex, _ := regexp.Compile(aliasParseFormat)
 
 	return &Interactor{
 		db:     db,
 		regex:  regex,
 		logger: logger,
-	}, nil
+	}
 }
 
 func (i *Interactor) validateAliasValue(av entities.AliasValue) error {
