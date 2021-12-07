@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	storesservice "github.com/consensys/quorum-key-manager/src/stores"
@@ -57,10 +58,10 @@ func newImportCmd() *cobra.Command {
 			storesService = stores.NewConnector(nil, postgres.New(logger, postgresClient), vaultsService, logger)
 
 			// Register vaults and stores
-			if err = manifestvaults.NewVaultsHandler(vaultService).Register(ctx, mnfs[entities.VaultKind]); err != nil {
+			if err := manifestvaults.NewVaultsHandler(vaultService).Register(ctx, mnfs[entities.VaultKind]); err != nil {
 				return err
 			}
-			if err = manifeststores.NewStoresHandler(storesService).Register(ctx, mnfs[entities.StoreKind]); err != nil {
+			if err := manifeststores.NewStoresHandler(storesService).Register(ctx, mnfs[entities.StoreKind]); err != nil {
 				return err
 			}
 

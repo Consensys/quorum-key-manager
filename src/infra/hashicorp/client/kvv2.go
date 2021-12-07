@@ -2,9 +2,10 @@ package client
 
 import (
 	"fmt"
+	"path"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/hashicorp/vault/api"
-	"path"
 )
 
 func (c *HashicorpVaultClient) ReadData(id string, data map[string][]string) (*api.Secret, error) {
@@ -72,8 +73,8 @@ func (c *HashicorpVaultClient) ListSecrets() (*api.Secret, error) {
 	return secret, nil
 }
 
-func (c *HashicorpVaultClient) writePost(path string, data map[string][]string) error {
-	req := c.client.NewRequest("POST", fmt.Sprintf("/v1/%s", path))
+func (c *HashicorpVaultClient) writePost(endpoint string, data map[string][]string) error {
+	req := c.client.NewRequest("POST", fmt.Sprintf("/v1/%s", endpoint))
 	if data != nil {
 		if err := req.SetJSONBody(data); err != nil {
 			return errors.EncodingError(err.Error())

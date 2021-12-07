@@ -3,8 +3,9 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
+
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 
 	auth "github.com/consensys/quorum-key-manager/src/auth/api/http"
 

@@ -19,7 +19,7 @@ func TestRecover(t *testing.T) {
 
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(logger)
+	connector := New(logger)
 	acc := testutils2.FakeETHAccount()
 	acc.Address = common.HexToAddress("0x6436Bd740B732b90a9f7bc3065d6c3eDa57D9785")
 

@@ -2,13 +2,14 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+
 	auth "github.com/consensys/quorum-key-manager/src/auth/api/http"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/gorilla/mux"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 type NodesAPI struct {
@@ -16,9 +17,9 @@ type NodesAPI struct {
 }
 
 // New creates a http.Handler to be served on JSON-RPC
-func New(nodes nodes.Nodes) *NodesAPI {
+func New(nodesService nodes.Nodes) *NodesAPI {
 	return &NodesAPI{
-		nodes: nodes,
+		nodes: nodesService,
 	}
 }
 

@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/http"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+
+	authapi "github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -62,7 +63,7 @@ func (s *ethHandlerTestSuite) SetupTest() {
 
 	s.stores = mock.NewMockStores(s.ctrl)
 	s.ethStore = mock.NewMockEthStore(s.ctrl)
-	s.ctx = http.WithUserInfo(context.Background(), ethUserInfo)
+	s.ctx = authapi.WithUserInfo(context.Background(), ethUserInfo)
 
 	s.stores.EXPECT().Ethereum(gomock.Any(), ethStoreName, ethUserInfo).Return(s.ethStore, nil).AnyTimes()
 

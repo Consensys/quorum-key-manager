@@ -3,8 +3,9 @@ package json
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/go-playground/validator/v10"

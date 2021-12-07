@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/aws/aws-sdk-go/service/kms"

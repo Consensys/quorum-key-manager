@@ -3,8 +3,9 @@ package akv
 import (
 	"context"
 	"encoding/base64"
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
+
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/ethereum/go-ethereum/crypto"

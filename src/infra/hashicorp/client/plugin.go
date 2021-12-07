@@ -2,8 +2,9 @@ package client
 
 import (
 	"encoding/base64"
-	"github.com/hashicorp/vault/api"
 	"path"
+
+	"github.com/hashicorp/vault/api"
 )
 
 func (c *HashicorpVaultClient) GetKey(id string) (*api.Secret, error) {

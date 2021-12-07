@@ -1,8 +1,9 @@
 package models
 
 import (
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
+
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )

@@ -3,9 +3,10 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"testing"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -29,9 +30,8 @@ var expectedErr = errors.HashicorpVaultError("error")
 
 type hashicorpKeyStoreTestSuite struct {
 	suite.Suite
-	mockVault  *mocks.MockVaultClient
-	mountPoint string
-	keyStore   stores.KeyStore
+	mockVault *mocks.MockPluginClient
+	keyStore  stores.KeyStore
 }
 
 func TestHashicorpKeyStore(t *testing.T) {
@@ -43,15 +43,13 @@ func (s *hashicorpKeyStoreTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.mountPoint = "hashicorp-plugin"
-	s.mockVault = mocks.NewMockVaultClient(ctrl)
+	s.mockVault = mocks.NewMockPluginClient(ctrl)
 
-	s.keyStore = New(s.mockVault, s.mountPoint, testutils2.NewMockLogger(ctrl))
+	s.keyStore = New(s.mockVault, testutils2.NewMockLogger(ctrl))
 }
 
 func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	ctx := context.Background()
-	expectedPath := s.mountPoint + "/keys"
 	attributes := testutils.FakeAttributes()
 	algorithm := testutils.FakeAlgorithm()
 	expectedData := map[string]interface{}{
@@ -76,7 +74,7 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 	}
 
 	s.Run("should create a new key successfully", func() {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().CreateKey(expectedData).Return(hashicorpSecret, nil)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
@@ -91,8 +89,8 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.Run("should fail with same error if write fails", func() {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
+	s.Run("should fail with same error if CreateKey fails", func() {
+		s.mockVault.EXPECT().CreateKey(expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
 
@@ -105,7 +103,6 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	ctx := context.Background()
 	privKey := "2zN8oyleQFBYZ5PyUuZB87OoNzkBj6TM4BqBypIOfhw="
 	privKeyB, _ := base64.URLEncoding.DecodeString(privKey)
-	expectedPath := s.mountPoint + "/keys/import"
 	attributes := testutils.FakeAttributes()
 	algorithm := testutils.FakeAlgorithm()
 	expectedData := map[string]interface{}{
@@ -131,7 +128,7 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 	}
 
 	s.Run("should import a new key successfully", func() {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().ImportKey(expectedData).Return(hashicorpSecret, nil)
 
 		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
@@ -146,8 +143,8 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.Run("should fail with same error if write fails", func() {
-		s.mockVault.EXPECT().Write(expectedPath, expectedData).Return(nil, expectedErr)
+	s.Run("should fail with same error if ImportKey fails", func() {
+		s.mockVault.EXPECT().ImportKey(expectedData).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Import(ctx, id, privKeyB, algorithm, attributes)
 
@@ -158,7 +155,6 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 
 func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	ctx := context.Background()
-	expectedPath := s.mountPoint + "/keys/" + id
 	attributes := testutils.FakeAttributes()
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
@@ -176,7 +172,7 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 	}
 
 	s.Run("should get a key successfully without version", func() {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().GetKey(id).Return(hashicorpSecret, nil)
 
 		key, err := s.keyStore.Get(ctx, id)
 
@@ -191,8 +187,8 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
-	s.Run("should fail with same error if read fails", func() {
-		s.mockVault.EXPECT().Read(expectedPath, nil).Return(nil, expectedErr)
+	s.Run("should fail with same error if GetKey fails", func() {
+		s.mockVault.EXPECT().GetKey(id).Return(nil, expectedErr)
 
 		key, err := s.keyStore.Get(ctx, id)
 
@@ -203,7 +199,6 @@ func (s *hashicorpKeyStoreTestSuite) TestGet() {
 
 func (s *hashicorpKeyStoreTestSuite) TestList() {
 	ctx := context.Background()
-	expectedPath := s.mountPoint + "/keys"
 	expectedIds := []interface{}{"my-key1", "my-key2"}
 
 	s.Run("should list all secret ids successfully", func() {
@@ -213,7 +208,7 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 			},
 		}
 
-		s.mockVault.EXPECT().List(expectedPath).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().ListKeys().Return(hashicorpSecret, nil)
 
 		ids, err := s.keyStore.List(ctx, 0, 0)
 
@@ -221,8 +216,8 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 		assert.Equal(s.T(), []string{"my-key1", "my-key2"}, ids)
 	})
 
-	s.Run("should fail with same error if read fails", func() {
-		s.mockVault.EXPECT().List(expectedPath).Return(nil, expectedErr)
+	s.Run("should fail with same error if List fails", func() {
+		s.mockVault.EXPECT().ListKeys().Return(nil, expectedErr)
 
 		key, err := s.keyStore.List(ctx, 0, 0)
 
@@ -233,9 +228,7 @@ func (s *hashicorpKeyStoreTestSuite) TestList() {
 
 func (s *hashicorpKeyStoreTestSuite) TestSign() {
 	ctx := context.Background()
-	expectedPath := s.mountPoint + "/keys/" + id + "/sign"
 	data := []byte("my data")
-	expectedData := base64.URLEncoding.EncodeToString(data)
 	expectedSignature := base64.URLEncoding.EncodeToString([]byte("mySignature"))
 	hashicorpSecret := &hashicorp.Secret{
 		Data: map[string]interface{}{
@@ -244,9 +237,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 	}
 
 	s.Run("should sign a payload successfully", func() {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			dataLabel: expectedData,
-		}).Return(hashicorpSecret, nil)
+		s.mockVault.EXPECT().Sign(id, data).Return(hashicorpSecret, nil)
 
 		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
 			Type:          entities.Ecdsa,
@@ -257,10 +248,8 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 		assert.Equal(s.T(), expectedSignature, base64.URLEncoding.EncodeToString(signature))
 	})
 
-	s.Run("should fail with same error if write fails", func() {
-		s.mockVault.EXPECT().Write(expectedPath, map[string]interface{}{
-			dataLabel: expectedData,
-		}).Return(nil, expectedErr)
+	s.Run("should fail with same error if Sign fails", func() {
+		s.mockVault.EXPECT().Sign(id, data).Return(nil, expectedErr)
 
 		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
 			Type:          entities.Ecdsa,

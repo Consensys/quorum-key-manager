@@ -3,8 +3,9 @@ package testutils
 import (
 	"encoding/base64"
 	"fmt"
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"time"
+
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	common2 "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/ethereum/go-ethereum/common"

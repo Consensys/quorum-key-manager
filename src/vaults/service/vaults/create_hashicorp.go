@@ -2,9 +2,10 @@ package vaults
 
 import (
 	"context"
+	"time"
+
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
-	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"

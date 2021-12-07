@@ -3,8 +3,9 @@ package local
 import (
 	"context"
 	"encoding/base64"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"

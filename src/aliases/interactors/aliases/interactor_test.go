@@ -16,8 +16,7 @@ import (
 
 func TestParseAlias(t *testing.T) {
 	cases := map[string]struct {
-		input string
-
+		input  string
 		reg    string
 		key    string
 		parsed bool
@@ -34,8 +33,8 @@ func TestParseAlias(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	loggerMock := testutils.NewMockLogger(ctrl)
 	backend := mock.NewMockService(ctrl)
-	aConn, err := aliases.NewInteractor(backend, loggerMock)
-	require.NoError(t, err)
+	aConn := aliases.NewInteractor(backend, loggerMock)
+
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			reg, key, parsed := aConn.ParseAlias(c.input)
@@ -79,8 +78,7 @@ func TestReplaceAliases(t *testing.T) {
 	srv := mock.NewMockService(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn, err := aliases.NewInteractor(srv, loggerMock)
-	require.NoError(t, err)
+	aConn := aliases.NewInteractor(srv, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -128,8 +126,7 @@ func TestReplaceSingleAlias(t *testing.T) {
 	srv := mock.NewMockService(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn, err := aliases.NewInteractor(srv, loggerMock)
-	require.NoError(t, err)
+	aConn := aliases.NewInteractor(srv, loggerMock)
 
 	t.Run("no alias found", func(t *testing.T) {
 		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&entities.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))

@@ -53,8 +53,7 @@ func TestEthSendTransaction(t *testing.T) {
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
 	stores.EXPECT().EthereumByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
 
-	i, err := New(stores, aliases, testutils.NewMockLogger(ctrl))
-	require.NoError(t, err)
+	i := New(stores, aliases, testutils.NewMockLogger(ctrl))
 
 	t.Run("should send a private tx successfully", func(t *testing.T) {
 		privateFor := []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}

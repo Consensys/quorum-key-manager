@@ -2,9 +2,10 @@ package nodes
 
 import (
 	"context"
+	"sort"
+
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
-	"sort"
 )
 
 func (i *Nodes) List(ctx context.Context, userInfo *entities.UserInfo) ([]string, error) {

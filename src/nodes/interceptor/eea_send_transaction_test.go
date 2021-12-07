@@ -21,7 +21,7 @@ func TestEEASendTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, stores, aliases := newInterceptor(t, ctrl)
+	i, stores, aliases := newInterceptor(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 
 	userInfo := &entities.UserInfo{

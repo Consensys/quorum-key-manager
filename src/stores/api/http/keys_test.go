@@ -6,13 +6,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/http"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+
+	authapi "github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -64,7 +65,7 @@ func (s *keysHandlerTestSuite) SetupTest() {
 	s.stores.EXPECT().Key(gomock.Any(), keyStoreName, keyUserInfo).Return(s.keyStore, nil).AnyTimes()
 
 	s.router = mux.NewRouter()
-	s.ctx = http.WithUserInfo(context.Background(), keyUserInfo)
+	s.ctx = authapi.WithUserInfo(context.Background(), keyUserInfo)
 	NewStoresHandler(s.stores).Register(s.router)
 }
 

@@ -2,6 +2,7 @@ package manifests
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 

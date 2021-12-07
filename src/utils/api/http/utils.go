@@ -1,15 +1,16 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
 	"github.com/consensys/quorum-key-manager/src/utils"
-	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
-	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	"github.com/consensys/quorum-key-manager/src/utils/api/types"
 	"github.com/gorilla/mux"
 )
 
@@ -17,9 +18,9 @@ type UtilsHandler struct {
 	utils utils.Utilities
 }
 
-func NewUtilsHandler(utils utils.Utilities) *UtilsHandler {
+func NewUtilsHandler(utilsService utils.Utilities) *UtilsHandler {
 	return &UtilsHandler{
-		utils: utils,
+		utils: utilsService,
 	}
 }
 

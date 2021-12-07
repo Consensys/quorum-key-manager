@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 )

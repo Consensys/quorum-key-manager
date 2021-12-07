@@ -3,8 +3,9 @@ package hashicorp
 import (
 	"context"
 	"encoding/base64"
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"path"
+
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp"
@@ -20,7 +21,6 @@ const (
 	tagsLabel       = "tags"
 	publicKeyLabel  = "public_key"
 	privateKeyLabel = "private_key"
-	dataLabel       = "data"
 	signatureLabel  = "signature"
 	createdAtLabel  = "created_at"
 	updatedAtLabel  = "updated_at"

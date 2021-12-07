@@ -20,7 +20,7 @@ func TestVerifyMessage(t *testing.T) {
 
 	logger := testutils.NewMockLogger(ctrl)
 
-	connector := NewConnector(logger)
+	connector := New(logger)
 	acc := testutils2.FakeETHAccount()
 	acc.Address = common.HexToAddress("0x185bD93d8D62AF4e7AD6c928561A3d86142e26ef")
 

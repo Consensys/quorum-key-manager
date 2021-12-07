@@ -2,6 +2,7 @@ package keys
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/entities"
 
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"

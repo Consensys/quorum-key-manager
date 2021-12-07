@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/nodes/interceptor"

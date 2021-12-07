@@ -2,13 +2,14 @@ package nodes
 
 import (
 	"context"
+	"sync"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/consensys/quorum-key-manager/src/nodes/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	"github.com/consensys/quorum-key-manager/src/stores"
-	"sync"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/infra/log"

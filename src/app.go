@@ -3,6 +3,7 @@ package src
 import (
 	"context"
 	"crypto/x509"
+
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	aliasapp "github.com/consensys/quorum-key-manager/src/aliases/app"
 	authapp "github.com/consensys/quorum-key-manager/src/auth/app"
@@ -58,11 +59,7 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 		return nil, err
 	}
 
-	aliasService, err := aliasapp.RegisterService(a, logger.WithComponent("aliases"), pgClient)
-	if err != nil {
-		return nil, err
-	}
-
+	aliasService := aliasapp.RegisterService(a, logger.WithComponent("aliases"), pgClient)
 	vaultsService := vaultsapp.RegisterService(logger.WithComponent("vaults"), authService)
 	storesService := storesapp.RegisterService(a.Router(), logger.WithComponent("stores"), pgClient, authService, vaultsService)
 	nodesService := nodesapp.RegisterService(a, logger.WithComponent("nodes"), authService, storesService, aliasService)

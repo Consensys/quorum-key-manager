@@ -3,6 +3,7 @@ package roles
 import (
 	"context"
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )

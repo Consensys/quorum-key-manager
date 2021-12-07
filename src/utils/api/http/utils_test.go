@@ -3,14 +3,14 @@ package http
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
-	http2 "github.com/consensys/quorum-key-manager/src/stores/api/http"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/stores/api/formatters"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/stores/api/types/testutils"
+	"github.com/consensys/quorum-key-manager/src/utils/api/types/testutils"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 
@@ -19,6 +19,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/suite"
 )
+
+const accAddress = "0x7E654d251Da770A068413677967F6d3Ea2FeA9E4"
 
 type utilsHandlerTestSuite struct {
 	suite.Suite
@@ -54,11 +56,11 @@ func (s *utilsHandlerTestSuite) TestECRecover() {
 		rw := httptest.NewRecorder()
 		httpRequest := httptest.NewRequest(http.MethodPost, "/utilities/ethereum/ec-recover", bytes.NewReader(requestBytes))
 
-		s.utilities.EXPECT().ECRecover(ecRecoverRequest.Data, ecRecoverRequest.Signature).Return(ethcommon.HexToAddress(http2.accAddress), nil)
+		s.utilities.EXPECT().ECRecover(ecRecoverRequest.Data, ecRecoverRequest.Signature).Return(ethcommon.HexToAddress(accAddress), nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
-		assert.Equal(s.T(), ethcommon.HexToAddress(http2.accAddress).String(), rw.Body.String())
+		assert.Equal(s.T(), ethcommon.HexToAddress(accAddress).String(), rw.Body.String())
 		assert.Equal(s.T(), http.StatusOK, rw.Code)
 	})
 

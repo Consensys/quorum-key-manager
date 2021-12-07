@@ -3,10 +3,11 @@ package akv
 import (
 	"crypto/ecdsa"
 	"encoding/base64"
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"math/big"
 	"strings"
 	"time"
+
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"

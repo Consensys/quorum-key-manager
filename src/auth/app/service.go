@@ -2,10 +2,12 @@ package app
 
 import (
 	"crypto/x509"
+
+	"github.com/consensys/quorum-key-manager/src/auth"
+
 	"github.com/consensys/quorum-key-manager/pkg/app"
-	service "github.com/consensys/quorum-key-manager/src/auth"
 	"github.com/consensys/quorum-key-manager/src/auth/api/http"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authenticator"
 	"github.com/consensys/quorum-key-manager/src/auth/service/roles"
 	"github.com/consensys/quorum-key-manager/src/infra/jwt"
@@ -17,7 +19,7 @@ func RegisterService(
 	a *app.App,
 	logger log.Logger,
 	jwtValidator jwt.Validator,
-	apikeyClaims map[string]*authtypes.UserClaims,
+	apikeyClaims map[string]*entities.UserClaims,
 	rootCAs *x509.CertPool,
 ) (*roles.Roles, error) {
 	// Business layer
@@ -39,9 +41,9 @@ func RegisterService(
 	return rolesService, nil
 }
 
-func createMiddlewares(logger log.Logger, authenticator service.Authenticator) alice.Chain {
+func createMiddlewares(logger log.Logger, authen auth.Authenticator) alice.Chain {
 	return alice.New(
 		http.NewAccessLog(logger.WithComponent("accesslog")).Middleware, // TODO: Move to correct domain when it exists
-		http.NewAuth(authenticator).Middleware,
+		http.NewAuth(authen).Middleware,
 	)
 }

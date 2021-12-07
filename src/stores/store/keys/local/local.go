@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"

@@ -5,9 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"testing"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/src/infra/akv/mocks"
 	testutils2 "github.com/consensys/quorum-key-manager/src/infra/log/testutils"

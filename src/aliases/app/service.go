@@ -12,18 +12,15 @@ import (
 )
 
 // RegisterService creates and register the alias service in the app.
-func RegisterService(a *app.App, logger log.Logger, postgresClient postgresinfra.Client) (aliases.Service, error) {
+func RegisterService(a *app.App, logger log.Logger, postgresClient postgresinfra.Client) aliases.Service {
 	// Data layer
 	db := postgres.NewDatabase(postgresClient, logger)
 
 	// Business layer
-	aliasService, err := interactor.NewInteractor(db.Alias(), logger)
-	if err != nil {
-		return nil, err
-	}
+	aliasService := interactor.NewInteractor(db.Alias(), logger)
 
 	// Service layer
 	api.New(aliasService).Register(a.Router())
 
-	return aliasService, nil
+	return aliasService
 }

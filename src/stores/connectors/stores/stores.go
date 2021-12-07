@@ -2,8 +2,9 @@ package stores
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/vaults"
 	"sync"
+
+	"github.com/consensys/quorum-key-manager/src/vaults"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -25,13 +26,13 @@ type Connector struct {
 
 var _ stores.Stores = &Connector{}
 
-func NewConnector(roles auth.Roles, db database.Database, vaults vaults.Vaults, logger log.Logger) *Connector {
+func NewConnector(roles auth.Roles, db database.Database, vaultsService vaults.Vaults, logger log.Logger) *Connector {
 	return &Connector{
 		logger: logger,
 		mux:    sync.RWMutex{},
 		roles:  roles,
 		stores: make(map[string]*entities.Store),
-		vaults: vaults,
+		vaults: vaultsService,
 		db:     db,
 	}
 }
