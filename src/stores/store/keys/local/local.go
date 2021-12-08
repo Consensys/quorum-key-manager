@@ -8,6 +8,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark-crypto/hash"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -70,21 +72,21 @@ func (s *Store) ListDeleted(ctx context.Context, _, _ uint64) ([]string, error) 
 	return ids, nil
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	return s.create(ctx, id, nil, alg, attr)
 }
 
-func (s *Store) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(ctx context.Context, id string, importedPrivKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	return s.create(ctx, id, importedPrivKey, alg, attr)
 }
 
-func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := s.logger.With("id", id).With("signing_algorithm", alg.Type).With("curve", alg.EllipticCurve)
 
 	var privKey []byte
 	var pubKey []byte
 	switch {
-	case alg.Type == entities.Eddsa && alg.EllipticCurve == entities.Babyjubjub:
+	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.Babyjubjub:
 		eddsaKey, err := eddsaBabyjubjub(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate EDDSA/Babyjujub key pair"
@@ -94,7 +96,7 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 
 		privKey = eddsaKey.Bytes()
 		pubKey = eddsaKey.Public().Bytes()
-	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
+	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
 		ecdsaKey, err := ecdsaSecp256k1(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate Secp256k1/ECDSA key pair"
@@ -126,7 +128,7 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 	return &entities.Key{
 		ID:        id,
 		PublicKey: pubKey,
-		Algo: &entities.Algorithm{
+		Algo: &entities2.Algorithm{
 			Type:          alg.Type,
 			EllipticCurve: alg.EllipticCurve,
 		},
@@ -201,7 +203,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 	})
 }
 
-func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
+func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities2.Algorithm) ([]byte, error) {
 	logger := s.logger.With("id", id)
 
 	secret, err := s.secretStore.Get(ctx, id, "")
@@ -217,9 +219,9 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	}
 
 	switch {
-	case algo.Type == entities.Eddsa && algo.EllipticCurve == entities.Babyjubjub:
+	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.Babyjubjub:
 		return s.signEDDSA(privkey, data)
-	case algo.Type == entities.Ecdsa && algo.EllipticCurve == entities.Secp256k1:
+	case algo.Type == entities2.Ecdsa && algo.EllipticCurve == entities2.Secp256k1:
 		return s.signECDSA(privkey, data)
 	default:
 		errMessage := "signing algorithm and curve combination not supported for signing"
@@ -228,7 +230,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	}
 }
 
-func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities2.Algorithm) error {
 	return errors.ErrNotSupported
 }
 

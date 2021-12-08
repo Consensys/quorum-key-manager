@@ -73,7 +73,7 @@ func InvalidParamsHandler(err error) Handler {
 
 func LoggedHandler(h Handler, logger log.Logger) Handler {
 	return HandlerFunc(func(rw ResponseWriter, msg *RequestMsg) {
-		logger.Info("serve JSON-RPC request", "version", msg.Version, "id", fmt.Sprintf("%v", msg.ID), "method", msg.Method)
+		logger.Debug("serve JSON-RPC request", "version", msg.Version, "id", fmt.Sprintf("%v", msg.ID), "method", msg.Method)
 		h.ServeRPC(rw, msg)
 	})
 }

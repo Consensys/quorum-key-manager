@@ -5,7 +5,7 @@
 package mock
 
 import (
-	entities "github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	common "github.com/ethereum/go-ethereum/common"
 	core "github.com/ethereum/go-ethereum/signer/core"
 	gomock "github.com/golang/mock/gomock"

@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
 
 	"github.com/consensys/quorum-key-manager/src/infra/aws/mocks"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	testutils2 "github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 
 	"github.com/aws/aws-sdk-go/aws"

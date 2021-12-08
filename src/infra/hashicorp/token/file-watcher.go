@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -21,13 +20,13 @@ import (
 // RenewTokenWatcher handle the token tokenWatcher of the application
 type RenewTokenWatcher struct {
 	tokenPath     string
-	client        hashicorp.VaultClient
+	client        hashicorp.Client
 	watcher       *fsnotify.Watcher
 	logger        log.Logger
 	isTokenLoaded bool
 }
 
-func NewRenewTokenWatcher(client hashicorp.VaultClient, tokenPath string, logger log.Logger) (*RenewTokenWatcher, error) {
+func NewRenewTokenWatcher(client hashicorp.Client, tokenPath string, logger log.Logger) (*RenewTokenWatcher, error) {
 	logger = logger.With("token_path", tokenPath)
 
 	watcher, err := fsnotify.NewWatcher()
@@ -128,12 +127,6 @@ func (rtl *RenewTokenWatcher) refreshToken() error {
 	}
 
 	rtl.client.SetToken(token)
-
-	// Immediately delete the file after it was read
-	err = os.Remove(rtl.tokenPath)
-	if err != nil {
-		rtl.logger.WithError(err).Warn("could not delete token file")
-	}
 
 	rtl.logger.Info("token has been successfully renewed")
 	return nil

@@ -9,6 +9,7 @@ import (
 	jsonrpc "github.com/consensys/quorum-key-manager/pkg/jsonrpc"
 	types "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	types0 "github.com/consensys/quorum-key-manager/src/stores/api/types"
+	types1 "github.com/consensys/quorum-key-manager/src/utils/api/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -577,7 +578,7 @@ func (m *MockUtilsClient) EXPECT() *MockUtilsClientMockRecorder {
 }
 
 // VerifyKeySignature mocks base method
-func (m *MockUtilsClient) VerifyKeySignature(ctx context.Context, request *types0.VerifyKeySignatureRequest) error {
+func (m *MockUtilsClient) VerifyKeySignature(ctx context.Context, request *types1.VerifyKeySignatureRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -591,7 +592,7 @@ func (mr *MockUtilsClientMockRecorder) VerifyKeySignature(ctx, request interface
 }
 
 // ECRecover mocks base method
-func (m *MockUtilsClient) ECRecover(ctx context.Context, request *types0.ECRecoverRequest) (string, error) {
+func (m *MockUtilsClient) ECRecover(ctx context.Context, request *types1.ECRecoverRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ECRecover", ctx, request)
 	ret0, _ := ret[0].(string)
@@ -606,7 +607,7 @@ func (mr *MockUtilsClientMockRecorder) ECRecover(ctx, request interface{}) *gomo
 }
 
 // VerifyMessage mocks base method
-func (m *MockUtilsClient) VerifyMessage(ctx context.Context, request *types0.VerifyRequest) error {
+func (m *MockUtilsClient) VerifyMessage(ctx context.Context, request *types1.VerifyRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMessage", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -620,7 +621,7 @@ func (mr *MockUtilsClientMockRecorder) VerifyMessage(ctx, request interface{}) *
 }
 
 // VerifyTypedData mocks base method
-func (m *MockUtilsClient) VerifyTypedData(ctx context.Context, request *types0.VerifyTypedDataRequest) error {
+func (m *MockUtilsClient) VerifyTypedData(ctx context.Context, request *types1.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1282,7 +1283,7 @@ func (mr *MockKeyManagerClientMockRecorder) RestoreEthAccount(ctx, storeName, ad
 }
 
 // VerifyKeySignature mocks base method
-func (m *MockKeyManagerClient) VerifyKeySignature(ctx context.Context, request *types0.VerifyKeySignatureRequest) error {
+func (m *MockKeyManagerClient) VerifyKeySignature(ctx context.Context, request *types1.VerifyKeySignatureRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyKeySignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1296,7 +1297,7 @@ func (mr *MockKeyManagerClientMockRecorder) VerifyKeySignature(ctx, request inte
 }
 
 // ECRecover mocks base method
-func (m *MockKeyManagerClient) ECRecover(ctx context.Context, request *types0.ECRecoverRequest) (string, error) {
+func (m *MockKeyManagerClient) ECRecover(ctx context.Context, request *types1.ECRecoverRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ECRecover", ctx, request)
 	ret0, _ := ret[0].(string)
@@ -1311,7 +1312,7 @@ func (mr *MockKeyManagerClientMockRecorder) ECRecover(ctx, request interface{}) 
 }
 
 // VerifyMessage mocks base method
-func (m *MockKeyManagerClient) VerifyMessage(ctx context.Context, request *types0.VerifyRequest) error {
+func (m *MockKeyManagerClient) VerifyMessage(ctx context.Context, request *types1.VerifyRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMessage", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1325,7 +1326,7 @@ func (mr *MockKeyManagerClientMockRecorder) VerifyMessage(ctx, request interface
 }
 
 // VerifyTypedData mocks base method
-func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, request *types0.VerifyTypedDataRequest) error {
+func (m *MockKeyManagerClient) VerifyTypedData(ctx context.Context, request *types1.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyTypedData", ctx, request)
 	ret0, _ := ret[0].(error)

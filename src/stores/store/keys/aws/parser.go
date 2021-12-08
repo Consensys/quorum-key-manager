@@ -7,6 +7,8 @@ import (
 	"math/big"
 	"time"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
@@ -22,14 +24,14 @@ type signatureInfo struct {
 }
 
 func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.DescribeKeyOutput, tags map[string]string) (*entities.Key, error) {
-	var algo *entities.Algorithm
+	var algo *entities2.Algorithm
 	var pubKey []byte
 
 	switch {
 	case *kmsPubKey.KeyUsage == kms.KeyUsageTypeSignVerify && *kmsPubKey.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1:
-		algo = &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
+		algo = &entities2.Algorithm{
+			Type:          entities2.Ecdsa,
+			EllipticCurve: entities2.Secp256k1,
 		}
 
 		val := &publicKeyInfo{}

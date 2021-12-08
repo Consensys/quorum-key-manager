@@ -2,11 +2,10 @@ package keys
 
 import (
 	"github.com/consensys/quorum-key-manager/src/auth"
+	"github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
-
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
 type Connector struct {

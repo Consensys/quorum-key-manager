@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/consensys/quorum-key-manager/src/vaults"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
@@ -14,40 +16,54 @@ import (
 )
 
 type Connector struct {
-	logger      log.Logger
-	mux         sync.RWMutex
-	authManager auth.Manager
-
-	stores map[string]*entities.StoreInfo
-
-	db database.Database
+	logger log.Logger
+	mux    sync.RWMutex
+	roles  auth.Roles
+	stores map[string]*entities.Store
+	vaults vaults.Vaults
+	db     database.Database
 }
 
 var _ stores.Stores = &Connector{}
 
-func NewConnector(authMngr auth.Manager, db database.Database, logger log.Logger) *Connector {
+func NewConnector(roles auth.Roles, db database.Database, vaultsService vaults.Vaults, logger log.Logger) *Connector {
 	return &Connector{
-		logger:      logger,
-		mux:         sync.RWMutex{},
-		authManager: authMngr,
-		stores:      make(map[string]*entities.StoreInfo),
-		db:          db,
+		logger: logger,
+		mux:    sync.RWMutex{},
+		roles:  roles,
+		stores: make(map[string]*entities.Store),
+		vaults: vaultsService,
+		db:     db,
 	}
 }
 
-func (c *Connector) getStore(_ context.Context, storeName string, resolver auth.Authorizator) (*entities.StoreInfo, error) {
+// TODO: Move to data layer
+func (c *Connector) createStore(name, storeType string, store interface{}, allowedTenants []string) {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+
+	c.stores[name] = &entities.Store{
+		Name:           name,
+		AllowedTenants: allowedTenants,
+		Store:          store,
+		StoreType:      storeType,
+	}
+}
+
+// TODO: Move to data layer
+func (c *Connector) getStore(_ context.Context, name string, resolver auth.Authorizator) (*entities.Store, error) {
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 
-	if bundle, ok := c.stores[storeName]; ok {
-		if err := resolver.CheckAccess(bundle.AllowedTenants); err != nil {
+	if store, ok := c.stores[name]; ok {
+		if err := resolver.CheckAccess(store.AllowedTenants); err != nil {
 			return nil, err
 		}
 
-		return bundle, nil
+		return store, nil
 	}
 
 	errMessage := "store was not found"
-	c.logger.Error(errMessage, "store_name", storeName)
+	c.logger.Error(errMessage, "name", name)
 	return nil, errors.NotFoundError(errMessage)
 }

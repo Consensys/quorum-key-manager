@@ -5,11 +5,12 @@ import (
 	"encoding/base64"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	dbmocks "github.com/consensys/quorum-key-manager/src/stores/database/mock"
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities/testutils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"

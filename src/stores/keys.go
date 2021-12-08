@@ -3,6 +3,8 @@ package stores
 import (
 	"context"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
@@ -10,10 +12,10 @@ import (
 
 type KeyStore interface {
 	// Create creates a new key and stores it
-	Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
+	Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Import imports an externally created key and stores it
-	Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error)
+	Import(ctx context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error)
 
 	// Get gets the public part of a stored key.
 	Get(ctx context.Context, id string) (*entities.Key, error)
@@ -40,7 +42,7 @@ type KeyStore interface {
 	Destroy(ctx context.Context, id string) error
 
 	// Sign from any arbitrary data using the specified key
-	Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error)
+	Sign(ctx context.Context, id string, data []byte, algo *entities2.Algorithm) ([]byte, error)
 
 	// Encrypt encrypts any arbitrary data using a specified key
 	Encrypt(ctx context.Context, id string, data []byte) ([]byte, error)

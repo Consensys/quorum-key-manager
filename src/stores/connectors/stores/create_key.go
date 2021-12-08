@@ -2,177 +2,78 @@ package stores
 
 import (
 	"context"
-	"time"
 
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+	akvinfra "github.com/consensys/quorum-key-manager/src/infra/akv"
+	awsinfra "github.com/consensys/quorum-key-manager/src/infra/aws"
+	hashicorpinfra "github.com/consensys/quorum-key-manager/src/infra/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores"
 
-	"github.com/consensys/quorum-key-manager/pkg/json"
-	akvclient "github.com/consensys/quorum-key-manager/src/infra/akv/client"
-	"github.com/consensys/quorum-key-manager/src/infra/aws/client"
-	hashicorpclient "github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
-	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/token"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/akv"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/aws"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	localkeys "github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *Connector) CreateKey(_ context.Context, storeName string, vaultType manifest.VaultType, specs interface{}, allowedTenants []string) error {
-	logger := c.logger.With("vault_type", vaultType, "store_name", storeName)
+func (c *Connector) CreateKey(ctx context.Context, name, vaultName, secretStore string, allowedTenants []string, userInfo *authtypes.UserInfo) error {
+	logger := c.logger.With("name", name, "vault", vaultName, "secret_store", secretStore)
 	logger.Debug("creating key store")
 
-	store, err := c.createKeyStore(storeName, vaultType, specs)
-	if err != nil {
-		return err
+	if vaultName != "" && secretStore != "" {
+		errMessage := "cannot specify vault and secret store simultaneously. Please choose one option"
+		logger.Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
 	}
 
-	c.mux.Lock()
-	c.stores[storeName] = &entities.StoreInfo{
-		AllowedTenants: allowedTenants,
-		Store:          store,
-		StoreType:      manifest.Keys,
-		VaultType:      vaultType,
+	// TODO: Uncomment when authManager no longer a runnable
+	// permissions := c.authManager.UserPermissions(userInfo)
+	resolver := authorizator.New(userInfo.Permissions, userInfo.Tenant, c.logger)
+
+	// If vault is specified, it is a remote key store, otherwise it's a local key store
+	var store stores.KeyStore
+	switch {
+	case vaultName != "":
+		vault, err := c.vaults.Get(ctx, vaultName, userInfo)
+		if err != nil {
+			return err
+		}
+
+		switch vault.VaultType {
+		case entities2.HashicorpVaultType:
+			store, err = hashicorp.New(vault.Client.(hashicorpinfra.PluginClient), logger), nil
+		case entities2.AzureVaultType:
+			store, err = akv.New(vault.Client.(akvinfra.KeysClient), logger), nil
+		case entities2.AWSVaultType:
+			store, err = aws.New(vault.Client.(awsinfra.KmsClient), logger), nil
+		default:
+			errMessage := "invalid vault for key store"
+			logger.Error(errMessage)
+			return errors.InvalidParameterError(errMessage)
+		}
+		if err != nil {
+			return err
+		}
+	case secretStore != "":
+		secretstore, err := c.getSecretStore(ctx, secretStore, resolver)
+		if err != nil {
+			return err
+		}
+
+		store = localkeys.New(secretstore, c.db.Secrets(secretStore), c.logger)
+	default:
+		errMessage := "either vault or secret store must be specified. Please choose one option"
+		logger.Error(errMessage)
+		return errors.InvalidParameterError(errMessage)
 	}
-	c.mux.Unlock()
+
+	c.createStore(name, entities.KeyStoreType, store, allowedTenants)
 
 	logger.Info("key store created successfully")
 	return nil
-}
-
-func (c *Connector) createKeyStore(storeName string, vaultType manifest.VaultType, specs interface{}) (stores.KeyStore, error) {
-	logger := c.logger.With("vault_type", vaultType, "store_name", storeName)
-
-	switch vaultType {
-	case manifest.HashicorpKeys:
-		spec := &entities.HashicorpSpecs{}
-		if err := json.UnmarshalJSON(specs, spec); err != nil {
-			errMessage := "failed to unmarshal Hashicorp key store specs"
-			logger.WithError(err).Error(errMessage)
-			return nil, errors.InvalidParameterError(errMessage)
-		}
-
-		return newHashicorpKeyStore(spec, logger)
-	case manifest.AKVKeys:
-		spec := &entities.AkvSpecs{}
-		if err := json.UnmarshalJSON(specs, spec); err != nil {
-			errMessage := "failed to unmarshal AKV key store specs"
-			logger.WithError(err).Error(errMessage)
-			return nil, errors.InvalidParameterError(errMessage)
-		}
-
-		return newAkvKeyStore(spec, logger)
-	case manifest.AWSKeys:
-		spec := &entities.AwsSpecs{}
-		if err := json.UnmarshalJSON(specs, spec); err != nil {
-			errMessage := "failed to unmarshal AWS key store specs"
-			logger.WithError(err).Error(errMessage)
-			return nil, errors.InvalidParameterError(errMessage)
-		}
-
-		return newAwsKeyStore(spec, logger)
-	case manifest.LocalKeys:
-		localKeySpecs := &entities.LocalKeySpecs{}
-		if err := json.UnmarshalJSON(specs, localKeySpecs); err != nil {
-			errMessage := "failed to unmarshal local key store specs"
-			logger.WithError(err).Error(errMessage)
-			return nil, errors.InvalidParameterError(errMessage)
-		}
-
-		secretStore, err := c.createSecretStore(storeName, localKeySpecs.SecretStore, localKeySpecs.Specs)
-		if err != nil {
-			return nil, err
-		}
-
-		return localkeys.New(secretStore, c.db.Secrets(storeName), c.logger), nil
-	default:
-		errMessage := "invalid store type for key store"
-		logger.Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
-	}
-}
-
-func newHashicorpKeyStore(specs *entities.HashicorpSpecs, logger log.Logger) (*hashicorp.Store, error) {
-	cli, err := hashicorpclient.NewClient(hashicorpclient.NewConfig(specs))
-	if err != nil {
-		errMessage := "failed to instantiate Hashicorp client (keys)"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.ConfigError(errMessage)
-	}
-
-	if specs.SkipVerify {
-		logger.Warn("skipping certs verification will make your connection insecure and is not recommended in production")
-	}
-
-	if specs.Token != "" {
-		cli.SetToken(specs.Token)
-	} else if specs.TokenPath != "" {
-		tokenWatcher, err := token.NewRenewTokenWatcher(cli, specs.TokenPath, logger)
-		if err != nil {
-			return nil, err
-		}
-
-		go func() {
-			err = tokenWatcher.Start(context.Background())
-			if err != nil {
-				logger.WithError(err).Error("token watcher has exited with errors")
-			} else {
-				logger.Warn("token watcher has exited gracefully")
-			}
-		}()
-
-		// If the client token is read from filesystem, wait for it to be loaded before we continue
-		maxRetries := 3
-		retries := 0
-		for retries < maxRetries {
-			err = cli.HealthCheck()
-			if err == nil {
-				break
-			}
-
-			logger.WithError(err).Debug("waiting for hashicorp client to be ready...", "retries", retries)
-			time.Sleep(100 * time.Millisecond)
-			retries++
-
-			if retries == maxRetries {
-				errMessage := "failed to reach hashicorp vault (keys). Please verify that the server is reachable"
-				logger.WithError(err).Error(errMessage)
-				return nil, errors.ConfigError(errMessage)
-			}
-		}
-
-	}
-
-	store := hashicorp.New(cli, specs.MountPoint, logger)
-	return store, nil
-}
-
-func newAkvKeyStore(spec *entities.AkvSpecs, logger log.Logger) (*akv.Store, error) {
-	cli, err := akvclient.NewClient(akvclient.NewConfig(spec.VaultName, spec.TenantID, spec.ClientID, spec.ClientSecret))
-	if err != nil {
-		errMessage := "failed to instantiate AKV client (keys)"
-		logger.WithError(err).Error(errMessage, "specs", spec)
-		return nil, errors.ConfigError(errMessage)
-	}
-
-	store := akv.New(cli, logger)
-	return store, nil
-}
-
-func newAwsKeyStore(specs *entities.AwsSpecs, logger log.Logger) (*aws.Store, error) {
-	cfg := client.NewConfig(specs.Region, specs.AccessID, specs.SecretKey, specs.Debug)
-	cli, err := client.NewKmsClient(cfg)
-	if err != nil {
-		errMessage := "failed to instantiate AWS client (keys)"
-		logger.WithError(err).Error(errMessage, "specs", specs)
-		return nil, errors.ConfigError(errMessage)
-	}
-
-	store := aws.New(cli, logger)
-	return store, nil
 }
