@@ -1,4 +1,4 @@
-- kind: vault
+- kind: Vault
   type: hashicorp
   name: hashicorp-kv-v2
   # allowed_tenants: [tenant1, tenant2]
@@ -11,7 +11,7 @@
     # client_key: /certificates/client.key
     # ca_cert: /ca/ca.crt
 
-- kind: vault
+- kind: Vault
   type: hashicorp
   name: hashicorp-quorum
   # allowed_tenants: [tenant1, tenant2]
@@ -24,7 +24,7 @@
     # client_key: /certificates/client.key
     # ca_cert: /ca/ca.crt
 
-- kind: vault
+- kind: Vault
   type: azure
   name: akv-europe
   # allowed_tenants: [tenant1, tenant2]
@@ -34,7 +34,7 @@
     client_id: {REPLACE BY AKV CLIENT ID}
     client_secret: {REPLACE BY AKV CLIENT SECRET}
 
-- kind: vault
+- kind: Vault
   type: aws
   name: aws-europe
   # allowed_tenants: [tenant1, tenant2]

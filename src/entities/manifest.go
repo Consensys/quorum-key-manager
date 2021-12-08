@@ -1,10 +1,10 @@
 package entities
 
 const (
-	RoleKind  string = "role"
-	NodeKind  string = "node"
-	StoreKind string = "store"
-	VaultKind string = "vault"
+	RoleKind  string = "Role"
+	NodeKind  string = "Node"
+	StoreKind string = "Store"
+	VaultKind string = "Vault"
 )
 
 type Manifest struct {
