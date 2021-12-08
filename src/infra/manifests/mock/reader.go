@@ -6,7 +6,7 @@ package mock
 
 import (
 	context "context"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	entities "github.com/consensys/quorum-key-manager/src/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,10 +35,10 @@ func (m *MockReader) EXPECT() *MockReaderMockRecorder {
 }
 
 // Load mocks base method
-func (m *MockReader) Load(ctx context.Context) ([]*manifest.Manifest, error) {
+func (m *MockReader) Load(ctx context.Context) (*entities.Manifest, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Load", ctx)
-	ret0, _ := ret[0].([]*manifest.Manifest)
+	ret0, _ := ret[0].(*entities.Manifest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -10,9 +10,9 @@ import (
 )
 
 type ProxyConfig struct {
-	Request   *request.ProxyConfig   `json:"request,omitempty"`
-	Response  *response.ProxyConfig  `json:"response,omitempty"`
-	WebSocket *websocket.ProxyConfig `json:"websocket,omitempty"`
+	Request   *request.ProxyConfig   `json:"request,omitempty" yaml:"request,omitempty"`
+	Response  *response.ProxyConfig  `json:"response,omitempty" yaml:"response,omitempty"`
+	WebSocket *websocket.ProxyConfig `json:"websocket,omitempty" yaml:"websocket,omitempty"`
 }
 
 func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
@@ -35,10 +35,10 @@ func (cfg *ProxyConfig) SetDefault() *ProxyConfig {
 }
 
 type DownstreamConfig struct {
-	Addr          string            `json:"addr,omitempty"`
-	Transport     *transport.Config `json:"transport,omitempty"`
-	Proxy         *ProxyConfig      `json:"proxy,omitempty"`
-	ClientTimeout *json.Duration    `json:"clientTimeout,omitempty"`
+	Addr          string            `json:"addr" yaml:"addr" validate:"required" example:"http://geth:8545"`
+	Transport     *transport.Config `json:"transport,omitempty" yaml:"transport,omitempty"`
+	Proxy         *ProxyConfig      `json:"proxy,omitempty" yaml:"proxy,omitempty"`
+	ClientTimeout *json.Duration    `json:"clientTimeout,omitempty" yaml:"client_timeout,omitempty"`
 }
 
 func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
@@ -84,8 +84,8 @@ func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
 
 // Config is the cfg format for a Hashicorp Vault secret store
 type Config struct {
-	RPC           *DownstreamConfig `json:"rpc,omitempty"`
-	PrivTxManager *DownstreamConfig `json:"tessera,omitempty"`
+	RPC           *DownstreamConfig `json:"rpc,omitempty" yaml:"rpc,omitempty"`
+	PrivTxManager *DownstreamConfig `json:"tessera,omitempty" yaml:"tessera,omitempty"`
 }
 
 func (cfg *Config) SetDefault() *Config {
@@ -93,10 +93,6 @@ func (cfg *Config) SetDefault() *Config {
 		cfg.RPC = new(DownstreamConfig)
 	}
 	cfg.RPC.SetDefault()
-
-	if cfg.RPC.Addr == "" {
-		cfg.RPC.Addr = "localhost:8545"
-	}
 
 	if cfg.PrivTxManager != nil {
 		cfg.PrivTxManager.SetDefault()

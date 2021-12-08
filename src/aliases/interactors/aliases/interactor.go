@@ -10,29 +10,23 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
 
-// We make sure Connector implements aliases.Interactor
-var _ aliases.Interactor = &Interactor{}
-
-// Interactor is the service layer for other service to query.
 type Interactor struct {
-	db    aliases.Interactor
-	regex *regexp.Regexp
-
+	db     aliases.Interactor
+	regex  *regexp.Regexp
 	logger log.Logger
 }
 
-func NewInteractor(db aliases.Interactor, logger log.Logger) (*Interactor, error) {
-	const aliasParseFormat = `{{(?m)(?P<registry>[a-zA-Z0-9-_+]+):(?P<alias>[a-zA-Z0-9-_+]+)}}$`
-	regex, err := regexp.Compile(aliasParseFormat)
-	if err != nil {
-		return nil, errors.ConfigError("bad regexp format '%v': %v", aliasParseFormat, err)
-	}
-	return &Interactor{
-		db:    db,
-		regex: regex,
+var _ aliases.Interactor = &Interactor{}
 
+func NewInteractor(db aliases.Interactor, logger log.Logger) *Interactor {
+	const aliasParseFormat = `{{(?m)(?P<registry>[a-zA-Z0-9-_+]+):(?P<alias>[a-zA-Z0-9-_+]+)}}$`
+	regex, _ := regexp.Compile(aliasParseFormat)
+
+	return &Interactor{
+		db:     db,
+		regex:  regex,
 		logger: logger,
-	}, nil
+	}
 }
 
 func (i *Interactor) validateAliasValue(av entities.AliasValue) error {

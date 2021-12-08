@@ -20,14 +20,13 @@ import (
 
 type secretsTestSuite struct {
 	suite.Suite
-	env       *IntegrationEnvironment
-	store     stores.SecretStore
-	db        database.Secrets
-	secretIDs []string
+	env   *IntegrationEnvironment
+	store stores.SecretStore
+	db    database.Secrets
 }
 
 func (s *secretsTestSuite) TestSet() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 
 	s.Run("should create a new secret successfully", func() {
 		id := s.newID("my-secret")
@@ -82,7 +81,8 @@ func (s *secretsTestSuite) TestSet() {
 }
 
 func (s *secretsTestSuite) TestList() {
-	ctx := s.env.ctx
+	ctx := context.Background()
+
 	id := s.newID("my-secret-list")
 	id2 := s.newID("my-secret-list")
 	id3 := s.newID("my-secret-list")
@@ -102,7 +102,7 @@ func (s *secretsTestSuite) TestList() {
 	s.Run("should list all secrets ids successfully", func() {
 		ids, err := s.store.List(ctx, 0, 0)
 		require.NoError(s.T(), err)
-		
+
 		listLen = len(ids)
 		assert.Contains(s.T(), ids, id)
 		assert.Contains(s.T(), ids, id2)
@@ -125,7 +125,7 @@ func (s *secretsTestSuite) TestList() {
 }
 
 func (s *secretsTestSuite) TestGet() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-secret-get")
 	value := "my-secret-value"
 
@@ -171,7 +171,7 @@ func (s *secretsTestSuite) TestGet() {
 }
 
 func (s *secretsTestSuite) TestDelete() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-secret-delete")
 	value := "my-deleted-secret-value"
 
@@ -193,7 +193,7 @@ func (s *secretsTestSuite) TestDelete() {
 }
 
 func (s *secretsTestSuite) TestGetDeleted() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := fmt.Sprintf("%s-%s", "my-deleted-secret", common.RandString(10))
 	value := "my-deleted-secret-value"
 
@@ -202,7 +202,7 @@ func (s *secretsTestSuite) TestGetDeleted() {
 	})
 	require.NoError(s.T(), setErr)
 
-	err := s.delete(s.env.ctx, id)
+	err := s.delete(ctx, id)
 	require.NoError(s.T(), err)
 
 	s.Run("should get deleted secret successfully", func() {
@@ -222,7 +222,7 @@ func (s *secretsTestSuite) TestGetDeleted() {
 }
 
 func (s *secretsTestSuite) TestRestoredDeletedSecret() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-restored-secret")
 	value := "my-restored-secret-value"
 
@@ -231,7 +231,7 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 	})
 	require.NoError(s.T(), setErr)
 
-	err := s.delete(s.env.ctx, id)
+	err := s.delete(ctx, id)
 	require.NoError(s.T(), err)
 
 	s.Run("should restore deleted secret successfully", func() {
@@ -247,7 +247,8 @@ func (s *secretsTestSuite) TestRestoredDeletedSecret() {
 }
 
 func (s *secretsTestSuite) TestListDeleted() {
-	ctx := s.env.ctx
+	ctx := context.Background()
+
 	id := s.newID("my-deleted-secret-list")
 	id2 := s.newID("my-deleted-secret-list-2")
 	id3 := s.newID("my-deleted-secret-list-3")
@@ -260,26 +261,26 @@ func (s *secretsTestSuite) TestListDeleted() {
 	_, err = s.store.Set(ctx, id3, value, &entities.Attributes{})
 	require.NoError(s.T(), err)
 
-	err = s.delete(s.env.ctx, id)
+	err = s.delete(ctx, id)
 	require.NoError(s.T(), err)
 
-	err = s.delete(s.env.ctx, id2)
+	err = s.delete(ctx, id2)
 	require.NoError(s.T(), err)
 
-	err = s.delete(s.env.ctx, id3)
+	err = s.delete(ctx, id3)
 	require.NoError(s.T(), err)
 
 	listLen := 0
 	s.Run("should list all deleted secrets ids successfully", func() {
 		ids, err := s.store.ListDeleted(ctx, 0, 0)
 		require.NoError(s.T(), err)
-		
+
 		listLen = len(ids)
 		assert.Contains(s.T(), ids, id)
 		assert.Contains(s.T(), ids, id2)
 		assert.Contains(s.T(), ids, id3)
 	})
-	
+
 	s.Run("should list first secret id successfully", func() {
 		ids, err := s.store.ListDeleted(ctx, 1, uint64(listLen-3))
 
@@ -296,10 +297,7 @@ func (s *secretsTestSuite) TestListDeleted() {
 }
 
 func (s *secretsTestSuite) newID(name string) string {
-	id := fmt.Sprintf("%s-%s", name, common.RandString(10))
-	s.secretIDs = append(s.secretIDs, id)
-
-	return id
+	return fmt.Sprintf("%s-%s", name, common.RandString(10))
 }
 
 func (s *secretsTestSuite) delete(ctx context.Context, id string) error {

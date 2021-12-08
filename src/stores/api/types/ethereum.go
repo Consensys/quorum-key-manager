@@ -91,23 +91,6 @@ type SignEEATransactionRequest struct {
 	PrivacyGroupID string          `json:"privacyGroupId,omitempty" validate:"omitempty,base64" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
 }
 
-type ECRecoverRequest struct {
-	Data      hexutil.Bytes `json:"data" validate:"required" example:"0xfeaeee..." swaggertype:"string"`
-	Signature hexutil.Bytes `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
-}
-
-type VerifyRequest struct {
-	Data      hexutil.Bytes  `json:"data" validate:"required" example:"0xfeaeee..." swaggertype:"string"`
-	Signature hexutil.Bytes  `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
-	Address   common.Address `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
-}
-
-type VerifyTypedDataRequest struct {
-	TypedData SignTypedDataRequest `json:"data" validate:"required"`
-	Signature hexutil.Bytes        `json:"signature" validate:"required" example:"0x6019a3c8..." swaggertype:"string"`
-	Address   common.Address       `json:"address" validate:"required" example:"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18" swaggertype:"string"`
-}
-
 type EthAccountResponse struct {
 	PublicKey           hexutil.Bytes     `json:"publicKey" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
 	CompressedPublicKey hexutil.Bytes     `json:"compressedPublicKey" example:"0x6019a3c8..." swaggertype:"string"`

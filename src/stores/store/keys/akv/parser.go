@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -38,14 +40,14 @@ func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 	return kAttr
 }
 
-func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities.Algorithm {
-	algo := &entities.Algorithm{}
+func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities2.Algorithm {
+	algo := &entities2.Algorithm{}
 	if kty == keyvault.EC {
-		algo.Type = entities.Ecdsa
+		algo.Type = entities2.Ecdsa
 	}
 
 	if crv == keyvault.P256K {
-		algo.EllipticCurve = entities.Secp256k1
+		algo.EllipticCurve = entities2.Secp256k1
 	}
 
 	return algo

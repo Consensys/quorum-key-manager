@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -10,7 +12,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
-func (c Connector) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (c Connector) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	logger := c.logger.With("id", id, "algorithm", alg.Type, "curve", alg.EllipticCurve)
 	logger.Debug("creating key")
 

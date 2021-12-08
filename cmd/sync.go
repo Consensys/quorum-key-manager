@@ -2,16 +2,19 @@ package cmd
 
 import (
 	"context"
-	"fmt"
+
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
+	storesservice "github.com/consensys/quorum-key-manager/src/stores"
+	manifeststores "github.com/consensys/quorum-key-manager/src/stores/api/manifest"
+	vaultsservice "github.com/consensys/quorum-key-manager/src/vaults"
+	manifestvaults "github.com/consensys/quorum-key-manager/src/vaults/api/manifest"
+	"github.com/consensys/quorum-key-manager/src/vaults/service/vaults"
 
 	"github.com/consensys/quorum-key-manager/cmd/flags"
-	"github.com/consensys/quorum-key-manager/src/auth/entities"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
-	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/filesystem"
+	manifestreader "github.com/consensys/quorum-key-manager/src/infra/manifests/yaml"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	storeservice "github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
 	"github.com/spf13/cobra"
@@ -20,22 +23,45 @@ import (
 
 func newImportCmd() *cobra.Command {
 	var logger *zap.Logger
-	var storesConnector storeservice.Stores
-	var mnf *manifest.Manifest
+	var vaultsService vaultsservice.Vaults
+	var storesService storesservice.Stores
+	var mnfs map[string][]entities.Manifest
+	var storeName string
+
+	userInfo := auth.NewWildcardUser()
 
 	syncCmd := &cobra.Command{
 		Use:   "sync",
 		Short: "Resource synchronization management tool",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+			storeName = flags.GetStoreName(viper.GetViper())
+
 			var err error
 
+			// Infra dependencies
 			if logger, err = getLogger(); err != nil {
 				return err
 			}
-			if storesConnector, err = getStores(logger); err != nil {
+
+			postgresClient, err := client.New(flags.NewPostgresConfig(viper.GetViper()))
+			if err != nil {
 				return err
 			}
-			if mnf, err = getManifest(cmd.Context()); err != nil {
+
+			if mnfs, err = getManifests(ctx); err != nil {
+				return err
+			}
+
+			// Instantiate services
+			vaultService := vaults.New(nil, logger)
+			storesService = stores.NewConnector(nil, postgres.New(logger, postgresClient), vaultsService, logger)
+
+			// Register vaults and stores
+			if err := manifestvaults.NewVaultsHandler(vaultService).Register(ctx, mnfs[entities.VaultKind]); err != nil {
+				return err
+			}
+			if err := manifeststores.NewStoresHandler(storesService).Register(ctx, mnfs[entities.StoreKind]); err != nil {
 				return err
 			}
 
@@ -47,19 +73,14 @@ func newImportCmd() *cobra.Command {
 	}
 
 	flags.PGFlags(syncCmd.Flags())
-	flags.ImportFlags(syncCmd.Flags())
+	flags.SyncFlags(syncCmd.Flags())
 	flags.ManifestFlags(syncCmd.Flags())
 
 	syncSecretsCmd := &cobra.Command{
 		Use:   "secrets",
 		Short: "indexing secrets from remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context()
-			if err := storesConnector.CreateSecret(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
-				return err
-			}
-
-			return storesConnector.ImportSecrets(cmd.Context(), mnf.Name, entities.NewWildcardUser())
+			return storesService.ImportSecrets(cmd.Context(), storeName, userInfo)
 		},
 	}
 	syncCmd.AddCommand(syncSecretsCmd)
@@ -68,12 +89,7 @@ func newImportCmd() *cobra.Command {
 		Use:   "keys",
 		Short: "indexing keys from remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context()
-			if err := storesConnector.CreateKey(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
-				return err
-			}
-
-			return storesConnector.ImportKeys(cmd.Context(), mnf.Name, entities.NewWildcardUser())
+			return storesService.ImportKeys(cmd.Context(), storeName, userInfo)
 		},
 	}
 	syncCmd.AddCommand(syncKeysCmd)
@@ -82,12 +98,7 @@ func newImportCmd() *cobra.Command {
 		Use:   "ethereum",
 		Short: "indexing ethereum accounts remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context()
-			if err := storesConnector.CreateEthereum(ctx, mnf.Name, manifest.VaultType(mnf.Kind), mnf.Specs, mnf.AllowedTenants); err != nil {
-				return err
-			}
-
-			return storesConnector.ImportEthereum(cmd.Context(), mnf.Name, entities.NewWildcardUser())
+			return storesService.ImportKeys(cmd.Context(), storeName, userInfo)
 		},
 	}
 	syncCmd.AddCommand(syncEthereumCmd)
@@ -99,41 +110,11 @@ func getLogger() (*zap.Logger, error) {
 	return zap.NewLogger(flags.NewLoggerConfig(viper.GetViper()))
 }
 
-func getStores(logger log.Logger) (storeservice.Stores, error) {
-	// Create Postgres DB
-	postgresClient, err := client.New(flags.NewPostgresConfig(viper.GetViper()))
+func getManifests(ctx context.Context) (map[string][]entities.Manifest, error) {
+	manifestReader, err := manifestreader.New(flags.NewManifestConfig(viper.GetViper()))
 	if err != nil {
 		return nil, err
 	}
 
-	return stores.NewConnector(nil, postgres.New(logger, postgresClient), logger), nil
-}
-
-func getManifest(ctx context.Context) (*manifest.Manifest, error) {
-	vipr := viper.GetViper()
-	// Get manifests
-	manifestReader, err := manifestreader.New(flags.NewManifestConfig(vipr))
-	if err != nil {
-		return nil, err
-	}
-
-	manifests, err := manifestReader.Load(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	storeName := flags.GetStoreName(vipr)
-
-	for _, mnf := range manifests {
-		// TODO: Filter on Load() function from reader when Kind Store implemented
-		if mnf.Kind == manifest.Role || mnf.Kind == manifest.Node {
-			continue
-		}
-
-		if mnf.Name == storeName {
-			return mnf, nil
-		}
-	}
-
-	return nil, fmt.Errorf("inexistent store %s in the manifests definitions", storeName)
+	return manifestReader.Load(ctx)
 }

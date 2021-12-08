@@ -4,6 +4,7 @@ package e2e
 
 import (
 	"fmt"
+	utilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
 	"net/http"
 	"os"
 	"strings"
@@ -185,7 +186,7 @@ func (s *ethTestSuite) TestSignMessage() {
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
 
-		err = s.env.client.VerifyMessage(s.env.ctx, &types.VerifyRequest{
+		err = s.env.client.VerifyMessage(s.env.ctx, &utilstypes.VerifyRequest{
 			Data:      request.Message,
 			Signature: hexSig,
 			Address:   s.signAccount.Address,
@@ -216,7 +217,7 @@ func (s *ethTestSuite) TestSignTypedData() {
 		hexSig, err := hexutil.Decode(signature)
 		require.NoError(s.T(), err)
 
-		err = s.env.client.VerifyTypedData(s.env.ctx, &types.VerifyTypedDataRequest{
+		err = s.env.client.VerifyTypedData(s.env.ctx, &utilstypes.VerifyTypedDataRequest{
 			TypedData: *request,
 			Signature: hexSig,
 			Address:   s.signAccount.Address,

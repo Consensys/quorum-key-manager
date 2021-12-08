@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/consensys/quorum-key-manager/src/auth/api/middlewares"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	aliasmock "github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -43,7 +43,7 @@ func TestEthSendTransaction(t *testing.T) {
 		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = middlewares.WithUserInfo(ctx, userInfo)
+	ctx = http.WithUserInfo(ctx, userInfo)
 	gasPrice := big.NewInt(38)
 	chainID := big.NewInt(1)
 	value := big.NewInt(45)
@@ -53,8 +53,7 @@ func TestEthSendTransaction(t *testing.T) {
 	session.EXPECT().ClientPrivTxManager().Return(tesseraClient).AnyTimes()
 	stores.EXPECT().EthereumByAddr(gomock.Any(), from, userInfo).Return(accountsStore, nil).AnyTimes()
 
-	i, err := New(stores, aliases, testutils.NewMockLogger(ctrl))
-	require.NoError(t, err)
+	i := New(stores, aliases, testutils.NewMockLogger(ctrl))
 
 	t.Run("should send a private tx successfully", func(t *testing.T) {
 		privateFor := []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}

@@ -6,6 +6,7 @@ package mock
 
 import (
 	context "context"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	entities "github.com/consensys/quorum-key-manager/src/stores/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -35,7 +36,7 @@ func (m *MockKeyStore) EXPECT() *MockKeyStoreMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockKeyStore) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (m *MockKeyStore) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, id, alg, attr)
 	ret0, _ := ret[0].(*entities.Key)
@@ -50,7 +51,7 @@ func (mr *MockKeyStoreMockRecorder) Create(ctx, id, alg, attr interface{}) *gomo
 }
 
 // Import mocks base method
-func (m *MockKeyStore) Import(ctx context.Context, id string, privKey []byte, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (m *MockKeyStore) Import(ctx context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Import", ctx, id, privKey, alg, attr)
 	ret0, _ := ret[0].(*entities.Key)
@@ -182,7 +183,7 @@ func (mr *MockKeyStoreMockRecorder) Destroy(ctx, id interface{}) *gomock.Call {
 }
 
 // Sign mocks base method
-func (m *MockKeyStore) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
+func (m *MockKeyStore) Sign(ctx context.Context, id string, data []byte, algo *entities2.Algorithm) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", ctx, id, data, algo)
 	ret0, _ := ret[0].([]byte)

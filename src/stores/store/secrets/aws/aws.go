@@ -29,7 +29,7 @@ func New(client aws.SecretsManagerClient, logger log.Logger) *Store {
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.Store, error) {
 	return nil, errors.ErrNotImplemented
 }
 

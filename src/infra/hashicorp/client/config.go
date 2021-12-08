@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/hashicorp/go-retryablehttp"
 	"golang.org/x/net/http2"
 	"golang.org/x/time/rate"
@@ -16,6 +17,7 @@ import (
 
 // Config object that be converted into an api.Config later
 type Config struct {
+	MountPoint    string
 	Address       string
 	CACert        string
 	CAPath        string
@@ -30,7 +32,7 @@ type Config struct {
 	SkipVerify    bool
 }
 
-func NewConfig(specs *entities.HashicorpSpecs) *Config {
+func NewConfig(specs *entities.HashicorpConfig) *Config {
 	return &Config{
 		Address:       specs.Address,
 		CACert:        specs.CACert,
@@ -44,6 +46,7 @@ func NewConfig(specs *entities.HashicorpSpecs) *Config {
 		BurstLimit:    specs.BurstLimit,
 		MaxRetries:    specs.MaxRetries,
 		SkipVerify:    specs.SkipVerify,
+		MountPoint:    specs.MountPoint,
 	}
 }
 

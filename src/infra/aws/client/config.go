@@ -3,22 +3,22 @@ package client
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 type Config struct {
-	Endpoint  string
 	Region    string
 	AccessID  string
 	SecretKey string
 	Debug     bool
 }
 
-func NewConfig(region, accessID, secretKey string, debug bool) *Config {
+func NewConfig(cfg *entities.AWSConfig) *Config {
 	return &Config{
-		Region:    region,
-		AccessID:  accessID,
-		SecretKey: secretKey,
-		Debug:     debug,
+		Region:    cfg.Region,
+		AccessID:  cfg.AccessID,
+		SecretKey: cfg.SecretKey,
+		Debug:     cfg.Debug,
 	}
 }
 

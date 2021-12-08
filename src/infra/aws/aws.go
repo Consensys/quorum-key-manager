@@ -12,6 +12,11 @@ import (
 
 //go:generate mockgen -source=aws.go -destination=mocks/aws.go -package=mocks
 
+type Client interface {
+	SecretsManagerClient
+	KmsClient
+}
+
 type SecretsManagerClient interface {
 	GetSecret(ctx context.Context, id, version string) (*secretsmanager.GetSecretValueOutput, error)
 	CreateSecret(ctx context.Context, id, value string) (*secretsmanager.CreateSecretOutput, error)

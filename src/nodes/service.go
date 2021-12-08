@@ -3,17 +3,20 @@ package nodes
 import (
 	"context"
 
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
-	"github.com/consensys/quorum-key-manager/src/nodes/node"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
+	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 )
 
 //go:generate mockgen -source=service.go -destination=mock/service.go -package=mock
 
-// Service allows managing nodes
-type Service interface {
-	// Node returns a node by name
-	Node(ctx context.Context, name string, userInfo *authtypes.UserInfo) (node.Node, error)
+// Nodes Service allows managing nodes
+type Nodes interface {
+	// Create creates a new node
+	Create(ctx context.Context, name string, config *proxynode.Config, allowedTenants []string, userInfo *entities.UserInfo) error
+
+	// Get returns a node by name
+	Get(ctx context.Context, name string, userInfo *entities.UserInfo) (*proxynode.Node, error)
 
 	// List returns a list of nodes
-	List(ctx context.Context, userInfo *authtypes.UserInfo) ([]string, error)
+	List(ctx context.Context, userInfo *entities.UserInfo) ([]string, error)
 }

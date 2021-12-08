@@ -4,18 +4,17 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
-
-	"github.com/consensys/quorum-key-manager/src/auth"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	"github.com/consensys/quorum-key-manager/src/auth"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 )
 
 func (c *Connector) Secret(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.SecretStore, error) {
-	permissions := c.authManager.UserPermissions(userInfo)
+	permissions := c.roles.UserPermissions(ctx, userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getSecretStore(ctx, storeName, resolver)
@@ -33,7 +32,7 @@ func (c *Connector) getSecretStore(ctx context.Context, storeName string, resolv
 		return nil, err
 	}
 
-	if storeInfo.StoreType != manifest.Secrets {
+	if storeInfo.StoreType != entities.SecretStoreType {
 		errMessage := "not a secret store"
 		c.logger.Error(errMessage, "store_name", storeName)
 		return nil, errors.NotFoundError(errMessage)

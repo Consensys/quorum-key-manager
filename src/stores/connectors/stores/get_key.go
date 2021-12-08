@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/src/auth"
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -15,7 +15,7 @@ import (
 )
 
 func (c *Connector) Key(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.KeyStore, error) {
-	permissions := c.authManager.UserPermissions(userInfo)
+	permissions := c.roles.UserPermissions(ctx, userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getKeyStore(ctx, storeName, resolver)
@@ -33,7 +33,7 @@ func (c *Connector) getKeyStore(ctx context.Context, storeName string, resolver 
 		return nil, err
 	}
 
-	if storeInfo.StoreType != manifest.Keys {
+	if storeInfo.StoreType != entities.KeyStoreType {
 		errMessage := "not a key store"
 		c.logger.Error(errMessage, "store_name", storeName)
 		return nil, errors.NotFoundError(errMessage)

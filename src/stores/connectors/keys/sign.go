@@ -3,9 +3,9 @@ package keys
 import (
 	"context"
 
-	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 func (c Connector) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
