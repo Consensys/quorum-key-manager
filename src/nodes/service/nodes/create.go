@@ -14,12 +14,7 @@ func (i *Nodes) Create(ctx context.Context, name string, config *proxynode.Confi
 
 	// TODO: Add authorization checks
 
-	node, err := i.getNode(ctx, name)
-	if err != nil {
-		return err
-	}
-
-	if node != nil {
+	if i.getNode(ctx, name) != nil {
 		errMessage := "node already exists"
 		logger.Error(errMessage)
 		return errors.AlreadyExistsError(errMessage)

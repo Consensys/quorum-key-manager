@@ -49,13 +49,13 @@ func (i *Nodes) createNode(_ context.Context, name string, prxNode *proxynode.No
 }
 
 // TODO: Move to data layer
-func (i *Nodes) getNode(_ context.Context, name string) (*entities.Node, error) {
+func (i *Nodes) getNode(_ context.Context, name string) *entities.Node {
 	i.mux.RLock()
 	defer i.mux.RUnlock()
 
 	if node, ok := i.nodes[name]; ok {
-		return node, nil
+		return node
 	}
 
-	return nil, nil
+	return nil
 }

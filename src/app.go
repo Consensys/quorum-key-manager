@@ -70,7 +70,7 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return a, nil
 }
 

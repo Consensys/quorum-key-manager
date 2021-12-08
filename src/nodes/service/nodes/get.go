@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -18,11 +19,7 @@ func (i *Nodes) Get(ctx context.Context, name string, userInfo *authtypes.UserIn
 		return nil, err
 	}
 
-	node, err := i.getNode(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-
+	node := i.getNode(ctx, name)
 	if node == nil {
 		errMessage := "node was not found"
 		i.logger.Error(errMessage, "name", name)

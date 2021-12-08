@@ -2,6 +2,7 @@ package src
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth"
 	rolesapi "github.com/consensys/quorum-key-manager/src/auth/api/manifest"
 	"github.com/consensys/quorum-key-manager/src/entities"
