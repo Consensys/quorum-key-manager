@@ -7,7 +7,7 @@ import (
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/nodes"
-	"github.com/consensys/quorum-key-manager/src/nodes/api/types"
+	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 )
 
 type NodesHandler struct {
@@ -24,7 +24,7 @@ func NewNodesHandler(nodesService nodes.Nodes) *NodesHandler {
 
 func (h *NodesHandler) Register(ctx context.Context, mnfs []entities2.Manifest) error {
 	for _, mnf := range mnfs {
-		err := h.Create(ctx, mnf.Name, mnf.Specs)
+		err := h.Create(ctx, mnf.Name, mnf.AllowedTenants, mnf.Specs)
 		if err != nil {
 			return err
 		}
@@ -33,14 +33,14 @@ func (h *NodesHandler) Register(ctx context.Context, mnfs []entities2.Manifest) 
 	return nil
 }
 
-func (h *NodesHandler) Create(ctx context.Context, name string, specs interface{}) error {
-	createReq := &types.CreateNodeRequest{}
-	err := json.UnmarshalYAML(specs, createReq)
+func (h *NodesHandler) Create(ctx context.Context, name string, allowedTenants []string, specs interface{}) error {
+	config := &proxynode.Config{}
+	err := json.UnmarshalYAML(specs, config)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.nodes.Create(ctx, name, createReq.Config.SetDefault(), createReq.AllowedTenants, h.userInfo)
+	err = h.nodes.Create(ctx, name, config.SetDefault(), allowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}

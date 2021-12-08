@@ -29,11 +29,11 @@ func (h *StoresHandler) Register(ctx context.Context, mnfs []entities2.Manifest)
 		var err error
 		switch mnf.ResourceType {
 		case entities.SecretStoreType:
-			err = h.CreateSecret(ctx, mnf.Name, mnf.Specs)
+			err = h.CreateSecret(ctx, mnf.Name, mnf.AllowedTenants, mnf.Specs)
 		case entities.KeyStoreType:
-			err = h.CreateKey(ctx, mnf.Name, mnf.Specs)
+			err = h.CreateKey(ctx, mnf.Name, mnf.AllowedTenants, mnf.Specs)
 		case entities.EthereumStoreType:
-			err = h.CreateEthereum(ctx, mnf.Name, mnf.Specs)
+			err = h.CreateEthereum(ctx, mnf.Name, mnf.AllowedTenants, mnf.Specs)
 		default:
 			err = errors.InvalidFormatError("invalid store type")
 		}
@@ -46,14 +46,14 @@ func (h *StoresHandler) Register(ctx context.Context, mnfs []entities2.Manifest)
 	return nil
 }
 
-func (h *StoresHandler) CreateSecret(ctx context.Context, name string, specs interface{}) error {
+func (h *StoresHandler) CreateSecret(ctx context.Context, name string, allowedTenants []string, specs interface{}) error {
 	createReq := &types.CreateSecretStoreRequest{}
 	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.stores.CreateSecret(ctx, name, createReq.Vault, createReq.AllowedTenants, h.userInfo)
+	err = h.stores.CreateSecret(ctx, name, createReq.Vault, allowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}
@@ -61,14 +61,14 @@ func (h *StoresHandler) CreateSecret(ctx context.Context, name string, specs int
 	return nil
 }
 
-func (h *StoresHandler) CreateKey(ctx context.Context, name string, specs interface{}) error {
+func (h *StoresHandler) CreateKey(ctx context.Context, name string, allowedTenants []string, specs interface{}) error {
 	createReq := &types.CreateKeyStoreRequest{}
 	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.stores.CreateKey(ctx, name, createReq.Vault, createReq.SecretStore, createReq.AllowedTenants, h.userInfo)
+	err = h.stores.CreateKey(ctx, name, createReq.Vault, createReq.SecretStore, allowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}
@@ -76,14 +76,14 @@ func (h *StoresHandler) CreateKey(ctx context.Context, name string, specs interf
 	return nil
 }
 
-func (h *StoresHandler) CreateEthereum(ctx context.Context, name string, specs interface{}) error {
+func (h *StoresHandler) CreateEthereum(ctx context.Context, name string, allowedTenants []string, specs interface{}) error {
 	createReq := &types.CreateEthereumStoreRequest{}
 	err := json.UnmarshalYAML(specs, createReq)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.stores.CreateEthereum(ctx, name, createReq.KeyStore, createReq.AllowedTenants, h.userInfo)
+	err = h.stores.CreateEthereum(ctx, name, createReq.KeyStore, allowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,6 @@ import (
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/vaults"
-	"github.com/consensys/quorum-key-manager/src/vaults/api/types"
 )
 
 type VaultsHandler struct {
@@ -28,11 +27,11 @@ func (h *VaultsHandler) Register(ctx context.Context, mnfs []entities.Manifest) 
 		var err error
 		switch mnf.ResourceType {
 		case entities.HashicorpVaultType:
-			err = h.CreateHashicorp(ctx, mnf.Name, mnf.Specs)
+			err = h.CreateHashicorp(ctx, mnf.Name, mnf.AllowedTenants, mnf.Specs)
 		case entities.AzureVaultType:
-			err = h.CreateAzure(ctx, mnf.Name, mnf.Specs)
+			err = h.CreateAzure(ctx, mnf.Name, mnf.AllowedTenants, mnf.Specs)
 		case entities.AWSVaultType:
-			err = h.CreateAWS(ctx, mnf.Name, mnf.Specs)
+			err = h.CreateAWS(ctx, mnf.Name, mnf.AllowedTenants, mnf.Specs)
 		default:
 			return errors.InvalidFormatError("invalid vault type")
 		}
@@ -45,14 +44,14 @@ func (h *VaultsHandler) Register(ctx context.Context, mnfs []entities.Manifest) 
 	return nil
 }
 
-func (h *VaultsHandler) CreateHashicorp(ctx context.Context, name string, specs interface{}) error {
-	createReq := &types.CreateHashicorpVaultRequest{}
-	err := json.UnmarshalYAML(specs, createReq)
+func (h *VaultsHandler) CreateHashicorp(ctx context.Context, name string, allowedTenants []string, specs interface{}) error {
+	config := &entities.HashicorpConfig{}
+	err := json.UnmarshalYAML(specs, config)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.vaults.CreateHashicorp(ctx, name, &createReq.Config, createReq.AllowedTenants, h.userInfo)
+	err = h.vaults.CreateHashicorp(ctx, name, config, allowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}
@@ -60,14 +59,14 @@ func (h *VaultsHandler) CreateHashicorp(ctx context.Context, name string, specs 
 	return nil
 }
 
-func (h *VaultsHandler) CreateAzure(ctx context.Context, name string, specs interface{}) error {
-	createReq := &types.CreateAzureVaultRequest{}
-	err := json.UnmarshalYAML(specs, createReq)
+func (h *VaultsHandler) CreateAzure(ctx context.Context, name string, allowedTenants []string, specs interface{}) error {
+	config := &entities.AzureConfig{}
+	err := json.UnmarshalYAML(specs, config)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.vaults.CreateAzure(ctx, name, &createReq.Config, createReq.AllowedTenants, h.userInfo)
+	err = h.vaults.CreateAzure(ctx, name, config, allowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}
@@ -75,14 +74,14 @@ func (h *VaultsHandler) CreateAzure(ctx context.Context, name string, specs inte
 	return nil
 }
 
-func (h *VaultsHandler) CreateAWS(ctx context.Context, name string, specs interface{}) error {
-	createReq := &types.CreateAWSVaultRequest{}
-	err := json.UnmarshalYAML(specs, createReq)
+func (h *VaultsHandler) CreateAWS(ctx context.Context, name string, allowedTenants []string, specs interface{}) error {
+	config := &entities.AWSConfig{}
+	err := json.UnmarshalYAML(specs, config)
 	if err != nil {
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.vaults.CreateAWS(ctx, name, &createReq.Config, createReq.AllowedTenants, h.userInfo)
+	err = h.vaults.CreateAWS(ctx, name, config, allowedTenants, h.userInfo)
 	if err != nil {
 		return err
 	}
