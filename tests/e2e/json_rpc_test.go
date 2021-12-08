@@ -251,7 +251,6 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 			"data":     "0xa2",
 			"from":     s.acc.Address,
 			"to":       toAddr,
-			"gas":      "0x989680",
 			"gasPrice": "0x7",
 		})
 
@@ -271,7 +270,6 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 			"data":  "0xa2",
 			"from":  s.acc.Address,
 			"to":    toAddr,
-			"gas":   "0x989680",
 			"value": "0x1",
 		})
 
@@ -291,7 +289,6 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 			"data": "0xa2",
 			"from": "0xeE4ec3235F4b08ADC64f539BaC598c5E67BdA852",
 			"to":   toAddr,
-			"gas":  "0x989680",
 		})
 
 		require.NoError(s.T(), err)
@@ -299,8 +296,10 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 	})
 
 	s.Run("should call eth_sendTransaction and fail if an invalid args", func() {
+		// some args are missing
 		resp, err := s.env.client.Call(s.env.ctx, s.QuorumNodeID, "eth_sendTransaction", map[string]interface{}{
 			"from": s.acc.Address,
+			"gas":  "0x989680",
 		})
 
 		require.NoError(s.T(), err)

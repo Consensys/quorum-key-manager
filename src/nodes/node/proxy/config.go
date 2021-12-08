@@ -85,7 +85,7 @@ func (cfg *DownstreamConfig) SetDefault() *DownstreamConfig {
 // Config is the cfg format for a Hashicorp Vault secret store
 type Config struct {
 	RPC           *DownstreamConfig `json:"rpc,omitempty" yaml:"rpc,omitempty"`
-	PrivTxManager *DownstreamConfig `json:"tessera,omitempty" yaml:"rpc,omitempty"`
+	PrivTxManager *DownstreamConfig `json:"tessera,omitempty" yaml:"tessera,omitempty"`
 }
 
 func (cfg *Config) SetDefault() *Config {

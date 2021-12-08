@@ -2,7 +2,6 @@ package roles
 
 import (
 	"context"
-
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
@@ -11,8 +10,7 @@ func (i *Roles) UserPermissions(ctx context.Context, userInfo *entities.UserInfo
 		return []entities.Permission{}
 	}
 
-	var permissions []entities.Permission
-	copy(permissions, userInfo.Permissions)
+	permissions := userInfo.Permissions
 
 	for _, roleName := range userInfo.Roles {
 		role, err := i.Get(ctx, roleName, userInfo)

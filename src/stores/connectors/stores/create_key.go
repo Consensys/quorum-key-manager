@@ -65,7 +65,7 @@ func (c *Connector) CreateKey(ctx context.Context, name, vaultName, secretStore 
 			return err
 		}
 
-		store = localkeys.New(secretstore, c.db.Secrets(name), c.logger)
+		store = localkeys.New(secretstore, c.db.Secrets(secretStore), c.logger)
 	default:
 		errMessage := "either vault or secret store must be specified. Please choose one option"
 		logger.Error(errMessage)
