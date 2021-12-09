@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 // Alias allows the user to associates a RegistryName + a Key to 1 or more

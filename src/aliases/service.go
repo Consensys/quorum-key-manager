@@ -2,37 +2,35 @@ package aliases
 
 import (
 	"context"
-
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-//go:generate mockgen -destination=mock/service.go -package=mock . Service,Interactor,Parser
+//go:generate mockgen -source=service.go -destination=mock/service.go -package=mock
 
-type Service interface {
-	Interactor
-	Parser
+// Registries handles the aliases registries.
+type Registries interface {
+	// Create creates an alias registry
+	Create(ctx context.Context, registry string) (*entities.AliasRegistry, error)
+	// Get gets an alias registry
+	Get(ctx context.Context, registry string) (*entities.AliasRegistry, error)
+	// Delete deletes an alias registry, with all the aliases it contains
+	Delete(ctx context.Context, registry string) error
 }
 
-// Interactor handles the alias storage.
-type Interactor interface {
-	// CreateAlias creates an alias in the registry.
-	CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
-	// GetAlias gets an alias from the registry.
-	GetAlias(ctx context.Context, registry string, aliasKey string) (*entities.Alias, error)
-	// UpdateAlias updates an alias in the registry.
-	UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error)
-	// DeleteAlias deletes an alias from the registry.
-	DeleteAlias(ctx context.Context, registry string, aliasKey string) error
-	// ListAliases lists all aliases from a registry.
-	ListAliases(ctx context.Context, registry string) ([]entities.Alias, error)
-
-	// DeleteRegistry deletes a registry, with all the aliases it contained.
-	DeleteRegistry(ctx context.Context, registry string) error
-}
-
-// Parser parses and replace aliases.
-type Parser interface {
-	ParseAlias(alias string) (regName string, aliasKey string, isAlias bool)
-	ReplaceAliases(ctx context.Context, addrs []string) ([]string, error)
-	ReplaceSimpleAlias(ctx context.Context, addr string) (string, error)
+// Aliases handles the aliases.
+type Aliases interface {
+	// Create creates an alias in the registry
+	Create(ctx context.Context, registry string, alias *entities.Alias) (*entities.Alias, error)
+	// Get gets an alias from the registry
+	Get(ctx context.Context, registry string, aliasKey string) (*entities.Alias, error)
+	// Update updates an alias in the registry
+	Update(ctx context.Context, registry string, alias *entities.Alias) (*entities.Alias, error)
+	// Delete deletes an alias from the registry
+	Delete(ctx context.Context, registry string, aliasKey string) error
+	// Parse parses an alias string and returns the registryName and the aliasKey
+	Parse(alias string) (regName string, aliasKey string, isAlias bool)
+	// Replace replaces a slice of potential aliases with a slice having all the aliases replaced by their value
+	Replace(ctx context.Context, addrs []string) ([]string, error)
+	// ReplaceSimple replaces a potential alias with its first and only value
+	ReplaceSimple(ctx context.Context, addr string) (string, error)
 }

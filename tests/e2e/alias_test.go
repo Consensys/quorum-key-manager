@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -48,8 +48,8 @@ func (s *aliasTestSuite) fakeAlias() testAlias {
 	return testAlias{
 		reg:    "JPM-" + randID,
 		key:    "GoldmanSachs-" + randID,
-		val:    entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
-		newVal: entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ZOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
+		val:    entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
+		newVal: entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ZOAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}},
 	}
 }
 

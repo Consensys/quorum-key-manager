@@ -4,7 +4,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/consensys/quorum-key-manager/src/aliases"
-	"github.com/consensys/quorum-key-manager/src/aliases/api/handlers"
+	"github.com/consensys/quorum-key-manager/src/aliases/api/http"
 )
 
 // AliasAPI expose the alias service as an HTTP REST API
@@ -20,5 +20,5 @@ func New(alias aliases.Interactor) *AliasAPI {
 
 // Register registers HTTP endpoints to the HTTP router.
 func (api *AliasAPI) Register(r *mux.Router) {
-	handlers.NewAliasHandler(api.alias).Register(r)
+	http.NewAliasHandler(api.alias).Register(r)
 }

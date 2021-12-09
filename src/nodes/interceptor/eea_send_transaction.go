@@ -3,12 +3,12 @@ package interceptor
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	"github.com/consensys/quorum-key-manager/pkg/jsonrpc"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -55,13 +55,13 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 			}
 
 			switch alias.Value.Kind {
-			case entities.KindString:
+			case entities.AliasKindString:
 				*msg.PrivacyGroupID, err = alias.Value.String()
 				if err != nil {
 					i.logger.WithError(err).Error("wrong alias value, should be a string")
 					return nil, err
 				}
-			case entities.KindArray:
+			case entities.AliasKindArray:
 				if msg.PrivateFor == nil {
 					slice := []string{}
 					msg.PrivateFor = &slice

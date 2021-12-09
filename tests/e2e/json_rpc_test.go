@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/assert"
@@ -84,42 +84,42 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 	}
 	s.ownRegistryName = fmt.Sprintf("eth-from-e2e-%s", common.RandString(5))
 	s.ownAlias = fmt.Sprintf("eth-from-e2e-%s", common.RandString(5))
-	_, err = s.env.client.CreateAlias(s.env.ctx, s.ownRegistryName, s.ownAlias, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.ownRegistryName, s.ownAlias, aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
 	if err != nil {
 		s.T().Error(err)
 	}
 
 	s.eeaPrivateFromRegistryName = fmt.Sprintf("eea-from-e2e-%s", common.RandString(5))
 	s.eeaPrivateFromAliasKey = fmt.Sprintf("eea-from-e2e-%s", common.RandString(5))
-	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivateFromRegistryName, s.eeaPrivateFromAliasKey, aliastypes.AliasRequest{Kind: entities.KindString, Value: "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="})
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivateFromRegistryName, s.eeaPrivateFromAliasKey, aliastypes.AliasRequest{Kind: entities.AliasKindString, Value: "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="})
 	if err != nil {
 		s.T().Error(err)
 	}
 
 	s.eeaPrivateForRegistryName = fmt.Sprintf("eea-for-e2e-%s", common.RandString(5))
 	s.eeaPrivateForAliasKey = fmt.Sprintf("eea-for-e2e-%s", common.RandString(5))
-	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivateForRegistryName, s.eeaPrivateForAliasKey, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []interface{}{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="}})
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivateForRegistryName, s.eeaPrivateForAliasKey, aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []interface{}{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="}})
 	if err != nil {
 		s.T().Error(err)
 	}
 
 	s.eeaPrivacyGroupIDStringRegistryName = fmt.Sprintf("eea-groupIDString-e2e-%s", common.RandString(5))
 	s.eeaPrivacyGroupIDStringAliasKey = fmt.Sprintf("eea-groupIDString-e2e-%s", common.RandString(5))
-	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivacyGroupIDStringRegistryName, s.eeaPrivacyGroupIDStringAliasKey, aliastypes.AliasRequest{Kind: entities.KindString, Value: "// TODO: CHANGE"})
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivacyGroupIDStringRegistryName, s.eeaPrivacyGroupIDStringAliasKey, aliastypes.AliasRequest{Kind: entities.AliasKindString, Value: "// TODO: CHANGE"})
 	if err != nil {
 		s.T().Error(err)
 	}
 
 	s.eeaPrivacyGroupIDArrayRegistryName = fmt.Sprintf("eea-groupIDArray-e2e-%s", common.RandString(5))
 	s.eeaPrivacyGroupIDArrayAliasKey = fmt.Sprintf("eea-groupIDArray-e2e-%s", common.RandString(5))
-	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivacyGroupIDArrayRegistryName, s.eeaPrivacyGroupIDArrayAliasKey, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"// TODO: CHANGE"}})
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.eeaPrivacyGroupIDArrayRegistryName, s.eeaPrivacyGroupIDArrayAliasKey, aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []string{"// TODO: CHANGE"}})
 	if err != nil {
 		s.T().Error(err)
 	}
 
 	s.registryName = fmt.Sprintf("e2e-%s", common.RandString(5))
 	s.alias = fmt.Sprintf("Group-A-%s", common.RandString(5))
-	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.alias, aliastypes.AliasRequest{Kind: entities.KindArray, Value: []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="}})
+	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.alias, aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="}})
 	if err != nil {
 		s.T().Error(err)
 	}

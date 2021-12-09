@@ -3,11 +3,11 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	aliasent "github.com/consensys/quorum-key-manager/src/entities"
 	"os"
 	"strconv"
 	"time"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"

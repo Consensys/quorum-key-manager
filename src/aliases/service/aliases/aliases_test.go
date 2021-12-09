@@ -2,12 +2,12 @@ package aliases_test
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/entities"
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
-	"github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/mock"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +33,7 @@ func TestParseAlias(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	loggerMock := testutils.NewMockLogger(ctrl)
 	backend := mock.NewMockService(ctrl)
-	aConn := aliases.NewInteractor(backend, loggerMock)
+	aConn := aliases.New(backend, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -54,10 +54,10 @@ func TestReplaceAliases(t *testing.T) {
 		err   error
 	}
 
-	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
-	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
-	GSCall := backendCall{"my-registry", "GS", entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
-	errCall := backendCall{"unknown-registry", "unknown-key", entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{""}}, errors.InvalidFormatError("bad format")}
+	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
+	GSCall := backendCall{"my-registry", "GS", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
+	errCall := backendCall{"unknown-registry", "unknown-key", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{""}}, errors.InvalidFormatError("bad format")}
 
 	cases := map[string]struct {
 		addrs  []string
@@ -78,7 +78,7 @@ func TestReplaceAliases(t *testing.T) {
 	srv := mock.NewMockService(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn := aliases.NewInteractor(srv, loggerMock)
+	aConn := aliases.New(srv, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -118,15 +118,15 @@ func TestReplaceSingleAlias(t *testing.T) {
 		err   error
 	}
 
-	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
-	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.KindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
+	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	srv := mock.NewMockService(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn := aliases.NewInteractor(srv, loggerMock)
+	aConn := aliases.New(srv, loggerMock)
 
 	t.Run("no alias found", func(t *testing.T) {
 		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&entities.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))

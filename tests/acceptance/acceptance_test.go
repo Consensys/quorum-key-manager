@@ -5,7 +5,7 @@ package acceptancetests
 import (
 	"context"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
-	aliasint "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
+	aliasint "github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"github.com/consensys/quorum-key-manager/src/entities"
@@ -171,7 +171,7 @@ func (s *acceptanceTestSuite) TestKeyManagerAliases() {
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliasint.NewInteractor(db, s.env.logger)
+	testSuite.srv = aliasint.New(db, s.env.logger)
 	testSuite.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	suite.Run(s.T(), testSuite)

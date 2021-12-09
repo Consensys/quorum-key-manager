@@ -4,7 +4,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api"
 	"github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
-	interactor "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
+	interactor "github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
 	"github.com/gorilla/mux"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -17,7 +17,7 @@ func RegisterService(router *mux.Router, logger log.Logger, postgresClient postg
 	db := postgres.NewDatabase(postgresClient, logger)
 
 	// Business layer
-	aliasService := interactor.NewInteractor(db.Alias(), logger)
+	aliasService := interactor.New(db.Alias(), logger)
 
 	// Service layer
 	api.New(aliasService).Register(router)

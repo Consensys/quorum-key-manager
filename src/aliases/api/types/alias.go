@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/consensys/quorum-key-manager/src/aliases/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 type Alias struct {

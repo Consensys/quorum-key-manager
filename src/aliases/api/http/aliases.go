@@ -1,4 +1,4 @@
-package handlers
+package http
 
 import (
 	"net/http"
@@ -12,51 +12,26 @@ import (
 )
 
 type AliasHandler struct {
-	alias aliases.Interactor
+	aliases aliases.Aliases
 }
 
-func NewAliasHandler(alias aliases.Interactor) *AliasHandler {
-	h := AliasHandler{
-		alias: alias,
-	}
-
-	return &h
+func NewAliasHandler(aliases aliases.Aliases) *AliasHandler {
+	return &AliasHandler{aliases: aliases}
 }
 
-// Register registers alias handlers to HTTP endpoints.
 func (h *AliasHandler) Register(r *mux.Router) {
-	regRoute := r.PathPrefix("/registries/{registry_name}").Subrouter()
-	regRoute.HandleFunc("", h.deleteRegistry).Methods(http.MethodDelete)
 
 	alRoute := regRoute.PathPrefix("/aliases").Subrouter()
 	alRoute.HandleFunc("", h.listAliases).Methods(http.MethodGet)
 	alRoute.HandleFunc("/{alias_key}", h.createAlias).Methods(http.MethodPost)
 	alRoute.HandleFunc("/{alias_key}", h.getAlias).Methods(http.MethodGet)
-	alRoute.HandleFunc("/{alias_key}", h.updateAlias).Methods(http.MethodPut)
-	alRoute.HandleFunc("/{alias_key}", h.deleteAlias).Methods(http.MethodDelete)
-}
+	alRoute.HandleFunc(, h.updateAlias).Methods()
 
-// @Summary Delete a registry
-// @Description Delete a registry and all its keys
-// @Tags Registries
-// @Param registry_name path string true "registry identifier"
-// @Success 204 "Deleted successfully"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 404 {object} ErrorResponse "Registry not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registry_name} [delete]
-func (h *AliasHandler) deleteRegistry(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// should always exist in this subrouter
-	regName := vars["registry_name"]
-
-	err := h.alias.DeleteRegistry(r.Context(), regName)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, err)
-		return
-	}
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.WriteHeader(http.StatusNoContent)
+	r.Methods(http.MethodDelete).Path("").HandlerFunc(h.deleteAlias)
+	r.Methods(http.MethodDelete).Path("").HandlerFunc(h.deleteAlias)
+	r.Methods(http.MethodDelete).Path("").HandlerFunc(h.deleteAlias)
+	r.Methods(http.MethodPatch).Path("/{key}").HandlerFunc(h.deleteAlias)
+	r.Methods(http.MethodDelete).Path("").HandlerFunc(h.deleteAlias)
 }
 
 // @Summary Creates an alias
@@ -85,7 +60,7 @@ func (h *AliasHandler) createAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	alias := types.FormatAlias(regName, key, aliasReq.Kind, aliasReq.Value)
-	respAlias, err := h.alias.CreateAlias(r.Context(), alias.RegistryName, alias)
+	respAlias, err := h.aliases.Create(r.Context(), alias.RegistryName, alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -119,7 +94,7 @@ func (h *AliasHandler) getAlias(w http.ResponseWriter, r *http.Request) {
 	regName := vars["registry_name"]
 	key := vars["alias_key"]
 
-	alias, err := h.alias.GetAlias(r.Context(), regName, key)
+	alias, err := h.aliases.Get(r.Context(), regName, key)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -165,7 +140,7 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 
 	alias := types.FormatAlias(regName, key, aliasReq.Kind, aliasReq.Value)
 
-	newAlias, err := h.alias.UpdateAlias(r.Context(), regName, alias)
+	newAlias, err := h.aliases.Update(r.Context(), regName, alias)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(w, err)
 		return
@@ -186,53 +161,21 @@ func (h *AliasHandler) updateAlias(w http.ResponseWriter, r *http.Request) {
 // @Summary Delete an alias
 // @Description Delete an alias of a key from a dedicated alias registry
 // @Tags Aliases
-// @Param registry_name path string true "registry identifier"
-// @Param alias_key path string true "alias identifier"
+// @Param registryName path string true "registry identifier"
+// @Param key path string true "alias identifier"
 // @Success 204 "Deleted successfully"
 // @Failure 400 {object} ErrorResponse "Invalid request format"
 // @Failure 404 {object} ErrorResponse "Alias not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registry_name}/aliases/{alias_key} [delete]
-func (h *AliasHandler) deleteAlias(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// should always exist in this subrouter
-	regName := vars["registry_name"]
-	key := vars["alias_key"]
+// @Router /registries/{registryName}/aliases/{key} [delete]
+func (h *AliasHandler) delete(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 
-	err := h.alias.DeleteAlias(r.Context(), regName, key)
+	err := h.aliases.Delete(ctx, RegistryNameFromContext(ctx), mux.Vars(r)["key"])
 	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// @Summary Get all the aliases in a registry
-// @Description Get all the aliases in a registry
-// @Tags Aliases
-// @Produce json
-// @Param registry_name path string true "registry identifier"
-// @Param alias_key path string true "alias identifier"
-// @Success 200 {array} types.Alias "a list of Aliases"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registry_name}/aliases [get]
-func (h *AliasHandler) listAliases(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// should always exist in this subrouter
-	regName := vars["registry_name"]
-
-	als, err := h.alias.ListAliases(r.Context(), regName)
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, err)
-		return
-	}
-
-	err = infrahttp.WriteJSON(w, types.FormatEntityAliases(als))
-	if err != nil {
-		infrahttp.WriteHTTPErrorResponse(w, err)
-		return
-	}
+	rw.WriteHeader(http.StatusNoContent)
 }
