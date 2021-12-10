@@ -10,29 +10,18 @@ import (
 
 type RegistryHandler struct {
 	registries aliases.Registries
-	aliases    *AliasHandler
 }
 
-func NewRegistryHandler(registries aliases.Registries, aliasesHandler *AliasHandler) *RegistryHandler {
-	return &RegistryHandler{registries: registries, aliases: aliasesHandler}
+func NewRegistryHandler(registries aliases.Registries) *RegistryHandler {
+	return &RegistryHandler{registries: registries}
 }
 
 func (h *RegistryHandler) Register(router *mux.Router) {
-	registryRouter := router.PathPrefix("/registries/{registryName}").Subrouter()
-	registryRouter.Use(registrySelector)
+	registryRouter := router.PathPrefix("/registries").Subrouter()
 
-	registryRouter.Methods(http.MethodPost).Path("").HandlerFunc(h.create)
-	registryRouter.Methods(http.MethodGet).Path("").HandlerFunc(h.get)
-	registryRouter.Methods(http.MethodDelete).Path("").HandlerFunc(h.delete)
-
-	// Register aliases routes on /registries/{registryName}
-	h.aliases.Register(registryRouter)
-}
-
-func registrySelector(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, r.WithContext(WithRegistryName(r.Context(), mux.Vars(r)["registryName"])))
-	})
+	registryRouter.Methods(http.MethodPost).Path("/{registryName}").HandlerFunc(h.create)
+	registryRouter.Methods(http.MethodGet).Path("/{registryName}").HandlerFunc(h.get)
+	registryRouter.Methods(http.MethodDelete).Path("/{registryName}").HandlerFunc(h.delete)
 }
 
 // @Summary Creates an alias registry
@@ -45,9 +34,7 @@ func registrySelector(h http.Handler) http.Handler {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName} [post]
 func (h *RegistryHandler) create(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	registry, err := h.registries.Create(ctx, RegistryNameFromContext(ctx))
+	registry, err := h.registries.Create(r.Context(), getRegistry(r))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
@@ -70,9 +57,7 @@ func (h *RegistryHandler) create(rw http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName} [get]
 func (h *RegistryHandler) get(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	registry, err := h.registries.Get(r.Context(), RegistryNameFromContext(ctx))
+	registry, err := h.registries.Get(r.Context(), getRegistry(r))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
@@ -94,13 +79,15 @@ func (h *RegistryHandler) get(rw http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName} [delete]
 func (h *RegistryHandler) delete(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	err := h.registries.Delete(ctx, RegistryNameFromContext(ctx))
+	err := h.registries.Delete(r.Context(), getRegistry(r))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
+}
+
+func getRegistry(r *http.Request) string {
+	return mux.Vars(r)["registryName"]
 }

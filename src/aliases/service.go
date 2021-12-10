@@ -20,15 +20,15 @@ type Registries interface {
 // Aliases handles the aliases.
 type Aliases interface {
 	// Create creates an alias in the registry
-	Create(ctx context.Context, registry string, alias *entities.Alias) (*entities.Alias, error)
+	Create(ctx context.Context, registry, key, kind string, value interface{}) (*entities.Alias, error)
 	// Get gets an alias from the registry
-	Get(ctx context.Context, registry string, aliasKey string) (*entities.Alias, error)
+	Get(ctx context.Context, registry string, key string) (*entities.Alias, error)
 	// Update updates an alias in the registry
-	Update(ctx context.Context, registry string, alias *entities.Alias) (*entities.Alias, error)
+	Update(ctx context.Context, registry, key, kind string, value interface{}) (*entities.Alias, error)
 	// Delete deletes an alias from the registry
-	Delete(ctx context.Context, registry string, aliasKey string) error
+	Delete(ctx context.Context, registry string, key string) error
 	// Parse parses an alias string and returns the registryName and the aliasKey
-	Parse(alias string) (regName string, aliasKey string, isAlias bool)
+	Parse(alias string) (regName string, key string, isAlias bool)
 	// Replace replaces a slice of potential aliases with a slice having all the aliases replaced by their value
 	Replace(ctx context.Context, addrs []string) ([]string, error)
 	// ReplaceSimple replaces a potential alias with its first and only value

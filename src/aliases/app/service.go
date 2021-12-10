@@ -1,26 +1,26 @@
 package app
 
 import (
-	"github.com/consensys/quorum-key-manager/src/aliases"
-	"github.com/consensys/quorum-key-manager/src/aliases/api"
-	"github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
-	interactor "github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/api/http"
+	db "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
+	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 	"github.com/gorilla/mux"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
-	postgresinfra "github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
 // RegisterService creates and register the alias service in the app.
-func RegisterService(router *mux.Router, logger log.Logger, postgresClient postgresinfra.Client) aliases.Service {
+func RegisterService(router *mux.Router, logger log.Logger, postgresClient postgres.Client) *aliases.Aliases {
 	// Data layer
-	db := postgres.NewDatabase(postgresClient, logger)
+	aliasDB := db.NewDatabase(postgresClient, logger)
 
 	// Business layer
-	aliasService := interactor.New(db.Alias(), logger)
+	aliasService := aliases.New(aliasDB.Alias(), logger)
 
 	// Service layer
-	api.New(aliasService).Register(router)
+	http.NewRegistryHandler(aliasService).Register(router)
+	http.NewAliasHandler(aliasService).Register(router)
 
 	return aliasService
 }

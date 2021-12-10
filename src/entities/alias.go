@@ -6,28 +6,18 @@ import (
 	"time"
 )
 
-type AliasKind string
-
 const (
-	AliasKindString AliasKind = "string"
-	AliasKindArray  AliasKind = "array"
+	AliasKindString string = "string"
+	AliasKindArray  string = "array"
 )
 
-// Alias allows the user to associates a RegistryName + a Key to 1 or more public keys stored in Value.
 type Alias struct {
-	// Key is the unique alias key.
-	Key string
-
-	// RegistryName is the unique registry name.
+	Key          string
 	RegistryName string
-
-	Kind AliasKind
-
-	// Value is a slice containing Tessera/Orion keys base64 encoded in strings.
-	Value interface{}
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Kind         string
+	Value        interface{}
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func (a *Alias) Array() ([]string, error) {
