@@ -1,13 +1,13 @@
 package aliases
 
-func (i *Aliases) Parse(alias string) (regName, aliasKey string, isAlias bool) {
-	submatches := i.regex.FindStringSubmatch(alias)
-	if len(submatches) < 3 {
+import "strings"
+
+func (s *Aliases) Parse(alias string) (regName, aliasKey string, isAlias bool) {
+	chunks := strings.Split(alias, ":")
+
+	if len(chunks) != 2 {
 		return "", "", false
 	}
 
-	regName = submatches[1]
-	aliasKey = submatches[2]
-
-	return regName, aliasKey, true
+	return chunks[0], chunks[1], true
 }

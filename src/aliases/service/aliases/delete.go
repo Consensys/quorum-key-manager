@@ -2,10 +2,10 @@ package aliases
 
 import "context"
 
-func (i *Aliases) Delete(ctx context.Context, registry, aliasKey string) error {
-	logger := i.logger.With("registry", registry, "key", aliasKey)
+func (s *Aliases) Delete(ctx context.Context, registry, key string) error {
+	logger := s.logger.With("registry", registry, "key", key)
 
-	err := i.db.Delete(ctx, registry, aliasKey)
+	err := s.db.Delete(ctx, registry, key)
 	if err != nil {
 		return err
 	}

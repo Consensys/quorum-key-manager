@@ -35,47 +35,47 @@ func (m *MockRegistries) EXPECT() *MockRegistriesMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockRegistries) Create(ctx context.Context, registry string) (*entities.AliasRegistry, error) {
+func (m *MockRegistries) Create(ctx context.Context, name string) (*entities.AliasRegistry, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, registry)
+	ret := m.ctrl.Call(m, "Create", ctx, name)
 	ret0, _ := ret[0].(*entities.AliasRegistry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create
-func (mr *MockRegistriesMockRecorder) Create(ctx, registry interface{}) *gomock.Call {
+func (mr *MockRegistriesMockRecorder) Create(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRegistries)(nil).Create), ctx, registry)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRegistries)(nil).Create), ctx, name)
 }
 
 // Get mocks base method
-func (m *MockRegistries) Get(ctx context.Context, registry string) (*entities.AliasRegistry, error) {
+func (m *MockRegistries) Get(ctx context.Context, name string) (*entities.AliasRegistry, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, registry)
+	ret := m.ctrl.Call(m, "Get", ctx, name)
 	ret0, _ := ret[0].(*entities.AliasRegistry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRegistriesMockRecorder) Get(ctx, registry interface{}) *gomock.Call {
+func (mr *MockRegistriesMockRecorder) Get(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRegistries)(nil).Get), ctx, registry)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRegistries)(nil).Get), ctx, name)
 }
 
 // Delete mocks base method
-func (m *MockRegistries) Delete(ctx context.Context, registry string) error {
+func (m *MockRegistries) Delete(ctx context.Context, name string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, registry)
+	ret := m.ctrl.Call(m, "Delete", ctx, name)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockRegistriesMockRecorder) Delete(ctx, registry interface{}) *gomock.Call {
+func (mr *MockRegistriesMockRecorder) Delete(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRegistries)(nil).Delete), ctx, registry)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRegistries)(nil).Delete), ctx, name)
 }
 
 // MockAliases is a mock of Aliases interface

@@ -20,6 +20,22 @@ type Alias struct {
 	UpdatedAt    time.Time
 }
 
+func NewAlias(registry, key, kind string, value interface{}) (*Alias, error) {
+	alias := &Alias{
+		Key:          key,
+		RegistryName: registry,
+		Kind:         kind,
+		Value:        value,
+	}
+
+	err := alias.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return alias, nil
+}
+
 func (a *Alias) Array() ([]string, error) {
 	keys, ok := a.Value.([]interface{})
 	if !ok {

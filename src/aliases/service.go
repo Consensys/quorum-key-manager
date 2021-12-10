@@ -10,11 +10,11 @@ import (
 // Registries handles the aliases registries.
 type Registries interface {
 	// Create creates an alias registry
-	Create(ctx context.Context, registry string) (*entities.AliasRegistry, error)
+	Create(ctx context.Context, name string) (*entities.AliasRegistry, error)
 	// Get gets an alias registry
-	Get(ctx context.Context, registry string) (*entities.AliasRegistry, error)
+	Get(ctx context.Context, name string) (*entities.AliasRegistry, error)
 	// Delete deletes an alias registry, with all the aliases it contains
-	Delete(ctx context.Context, registry string) error
+	Delete(ctx context.Context, name string) error
 }
 
 // Aliases handles the aliases.

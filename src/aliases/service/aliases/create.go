@@ -5,15 +5,15 @@ import (
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func (i *Aliases) Create(ctx context.Context, registry string, alias *entities.Alias) (*entities.Alias, error) {
-	logger := i.logger.With("registry", registry, "key", alias.Key)
+func (s *Aliases) Create(ctx context.Context, registry, key, kind string, value interface{}) (*entities.Alias, error) {
+	logger := s.logger.With("registry", registry, "key", key, "type", kind)
 
-	err := alias.Validate()
+	alias, err := entities.NewAlias(registry, key, kind, value)
 	if err != nil {
 		return nil, err
 	}
 
-	alias, err = i.db.Create(ctx, registry, alias)
+	alias, err = s.db.Insert(ctx, registry, alias)
 	if err != nil {
 		return nil, err
 	}

@@ -6,10 +6,10 @@ import (
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func (i *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error) {
+func (s *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error) {
 	var values []string
 	for _, addr := range addrs {
-		regName, aliasKey, isAlias := i.Parse(addr)
+		regName, aliasKey, isAlias := s.Parse(addr)
 
 		// it is not an alias
 		if !isAlias {
@@ -17,14 +17,14 @@ func (i *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error)
 			continue
 		}
 
-		alias, err := i.db.Get(ctx, regName, aliasKey)
+		alias, err := s.db.FindOne(ctx, regName, aliasKey)
 		if err != nil {
 			return nil, err
 		}
 
-		switch alias.Value.Kind {
+		switch alias.Kind {
 		case entities.AliasKindArray:
-			vals, ok := alias.Value.Value.([]interface{})
+			vals, ok := alias.Value.([]interface{})
 			if !ok {
 				return nil, errors.InvalidFormatError("bad array format")
 			}
@@ -38,7 +38,7 @@ func (i *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error)
 				values = append(values, str)
 			}
 		case entities.AliasKindString:
-			values = append(values, alias.Value.Value.(string))
+			values = append(values, alias.Value.(string))
 		default:
 			return nil, errors.InvalidFormatError("bad value kind")
 		}
@@ -47,14 +47,14 @@ func (i *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error)
 	return values, nil
 }
 
-func (i *Aliases) ReplaceSimple(ctx context.Context, addr string) (string, error) {
-	alias, err := i.Replace(ctx, []string{addr})
+func (s *Aliases) ReplaceSimple(ctx context.Context, addr string) (string, error) {
+	alias, err := s.Replace(ctx, []string{addr})
 	if err != nil {
 		return "", err
 	}
 
 	if len(alias) != 1 {
-		i.logger.WithError(err).Error("wrong alias type")
+		s.logger.WithError(err).Error("wrong alias type")
 		return "", errors.EncodingError("alias should only have 1 value")
 	}
 
