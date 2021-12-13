@@ -171,8 +171,8 @@ down-pgadmin:
 	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v pgadmin
 
 pki-deps:
-	@GO111MODULE=on go get github.com/cloudflare/cfssl/cmd/cfssl
-	@GO111MODULE=on get github.com/cloudflare/cfssl/cmd/cfssljson
+	@GO111MODULE=off go get github.com/cloudflare/cfssl/cmd/cfssl
+	@GO111MODULE=off go get github.com/cloudflare/cfssl/cmd/cfssljson
 
 generate-pki: pki-deps
 	@sh scripts/generate-pki.sh
