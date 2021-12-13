@@ -25,8 +25,8 @@ func (h *AliasHandler) Register(r *mux.Router) {
 
 	aliasRouter.Methods(http.MethodPost).Path("/{key}").HandlerFunc(h.create)
 	aliasRouter.Methods(http.MethodGet).Path("/{key}").HandlerFunc(h.get)
-	aliasRouter.Methods(http.MethodPatch).Path("/{key}").HandlerFunc(h.updateAlias)
-	aliasRouter.Methods(http.MethodDelete).Path("").HandlerFunc(h.delete)
+	aliasRouter.Methods(http.MethodPatch).Path("/{key}").HandlerFunc(h.update)
+	aliasRouter.Methods(http.MethodDelete).Path("/{key}").HandlerFunc(h.delete)
 }
 
 // @Summary Creates an alias
@@ -103,7 +103,7 @@ func (h *AliasHandler) get(rw http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} ErrorResponse "Alias not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName}/aliases/{key} [put]
-func (h *AliasHandler) updateAlias(rw http.ResponseWriter, r *http.Request) {
+func (h *AliasHandler) update(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	aliasReq := &types.AliasRequest{}

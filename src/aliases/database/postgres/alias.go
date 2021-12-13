@@ -36,7 +36,7 @@ func (r *Alias) FindOne(ctx context.Context, registry, key, tenant string) (*ent
 		Key:          key,
 		RegistryName: registry,
 	}
-	err := r.pgClient.SelectWhere(ctx, aliasModel, r.whereTenant(tenant), []string{}, key)
+	err := r.pgClient.SelectWhere(ctx, aliasModel, r.whereTenant(tenant), []string{"Registry._"}, key)
 	if err != nil {
 		return nil, err
 	}
@@ -70,5 +70,10 @@ func (r *Alias) Delete(ctx context.Context, registry, key, tenant string) error 
 }
 
 func (r *Alias) whereTenant(tenant string) string {
-	return fmt.Sprintf("key = ? AND '%s' = ANY(registry.allowed_tenants)", tenant)
+	query := "key = ?"
+	if tenant != "" {
+		return fmt.Sprintf("%s AND '%s' = ANY(registry.allowed_tenants)", query, tenant)
+	}
+
+	return query
 }
