@@ -15,7 +15,7 @@ func RegisterService(
 	logger log.Logger,
 	authService auth.Roles,
 	storesService stores.Stores,
-	aliasService aliases.Service,
+	aliasService aliases.Aliases,
 ) *nodes.Nodes {
 	// Business layer
 	nodesService := nodes.New(storesService, authService, aliasService, logger)

@@ -658,7 +658,7 @@ func (m *MockAliasClient) EXPECT() *MockAliasClientMockRecorder {
 }
 
 // CreateAlias mocks base method
-func (m *MockAliasClient) CreateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+func (m *MockAliasClient) CreateAlias(ctx context.Context, registry, aliasKey string, req *types.AliasRequest) (*types.AliasResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, aliasKey, req)
 	ret0, _ := ret[0].(*types.AliasResponse)
@@ -688,7 +688,7 @@ func (mr *MockAliasClientMockRecorder) GetAlias(ctx, registry, aliasKey interfac
 }
 
 // UpdateAlias mocks base method
-func (m *MockAliasClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+func (m *MockAliasClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req *types.AliasRequest) (*types.AliasResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, aliasKey, req)
 	ret0, _ := ret[0].(*types.AliasResponse)
@@ -716,23 +716,61 @@ func (mr *MockAliasClientMockRecorder) DeleteAlias(ctx, registry, aliasKey inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAlias", reflect.TypeOf((*MockAliasClient)(nil).DeleteAlias), ctx, registry, aliasKey)
 }
 
-// ListAliases mocks base method
-func (m *MockAliasClient) ListAliases(ctx context.Context, registry string) ([]types.Alias, error) {
+// MockAliasRegistryClient is a mock of AliasRegistryClient interface
+type MockAliasRegistryClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockAliasRegistryClientMockRecorder
+}
+
+// MockAliasRegistryClientMockRecorder is the mock recorder for MockAliasRegistryClient
+type MockAliasRegistryClientMockRecorder struct {
+	mock *MockAliasRegistryClient
+}
+
+// NewMockAliasRegistryClient creates a new mock instance
+func NewMockAliasRegistryClient(ctrl *gomock.Controller) *MockAliasRegistryClient {
+	mock := &MockAliasRegistryClient{ctrl: ctrl}
+	mock.recorder = &MockAliasRegistryClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockAliasRegistryClient) EXPECT() *MockAliasRegistryClientMockRecorder {
+	return m.recorder
+}
+
+// CreateRegistry mocks base method
+func (m *MockAliasRegistryClient) CreateRegistry(ctx context.Context, registry string, req *types.CreateRegistryRequest) (*types.RegistryResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
-	ret0, _ := ret[0].([]types.Alias)
+	ret := m.ctrl.Call(m, "CreateRegistry", ctx, registry, req)
+	ret0, _ := ret[0].(*types.RegistryResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListAliases indicates an expected call of ListAliases
-func (mr *MockAliasClientMockRecorder) ListAliases(ctx, registry interface{}) *gomock.Call {
+// CreateRegistry indicates an expected call of CreateRegistry
+func (mr *MockAliasRegistryClientMockRecorder) CreateRegistry(ctx, registry, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAliases", reflect.TypeOf((*MockAliasClient)(nil).ListAliases), ctx, registry)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRegistry", reflect.TypeOf((*MockAliasRegistryClient)(nil).CreateRegistry), ctx, registry, req)
+}
+
+// GetRegistry mocks base method
+func (m *MockAliasRegistryClient) GetRegistry(ctx context.Context, registry string) (*types.RegistryResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRegistry", ctx, registry)
+	ret0, _ := ret[0].(*types.RegistryResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRegistry indicates an expected call of GetRegistry
+func (mr *MockAliasRegistryClientMockRecorder) GetRegistry(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegistry", reflect.TypeOf((*MockAliasRegistryClient)(nil).GetRegistry), ctx, registry)
 }
 
 // DeleteRegistry mocks base method
-func (m *MockAliasClient) DeleteRegistry(ctx context.Context, registry string) error {
+func (m *MockAliasRegistryClient) DeleteRegistry(ctx context.Context, registry string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
 	ret0, _ := ret[0].(error)
@@ -740,9 +778,9 @@ func (m *MockAliasClient) DeleteRegistry(ctx context.Context, registry string) e
 }
 
 // DeleteRegistry indicates an expected call of DeleteRegistry
-func (mr *MockAliasClientMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomock.Call {
+func (mr *MockAliasRegistryClientMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegistry", reflect.TypeOf((*MockAliasClient)(nil).DeleteRegistry), ctx, registry)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegistry", reflect.TypeOf((*MockAliasRegistryClient)(nil).DeleteRegistry), ctx, registry)
 }
 
 // MockJSONRPC is a mock of JSONRPC interface
@@ -1339,8 +1377,52 @@ func (mr *MockKeyManagerClientMockRecorder) VerifyTypedData(ctx, request interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyTypedData", reflect.TypeOf((*MockKeyManagerClient)(nil).VerifyTypedData), ctx, request)
 }
 
+// CreateRegistry mocks base method
+func (m *MockKeyManagerClient) CreateRegistry(ctx context.Context, registry string, req *types.CreateRegistryRequest) (*types.RegistryResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRegistry", ctx, registry, req)
+	ret0, _ := ret[0].(*types.RegistryResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRegistry indicates an expected call of CreateRegistry
+func (mr *MockKeyManagerClientMockRecorder) CreateRegistry(ctx, registry, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRegistry", reflect.TypeOf((*MockKeyManagerClient)(nil).CreateRegistry), ctx, registry, req)
+}
+
+// GetRegistry mocks base method
+func (m *MockKeyManagerClient) GetRegistry(ctx context.Context, registry string) (*types.RegistryResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRegistry", ctx, registry)
+	ret0, _ := ret[0].(*types.RegistryResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRegistry indicates an expected call of GetRegistry
+func (mr *MockKeyManagerClientMockRecorder) GetRegistry(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegistry", reflect.TypeOf((*MockKeyManagerClient)(nil).GetRegistry), ctx, registry)
+}
+
+// DeleteRegistry mocks base method
+func (m *MockKeyManagerClient) DeleteRegistry(ctx context.Context, registry string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRegistry indicates an expected call of DeleteRegistry
+func (mr *MockKeyManagerClientMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegistry", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteRegistry), ctx, registry)
+}
+
 // CreateAlias mocks base method
-func (m *MockKeyManagerClient) CreateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+func (m *MockKeyManagerClient) CreateAlias(ctx context.Context, registry, aliasKey string, req *types.AliasRequest) (*types.AliasResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAlias", ctx, registry, aliasKey, req)
 	ret0, _ := ret[0].(*types.AliasResponse)
@@ -1370,7 +1452,7 @@ func (mr *MockKeyManagerClientMockRecorder) GetAlias(ctx, registry, aliasKey int
 }
 
 // UpdateAlias mocks base method
-func (m *MockKeyManagerClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req types.AliasRequest) (*types.AliasResponse, error) {
+func (m *MockKeyManagerClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req *types.AliasRequest) (*types.AliasResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAlias", ctx, registry, aliasKey, req)
 	ret0, _ := ret[0].(*types.AliasResponse)
@@ -1396,35 +1478,6 @@ func (m *MockKeyManagerClient) DeleteAlias(ctx context.Context, registry, aliasK
 func (mr *MockKeyManagerClientMockRecorder) DeleteAlias(ctx, registry, aliasKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAlias", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteAlias), ctx, registry, aliasKey)
-}
-
-// ListAliases mocks base method
-func (m *MockKeyManagerClient) ListAliases(ctx context.Context, registry string) ([]types.Alias, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAliases", ctx, registry)
-	ret0, _ := ret[0].([]types.Alias)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAliases indicates an expected call of ListAliases
-func (mr *MockKeyManagerClientMockRecorder) ListAliases(ctx, registry interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAliases", reflect.TypeOf((*MockKeyManagerClient)(nil).ListAliases), ctx, registry)
-}
-
-// DeleteRegistry mocks base method
-func (m *MockKeyManagerClient) DeleteRegistry(ctx context.Context, registry string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteRegistry", ctx, registry)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteRegistry indicates an expected call of DeleteRegistry
-func (mr *MockKeyManagerClientMockRecorder) DeleteRegistry(ctx, registry interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegistry", reflect.TypeOf((*MockKeyManagerClient)(nil).DeleteRegistry), ctx, registry)
 }
 
 // Call mocks base method

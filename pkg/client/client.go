@@ -60,11 +60,15 @@ type UtilsClient interface {
 }
 
 type AliasClient interface {
-	CreateAlias(ctx context.Context, registry, aliasKey string, req aliastypes.AliasRequest) (*aliastypes.AliasResponse, error)
+	CreateAlias(ctx context.Context, registry, aliasKey string, req *aliastypes.AliasRequest) (*aliastypes.AliasResponse, error)
 	GetAlias(ctx context.Context, registry, aliasKey string) (*aliastypes.AliasResponse, error)
-	UpdateAlias(ctx context.Context, registry, aliasKey string, req aliastypes.AliasRequest) (*aliastypes.AliasResponse, error)
+	UpdateAlias(ctx context.Context, registry, aliasKey string, req *aliastypes.AliasRequest) (*aliastypes.AliasResponse, error)
 	DeleteAlias(ctx context.Context, registry, aliasKey string) error
-	ListAliases(ctx context.Context, registry string) ([]aliastypes.Alias, error)
+}
+
+type AliasRegistryClient interface {
+	CreateRegistry(ctx context.Context, registry string, req *aliastypes.CreateRegistryRequest) (*aliastypes.RegistryResponse, error)
+	GetRegistry(ctx context.Context, registry string) (*aliastypes.RegistryResponse, error)
 	DeleteRegistry(ctx context.Context, registry string) error
 }
 
@@ -77,6 +81,7 @@ type KeyManagerClient interface {
 	KeysClient
 	EthClient
 	UtilsClient
+	AliasRegistryClient
 	AliasClient
 	JSONRPC
 }

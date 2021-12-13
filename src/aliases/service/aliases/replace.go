@@ -3,10 +3,11 @@ package aliases
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func (s *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error) {
+func (s *Aliases) Replace(ctx context.Context, addrs []string, userInfo *auth.UserInfo) ([]string, error) {
 	var values []string
 	for _, addr := range addrs {
 		regName, aliasKey, isAlias := s.Parse(addr)
@@ -17,7 +18,7 @@ func (s *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error)
 			continue
 		}
 
-		alias, err := s.db.FindOne(ctx, regName, aliasKey)
+		alias, err := s.db.FindOne(ctx, regName, aliasKey, userInfo.Tenant)
 		if err != nil {
 			return nil, err
 		}
@@ -47,8 +48,8 @@ func (s *Aliases) Replace(ctx context.Context, addrs []string) ([]string, error)
 	return values, nil
 }
 
-func (s *Aliases) ReplaceSimple(ctx context.Context, addr string) (string, error) {
-	alias, err := s.Replace(ctx, []string{addr})
+func (s *Aliases) ReplaceSimple(ctx context.Context, addr string, userInfo *auth.UserInfo) (string, error) {
+	alias, err := s.Replace(ctx, []string{addr}, userInfo)
 	if err != nil {
 		return "", err
 	}

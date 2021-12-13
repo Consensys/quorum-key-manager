@@ -4,10 +4,10 @@ import (
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func AliasFaker(registry, key string, kind entities.AliasKind, value interface{}) entities.Alias {
+func AliasFaker(registry, key, kind string, value interface{}) entities.Alias {
 	return entities.Alias{
-		RegistryName: registry,
 		Key:          key,
+		RegistryName: registry,
 		Kind:         kind,
 		Value:        value,
 	}

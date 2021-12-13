@@ -1,6 +1,7 @@
 package http
 
 import (
+	auth "github.com/consensys/quorum-key-manager/src/auth/api/http"
 	"net/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -41,6 +42,8 @@ func (h *AliasHandler) Register(r *mux.Router) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName}/aliases/{key} [post]
 func (h *AliasHandler) create(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	aliasReq := &types.AliasRequest{}
 	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
@@ -48,7 +51,7 @@ func (h *AliasHandler) create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias, err := h.aliases.Create(r.Context(), getRegistry(r), getKey(r), aliasReq.Kind, aliasReq.Value)
+	alias, err := h.aliases.Create(ctx, getRegistry(r), getKey(r), aliasReq.Kind, aliasReq.Value, auth.UserInfoFromContext(ctx))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
@@ -72,7 +75,9 @@ func (h *AliasHandler) create(rw http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName}/aliases/{key} [get]
 func (h *AliasHandler) get(rw http.ResponseWriter, r *http.Request) {
-	alias, err := h.aliases.Get(r.Context(), getRegistry(r), getKey(r))
+	ctx := r.Context()
+
+	alias, err := h.aliases.Get(ctx, getRegistry(r), getKey(r), auth.UserInfoFromContext(ctx))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
@@ -99,6 +104,8 @@ func (h *AliasHandler) get(rw http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName}/aliases/{key} [put]
 func (h *AliasHandler) updateAlias(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	aliasReq := &types.AliasRequest{}
 	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
 	if err != nil {
@@ -106,7 +113,7 @@ func (h *AliasHandler) updateAlias(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias, err := h.aliases.Update(r.Context(), getRegistry(r), getKey(r), aliasReq.Kind, aliasReq.Value)
+	alias, err := h.aliases.Update(ctx, getRegistry(r), getKey(r), aliasReq.Kind, aliasReq.Value, auth.UserInfoFromContext(ctx))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
@@ -131,7 +138,9 @@ func (h *AliasHandler) updateAlias(rw http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName}/aliases/{key} [delete]
 func (h *AliasHandler) delete(rw http.ResponseWriter, r *http.Request) {
-	err := h.aliases.Delete(r.Context(), getRegistry(r), getKey(r))
+	ctx := r.Context()
+
+	err := h.aliases.Delete(ctx, getRegistry(r), getKey(r), auth.UserInfoFromContext(ctx))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return

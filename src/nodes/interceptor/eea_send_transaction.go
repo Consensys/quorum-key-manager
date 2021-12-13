@@ -18,8 +18,10 @@ import (
 func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.SendEEATxMsg) (*ethcommon.Hash, error) {
 	i.logger.Debug("sending EEA transaction")
 
+	userInfo := http.UserInfoFromContext(ctx)
+
 	// Get store for from
-	store, err := i.stores.EthereumByAddr(ctx, msg.From, http.UserInfoFromContext(ctx))
+	store, err := i.stores.EthereumByAddr(ctx, msg.From, userInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +30,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 
 	if msg.PrivateFor != nil {
 		// extract aliases from PrivateFor
-		*msg.PrivateFor, err = i.aliases.ReplaceAliases(ctx, *msg.PrivateFor)
+		*msg.PrivateFor, err = i.aliases.Replace(ctx, *msg.PrivateFor, userInfo)
 		if err != nil {
 			i.logger.WithError(err).Error("failed to replace aliases in privateFor")
 			return nil, err
@@ -37,7 +39,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 
 	if msg.PrivateFrom != nil {
 
-		*msg.PrivateFrom, err = i.aliases.ReplaceSimpleAlias(ctx, *msg.PrivateFrom)
+		*msg.PrivateFrom, err = i.aliases.ReplaceSimple(ctx, *msg.PrivateFrom, userInfo)
 		if err != nil {
 			i.logger.WithError(err).Error("failed to replace alias")
 			return nil, err
@@ -45,18 +47,18 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	if msg.PrivacyGroupID != nil {
-		reg, key, isAlias := i.aliases.ParseAlias(*msg.PrivacyGroupID)
+		reg, key, isAlias := i.aliases.Parse(*msg.PrivacyGroupID)
 		if isAlias {
 			var alias *entities.Alias
-			alias, err = i.aliases.GetAlias(ctx, reg, key)
+			alias, err = i.aliases.Get(ctx, reg, key, userInfo)
 			if err != nil {
 				i.logger.WithError(err).Error("failed to get alias for privacyGroupID")
 				return nil, err
 			}
 
-			switch alias.Value.Kind {
+			switch alias.Kind {
 			case entities.AliasKindString:
-				*msg.PrivacyGroupID, err = alias.Value.String()
+				*msg.PrivacyGroupID, err = alias.String()
 				if err != nil {
 					i.logger.WithError(err).Error("wrong alias value, should be a string")
 					return nil, err
@@ -68,7 +70,7 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 				}
 
 				var aliasArray []string
-				aliasArray, err = alias.Value.Array()
+				aliasArray, err = alias.Array()
 				if err != nil {
 					i.logger.WithError(err).Error("wrong alias value, should be a string")
 					return nil, err

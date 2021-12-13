@@ -17,7 +17,7 @@ import (
 type Nodes struct {
 	storesService stores.Stores
 	roles         auth.Roles
-	aliases       aliases.Service
+	aliases       aliases.Aliases
 	mux           sync.RWMutex
 	nodes         map[string]*entities.Node
 	logger        log.Logger
@@ -25,7 +25,7 @@ type Nodes struct {
 
 var _ nodes.Nodes = &Nodes{}
 
-func New(storesService stores.Stores, rolesService auth.Roles, aliasesService aliases.Service, logger log.Logger) *Nodes {
+func New(storesService stores.Stores, rolesService auth.Roles, aliasesService aliases.Aliases, logger log.Logger) *Nodes {
 	return &Nodes{
 		storesService: storesService,
 		roles:         rolesService,

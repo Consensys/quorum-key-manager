@@ -3,10 +3,11 @@ package aliases
 import (
 	"context"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func (s *Aliases) Create(ctx context.Context, registry, key, kind string, value interface{}) (*entities.Alias, error) {
+func (s *Aliases) Create(ctx context.Context, registry, key, kind string, value interface{}, _ *auth.UserInfo) (*entities.Alias, error) {
 	logger := s.logger.With("registry", registry, "key", key, "type", kind)
 
 	alias, err := entities.NewAlias(registry, key, kind, value)

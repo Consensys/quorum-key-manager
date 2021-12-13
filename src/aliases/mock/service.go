@@ -6,7 +6,8 @@ package mock
 
 import (
 	context "context"
-	entities "github.com/consensys/quorum-key-manager/src/entities"
+	entities "github.com/consensys/quorum-key-manager/src/auth/entities"
+	entities0 "github.com/consensys/quorum-key-manager/src/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,47 +36,47 @@ func (m *MockRegistries) EXPECT() *MockRegistriesMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockRegistries) Create(ctx context.Context, name string) (*entities.AliasRegistry, error) {
+func (m *MockRegistries) Create(ctx context.Context, name string, allowedTenants []string, userInfo *entities.UserInfo) (*entities0.AliasRegistry, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, name)
-	ret0, _ := ret[0].(*entities.AliasRegistry)
+	ret := m.ctrl.Call(m, "Create", ctx, name, allowedTenants, userInfo)
+	ret0, _ := ret[0].(*entities0.AliasRegistry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create
-func (mr *MockRegistriesMockRecorder) Create(ctx, name interface{}) *gomock.Call {
+func (mr *MockRegistriesMockRecorder) Create(ctx, name, allowedTenants, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRegistries)(nil).Create), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRegistries)(nil).Create), ctx, name, allowedTenants, userInfo)
 }
 
 // Get mocks base method
-func (m *MockRegistries) Get(ctx context.Context, name string) (*entities.AliasRegistry, error) {
+func (m *MockRegistries) Get(ctx context.Context, name string, userInfo *entities.UserInfo) (*entities0.AliasRegistry, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, name)
-	ret0, _ := ret[0].(*entities.AliasRegistry)
+	ret := m.ctrl.Call(m, "Get", ctx, name, userInfo)
+	ret0, _ := ret[0].(*entities0.AliasRegistry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRegistriesMockRecorder) Get(ctx, name interface{}) *gomock.Call {
+func (mr *MockRegistriesMockRecorder) Get(ctx, name, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRegistries)(nil).Get), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRegistries)(nil).Get), ctx, name, userInfo)
 }
 
 // Delete mocks base method
-func (m *MockRegistries) Delete(ctx context.Context, name string) error {
+func (m *MockRegistries) Delete(ctx context.Context, name string, userInfo *entities.UserInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, name)
+	ret := m.ctrl.Call(m, "Delete", ctx, name, userInfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockRegistriesMockRecorder) Delete(ctx, name interface{}) *gomock.Call {
+func (mr *MockRegistriesMockRecorder) Delete(ctx, name, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRegistries)(nil).Delete), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRegistries)(nil).Delete), ctx, name, userInfo)
 }
 
 // MockAliases is a mock of Aliases interface
@@ -102,62 +103,62 @@ func (m *MockAliases) EXPECT() *MockAliasesMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockAliases) Create(ctx context.Context, registry, key, kind string, value interface{}) (*entities.Alias, error) {
+func (m *MockAliases) Create(ctx context.Context, registry, key, kind string, value interface{}, userInfo *entities.UserInfo) (*entities0.Alias, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, registry, key, kind, value)
-	ret0, _ := ret[0].(*entities.Alias)
+	ret := m.ctrl.Call(m, "Create", ctx, registry, key, kind, value, userInfo)
+	ret0, _ := ret[0].(*entities0.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create
-func (mr *MockAliasesMockRecorder) Create(ctx, registry, key, kind, value interface{}) *gomock.Call {
+func (mr *MockAliasesMockRecorder) Create(ctx, registry, key, kind, value, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAliases)(nil).Create), ctx, registry, key, kind, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAliases)(nil).Create), ctx, registry, key, kind, value, userInfo)
 }
 
 // Get mocks base method
-func (m *MockAliases) Get(ctx context.Context, registry, key string) (*entities.Alias, error) {
+func (m *MockAliases) Get(ctx context.Context, registry, key string, userInfo *entities.UserInfo) (*entities0.Alias, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, registry, key)
-	ret0, _ := ret[0].(*entities.Alias)
+	ret := m.ctrl.Call(m, "Get", ctx, registry, key, userInfo)
+	ret0, _ := ret[0].(*entities0.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockAliasesMockRecorder) Get(ctx, registry, key interface{}) *gomock.Call {
+func (mr *MockAliasesMockRecorder) Get(ctx, registry, key, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAliases)(nil).Get), ctx, registry, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAliases)(nil).Get), ctx, registry, key, userInfo)
 }
 
 // Update mocks base method
-func (m *MockAliases) Update(ctx context.Context, registry, key, kind string, value interface{}) (*entities.Alias, error) {
+func (m *MockAliases) Update(ctx context.Context, registry, key, kind string, value interface{}, userInfo *entities.UserInfo) (*entities0.Alias, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, registry, key, kind, value)
-	ret0, _ := ret[0].(*entities.Alias)
+	ret := m.ctrl.Call(m, "Update", ctx, registry, key, kind, value, userInfo)
+	ret0, _ := ret[0].(*entities0.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
-func (mr *MockAliasesMockRecorder) Update(ctx, registry, key, kind, value interface{}) *gomock.Call {
+func (mr *MockAliasesMockRecorder) Update(ctx, registry, key, kind, value, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAliases)(nil).Update), ctx, registry, key, kind, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAliases)(nil).Update), ctx, registry, key, kind, value, userInfo)
 }
 
 // Delete mocks base method
-func (m *MockAliases) Delete(ctx context.Context, registry, key string) error {
+func (m *MockAliases) Delete(ctx context.Context, registry, key string, userInfo *entities.UserInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, registry, key)
+	ret := m.ctrl.Call(m, "Delete", ctx, registry, key, userInfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockAliasesMockRecorder) Delete(ctx, registry, key interface{}) *gomock.Call {
+func (mr *MockAliasesMockRecorder) Delete(ctx, registry, key, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAliases)(nil).Delete), ctx, registry, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAliases)(nil).Delete), ctx, registry, key, userInfo)
 }
 
 // Parse mocks base method

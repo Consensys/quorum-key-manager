@@ -1,8 +1,11 @@
 package http
 
 import (
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
 	"github.com/consensys/quorum-key-manager/src/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
+	auth "github.com/consensys/quorum-key-manager/src/auth/api/http"
 	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -34,7 +37,16 @@ func (h *RegistryHandler) Register(router *mux.Router) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName} [post]
 func (h *RegistryHandler) create(rw http.ResponseWriter, r *http.Request) {
-	registry, err := h.registries.Create(r.Context(), getRegistry(r))
+	ctx := r.Context()
+
+	registryReq := &types.CreateRegistryRequest{}
+	err := jsonutils.UnmarshalBody(r.Body, &registryReq)
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		return
+	}
+
+	registry, err := h.registries.Create(ctx, getRegistry(r), registryReq.AllowedTenants, auth.UserInfoFromContext(ctx))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
@@ -57,7 +69,9 @@ func (h *RegistryHandler) create(rw http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName} [get]
 func (h *RegistryHandler) get(rw http.ResponseWriter, r *http.Request) {
-	registry, err := h.registries.Get(r.Context(), getRegistry(r))
+	ctx := r.Context()
+
+	registry, err := h.registries.Get(ctx, getRegistry(r), auth.UserInfoFromContext(ctx))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
@@ -79,7 +93,9 @@ func (h *RegistryHandler) get(rw http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /registries/{registryName} [delete]
 func (h *RegistryHandler) delete(rw http.ResponseWriter, r *http.Request) {
-	err := h.registries.Delete(r.Context(), getRegistry(r))
+	ctx := r.Context()
+
+	err := h.registries.Delete(ctx, getRegistry(r), auth.UserInfoFromContext(ctx))
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return

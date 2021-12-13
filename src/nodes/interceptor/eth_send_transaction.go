@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 	"math/big"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -30,10 +31,11 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 	i.logger.Debug("sending Quorum private transaction")
 
 	sess := proxynode.SessionFromContext(ctx)
+	userInfo := http.UserInfoFromContext(ctx)
 
 	// get the alias in PrivateFrom if any
 	var err error
-	*msg.PrivateFrom, err = i.aliases.ReplaceSimpleAlias(ctx, *msg.PrivateFrom)
+	*msg.PrivateFrom, err = i.aliases.ReplaceSimple(ctx, *msg.PrivateFrom, userInfo)
 	if err != nil {
 		i.logger.WithError(err).Error("failed to replace alias")
 		return nil, err
@@ -66,7 +68,7 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 
 	if msg.PrivateFor != nil {
 		// extract aliases from PrivateFor
-		*msg.PrivateFor, err = i.aliases.ReplaceAliases(ctx, *msg.PrivateFor)
+		*msg.PrivateFor, err = i.aliases.Replace(ctx, *msg.PrivateFor, userInfo)
 		if err != nil {
 			i.logger.WithError(err).Error("failed to replace aliases in privateFor")
 			return nil, err
@@ -75,7 +77,7 @@ func (i *Interceptor) sendPrivateTx(ctx context.Context, msg *ethereum.SendTxMsg
 
 	if msg.PrivacyGroupID != nil {
 		var privacyGroup []string
-		privacyGroup, err = i.aliases.ReplaceAliases(ctx, []string{*msg.PrivacyGroupID})
+		privacyGroup, err = i.aliases.Replace(ctx, []string{*msg.PrivacyGroupID}, userInfo)
 		if err != nil {
 			i.logger.WithError(err).Error("failed to replace aliases in privacyGroupID")
 			return nil, err

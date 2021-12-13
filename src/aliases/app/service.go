@@ -13,8 +13,8 @@ import (
 
 func RegisterService(router *mux.Router, logger log.Logger, postgresClient postgres.Client) *aliases.Aliases {
 	// Data layer
-	aliasRepository := db.NewAlias(postgresClient, logger)
-	regisryRepository := db.NewRegistry(postgresClient, logger)
+	aliasRepository := db.NewAlias(postgresClient)
+	regisryRepository := db.NewRegistry(postgresClient)
 
 	// Business layer
 	aliasService := aliases.New(aliasRepository, logger)
