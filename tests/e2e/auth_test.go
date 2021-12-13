@@ -45,7 +45,7 @@ func TestAuth(t *testing.T) {
 
 func (s *authTestSuite) SetupSuite() {
 	if s.err != nil {
-		s.T().Error(s.err)
+		s.T().Fatal(s.err)
 	}
 
 	s.acc, s.err = s.env.client.CreateEthAccount(s.env.ctx, s.storeName, &types.CreateEthAccountRequest{
@@ -53,13 +53,13 @@ func (s *authTestSuite) SetupSuite() {
 	})
 
 	if s.err != nil {
-		s.T().Error(s.err)
+		s.T().Fatal(s.err)
 	}
 }
 
 func (s *authTestSuite) TearDownSuite() {
 	if s.err != nil {
-		s.T().Error(s.err)
+		s.T().Fatal(s.err)
 	}
 
 	_ = s.env.client.DeleteEthAccount(s.env.ctx, s.storeName, s.acc.Address.Hex())
