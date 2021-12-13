@@ -52,5 +52,10 @@ func (r *Registry) Delete(ctx context.Context, name, tenant string) error {
 }
 
 func (r *Registry) whereTenant(tenant string) string {
-	return fmt.Sprintf("name = ? AND '%s' = ANY(allowed_tenants)", tenant)
+	query := "name = ?"
+	if tenant != "" {
+		return fmt.Sprintf("%s AND '%s' = ANY(allowed_tenants)", query, tenant)
+	}
+
+	return query
 }

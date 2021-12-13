@@ -8,9 +8,9 @@ import (
 type Registry struct {
 	tableName struct{} `pg:"registries"` // nolint:unused,structcheck // reason
 
-	Name           string  `pg:",pk"`
-	Aliases        []Alias `pg:"rel:has-many"`
-	AllowedTenants []string
+	Name           string    `pg:",pk"`
+	Aliases        []Alias   `pg:"rel:has-many"`
+	AllowedTenants []string  `pg:",array"`
 	CreatedAt      time.Time `pg:"default:now()"`
 	UpdatedAt      time.Time `pg:"default:now()"`
 }

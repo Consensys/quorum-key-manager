@@ -45,7 +45,7 @@ func (h *AliasHandler) create(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	aliasReq := &types.AliasRequest{}
-	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
+	err := jsonutils.UnmarshalBody(r.Body, aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
@@ -107,7 +107,7 @@ func (h *AliasHandler) updateAlias(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	aliasReq := &types.AliasRequest{}
-	err := jsonutils.UnmarshalBody(r.Body, &aliasReq)
+	err := jsonutils.UnmarshalBody(r.Body, aliasReq)
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
