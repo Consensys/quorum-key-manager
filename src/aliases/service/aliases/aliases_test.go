@@ -24,7 +24,7 @@ type backendCall struct {
 	err   error
 }
 
-func TestParseAlias(t *testing.T) {
+func TestParse(t *testing.T) {
 	cases := map[string]struct {
 		input  string
 		reg    string
@@ -54,7 +54,7 @@ func TestParseAlias(t *testing.T) {
 	}
 }
 
-func TestReplaceAliases(t *testing.T) {
+func TestReplace(t *testing.T) {
 	groupACall := backendCall{"my-registry", "group-A", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
 	JPMCall := backendCall{"my-registry", "JPM", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
 	GSCall := backendCall{"my-registry", "GS", entities.AliasKindArray, []interface{}{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
@@ -67,8 +67,6 @@ func TestReplaceAliases(t *testing.T) {
 		expLen int
 	}{
 		"unknown registry": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:unknown-key}}"}, []backendCall{errCall}, 2},
-		"bad key":          {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{unknown-registry:bad/key}}"}, nil, 2},
-		"bad registry":     {[]string{"3T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{bad#registry:unknown-key}}"}, nil, 2},
 		"ok without alias": {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil, 1},
 		"ok 1":             {[]string{"{{my-registry:group-A}}"}, []backendCall{groupACall}, 2},
 		"ok 2":             {[]string{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0=", "{{my-registry:JPM}}"}, []backendCall{JPMCall}, 2},
@@ -85,7 +83,7 @@ func TestReplaceAliases(t *testing.T) {
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			for _, call := range c.calls {
-				mockDB.EXPECT().FindOne(gomock.Any(), call.reg, call.key, user.Tenant).Return(&entities.Alias{Value: call.value}, call.err)
+				mockDB.EXPECT().FindOne(gomock.Any(), call.reg, call.key, user.Tenant).Return(&entities.Alias{Kind: call.kind, Value: call.value}, call.err)
 			}
 
 			addrs, err := aConn.Replace(ctx, c.addrs, user)
@@ -125,21 +123,21 @@ func TestReplaceSimple(t *testing.T) {
 	aConn := aliases.New(mockDB, loggerMock)
 
 	t.Run("no alias found", func(t *testing.T) {
-		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(&entities.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))
+		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(nil, errors.NotFoundError("resource not found"))
 		_, err := aConn.ReplaceSimple(ctx, "{{my-registry:group-A}}", user)
 		require.Error(t, err)
 		assert.True(t, errors.IsNotFoundError(err))
 	})
 
 	t.Run("more than 1 alias value", func(t *testing.T) {
-		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(&entities.Alias{Value: groupACall.value}, groupACall.err)
+		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(&entities.Alias{Kind: groupACall.kind, Value: groupACall.value}, nil)
 		_, err := aConn.ReplaceSimple(ctx, "{{my-registry:group-A}}", user)
 		require.Error(t, err)
 		assert.True(t, errors.IsEncodingError(err))
 	})
 
 	t.Run("1 alias value", func(t *testing.T) {
-		mockDB.EXPECT().FindOne(gomock.Any(), JPMCall.reg, JPMCall.key, user.Tenant).Return(&entities.Alias{Value: JPMCall.value}, JPMCall.err)
+		mockDB.EXPECT().FindOne(gomock.Any(), JPMCall.reg, JPMCall.key, user.Tenant).Return(&entities.Alias{Kind: JPMCall.kind, Value: JPMCall.value}, nil)
 		addr, err := aConn.ReplaceSimple(ctx, "{{my-registry:JPM}}", user)
 		require.NoError(t, err)
 		assert.Equal(t, groupACall.value.([]interface{})[0], addr)
