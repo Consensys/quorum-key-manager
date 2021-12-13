@@ -14,7 +14,7 @@ type Client interface {
 	SelectDeletedPK(ctx context.Context, model ...interface{}) error
 	Select(ctx context.Context, model ...interface{}) error
 	SelectDeleted(ctx context.Context, model ...interface{}) error
-	SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error
+	SelectWhere(ctx context.Context, model interface{}, where string, relations []string, args ...interface{}) error
 	SelectDeletedWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error
 	UpdatePK(ctx context.Context, model interface{}) error
 	UpdateWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error

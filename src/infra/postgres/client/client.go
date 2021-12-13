@@ -108,11 +108,18 @@ func (c *PostgresClient) SelectDeletedWhere(ctx context.Context, model interface
 	return nil
 }
 
-func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
-	err := c.db.ModelContext(ctx, model).Where(where, args...).Select()
+func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, relations []string, args ...interface{}) error {
+	query := c.db.ModelContext(ctx, model).Where(where, args...)
+
+	for _, relation := range relations {
+		query = query.Relation(relation)
+	}
+
+	err := query.Select()
 	if err != nil {
 		return parseErrorResponse(err)
 	}
+
 	return nil
 }
 

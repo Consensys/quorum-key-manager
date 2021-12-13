@@ -25,7 +25,7 @@ func NewRegistry(registry *entities.AliasRegistry) *Registry {
 }
 
 func (r *Registry) ToEntity() *entities.AliasRegistry {
-	var aliases []entities.Alias
+	aliases := []entities.Alias{}
 	for _, aliasModel := range r.Aliases {
 		aliases = append(aliases, *aliasModel.ToEntity())
 	}

@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS aliases (
     value JSON NOT NULL,
     created_at TIMESTAMPTZ DEFAULT (now() at time zone 'utc') NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT (now() at time zone 'utc') NOT NULL,
-    UNIQUE(key)
+    UNIQUE(registry_name, key)
 );
 
 COMMIT;

@@ -67,7 +67,7 @@ func (ea *ETHAccounts) GetDeleted(ctx context.Context, addr string) (*entities.E
 func (ea *ETHAccounts) GetAll(ctx context.Context) ([]*entities.ETHAccount, error) {
 	var ethAccs []*models.ETHAccount
 
-	err := ea.client.SelectWhere(ctx, &ethAccs, "store_id = ?", ea.storeID)
+	err := ea.client.SelectWhere(ctx, &ethAccs, "store_id = ?", []string{}, ea.storeID)
 	if err != nil {
 		errMessage := "failed to get all accounts"
 		ea.logger.WithError(err).Error(errMessage)

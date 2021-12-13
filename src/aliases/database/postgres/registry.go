@@ -34,7 +34,7 @@ func (r *Registry) Insert(ctx context.Context, registry *entities.AliasRegistry)
 func (r *Registry) FindOne(ctx context.Context, name, tenant string) (*entities.AliasRegistry, error) {
 	registryModel := &models.Registry{Name: name}
 
-	err := r.pgClient.SelectWhere(ctx, registryModel, r.whereTenant(tenant), name)
+	err := r.pgClient.SelectWhere(ctx, registryModel, r.whereTenant(tenant), []string{"Aliases"}, name)
 	if err != nil {
 		return nil, err
 	}

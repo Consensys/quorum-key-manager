@@ -36,7 +36,7 @@ func (r *Alias) FindOne(ctx context.Context, registry, key, tenant string) (*ent
 		Key:          key,
 		RegistryName: registry,
 	}
-	err := r.pgClient.SelectWhere(ctx, aliasModel, r.whereTenant(tenant), key)
+	err := r.pgClient.SelectWhere(ctx, aliasModel, r.whereTenant(tenant), []string{}, key)
 	if err != nil {
 		return nil, err
 	}
