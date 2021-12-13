@@ -8,8 +8,8 @@ import (
 type Alias struct {
 	tableName struct{} `pg:"aliases"` // nolint:unused,structcheck // reason
 
-	Key          string `pg:",pk"`
-	RegistryName string
+	Key          string    `pg:",pk"`
+	RegistryName string    `pg:"on_delete:CASCADE"`
 	Registry     *Registry `pg:"rel:has-one"`
 	Value        AliasValue
 	CreatedAt    time.Time `pg:"default:now()"`
