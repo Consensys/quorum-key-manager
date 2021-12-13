@@ -3,8 +3,6 @@ package app
 import (
 	"crypto/x509"
 
-	"github.com/consensys/quorum-key-manager/src/auth"
-
 	"github.com/consensys/quorum-key-manager/pkg/app"
 	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -25,25 +23,27 @@ func RegisterService(
 	// Business layer
 	// TODO: Create authorizator service here
 
-	var authenticatorService *authenticator.Authenticator
+	var authmid alice.Constructor
 	if jwtValidator != nil || apikeyClaims != nil || rootCAs != nil {
-		authenticatorService = authenticator.New(jwtValidator, apikeyClaims, rootCAs, logger)
+		autheServ := authenticator.New(jwtValidator, apikeyClaims, rootCAs, logger)
+		authmid = http.NewAuth(autheServ).Middleware
+		logger.Info("authentication middleware is enabled")
+	} else {
+		authmid = http.NewNoAuth().Middleware
+		logger.Warn("authentication is disabled")
 	}
 
 	rolesService := roles.New(logger)
 
 	// Service layer
-	err := a.SetMiddleware(createMiddlewares(logger, authenticatorService).Then)
+	httpMid := alice.New(
+		http.NewAccessLog(logger.WithComponent("accesslog")).Middleware, // TODO: Move to correct domain when it exists
+		authmid,
+	)
+	err := a.SetMiddleware(httpMid.Then)
 	if err != nil {
 		return nil, err
 	}
 
 	return rolesService, nil
-}
-
-func createMiddlewares(logger log.Logger, authen auth.Authenticator) alice.Chain {
-	return alice.New(
-		http.NewAccessLog(logger.WithComponent("accesslog")).Middleware, // TODO: Move to correct domain when it exists
-		http.NewAuth(authen).Middleware,
-	)
 }
