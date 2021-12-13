@@ -178,31 +178,31 @@ func (mr *MockAliasesMockRecorder) Parse(alias interface{}) *gomock.Call {
 }
 
 // Replace mocks base method
-func (m *MockAliases) Replace(ctx context.Context, addrs []string) ([]string, error) {
+func (m *MockAliases) Replace(ctx context.Context, addrs []string, userInfo *entities.UserInfo) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Replace", ctx, addrs)
+	ret := m.ctrl.Call(m, "Replace", ctx, addrs, userInfo)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Replace indicates an expected call of Replace
-func (mr *MockAliasesMockRecorder) Replace(ctx, addrs interface{}) *gomock.Call {
+func (mr *MockAliasesMockRecorder) Replace(ctx, addrs, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Replace", reflect.TypeOf((*MockAliases)(nil).Replace), ctx, addrs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Replace", reflect.TypeOf((*MockAliases)(nil).Replace), ctx, addrs, userInfo)
 }
 
 // ReplaceSimple mocks base method
-func (m *MockAliases) ReplaceSimple(ctx context.Context, addr string) (string, error) {
+func (m *MockAliases) ReplaceSimple(ctx context.Context, addr string, userInfo *entities.UserInfo) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReplaceSimple", ctx, addr)
+	ret := m.ctrl.Call(m, "ReplaceSimple", ctx, addr, userInfo)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReplaceSimple indicates an expected call of ReplaceSimple
-func (mr *MockAliasesMockRecorder) ReplaceSimple(ctx, addr interface{}) *gomock.Call {
+func (mr *MockAliasesMockRecorder) ReplaceSimple(ctx, addr, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceSimple", reflect.TypeOf((*MockAliases)(nil).ReplaceSimple), ctx, addr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceSimple", reflect.TypeOf((*MockAliases)(nil).ReplaceSimple), ctx, addr, userInfo)
 }

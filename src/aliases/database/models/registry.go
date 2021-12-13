@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 type Registry struct {

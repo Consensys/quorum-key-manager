@@ -132,18 +132,18 @@ func (mr *MockAliasMockRecorder) FindOne(ctx, registry, key, tenant interface{})
 }
 
 // Update mocks base method
-func (m *MockAlias) Update(ctx context.Context, alias *entities.Alias) (*entities.Alias, error) {
+func (m *MockAlias) Update(ctx context.Context, alias *entities.Alias, tenant string) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, alias)
+	ret := m.ctrl.Call(m, "Update", ctx, alias, tenant)
 	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
-func (mr *MockAliasMockRecorder) Update(ctx, alias interface{}) *gomock.Call {
+func (mr *MockAliasMockRecorder) Update(ctx, alias, tenant interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAlias)(nil).Update), ctx, alias)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAlias)(nil).Update), ctx, alias, tenant)
 }
 
 // Delete mocks base method

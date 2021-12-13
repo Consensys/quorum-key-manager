@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/src/aliases/api/types"
 )
 

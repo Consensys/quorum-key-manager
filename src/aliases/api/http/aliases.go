@@ -1,8 +1,9 @@
 package http
 
 import (
-	auth "github.com/consensys/quorum-key-manager/src/auth/api/http"
 	"net/http"
+
+	auth "github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
@@ -16,8 +17,8 @@ type AliasHandler struct {
 	aliases aliases.Aliases
 }
 
-func NewAliasHandler(aliases aliases.Aliases) *AliasHandler {
-	return &AliasHandler{aliases: aliases}
+func NewAliasHandler(aliasService aliases.Aliases) *AliasHandler {
+	return &AliasHandler{aliases: aliasService}
 }
 
 func (h *AliasHandler) Register(r *mux.Router) {

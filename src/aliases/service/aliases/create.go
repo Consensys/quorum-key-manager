@@ -2,6 +2,7 @@ package aliases
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"

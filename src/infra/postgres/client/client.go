@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"

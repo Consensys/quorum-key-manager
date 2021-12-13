@@ -2,8 +2,9 @@ package entities
 
 import (
 	"fmt"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"time"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
 const (

@@ -3,6 +3,7 @@ package interceptor
 import (
 	"context"
 	"fmt"
+
 	"github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"

@@ -2,8 +2,9 @@ package interceptor
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 	"math/big"
+
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 

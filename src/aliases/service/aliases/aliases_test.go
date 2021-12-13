@@ -2,17 +2,27 @@ package aliases_test
 
 import (
 	"context"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"testing"
 
+	mock2 "github.com/consensys/quorum-key-manager/src/aliases/database/mock"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/aliases/mock"
 	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type backendCall struct {
+	reg   string
+	key   string
+	kind  string
+	value interface{}
+	err   error
+}
 
 func TestParseAlias(t *testing.T) {
 	cases := map[string]struct {
@@ -21,23 +31,21 @@ func TestParseAlias(t *testing.T) {
 		key    string
 		parsed bool
 	}{
-		"bad registry format": {`{{bad#registry:ok_key}}`, "", "", false},
-		"bad key format":      {`{{ok_registry:bad>key}}`, "", "", false},
-		"single {":            {`{ok_registry:ok_key}`, "", "", false},
-		"column missing":      {`{{ok_registry ok_key}}`, "", "", false},
-		"too many columns":    {`{{ok_registry:ok_key:}}`, "", "", false},
-		"base 64 key":         {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false},
-		"ok":                  {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true},
+		"single {":         {`{ok_registry:ok_key}`, "", "", false},
+		"column missing":   {`{{ok_registry ok_key}}`, "", "", false},
+		"too many columns": {`{{ok_registry:ok_key:}}`, "", "", false},
+		"base 64 key":      {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false},
+		"ok":               {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true},
 	}
 
 	ctrl := gomock.NewController(t)
 	loggerMock := testutils.NewMockLogger(ctrl)
-	backend := mock.NewMockService(ctrl)
-	aConn := aliases.New(backend, loggerMock)
+	mockDB := mock2.NewMockAlias(ctrl)
+	aConn := aliases.New(mockDB, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			reg, key, parsed := aConn.ParseAlias(c.input)
+			reg, key, parsed := aConn.Parse(c.input)
 			assert.Equal(t, c.reg, reg)
 			assert.Equal(t, c.key, key)
 			assert.Equal(t, c.parsed, parsed)
@@ -47,17 +55,11 @@ func TestParseAlias(t *testing.T) {
 }
 
 func TestReplaceAliases(t *testing.T) {
-	type backendCall struct {
-		reg   string
-		key   string
-		value entities.AliasValue
-		err   error
-	}
-
-	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
-	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
-	GSCall := backendCall{"my-registry", "GS", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
-	errCall := backendCall{"unknown-registry", "unknown-key", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{""}}, errors.InvalidFormatError("bad format")}
+	groupACall := backendCall{"my-registry", "group-A", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
+	GSCall := backendCall{"my-registry", "GS", entities.AliasKindArray, []interface{}{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
+	errCall := backendCall{"unknown-registry", "unknown-key", entities.AliasKindArray, []interface{}{""}, errors.InvalidFormatError("bad format")}
+	user := authtypes.NewWildcardUser()
 
 	cases := map[string]struct {
 		addrs  []string
@@ -75,18 +77,18 @@ func TestReplaceAliases(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	srv := mock.NewMockService(ctrl)
+	mockDB := mock2.NewMockAlias(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn := aliases.New(srv, loggerMock)
+	aConn := aliases.New(mockDB, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			for _, call := range c.calls {
-				srv.EXPECT().GetAlias(gomock.Any(), call.reg, call.key).Return(&entities.Alias{Value: call.value}, call.err)
+				mockDB.EXPECT().FindOne(gomock.Any(), call.reg, call.key, user.Tenant).Return(&entities.Alias{Value: call.value}, call.err)
 			}
 
-			addrs, err := aConn.ReplaceAliases(ctx, c.addrs)
+			addrs, err := aConn.Replace(ctx, c.addrs, user)
 			if err != nil {
 				require.True(t, errors.IsInvalidFormatError(err))
 				return
@@ -97,7 +99,7 @@ func TestReplaceAliases(t *testing.T) {
 			for _, call := range c.calls {
 				present := false
 				for _, addr := range addrs {
-					for _, v := range call.value.Value.([]interface{}) {
+					for _, v := range call.value.([]interface{}) {
 						if addr == v {
 							present = true
 							break
@@ -110,40 +112,36 @@ func TestReplaceAliases(t *testing.T) {
 	}
 }
 
-func TestReplaceSingleAlias(t *testing.T) {
-	type backendCall struct {
-		reg   string
-		key   string
-		value entities.AliasValue
-		err   error
-	}
-
-	groupACall := backendCall{"my-registry", "group-A", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}}, nil}
-	JPMCall := backendCall{"my-registry", "JPM", entities.AliasValue{Kind: entities.AliasKindArray, Value: []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}}, nil}
+func TestReplaceSimple(t *testing.T) {
+	groupACall := backendCall{"my-registry", "group-A", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
+	JPMCall := backendCall{"my-registry", "JPM", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
+	user := authtypes.NewWildcardUser()
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	srv := mock.NewMockService(ctrl)
+	mockDB := mock2.NewMockAlias(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn := aliases.New(srv, loggerMock)
+	aConn := aliases.New(mockDB, loggerMock)
 
 	t.Run("no alias found", func(t *testing.T) {
-		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&entities.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))
-		_, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:group-A}}")
+		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(&entities.Alias{Value: groupACall.value}, errors.NotFoundError("resource not found"))
+		_, err := aConn.ReplaceSimple(ctx, "{{my-registry:group-A}}", user)
 		require.Error(t, err)
 		assert.True(t, errors.IsNotFoundError(err))
 	})
+
 	t.Run("more than 1 alias value", func(t *testing.T) {
-		srv.EXPECT().GetAlias(gomock.Any(), groupACall.reg, groupACall.key).Return(&entities.Alias{Value: groupACall.value}, groupACall.err)
-		_, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:group-A}}")
+		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(&entities.Alias{Value: groupACall.value}, groupACall.err)
+		_, err := aConn.ReplaceSimple(ctx, "{{my-registry:group-A}}", user)
 		require.Error(t, err)
 		assert.True(t, errors.IsEncodingError(err))
 	})
+
 	t.Run("1 alias value", func(t *testing.T) {
-		srv.EXPECT().GetAlias(gomock.Any(), JPMCall.reg, JPMCall.key).Return(&entities.Alias{Value: JPMCall.value}, JPMCall.err)
-		addr, err := aConn.ReplaceSimpleAlias(ctx, "{{my-registry:JPM}}")
+		mockDB.EXPECT().FindOne(gomock.Any(), JPMCall.reg, JPMCall.key, user.Tenant).Return(&entities.Alias{Value: JPMCall.value}, JPMCall.err)
+		addr, err := aConn.ReplaceSimple(ctx, "{{my-registry:JPM}}", user)
 		require.NoError(t, err)
-		assert.Equal(t, groupACall.value.Value.([]interface{})[0], addr)
+		assert.Equal(t, groupACall.value.([]interface{})[0], addr)
 	})
 }
