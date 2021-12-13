@@ -37,6 +37,7 @@ func (s *aliasStoreTestSuite) fakeAlias() *entities.Alias {
 	return testutils.FakeAlias("JPM-"+randID, "Goldman Sachs-"+randID, entities.AliasKindString, "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=")
 }
 
+/*
 func (s *aliasStoreTestSuite) TestCreateAlias() {
 	ctx := context.Background()
 
@@ -124,20 +125,12 @@ func (s *aliasStoreTestSuite) TestDeleteAlias() {
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
-
-func (s *aliasStoreTestSuite) TestGetRegistry() {
+*/
+func (s *aliasStoreTestSuite) TestRegistry() {
 	ctx := context.Background()
+	in := s.fakeAlias()
 
-	s.Run("non existing registry", func() {
-		in := s.fakeAlias()
-		als, err := s.registryService.Get(ctx, in.RegistryName, s.user)
-		require.NoError(s.T(), err)
-		require.Len(s.T(), als, 0)
-	})
-
-	s.Run("just created registry", func() {
-		in := s.fakeAlias()
-
+	s.Run("should create and get a registry with aliases successfully", func() {
 		_, err := s.registryService.Create(ctx, in.RegistryName, []string{}, s.user)
 		require.NoError(s.T(), err)
 
@@ -154,5 +147,19 @@ func (s *aliasStoreTestSuite) TestGetRegistry() {
 		assert.Len(s.T(), registry.Aliases, 2)
 		assert.Equal(s.T(), registry.Aliases[0].Key, in.Key)
 		assert.Equal(s.T(), registry.Aliases[1].Key, in.Key+"2")
+	})
+
+	s.Run("should delete a registry successfully", func() {
+		err := s.registryService.Delete(ctx, in.RegistryName, s.user)
+		require.NoError(s.T(), err)
+
+		_, err = s.registryService.Get(ctx, in.RegistryName, s.user)
+		require.NoError(s.T(), err)
+		assert.True(s.T(), errors.IsNotFoundError(err))
+
+		_, err = s.aliasService.Get(ctx, in.RegistryName, in.Key, s.user)
+		require.NoError(s.T(), err)
+		assert.True(s.T(), errors.IsNotFoundError(err))
+
 	})
 }

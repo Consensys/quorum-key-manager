@@ -3,7 +3,7 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	aliasent "github.com/consensys/quorum-key-manager/src/entities"
+	models2 "github.com/consensys/quorum-key-manager/src/aliases/database/models"
 	"os"
 	"strconv"
 	"time"
@@ -11,7 +11,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	models2 "github.com/consensys/quorum-key-manager/src/stores/database/models"
+	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -42,27 +42,21 @@ type IntegrationEnvironment struct {
 	baseURL          string
 }
 
-type TestSuiteEnv interface {
-	Start(ctx context.Context) error
-}
-
-func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
+func StartEnvironment(ctx context.Context, env *IntegrationEnvironment) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	sig := common.NewSignalListener(func(signal os.Signal) {
-		gerr = fmt.Errorf("interrupt signal has been sent")
+		env.logger.Error("interrupt signal has been sent")
 		cancel()
 	})
 	defer sig.Close()
 
 	err := env.Start(ctx)
 	if err != nil {
-		if gerr == nil {
-			return err
-		}
+		return err
 	}
 
-	return
+	return nil
 }
 
 func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
@@ -197,10 +191,11 @@ func (env *IntegrationEnvironment) createTables() error {
 	}
 	// we create tables for each model
 	for _, v := range []interface{}{
-		&models2.Secret{},
-		&models2.Key{},
-		&models2.ETHAccount{},
-		&aliasent.Alias{},
+		&models.Secret{},
+		&models.Key{},
+		&models.ETHAccount{},
+		&models2.Alias{},
+		&models2.Registry{},
 	} {
 		err = db.Model(v).CreateTable(opts)
 

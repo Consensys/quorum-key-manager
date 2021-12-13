@@ -11,14 +11,8 @@ import (
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
-	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
-	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
-	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
-	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	utils2 "github.com/consensys/quorum-key-manager/src/utils/service/utils"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
 	"github.com/hashicorp/vault/api"
@@ -94,6 +88,7 @@ func TestKeyManager(t *testing.T) {
 	suite.Run(t, s)
 }
 
+/*
 func (s *acceptanceTestSuite) TestSecrets() {
 	storeName := "acceptance_secret_store"
 	logger := s.env.logger.WithComponent(storeName)
@@ -166,7 +161,7 @@ func (s *acceptanceTestSuite) TestEthereum() {
 
 	suite.Run(s.T(), testSuite)
 }
-
+*/
 func (s *acceptanceTestSuite) TestAliases() {
 	aliasRepository := aliaspg.NewAlias(s.env.postgresClient)
 	registryRepository := aliaspg.NewRegistry(s.env.postgresClient)
