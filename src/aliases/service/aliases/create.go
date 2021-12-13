@@ -2,6 +2,7 @@ package aliases
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
@@ -13,9 +14,11 @@ func (s *Aliases) Create(ctx context.Context, registry, key, kind string, value 
 		return nil, err
 	}
 
-	alias, err = s.db.Insert(ctx, registry, alias)
+	alias, err = s.db.Insert(ctx, alias)
 	if err != nil {
-		return nil, err
+		errMessage := "failed to create alias"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
 	logger.Info("alias created successfully")

@@ -2,119 +2,73 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"github.com/consensys/quorum-key-manager/src/entities"
 
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/aliases/database"
 	"github.com/consensys/quorum-key-manager/src/aliases/database/models"
-	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/postgres"
 )
 
-var _ database.AliasRepository = &Alias{}
-
-// Alias stores the alias data in a postgres DB.
 type Alias struct {
 	pgClient postgres.Client
-	logger   log.Logger
 }
 
-func NewAlias(pgClient postgres.Client, logger log.Logger) *Alias {
-	return &Alias{
-		pgClient: pgClient,
-		logger:   logger,
-	}
+var _ database.Alias = &Alias{}
+
+func NewAlias(pgClient postgres.Client) *Alias {
+	return &Alias{pgClient: pgClient}
 }
 
-func (s *Alias) CreateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
-	logger := s.logger.With(
-		"registry_name", registry,
-		"alias_key", alias.Key,
-	)
-	a := models.AliasFromEntity(alias)
-	a.RegistryName = registry
+func (r *Alias) Insert(ctx context.Context, alias *entities.Alias) (*entities.Alias, error) {
+	aliasModel := models.NewAlias(alias)
 
-	err := s.pgClient.Insert(ctx, &a)
+	err := r.pgClient.Insert(ctx, aliasModel)
 	if err != nil {
-		msg := "failed to create alias"
-		logger.WithError(err).Error(msg)
 		return nil, err
 	}
-	return &alias, nil
+
+	return aliasModel.ToEntity(), nil
 }
 
-func (s *Alias) GetAlias(ctx context.Context, registry, aliasKey string) (*entities.Alias, error) {
-	logger := s.logger.With(
-		"registry_name", registry,
-		"alias_key", aliasKey,
-	)
-	a := models.Alias{
-		Key:          aliasKey,
+func (r *Alias) FindOne(ctx context.Context, registry, key, tenant string) (*entities.Alias, error) {
+	aliasModel := &models.Alias{
+		Key:          key,
 		RegistryName: registry,
 	}
-	err := s.pgClient.SelectPK(ctx, &a)
+	err := r.pgClient.SelectWhere(ctx, aliasModel, r.whereTenant(tenant), key)
 	if err != nil {
-		msg := "failed to get alias"
-		logger.WithError(err).Error(msg)
 		return nil, err
 	}
 
-	return a.ToEntity(), nil
+	return aliasModel.ToEntity(), nil
 }
 
-func (s *Alias) UpdateAlias(ctx context.Context, registry string, alias entities.Alias) (*entities.Alias, error) {
-	logger := s.logger.With(
-		"registry_name", registry,
-		"alias_key", alias.Key,
-	)
-	a := models.AliasFromEntity(alias)
-	a.RegistryName = registry
+func (r *Alias) Update(ctx context.Context, alias *entities.Alias, tenant string) (*entities.Alias, error) {
+	aliasModel := models.NewAlias(alias)
 
-	err := s.pgClient.UpdatePK(ctx, &a)
+	err := r.pgClient.UpdateWhere(ctx, aliasModel, r.whereTenant(tenant), alias.Key)
 	if err != nil {
-		msg := "failed to update alias"
-		logger.WithError(err).Error(msg)
 		return nil, err
 	}
-	return a.ToEntity(), nil
+
+	return aliasModel.ToEntity(), nil
 }
 
-func (s *Alias) DeleteAlias(ctx context.Context, registry, aliasKey string) error {
-	logger := s.logger.With(
-		"registry_name", registry,
-		"alias_key", aliasKey,
-	)
-	a := models.Alias{
-		Key:          aliasKey,
+func (r *Alias) Delete(ctx context.Context, registry, key, tenant string) error {
+	aliasModel := &models.Alias{
+		Key:          key,
 		RegistryName: registry,
 	}
 
-	err := s.pgClient.DeletePK(ctx, &a)
+	err := r.pgClient.DeleteWhere(ctx, aliasModel, r.whereTenant(tenant), key)
 	if err != nil {
-		msg := "failed to delete alias"
-		logger.WithError(err).Error(msg)
 		return err
 	}
+
 	return nil
 }
 
-func (s *Alias) ListAliases(ctx context.Context, registry string) ([]entities.Alias, error) {
-	logger := s.logger.With(
-		"registry_name", registry,
-	)
-	reg := registry
-
-	var als []models.Alias
-	err := s.pgClient.SelectWhere(ctx, &als, "alias.registry_name = ?", reg)
-	if err != nil {
-		msg := "failed to list aliases"
-		logger.WithError(err).Error(msg)
-		return nil, err
-	}
-
-	return models.AliasesToEntity(als), nil
-}
-
-func (s *Alias) DeleteRegistry(ctx context.Context, registry string) error {
-	return errors.NotImplementedError("DeleteRegistry not implemented")
+func (r *Alias) whereTenant(tenant string) string {
+	return fmt.Sprintf("key = ? AND '%s' = ANY(registry.allowed_tenants)", tenant)
 }
