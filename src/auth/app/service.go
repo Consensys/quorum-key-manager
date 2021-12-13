@@ -27,7 +27,10 @@ func RegisterService(
 
 	var authenticatorService *authenticator.Authenticator
 	if jwtValidator != nil || apikeyClaims != nil || rootCAs != nil {
+		logger.Info("authentication middleware is enabled")
 		authenticatorService = authenticator.New(jwtValidator, apikeyClaims, rootCAs, logger)
+	} else {
+		logger.Warn("authentication is disabled")
 	}
 
 	rolesService := roles.New(logger)
