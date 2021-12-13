@@ -6,6 +6,7 @@ import (
 	"context"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
 	aliasint "github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/registries"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"github.com/consensys/quorum-key-manager/src/entities"
@@ -83,7 +84,7 @@ func (s *acceptanceTestSuite) TearDownSuite() {
 	}
 }
 
-func TestKeyManagerStore(t *testing.T) {
+func TestKeyManager(t *testing.T) {
 	env, err := NewIntegrationEnvironment()
 	require.NoError(t, err)
 
@@ -93,7 +94,7 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-func (s *acceptanceTestSuite) TestKeyManagerStore_Secrets() {
+func (s *acceptanceTestSuite) TestSecrets() {
 	storeName := "acceptance_secret_store"
 	logger := s.env.logger.WithComponent(storeName)
 	db := s.db.Secrets(storeName)
@@ -107,7 +108,7 @@ func (s *acceptanceTestSuite) TestKeyManagerStore_Secrets() {
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *acceptanceTestSuite) TestKeyManager_Keys() {
+func (s *acceptanceTestSuite) TestKeys() {
 	// Hashicorp
 	storeName := "acceptance_key_store_hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
@@ -137,7 +138,7 @@ func (s *acceptanceTestSuite) TestKeyManager_Keys() {
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *acceptanceTestSuite) TestKeyManagerStore_Eth() {
+func (s *acceptanceTestSuite) TestEthereum() {
 	// Hashicorp
 	storeName := "acceptance_ethereum_store_hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
@@ -166,12 +167,14 @@ func (s *acceptanceTestSuite) TestKeyManagerStore_Eth() {
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *acceptanceTestSuite) TestKeyManagerAliases() {
-	db := aliaspg.NewDatabase(s.env.postgresClient, s.env.logger).Alias()
+func (s *acceptanceTestSuite) TestAliases() {
+	aliasRepository := aliaspg.NewAlias(s.env.postgresClient)
+	registryRepository := aliaspg.NewRegistry(s.env.postgresClient)
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliasint.New(db, s.env.logger)
+	testSuite.aliasService = aliasint.New(aliasRepository, s.env.logger)
+	testSuite.registryService = registries.New(registryRepository, s.env.logger)
 	testSuite.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	suite.Run(s.T(), testSuite)
