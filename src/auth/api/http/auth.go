@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/base64"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -28,12 +27,6 @@ func NewAuth(authenticator auth.Authenticator) *Auth {
 func (m *Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-
-		// If no auth method, return wildcard user
-		if reflect.ValueOf(m.authenticator).IsNil() {
-			next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, entities.NewWildcardUser())))
-			return
-		}
 
 		authHeader := r.Header.Get("Authorization")
 
