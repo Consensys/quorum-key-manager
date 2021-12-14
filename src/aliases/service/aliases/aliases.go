@@ -15,5 +15,9 @@ type Aliases struct {
 var _ aliases.Aliases = &Aliases{}
 
 func New(aliasDB database.Alias, registryDB database.Registry, logger log.Logger) *Aliases {
-	return &Aliases{aliasDB: aliasDB, registryDB: registryDB, logger: logger}
+	return &Aliases{
+		aliasDB:    aliasDB,
+		registryDB: registryDB,
+		logger:     logger,
+	}
 }

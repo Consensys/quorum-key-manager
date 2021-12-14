@@ -46,7 +46,7 @@ func (c *HTTPClient) GetAlias(ctx context.Context, registry, aliasKey string) (*
 // UpdateAlias updates an alias in the registry.
 func (c *HTTPClient) UpdateAlias(ctx context.Context, registry, aliasKey string, req *types.AliasRequest) (*types.AliasResponse, error) {
 	requestURL := fmt.Sprintf(aliasPathf, c.config.URL, registry, aliasKey)
-	resp, err := putRequest(ctx, c.client, requestURL, req)
+	resp, err := patchRequest(ctx, c.client, requestURL, req)
 	if err != nil {
 		return nil, err
 	}
