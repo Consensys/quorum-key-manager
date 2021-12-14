@@ -12,11 +12,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-
 	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -251,7 +250,7 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 			"data":     "0xa2",
 			"from":     s.acc.Address,
 			"to":       toAddr,
-			"gasPrice": "0x7",
+			"gasPrice": "0x3b9aca07",
 		})
 
 		require.NoError(s.T(), err)
@@ -489,11 +488,9 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 			"to":             "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
 			"privateFrom":    "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
 			"privacyGroupId": fmt.Sprintf("{{%s:%s}}", s.eeaPrivateForRegistryName, s.eeaPrivateForAliasKey),
-			//"privateFor":  []string{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="},
 		})
 
 		require.NoError(s.T(), err)
-		//s.T().Log("DBGTHE: resp.Error.Message", string(resp.Error.Data.(json.RawMessage)))
 		require.Nil(s.T(), resp.Error)
 
 		var result string
