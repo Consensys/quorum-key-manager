@@ -132,30 +132,30 @@ func (mr *MockAliasMockRecorder) FindOne(ctx, registry, key, tenant interface{})
 }
 
 // Update mocks base method
-func (m *MockAlias) Update(ctx context.Context, alias *entities.Alias, tenant string) (*entities.Alias, error) {
+func (m *MockAlias) Update(ctx context.Context, alias *entities.Alias) (*entities.Alias, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, alias, tenant)
+	ret := m.ctrl.Call(m, "Update", ctx, alias)
 	ret0, _ := ret[0].(*entities.Alias)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
-func (mr *MockAliasMockRecorder) Update(ctx, alias, tenant interface{}) *gomock.Call {
+func (mr *MockAliasMockRecorder) Update(ctx, alias interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAlias)(nil).Update), ctx, alias, tenant)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAlias)(nil).Update), ctx, alias)
 }
 
 // Delete mocks base method
-func (m *MockAlias) Delete(ctx context.Context, registry, key, tenant string) error {
+func (m *MockAlias) Delete(ctx context.Context, registry, key string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, registry, key, tenant)
+	ret := m.ctrl.Call(m, "Delete", ctx, registry, key)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockAliasMockRecorder) Delete(ctx, registry, key, tenant interface{}) *gomock.Call {
+func (mr *MockAliasMockRecorder) Delete(ctx, registry, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAlias)(nil).Delete), ctx, registry, key, tenant)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAlias)(nil).Delete), ctx, registry, key)
 }

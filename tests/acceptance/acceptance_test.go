@@ -5,29 +5,33 @@ package acceptancetests
 import (
 	"context"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
-	aliasint "github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/service/registries"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
-	utils2 "github.com/consensys/quorum-key-manager/src/utils/service/utils"
+	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
+	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
+	utilsservice "github.com/consensys/quorum-key-manager/src/utils/service/utils"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
 	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"math/rand"
 	"testing"
-	"time"
 )
 
 type acceptanceTestSuite struct {
 	suite.Suite
 	env                  *IntegrationEnvironment
 	auth                 *authorizator.Authorizator
-	utils                *utils2.Utilities
+	utils                *utilsservice.Utilities
 	hashicorpKvv2Client  *client.HashicorpVaultClient
 	hasicorpPluginClient *client.HashicorpVaultClient
 	db                   database.Database
@@ -65,7 +69,7 @@ func (s *acceptanceTestSuite) SetupSuite() {
 	require.NoError(s.T(), err)
 
 	s.auth = authorizator.New(authtypes.ListPermissions(), "", s.env.logger)
-	s.utils = utils2.New(s.env.logger)
+	s.utils = utilsservice.New(s.env.logger)
 	s.db = postgres.New(s.env.logger, s.env.postgresClient)
 
 	s.env.logger.Info("setup test suite has completed")
@@ -88,7 +92,6 @@ func TestKeyManager(t *testing.T) {
 	suite.Run(t, s)
 }
 
-/*
 func (s *acceptanceTestSuite) TestSecrets() {
 	storeName := "acceptance_secret_store"
 	logger := s.env.logger.WithComponent(storeName)
@@ -161,16 +164,15 @@ func (s *acceptanceTestSuite) TestEthereum() {
 
 	suite.Run(s.T(), testSuite)
 }
-*/
+
 func (s *acceptanceTestSuite) TestAliases() {
 	aliasRepository := aliaspg.NewAlias(s.env.postgresClient)
 	registryRepository := aliaspg.NewRegistry(s.env.postgresClient)
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.aliasService = aliasint.New(aliasRepository, s.env.logger)
+	testSuite.aliasService = aliases.New(aliasRepository, s.env.logger)
 	testSuite.registryService = registries.New(registryRepository, s.env.logger)
-	testSuite.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	suite.Run(s.T(), testSuite)
 }

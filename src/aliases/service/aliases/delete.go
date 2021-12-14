@@ -10,7 +10,12 @@ import (
 func (s *Aliases) Delete(ctx context.Context, registry, key string, userInfo *auth.UserInfo) error {
 	logger := s.logger.With("registry", registry, "key", key)
 
-	err := s.db.Delete(ctx, registry, key, userInfo.Tenant)
+	_, err := s.Get(ctx, registry, key, userInfo)
+	if err != nil {
+		return err
+	}
+
+	err = s.db.Delete(ctx, registry, key)
 	if err != nil {
 		errMessage := "failed to delete alias"
 		logger.WithError(err).Error(errMessage)

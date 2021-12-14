@@ -23,7 +23,7 @@ type Alias interface {
 	// FindOne gets an alias from the registry
 	FindOne(ctx context.Context, registry, key, tenant string) (*entities.Alias, error)
 	// Update updates an alias in the registry
-	Update(ctx context.Context, alias *entities.Alias, tenant string) (*entities.Alias, error)
+	Update(ctx context.Context, alias *entities.Alias) (*entities.Alias, error)
 	// Delete deletes an alias from the registry
-	Delete(ctx context.Context, registry, key, tenant string) error
+	Delete(ctx context.Context, registry, key string) error
 }

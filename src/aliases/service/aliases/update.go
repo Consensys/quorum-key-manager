@@ -16,7 +16,12 @@ func (s *Aliases) Update(ctx context.Context, registry, key, kind string, value 
 		return nil, err
 	}
 
-	a, err := s.db.Update(ctx, alias, userInfo.Tenant)
+	_, err = s.Get(ctx, registry, key, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	a, err := s.db.Update(ctx, alias)
 	if err != nil {
 		errMessage := "failed to update alias"
 		logger.WithError(err).Error(errMessage)
