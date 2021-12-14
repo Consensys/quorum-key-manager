@@ -5,12 +5,13 @@ package acceptancetests
 import (
 	"context"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
-	aliasint "github.com/consensys/quorum-key-manager/src/aliases/interactors/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/registries"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
-	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -18,21 +19,19 @@ import (
 	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
-	utils2 "github.com/consensys/quorum-key-manager/src/utils/service/utils"
+	utilsservice "github.com/consensys/quorum-key-manager/src/utils/service/utils"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
 	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"math/rand"
 	"testing"
-	"time"
 )
 
 type acceptanceTestSuite struct {
 	suite.Suite
 	env                  *IntegrationEnvironment
 	auth                 *authorizator.Authorizator
-	utils                *utils2.Utilities
+	utils                *utilsservice.Utilities
 	hashicorpKvv2Client  *client.HashicorpVaultClient
 	hasicorpPluginClient *client.HashicorpVaultClient
 	db                   database.Database
@@ -70,7 +69,7 @@ func (s *acceptanceTestSuite) SetupSuite() {
 	require.NoError(s.T(), err)
 
 	s.auth = authorizator.New(authtypes.ListPermissions(), "", s.env.logger)
-	s.utils = utils2.New(s.env.logger)
+	s.utils = utilsservice.New(s.env.logger)
 	s.db = postgres.New(s.env.logger, s.env.postgresClient)
 
 	s.env.logger.Info("setup test suite has completed")
@@ -83,7 +82,7 @@ func (s *acceptanceTestSuite) TearDownSuite() {
 	}
 }
 
-func TestKeyManagerStore(t *testing.T) {
+func TestKeyManager(t *testing.T) {
 	env, err := NewIntegrationEnvironment()
 	require.NoError(t, err)
 
@@ -93,7 +92,7 @@ func TestKeyManagerStore(t *testing.T) {
 	suite.Run(t, s)
 }
 
-func (s *acceptanceTestSuite) TestKeyManagerStore_Secrets() {
+func (s *acceptanceTestSuite) TestSecrets() {
 	storeName := "acceptance_secret_store"
 	logger := s.env.logger.WithComponent(storeName)
 	db := s.db.Secrets(storeName)
@@ -107,7 +106,7 @@ func (s *acceptanceTestSuite) TestKeyManagerStore_Secrets() {
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *acceptanceTestSuite) TestKeyManager_Keys() {
+func (s *acceptanceTestSuite) TestKeys() {
 	// Hashicorp
 	storeName := "acceptance_key_store_hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
@@ -137,7 +136,7 @@ func (s *acceptanceTestSuite) TestKeyManager_Keys() {
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *acceptanceTestSuite) TestKeyManagerStore_Eth() {
+func (s *acceptanceTestSuite) TestEthereum() {
 	// Hashicorp
 	storeName := "acceptance_ethereum_store_hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
@@ -166,13 +165,14 @@ func (s *acceptanceTestSuite) TestKeyManagerStore_Eth() {
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *acceptanceTestSuite) TestKeyManagerAliases() {
-	db := aliaspg.NewDatabase(s.env.postgresClient, s.env.logger).Alias()
+func (s *acceptanceTestSuite) TestAliases() {
+	aliasRepository := aliaspg.NewAlias(s.env.postgresClient)
+	registryRepository := aliaspg.NewRegistry(s.env.postgresClient)
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliasint.NewInteractor(db, s.env.logger)
-	testSuite.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	testSuite.aliasService = aliases.New(aliasRepository, registryRepository, s.env.logger)
+	testSuite.registryService = registries.New(registryRepository, s.env.logger)
 
 	suite.Run(s.T(), testSuite)
 }

@@ -32,12 +32,13 @@ func TestEthSendTransaction(t *testing.T) {
 	tesseraClient := mocktessera.NewMockClient(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 	stores := mockaccounts.NewMockStores(ctrl)
-	aliases := aliasmock.NewMockService(ctrl)
+	aliases := aliasmock.NewMockAliases(ctrl)
 
 	hexFrom := "0x78e6e236592597c09d5c137c2af40aecd42d12a2"
 	from := ethcommon.HexToAddress(hexFrom)
 	privateFrom := "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
 	userInfo := &entities.UserInfo{
+		Tenant:      "tenant",
 		Username:    "username",
 		Roles:       []string{"role1", "role2"},
 		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
@@ -83,8 +84,8 @@ func TestEthSendTransaction(t *testing.T) {
 		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
 		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
 		ethCaller.EXPECT().SendRawPrivateTransaction(ctx, expectedSignedTx, privateArgs).Return(expectedHash, nil)
-		aliases.EXPECT().ReplaceSimpleAlias(gomock.Any(), privateFrom).Return(privateFrom, nil)
-		aliases.EXPECT().ReplaceAliases(gomock.Any(), privateFor).Return(privateFor, nil)
+		aliases.EXPECT().ReplaceSimple(gomock.Any(), privateFrom, userInfo).Return(privateFrom, nil)
+		aliases.EXPECT().Replace(gomock.Any(), privateFor, userInfo).Return(privateFor, nil)
 
 		hash, err := i.ethSendTransaction(ctx, msg)
 		require.NoError(t, err)
@@ -121,8 +122,8 @@ func TestEthSendTransaction(t *testing.T) {
 		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
 		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
 		ethCaller.EXPECT().SendRawPrivateTransaction(ctx, expectedSignedTx, privateArgs).Return(expectedHash, nil)
-		aliases.EXPECT().ReplaceSimpleAlias(gomock.Any(), privateFrom).Return(privateFrom, nil)
-		aliases.EXPECT().ReplaceAliases(gomock.Any(), privateFor).Return(privateForExp, nil)
+		aliases.EXPECT().ReplaceSimple(gomock.Any(), privateFrom, userInfo).Return(privateFrom, nil)
+		aliases.EXPECT().Replace(gomock.Any(), privateFor, userInfo).Return(privateForExp, nil)
 
 		hash, err := i.ethSendTransaction(ctx, msg)
 		require.NoError(t, err)
@@ -167,8 +168,8 @@ func TestEthSendTransaction(t *testing.T) {
 		ethCaller.EXPECT().ChainID(gomock.Any()).Return(chainID, nil)
 		accountsStore.EXPECT().SignPrivate(ctx, msg.From, gomock.Any()).Return(expectedSignedTx, nil)
 		ethCaller.EXPECT().SendRawPrivateTransaction(gomock.Any(), expectedSignedTx, privateArgsExp).Return(expectedHash, nil)
-		aliases.EXPECT().ReplaceAliases(gomock.Any(), []string{*privateArgs.PrivacyGroupID}).Return(privateForExp, nil)
-		aliases.EXPECT().ReplaceSimpleAlias(gomock.Any(), privateFrom).Return(privateFrom, nil)
+		aliases.EXPECT().Replace(gomock.Any(), []string{*privateArgs.PrivacyGroupID}, userInfo).Return(privateForExp, nil)
+		aliases.EXPECT().ReplaceSimple(gomock.Any(), privateFrom, userInfo).Return(privateFrom, nil)
 
 		hash, err := i.ethSendTransaction(ctx, msg)
 		require.NoError(t, err)

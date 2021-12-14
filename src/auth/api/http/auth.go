@@ -48,7 +48,7 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 					return
 				}
 
-				next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
+				next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, userInfo)))
 				return
 			case BasicSchema:
 				apiKey, err := base64.StdEncoding.DecodeString(authValue)
@@ -63,7 +63,7 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 					return
 				}
 
-				next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
+				next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, userInfo)))
 				return
 			default:
 				httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("unsupported authorization schema %s", authSchema))
@@ -79,11 +79,11 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 				return
 			}
 
-			next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, userInfo)))
+			next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, userInfo)))
 			return
 		}
 
 		// Anonymous user if no authentication method has succeeded
-		next.ServeHTTP(rw, r.Clone(WithUserInfo(ctx, entities.NewAnonymousUser())))
+		next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, entities.NewAnonymousUser())))
 	})
 }

@@ -108,11 +108,18 @@ func (c *PostgresClient) SelectDeletedWhere(ctx context.Context, model interface
 	return nil
 }
 
-func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
-	err := c.db.ModelContext(ctx, model).Where(where, args...).Select()
+func (c *PostgresClient) SelectWhere(ctx context.Context, model interface{}, where string, relations []string, params ...interface{}) error {
+	q := c.db.ModelContext(ctx, model).Where(where, params...)
+
+	for _, relation := range relations {
+		q = q.Relation(relation)
+	}
+
+	err := q.Select()
 	if err != nil {
 		return parseErrorResponse(err)
 	}
+
 	return nil
 }
 
@@ -130,11 +137,11 @@ func (c *PostgresClient) UpdatePK(ctx context.Context, model interface{}) error 
 }
 
 func (c *PostgresClient) UpdateWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
-	q := c.db.ModelContext(ctx, model)
-	r, err := q.Where(where, params...).UpdateNotZero()
+	r, err := c.db.ModelContext(ctx, model).Where(where, params...).UpdateNotZero()
 	if err != nil {
 		return parseErrorResponse(err)
 	}
+
 	if r.RowsAffected() == 0 {
 		return errors.NotFoundError("no matched rows were updated")
 	}

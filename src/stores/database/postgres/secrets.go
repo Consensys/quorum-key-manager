@@ -130,7 +130,7 @@ func (s *Secrets) ListVersions(ctx context.Context, id string, isDeleted bool) (
 func (s *Secrets) GetAll(ctx context.Context) ([]*entities.Secret, error) {
 	var itemModels []*models.Secret
 
-	err := s.client.SelectWhere(ctx, &itemModels, "store_id = ?", s.storeID)
+	err := s.client.SelectWhere(ctx, &itemModels, "store_id = ?", []string{}, s.storeID)
 	if err != nil {
 		errMessage := "failed to get all secrets"
 		s.logger.WithError(err).Error(errMessage)

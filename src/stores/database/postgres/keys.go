@@ -67,7 +67,7 @@ func (k *Keys) GetDeleted(ctx context.Context, id string) (*entities.Key, error)
 func (k *Keys) GetAll(ctx context.Context) ([]*entities.Key, error) {
 	var keyModels []*models.Key
 
-	err := k.client.SelectWhere(ctx, &keyModels, "store_id = ?", k.storeID)
+	err := k.client.SelectWhere(ctx, &keyModels, "store_id = ?", []string{}, k.storeID)
 	if err != nil {
 		errMessage := "failed to get all keys"
 		k.logger.WithError(err).Error(errMessage)

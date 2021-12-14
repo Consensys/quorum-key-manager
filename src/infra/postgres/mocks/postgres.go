@@ -53,6 +53,25 @@ func (mr *MockClientMockRecorder) QueryOne(ctx, result, query interface{}, param
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryOne", reflect.TypeOf((*MockClient)(nil).QueryOne), varargs...)
 }
 
+// Query mocks base method
+func (m *MockClient) Query(ctx context.Context, result, query interface{}, params ...interface{}) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, result, query}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Query", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Query indicates an expected call of Query
+func (mr *MockClientMockRecorder) Query(ctx, result, query interface{}, params ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, result, query}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Query", reflect.TypeOf((*MockClient)(nil).Query), varargs...)
+}
+
 // Insert mocks base method
 func (m *MockClient) Insert(ctx context.Context, model ...interface{}) error {
 	m.ctrl.T.Helper()
@@ -149,10 +168,10 @@ func (mr *MockClientMockRecorder) SelectDeleted(ctx interface{}, model ...interf
 }
 
 // SelectWhere mocks base method
-func (m *MockClient) SelectWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+func (m *MockClient) SelectWhere(ctx context.Context, model interface{}, where string, relations []string, params ...interface{}) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, model, where}
-	for _, a := range args {
+	varargs := []interface{}{ctx, model, where, relations}
+	for _, a := range params {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "SelectWhere", varargs...)
@@ -161,17 +180,17 @@ func (m *MockClient) SelectWhere(ctx context.Context, model interface{}, where s
 }
 
 // SelectWhere indicates an expected call of SelectWhere
-func (mr *MockClientMockRecorder) SelectWhere(ctx, model, where interface{}, args ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SelectWhere(ctx, model, where, relations interface{}, params ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, model, where}, args...)
+	varargs := append([]interface{}{ctx, model, where, relations}, params...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectWhere", reflect.TypeOf((*MockClient)(nil).SelectWhere), varargs...)
 }
 
 // SelectDeletedWhere mocks base method
-func (m *MockClient) SelectDeletedWhere(ctx context.Context, model interface{}, where string, args ...interface{}) error {
+func (m *MockClient) SelectDeletedWhere(ctx context.Context, model interface{}, where string, params ...interface{}) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, model, where}
-	for _, a := range args {
+	for _, a := range params {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "SelectDeletedWhere", varargs...)
@@ -180,9 +199,9 @@ func (m *MockClient) SelectDeletedWhere(ctx context.Context, model interface{}, 
 }
 
 // SelectDeletedWhere indicates an expected call of SelectDeletedWhere
-func (mr *MockClientMockRecorder) SelectDeletedWhere(ctx, model, where interface{}, args ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SelectDeletedWhere(ctx, model, where interface{}, params ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, model, where}, args...)
+	varargs := append([]interface{}{ctx, model, where}, params...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDeletedWhere", reflect.TypeOf((*MockClient)(nil).SelectDeletedWhere), varargs...)
 }
 
@@ -345,4 +364,18 @@ func (m *MockClient) RunInTransaction(ctx context.Context, persist func(postgres
 func (mr *MockClientMockRecorder) RunInTransaction(ctx, persist interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockClient)(nil).RunInTransaction), ctx, persist)
+}
+
+// Ping mocks base method
+func (m *MockClient) Ping(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping
+func (mr *MockClientMockRecorder) Ping(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockClient)(nil).Ping), ctx)
 }
