@@ -171,7 +171,7 @@ func (s *acceptanceTestSuite) TestAliases() {
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.aliasService = aliases.New(aliasRepository, s.env.logger)
+	testSuite.aliasService = aliases.New(aliasRepository, registryRepository, s.env.logger)
 	testSuite.registryService = registries.New(registryRepository, s.env.logger)
 
 	suite.Run(s.T(), testSuite)

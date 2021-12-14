@@ -24,13 +24,7 @@ func NewAlias(pgClient postgres.Client) *Alias {
 func (r *Alias) Insert(ctx context.Context, alias *entities.Alias) (*entities.Alias, error) {
 	aliasModel := models.NewAlias(alias)
 
-	// Verify that the registry exists before inserting the alias to avoid the constraint violation and have a not found error instead
-	err := r.pgClient.SelectPK(ctx, &models.Registry{Name: alias.RegistryName})
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.pgClient.Insert(ctx, aliasModel)
+	err := r.pgClient.Insert(ctx, aliasModel)
 	if err != nil {
 		return nil, err
 	}

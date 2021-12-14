@@ -41,7 +41,8 @@ func TestParse(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	loggerMock := testutils.NewMockLogger(ctrl)
 	mockDB := mock2.NewMockAlias(ctrl)
-	aConn := aliases.New(mockDB, loggerMock)
+	mockRegistryDB := mock2.NewMockRegistry(ctrl)
+	aConn := aliases.New(mockDB, mockRegistryDB, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -76,9 +77,10 @@ func TestReplace(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockDB := mock2.NewMockAlias(ctrl)
+	mockRegistryDB := mock2.NewMockRegistry(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 
-	aConn := aliases.New(mockDB, loggerMock)
+	aConn := aliases.New(mockDB, mockRegistryDB, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -119,8 +121,8 @@ func TestReplaceSimple(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockDB := mock2.NewMockAlias(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
-
-	aConn := aliases.New(mockDB, loggerMock)
+	mockRegistryDB := mock2.NewMockRegistry(ctrl)
+	aConn := aliases.New(mockDB, mockRegistryDB, loggerMock)
 
 	t.Run("no alias found", func(t *testing.T) {
 		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(nil, errors.NotFoundError("resource not found"))

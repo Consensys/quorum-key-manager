@@ -190,3 +190,75 @@ func (s *aliasStoreTestSuite) TestUpdateAlias() {
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 }
+
+func (s *aliasStoreTestSuite) TestAccess() {
+	ctx := context.Background()
+	registryName := "my-restricted-registry"
+	tenantAllowed := &authtypes.UserInfo{
+		Tenant: "tenantAllowed",
+	}
+	tenantUnauthorized := &authtypes.UserInfo{
+		Tenant: "tenantUnauthorized",
+	}
+	fakeAlias := s.fakeAlias()
+
+	restrictedRegistry, err := s.registryService.Create(ctx, registryName, []string{tenantAllowed.Tenant}, s.user)
+	require.NoError(s.T(), err)
+	assert.Equal(s.T(), restrictedRegistry.AllowedTenants, []string{tenantAllowed.Tenant})
+
+	s.Run("should fail to get registry with NotFoundError if not allowed ", func() {
+		registry, err := s.registryService.Get(ctx, registryName, tenantUnauthorized)
+		require.Error(s.T(), err)
+		require.Nil(s.T(), registry)
+
+		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+
+	s.Run("should get registry successfully if allowed", func() {
+		registry, err := s.registryService.Get(ctx, registryName, tenantAllowed)
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), registry.Name, registryName)
+	})
+
+	s.Run("should fail to insert an alias in a registry with NotFoundError if not allowed ", func() {
+		alias, err := s.aliasService.Create(ctx, registryName, fakeAlias.Key, fakeAlias.Kind, fakeAlias.Value, tenantUnauthorized)
+		require.Error(s.T(), err)
+		require.Nil(s.T(), alias)
+
+		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+
+	s.Run("should insert an alias in a registry successfully if allowed ", func() {
+		_, err := s.aliasService.Create(ctx, registryName, fakeAlias.Key, fakeAlias.Kind, fakeAlias.Value, tenantAllowed)
+		require.NoError(s.T(), err)
+	})
+
+	s.Run("should fail to update an alias in a registry with NotFoundError if not allowed ", func() {
+		alias, err := s.aliasService.Update(ctx, registryName, fakeAlias.Key, entities.AliasKindString, "my-new-alias", tenantUnauthorized)
+		require.Error(s.T(), err)
+		require.Nil(s.T(), alias)
+
+		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+
+	s.Run("should update an alias in a registry successfully if allowed ", func() {
+		alias, err := s.aliasService.Update(ctx, registryName, fakeAlias.Key, entities.AliasKindString, "my-new-alias", tenantAllowed)
+		require.NoError(s.T(), err)
+
+		value, _ := alias.String()
+		assert.Equal(s.T(), "my-new-alias", value)
+	})
+
+	s.Run("should fail to delete an alias in a registry with NotFoundError if not allowed ", func() {
+		err := s.aliasService.Delete(ctx, registryName, fakeAlias.Key, tenantUnauthorized)
+		require.Error(s.T(), err)
+
+		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+
+	s.Run("should delete an alias in a registry successfully if allowed ", func() {
+		err := s.aliasService.Delete(ctx, registryName, fakeAlias.Key, tenantAllowed)
+		require.NoError(s.T(), err)
+	})
+}

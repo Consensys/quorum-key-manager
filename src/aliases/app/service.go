@@ -17,7 +17,7 @@ func RegisterService(router *mux.Router, logger log.Logger, postgresClient postg
 	regisryRepository := db.NewRegistry(postgresClient)
 
 	// Business layer
-	aliasService := aliases.New(aliasRepository, logger)
+	aliasService := aliases.New(aliasRepository, regisryRepository, logger)
 	registryService := registries.New(regisryRepository, logger)
 
 	// Service layer

@@ -11,7 +11,7 @@ import (
 func (s *Aliases) Get(ctx context.Context, registry, key string, userInfo *auth.UserInfo) (*entities.Alias, error) {
 	logger := s.logger.With("registry", registry, "key", key)
 
-	alias, err := s.db.FindOne(ctx, registry, key, userInfo.Tenant)
+	alias, err := s.aliasDB.FindOne(ctx, registry, key, userInfo.Tenant)
 	if err != nil {
 		errMessage := "failed to get alias"
 		logger.WithError(err).Error(errMessage)

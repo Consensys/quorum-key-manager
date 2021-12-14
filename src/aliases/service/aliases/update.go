@@ -21,7 +21,7 @@ func (s *Aliases) Update(ctx context.Context, registry, key, kind string, value 
 		return nil, err
 	}
 
-	a, err := s.db.Update(ctx, alias)
+	a, err := s.aliasDB.Update(ctx, alias)
 	if err != nil {
 		errMessage := "failed to update alias"
 		logger.WithError(err).Error(errMessage)

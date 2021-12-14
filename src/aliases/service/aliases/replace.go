@@ -19,7 +19,7 @@ func (s *Aliases) Replace(ctx context.Context, addrs []string, userInfo *auth.Us
 			continue
 		}
 
-		alias, err := s.db.FindOne(ctx, regName, aliasKey, userInfo.Tenant)
+		alias, err := s.aliasDB.FindOne(ctx, regName, aliasKey, userInfo.Tenant)
 		if err != nil {
 			return nil, err
 		}

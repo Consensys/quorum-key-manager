@@ -15,7 +15,7 @@ func (s *Aliases) Delete(ctx context.Context, registry, key string, userInfo *au
 		return err
 	}
 
-	err = s.db.Delete(ctx, registry, key)
+	err = s.aliasDB.Delete(ctx, registry, key)
 	if err != nil {
 		errMessage := "failed to delete alias"
 		logger.WithError(err).Error(errMessage)

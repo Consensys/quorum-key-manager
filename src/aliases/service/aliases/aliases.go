@@ -7,12 +7,13 @@ import (
 )
 
 type Aliases struct {
-	db     database.Alias
-	logger log.Logger
+	aliasDB    database.Alias
+	registryDB database.Registry
+	logger     log.Logger
 }
 
 var _ aliases.Aliases = &Aliases{}
 
-func New(db database.Alias, logger log.Logger) *Aliases {
-	return &Aliases{db: db, logger: logger}
+func New(aliasDB database.Alias, registryDB database.Registry, logger log.Logger) *Aliases {
+	return &Aliases{aliasDB: aliasDB, registryDB: registryDB, logger: logger}
 }
