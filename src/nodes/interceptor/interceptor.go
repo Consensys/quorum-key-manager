@@ -12,7 +12,7 @@ type Interceptor struct {
 	stores  stores.Stores
 	handler jsonrpc.Handler
 	logger  log.Logger
-	aliases aliases.Service
+	aliases aliases.Aliases
 }
 
 func (i *Interceptor) ServeRPC(rw jsonrpc.ResponseWriter, msg *jsonrpc.RequestMsg) {
@@ -37,7 +37,7 @@ func (i *Interceptor) newHandler() jsonrpc.Handler {
 	return jsonrpc.LoggedHandler(jsonrpc.DefaultRWHandler(router), i.logger)
 }
 
-func New(storesConnector stores.Stores, aliasService aliases.Service, logger log.Logger) *Interceptor {
+func New(storesConnector stores.Stores, aliasService aliases.Aliases, logger log.Logger) *Interceptor {
 	i := &Interceptor{
 		stores:  storesConnector,
 		aliases: aliasService,

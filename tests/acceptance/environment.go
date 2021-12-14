@@ -3,15 +3,15 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	models2 "github.com/consensys/quorum-key-manager/src/aliases/database/models"
 	"os"
 	"strconv"
 	"time"
 
-	aliasent "github.com/consensys/quorum-key-manager/src/aliases/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
 	postgresclient "github.com/consensys/quorum-key-manager/src/infra/postgres/client"
-	models2 "github.com/consensys/quorum-key-manager/src/stores/database/models"
+	"github.com/consensys/quorum-key-manager/src/stores/database/models"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/postgres"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -42,31 +42,25 @@ type IntegrationEnvironment struct {
 	baseURL          string
 }
 
-type TestSuiteEnv interface {
-	Start(ctx context.Context) error
-}
-
-func StartEnvironment(ctx context.Context, env TestSuiteEnv) (gerr error) {
+func StartEnvironment(ctx context.Context, env *IntegrationEnvironment) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	sig := common.NewSignalListener(func(signal os.Signal) {
-		gerr = fmt.Errorf("interrupt signal has been sent")
+		env.logger.Error("interrupt signal has been sent")
 		cancel()
 	})
 	defer sig.Close()
 
 	err := env.Start(ctx)
 	if err != nil {
-		if gerr == nil {
-			return err
-		}
+		return err
 	}
 
-	return
+	return nil
 }
 
 func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
-	logger, err := zap.NewLogger(zap.NewConfig(zap.PanicLevel, zap.JSONFormat)) // We log panic as we do not need logs
+	logger, err := zap.NewLogger(zap.NewConfig(zap.DebugLevel, zap.JSONFormat)) // We log panic as we do not need logs
 	if err != nil {
 		return nil, err
 	}
@@ -197,13 +191,13 @@ func (env *IntegrationEnvironment) createTables() error {
 	}
 	// we create tables for each model
 	for _, v := range []interface{}{
-		&models2.Secret{},
-		&models2.Key{},
-		&models2.ETHAccount{},
-		&aliasent.Alias{},
+		&models.Secret{},
+		&models.Key{},
+		&models.ETHAccount{},
+		&models2.Registry{},
+		&models2.Alias{},
 	} {
 		err = db.Model(v).CreateTable(opts)
-
 		if err != nil {
 			return err
 		}
