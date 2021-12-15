@@ -2,13 +2,14 @@ package aliases
 
 import (
 	"context"
+	"testing"
+
 	mock2 "github.com/consensys/quorum-key-manager/src/aliases/database/mock"
 	"github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"

@@ -2,6 +2,7 @@ package registries
 
 import (
 	"context"
+
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
