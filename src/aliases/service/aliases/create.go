@@ -11,7 +11,12 @@ import (
 func (s *Aliases) Create(ctx context.Context, registry, key, kind string, value interface{}, userInfo *auth.UserInfo) (*entities.Alias, error) {
 	logger := s.logger.With("registry", registry, "key", key, "type", kind)
 
-	_, err := s.registryDB.FindOne(ctx, registry, userInfo.Tenant)
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionWrite, Resource: auth.ResourceAlias})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.registryDB.FindOne(ctx, registry, userInfo.Tenant)
 	if err != nil {
 		return nil, err
 	}

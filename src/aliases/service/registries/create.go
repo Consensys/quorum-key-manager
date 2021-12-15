@@ -11,6 +11,11 @@ import (
 func (s *Registries) Create(ctx context.Context, name string, allowedTenants []string, _ *auth.UserInfo) (*entities.AliasRegistry, error) {
 	logger := s.logger.With("name", name)
 
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionWrite, Resource: auth.ResourceAlias})
+	if err != nil {
+		return nil, err
+	}
+
 	registry, err := s.db.Insert(ctx, &entities.AliasRegistry{Name: name, AllowedTenants: allowedTenants})
 	if err != nil {
 		errMessage := "failed to create registry"

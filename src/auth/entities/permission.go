@@ -28,6 +28,10 @@ const EncryptEth Permission = "encrypt:ethereum"
 
 const ProxyNode Permission = "proxy:nodes"
 
+const ReadAlias Permission = "read:aliases"
+const WriteAlias Permission = "write:aliases"
+const DeleteAlias Permission = "delete:aliases"
+
 func ListPermissions() []Permission {
 	return []Permission{
 		ReadSecret,
@@ -47,6 +51,9 @@ func ListPermissions() []Permission {
 		SignEth,
 		EncryptEth,
 		ProxyNode,
+		ReadAlias,
+		WriteAlias,
+		DeleteAlias,
 	}
 }
 

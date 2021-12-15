@@ -11,6 +11,11 @@ import (
 func (s *Registries) Get(ctx context.Context, name string, userInfo *auth.UserInfo) (*entities.AliasRegistry, error) {
 	logger := s.logger.With("name", name)
 
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionRead, Resource: auth.ResourceAlias})
+	if err != nil {
+		return nil, err
+	}
+
 	registry, err := s.db.FindOne(ctx, name, userInfo.Tenant)
 	if err != nil {
 		errMessage := "failed to get registry"

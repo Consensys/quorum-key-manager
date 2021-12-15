@@ -11,6 +11,11 @@ import (
 func (s *Aliases) Get(ctx context.Context, registry, key string, userInfo *auth.UserInfo) (*entities.Alias, error) {
 	logger := s.logger.With("registry", registry, "key", key)
 
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionRead, Resource: auth.ResourceAlias})
+	if err != nil {
+		return nil, err
+	}
+
 	alias, err := s.aliasDB.FindOne(ctx, registry, key, userInfo.Tenant)
 	if err != nil {
 		errMessage := "failed to get alias"

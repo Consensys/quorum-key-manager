@@ -9,6 +9,11 @@ import (
 )
 
 func (s *Aliases) Replace(ctx context.Context, addrs []string, userInfo *auth.UserInfo) ([]string, error) {
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionRead, Resource: auth.ResourceAlias})
+	if err != nil {
+		return nil, err
+	}
+
 	var values []string
 	for _, addr := range addrs {
 		regName, aliasKey, isAlias := s.Parse(addr)

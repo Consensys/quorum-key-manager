@@ -11,6 +11,11 @@ import (
 func (s *Aliases) Update(ctx context.Context, registry, key, kind string, value interface{}, userInfo *auth.UserInfo) (*entities.Alias, error) {
 	logger := s.logger.With("registry", registry, "key", key, "type", kind)
 
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionWrite, Resource: auth.ResourceAlias})
+	if err != nil {
+		return nil, err
+	}
+
 	alias, err := entities.NewAlias(registry, key, kind, value)
 	if err != nil {
 		return nil, err

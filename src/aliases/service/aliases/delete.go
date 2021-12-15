@@ -10,7 +10,12 @@ import (
 func (s *Aliases) Delete(ctx context.Context, registry, key string, userInfo *auth.UserInfo) error {
 	logger := s.logger.With("registry", registry, "key", key)
 
-	_, err := s.Get(ctx, registry, key, userInfo)
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionDelete, Resource: auth.ResourceAlias})
+	if err != nil {
+		return err
+	}
+
+	_, err = s.Get(ctx, registry, key, userInfo)
 	if err != nil {
 		return err
 	}

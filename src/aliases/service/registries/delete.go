@@ -10,7 +10,12 @@ import (
 func (s *Registries) Delete(ctx context.Context, name string, userInfo *auth.UserInfo) error {
 	logger := s.logger.With("name", name)
 
-	err := s.db.Delete(ctx, name, userInfo.Tenant)
+	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionDelete, Resource: auth.ResourceAlias})
+	if err != nil {
+		return err
+	}
+
+	err = s.db.Delete(ctx, name, userInfo.Tenant)
 	if err != nil {
 		errMessage := "failed to delete registry"
 		logger.WithError(err).Error(errMessage)
