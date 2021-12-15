@@ -8,19 +8,19 @@ import (
 )
 
 type Aliases struct {
-	aliasDB      database.Alias
-	registryDB   database.Registry
-	logger       log.Logger
-	authorizator auth.Authorizator
+	aliasDB    database.Alias
+	registryDB database.Registry
+	logger     log.Logger
+	roles      auth.Roles
 }
 
 var _ aliases.Aliases = &Aliases{}
 
-func New(aliasDB database.Alias, registryDB database.Registry, authorizator auth.Authorizator, logger log.Logger) *Aliases {
+func New(aliasDB database.Alias, registryDB database.Registry, rolesService auth.Roles, logger log.Logger) *Aliases {
 	return &Aliases{
-		aliasDB:      aliasDB,
-		registryDB:   registryDB,
-		authorizator: authorizator,
-		logger:       logger,
+		aliasDB:    aliasDB,
+		registryDB: registryDB,
+		roles:      rolesService,
+		logger:     logger,
 	}
 }

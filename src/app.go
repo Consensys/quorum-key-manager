@@ -60,7 +60,7 @@ func New(ctx context.Context, cfg *Config, logger log.Logger) (*app.App, error) 
 		return nil, err
 	}
 
-	aliasService := aliasapp.RegisterService(router, logger.WithComponent("aliases"), pgClient)
+	aliasService := aliasapp.RegisterService(router, logger.WithComponent("aliases"), pgClient, authService)
 	vaultsService := vaultsapp.RegisterService(logger.WithComponent("vaults"), authService)
 	storesService := storesapp.RegisterService(router, logger.WithComponent("stores"), pgClient, authService, vaultsService)
 	nodesService := nodesapp.RegisterService(router, logger.WithComponent("nodes"), authService, storesService, aliasService)

@@ -8,17 +8,17 @@ import (
 )
 
 type Registries struct {
-	db           database.Registry
-	logger       log.Logger
-	authorizator auth.Authorizator
+	db     database.Registry
+	logger log.Logger
+	roles  auth.Roles
 }
 
 var _ aliases.Registries = &Registries{}
 
-func New(db database.Registry, authorizator auth.Authorizator, logger log.Logger) *Registries {
+func New(db database.Registry, rolesService auth.Roles, logger log.Logger) *Registries {
 	return &Registries{
-		db:           db,
-		logger:       logger,
-		authorizator: authorizator,
+		db:     db,
+		logger: logger,
+		roles:  rolesService,
 	}
 }

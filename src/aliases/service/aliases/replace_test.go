@@ -1,19 +1,18 @@
-package aliases_test
+package aliases
 
 import (
 	"context"
-	"testing"
-
 	mock2 "github.com/consensys/quorum-key-manager/src/aliases/database/mock"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
-	"github.com/consensys/quorum-key-manager/src/entities"
-
-	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
+	"github.com/consensys/quorum-key-manager/src/auth/mock"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"testing"
+
+	"github.com/consensys/quorum-key-manager/pkg/errors"
+	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 type backendCall struct {
@@ -24,43 +23,12 @@ type backendCall struct {
 	err   error
 }
 
-func TestParse(t *testing.T) {
-	cases := map[string]struct {
-		input  string
-		reg    string
-		key    string
-		parsed bool
-	}{
-		"single {":         {`{ok_registry:ok_key}`, "", "", false},
-		"column missing":   {`{{ok_registry ok_key}}`, "", "", false},
-		"too many columns": {`{{ok_registry:ok_key:}}`, "", "", false},
-		"base 64 key":      {`ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=`, "", "", false},
-		"ok":               {`{{ok_registry:ok_key}}`, "ok_registry", "ok_key", true},
-	}
-
-	ctrl := gomock.NewController(t)
-	loggerMock := testutils.NewMockLogger(ctrl)
-	mockDB := mock2.NewMockAlias(ctrl)
-	mockRegistryDB := mock2.NewMockRegistry(ctrl)
-	aConn := aliases.New(mockDB, mockRegistryDB, loggerMock)
-
-	for name, c := range cases {
-		t.Run(name, func(t *testing.T) {
-			reg, key, parsed := aConn.Parse(c.input)
-			assert.Equal(t, c.reg, reg)
-			assert.Equal(t, c.key, key)
-			assert.Equal(t, c.parsed, parsed)
-		})
-
-	}
-}
-
 func TestReplace(t *testing.T) {
 	groupACall := backendCall{"my-registry", "group-A", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
 	JPMCall := backendCall{"my-registry", "JPM", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
 	GSCall := backendCall{"my-registry", "GS", entities.AliasKindArray, []interface{}{"2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
 	errCall := backendCall{"unknown-registry", "unknown-key", entities.AliasKindArray, []interface{}{""}, errors.InvalidFormatError("bad format")}
-	user := authtypes.NewWildcardUser()
+	user := auth.NewWildcardUser()
 
 	cases := map[string]struct {
 		addrs  []string
@@ -79,8 +47,10 @@ func TestReplace(t *testing.T) {
 	mockDB := mock2.NewMockAlias(ctrl)
 	mockRegistryDB := mock2.NewMockRegistry(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
+	mockRoles := mock.NewMockRoles(ctrl)
+	mockRoles.EXPECT().UserPermissions(gomock.Any(), user).Return(auth.ListPermissions()).AnyTimes()
 
-	aConn := aliases.New(mockDB, mockRegistryDB, loggerMock)
+	aConn := New(mockDB, mockRegistryDB, mockRoles, loggerMock)
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -115,14 +85,17 @@ func TestReplace(t *testing.T) {
 func TestReplaceSimple(t *testing.T) {
 	groupACall := backendCall{"my-registry", "group-A", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=", "2T7xkjblN568N1QmPeElTjoeoNT4tkWYOJYxSMDO5i0="}, nil}
 	JPMCall := backendCall{"my-registry", "JPM", entities.AliasKindArray, []interface{}{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="}, nil}
-	user := authtypes.NewWildcardUser()
+	user := auth.NewWildcardUser()
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockDB := mock2.NewMockAlias(ctrl)
 	loggerMock := testutils.NewMockLogger(ctrl)
 	mockRegistryDB := mock2.NewMockRegistry(ctrl)
-	aConn := aliases.New(mockDB, mockRegistryDB, loggerMock)
+	mockRoles := mock.NewMockRoles(ctrl)
+	mockRoles.EXPECT().UserPermissions(gomock.Any(), user).Return(auth.ListPermissions()).AnyTimes()
+
+	aConn := New(mockDB, mockRegistryDB, mockRoles, loggerMock)
 
 	t.Run("no alias found", func(t *testing.T) {
 		mockDB.EXPECT().FindOne(gomock.Any(), groupACall.reg, groupACall.key, user.Tenant).Return(nil, errors.NotFoundError("resource not found"))

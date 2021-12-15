@@ -2,16 +2,18 @@ package registries
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
-func (s *Registries) Create(ctx context.Context, name string, allowedTenants []string, _ *auth.UserInfo) (*entities.AliasRegistry, error) {
+func (s *Registries) Create(ctx context.Context, name string, allowedTenants []string, userInfo *auth.UserInfo) (*entities.AliasRegistry, error) {
 	logger := s.logger.With("name", name)
 
-	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionWrite, Resource: auth.ResourceAlias})
+	resolver := authorizator.New(s.roles.UserPermissions(ctx, userInfo), userInfo.Tenant, logger)
+	err := resolver.CheckPermission(&auth.Operation{Action: auth.ActionWrite, Resource: auth.ResourceAlias})
 	if err != nil {
 		return nil, err
 	}

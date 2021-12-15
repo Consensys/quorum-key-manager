@@ -2,6 +2,7 @@ package aliases
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -10,7 +11,8 @@ import (
 func (s *Aliases) Delete(ctx context.Context, registry, key string, userInfo *auth.UserInfo) error {
 	logger := s.logger.With("registry", registry, "key", key)
 
-	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionDelete, Resource: auth.ResourceAlias})
+	resolver := authorizator.New(s.roles.UserPermissions(ctx, userInfo), userInfo.Tenant, logger)
+	err := resolver.CheckPermission(&auth.Operation{Action: auth.ActionDelete, Resource: auth.ResourceAlias})
 	if err != nil {
 		return err
 	}

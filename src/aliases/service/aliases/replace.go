@@ -2,6 +2,7 @@ package aliases
 
 import (
 	"context"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -9,7 +10,8 @@ import (
 )
 
 func (s *Aliases) Replace(ctx context.Context, addrs []string, userInfo *auth.UserInfo) ([]string, error) {
-	err := s.authorizator.CheckPermission(&auth.Operation{Action: auth.ActionRead, Resource: auth.ResourceAlias})
+	resolver := authorizator.New(s.roles.UserPermissions(ctx, userInfo), userInfo.Tenant, s.logger)
+	err := resolver.CheckPermission(&auth.Operation{Action: auth.ActionRead, Resource: auth.ResourceAlias})
 	if err != nil {
 		return nil, err
 	}
