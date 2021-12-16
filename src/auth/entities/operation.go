@@ -16,6 +16,7 @@ var ResourceSecret OpResource = "secrets"
 var ResourceEthAccount OpResource = "ethereum"
 var ResourceStore OpResource = "stores"
 var ResourceNode OpResource = "nodes"
+var ResourceAlias OpResource = "aliases"
 
 type Operation struct {
 	Action   OpAction

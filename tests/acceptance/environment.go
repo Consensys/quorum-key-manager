@@ -60,7 +60,7 @@ func StartEnvironment(ctx context.Context, env *IntegrationEnvironment) error {
 }
 
 func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
-	logger, err := zap.NewLogger(zap.NewConfig(zap.DebugLevel, zap.JSONFormat)) // We log panic as we do not need logs
+	logger, err := zap.NewLogger(zap.NewConfig(zap.PanicLevel, zap.JSONFormat)) // We log panic as we do not need logs
 	if err != nil {
 		return nil, err
 	}

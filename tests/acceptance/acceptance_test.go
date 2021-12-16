@@ -9,6 +9,7 @@ import (
 	"github.com/consensys/quorum-key-manager/src/aliases/service/registries"
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+	"github.com/consensys/quorum-key-manager/src/auth/service/roles"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
@@ -169,10 +170,12 @@ func (s *acceptanceTestSuite) TestAliases() {
 	aliasRepository := aliaspg.NewAlias(s.env.postgresClient)
 	registryRepository := aliaspg.NewRegistry(s.env.postgresClient)
 
+	rolesService := roles.New(s.env.logger)
+
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.aliasService = aliases.New(aliasRepository, registryRepository, s.env.logger)
-	testSuite.registryService = registries.New(registryRepository, s.env.logger)
+	testSuite.aliasService = aliases.New(aliasRepository, registryRepository, rolesService, s.env.logger)
+	testSuite.registryService = registries.New(registryRepository, rolesService, s.env.logger)
 
 	suite.Run(s.T(), testSuite)
 }
