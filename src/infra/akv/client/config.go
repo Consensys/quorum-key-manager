@@ -33,7 +33,7 @@ func NewConfig(cfg *entities.AzureConfig) *Config {
 	}
 }
 
-// ToAzureAuthConfig Inspired by NewAuthorizerFromEnvironmentWithResource from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
+// ToAzureAuthConfig  Inspired by NewAuthorizerFromEnvironmentWithResource from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
 func (c *Config) ToAzureAuthConfig() (autorest.Authorizer, error) {
 	resource, err := c.getResource()
 	if err != nil {
@@ -71,7 +71,7 @@ func (c *Config) getResource() (string, error) {
 	return resource, nil
 }
 
-// Inspired by GetSettingsFromEnvironment from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
+// Inspired  by GetSettingsFromEnvironment from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
 func (c *Config) getSettings() (s auth.EnvironmentSettings, err error) {
 	s = auth.EnvironmentSettings{
 		Values: map[string]string{},
