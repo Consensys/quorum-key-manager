@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"net/http"
 
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
@@ -12,7 +11,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
-	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
+	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
@@ -43,35 +42,34 @@ func (h *KeysHandler) Register(r *mux.Router) {
 	r.Methods(http.MethodDelete).Path("/{id}/destroy").HandlerFunc(h.destroy)
 }
 
-// @Summary Create new Key
-// @Description Create a new key pair using the specified Ecliptic Curve and Signing algorithm
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param id path string true "Key ID"
-// @Param storeName path string true "Store identifier"
-// @Param request body types.CreateKeyRequest true "Create key request"
-// @Success 200 {object} types.KeyResponse "Key data"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id} [post]
+// @Summary      Create new Key
+// @Description  Create a new key pair using the specified Ecliptic Curve and Signing algorithm
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        id         path      string                   true  "Key ID"
+// @Param        storeName  path      string                   true  "Store identifier"
+// @Param        request    body      types.CreateKeyRequest   true  "Create key request"
+// @Success      200        {object}  types.KeyResponse        "Key data"
+// @Failure      400        {object}  infrahttp.ErrorResponse  "Invalid request format"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id} [post]
 func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
 	createKeyRequest := &types.CreateKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, createKeyRequest)
 	if err != nil && err.Error() != "EOF" {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -86,42 +84,45 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 			Tags: createKeyRequest.Tags,
 		})
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
+	err = infrahttp.WriteJSON(rw, formatters.FormatKeyResponse(key))
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(rw, err)
+		return
+	}
 }
 
-// @Summary Import Key
-// @Description Import a private Key using the specified Ecliptic Curve and Signing algorithm
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param id path string true "Key ID"
-// @Param storeName path string true "Store identifier"
-// @Param request body types.ImportKeyRequest true "Create key request"
-// @Success 200 {object} types.KeyResponse "Key data"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id}/import [post]
+// @Summary      Import Key
+// @Description  Import a private Key using the specified Ecliptic Curve and Signing algorithm
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        id         path      string                   true  "Key ID"
+// @Param        storeName  path      string                   true  "Store identifier"
+// @Param        request    body      types.ImportKeyRequest   true  "Create key request"
+// @Success      200        {object}  types.KeyResponse        "Key data"
+// @Failure      400        {object}  infrahttp.ErrorResponse  "Invalid request format"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id}/import [post]
 func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
 	importKeyRequest := &types.ImportKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, importKeyRequest)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -137,74 +138,81 @@ func (h *KeysHandler) importKey(rw http.ResponseWriter, request *http.Request) {
 			Tags: importKeyRequest.Tags,
 		})
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
+	err = infrahttp.WriteJSON(rw, formatters.FormatKeyResponse(key))
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(rw, err)
+		return
+	}
 }
 
-// @Summary Sign random payload
-// @Description Sign a random payload using the selected key
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
-// @Param request body types.SignBase64PayloadRequest true "Signing request"
-// @Success 200 {string} {string}"signature in base64"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store/Key not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id}/sign [post]
+// @Summary      Sign random payload
+// @Description  Sign a random payload using the selected key
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        storeName  path      string                          true  "Store identifier"
+// @Param        id         path      string                          true  "Key identifier"
+// @Param        request    body      types.SignBase64PayloadRequest  true  "Signing request"
+// @Success      200        {string}  {string}"signature in base64"
+// @Failure      400        {object}  infrahttp.ErrorResponse  "Invalid request format"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store/Key not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id}/sign [post]
 func (h *KeysHandler) sign(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	signPayloadRequest := &types.SignBase64PayloadRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, signPayloadRequest)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	signature, err := keyStore.Sign(ctx, getID(request), signPayloadRequest.Data, nil)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_, _ = rw.Write([]byte(base64.StdEncoding.EncodeToString(signature)))
+	_, err = rw.Write([]byte(base64.StdEncoding.EncodeToString(signature)))
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(rw, err)
+		return
+	}
 }
 
-// @Summary Get key by ID
-// @Description Retrieve a key by its ID
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
-// @Param deleted query bool false "filter by only deleted keys"
-// @Success 200 {object} types.KeyResponse "Key data"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store/Key not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id} [get]
+// @Summary      Get key by ID
+// @Description  Retrieve a key by its ID
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        storeName  path      string                   true   "Store identifier"
+// @Param        id         path      string                   true   "Key identifier"
+// @Param        deleted    query     bool                     false  "filter by only deleted keys"
+// @Success      200        {object}  types.KeyResponse        "Key data"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store/Key not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id} [get]
 func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -216,41 +224,44 @@ func (h *KeysHandler) getOne(rw http.ResponseWriter, request *http.Request) {
 		key, err = keyStore.GetDeleted(ctx, getID(request))
 	}
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
+	err = infrahttp.WriteJSON(rw, formatters.FormatKeyResponse(key))
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(rw, err)
+		return
+	}
 }
 
-// @Summary Update a key
-// @Description Update the key tags of a specific key by its ID
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
-// @Param request body types.UpdateKeyRequest true "Update key request"
-// @Success 200 {object} types.KeyResponse "Key data"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store/Key not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id} [patch]
+// @Summary      Update a key
+// @Description  Update the key tags of a specific key by its ID
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        storeName  path      string                   true  "Store identifier"
+// @Param        id         path      string                   true  "Key identifier"
+// @Param        request    body      types.UpdateKeyRequest   true  "Update key request"
+// @Success      200        {object}  types.KeyResponse        "Key data"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store/Key not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id} [patch]
 func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
 	updateRequest := &types.UpdateKeyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, updateRequest)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -258,72 +269,74 @@ func (h *KeysHandler) update(rw http.ResponseWriter, request *http.Request) {
 		Tags: updateRequest.Tags,
 	})
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = json.NewEncoder(rw).Encode(formatters.FormatKeyResponse(key))
+	err = infrahttp.WriteJSON(rw, formatters.FormatKeyResponse(key))
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(rw, err)
+		return
+	}
 }
 
-// @Summary Restore a soft-deleted key
-// @Description Restore a soft-deleted key by its ID
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
-// @Success 204 "Restored successfully"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store/Key not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id}/restore [put]
+// @Summary      Restore a soft-deleted key
+// @Description  Restore a soft-deleted key by its ID
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        storeName  path  string  true  "Store identifier"
+// @Param        id         path  string  true  "Key identifier"
+// @Success      204        "Restored successfully"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store/Key not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id}/restore [put]
 func (h *KeysHandler) restore(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = keyStore.Restore(ctx, getID(request))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary List Key ids
-// @Description List key's IDs allocated on targeted Store
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param limit query int false "page size"
-// @Param page query int false "page number"
-// @Param deleted query bool false "filter by only deleted keys"
-// @Success 200 {array} PageResponse "List of key ids"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys [get]
+// @Summary      List Key ids
+// @Description  List key's IDs allocated on targeted Store
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        storeName  path      string                   true   "Store identifier"
+// @Param        limit      query     int                      false  "page size"
+// @Param        page       query     int                      false  "page number"
+// @Param        deleted    query     bool                     false  "filter by only deleted keys"
+// @Success      200        {array}   infrahttp.PageResponse   "List of key ids"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys [get]
 func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	limit, offset, err := getLimitOffset(request)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -335,69 +348,73 @@ func (h *KeysHandler) list(rw http.ResponseWriter, request *http.Request) {
 		ids, err = keyStore.ListDeleted(ctx, limit, offset)
 	}
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	_ = http2.WritePagingResponse(rw, request, ids)
+	err = infrahttp.WritePagingResponse(rw, request, ids)
+	if err != nil {
+		infrahttp.WriteHTTPErrorResponse(rw, err)
+		return
+	}
 }
 
-// @Summary Soft-delete Key
-// @Description Delete a key by its ID. Key can be recovered
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
-// @Success 204 "Deleted successfully"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store/Key not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id} [delete]
+// @Summary      Soft-delete Key
+// @Description  Delete a key by its ID. Key can be recovered
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        storeName  path  string  true  "Store identifier"
+// @Param        id         path  string  true  "Key identifier"
+// @Success      204        "Deleted successfully"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store/Key not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id} [delete]
 func (h *KeysHandler) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = keyStore.Delete(ctx, getID(request))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Destroy a Key
-// @Description Permanently delete a key by ID
-// @Tags Keys
-// @Accept json
-// @Produce json
-// @Param storeName path string true "Store identifier"
-// @Param id path string true "Key identifier"
-// @Success 204 "Destroyed successfully"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 403 {object} ErrorResponse "Forbidden"
-// @Failure 404 {object} ErrorResponse "Store/Key not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /stores/{storeName}/keys/{id}/destroy [delete]
+// @Summary      Destroy a Key
+// @Description  Permanently delete a key by ID
+// @Tags         Keys
+// @Accept       json
+// @Produce      json
+// @Param        storeName  path  string  true  "Store identifier"
+// @Param        id         path  string  true  "Key identifier"
+// @Success      204        "Destroyed successfully"
+// @Failure      401        {object}  infrahttp.ErrorResponse  "Unauthorized"
+// @Failure      403        {object}  infrahttp.ErrorResponse  "Forbidden"
+// @Failure      404        {object}  infrahttp.ErrorResponse  "Store/Key not found"
+// @Failure      500        {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /stores/{storeName}/keys/{id}/destroy [delete]
 func (h *KeysHandler) destroy(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	keyStore, err := h.stores.Key(ctx, StoreNameFromContext(ctx), auth.UserInfoFromContext(ctx))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	err = keyStore.Destroy(ctx, getID(request))
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

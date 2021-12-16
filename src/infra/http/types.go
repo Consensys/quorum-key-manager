@@ -6,7 +6,7 @@ type ErrorResponse struct {
 }
 
 type PageResponse struct {
-	Data   interface{}        `json:"data" example:"{'item1', 'item2', 'item3'}" swaggertype:"ArrayOfString"`
+	Data   []string           `json:"data" example:"item1,item2,item3"`
 	Paging PagePagingResponse `json:"paging"`
 }
 

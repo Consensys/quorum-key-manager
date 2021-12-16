@@ -9,7 +9,7 @@ import (
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	jsonutils "github.com/consensys/quorum-key-manager/pkg/json"
-	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
+	infrahttp "github.com/consensys/quorum-key-manager/src/infra/http"
 	"github.com/consensys/quorum-key-manager/src/utils/api/types"
 	"github.com/gorilla/mux"
 )
@@ -35,23 +35,23 @@ func (h *UtilsHandler) Register(r *mux.Router) {
 	utilsSubrouter.Methods(http.MethodPost).Path("/ethereum/verify-typed-data").HandlerFunc(h.verifyTypedData)
 }
 
-// @Summary Verify key signature
-// @Description Verify if signature data was signed by a specific key
-// @Tags Utilities
-// @Accept json
-// @Produce json
-// @Param request body types.VerifyKeySignatureRequest true "Verify signature request"
-// @Success 204 "Successful verification"
-// @Failure 422 {object} ErrorResponse "Cannot verify signature"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /keys/verify-signature [post]
+// @Summary      Verify key signature
+// @Description  Verify if signature data was signed by a specific key
+// @Tags         Utilities
+// @Accept       json
+// @Produce      json
+// @Param        request  body  types.VerifyKeySignatureRequest  true  "Verify signature request"
+// @Success      204      "Successful verification"
+// @Failure      422      {object}  infrahttp.ErrorResponse  "Cannot verify signature"
+// @Failure      500      {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /keys/verify-signature [post]
 func (h *UtilsHandler) verifySignature(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 
 	verifyReq := &types.VerifyKeySignatureRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
@@ -60,93 +60,93 @@ func (h *UtilsHandler) verifySignature(rw http.ResponseWriter, request *http.Req
 		EllipticCurve: entities.Curve(verifyReq.Curve),
 	})
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary EC Recover
-// @Description Recover an Ethereum sender address from a signature of the format [R || S || V] where V is 0 or 1
-// @Tags Utilities
-// @Accept json
-// @Produce plain
-// @Param request body types.ECRecoverRequest true "Ethereum recover request"
-// @Success 200 {string} string "Recovered sender address"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /ethereum/ec-recover [post]
+// @Summary      EC Recover
+// @Description  Recover an Ethereum sender address from a signature of the format [R || S || V] where V is 0 or 1
+// @Tags         Utilities
+// @Accept       json
+// @Produce      plain
+// @Param        request  body      types.ECRecoverRequest   true  "Ethereum recover request"
+// @Success      200      {string}  string                   "Recovered sender address"
+// @Failure      400      {object}  infrahttp.ErrorResponse  "Invalid request format"
+// @Failure      500      {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /ethereum/ec-recover [post]
 func (h *UtilsHandler) ecRecover(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 
 	ecRecoverReq := &types.ECRecoverRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, ecRecoverReq)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	address, err := h.utils.ECRecover(ecRecoverReq.Data, ecRecoverReq.Signature)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	_, _ = rw.Write([]byte(address.Hex()))
 }
 
-// @Summary Verify message signature (EIP-191)
-// @Description Verify the signature of a message signed using standard format EIP-191
-// @Tags Utilities
-// @Accept json
-// @Param request body types.VerifyRequest true "Ethereum signature verify request"
-// @Success 204 "Successful verification"
-// @Failure 422 {object} ErrorResponse "Cannot verify signature"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /ethereum/verify-message [post]
+// @Summary      Verify message signature (EIP-191)
+// @Description  Verify the signature of a message signed using standard format EIP-191
+// @Tags         Utilities
+// @Accept       json
+// @Param        request  body  types.VerifyRequest  true  "Ethereum signature verify request"
+// @Success      204      "Successful verification"
+// @Failure      422      {object}  infrahttp.ErrorResponse  "Cannot verify signature"
+// @Failure      500      {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /ethereum/verify-message [post]
 func (h *UtilsHandler) verifyMessage(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 
 	verifyReq := &types.VerifyRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	err = h.utils.VerifyMessage(verifyReq.Address, verifyReq.Data, verifyReq.Signature)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Verify typed data signature (EIP-712)
-// @Description Verify the signature of an Ethereum typed data using format defined at EIP-712
-// @Tags Utilities
-// @Accept json
-// @Param request body types.VerifyTypedDataRequest true "Typed data request to verify"
-// @Success 204 "Successful verification"
-// @Failure 422 {object} ErrorResponse "Cannot verify signature"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /ethereum/verify-typed-data [post]
+// @Summary      Verify typed data signature (EIP-712)
+// @Description  Verify the signature of an Ethereum typed data using format defined at EIP-712
+// @Tags         Utilities
+// @Accept       json
+// @Param        request  body  types.VerifyTypedDataRequest  true  "Typed data request to verify"
+// @Success      204      "Successful verification"
+// @Failure      422      {object}  infrahttp.ErrorResponse  "Cannot verify signature"
+// @Failure      500      {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /ethereum/verify-typed-data [post]
 func (h *UtilsHandler) verifyTypedData(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 
 	verifyReq := &types.VerifyTypedDataRequest{}
 	err := jsonutils.UnmarshalBody(request.Body, verifyReq)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
 
 	typedData := formatters.FormatSignTypedDataRequest(&verifyReq.TypedData)
 	err = h.utils.VerifyTypedData(verifyReq.Address, typedData, verifyReq.Signature)
 	if err != nil {
-		http2.WriteHTTPErrorResponse(rw, err)
+		infrahttp.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
