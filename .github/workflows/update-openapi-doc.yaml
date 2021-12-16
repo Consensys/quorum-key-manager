@@ -2,7 +2,7 @@ name: Update OpenAPI doc
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - 'v*'
 
