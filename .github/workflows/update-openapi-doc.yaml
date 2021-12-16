@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - maintenance/v21.12
+      - fix/github-actions
     tags:
       - 'v*'
 
