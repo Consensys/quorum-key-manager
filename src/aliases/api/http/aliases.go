@@ -30,18 +30,18 @@ func (h *AliasHandler) Register(r *mux.Router) {
 	aliasRouter.Methods(http.MethodDelete).Path("/{key}").HandlerFunc(h.delete)
 }
 
-// @Summary Creates an alias
-// @Description Create an alias of a key in a dedicated alias registry
-// @Tags Aliases
-// @Accept json
-// @Produce json
-// @Param registryName path string true "registry identifier"
-// @Param key path string true "alias identifier"
-// @Param request body types.AliasRequest true "Create Alias Request"
-// @Success 200 {object} types.AliasResponse "Alias data"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registryName}/aliases/{key} [post]
+// @Summary      Creates an alias
+// @Description  Create an alias of a key in a dedicated alias registry
+// @Tags         Aliases
+// @Accept       json
+// @Produce      json
+// @Param        registryName  path      string                   true  "registry identifier"
+// @Param        key           path      string                   true  "alias identifier"
+// @Param        request       body      types.AliasRequest       true  "Create Alias Request"
+// @Success      200           {object}  types.AliasResponse      "Alias data"
+// @Failure      400           {object}  infrahttp.ErrorResponse  "Invalid request format"
+// @Failure      500           {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /registries/{registryName}/aliases/{key} [post]
 func (h *AliasHandler) create(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -65,16 +65,16 @@ func (h *AliasHandler) create(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @Summary Get an alias
-// @Description Get an alias by key from a dedicated alias registry
-// @Tags Aliases
-// @Produce json
-// @Param registryName path string true "registry identifier"
-// @Param key path string true "alias identifier"
-// @Success 200 {object} types.AliasResponse "Alias data"
-// @Failure 404 {object} ErrorResponse "Alias not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registryName}/aliases/{key} [get]
+// @Summary      Get an alias
+// @Description  Get an alias by key from a dedicated alias registry
+// @Tags         Aliases
+// @Produce      json
+// @Param        registryName  path      string                   true  "registry identifier"
+// @Param        key           path      string                   true  "alias identifier"
+// @Success      200           {object}  types.AliasResponse      "Alias data"
+// @Failure      404           {object}  infrahttp.ErrorResponse  "Alias not found"
+// @Failure      500           {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /registries/{registryName}/aliases/{key} [get]
 func (h *AliasHandler) get(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -91,19 +91,19 @@ func (h *AliasHandler) get(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @Summary Update an alias
-// @Description Update an alias by key from a dedicated alias registry
-// @Tags Aliases
-// @Accept json
-// @Produce json
-// @Param registryName path string true "registry identifier"
-// @Param key path string true "alias identifier"
-// @Param request body types.AliasRequest true "Update Alias Request"
-// @Success 200 {object} types.AliasResponse "Alias data"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 404 {object} ErrorResponse "Alias not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registryName}/aliases/{key} [put]
+// @Summary      Update an alias
+// @Description  Update an alias by key from a dedicated alias registry
+// @Tags         Aliases
+// @Accept       json
+// @Produce      json
+// @Param        registryName  path      string                   true  "registry identifier"
+// @Param        key           path      string                   true  "alias identifier"
+// @Param        request       body      types.AliasRequest       true  "Update Alias Request"
+// @Success      200           {object}  types.AliasResponse      "Alias data"
+// @Failure      400           {object}  infrahttp.ErrorResponse  "Invalid request format"
+// @Failure      404           {object}  infrahttp.ErrorResponse  "Alias not found"
+// @Failure      500           {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /registries/{registryName}/aliases/{key} [patch]
 func (h *AliasHandler) update(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -128,16 +128,16 @@ func (h *AliasHandler) update(rw http.ResponseWriter, r *http.Request) {
 }
 
 // deleteAlias deletes an alias value.
-// @Summary Delete an alias
-// @Description Delete an alias of a key from a dedicated alias registry
-// @Tags Aliases
-// @Param registryName path string true "registry identifier"
-// @Param key path string true "alias identifier"
-// @Success 204 "Deleted successfully"
-// @Failure 400 {object} ErrorResponse "Invalid request format"
-// @Failure 404 {object} ErrorResponse "Alias not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registryName}/aliases/{key} [delete]
+// @Summary      Delete an alias
+// @Description  Delete an alias of a key from a dedicated alias registry
+// @Tags         Aliases
+// @Param        registryName  path  string  true  "registry identifier"
+// @Param        key           path  string  true  "alias identifier"
+// @Success      204           "Deleted successfully"
+// @Failure      400           {object}  infrahttp.ErrorResponse  "Invalid request format"
+// @Failure      404           {object}  infrahttp.ErrorResponse  "Alias not found"
+// @Failure      500           {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /registries/{registryName}/aliases/{key} [delete]
 func (h *AliasHandler) delete(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

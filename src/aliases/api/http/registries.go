@@ -28,15 +28,15 @@ func (h *RegistryHandler) Register(router *mux.Router) {
 	registryRouter.Methods(http.MethodDelete).Path("/{registryName}").HandlerFunc(h.delete)
 }
 
-// @Summary Creates an alias registry
-// @Description Creates an alias registry
-// @Tags Registries
-// @Accept json
-// @Produce json
-// @Param registryName path string true "registry identifier"
-// @Success 200 {object} types.RegistryResponse "Registry data"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registryName} [post]
+// @Summary      Creates an alias registry
+// @Description  Creates an alias registry
+// @Tags         Registries
+// @Accept       json
+// @Produce      json
+// @Param        registryName  path      string                   true  "registry identifier"
+// @Success      200           {object}  types.RegistryResponse   "Registry data"
+// @Failure      500           {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /registries/{registryName} [post]
 func (h *RegistryHandler) create(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -60,15 +60,15 @@ func (h *RegistryHandler) create(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @Summary Gets an alias registry
-// @Description Gets an alias registry
-// @Tags Registries
-// @Produce json
-// @Param registryName path string true "registry identifier"
-// @Success 200 {array} types.Alias "a list of Aliases"
-// @Failure 404 {object} ErrorResponse "Registry not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registryName} [get]
+// @Summary      Gets an alias registry
+// @Description  Gets an alias registry
+// @Tags         Registries
+// @Produce      json
+// @Param        registryName  path      string                   true  "registry identifier"
+// @Success      200           {object}  types.RegistryResponse   "Registry data"
+// @Failure      404           {object}  infrahttp.ErrorResponse  "Registry not found"
+// @Failure      500           {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /registries/{registryName} [get]
 func (h *RegistryHandler) get(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -85,14 +85,14 @@ func (h *RegistryHandler) get(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @Summary Deletes a registry
-// @Description Deletes a registry and all its aliases
-// @Tags Registries
-// @Param registryName path string true "registry identifier"
-// @Success 204 "Deleted successfully"
-// @Failure 404 {object} ErrorResponse "Registry not found"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /registries/{registryName} [delete]
+// @Summary      Deletes a registry
+// @Description  Deletes a registry and all its aliases
+// @Tags         Registries
+// @Param        registryName  path  string  true  "registry identifier"
+// @Success      204           "Deleted successfully"
+// @Failure      404           {object}  infrahttp.ErrorResponse  "Registry not found"
+// @Failure      500           {object}  infrahttp.ErrorResponse  "Internal server error"
+// @Router       /registries/{registryName} [delete]
 func (h *RegistryHandler) delete(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

@@ -142,7 +142,7 @@ lint-tools: ## Install linting tools
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 
 install-swag:
-	@GO111MODULE=off go get -u github.com/swaggo/swag/cmd/swag
+	@go install github.com/swaggo/swag/cmd/swag@latest
 
 install-swagger:
 	@bash ./scripts/install_swagger.sh
@@ -151,7 +151,7 @@ check-swagger:
 	@which swagger || make install-swagger
 
 gen-swagger:
-	@GO111MODULE=off swag init -d ./src -o ./public/docs  -g docs.go
+	@swag init --parseDependency --parseDepth 1 -d ./src -o ./public/docs -g ./docs.go
 
 serve-swagger: gen-swagger
 	@swagger serve -F=swagger ./public/docs/swagger.json
