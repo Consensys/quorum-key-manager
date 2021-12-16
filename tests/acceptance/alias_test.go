@@ -21,17 +21,21 @@ import (
 
 type aliasStoreTestSuite struct {
 	suite.Suite
-	env             *IntegrationEnvironment
-	aliasService    aliases.Aliases
-	registryService aliases.Registries
-	user            *authtypes.UserInfo
-	rand            *rand.Rand
-	registryName    string
+	env              *IntegrationEnvironment
+	aliasService     aliases.Aliases
+	registryService  aliases.Registries
+	user             *authtypes.UserInfo
+	userUnauthorized *authtypes.UserInfo
+	rand             *rand.Rand
+	registryName     string
 }
 
 func (s *aliasStoreTestSuite) SetupSuite() {
 	ctx := context.Background()
 	s.user = authtypes.NewWildcardUser()
+	s.user.Tenant = "tenantAllowed"
+	s.userUnauthorized = authtypes.NewAnonymousUser()
+	s.userUnauthorized.Tenant = "tenantUnauthorized"
 	s.registryName = "my-registry"
 	s.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -49,8 +53,16 @@ func (s *aliasStoreTestSuite) TestRegistry() {
 	ctx := context.Background()
 	in := s.fakeAlias()
 
+	s.Run("should fail to create a registry with ForbiddenError if missing permission", func() {
+		registry, err := s.registryService.Create(ctx, in.RegistryName, []string{}, s.userUnauthorized)
+		s.Error(err)
+		s.Nil(registry)
+
+		s.True(errors.IsForbiddenError(err))
+	})
+
 	s.Run("should create and get a registry with aliases successfully", func() {
-		_, err := s.registryService.Create(ctx, in.RegistryName, []string{}, s.user)
+		_, err := s.registryService.Create(ctx, in.RegistryName, []string{s.user.Tenant}, s.user)
 		require.NoError(s.T(), err)
 
 		_, err = s.aliasService.Create(ctx, in.RegistryName, in.Key, in.Kind, in.Value, s.user)
@@ -65,6 +77,13 @@ func (s *aliasStoreTestSuite) TestRegistry() {
 
 		assert.Equal(s.T(), registry.Aliases[0].Key, in.Key)
 		assert.Equal(s.T(), registry.Aliases[1].Key, in.Key+"2")
+	})
+
+	s.Run("should fail to delete a registry with ForbiddenError if missing permission", func() {
+		err := s.registryService.Delete(ctx, in.RegistryName, s.userUnauthorized)
+		s.Error(err)
+
+		s.True(errors.IsForbiddenError(err))
 	})
 
 	s.Run("should delete a registry successfully", func() {
@@ -106,6 +125,15 @@ func (s *aliasStoreTestSuite) TestCreateAlias() {
 
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
+
+	s.Run("should fail with ForbiddenError if missing permission", func() {
+		fakeAlias := s.fakeAlias()
+		registry, err := s.aliasService.Create(ctx, s.registryName, fakeAlias.Key, fakeAlias.Kind, fakeAlias.Value, s.userUnauthorized)
+		s.Error(err)
+		s.Nil(registry)
+
+		s.True(errors.IsForbiddenError(err))
+	})
 }
 
 func (s *aliasStoreTestSuite) TestGetAlias() {
@@ -127,6 +155,14 @@ func (s *aliasStoreTestSuite) TestGetAlias() {
 		require.Error(s.T(), err)
 
 		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+
+	s.Run("should fail with ForbiddenError if missing permission", func() {
+		registry, err := s.aliasService.Get(ctx, createdAlias.RegistryName, createdAlias.Key, s.userUnauthorized)
+		s.Error(err)
+		s.Nil(registry)
+
+		s.True(errors.IsForbiddenError(err))
 	})
 }
 
@@ -151,6 +187,13 @@ func (s *aliasStoreTestSuite) TestDeleteAlias() {
 		require.Error(s.T(), err)
 
 		assert.True(s.T(), errors.IsNotFoundError(err))
+	})
+
+	s.Run("should fail with ForbiddenError if missing permission", func() {
+		err := s.aliasService.Delete(ctx, createdAlias.RegistryName, createdAlias.Key, s.userUnauthorized)
+		s.Error(err)
+
+		s.True(errors.IsForbiddenError(err))
 	})
 }
 
@@ -189,25 +232,30 @@ func (s *aliasStoreTestSuite) TestUpdateAlias() {
 
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
+
+	s.Run("should fail with ForbiddenError if missing permission", func() {
+		registry, err := s.aliasService.Update(ctx, createdAlias.RegistryName, createdAlias.Key, createdAlias.Kind, createdAlias.Value, s.userUnauthorized)
+		s.Error(err)
+		s.Nil(registry)
+
+		s.True(errors.IsForbiddenError(err))
+	})
 }
 
 func (s *aliasStoreTestSuite) TestAccess() {
 	ctx := context.Background()
 	registryName := "my-restricted-registry"
-	tenantAllowed := &authtypes.UserInfo{
-		Tenant: "tenantAllowed",
-	}
-	tenantUnauthorized := &authtypes.UserInfo{
-		Tenant: "tenantUnauthorized",
-	}
 	fakeAlias := s.fakeAlias()
+	userNoAccess := authtypes.NewAnonymousUser()
+	userNoAccess.Tenant = "tenantUnauthorized"
+	userNoAccess.Permissions = authtypes.ListWildcardPermission("*:aliases")
 
-	restrictedRegistry, err := s.registryService.Create(ctx, registryName, []string{tenantAllowed.Tenant}, s.user)
+	restrictedRegistry, err := s.registryService.Create(ctx, registryName, []string{s.user.Tenant}, s.user)
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), restrictedRegistry.AllowedTenants, []string{tenantAllowed.Tenant})
+	assert.Equal(s.T(), restrictedRegistry.AllowedTenants, []string{s.user.Tenant})
 
 	s.Run("should fail to get registry with NotFoundError if not allowed ", func() {
-		registry, err := s.registryService.Get(ctx, registryName, tenantUnauthorized)
+		registry, err := s.registryService.Get(ctx, registryName, userNoAccess)
 		require.Error(s.T(), err)
 		require.Nil(s.T(), registry)
 
@@ -215,14 +263,14 @@ func (s *aliasStoreTestSuite) TestAccess() {
 	})
 
 	s.Run("should get registry successfully if allowed", func() {
-		registry, err := s.registryService.Get(ctx, registryName, tenantAllowed)
+		registry, err := s.registryService.Get(ctx, registryName, s.user)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), registry.Name, registryName)
 	})
 
 	s.Run("should fail to insert an alias in a registry with NotFoundError if not allowed ", func() {
-		alias, err := s.aliasService.Create(ctx, registryName, fakeAlias.Key, fakeAlias.Kind, fakeAlias.Value, tenantUnauthorized)
+		alias, err := s.aliasService.Create(ctx, registryName, fakeAlias.Key, fakeAlias.Kind, fakeAlias.Value, userNoAccess)
 		require.Error(s.T(), err)
 		require.Nil(s.T(), alias)
 
@@ -230,12 +278,12 @@ func (s *aliasStoreTestSuite) TestAccess() {
 	})
 
 	s.Run("should insert an alias in a registry successfully if allowed ", func() {
-		_, err := s.aliasService.Create(ctx, registryName, fakeAlias.Key, fakeAlias.Kind, fakeAlias.Value, tenantAllowed)
+		_, err := s.aliasService.Create(ctx, registryName, fakeAlias.Key, fakeAlias.Kind, fakeAlias.Value, s.user)
 		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail to update an alias in a registry with NotFoundError if not allowed ", func() {
-		alias, err := s.aliasService.Update(ctx, registryName, fakeAlias.Key, entities.AliasKindString, "my-new-alias", tenantUnauthorized)
+		alias, err := s.aliasService.Update(ctx, registryName, fakeAlias.Key, entities.AliasKindString, "my-new-alias", userNoAccess)
 		require.Error(s.T(), err)
 		require.Nil(s.T(), alias)
 
@@ -243,7 +291,7 @@ func (s *aliasStoreTestSuite) TestAccess() {
 	})
 
 	s.Run("should update an alias in a registry successfully if allowed ", func() {
-		alias, err := s.aliasService.Update(ctx, registryName, fakeAlias.Key, entities.AliasKindString, "my-new-alias", tenantAllowed)
+		alias, err := s.aliasService.Update(ctx, registryName, fakeAlias.Key, entities.AliasKindString, "my-new-alias", s.user)
 		require.NoError(s.T(), err)
 
 		value, _ := alias.String()
@@ -251,14 +299,14 @@ func (s *aliasStoreTestSuite) TestAccess() {
 	})
 
 	s.Run("should fail to delete an alias in a registry with NotFoundError if not allowed ", func() {
-		err := s.aliasService.Delete(ctx, registryName, fakeAlias.Key, tenantUnauthorized)
+		err := s.aliasService.Delete(ctx, registryName, fakeAlias.Key, userNoAccess)
 		require.Error(s.T(), err)
 
 		assert.True(s.T(), errors.IsNotFoundError(err))
 	})
 
 	s.Run("should delete an alias in a registry successfully if allowed ", func() {
-		err := s.aliasService.Delete(ctx, registryName, fakeAlias.Key, tenantAllowed)
+		err := s.aliasService.Delete(ctx, registryName, fakeAlias.Key, s.user)
 		require.NoError(s.T(), err)
 	})
 }
