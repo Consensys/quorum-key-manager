@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	tls2 "crypto/tls"
 	"crypto/x509"
-	"encoding/base64"
 	"fmt"
 	"hash"
 	"strings"
@@ -79,8 +78,7 @@ func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte
 	}
 
 	apiKeySha256 := fmt.Sprintf("%x", authen.hasher.Sum(nil))
-	apiKeyHash := base64.StdEncoding.EncodeToString([]byte(apiKeySha256))
-	claims, ok := authen.apiKeyClaims[apiKeyHash]
+	claims, ok := authen.apiKeyClaims[apiKeySha256]
 	if !ok {
 		errMessage := "invalid api key"
 		authen.logger.Warn(errMessage)

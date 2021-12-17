@@ -2,7 +2,6 @@ package csv
 
 import (
 	"context"
-	"encoding/base64"
 	csv2 "encoding/csv"
 	"fmt"
 	"io"
@@ -62,8 +61,8 @@ func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error
 			return nil, fmt.Errorf("invalid number of cells, should be %d", csvRowLen)
 		}
 
-		apiKeyHash := base64.StdEncoding.EncodeToString([]byte(cells[csvAPIKeyOffset]))
-		claims[apiKeyHash] = &entities.UserClaims{
+		apiKeySha256 := cells[csvAPIKeyOffset]
+		claims[apiKeySha256] = &entities.UserClaims{
 			Subject: cells[csvUserOffset],
 			Scope:   cells[csvPermissionsOffset],
 			Roles:   cells[csvRolesOffset],
