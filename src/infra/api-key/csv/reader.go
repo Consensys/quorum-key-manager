@@ -15,7 +15,7 @@ const (
 	csvSeparator         = ','
 	csvCommentsMarker    = '#'
 	csvRowLen            = 4
-	csvAPIKeyOffset      = 0
+	csvAPIKeyHash        = 0
 	csvUserOffset        = 1
 	csvPermissionsOffset = 2
 	csvRolesOffset       = 3
@@ -61,8 +61,7 @@ func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error
 			return nil, fmt.Errorf("invalid number of cells, should be %d", csvRowLen)
 		}
 
-		apiKeySha256 := cells[csvAPIKeyOffset]
-		claims[apiKeySha256] = &entities.UserClaims{
+		claims[cells[csvAPIKeyHash]] = &entities.UserClaims{
 			Subject: cells[csvUserOffset],
 			Scope:   cells[csvPermissionsOffset],
 			Roles:   cells[csvRolesOffset],
