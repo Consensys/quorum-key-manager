@@ -2,9 +2,9 @@ package authenticator
 
 import (
 	"context"
+	"crypto/sha256"
 	tls2 "crypto/tls"
 	"crypto/x509"
-	"encoding/base64"
 	"fmt"
 	"testing"
 
@@ -51,9 +51,13 @@ func (s *authenticatorTestSuite) SetupTest() {
 	aliceClaims := testdata.FakeUserClaims()
 	bobClaims := testdata.FakeUserClaims()
 	bobClaims.Scope = "*:*"
+
+	aliceSha256 := fmt.Sprintf("%x", sha256.Sum256([]byte(aliceAPIKey)))
+	bobSha256 := fmt.Sprintf("%x", sha256.Sum256([]byte(bobAPIKey)))
+
 	s.userClaims = map[string]*entities.UserClaims{
-		"BRqrbYycs44wSi40uij02ZlPd5zBxuWIMessUGcdxtI=": aliceClaims, // base64 of alice key
-		"XWubgVAkP8ug1MD+9JqFuMYvKE6phwFYRC/9ALdvFss=": bobClaims,   // base64 of bob key
+		aliceSha256: aliceClaims, // base64 of alice key
+		bobSha256:   bobClaims,   // base64 of bob key
 	}
 
 	// TLS certs
@@ -126,9 +130,7 @@ func (s *authenticatorTestSuite) TestAuthenticateAPIKey() {
 	ctx := context.Background()
 
 	s.Run("should authenticate with api key successfully", func() {
-		aliceKey, _ := base64.StdEncoding.DecodeString(aliceAPIKey)
-
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, aliceKey)
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, []byte(aliceAPIKey))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), "Alice", userInfo.Username)
@@ -139,27 +141,23 @@ func (s *authenticatorTestSuite) TestAuthenticateAPIKey() {
 	})
 
 	s.Run("should authenticate an api key successfully with wildcard permissions", func() {
-		bobKey, _ := base64.StdEncoding.DecodeString(bobAPIKey)
-
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, bobKey)
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, []byte(bobAPIKey))
 
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), entities.NewWildcardUser().Permissions, userInfo.Permissions)
 	})
 
 	s.Run("should return UnauthorizedError if api key is not found", func() {
-		invalidKey, _ := base64.StdEncoding.DecodeString("invalid-key")
-		userInfo, err := s.auth.AuthenticateAPIKey(ctx, invalidKey)
+		userInfo, err := s.auth.AuthenticateAPIKey(ctx, []byte("invalid-key"))
 
 		require.Nil(s.T(), userInfo)
 		assert.True(s.T(), errors.IsUnauthorizedError(err))
 	})
 
 	s.Run("should return UnauthorizedError if the authentication method is not enabled", func() {
-		aliceKey, _ := base64.StdEncoding.DecodeString(aliceAPIKey)
 		auth := New(nil, nil, nil, s.logger)
 
-		userInfo, err := auth.AuthenticateAPIKey(ctx, aliceKey)
+		userInfo, err := auth.AuthenticateAPIKey(ctx, []byte(aliceAPIKey))
 
 		require.Nil(s.T(), userInfo)
 		assert.True(s.T(), errors.IsUnauthorizedError(err))
