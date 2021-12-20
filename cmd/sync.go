@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"context"
-
 	auth "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/auth/service/roles"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	storesservice "github.com/consensys/quorum-key-manager/src/stores"
 	manifeststores "github.com/consensys/quorum-key-manager/src/stores/api/manifest"
-	vaultsservice "github.com/consensys/quorum-key-manager/src/vaults"
 	manifestvaults "github.com/consensys/quorum-key-manager/src/vaults/api/manifest"
 	"github.com/consensys/quorum-key-manager/src/vaults/service/vaults"
 
@@ -21,9 +20,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-func newImportCmd() *cobra.Command {
+func newSyncCommand() *cobra.Command {
 	var logger *zap.Logger
-	var vaultsService vaultsservice.Vaults
 	var storesService storesservice.Stores
 	var mnfs map[string][]entities.Manifest
 	var storeName string
@@ -53,14 +51,15 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			// Instantiate services
-			vaultService := vaults.New(nil, logger)
-			storesService = stores.NewConnector(nil, postgres.New(logger, postgresClient), vaultsService, logger)
-
-			// Register vaults and stores
+			// Instantiate register vaults
+			roles := roles.New(logger)
+			vaultService := vaults.New(roles, logger)
 			if err := manifestvaults.NewVaultsHandler(vaultService).Register(ctx, mnfs[entities.VaultKind]); err != nil {
 				return err
 			}
+
+			// Instantiate register stores
+			storesService = stores.NewConnector(roles, postgres.New(logger, postgresClient), vaultService, logger)
 			if err := manifeststores.NewStoresHandler(storesService).Register(ctx, mnfs[entities.StoreKind]); err != nil {
 				return err
 			}
@@ -98,7 +97,7 @@ func newImportCmd() *cobra.Command {
 		Use:   "ethereum",
 		Short: "indexing ethereum accounts remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return storesService.ImportKeys(cmd.Context(), storeName, userInfo)
+			return storesService.ImportEthereum(cmd.Context(), storeName, userInfo)
 		},
 	}
 	syncCmd.AddCommand(syncEthereumCmd)

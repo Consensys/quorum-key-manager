@@ -19,7 +19,7 @@ func NewCommand() *cobra.Command {
 
 	rootCmd.AddCommand(newRunCommand())
 	rootCmd.AddCommand(newMigrateCommand())
-	rootCmd.AddCommand(newImportCmd())
+	rootCmd.AddCommand(newSyncCommand())
 
 	return rootCmd
 }
