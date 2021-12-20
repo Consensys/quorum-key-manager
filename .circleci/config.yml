@@ -281,8 +281,6 @@ workflows:
           filters:
             branches:
               only: main
-            tags:
-              only: /^v.*/
           requires:
             - e2e
 #      - deploy-qa:
