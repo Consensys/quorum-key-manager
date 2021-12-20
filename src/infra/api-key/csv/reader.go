@@ -2,11 +2,8 @@ package csv
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	csv2 "encoding/csv"
 	"fmt"
-	"hash"
 	"io"
 	"os"
 
@@ -18,15 +15,14 @@ const (
 	csvSeparator         = ','
 	csvCommentsMarker    = '#'
 	csvRowLen            = 4
-	csvHashOffset        = 0
+	csvAPIKeyHash        = 0
 	csvUserOffset        = 1
 	csvPermissionsOffset = 2
 	csvRolesOffset       = 3
 )
 
 type Reader struct {
-	path   string
-	hasher hash.Hash
+	path string
 }
 
 var _ apikey.Reader = &Reader{}
@@ -37,7 +33,7 @@ func New(cfg *Config) (*Reader, error) {
 		return nil, err
 	}
 
-	return &Reader{path: cfg.Path, hasher: sha256.New()}, nil
+	return &Reader{path: cfg.Path}, nil
 }
 
 func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error) {
@@ -65,14 +61,7 @@ func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error
 			return nil, fmt.Errorf("invalid number of cells, should be %d", csvRowLen)
 		}
 
-		r.hasher.Reset()
-		_, err = r.hasher.Write([]byte(cells[csvHashOffset]))
-		if err != nil {
-			return nil, fmt.Errorf("failed to hash api key")
-		}
-
-		apiKeyHash := base64.StdEncoding.EncodeToString(r.hasher.Sum(nil))
-		claims[apiKeyHash] = &entities.UserClaims{
+		claims[cells[csvAPIKeyHash]] = &entities.UserClaims{
 			Subject: cells[csvUserOffset],
 			Scope:   cells[csvPermissionsOffset],
 			Roles:   cells[csvRolesOffset],
