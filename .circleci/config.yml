@@ -23,7 +23,7 @@ commands:
       - run:
           name: Build Quorum Key Manager
           command: >-
-            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=nonroot-debug
+            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=debug-nonroot
             --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
             --label org.opencontainers.image.url="https://consensys.net"
             --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/"
