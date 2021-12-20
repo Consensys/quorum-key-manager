@@ -1,5 +1,9 @@
 # Quorum Key Manager Release Notes
 
+## v21.12.1 (2021-12-20)
+### 🛠 Bug fixes
+* Fixes a bug in the `sync` command that prevent it from running.
+
 ## v21.12.0 LTS (2021-12-14)
 ### 🆕 Features
 * Support for import of secrets, keys and ethereum accounts through command line (`sync` command)
