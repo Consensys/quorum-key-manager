@@ -23,7 +23,7 @@ commands:
       - run:
           name: Build Quorum Key Manager
           command: >-
-            DOCKER_BUILDKIT=1 docker build
+            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=nonroot-debug
             --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
             --label org.opencontainers.image.url="https://consensys.net"
             --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/"
@@ -35,8 +35,7 @@ commands:
             --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
             --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications."
             -q
-            --build-arg VERSION=debug
-            -t ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} .
+            -t quorum-key-manager:${CIRCLE_SHA1:0:7}-dev .
   docker_build_prod:
     description: "Build Quorum Key Manager"
     steps:
@@ -55,7 +54,7 @@ commands:
             --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
             --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications."
             -q
-            -t ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG} .
+            -t quorum-key-manager:${CIRCLE_SHA1:0:7} .
 
   # potential remote environment values
   # - qa
@@ -185,8 +184,10 @@ jobs:
       - run:
           name: Deploy image in repository
           command: |
+            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
             docker push ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
-            docker tag ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:develop
+            
+            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:develop
             docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:develop
 
   release-tag:
@@ -198,12 +199,18 @@ jobs:
           version: 19.03.13
           docker_layer_caching: true
       - prepare_docker
+      - docker_build_dev
       - docker_build_prod
       - run:
           name: Release tagged version
           command: |
+            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
             docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
-            docker tag ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
+
+            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}-debug
+            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}-debug
+            
+            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
             docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
 
   deploy-qa:
