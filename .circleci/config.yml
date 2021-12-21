@@ -71,7 +71,7 @@ commands:
       - run:
           name: Build Quorum Key Manager
           command: |
-            echo "Building and pushing image ${DOCKER_IMAGE_TAG} with platforms ${DOCKER_IMAGE_PLATFORMS}. ${CIRCLE_TAG-branch}"
+            echo "Building and pushing image ${DOCKER_IMAGE_TAG} using platforms ${DOCKER_IMAGE_PLATFORMS}..."
             DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
               --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
               --label org.opencontainers.image.url="https://consensys.net" \
@@ -230,8 +230,7 @@ jobs:
           command: |
             echo 'export DOCKER_IMAGE_PLATFORMS="<< parameters.docker-image-platforms >>"' >> $BASH_ENV
             echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
-            echo "export DOCKER_IMAGE_TAG=\"$<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
-            cat $BASH_ENV
+            echo "export DOCKER_IMAGE_TAG=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
       - docker_multiarch_build
 
   push-dev-image:
@@ -317,74 +316,100 @@ workflows:
           filters:
             branches:
               only: 763-multi_arch
-#      - lint:
+      - lint:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - gobuild:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - acceptance:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - e2e:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: main
+          requires:
+            - acceptance
+            - test
+            - gobuild
+      - push-multi-image: # Dev image
+          context:
+            - dockerhub-quorumengineering-ro
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
+          docker-image-tag: quorum-key-manager:${CIRCLE_SHA1:0:7}
+          filters:
+            branches:
+              only: main
+          requires:
+            - e2e
+#      - deploy-qa:
 #          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - gobuild:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - test:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - acceptance:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - e2e:
-#          filters:
-#            tags:
-#              only: /^v.*/
 #            branches:
 #              only: main
 #          requires:
-#            - acceptance
-#            - test
-#            - gobuild
-#      - push-dev-image:
-#          filters:
-#            branches:
-#              only: main
-#          requires:
-#            - e2e
-##      - deploy-qa:
-##          filters:
-##            branches:
-##              only: main
-##          requires:
-##            - push-dev-image
-#      - wait-for-approval:
-#          type: approval
-#          requires:
-#            - e2e
+#            - push-dev-image
+      - wait-for-approval:
+          type: approval
+          requires:
+            - e2e
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - push-multi-image: # Push prod image
+          context:
+            - dockerhub-quorumengineering-ro
+          docker-image-platforms: linux/amd64,linux/arm64
+          docker-distroless-version: nonroot
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          docker-image-tag: quorum-key-manager:${CIRCLE_TAG}
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+      - push-multi-image: # Push prod debug image
+          context:
+            - dockerhub-quorumengineering-ro
+          docker-image-platforms: linux/amd64,linux/arm64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          docker-image-tag: quorum-key-manager:${CIRCLE_TAG}-debug
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+#      - deploy-staging:
 #          filters:
 #            tags:
 #              only: /^v.*/
 #            branches:
 #              ignore: /.*/
-#      - release-tag:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              ignore: /.*/
 #          requires:
-#            - wait-for-approval
-##      - deploy-staging:
-##          filters:
-##            tags:
-##              only: /^v.*/
-##            branches:
-##              ignore: /.*/
-##          requires:
-##            - release-tag
+#            - release-tag
