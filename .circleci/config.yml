@@ -71,6 +71,7 @@ commands:
       - run:
           name: Build Quorum Key Manager
           command: |
+            echo "Building and pushing image ${DOCKER_IMAGE_TAG} with platforms ${DOCKER_IMAGE_PLATFORMS}. ${CIRCLE_TAG-branch}"
             DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
               --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
               --label org.opencontainers.image.url="https://consensys.net" \
@@ -206,9 +207,17 @@ jobs:
     docker:
       - image: cimg/base:2021.12
     resource_class: xlarge
-    environment:
-      DOCKER_IMAGE_PLATFORMS: "linux/amd64"
-      DOCKER_IMAGE_VERSION: debug-nonroot
+    parameters: # parameters are at the job level
+      docker-image-platforms:
+        type: string
+        default: linux/amd64
+      docker-distroless-version:
+        type: string
+        default: nonroot
+      docker-image-registry:
+        type: string
+      docker-image-tag:
+        type: string
     steps:
       - checkout
       - setup_remote_docker:
@@ -219,7 +228,10 @@ jobs:
       - run:
           name: Set environment
           command: |
-            echo 'export DOCKER_IMAGE_TAG=${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:multiarch-draft-alpha.3' >> $BASH_ENV
+            echo 'export DOCKER_IMAGE_PLATFORMS="<< parameters.docker-image-platforms >>"' >> $BASH_ENV
+            echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
+            echo "export DOCKER_IMAGE_TAG=\"$<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
+            cat $BASH_ENV
       - docker_multiarch_build
 
   push-dev-image:
@@ -298,6 +310,10 @@ workflows:
       - push-multi-image:
           context:
             - dockerhub-quorumengineering-ro
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: DOCKER_REGISTRY_DEV_REPO
+          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.3
           filters:
             branches:
               only: 763-multi_arch
