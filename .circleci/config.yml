@@ -60,6 +60,7 @@ commands:
           command: source $BASH_ENV
       - run:
           name: Build Quorum Key Manager
+          no_output_timeout: 30m
           command: |
             echo "Building and pushing image ${DOCKER_IMAGE_TAG} using platforms ${DOCKER_IMAGE_PLATFORMS}..."
             DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
@@ -77,6 +78,7 @@ commands:
               -t ${DOCKER_IMAGE_TAG} \
               -q \
               . 
+            
 
 
   # potential remote environment values
@@ -253,6 +255,16 @@ workflows:
   version: 2
   default:
     jobs:
+      - build-push-docker-image:
+          name: push-test-image
+          matrix:
+            parameters:
+              docker-image-tag: ["quorum-key-manager:multiarch-draft-alpha.5"]
+          docker-image-platforms: linux/arm64
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          filters:
+            branches:
+              only: 763-multi_arch
       - lint:
           filters:
             tags:
