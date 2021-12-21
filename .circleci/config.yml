@@ -17,16 +17,6 @@ commands:
           command: |
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
             echo $DOCKER_PASS_2 | docker login -u $DOCKER_USER_2 --password-stdin $DOCKER_REGISTRY_2
-  prepare_docker_trust:
-    description: "Docker trust"
-    steps:
-      - run:
-          name: DCT signing setup
-          command: |
-            mkdir -p $HOME/.docker/trust/private
-            echo $DCT_KEY | base64 --decode > $HOME/.docker/trust/private/$DCT_HASH.key
-            chmod 600 $HOME/.docker/trust/private/$DCT_HASH.key
-            docker trust key load $HOME/.docker/trust/private/$DCT_HASH.key --name opsquorum
   prepare_docker_buildx:
     description: "Docker buildx setup"
     parameters:
@@ -302,8 +292,6 @@ workflows:
           matrix:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
-          context:
-            - dockerhub-quorumengineering-ro
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
@@ -332,8 +320,6 @@ workflows:
           matrix:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
-          context:
-            - dockerhub-quorumengineering-ro
           docker-image-platforms: linux/amd64,linux/arm64
           docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
           filters:
@@ -345,8 +331,6 @@ workflows:
             - wait-for-approval
       - build-push-docker-image: # Push prod image
           name: release-tag-debug
-          context:
-            - dockerhub-quorumengineering-ro
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
