@@ -17,44 +17,76 @@ commands:
           command: |
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
             echo $DOCKER_PASS_2 | docker login -u $DOCKER_USER_2 --password-stdin $DOCKER_REGISTRY_2
-  docker_build_dev:
-    description: "Build Quorum Key Manager - dev mode"
+  prepare_docker_trust:
+    description: "Docker trust"
     steps:
       - run:
-          name: Build Quorum Key Manager
-          command: >-
-            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=debug-nonroot
-            --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-            --label org.opencontainers.image.url="https://consensys.net"
-            --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/"
-            --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}"
-            --label org.opencontainers.image.version="branch"
-            --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}"
-            --label org.opencontainers.image.vendor="ConsenSys Software Inc."
-            --label org.opencontainers.image.licenses="BUSL-1.1"
-            --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
-            --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications."
-            -q
-            -t quorum-key-manager:${CIRCLE_SHA1:0:7}-dev .
-  docker_build_prod:
-    description: "Build Quorum Key Manager"
+          name: DCT signing setup
+          command: |
+            mkdir -p $HOME/.docker/trust/private
+            echo $DCT_KEY | base64 --decode > $HOME/.docker/trust/private/$DCT_HASH.key
+            chmod 600 $HOME/.docker/trust/private/$DCT_HASH.key
+            docker trust key load $HOME/.docker/trust/private/$DCT_HASH.key --name opsquorum
+  prepare_docker_buildx:
+    description: "Docker buildx setup"
+    parameters:
+      qemu-user-static-version:
+        default: 6.1.0-8
+        description: The version of qemu-user-static to use.
+        type: string
+      version:
+        default: 0.7.1
+        description: The version of buildx to install.
+        type: string
     steps:
       - run:
+          name: Install Docker buildx
+          command: |
+            mkdir -p ~/.docker/cli-plugins
+            wget "https://github.com/docker/buildx/releases/download/v<< parameters.version >>/buildx-v<< parameters.version >>.linux-amd64" -O ~/.docker/cli-plugins/docker-buildx
+            chmod a+x ~/.docker/cli-plugins/docker-buildx
+      - run:
+          name: Enable experimental Docker features
+          command: echo 'export DOCKER_CLI_EXPERIMENTAL=enabled' >> $BASH_ENV
+      - run:
+          name: Start multiarch/qemu-user-static container
+          command: |
+            docker run --rm --privileged multiarch/qemu-user-static:<< parameters.qemu-user-static-version >> --reset -p yes
+      - run:
+          name: Create docker-multiarch builder
+          command: |
+            docker context create docker-multiarch
+            DOCKER_CONTEXT=$(docker buildx create --use docker-multiarch --platform linux/amd64,linux/arm64)
+            docker buildx inspect --builder ${DOCKER_CONTEXT} --bootstrap
+            docker buildx use ${DOCKER_CONTEXT}
+      - run:
+          command: docker buildx install
+          name: Initialize Docker buildx
+  docker_multiarch_build:
+    description: "Build multiarch Quorum Key Manager image"
+    steps:
+      - run:
+          name: Load environment
+          command: source $BASH_ENV
+      - run:
           name: Build Quorum Key Manager
-          command: >-
-            DOCKER_BUILDKIT=1 docker build
-            --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-            --label org.opencontainers.image.url="https://consensys.net"
-            --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/"
-            --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}"
-            --label org.opencontainers.image.version="${CIRCLE_TAG}"
-            --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}"
-            --label org.opencontainers.image.vendor="ConsenSys Software Inc."
-            --label org.opencontainers.image.licenses="BUSL-1.1"
-            --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
-            --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications."
-            -q
-            -t quorum-key-manager:${CIRCLE_SHA1:0:7} .
+          command: |
+            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
+              --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+              --label org.opencontainers.image.url="https://consensys.net" \
+              --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/" \
+              --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}" \
+              --label org.opencontainers.image.version="${CIRCLE_TAG-branch}" \
+              --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}" \
+              --label org.opencontainers.image.vendor="ConsenSys Software Inc." \
+              --label org.opencontainers.image.licenses="BUSL-1.1" \
+              --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}" \
+              --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications." \
+              --platform ${DOCKER_IMAGE_PLATFORMS} --push \
+              -t ${DOCKER_IMAGE_TAG} \
+              -q \
+              . 
+
 
   # potential remote environment values
   # - qa
@@ -170,9 +202,29 @@ jobs:
             sleep 20
             make run-e2e
 
+  push-multi-image:
+    docker:
+      - image: cimg/base:2021.12
+    resource_class: xlarge
+    environment:
+      DOCKER_IMAGE_PLATFORMS: "linux/amd64"
+      DOCKER_IMAGE_VERSION: debug-nonroot
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: true
+      - prepare_docker
+      - prepare_docker_buildx
+      - run:
+          name: Set environment
+          command: |
+            echo 'export DOCKER_IMAGE_TAG=${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:multiarch-draft-alpha.3' >> $BASH_ENV
+      - docker_multiarch_build
+
   push-dev-image:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2021.12
     resource_class: large
     steps:
       - checkout
@@ -192,7 +244,7 @@ jobs:
 
   release-tag:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2021.12
     steps:
       - checkout
       - setup_remote_docker:
@@ -215,7 +267,7 @@ jobs:
 
   deploy-qa:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2021.12
     steps:
       - checkout
       - set_remote_environment_variables
@@ -228,7 +280,7 @@ jobs:
 
   deploy-staging:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2021.12
     steps:
       - checkout
       - set_remote_environment_variables
@@ -243,74 +295,80 @@ workflows:
   version: 2
   default:
     jobs:
-      - lint:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - gobuild:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - test:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - acceptance:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - e2e:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: main
-          requires:
-            - acceptance
-            - test
-            - gobuild
-      - push-dev-image:
+      - push-multi-image:
+          context:
+            - dockerhub-quorumengineering-ro
           filters:
             branches:
-              only: main
-          requires:
-            - e2e
-#      - deploy-qa:
+              only: 763-multi_arch
+#      - lint:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - gobuild:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - test:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - acceptance:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - e2e:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: main
+#          requires:
+#            - acceptance
+#            - test
+#            - gobuild
+#      - push-dev-image:
 #          filters:
 #            branches:
 #              only: main
 #          requires:
-#            - push-dev-image
-      - wait-for-approval:
-          type: approval
-          requires:
-            - e2e
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - release-tag:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - wait-for-approval
-#      - deploy-staging:
+#            - e2e
+##      - deploy-qa:
+##          filters:
+##            branches:
+##              only: main
+##          requires:
+##            - push-dev-image
+#      - wait-for-approval:
+#          type: approval
+#          requires:
+#            - e2e
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#      - release-tag:
 #          filters:
 #            tags:
 #              only: /^v.*/
 #            branches:
 #              ignore: /.*/
 #          requires:
-#            - release-tag
+#            - wait-for-approval
+##      - deploy-staging:
+##          filters:
+##            tags:
+##              only: /^v.*/
+##            branches:
+##              ignore: /.*/
+##          requires:
+##            - release-tag
