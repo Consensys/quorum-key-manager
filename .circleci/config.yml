@@ -203,7 +203,7 @@ jobs:
             sleep 20
             make run-e2e
 
-  push-multi-image:
+  build-push-docker-image:
     docker:
       - image: cimg/base:2021.12
     resource_class: xlarge
@@ -232,49 +232,6 @@ jobs:
             echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
             echo "export DOCKER_IMAGE_TAG=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
       - docker_multiarch_build
-
-  push-dev-image:
-    docker:
-      - image: cimg/base:2021.12
-    resource_class: large
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-          docker_layer_caching: true
-      - prepare_docker
-      - docker_build_dev
-      - run:
-          name: Deploy image in repository
-          command: |
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
-            docker push ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
-            
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:develop
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:develop
-
-  release-tag:
-    docker:
-      - image: cimg/base:2021.12
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-          docker_layer_caching: true
-      - prepare_docker
-      - docker_build_dev
-      - docker_build_prod
-      - run:
-          name: Release tagged version
-          command: |
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
-
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}-debug
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}-debug
-            
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
 
   deploy-qa:
     docker:
@@ -306,11 +263,45 @@ workflows:
   version: 2
   default:
     jobs:
-      - push-multi-image:
-          name: testing
+      - lint:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - gobuild:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - acceptance:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - e2e:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: main
+          requires:
+            - acceptance
+            - test
+            - gobuild
+      - build-push-docker-image: # Dev image
+          name: push-dev-image
           matrix:
             parameters:
-              docker-image-tag: [quorum-key-manager:multiarch-draft-alpha.3, quorum-key-manager:multiarch-draft-alpha.4]
+              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
           context:
             - dockerhub-quorumengineering-ro
           docker-image-platforms: linux/amd64
@@ -318,101 +309,60 @@ workflows:
           docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
           filters:
             branches:
-              only: 763-multi_arch
-#      - lint:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - gobuild:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - test:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - acceptance:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - e2e:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: main
-#          requires:
-#            - acceptance
-#            - test
-#            - gobuild
-#      - push-multi-image: # Dev image
-#          context:
-#            - dockerhub-quorumengineering-ro
-#          docker-image-platforms: linux/amd64
-#          docker-distroless-version: debug-nonroot
-#          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
-#          docker-image-tag: quorum-key-manager:${CIRCLE_SHA1:0:7}
+              only: main
+          requires:
+            - e2e
+#      - deploy-qa:
 #          filters:
 #            branches:
 #              only: main
 #          requires:
-#            - e2e
-##      - deploy-qa:
-##          filters:
-##            branches:
-##              only: main
-##          requires:
-##            - push-dev-image
-#      - wait-for-approval:
-#          type: approval
-#          requires:
-#            - e2e
+#            - push-dev-image
+      - wait-for-approval:
+          type: approval
+          requires:
+            - e2e
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - build-push-docker-image: # Push prod image
+          name: release-tag
+          matrix:
+            parameters:
+              docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
+          context:
+            - dockerhub-quorumengineering-ro
+          docker-image-platforms: linux/amd64,linux/arm64
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+      - build-push-docker-image: # Push prod image
+          name: release-tag-debug
+          context:
+            - dockerhub-quorumengineering-ro
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+#      - deploy-staging:
 #          filters:
 #            tags:
 #              only: /^v.*/
 #            branches:
 #              ignore: /.*/
-#      - push-multi-image: # Push prod image
-#          context:
-#            - dockerhub-quorumengineering-ro
-#          docker-image-platforms: linux/amd64,linux/arm64
-#          docker-distroless-version: nonroot
-#          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-#          docker-image-tag: quorum-key-manager:${CIRCLE_TAG}
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              ignore: /.*/
 #          requires:
-#            - wait-for-approval
-#      - push-multi-image: # Push prod debug image
-#          context:
-#            - dockerhub-quorumengineering-ro
-#          docker-image-platforms: linux/amd64,linux/arm64
-#          docker-distroless-version: debug-nonroot
-#          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-#          docker-image-tag: quorum-key-manager:${CIRCLE_TAG}-debug
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              ignore: /.*/
-#          requires:
-#            - wait-for-approval
-##      - deploy-staging:
-##          filters:
-##            tags:
-##              only: /^v.*/
-##            branches:
-##              ignore: /.*/
-##          requires:
-##            - release-tag
+#            - release-tag
