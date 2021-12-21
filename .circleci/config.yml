@@ -17,44 +17,69 @@ commands:
           command: |
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
             echo $DOCKER_PASS_2 | docker login -u $DOCKER_USER_2 --password-stdin $DOCKER_REGISTRY_2
-  docker_build_dev:
-    description: "Build Quorum Key Manager - dev mode"
+  prepare_docker_buildx:
+    description: "Docker buildx setup"
+    parameters:
+      qemu-user-static-version:
+        default: 6.1.0-8
+        description: The version of qemu-user-static to use.
+        type: string
+      version:
+        default: 0.7.1
+        description: The version of buildx to install.
+        type: string
     steps:
       - run:
-          name: Build Quorum Key Manager
-          command: >-
-            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=debug-nonroot
-            --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-            --label org.opencontainers.image.url="https://consensys.net"
-            --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/"
-            --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}"
-            --label org.opencontainers.image.version="branch"
-            --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}"
-            --label org.opencontainers.image.vendor="ConsenSys Software Inc."
-            --label org.opencontainers.image.licenses="BUSL-1.1"
-            --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
-            --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications."
-            -q
-            -t quorum-key-manager:${CIRCLE_SHA1:0:7}-dev .
-  docker_build_prod:
-    description: "Build Quorum Key Manager"
+          name: Install Docker buildx
+          command: |
+            mkdir -p ~/.docker/cli-plugins
+            wget "https://github.com/docker/buildx/releases/download/v<< parameters.version >>/buildx-v<< parameters.version >>.linux-amd64" -O ~/.docker/cli-plugins/docker-buildx
+            chmod a+x ~/.docker/cli-plugins/docker-buildx
+      - run:
+          name: Enable experimental Docker features
+          command: echo 'export DOCKER_CLI_EXPERIMENTAL=enabled' >> $BASH_ENV
+      - run:
+          name: Start multiarch/qemu-user-static container
+          command: |
+            docker run --rm --privileged multiarch/qemu-user-static:<< parameters.qemu-user-static-version >> --reset -p yes
+      - run:
+          name: Create docker-multiarch builder
+          command: |
+            docker context create docker-multiarch
+            DOCKER_CONTEXT=$(docker buildx create --use docker-multiarch --platform linux/amd64,linux/arm64)
+            docker buildx inspect --builder ${DOCKER_CONTEXT} --bootstrap
+            docker buildx use ${DOCKER_CONTEXT}
+      - run:
+          command: docker buildx install
+          name: Initialize Docker buildx
+  docker_multiarch_build:
+    description: "Build multiarch Quorum Key Manager image"
     steps:
       - run:
+          name: Load environment
+          command: source $BASH_ENV
+      - run:
           name: Build Quorum Key Manager
-          command: >-
-            DOCKER_BUILDKIT=1 docker build
-            --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-            --label org.opencontainers.image.url="https://consensys.net"
-            --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/"
-            --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}"
-            --label org.opencontainers.image.version="${CIRCLE_TAG}"
-            --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}"
-            --label org.opencontainers.image.vendor="ConsenSys Software Inc."
-            --label org.opencontainers.image.licenses="BUSL-1.1"
-            --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}"
-            --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications."
-            -q
-            -t quorum-key-manager:${CIRCLE_SHA1:0:7} .
+          no_output_timeout: 60m
+          command: |
+            echo "Building and pushing image ${DOCKER_IMAGE_TAG} using platforms ${DOCKER_IMAGE_PLATFORMS}..."
+            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
+              --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+              --label org.opencontainers.image.url="https://consensys.net" \
+              --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/" \
+              --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}" \
+              --label org.opencontainers.image.version="${CIRCLE_TAG-branch}" \
+              --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}" \
+              --label org.opencontainers.image.vendor="ConsenSys Software Inc." \
+              --label org.opencontainers.image.licenses="BUSL-1.1" \
+              --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}" \
+              --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications." \
+              --platform ${DOCKER_IMAGE_PLATFORMS} --push \
+              -t ${DOCKER_IMAGE_TAG} \
+              -q \
+              . 
+            
+
 
   # potential remote environment values
   # - qa
@@ -170,52 +195,39 @@ jobs:
             sleep 20
             make run-e2e
 
-  push-dev-image:
+  build-push-docker-image:
     docker:
-      - image: cimg/base:2020.01
-    resource_class: large
+      - image: cimg/base:2021.12
+    resource_class: xlarge
+    parameters: # parameters are at the job level
+      docker-image-platforms:
+        type: string
+        default: linux/amd64
+      docker-distroless-version:
+        type: string
+        default: nonroot
+      docker-image-registry:
+        type: string
+      docker-image-tag:
+        type: string
     steps:
       - checkout
       - setup_remote_docker:
           version: 19.03.13
           docker_layer_caching: true
       - prepare_docker
-      - docker_build_dev
+      - prepare_docker_buildx
       - run:
-          name: Deploy image in repository
+          name: Set environment
           command: |
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
-            docker push ${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager:${CIRCLE_SHA1:0:7}
-            
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:develop
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:develop
-
-  release-tag:
-    docker:
-      - image: cimg/base:2020.01
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-          docker_layer_caching: true
-      - prepare_docker
-      - docker_build_dev
-      - docker_build_prod
-      - run:
-          name: Release tagged version
-          command: |
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}
-
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7}-dev ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}-debug
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:${CIRCLE_TAG}-debug
-            
-            docker tag quorum-key-manager:${CIRCLE_SHA1:0:7} ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
-            docker push ${DOCKER_REGISTRY_REPO_2}/quorum-key-manager:latest
+            echo 'export DOCKER_IMAGE_PLATFORMS="<< parameters.docker-image-platforms >>"' >> $BASH_ENV
+            echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
+            echo "export DOCKER_IMAGE_TAG=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
+      - docker_multiarch_build
 
   deploy-qa:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2021.12
     steps:
       - checkout
       - set_remote_environment_variables
@@ -228,7 +240,7 @@ jobs:
 
   deploy-staging:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2021.12
     steps:
       - checkout
       - set_remote_environment_variables
@@ -277,7 +289,14 @@ workflows:
             - acceptance
             - test
             - gobuild
-      - push-dev-image:
+      - build-push-docker-image: # Dev image
+          name: push-dev-image
+          matrix:
+            parameters:
+              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
           filters:
             branches:
               only: main
@@ -298,7 +317,26 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - release-tag:
+      - build-push-docker-image: # Push prod image
+          name: release-tag
+          matrix:
+            parameters:
+              docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
+          docker-image-platforms: linux/amd64,linux/arm64
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+      - build-push-docker-image: # Push prod image
+          name: release-tag-debug
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
           filters:
             tags:
               only: /^v.*/
