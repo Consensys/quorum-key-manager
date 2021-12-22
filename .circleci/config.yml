@@ -13,6 +13,9 @@ commands:
     description: "Docker login"
     steps:
       - run:
+          name: Enable experimental Docker features
+          command: echo 'export DOCKER_CLI_EXPERIMENTAL=enabled' >> $BASH_ENV
+      - run:
           name: Docker login
           command: |
             echo "Login in $DOCKER_REGISTRY with user $DOCKER_USER"
@@ -37,9 +40,6 @@ commands:
             mkdir -p ~/.docker/cli-plugins
             wget "https://github.com/docker/buildx/releases/download/v<< parameters.version >>/buildx-v<< parameters.version >>.linux-amd64" -O ~/.docker/cli-plugins/docker-buildx
             chmod a+x ~/.docker/cli-plugins/docker-buildx
-      - run:
-          name: Enable experimental Docker features
-          command: echo 'export DOCKER_CLI_EXPERIMENTAL=enabled' >> $BASH_ENV
       - run:
           name: Start multiarch/qemu-user-static container
           command: |
@@ -108,14 +108,16 @@ commands:
             echo $DCT_KEY | base64 --decode > $HOME/.docker/trust/private/$DCT_HASH.key
             chmod 600 $HOME/.docker/trust/private/$DCT_HASH.key
             docker trust key load $HOME/.docker/trust/private/$DCT_HASH.key --name opsquorum
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: false
       - run:
           name: Sign Quorum Key Manager image
           environment:
             NOTARY_SERVER: https://notary.docker.io
-            DOCKER_CONTENT_TRUST: 1
           command: |
-            alias dockernotary="notary -c $HOME/.docker/trust/config.json -d $HOME/.docker/trust/ -s $NOTARY_SERVER"
-            
+            alias dockernotary="notary -s https://notary.docker.io -d ~/.docker/trust"
+            export NOTARY_ROOT_PASSPHRASE="${DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE}"
             MANIFEST_DESCRIPTOR_PATH=".Descriptor"
             REPO="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 1)"
             TAG="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 2)"
@@ -128,19 +130,19 @@ commands:
             
             dockernotary key list 
 
+            echo "Manifest contents:\n"
             MANIFEST_FROM_REG="$(docker manifest inspect "${DOCKER_IMAGE_REF}" -v)"
+            printf "${MANIFEST_FROM_REG}" | jq -r "${MANIFEST_DESCRIPTOR_PATH} | \"Architecture: \" + .platform.architecture + .platform.variant + \", digest: \" + .digest"
+
             SHA_256="$(printf "${MANIFEST_FROM_REG}" | jq "${MANIFEST_DESCRIPTOR_PATH}.digest" | uniq | cut -d ':' -f 2 | cut -d '"' -f 1)"
             echo "Manifest SHA-256: ${SHA_256}"
-            BYTES_SIZE="$(printf "${MANIFEST_FROM_REG}" | jq -r '${MANIFEST_DESCRIPTOR_PATH}.size' | uniq)"
+            BYTES_SIZE="$(printf "${MANIFEST_FROM_REG}" | jq -r "${MANIFEST_DESCRIPTOR_PATH}.size" | uniq)"
             echo "Manifest-inspect BYTES: ${BYTES_SIZE}"
-            echo "Manifest contents:\n"
-            printf "${MANIFEST_FROM_REG}" | jq -r '${MANIFEST_DESCRIPTOR_PATH} | "Architecture: " + .platform.architecture + .platform.variant + ", digest: " + .digest'
 
             export NOTARY_AUTH="$(cat ~/.docker/config.json | jq -r '.auths."https://index.docker.io/v1/".auth')"
-            echo "@TODO: Remove this message -> NOTARY_AUTH $NOTARY_AUTH"
 
             for sha256v in $SHA_256; do
-              dockernotary addhash "${REPO}" "${TAG}" "${BYTES_SIZE}" --sha256 "${sha256v}" --publish --verbose
+              dockernotary addhash -p docker.io/"${REPO}" "${TAG}" "${BYTES_SIZE}" --sha256 "${sha256v}" --publish --verbose
             done
 
             dockernotary list "${REPO}"
@@ -343,31 +345,31 @@ workflows:
   version: 2
   default:
     jobs:
-      - build-push-docker-image:
-          name: push-image-test
-          context:
-            - dockerhub-quorumengineering-rw
-            - dockerhub-opsquorum-dct
-          docker-image-platforms: linux/amd64,linux/arm64
-          docker-distroless-version: debug-nonroot
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.8
-          filters:
-            branches:
-              only: 763-sign_docker_image
+#      - build-push-docker-image:
+#          name: push-image-test
+#          context:
+#            - dockerhub-quorumengineering-rw
+#            - dockerhub-opsquorum-dct
+#          docker-image-platforms: linux/amd64,linux/arm64
+#          docker-distroless-version: debug-nonroot
+#          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+#          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.8
+#          filters:
+#            branches:
+#              only: 763-sign_docker_image
       - docker-sign-image:
           name: sign-image-test
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
           docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.8
-          docker-image-multi: true
+          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.1
+          docker-image-multi: false
           filters:
             branches:
               only: 763-sign_docker_image
-          requires:
-            - push-image-test
+#          requires:
+#            - push-image-test
 #      - lint:
 #          filters:
 #            tags:
