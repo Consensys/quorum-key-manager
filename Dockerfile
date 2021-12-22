@@ -3,6 +3,8 @@ ARG VERSION=nonroot
 # Build the manager binary
 FROM golang:1.16 as builder
 
+ARG TARGETOS
+ARG TARGETARCH
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on 
 	
@@ -22,7 +24,7 @@ RUN go mod download
 COPY . .
 
 # Build
-RUN go build -a -o /bin/main main.go
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -o /bin/main main.go
 RUN upx /bin/main
 
 # Use distroless as minimal base image to package the manager binary

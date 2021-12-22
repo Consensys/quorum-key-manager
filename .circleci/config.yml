@@ -15,8 +15,10 @@ commands:
       - run:
           name: Docker login
           command: |
+            echo "Login in $DOCKER_REGISTRY with user $DOCKER_USER"
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
-            echo $DOCKER_PASS_2 | docker login -u $DOCKER_USER_2 --password-stdin $DOCKER_REGISTRY_2
+            echo "Login in $DOCKER_REGISTRY_2 with user $DOCKER_USER_RW"
+            echo $DOCKER_PASSWORD_RW | docker login -u $DOCKER_USER_RW --password-stdin $DOCKER_REGISTRY_2
   prepare_docker_buildx:
     description: "Docker buildx setup"
     parameters:
@@ -112,6 +114,8 @@ commands:
             NOTARY_SERVER: https://notary.docker.io
             DOCKER_CONTENT_TRUST: 1
           command: |
+            alias dockernotary="notary -c $HOME/.docker/trust/config.json -d $HOME/.docker/trust/ -s $NOTARY_SERVER"
+            
             MANIFEST_DESCRIPTOR_PATH=".Descriptor"
             REPO="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 1)"
             TAG="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 2)"
@@ -122,7 +126,7 @@ commands:
               MANIFEST_DESCRIPTOR_PATH=".[].Descriptor"
             fi
             
-            notary key list -d ~/.docker/trust/
+            dockernotary key list 
 
             MANIFEST_FROM_REG="$(docker manifest inspect "${DOCKER_IMAGE_REF}" -v)"
             SHA_256="$(printf "${MANIFEST_FROM_REG}" | jq "${MANIFEST_DESCRIPTOR_PATH}.digest" | uniq | cut -d ':' -f 2 | cut -d '"' -f 1)"
@@ -136,10 +140,10 @@ commands:
             echo "@TODO: Remove this message -> NOTARY_AUTH $NOTARY_AUTH"
 
             for sha256v in $SHA_256; do
-              notary -d ~/.docker/trust/ -s "$NOTARY_SERVER" addhash "${REPO}" "${TAG}" "${BYTES_SIZE}" --sha256 "${sha256v}" --publish --verbose
+              dockernotary addhash "${REPO}" "${TAG}" "${BYTES_SIZE}" --sha256 "${sha256v}" --publish --verbose
             done
 
-            notary -s "$NOTARY_SERVER" list "${REPO}"
+            dockernotary list "${REPO}"
             unset NOTARY_AUTH;
             
 
@@ -341,18 +345,22 @@ workflows:
     jobs:
       - build-push-docker-image:
           name: push-image-test
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
           docker-image-platforms: linux/amd64,linux/arm64
           docker-distroless-version: debug-nonroot
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
           docker-image-tag: quorum-key-manager:multiarch-draft-alpha.8
-          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
           filters:
             branches:
               only: 763-sign_docker_image
       - docker-sign-image:
           name: sign-image-test
           context:
+            - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
-          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
           docker-image-tag: quorum-key-manager:multiarch-draft-alpha.8
           docker-image-multi: true
           filters:
