@@ -93,7 +93,7 @@ commands:
       - run:
           name: Install Notary binary
           command: |
-            wget "https://github.com/notaryproject/notary/releases/download/v<< parameters.version >>/notary-Linux-amd64" -O /usr/local/bin/notary
+            sudo wget "https://github.com/notaryproject/notary/releases/download/v<< parameters.version >>/notary-Linux-amd64" -O /usr/local/bin/notary
             sudo chmod a+x /usr/local/bin/notary
       - run: 
           name: install jq if missing
@@ -108,30 +108,31 @@ commands:
             docker trust key load $HOME/.docker/trust/private/$DCT_HASH.key --name opsquorum
       - run:
           name: Sign Quorum Key Manager image
+          environment:
+            NOTARY_SERVER: https://notary.docker.io
+            DOCKER_CONTENT_TRUST: 1
           command: |
-            NOTARY_SERVER = https://notary.docker.io
             REPO="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 1)";
             TAG="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 2)";
-
-            notary key list -d ~/.docker/trust/
-
-            SHA_256="$(docker manifest push "${DOCKER_IMAGE_REF}" --purge | cut -d ':' -f 2)";
-            echo "Manifest SHA-256: ${SHA_256}";
             echo "Image-repo: ${REPO}";
             echo "Image-tag: ${TAG}";
+            
+            notary key list -d ~/.docker/trust/
 
             MANIFEST_FROM_REG="$(docker manifest inspect "${DOCKER_IMAGE_REF}" -v)";
-            BYTES_SIZE="$(printf "${MANIFEST_FROM_REG}" | jq -r '.[].Descriptor.size' | uniq)";
+            echo "@TODO: Use array descriptors such as '[].Descriptor...'"
+            SHA_256="$(printf "${MANIFEST_FROM_REG}" | jq '.Descriptor.digest' | uniq | cut -d ':' -f 2 | cut -d '"' -f 1)";
+            echo "Manifest SHA-256: ${SHA_256}";
+            BYTES_SIZE="$(printf "${MANIFEST_FROM_REG}" | jq -r '.Descriptor.size' | uniq)";
             echo "Manifest-inspect BYTES: ${BYTES_SIZE}";
             echo "Manifest contents:\n";
-            printf "${MANIFEST_FROM_REG}" | jq -r '.[].Descriptor | "Architecture: " + .platform.architecture + .platform.variant + ", digest: " + .digest';
+            printf "${MANIFEST_FROM_REG}" | jq -r '.Descriptor | "Architecture: " + .platform.architecture + .platform.variant + ", digest: " + .digest';
 
             export NOTARY_AUTH="$(cat ~/.docker/config.json | jq -r '.auths."https://index.docker.io/v1/".auth')";
-            echo "NOTARY_AUTH $NOTARY_AUTH (TO REMOVE)"
-            echo "Sign ${SHA_256} with the notary"
+            echo "@TODO: Remove this message -> NOTARY_AUTH $NOTARY_AUTH"
             notary -d ~/.docker/trust/ -s "$NOTARY_SERVER" addhash "${REPO}" "${TAG}" "${BYTES_SIZE}" --sha256 "${SHA_256}" ${ROLE_CLI} --publish --verbose;
 
-            notary -s "NOTARY_SERVER" list "${REPO}";
+            notary -s "$NOTARY_SERVER" list "${REPO}";
             unset NOTARY_AUTH;
             
 
@@ -295,7 +296,7 @@ jobs:
             echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
             echo "export DOCKER_IMAGE_REF=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
       - docker_multiarch_build
-      - docker_notary_sign
+#      - docker_notary_sign
 
   deploy-qa:
     docker:
@@ -327,15 +328,26 @@ workflows:
   version: 2
   default:
     jobs:
+      - build-push-docker-image:
+          name: push-image-test
+          docker-image-platforms: linux/amd64,linux/arm64
+          docker-distroless-version: debug-nonroot
+          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.6
+          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
+          filters:
+            branches:
+              only: 763-sign_docker_image
       - docker-sign-image:
           name: sign-image-test
           context:
             - dockerhub-opsquorum-dct
           docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
-          docker-image-tag: multiarch-draft-alpha.1
+          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.6
           filters:
             branches:
               only: 763-sign_docker_image
+          requires:
+            - push-image-test
 #      - lint:
 #          filters:
 #            tags:
