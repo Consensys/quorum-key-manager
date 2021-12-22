@@ -79,8 +79,13 @@ commands:
               -q \
               . 
 
-  docker_sign_image:
+  docker_notary_sign:
     description: "Sign multiarch Quorum Key Manager image"
+    parameters:
+      version:
+        default: 0.6.1
+        description: The version of notary to install.
+        type: string
     steps:
       - run:
           name: Load environment
@@ -88,10 +93,8 @@ commands:
       - run:
           name: Install Notary binary
           command: |
-            export GO111MODULE=on
-            go get github.com/theupdateframework/notary
-            go install -tags pkcs11 github.com/theupdateframework/notary/cmd/notary@v0.6.1
-            notary --version
+            wget "https://github.com/notaryproject/notary/releases/download/v<< parameters.version >>/notary-Linux-amd64" -O /usr/local/bin/notary
+            sudo chmod a+x /usr/local/bin/notary
       - run: 
           name: install jq if missing
           command: >-
@@ -246,6 +249,23 @@ jobs:
             sleep 20
             make run-e2e
 
+  docker-sign-image:
+    docker:
+      - image: cimg/base:2021.12
+    resource_class: large
+    parameters: # parameters are at the job level
+      docker-image-registry:
+        type: string
+      docker-image-tag:
+        type: string
+    steps:
+      - prepare_docker
+      - run:
+          name: Set environment
+          command: |
+            echo "export DOCKER_IMAGE_REF=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
+      - docker_notary_sign
+          
   build-push-docker-image:
     docker:
       - image: cimg/base:2021.12
@@ -259,10 +279,8 @@ jobs:
         default: nonroot
       docker-image-registry:
         type: string
-        required: true
       docker-image-tag:
         type: string
-        required: true
     steps:
       - checkout
       - setup_remote_docker:
@@ -270,7 +288,6 @@ jobs:
           docker_layer_caching: true
       - prepare_docker
       - prepare_docker_buildx
-      - prepare_docker_trust
       - run:
           name: Set environment
           command: |
@@ -278,7 +295,7 @@ jobs:
             echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
             echo "export DOCKER_IMAGE_REF=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
       - docker_multiarch_build
-      - docker_sign_image
+      - docker_notary_sign
 
   deploy-qa:
     docker:
@@ -310,106 +327,115 @@ workflows:
   version: 2
   default:
     jobs:
-      - lint:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - gobuild:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - test:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - acceptance:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: /.*/
-      - e2e:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: main
-          requires:
-            - acceptance
-            - test
-            - gobuild
-      - build-push-docker-image: # Dev image
-          name: push-dev-image
-          matrix:
-            parameters:
-              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
+      - docker-sign-image:
+          name: sign-image-test
           context:
             - dockerhub-opsquorum-dct
-          docker-image-platforms: linux/amd64
-          docker-distroless-version: debug-nonroot
           docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
+          docker-image-tag: multiarch-draft-alpha.1
           filters:
             branches:
-              only: main
-          requires:
-            - e2e
-#      - deploy-qa:
+              only: 763-sign_docker_image
+#      - lint:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - gobuild:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - test:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - acceptance:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: /.*/
+#      - e2e:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              only: main
+#          requires:
+#            - acceptance
+#            - test
+#            - gobuild
+#      - build-push-docker-image: # Dev image
+#          name: push-dev-image
+#          matrix:
+#            parameters:
+#              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
+#          context:
+#            - dockerhub-opsquorum-dct
+#          docker-image-platforms: linux/amd64
+#          docker-distroless-version: debug-nonroot
+#          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
 #          filters:
 #            branches:
 #              only: main
 #          requires:
-#            - push-dev-image
-      - wait-for-approval:
-          type: approval
-          requires:
-            - e2e
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - build-push-docker-image: # Push prod image
-          name: release-tag
-          matrix:
-            parameters:
-              docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
-          context:
-            - dockerhub-opsquorum-dct
-          docker-image-platforms: linux/amd64,linux/arm64
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - wait-for-approval
-      - build-push-docker-image: # Push prod image
-          name: release-tag-debug
-          context:
-            - dockerhub-opsquorum-dct
-          docker-image-platforms: linux/amd64
-          docker-distroless-version: debug-nonroot
-          docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - wait-for-approval
-#      - deploy-staging:
+#            - e2e
+##      - deploy-qa:
+##          filters:
+##            branches:
+##              only: main
+##          requires:
+##            - push-dev-image
+#      - wait-for-approval:
+#          type: approval
+#          requires:
+#            - e2e
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#      - build-push-docker-image: # Push prod image
+#          name: release-tag
+#          matrix:
+#            parameters:
+#              docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
+#          context:
+#            - dockerhub-opsquorum-dct
+#          docker-image-platforms: linux/amd64,linux/arm64
+#          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
 #          filters:
 #            tags:
 #              only: /^v.*/
 #            branches:
 #              ignore: /.*/
 #          requires:
-#            - release-tag
+#            - wait-for-approval
+#      - build-push-docker-image: # Push prod image
+#          name: release-tag-debug
+#          context:
+#            - dockerhub-opsquorum-dct
+#          docker-image-platforms: linux/amd64
+#          docker-distroless-version: debug-nonroot
+#          docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
+#          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#          requires:
+#            - wait-for-approval
+##      - deploy-staging:
+##          filters:
+##            tags:
+##              only: /^v.*/
+##            branches:
+##              ignore: /.*/
+##          requires:
+##            - release-tag
