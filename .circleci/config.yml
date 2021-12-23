@@ -111,24 +111,32 @@ commands:
       - setup_remote_docker:
           version: 19.03.13
           docker_layer_caching: false
+      - run: 
+          name: Set alias server
+          environment:
+            NOTARY_SERVER: https://notary.docker.io
+          command: alias dockernotary="notary -s https://notary.docker.io -d ~/.docker/trust"
       - run:
           name: Sign Quorum Key Manager image
           environment:
             NOTARY_SERVER: https://notary.docker.io
           command: |
-            alias dockernotary="notary -s https://notary.docker.io -d ~/.docker/trust"
             export NOTARY_ROOT_PASSPHRASE="${DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE}"
-            MANIFEST_DESCRIPTOR_PATH=".Descriptor"
             REPO="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 1)"
             TAG="$(echo "${DOCKER_IMAGE_REF}" | cut -d ':' -f 2)"
             echo "Image-repo: ${REPO}"
             echo "Image-tag: ${TAG}"
-            
+
+            AUTH_BASIC_FROM_DOCKER_CREDS_IN_BASE64="$(cat ~/.docker/config.json | jq -r '.auths."https://index.docker.io/v1/".auth')"
+            DT="$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${REPO}:pull" -H "Authorization: Basic ${AUTH_BASIC_FROM_DOCKER_CREDS_IN_BASE64}" | jq -r '.token')"
+            export NOTARY_AUTH="${AUTH_BASIC_FROM_DOCKER_CREDS_IN_BASE64}"
+
+            MANIFEST_DESCRIPTOR_PATH=".Descriptor"
             if [ $DOCKER_MULTI_IMAGE == "true" ]; then
               MANIFEST_DESCRIPTOR_PATH=".[].Descriptor"
             fi
-            
-            dockernotary key list 
+
+            notary key list -s https://notary.docker.io -d ~/.docker/trust 
 
             echo "Manifest contents:\n"
             MANIFEST_FROM_REG="$(docker manifest inspect "${DOCKER_IMAGE_REF}" -v)"
@@ -142,11 +150,10 @@ commands:
             export NOTARY_AUTH="$(cat ~/.docker/config.json | jq -r '.auths."https://index.docker.io/v1/".auth')"
 
             for sha256v in $SHA_256; do
-              dockernotary addhash -p docker.io/"${REPO}" "${TAG}" "${BYTES_SIZE}" --sha256 "${sha256v}" --publish --verbose
+              notary addhash -s https://notary.docker.io -d ~/.docker/trust -p docker.io/"${REPO}" "${TAG}" "${BYTES_SIZE}" --sha256 "${sha256v}" --publish --verbose
             done
 
-            dockernotary list "${REPO}"
-            unset NOTARY_AUTH;
+            notary list "${REPO}" -s https://notary.docker.io -d ~/.docker/trust
             
 
   # potential remote environment values
