@@ -14,7 +14,7 @@ commands:
     steps:
       - run:
           name: Enable experimental Docker features
-          command: echo 'export DOCKER_CLI_EXPERIMENTAL=enabled' >> $BASH_ENV
+          command: export DOCKER_CLI_EXPERIMENTAL=enabled
       - run:
           name: Docker login
           command: |
@@ -61,57 +61,6 @@ commands:
       - run:
           command: docker buildx install
           name: Initialize Docker buildx
-  docker_multiarch_build:
-    description: "Multiarch Quorum Key Manager image"
-    steps:
-      - run:
-          name: Load environment
-          command: source $BASH_ENV
-      - run:
-          name: Build, sign and push Quorum Key Manager
-          no_output_timeout: 60m
-          command: |
-            for PLATFORM in $DOCKER_IMAGE_PLATFORMS; do
-              TARGETOS="$(echo "${PLATFORM}" | cut -d '/' -f 1)"
-              TARGETARCH="$(echo "${PLATFORM}" | cut -d '/' -f 2)"
-              
-              echo "Building and pushing image ${DOCKER_IMAGE_TAG} for {os:${TARGETOS}, arch:$TARGETARCH}..."
-            
-              if [ $TARGETOS != "linux" ]; then
-                echo "Targeted OS not supported $TARGETOS"
-                exit 1
-              fi
-            
-              if [ $TARGETARCH == "amd64" ]; then
-                DOCKER_IMAGE_TAG="${DOCKER_IMAGE_REF}"
-              else
-                DOCKER_IMAGE_TAG="${DOCKER_IMAGE_REF}-${TARGETARCH}"
-              fi
-
-              DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
-                --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-                --label org.opencontainers.image.url="https://consensys.net" \
-                --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/" \
-                --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}" \
-                --label org.opencontainers.image.version="${CIRCLE_TAG-branch}" \
-                --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}" \
-                --label org.opencontainers.image.vendor="ConsenSys Software Inc." \
-                --label org.opencontainers.image.licenses="BUSL-1.1" \
-                --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}" \
-                --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications." \
-                --platform ${PLATFORM} \
-                --load -t ${DOCKER_IMAGE_TAG} \
-                -q \
-                . 
-
-                if [ $DOCKER_IMAGE_SIGN == "true" ]; then
-                  echo "Signing docker image ${DOCKER_IMAGE_TAG}..."
-                  docker trust sign "${DOCKER_IMAGE_TAG}"
-                fi
-            
-                echo "Pushing docker image ${DOCKER_IMAGE_TAG}..."
-                docker push "${DOCKER_IMAGE_TAG}"
-            done
 
   # potential remote environment values
   # - qa
@@ -227,7 +176,7 @@ jobs:
             sleep 20
             make run-e2e
           
-  build-push-docker-image:
+  build-docker-image:
     docker:
       - image: cimg/base:2021.12
     resource_class: xlarge
@@ -253,13 +202,57 @@ jobs:
       - prepare_docker
       - prepare_docker_buildx
       - run:
-          name: Set environment
+          name: Set environment settings
           command: |
-            echo 'export DOCKER_IMAGE_SIGN="<< parameters.docker-image-sign >>"' >> $BASH_ENV
-            echo 'export DOCKER_IMAGE_PLATFORMS="<< parameters.docker-image-platforms >>"' >> $BASH_ENV
-            echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
-            echo "export DOCKER_IMAGE_REF=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
-      - docker_multiarch_build
+            export DOCKER_IMAGE_SIGN="<< parameters.docker-image-sign >>"
+            export DOCKER_IMAGE_PLATFORMS="<< parameters.docker-image-platforms >>"
+            export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"
+            export DOCKER_IMAGE_REF="<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>"
+      - run:
+          name: Set environment settings
+          no_output_timeout: 60m
+          command: |
+            for PLATFORM in $DOCKER_IMAGE_PLATFORMS; do
+              TARGETOS="$(echo "${PLATFORM}" | cut -d '/' -f 1)"
+              TARGETARCH="$(echo "${PLATFORM}" | cut -d '/' -f 2)"
+
+              if [ $TARGETOS != "linux" ]; then
+                echo "Targeted OS not supported $TARGETOS"
+                exit 1
+              fi
+
+              if [ $TARGETARCH == "amd64" ]; then
+                DOCKER_IMAGE_TAG="${DOCKER_IMAGE_REF}"
+              else
+                DOCKER_IMAGE_TAG="${DOCKER_IMAGE_REF}.${TARGETARCH}"
+              fi
+
+              echo "Building image ${DOCKER_IMAGE_TAG} for {os:${TARGETOS}, arch:$TARGETARCH}..."
+              DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
+                --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+                --label org.opencontainers.image.url="https://consensys.net" \
+                --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/" \
+                --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}" \
+                --label org.opencontainers.image.version="${CIRCLE_TAG-branch}" \
+                --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}" \
+                --label org.opencontainers.image.vendor="ConsenSys Software Inc." \
+                --label org.opencontainers.image.licenses="BUSL-1.1" \
+                --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}" \
+                --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications." \
+                --platform ${PLATFORM} \
+                --load -t ${DOCKER_IMAGE_TAG} \
+                -q \
+                . 
+
+                if [ $DOCKER_IMAGE_SIGN == "true" ]; then
+                  echo "Signing docker image ${DOCKER_IMAGE_TAG}..."
+                  docker trust sign "${DOCKER_IMAGE_TAG}"
+                fi
+
+                echo "Pushing docker image ${DOCKER_IMAGE_TAG}..."
+                docker push "${DOCKER_IMAGE_TAG}"
+            done
+            
 
   deploy-qa:
     docker:
@@ -291,121 +284,110 @@ workflows:
   version: 2
   default:
     jobs:
-      - build-push-docker-image:
-          name: push-image-test
+      - lint:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - gobuild:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - acceptance:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+      - e2e:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: main
+          requires:
+            - acceptance
+            - test
+            - gobuild
+      - build-docker-image: # Push Dev image
+          name: push-dev-image
+          matrix:
+            parameters:
+              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
-          docker-image-platforms: "linux/amd64 linux/arm64"
-          docker-distroless-version: nonroot
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-          docker-image-tag: quorum-key-manager:multiarch-draft-alpha.6
-          docker-image-sign: true
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
           filters:
             branches:
-              only: 763-sign_docker_image
-#          requires:
-#            - push-image-test
-#      - lint:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - gobuild:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - test:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - acceptance:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: /.*/
-#      - e2e:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              only: main
-#          requires:
-#            - acceptance
-#            - test
-#            - gobuild
-#      - build-push-docker-image: # Dev image
-#          name: push-dev-image
-#          matrix:
-#            parameters:
-#              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
-#          context:
-#            - dockerhub-opsquorum-dct
-#          docker-image-platforms: linux/amd64
-#          docker-distroless-version: debug-nonroot
-#          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
+              only: main
+          requires:
+            - e2e
+#      - deploy-qa:
 #          filters:
 #            branches:
 #              only: main
 #          requires:
-#            - e2e
-##      - deploy-qa:
-##          filters:
-##            branches:
-##              only: main
-##          requires:
-##            - push-dev-image
-#      - wait-for-approval:
-#          type: approval
-#          requires:
-#            - e2e
+#            - push-dev-image
+      - wait-for-approval:
+          type: approval
+          requires:
+            - e2e
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - build-docker-image: # Push prod image
+          name: release-tag
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+          matrix:
+            parameters:
+              docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
+          docker-image-platforms: "linux/amd64 linux/arm64"
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          docker-image-sign: true
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+      - build-docker-image: # Push prod debug image
+          name: release-debug-tag
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
+          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+#      - deploy-staging:
 #          filters:
 #            tags:
 #              only: /^v.*/
 #            branches:
 #              ignore: /.*/
-#      - build-push-docker-image: # Push prod image
-#          name: release-tag
-#          matrix:
-#            parameters:
-#              docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
-#          context:
-#            - dockerhub-opsquorum-dct
-#          docker-image-platforms: linux/amd64,linux/arm64
-#          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              ignore: /.*/
 #          requires:
-#            - wait-for-approval
-#      - build-push-docker-image: # Push prod image
-#          name: release-tag-debug
-#          context:
-#            - dockerhub-opsquorum-dct
-#          docker-image-platforms: linux/amd64
-#          docker-distroless-version: debug-nonroot
-#          docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
-#          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              ignore: /.*/
-#          requires:
-#            - wait-for-approval
-##      - deploy-staging:
-##          filters:
-##            tags:
-##              only: /^v.*/
-##            branches:
-##              ignore: /.*/
-##          requires:
-##            - release-tag
+#            - release-tag
