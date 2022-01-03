@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 type Config struct {
@@ -23,16 +24,16 @@ type Config struct {
 	Resource            string
 }
 
-func NewConfig(vaultName, tenantID, clientID, clientSecret string) *Config {
+func NewConfig(cfg *entities.AzureConfig) *Config {
 	return &Config{
-		Endpoint:     fmt.Sprintf("https://%s.%s", vaultName, azure.PublicCloud.KeyVaultDNSSuffix),
-		TenantID:     tenantID,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		Endpoint:     fmt.Sprintf("https://%s.%s", cfg.VaultName, azure.PublicCloud.KeyVaultDNSSuffix),
+		TenantID:     cfg.TenantID,
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
 	}
 }
 
-// ToAzureAuthConfig Inspired by NewAuthorizerFromEnvironmentWithResource from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
+// ToAzureAuthConfig  Inspired by NewAuthorizerFromEnvironmentWithResource from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
 func (c *Config) ToAzureAuthConfig() (autorest.Authorizer, error) {
 	resource, err := c.getResource()
 	if err != nil {
@@ -70,7 +71,7 @@ func (c *Config) getResource() (string, error) {
 	return resource, nil
 }
 
-// Inspired by GetSettingsFromEnvironment from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
+// Inspired  by GetSettingsFromEnvironment from github.com/azure/go-autorest/autorest/azure/auth@v0.5.7/auth.go (https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go)
 func (c *Config) getSettings() (s auth.EnvironmentSettings, err error) {
 	s = auth.EnvironmentSettings{
 		Values: map[string]string{},

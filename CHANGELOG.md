@@ -1,20 +1,29 @@
 # Quorum Key Manager Release Notes
 
-## v21.X.0 (WIP)
+## v21.12.1 (2021-12-20)
+### 🛠 Bug fixes
+* Fixes a bug in the `sync` command that prevent it from running.
 
+## v21.12.0 LTS (2021-12-14)
 ### 🆕 Features
-* Support for import of secrets, keys and ethereum accounts through command line (`import` command)
+* Support for import of secrets, keys and ethereum accounts through command line (`sync` command)
+* Support for alias management on `/registries/{registryName}/aliases`
+* Support Token Issuer Servers to validate JWTs. Environment variable `AUTH_JWT_ISSUER_URL` and `AUTH_JWT_AUDIENCE`
 
 ### 🛠 Changes
 * Env var `AUTH_OIDC_CA_CERT` and flag `--auth-oidc-ca-cert` renamed to `AUTH_OIDC_PUB_KEY` and `--auth-oidc-pub-key`
+* Manifest definition changes introducing the new kind `Vault`. See the documentation for more information.
+* Removed usage of `AUTH_JWT_CERTIFICATE` in favor of `AUTH_JWT_ISSUER_URL` and `AUTH_JWT_AUDIENCE`
+
+## v21.9.3 (2021-11-10)
+### 🛠 Bug fixes
+* Fixes bug in Hashicorp client that prevents the process from exiting when a new token is written or updated from filesystem.
 
 ## v21.9.2 (2021-10-18)
-
 ### 🛠 Bug fixes
 * Use comma as column separator in CSV file for API key definition
 
 ## v21.9.1 (2021-10-05)
-
 ### 🛠 Bug fixes
 * Enabled support for TLS communication with Hashicorp Vault
 
@@ -35,5 +44,4 @@ Initial release of the Quorum Key Manager
 * Support for PostgreSQL migrations through command line
 
 ### 🐛 Know issues
-
 * Communication between HashiCorp Vault and Quorum Key Manager cannot use TLS

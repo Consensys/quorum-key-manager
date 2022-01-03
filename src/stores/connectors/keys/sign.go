@@ -3,15 +3,15 @@ package keys
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/entities"
 
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 )
 
 func (c Connector) Sign(ctx context.Context, id string, data []byte, algo *entities.Algorithm) ([]byte, error) {
 	logger := c.logger.With("id", id)
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionSign, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&authentities.Operation{Action: authentities.ActionSign, Resource: authentities.ResourceKey})
 	if err != nil {
 		return nil, err
 	}

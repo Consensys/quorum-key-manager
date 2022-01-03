@@ -1,33 +1,55 @@
-- kind: HashicorpSecrets
+- kind: Store
+  type: secret
   name: hashicorp-secrets
-  # allowedTenants: ['{REPLACE BY ALLOWED TENANT ID}']
+  # allowed_tenants: []
   specs:
-    mountPoint: secret
-    address: http://hashicorp:8200
-    tokenPath: /vault/token/.root
-    namespace: ''
-- kind: HashicorpKeys
+    vault: hashicorp-kv-v2
+
+- kind: Store
+  type: key
   name: hashicorp-keys
+  # allowed_tenants: []
   specs:
-    mountPoint: quorum
-    address: http://hashicorp:8200
-    tokenPath: /vault/token/.root
-    namespace: ''
-- kind: LocalKeys
+    vault: hashicorp-quorum
+
+- kind: Store
+  type: secret
+  name: akv-secrets
+  # allowed_tenants: []
+  specs:
+    vault: akv-europe
+
+- kind: Store
+  type: key
+  name: akv-keys
+  # allowed_tenants: []
+  specs:
+    vault: akv-europe
+
+- kind: Store
+  type: secret
+  name: aws-secrets
+  # allowed_tenants: []
+  specs:
+    vault: aws-europe
+
+- kind: Store
+  type: key
+  name: aws-keys
+  # allowed_tenants: []
+  specs:
+    vault: aws-europe
+
+- kind: Store
+  type: key
   name: local-keys
+  # allowed_tenants: []
   specs:
-    secretstore: HashicorpSecrets
-    specs:
-      mountPoint: secret
-      address: http://hashicorp:8200
-      tokenPath: /vault/token/.root
-      namespace: ''
-- kind: Ethereum
+    secret_store: hashicorp-secrets
+
+- kind: Store
+  type: ethereum
   name: eth-accounts
+  # allowed_tenants: []
   specs:
-    keystore: HashicorpKeys
-    specs:
-      mountPoint: quorum
-      address: http://hashicorp:8200
-      tokenPath: /vault/token/.root
-      namespace: ''
+    key_store: hashicorp-keys

@@ -6,21 +6,20 @@ import (
 	"net/url"
 	"strings"
 
-	nodesmanager "github.com/consensys/quorum-key-manager/src/nodes"
-
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
+	auth "github.com/consensys/quorum-key-manager/src/auth/api/http"
 	http2 "github.com/consensys/quorum-key-manager/src/infra/http"
+	"github.com/consensys/quorum-key-manager/src/nodes"
 	"github.com/gorilla/mux"
 )
 
 type NodesAPI struct {
-	nodes nodesmanager.Service
+	nodes nodes.Nodes
 }
 
 // New creates a http.Handler to be served on JSON-RPC
-func New(mngr nodesmanager.Service) *NodesAPI {
+func New(nodesService nodes.Nodes) *NodesAPI {
 	return &NodesAPI{
-		nodes: mngr,
+		nodes: nodesService,
 	}
 }
 
@@ -67,8 +66,7 @@ func (h *NodesAPI) serveHTTPDownstream(rw http.ResponseWriter, req *http.Request
 	ctx := req.Context()
 	nodeName := mux.Vars(req)["nodeName"]
 
-	userInfo := authenticator.UserInfoContextFromContext(ctx)
-	n, err := h.nodes.Node(req.Context(), nodeName, userInfo)
+	n, err := h.nodes.Get(req.Context(), nodeName, auth.UserInfoFromContext(ctx))
 	if err != nil {
 		http2.WriteHTTPErrorResponse(rw, err)
 		return

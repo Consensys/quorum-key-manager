@@ -28,8 +28,10 @@ func newRunCommand() *cobra.Command {
 	flags.HTTPFlags(runCmd.Flags())
 	flags.ManifestFlags(runCmd.Flags())
 	flags.LoggerFlags(runCmd.Flags())
-	flags.AuthFlags(runCmd.Flags())
 	flags.PGFlags(runCmd.Flags())
+	flags.OIDCFlags(runCmd.Flags())
+	flags.APIKeyFlags(runCmd.Flags())
+	flags.TLSFlags(runCmd.Flags())
 
 	return runCmd
 }
@@ -49,7 +51,7 @@ func runCmd(cmd *cobra.Command, _ []string) error {
 	}
 	defer syncZapLogger(logger)
 
-	appli, err := app.New(cfg, logger)
+	appli, err := app.New(ctx, cfg, logger)
 	if err != nil {
 		logger.WithError(err).Error("could not create app")
 		return err

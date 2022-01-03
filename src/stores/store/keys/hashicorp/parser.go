@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"time"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -20,9 +22,9 @@ func parseAPISecretToKey(hashicorpSecret *api.Secret) (*entities.Key, error) {
 	key := &entities.Key{
 		ID:        hashicorpSecret.Data[idLabel].(string),
 		PublicKey: pubKey,
-		Algo: &entities.Algorithm{
-			Type:          entities.KeyType(hashicorpSecret.Data[algorithmLabel].(string)),
-			EllipticCurve: entities.Curve(hashicorpSecret.Data[curveLabel].(string)),
+		Algo: &entities2.Algorithm{
+			Type:          entities2.KeyType(hashicorpSecret.Data[algorithmLabel].(string)),
+			EllipticCurve: entities2.Curve(hashicorpSecret.Data[curveLabel].(string)),
 		},
 		Metadata: &entities.Metadata{
 			Disabled: false,

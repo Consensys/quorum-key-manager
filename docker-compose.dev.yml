@@ -12,7 +12,7 @@ x-default-variables: &default-variables
   DB_TLS_CERT: ${DB_TLS_CERT-}
   DB_TLS_KEY: ${DB_TLS_KEY-}
   DB_TLS_CA: ${DB_TLS_CA-}
-  DB_HOST: ${DB_HOST-}
+  DB_HOST: ${DB_HOST-postgres}
   DB_PORT: ${DB_PORT-}
   DB_DATABASE: ${DB_DATABASE-}
   DB_POOLSIZE: ${DB_POOLSIZE-}
@@ -41,7 +41,7 @@ services:
     <<: *container-common
     environment:
       <<: *default-variables
-      AUTH_OIDC_PUB_KEY: ${AUTH_OIDC_PUB_KEY-}
+      AUTH_OIDC_AUDIENCE: ${AUTH_OIDC_AUDIENCE-}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
       HTTPS_ENABLED: ${HTTPS_ENABLED-}
       HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-}
@@ -70,29 +70,19 @@ services:
       - ./deps/config/oidc:/oidc:ro
       - hashicorp-token:/vault/token:ro
 
-  generate-jwt:
-    <<: *container-common
-    environment:
-      <<: *default-variables
-      AUTH_OIDC_PRIV_KEY: ${AUTH_OIDC_PRIV_KEY-}
-    volumes:
-      - ./build/bin/key-manager:/bin/main:ro
-      - ./deps/config/oidc:/oidc:ro
-    command: utils generate-jwt --sub=${SUB-tenant0|user0} --scope=${SCOPE-"*:*"} --expiration=${EXPIRATION-72h}
-
-  import:
+  sync:
     <<: *container-common
     networks:
       - hashicorp
       - qkm
     environment:
       <<: *default-variables
-      IMPORT_STORE_NAME: ${IMPORT_STORE_NAME-}
+      SYNC_STORE_NAME: ${SYNC_STORE_NAME-}
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
       - ./deps/config/manifests:/manifests:ro
       - hashicorp-token:/vault/token:ro
-    command: import ${IMPORT_STORE_TYPE-secrets}
+    command: sync ${SYNC_STORE_TYPE-secrets}
 
 networks:
   quorum:

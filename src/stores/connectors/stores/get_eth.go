@@ -3,20 +3,21 @@ package stores
 import (
 	"context"
 
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+	"github.com/consensys/quorum-key-manager/src/stores/entities"
+
 	"github.com/consensys/quorum-key-manager/src/auth"
 
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
 	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-	authtypes "github.com/consensys/quorum-key-manager/src/auth/types"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 	"github.com/consensys/quorum-key-manager/src/stores"
 )
 
 func (c *Connector) Ethereum(ctx context.Context, storeName string, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
-	permissions := c.authManager.UserPermissions(userInfo)
+	permissions := c.roles.UserPermissions(ctx, userInfo)
 	resolver := authorizator.New(permissions, userInfo.Tenant, c.logger)
 
 	store, err := c.getEthStore(ctx, storeName, resolver)
@@ -31,7 +32,7 @@ func (c *Connector) Ethereum(ctx context.Context, storeName string, userInfo *au
 func (c *Connector) EthereumByAddr(ctx context.Context, addr common.Address, userInfo *authtypes.UserInfo) (stores.EthStore, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	ethStores, err := c.List(ctx, manifest.Ethereum, userInfo)
+	ethStores, err := c.List(ctx, entities.EthereumStoreType, userInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func (c *Connector) getEthStore(ctx context.Context, storeName string, resolver 
 		return nil, err
 	}
 
-	if storeInfo.StoreType != manifest.Ethereum {
+	if storeInfo.StoreType != entities.EthereumStoreType {
 		errMessage := "not an ethereum store"
 		c.logger.Error(errMessage, "store_name", storeName)
 		return nil, errors.NotFoundError(errMessage)

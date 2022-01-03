@@ -4,168 +4,178 @@ package acceptancetests
 
 import (
 	"context"
-	"math/rand"
-	"os"
-	"testing"
-	"time"
-
-	"github.com/consensys/quorum-key-manager/src/stores/connectors/utils"
-
-	"github.com/consensys/quorum-key-manager/src/auth/authorizator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
-
-	"github.com/consensys/quorum-key-manager/pkg/common"
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
-	eth "github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
+	"github.com/consensys/quorum-key-manager/src/aliases/service/registries"
+	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
+	"github.com/consensys/quorum-key-manager/src/auth/service/authorizator"
+	"github.com/consensys/quorum-key-manager/src/auth/service/roles"
+	"github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/consensys/quorum-key-manager/src/infra/hashicorp/client"
+	"github.com/consensys/quorum-key-manager/src/stores/connectors/ethereum"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/keys"
 	"github.com/consensys/quorum-key-manager/src/stores/connectors/secrets"
+	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/database/postgres"
 	hashicorpkey "github.com/consensys/quorum-key-manager/src/stores/store/keys/hashicorp"
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
-	hashicorpsecret "github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
+	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
+	utilsservice "github.com/consensys/quorum-key-manager/src/utils/service/utils"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
+	"github.com/hashicorp/vault/api"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
-type storeTestSuite struct {
+type acceptanceTestSuite struct {
 	suite.Suite
-	env *IntegrationEnvironment
-	err error
+	env                  *IntegrationEnvironment
+	auth                 *authorizator.Authorizator
+	utils                *utilsservice.Utilities
+	hashicorpKvv2Client  *client.HashicorpVaultClient
+	hasicorpPluginClient *client.HashicorpVaultClient
+	db                   database.Database
+	err                  error
 }
 
-func (s *storeTestSuite) SetupSuite() {
-	err := StartEnvironment(s.env.ctx, s.env)
-	if err != nil {
-		s.err = err
-		s.T().Error(err)
-		return
-	}
+func (s *acceptanceTestSuite) SetupSuite() {
+	err := StartEnvironment(context.Background(), s.env)
+	require.NoError(s.T(), err)
+
+	s.hashicorpKvv2Client, err = client.NewClient(client.NewConfig(&entities.HashicorpConfig{
+		MountPoint: "secret",
+		Address:    s.env.hashicorpAddress,
+	}))
+	require.NoError(s.T(), err)
+
+	s.hasicorpPluginClient, err = client.NewClient(client.NewConfig(&entities.HashicorpConfig{
+		MountPoint: "quorum",
+		Address:    s.env.hashicorpAddress,
+	}))
+	require.NoError(s.T(), err)
+
+	s.hashicorpKvv2Client.SetToken(s.env.hashicorpToken)
+	s.hasicorpPluginClient.SetToken(s.env.hashicorpToken)
+
+	err = s.hasicorpPluginClient.Mount("quorum", &api.MountInput{
+		Type:        "plugin",
+		Description: "Quorum Hashicorp Vault Plugin",
+		Config: api.MountConfigInput{
+			ForceNoCache:              true,
+			PassthroughRequestHeaders: []string{"X-Vault-Namespace"},
+		},
+		PluginName: utils.HashicorpPluginFilename,
+	})
+	require.NoError(s.T(), err)
+
+	s.auth = authorizator.New(authtypes.ListPermissions(), "", s.env.logger)
+	s.utils = utilsservice.New(s.env.logger)
+	s.db = postgres.New(s.env.logger, s.env.postgresClient)
 
 	s.env.logger.Info("setup test suite has completed")
 }
 
-func (s *storeTestSuite) TearDownSuite() {
+func (s *acceptanceTestSuite) TearDownSuite() {
 	s.env.Teardown(context.Background())
 	if s.err != nil {
 		s.T().Error(s.err)
 	}
 }
 
-func TestKeyManagerStore(t *testing.T) {
-	s := new(storeTestSuite)
-	ctx, cancel := context.WithCancel(context.Background())
+func TestKeyManager(t *testing.T) {
+	env, err := NewIntegrationEnvironment()
+	require.NoError(t, err)
 
-	var err error
-	s.env, err = NewIntegrationEnvironment(ctx)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	sig := common.NewSignalListener(func(signal os.Signal) {
-		cancel()
-	})
-	defer sig.Close()
+	s := new(acceptanceTestSuite)
+	s.env = env
 
 	suite.Run(t, s)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_Secrets() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	db := postgres.New(s.env.logger.WithComponent("Secrets-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
-
-	// Hashicorp
-	storeName := "Secrets-Hashicorp"
+func (s *acceptanceTestSuite) TestSecrets() {
+	storeName := "acceptance_secret_store"
 	logger := s.env.logger.WithComponent(storeName)
+	db := s.db.Secrets(storeName)
+	secretStore := hashicorp.New(s.hashicorpKvv2Client, db, s.env.logger)
+
 	testSuite := new(secretsTestSuite)
 	testSuite.env = s.env
-	testSuite.db = db.Secrets(storeName)
-	testSuite.store = secrets.NewConnector(hashicorpsecret.New(s.env.hashicorpClient, testSuite.db, HashicorpSecretMountPoint, logger), db.Secrets(storeName), auth, logger)
+	testSuite.db = db
+	testSuite.store = secrets.NewConnector(secretStore, db, s.auth, logger)
+
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *storeTestSuite) TestKeyManager_Keys() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	db := postgres.New(s.env.logger.WithComponent("Keys-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
-	utilsConnector := utils.NewConnector(s.env.logger)
-
+func (s *acceptanceTestSuite) TestKeys() {
 	// Hashicorp
-	storeName := "Keys-Hashicorp"
+	storeName := "acceptance_key_store_hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
+	db := s.db.Keys(storeName)
+
 	testSuite := new(keysTestSuite)
 	testSuite.env = s.env
-	testSuite.db = db.Keys(storeName)
-	testSuite.store = keys.NewConnector(hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger), db.Keys(storeName), auth, logger)
-	testSuite.utils = utilsConnector
+	testSuite.db = db
+	testSuite.store = keys.NewConnector(hashicorpkey.New(s.hasicorpPluginClient, logger), db, s.auth, logger)
+	testSuite.utils = s.utils
+
 	suite.Run(s.T(), testSuite)
 
 	// Local
-	storeName = "Keys-Local"
+	storeName = "acceptance_key_store_local"
 	logger = s.env.logger.WithComponent(storeName)
+	db = s.db.Keys(storeName)
+	secretsDB := s.db.Secrets(storeName)
+
 	testSuite = new(keysTestSuite)
 	testSuite.env = s.env
-	testSuite.db = db.Keys(storeName)
-	secretsDB := db.Secrets(storeName)
-	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
-	testSuite.store = keys.NewConnector(local.New(hashicorpSecretStore, secretsDB, logger), db.Keys(storeName), auth, logger)
-	testSuite.utils = utilsConnector
+	testSuite.db = db
+	secretStore := hashicorp.New(s.hashicorpKvv2Client, secretsDB, s.env.logger)
+	testSuite.utils = s.utils
+	testSuite.store = keys.NewConnector(local.New(secretStore, secretsDB, logger), db, s.auth, logger)
+
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *storeTestSuite) TestKeyManagerStore_Eth() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
-	db := postgres.New(s.env.logger.WithComponent("Eth-DB"), s.env.postgresClient)
-	auth := authorizator.New(types.ListPermissions(), "", s.env.logger)
-	utilsConnector := utils.NewConnector(s.env.logger)
-
+func (s *acceptanceTestSuite) TestEthereum() {
 	// Hashicorp
-	storeName := "Eth-Hashicorp"
+	storeName := "acceptance_ethereum_store_hashicorp"
 	logger := s.env.logger.WithComponent(storeName)
-	hashicorpStore := hashicorpkey.New(s.env.hashicorpClient, HashicorpKeyMountPoint, logger)
+	db := s.db.ETHAccounts(storeName)
+
 	testSuite := new(ethTestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth.NewConnector(hashicorpStore, db.ETHAccounts(storeName), auth, logger)
-	testSuite.utils = utilsConnector
-	testSuite.db = db.ETHAccounts(storeName)
+	testSuite.db = db
+	testSuite.store = eth.NewConnector(hashicorpkey.New(s.hasicorpPluginClient, logger), db, s.auth, logger)
+	testSuite.utils = s.utils
+
 	suite.Run(s.T(), testSuite)
 
 	// Local
-	storeName = "Eth-Local-Hashicorp"
+	storeName = "acceptance_ethereum_store_local"
 	logger = s.env.logger.WithComponent(storeName)
-	secretsDB := db.Secrets(storeName)
-	hashicorpSecretStore := hashicorpsecret.New(s.env.hashicorpClient, secretsDB, HashicorpSecretMountPoint, logger)
-	localStore := local.New(hashicorpSecretStore, secretsDB, logger)
+	db = s.db.ETHAccounts(storeName)
+	secretsDB := s.db.Secrets(storeName)
+
 	testSuite = new(ethTestSuite)
 	testSuite.env = s.env
-	testSuite.store = eth.NewConnector(localStore, db.ETHAccounts(storeName), auth, logger)
-	testSuite.utils = utilsConnector
-	testSuite.db = db.ETHAccounts(storeName)
+	testSuite.db = db
+	testSuite.utils = s.utils
+	testSuite.store = eth.NewConnector(local.New(hashicorp.New(s.hashicorpKvv2Client, secretsDB, logger), secretsDB, logger), db, s.auth, logger)
+
 	suite.Run(s.T(), testSuite)
 }
 
-func (s *storeTestSuite) TestKeyManagerAliases() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
+func (s *acceptanceTestSuite) TestAliases() {
+	aliasRepository := aliaspg.NewAlias(s.env.postgresClient)
+	registryRepository := aliaspg.NewRegistry(s.env.postgresClient)
+
+	rolesService := roles.New(s.env.logger)
 
 	testSuite := new(aliasStoreTestSuite)
 	testSuite.env = s.env
-	testSuite.srv = aliaspg.NewDatabase(s.env.postgresClient, s.env.logger).Alias()
-	randSrc := rand.NewSource(time.Now().UnixNano())
-	testSuite.rand = rand.New(randSrc)
+	testSuite.aliasService = aliases.New(aliasRepository, registryRepository, rolesService, s.env.logger)
+	testSuite.registryService = registries.New(registryRepository, rolesService, s.env.logger)
+
 	suite.Run(s.T(), testSuite)
 }

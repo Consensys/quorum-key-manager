@@ -5,11 +5,12 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/src/auth/api/http"
+
 	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/consensys/quorum-key-manager/pkg/ethereum"
 	mockethereum "github.com/consensys/quorum-key-manager/pkg/ethereum/mock"
-	"github.com/consensys/quorum-key-manager/src/auth/authenticator"
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	proxynode "github.com/consensys/quorum-key-manager/src/nodes/node/proxy"
 	mockaccounts "github.com/consensys/quorum-key-manager/src/stores/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -20,19 +21,17 @@ func TestEEASendTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, stores := newInterceptor(t, ctrl)
+	i, stores, aliases := newInterceptor(ctrl)
 	accountsStore := mockaccounts.NewMockEthStore(ctrl)
 
-	userInfo := &types.UserInfo{
+	userInfo := &entities.UserInfo{
 		Username:    "username",
 		Roles:       []string{"role1", "role2"},
-		Permissions: []types.Permission{"write:key", "read:key", "sign:key"},
+		Permissions: []entities.Permission{"write:key", "read:key", "sign:key"},
 	}
 	session := proxynode.NewMockSession(ctrl)
 	ctx := proxynode.WithSession(context.TODO(), session)
-	ctx = authenticator.WithUserContext(ctx, &authenticator.UserContext{
-		UserInfo: userInfo,
-	})
+	ctx = http.WithUserInfo(ctx, userInfo)
 
 	cller := mockethereum.NewMockCaller(ctrl)
 	eeaCaller := mockethereum.NewMockEEACaller(ctrl)
@@ -46,7 +45,7 @@ func TestEEASendTransaction(t *testing.T) {
 
 	tests := []*testHandlerCase{
 		{
-			desc:    "Transaction with Privacy Role ID",
+			desc:    "Transaction with Privacy Get ID",
 			handler: i,
 			reqBody: []byte(`{"jsonrpc":"2.0","method":"eea_sendTransaction","params":[{"from":"0x78e6e236592597c09d5c137c2af40aecd42d12a2","gas":"0x5208","gasPrice":"0x9184e72a000","privacyGroupId":"kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M="}],"id":"abcd"}`),
 			ctx:     ctx,
@@ -72,6 +71,10 @@ func TestEEASendTransaction(t *testing.T) {
 
 				// SendRawTransaction
 				eeaCaller.EXPECT().SendRawTransaction(gomock.Any(), ethcommon.FromHex("0xa6122e27")).Return(ethcommon.HexToHash("0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778"), nil)
+
+				aliases.EXPECT().Replace(gomock.Any(), []string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}, userInfo).Return([]string{"KkOjNLmCI6r+mICrC6l+XuEDjFEzQllaMQMpWLl4y1s=", "eLb69r4K8/9WviwlfDiZ4jf97P9czyS3DkKu0QYGLjg="}, nil)
+				aliases.EXPECT().ReplaceSimple(gomock.Any(), "GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", userInfo).Return("GGilEkXLaQ9yhhtbpBT03Me9iYa7U/mWXxrJhnbl1XY=", nil)
+				aliases.EXPECT().Parse("kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M=").Return("", "", false)
 			},
 			expectedRespBody: []byte(`{"jsonrpc":"2.0","result":"0x6052dd2131667ef3e0a0666f2812db2defceaec91c470bb43de92268e8306778","error":null,"id":"abcd"}`),
 		},

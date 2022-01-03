@@ -1,20 +1,19 @@
 package e2e
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"github.com/go-kit/kit/transport/http/jsonrpc"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
 	"time"
 
-	"github.com/consensys/quorum-key-manager/cmd/flags"
 	"github.com/consensys/quorum-key-manager/pkg/client"
-	"github.com/consensys/quorum-key-manager/pkg/jwt"
-	"github.com/consensys/quorum-key-manager/pkg/tls/certificate"
-	"github.com/spf13/viper"
 )
 
 const MaxRetries = 5
@@ -40,38 +39,41 @@ func retryOn(call callFunc, logger logFunc, errMsg string, httpStatusCode, retri
 	return nil
 }
 
-func generateJWT(keyFile, scope, sub string) (string, error) {
-	curDir, _ := os.Getwd()
-	keyFileContent, err := ioutil.ReadFile(path.Join(curDir, keyFile))
-	if err != nil {
-		return "", err
-	}
-
-	var keys [][]byte
-	keys, err = certificate.Decode(keyFileContent, "PRIVATE KEY")
-	if err != nil {
-		return "", err
-	}
-	certKey, err := certificate.ParsePrivateKey(keys[0])
-	if err != nil {
-		return "", err
-	}
-	generator, err := jwt.NewTokenGenerator(certKey)
-	if err != nil {
-		return "", err
-	}
-
-	cfgSubject := viper.GetString(flags.AuthOIDCClaimUsernameViperKey)
-	cfgScope := viper.GetString(flags.AuthOIDCClaimPermissionsViperKey)
-
-	return generator.GenerateAccessToken(map[string]interface{}{
-		cfgSubject: sub,
-		cfgScope:   scope,
-	}, time.Hour)
+type accessTokenResponse struct {
+	AccessToken string `json:"access_token"`
 }
 
-func generateAPIKey(key string) string {
-	return base64.StdEncoding.EncodeToString([]byte(key))
+func getJWT(idpURL, clientID, clientSecret, audience string) (string, error) {
+	body := new(bytes.Buffer)
+	_ = json.NewEncoder(body).Encode(map[string]interface{}{
+		"client_id":     clientID,
+		"client_secret": clientSecret,
+		"audience":      audience,
+		"grant_type":    "client_credentials",
+	})
+
+	resp, err := http.DefaultClient.Post(idpURL, jsonrpc.ContentType, body)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	acessToken := &accessTokenResponse{}
+	if resp.StatusCode == http.StatusOK {
+		if err := json.NewDecoder(resp.Body).Decode(acessToken); err != nil {
+			return "", err
+		}
+
+		return acessToken.AccessToken, nil
+	}
+
+	// Read body
+	respMsg, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return "", fmt.Errorf(string(respMsg))
 }
 
 func generateClientCert(certFile, keyFile string) (*tls.Certificate, error) {
@@ -115,11 +117,12 @@ func (t *testHttpTransport) RoundTrip(req *http.Request) (*http.Response, error)
 				},
 			},
 		}
+	case t.apiKey != "":
+		req.Header.Add("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(t.apiKey))))
 	case t.token != "":
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", t.token))
-	case t.apiKey != "":
-		req.Header.Add("Authorization", fmt.Sprintf("Basic %s", t.apiKey))
 	}
 
 	return defaultTransport.RoundTrip(req)
 }
+		

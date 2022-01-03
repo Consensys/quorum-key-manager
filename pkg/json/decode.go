@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/go-playground/validator/v10"
 )
@@ -20,7 +22,39 @@ func UnmarshalBody(body io.Reader, req interface{}) error {
 		return err
 	}
 
-	err = getValidator().Struct(req)
+	return validateStruct(req)
+}
+
+func UnmarshalJSON(src, dest interface{}) error {
+	bdata, err := MarshalJSON(src)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(bdata, dest)
+	if err != nil {
+		return err
+	}
+
+	return validateStruct(dest)
+}
+
+func UnmarshalYAML(src, dest interface{}) error {
+	bdata, err := yaml.Marshal(src)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(bdata, dest)
+	if err != nil {
+		return err
+	}
+
+	return validateStruct(dest)
+}
+
+func validateStruct(s interface{}) error {
+	err := getValidator().Struct(s)
 	if err != nil {
 		if ves, ok := err.(validator.ValidationErrors); ok {
 			var errMessage string
@@ -31,17 +65,8 @@ func UnmarshalBody(body io.Reader, req interface{}) error {
 			return fmt.Errorf(errMessage)
 		}
 
-		return fmt.Errorf("invalid body")
-	}
-
-	return nil
-}
-
-func UnmarshalJSON(src, dest interface{}) error {
-	bdata, err := MarshalJSON(src)
-	if err != nil {
 		return err
 	}
 
-	return json.Unmarshal(bdata, dest)
+	return nil
 }

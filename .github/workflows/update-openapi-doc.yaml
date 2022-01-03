@@ -2,7 +2,7 @@ name: Update OpenAPI doc
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - 'v*'
 
@@ -14,8 +14,14 @@ jobs:
     name: Update API versions list and specs
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.8
+
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Checkout github pages
         uses: actions/checkout@v2
         with:
@@ -26,7 +32,7 @@ jobs:
         run: |
           make install-swag
           export PATH=$(go env GOPATH)/bin:$PATH
-          GO111MODULE=off swag --version
+          swag --version
           make gen-swagger
 
       - name: Install dependencies

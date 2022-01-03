@@ -1,48 +1,34 @@
 package types
 
-import "github.com/consensys/quorum-key-manager/src/aliases/entities"
+import (
+	"time"
 
-type Alias struct {
-	Key   string   `json:"key"`
-	Value []string `json:"value"`
-
-	registryName string
-}
-
-// FormatEntityAlias format an alias entity to an alias API type.
-func FormatEntityAlias(ent entities.Alias) Alias {
-	return Alias{
-		registryName: ent.RegistryName,
-		Key:          ent.Key,
-		Value:        ent.Value,
-	}
-}
-
-// FormatAlias format an alias API type to an alias entity.
-func FormatAlias(registry, key string, value []string) entities.Alias {
-	return entities.Alias{
-		RegistryName: registry,
-		Key:          key,
-		Value:        value,
-	}
-}
-
-// FormatEntityAliases formats a slice of alias entities into a slice of alias API type.
-func FormatEntityAliases(ents []entities.Alias) []Alias {
-	var als = []Alias{}
-	for _, v := range ents {
-		als = append(als, FormatEntityAlias(v))
-	}
-
-	return als
-}
+	"github.com/consensys/quorum-key-manager/src/entities"
+)
 
 // AliasRequest creates or modifies an alias value.
 type AliasRequest struct {
-	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
+	Kind  string      `json:"type" validate:"required,isAliasKind" example:"string"`
+	Value interface{} `json:"value" validate:"required" example:"my-alias" swaggertype:"string"`
 }
 
 // AliasResponse returns the alias value.
 type AliasResponse struct {
-	Value []string `json:"value" validate:"min=1,unique,dive,base64,required" example:"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=,B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="`
+	Key       string      `json:"key" example:"my-alias"`
+	Kind      string      `json:"type" example:"string"`
+	Value     interface{} `json:"value" example:"my-alias-value" swaggertype:"string"`
+	Registry  string      `json:"registry" example:"my-registry"`
+	CreatedAt time.Time   `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`
+	UpdatedAt time.Time   `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`
+}
+
+func NewAliasResponse(alias *entities.Alias) *AliasResponse {
+	return &AliasResponse{
+		Key:       alias.Key,
+		Kind:      alias.Kind,
+		Value:     alias.Value,
+		Registry:  alias.RegistryName,
+		CreatedAt: alias.CreatedAt,
+		UpdatedAt: alias.UpdatedAt,
+	}
 }

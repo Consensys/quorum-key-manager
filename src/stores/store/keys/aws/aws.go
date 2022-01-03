@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/infra/aws"
@@ -30,15 +32,15 @@ func New(client aws.KmsClient, logger log.Logger) *Store {
 	}
 }
 
-func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
+func (s *Store) Info(context.Context) (*entities.Store, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Create(ctx context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
 	var keyType string
 
 	switch {
-	case alg.Type == entities.Ecdsa && alg.EllipticCurve == entities.Secp256k1:
+	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
 		keyType = kms.CustomerMasterKeySpecEccSecgP256k1
 	default:
 		errMessage := "invalid or not supported elliptic curve and signing algorithm for AWS key creation"
@@ -64,7 +66,7 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities.Algorithm, 
 // Import an externally created key and stores it
 // this feature is not supported by AWS kms
 // always returns errors.ErrNotSupported
-func (s *Store) Import(_ context.Context, _ string, _ []byte, _ *entities.Algorithm, _ *entities.Attributes) (*entities.Key, error) {
+func (s *Store) Import(_ context.Context, _ string, _ []byte, _ *entities2.Algorithm, _ *entities.Attributes) (*entities.Key, error) {
 	err := errors.NotSupportedError("import secret is not supported")
 	s.logger.Warn(err.Error())
 	return nil, err
@@ -220,7 +222,7 @@ func (s *Store) Destroy(_ context.Context, _ string) error {
 	return err
 }
 
-func (s *Store) Sign(ctx context.Context, id string, data []byte, _ *entities.Algorithm) ([]byte, error) {
+func (s *Store) Sign(ctx context.Context, id string, data []byte, _ *entities2.Algorithm) ([]byte, error) {
 	logger := s.logger.With("id", id)
 	keyID, err := s.getAWSKeyID(ctx, id)
 	if err != nil {
@@ -245,7 +247,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, _ *entities.Al
 	return signature, nil
 }
 
-func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities.Algorithm) error {
+func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities2.Algorithm) error {
 	err := errors.NotSupportedError("verify signature is not supported")
 	s.logger.Warn(err.Error())
 	return err

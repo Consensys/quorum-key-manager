@@ -1,7 +1,9 @@
 package acceptancetests
 
 import (
+	"context"
 	"fmt"
+	"github.com/consensys/quorum-key-manager/src/utils"
 	"math/big"
 
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -25,12 +27,12 @@ type ethTestSuite struct {
 	suite.Suite
 	env   *IntegrationEnvironment
 	store stores.EthStore
-	utils stores.Utilities
+	utils utils.Utilities
 	db    database.ETHAccounts
 }
 
 func (s *ethTestSuite) TestCreate() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	tags := testutils.FakeTags()
 
 	s.Run("should create a new Ethereum Account successfully", func() {
@@ -79,7 +81,7 @@ func (s *ethTestSuite) TestCreate() {
 }
 
 func (s *ethTestSuite) TestImport() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	tags := testutils.FakeTags()
 	privKey, err := crypto.GenerateKey()
 	require.NoError(s.T(), err)
@@ -126,7 +128,7 @@ func (s *ethTestSuite) TestImport() {
 }
 
 func (s *ethTestSuite) TestGet() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-account-get")
 	tags := testutils.FakeTags()
 
@@ -157,7 +159,7 @@ func (s *ethTestSuite) TestGet() {
 }
 
 func (s *ethTestSuite) TestList() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	tags := testutils.FakeTags()
 	id := s.newID("my-account-list")
 	id2 := s.newID("my-account-list-2")
@@ -203,7 +205,7 @@ func (s *ethTestSuite) TestList() {
 }
 
 func (s *ethTestSuite) TestSignMessageVerify() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	payload := hexutil.MustDecode("0xfeaa")
 	id := s.newID("my-account-sign")
 
@@ -229,7 +231,7 @@ func (s *ethTestSuite) TestSignMessageVerify() {
 }
 
 func (s *ethTestSuite) TestSignTransaction() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-account-sign-tx")
 	chainID := big.NewInt(1)
 	to := ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")
@@ -321,7 +323,7 @@ func (s *ethTestSuite) TestSignTransaction() {
 }
 
 func (s *ethTestSuite) TestSignPrivate() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-account-sign-private")
 	tx := quorumtypes.NewTransaction(
 		0,
@@ -351,7 +353,7 @@ func (s *ethTestSuite) TestSignPrivate() {
 }
 
 func (s *ethTestSuite) TestSignEEA() {
-	ctx := s.env.ctx
+	ctx := context.Background()
 	id := s.newID("my-account-sign-eea")
 	chainID := big.NewInt(1)
 	to := ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")

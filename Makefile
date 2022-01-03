@@ -51,7 +51,7 @@ postgres-tls:
 postgres-down:
 	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0
 
-deps: generate-pki networks hashicorp postgres
+deps: networks hashicorp postgres
 
 deps-tls: generate-pki networks hashicorp-tls postgres-tls
 
@@ -75,11 +75,13 @@ run-coverage:
 coverage: run-coverage
 	@$(OPEN) build/coverage/coverage.html 2>/dev/null
 
-dev: gobuild
+qkm: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
 
-up: deps go-quorum besu geth gobuild
-	@docker-compose -f ./docker-compose.dev.yml up --build -d $(KEY_MANAGER_SERVICES)
+dev: deps gobuild qkm
+	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
+
+up: deps go-quorum besu geth gobuild qkm
 
 up-tls: deps-tls go-quorum besu geth gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --build -d $(KEY_MANAGER_SERVICES)
@@ -124,11 +126,8 @@ stop-geth:
 down-geth:
 	@docker-compose -f deps/geth/docker-compose.yml down  --volumes --timeout 0
 
-generate-jwt: gobuild
-	@docker-compose -f ./docker-compose.dev.yml up generate-jwt
-
-import: gobuild
-	@docker-compose -f ./docker-compose.dev.yml up import
+sync: gobuild
+	@docker-compose -f ./docker-compose.dev.yml up sync
 
 lint: ## Run linter to fix issues
 	@misspell -w $(GOFILES)
@@ -143,7 +142,7 @@ lint-tools: ## Install linting tools
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 
 install-swag:
-	@GO111MODULE=off go get -u github.com/swaggo/swag/cmd/swag
+	@go install github.com/swaggo/swag/cmd/swag@latest
 
 install-swagger:
 	@bash ./scripts/install_swagger.sh
@@ -152,7 +151,7 @@ check-swagger:
 	@which swagger || make install-swagger
 
 gen-swagger:
-	@GO111MODULE=off swag init -d ./src -o ./public/docs  -g docs.go
+	@swag init --parseDependency --parseDepth 1 -d ./src -o ./public/docs -g ./docs.go
 
 serve-swagger: gen-swagger
 	@swagger serve -F=swagger ./public/docs/swagger.json
@@ -171,5 +170,9 @@ pgadmin:
 down-pgadmin:
 	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v pgadmin
 
-generate-pki:
+pki-deps:
+	@GO111MODULE=off go get github.com/cloudflare/cfssl/cmd/cfssl
+	@GO111MODULE=off go get github.com/cloudflare/cfssl/cmd/cfssljson
+
+generate-pki: pki-deps
 	@sh scripts/generate-pki.sh

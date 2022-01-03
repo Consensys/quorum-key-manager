@@ -3,7 +3,7 @@ package eth
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -12,7 +12,7 @@ import (
 func (c Connector) Get(ctx context.Context, addr ethcommon.Address) (*entities.ETHAccount, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
+	err := c.authorizator.CheckPermission(&authentities.Operation{Action: authentities.ActionRead, Resource: authentities.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (c Connector) Get(ctx context.Context, addr ethcommon.Address) (*entities.E
 func (c Connector) GetDeleted(ctx context.Context, addr ethcommon.Address) (*entities.ETHAccount, error) {
 	logger := c.logger.With("address", addr.Hex())
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceEthAccount})
+	err := c.authorizator.CheckPermission(&authentities.Operation{Action: authentities.ActionRead, Resource: authentities.ResourceEthAccount})
 	if err != nil {
 		return nil, err
 	}

@@ -1,8 +1,8 @@
 package json
 
 import (
-	"github.com/consensys/quorum-key-manager/src/stores/entities"
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -12,7 +12,7 @@ var (
 
 func isHexAddress(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
-		return ethcommon.IsHexAddress(fl.Field().String())
+		return common.IsHexAddress(fl.Field().String())
 	}
 
 	return true
@@ -44,6 +44,19 @@ func isSigningAlgorithm(fl validator.FieldLevel) bool {
 	return true
 }
 
+func isAliasKind(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		switch fl.Field().String() {
+		case entities.AliasKindString, entities.AliasKindArray:
+			return true
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
 func init() {
 	if validate != nil {
 		return
@@ -53,6 +66,7 @@ func init() {
 	_ = validate.RegisterValidation("isHexAddress", isHexAddress)
 	_ = validate.RegisterValidation("isCurve", isCurve)
 	_ = validate.RegisterValidation("isSigningAlgorithm", isSigningAlgorithm)
+	_ = validate.RegisterValidation("isAliasKind", isAliasKind)
 }
 
 func getValidator() *validator.Validate {

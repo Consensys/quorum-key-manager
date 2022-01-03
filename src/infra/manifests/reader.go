@@ -1,12 +1,14 @@
 package manifests
 
 import (
-	manifest "github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	"context"
+
+	"github.com/consensys/quorum-key-manager/src/entities"
 )
 
 //go:generate mockgen -source=reader.go -destination=mock/reader.go -package=mock
 
-// Reader reads manifests from filesystem
+// Reader reads manifests
 type Reader interface {
-	Load() ([]*manifest.Manifest, error)
+	Load(ctx context.Context) (map[string][]entities.Manifest, error)
 }

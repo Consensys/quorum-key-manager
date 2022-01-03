@@ -3,7 +3,6 @@ package hashicorp
 import (
 	"context"
 	"encoding/json"
-	"path"
 	"strconv"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -15,43 +14,33 @@ import (
 )
 
 const (
-	dataLabel     = "data"
-	metadataLabel = "metadata"
-	valueLabel    = "value"
-	tagsLabel     = "tags"
-	versionLabel  = "version"
+	valueLabel   = "value"
+	tagsLabel    = "tags"
+	versionLabel = "version"
 )
 
 type Store struct {
-	client     hashicorp.VaultClient
-	db         database.Secrets
-	mountPoint string
-	logger     log.Logger
+	client hashicorp.Kvv2Client
+	db     database.Secrets
+	logger log.Logger
 }
 
 var _ stores.SecretStore = &Store{}
 
-func New(client hashicorp.VaultClient, db database.Secrets, mountPoint string, logger log.Logger) *Store {
+func New(client hashicorp.Kvv2Client, db database.Secrets, logger log.Logger) *Store {
 	return &Store{
-		client:     client,
-		mountPoint: mountPoint,
-		logger:     logger,
-		db:         db,
+		client: client,
+		logger: logger,
+		db:     db,
 	}
-}
-
-func (s *Store) Info(context.Context) (*entities.StoreInfo, error) {
-	return nil, errors.ErrNotImplemented
 }
 
 func (s *Store) Set(ctx context.Context, id, value string, attr *entities.Attributes) (*entities.Secret, error) {
 	logger := s.logger.With("id", id)
 
-	secretItem, err := s.client.Write(s.pathData(id), map[string]interface{}{
-		dataLabel: map[string]interface{}{
-			valueLabel: value,
-			tagsLabel:  attr.Tags,
-		},
+	secretItem, err := s.client.SetSecret(id, map[string]interface{}{
+		valueLabel: value,
+		tagsLabel:  attr.Tags,
 	})
 	if err != nil {
 		errMessage := "failed to create Hashicorp secret"
@@ -79,7 +68,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 		}
 	}
 
-	hashicorpSecretData, err := s.client.Read(s.pathData(id), callData)
+	hashicorpSecretData, err := s.client.ReadData(id, callData)
 	if err != nil {
 		errMessage := "failed to get Hashicorp secret data"
 		logger.WithError(err).Error(errMessage)
@@ -90,11 +79,11 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 		return nil, errors.NotFoundError(errMessage)
 	}
 
-	data := hashicorpSecretData.Data[dataLabel].(map[string]interface{})
+	data := hashicorpSecretData.Data["data"].(map[string]interface{})
 	value := data[valueLabel].(string)
 
 	// We need to do a second call to get the metadata
-	hashicorpSecretMetadata, err := s.client.Read(s.pathMetadata(id), nil)
+	hashicorpSecretMetadata, err := s.client.ReadMetadata(id)
 	if err != nil {
 		errMessage := "failed to get Hashicorp secret metadata"
 		logger.WithError(err).Error(errMessage)
@@ -117,7 +106,7 @@ func (s *Store) Get(_ context.Context, id, version string) (*entities.Secret, er
 }
 
 func (s *Store) List(_ context.Context, _, _ uint64) ([]string, error) {
-	res, err := s.client.List(s.pathMetadata(""))
+	res, err := s.client.ListSecrets()
 	if err != nil {
 		errMessage := "failed to list Hashicorp secrets"
 		s.logger.WithError(err).Error(errMessage)
@@ -144,7 +133,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	hashicorpSecretData, err := s.client.Read(s.pathData(id), map[string][]string{
+	hashicorpSecretData, err := s.client.ReadData(id, map[string][]string{
 		"versions": versions,
 	})
 	if err != nil {
@@ -158,7 +147,7 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 		return errors.NotFoundError(errMessage)
 	}
 
-	err = s.client.Delete(s.pathData(id), map[string][]string{
+	err = s.client.DeleteSecret(id, map[string][]string{
 		"versions": versions,
 	})
 	if err != nil {
@@ -184,11 +173,13 @@ func (s *Store) ListDeleted(_ context.Context, _, _ uint64) ([]string, error) {
 
 func (s *Store) Restore(ctx context.Context, id string) error {
 	logger := s.logger.With("id", id)
+
 	versions, err := s.listVersions(ctx, id, true)
 	if err != nil {
 		return err
 	}
-	err = s.client.WritePost(s.pathUndeleteID(id), map[string][]string{
+
+	err = s.client.RestoreSecret(id, map[string][]string{
 		"versions": versions,
 	})
 	if err != nil {
@@ -208,7 +199,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 		return err
 	}
 
-	err = s.client.WritePost(s.pathDestroyID(id), map[string][]string{
+	err = s.client.DestroySecret(id, map[string][]string{
 		"versions": versions,
 	})
 	if err != nil {
@@ -236,20 +227,4 @@ func (s *Store) listVersions(ctx context.Context, id string, isDeleted bool) ([]
 	}
 
 	return versionList, nil
-}
-
-func (s *Store) pathUndeleteID(id string) string {
-	return path.Join(s.mountPoint, "undelete", id)
-}
-
-func (s *Store) pathDestroyID(id string) string {
-	return path.Join(s.mountPoint, "destroy", id)
-}
-
-func (s *Store) pathData(id string) string {
-	return path.Join(s.mountPoint, dataLabel, id)
-}
-
-func (s *Store) pathMetadata(id string) string {
-	return path.Join(s.mountPoint, metadataLabel, id)
 }

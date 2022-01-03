@@ -5,7 +5,8 @@
 package mock
 
 import (
-	"github.com/consensys/quorum-key-manager/src/infra/manifests/entities"
+	context "context"
+	entities "github.com/consensys/quorum-key-manager/src/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,16 +35,16 @@ func (m *MockReader) EXPECT() *MockReaderMockRecorder {
 }
 
 // Load mocks base method
-func (m *MockReader) Load() ([]*manifest.Manifest, error) {
+func (m *MockReader) Load(ctx context.Context) (*entities.Manifest, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Load")
-	ret0, _ := ret[0].([]*manifest.Manifest)
+	ret := m.ctrl.Call(m, "Load", ctx)
+	ret0, _ := ret[0].(*entities.Manifest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Load indicates an expected call of Load
-func (mr *MockReaderMockRecorder) Load() *gomock.Call {
+func (mr *MockReaderMockRecorder) Load(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockReader)(nil).Load))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockReader)(nil).Load), ctx)
 }

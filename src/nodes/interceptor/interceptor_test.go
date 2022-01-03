@@ -17,12 +17,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newInterceptor(t *testing.T, ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores) {
+func newInterceptor(ctrl *gomock.Controller) (*Interceptor, *mockstoremanager.MockStores, *aliasmock.MockAliases) {
 	stores := mockstoremanager.NewMockStores(ctrl)
-	aliases := aliasmock.NewMockService(ctrl)
-	i, err := New(stores, aliases, testutils.NewMockLogger(ctrl))
-	require.NoError(t, err)
-	return i, stores
+	aliases := aliasmock.NewMockAliases(ctrl)
+	i := New(stores, aliases, testutils.NewMockLogger(ctrl))
+
+	return i, stores, aliases
 }
 
 type testHandlerCase struct {
@@ -60,7 +60,7 @@ func TestPersonal(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	i, _ := newInterceptor(t, ctrl)
+	i, _, _ := newInterceptor(ctrl)
 	tests := []*testHandlerCase{
 		{
 			desc:             "Personal",

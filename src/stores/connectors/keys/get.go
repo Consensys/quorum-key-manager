@@ -3,7 +3,7 @@ package keys
 import (
 	"context"
 
-	"github.com/consensys/quorum-key-manager/src/auth/types"
+	authentities "github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
@@ -11,7 +11,7 @@ import (
 func (c Connector) Get(ctx context.Context, id string) (*entities.Key, error) {
 	logger := c.logger.With("id", id)
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&authentities.Operation{Action: authentities.ActionRead, Resource: authentities.ResourceKey})
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (c Connector) Get(ctx context.Context, id string) (*entities.Key, error) {
 func (c Connector) GetDeleted(ctx context.Context, id string) (*entities.Key, error) {
 	logger := c.logger.With("id", id)
 
-	err := c.authorizator.CheckPermission(&types.Operation{Action: types.ActionRead, Resource: types.ResourceKey})
+	err := c.authorizator.CheckPermission(&authentities.Operation{Action: authentities.ActionRead, Resource: authentities.ResourceKey})
 	if err != nil {
 		return nil, err
 	}

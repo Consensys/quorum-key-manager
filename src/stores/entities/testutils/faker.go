@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
+
 	common2 "github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -64,10 +66,10 @@ func FakeAttributes() *entities.Attributes {
 	}
 }
 
-func FakeAlgorithm() *entities.Algorithm {
-	return &entities.Algorithm{
-		Type:          entities.Ecdsa,
-		EllipticCurve: entities.Secp256k1,
+func FakeAlgorithm() *entities2.Algorithm {
+	return &entities2.Algorithm{
+		Type:          entities2.Ecdsa,
+		EllipticCurve: entities2.Secp256k1,
 	}
 }
 
