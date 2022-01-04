@@ -35,12 +35,13 @@ const (
 )
 
 type IntegrationEnvironment struct {
-	logger           log.Logger
-	hashicorpAddress string
-	hashicorpToken   string
-	dockerClient     *docker.Client
-	postgresClient   *postgresclient.PostgresClient
-	baseURL          string
+	logger             log.Logger
+	hashicorpAddress   string
+	hashicorpToken     string
+	hashicorpMountPath string
+	dockerClient       *docker.Client
+	postgresClient     *postgresclient.PostgresClient
+	baseURL            string
 }
 
 func StartEnvironment(ctx context.Context, env *IntegrationEnvironment) error {
@@ -112,12 +113,13 @@ func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
 	}
 
 	return &IntegrationEnvironment{
-		logger:           logger,
-		hashicorpAddress: fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
-		hashicorpToken:   hashicorpContainer.RootToken,
-		dockerClient:     dockerClient,
-		postgresClient:   postgresClient,
-		baseURL:          fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
+		logger:             logger,
+		hashicorpAddress:   fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
+		hashicorpToken:     hashicorpContainer.RootToken,
+		hashicorpMountPath: hashicorpContainer.MonthPath,
+		dockerClient:       dockerClient,
+		postgresClient:     postgresClient,
+		baseURL:            fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
 	}, nil
 }
 
