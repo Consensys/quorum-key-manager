@@ -58,10 +58,10 @@ deps-tls: generate-pki networks hashicorp-tls postgres-tls
 down-deps: postgres-down hashicorp-down down-networks
 
 run-acceptance:
-	@go test -cover ./src/... -covermode=count -coverprofile build/coverage/acceptance.out -v -tags acceptance -count=1 ./tests/acceptance
+	@mkdir -p build/coverage
+	@go test -cover ./src/... -coverprofile build/coverage/acceptance.out -v -tags acceptance -count=1 ./tests/acceptance
 
 run-coverage-acceptance: run-acceptance
-	@mkdir -p build/coverage
 	@sh scripts/coverage.sh build/coverage/acceptance.out build/coverage/acceptance.html
 
 coverage-acceptance: run-coverage-acceptance
@@ -77,10 +77,10 @@ gobuild-dbg:
 	CGO_ENABLED=1 go build -gcflags=all="-N -l" -i -o ./build/bin/key-manager
 
 run-unit:
-	@go test -covermode=count -coverprofile build/coverage/unit.out $(PACKAGES)
+	@mkdir -p build/coverage
+	@go test -coverprofile build/coverage/unit.out $(PACKAGES)
 
 run-coverage-unit: run-unit
-	@mkdir -p build/coverage
 	@sh scripts/coverage.sh build/coverage/unit.out build/coverage/unit.html
 
 coverage-unit: run-coverage-unit
