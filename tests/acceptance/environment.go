@@ -116,7 +116,7 @@ func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
 		logger:             logger,
 		hashicorpAddress:   fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
 		hashicorpToken:     hashicorpContainer.RootToken,
-		hashicorpMountPath: hashicorpContainer.MonthPath,
+		hashicorpMountPath: hashicorpContainer.PluginMountPath,
 		dockerClient:       dockerClient,
 		postgresClient:     postgresClient,
 		baseURL:            fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),

@@ -32,7 +32,7 @@ func (vault *Vault) GenerateContainerConfig(_ context.Context, configuration int
 	containerCfg := &dockercontainer.Config{
 		Image: cfg.Image,
 		Env: []string{
-			fmt.Sprintf("PLUGIN_MOUNT_PATH=%v", cfg.MonthPath),
+			fmt.Sprintf("PLUGIN_MOUNT_PATH=%v", cfg.PluginMountPath),
 			fmt.Sprintf("VAULT_DEV_ROOT_TOKEN_ID=%v", cfg.RootToken),
 		},
 		ExposedPorts: nat.PortSet{

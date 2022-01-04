@@ -4,23 +4,23 @@ const defaultHashicorpVaultImage = "consensys/quorum-hashicorp-vault-plugin:v1.1
 const defaultHostPort = "8200"
 const defaultRootToken = "myRoot"
 const defaultHost = "localhost"
-const defaultMountPath = "orchestrate"
+const defaultPluginMountPath = "quorum"
 
 type Config struct {
-	Image     string
-	Host      string
-	Port      string
-	RootToken string
-	MonthPath string
+	Image           string
+	Host            string
+	Port            string
+	RootToken       string
+	PluginMountPath string
 }
 
 func NewDefault() *Config {
 	return &Config{
-		Image:     defaultHashicorpVaultImage,
-		Port:      defaultHostPort,
-		RootToken: defaultRootToken,
-		Host:      defaultHost,
-		MonthPath: defaultMountPath,
+		Image:           defaultHashicorpVaultImage,
+		Port:            defaultHostPort,
+		RootToken:       defaultRootToken,
+		Host:            defaultHost,
+		PluginMountPath: defaultPluginMountPath,
 	}
 }
 
@@ -43,7 +43,7 @@ func (cfg *Config) SetHost(host string) *Config {
 }
 
 func (cfg *Config) SetMountPath(mountPath string) *Config {
-	cfg.MonthPath = mountPath
+	cfg.PluginMountPath = mountPath
 	return cfg
 }
 
