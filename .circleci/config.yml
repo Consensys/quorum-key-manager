@@ -143,6 +143,7 @@ jobs:
           command: make run-coverage-unit
       - codecov/upload:
           file: ./build/coverage/unit.out
+          flags: unittests
       - store_artifacts:
           path: ./build/coverage/unit.html
           destination: unit-coverage.html
@@ -162,6 +163,7 @@ jobs:
           command: make run-coverage-acceptance
       - codecov/upload:
           file: ./build/coverage/acceptance.out
+          flags: acceptance
       - store_artifacts:
           path: ./build/coverage/acceptance.html
           destination: acceptance-coverage.html
