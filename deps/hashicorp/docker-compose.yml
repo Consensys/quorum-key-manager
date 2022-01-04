@@ -84,7 +84,6 @@ services:
 
   hashicorp-tls:
     <<: *container-common
-    image: library/vault:1.8.2
     container_name: hashicorp
     tty: true
     cap_add:
