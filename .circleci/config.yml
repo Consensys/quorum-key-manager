@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   go: circleci/go@1.5.0
+  codecov: codecov/codecov@3.2.2
 
 commands:
   prepare_golang:
@@ -159,6 +160,11 @@ jobs:
       - run:
           name: Run unit tests
           command: make run-coverage
+      - codecov/upload:
+          file: ./build/coverage/coverage.html
+      - store_artifacts:
+          path: ./build/coverage/coverage.html
+          destination: coverage.html
 
   acceptance:
     machine:
