@@ -59,7 +59,7 @@ down-deps: postgres-down hashicorp-down down-networks
 
 run-acceptance:
 	@mkdir -p build/coverage
-	@go test -cover ./src/... -coverprofile build/coverage/acceptance.out -v -tags acceptance -count=1 ./tests/acceptance
+	@go test -cover ./src/... -covermode=count -coverprofile build/coverage/acceptance.out -v -tags acceptance -count=1 ./tests/acceptance
 
 run-coverage-acceptance: run-acceptance
 	@sh scripts/coverage.sh build/coverage/acceptance.out build/coverage/acceptance.html
@@ -78,7 +78,7 @@ gobuild-dbg:
 
 run-unit:
 	@mkdir -p build/coverage
-	@go test -coverprofile build/coverage/unit.out $(PACKAGES)
+	@go test -covermode=count -coverprofile build/coverage/unit.out $(PACKAGES)
 
 run-coverage-unit: run-unit
 	@sh scripts/coverage.sh build/coverage/unit.out build/coverage/unit.html
