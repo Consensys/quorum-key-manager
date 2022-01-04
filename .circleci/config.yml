@@ -159,11 +159,11 @@ jobs:
       - prepare_golang
       - run:
           name: Run unit tests
-          command: make run-coverage
+          command: make run-coverage-unit
       - codecov/upload:
-          file: ./build/coverage/coverage.html
+          file: ./build/coverage/unit-coverage.html
       - store_artifacts:
-          path: ./build/coverage/coverage.html
+          path: ./build/coverage/unit-coverage.html
           destination: coverage.html
 
   acceptance:

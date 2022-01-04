@@ -69,11 +69,15 @@ gobuild:
 gobuild-dbg:
 	CGO_ENABLED=1 go build -gcflags=all="-N -l" -i -o ./build/bin/key-manager
 
-run-coverage:
-	@sh scripts/coverage.sh $(PACKAGES)
+run-unit:
+	@go test -covermode=count -coverprofile build/coverage/unit-profile.out $(PACKAGES)
 
-coverage: run-coverage
-	@$(OPEN) build/coverage/coverage.html 2>/dev/null
+run-coverage-unit: run-unit
+	@mkdir -p build/coverage
+	@sh scripts/coverage.sh build/coverage/unit-profile.out build/coverage/unit-coverage.html
+
+coverage-unit: run-coverage-unit
+	@$(OPEN) build/coverage/unit-coverage.html 2>/dev/null
 
 qkm: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
