@@ -4,11 +4,10 @@
 set -Eeu
 
 # Ignore generated & testutils files
-cat $1 | grep -Fv -e "/tests" > build/coverage/cover.out
+cat $1 | grep -Fv -e "/tests" -e "/mock" > $1
 
-go tool cover -func=build/coverage/cover.out | grep total:
+# Print total coverage
+go tool cover -func=$1 | grep total:
+
 # Generate coverage report in html format
-go tool cover -html=build/coverage/cover.out -o $2
-
-# Remove temporary file
-rm build/coverage/cover.out || true
+go tool cover -html=$1 -o $2
