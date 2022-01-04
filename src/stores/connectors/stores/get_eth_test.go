@@ -29,7 +29,7 @@ func TestGetEthereum(t *testing.T) {
 	t.Run("should fail with not found ethereum store successfully", func(t *testing.T) {
 		storeName := "not-found-store"
 		userInfo := entities.NewWildcardUser()
-		
+
 		auth.EXPECT().UserPermissions(gomock.Any(), userInfo)
 		_, err := connector.Ethereum(ctx, storeName, userInfo)
 
