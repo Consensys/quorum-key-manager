@@ -1,31 +1,26 @@
 package hashicorp
 
-import (
-	"fmt"
-	"io"
-	"net/http"
-	"os"
-)
-
-const defaultHashicorpVaultImage = "library/vault:1.8.2"
+const defaultHashicorpVaultImage = "consensys/quorum-hashicorp-vault-plugin:v1.1.4"
 const defaultHostPort = "8200"
 const defaultRootToken = "myRoot"
 const defaultHost = "localhost"
+const defaultPluginMountPath = "quorum"
 
 type Config struct {
-	Image                 string
-	Port                  string
-	RootToken             string
-	Host                  string
-	PluginSourceDirectory string
+	Image           string
+	Host            string
+	Port            string
+	RootToken       string
+	PluginMountPath string
 }
 
 func NewDefault() *Config {
 	return &Config{
-		Image:     defaultHashicorpVaultImage,
-		Port:      defaultHostPort,
-		RootToken: defaultRootToken,
-		Host:      defaultHost,
+		Image:           defaultHashicorpVaultImage,
+		Port:            defaultHostPort,
+		RootToken:       defaultRootToken,
+		Host:            defaultHost,
+		PluginMountPath: defaultPluginMountPath,
 	}
 }
 
@@ -47,40 +42,8 @@ func (cfg *Config) SetHost(host string) *Config {
 	return cfg
 }
 
-func (cfg *Config) SetPluginSourceDirectory(dir string) *Config {
-	cfg.PluginSourceDirectory = dir
+func (cfg *Config) SetMountPath(mountPath string) *Config {
+	cfg.PluginMountPath = mountPath
 	return cfg
 }
 
-func (cfg *Config) DownloadPlugin(filename, version string) (string, error) {
-	url := fmt.Sprintf("https://github.com/ConsenSys/quorum-hashicorp-vault-plugin/releases/download/%s/quorum-hashicorp-vault-plugin", version)
-
-	pluginPath := fmt.Sprintf("%s/%s", cfg.PluginSourceDirectory, filename)
-	err := downloadPlugin(pluginPath, url)
-	if err != nil {
-		return "", err
-	}
-	return pluginPath, nil
-}
-
-func downloadPlugin(filepath, url string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	err = os.Chmod(filepath, 0777)
-	if err != nil {
-		return err
-	}
-
-	_, err = io.Copy(out, resp.Body)
-	return err
-}

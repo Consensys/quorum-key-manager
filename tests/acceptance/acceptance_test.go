@@ -4,6 +4,8 @@ package acceptancetests
 
 import (
 	"context"
+	"testing"
+
 	aliaspg "github.com/consensys/quorum-key-manager/src/aliases/database/postgres"
 	"github.com/consensys/quorum-key-manager/src/aliases/service/aliases"
 	"github.com/consensys/quorum-key-manager/src/aliases/service/registries"
@@ -21,11 +23,8 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/store/keys/local"
 	"github.com/consensys/quorum-key-manager/src/stores/store/secrets/hashicorp"
 	utilsservice "github.com/consensys/quorum-key-manager/src/utils/service/utils"
-	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
-	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type acceptanceTestSuite struct {
@@ -50,23 +49,13 @@ func (s *acceptanceTestSuite) SetupSuite() {
 	require.NoError(s.T(), err)
 
 	s.hasicorpPluginClient, err = client.NewClient(client.NewConfig(&entities.HashicorpConfig{
-		MountPoint: "quorum",
+		MountPoint: s.env.hashicorpMountPath,
 		Address:    s.env.hashicorpAddress,
 	}))
 	require.NoError(s.T(), err)
 
 	s.hashicorpKvv2Client.SetToken(s.env.hashicorpToken)
 	s.hasicorpPluginClient.SetToken(s.env.hashicorpToken)
-
-	err = s.hasicorpPluginClient.Mount("quorum", &api.MountInput{
-		Type:        "plugin",
-		Description: "Quorum Hashicorp Vault Plugin",
-		Config: api.MountConfigInput{
-			ForceNoCache:              true,
-			PassthroughRequestHeaders: []string{"X-Vault-Namespace"},
-		},
-		PluginName: utils.HashicorpPluginFilename,
-	})
 	require.NoError(s.T(), err)
 
 	s.auth = authorizator.New(authtypes.ListPermissions(), "", s.env.logger)

@@ -3,10 +3,12 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
-	models2 "github.com/consensys/quorum-key-manager/src/aliases/database/models"
 	"os"
 	"strconv"
 	"time"
+
+	models2 "github.com/consensys/quorum-key-manager/src/aliases/database/models"
+	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/infra/log/zap"
@@ -20,7 +22,6 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/http/server"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker"
 	dconfig "github.com/consensys/quorum-key-manager/tests/acceptance/docker/config"
-	"github.com/consensys/quorum-key-manager/tests/acceptance/utils"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -34,12 +35,13 @@ const (
 )
 
 type IntegrationEnvironment struct {
-	logger           log.Logger
-	hashicorpAddress string
-	hashicorpToken   string
-	dockerClient     *docker.Client
-	postgresClient   *postgresclient.PostgresClient
-	baseURL          string
+	logger             log.Logger
+	hashicorpAddress   string
+	hashicorpToken     string
+	hashicorpMountPath string
+	dockerClient       *docker.Client
+	postgresClient     *postgresclient.PostgresClient
+	baseURL            string
 }
 
 func StartEnvironment(ctx context.Context, env *IntegrationEnvironment) error {
@@ -64,12 +66,16 @@ func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	hashicorpMountPath := "quorum"
+	hashicorpPort := strconv.Itoa(10000 + rand.Intn(10000))
+	hashicorpToken := fmt.Sprintf("root_token_%v", strconv.Itoa(rand.Intn(10000)))
 
 	// Hashicorp
-	hashicorpContainer, err := utils.HashicorpContainer(logger)
-	if err != nil {
-		return nil, err
-	}
+	hashicorpContainer := hashicorp.NewDefault().
+		SetHostPort(hashicorpPort).
+		SetRootToken(hashicorpToken).
+		SetMountPath(hashicorpMountPath)
 
 	// Postgres
 	postgresPort := strconv.Itoa(10000 + rand.Intn(10000))
@@ -107,12 +113,13 @@ func NewIntegrationEnvironment() (*IntegrationEnvironment, error) {
 	}
 
 	return &IntegrationEnvironment{
-		logger:           logger,
-		hashicorpAddress: fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
-		hashicorpToken:   hashicorpContainer.RootToken,
-		dockerClient:     dockerClient,
-		postgresClient:   postgresClient,
-		baseURL:          fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
+		logger:             logger,
+		hashicorpAddress:   fmt.Sprintf("http://%s:%s", hashicorpContainer.Host, hashicorpContainer.Port),
+		hashicorpToken:     hashicorpContainer.RootToken,
+		hashicorpMountPath: hashicorpContainer.PluginMountPath,
+		dockerClient:       dockerClient,
+		postgresClient:     postgresClient,
+		baseURL:            fmt.Sprintf("%s:%d", localhostPath, envHTTPPort),
 	}, nil
 }
 

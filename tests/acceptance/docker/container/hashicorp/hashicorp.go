@@ -9,7 +9,6 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/tests/acceptance/docker/config/hashicorp"
 	dockercontainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 )
@@ -33,25 +32,23 @@ func (vault *Vault) GenerateContainerConfig(_ context.Context, configuration int
 	containerCfg := &dockercontainer.Config{
 		Image: cfg.Image,
 		Env: []string{
+			fmt.Sprintf("PLUGIN_MOUNT_PATH=%v", cfg.PluginMountPath),
 			fmt.Sprintf("VAULT_DEV_ROOT_TOKEN_ID=%v", cfg.RootToken),
 		},
 		ExposedPorts: nat.PortSet{
 			"8200/tcp": struct{}{},
 		},
 		Tty: true,
-		Cmd: []string{"server", "-dev", "-dev-plugin-dir=/vault/plugins", "-log-level=trace"},
+		Entrypoint: []string{"sh", "-c", `
+		(sleep 2 ; vault-init-dev.sh)&
+		vault server -dev -dev-plugin-dir=/vault/plugins -dev-listen-address="0.0.0.0:8200" -log-level=debug
+		`},
 	}
 
 	hostConfig := &dockercontainer.HostConfig{
 		CapAdd: []string{"IPC_LOCK"},
-		Mounts: []mount.Mount{
-			{
-				Type:   mount.TypeBind,
-				Source: cfg.PluginSourceDirectory,
-				Target: "/vault/plugins",
-			},
-		},
 	}
+
 	if cfg.Port != "" {
 		hostConfig.PortBindings = nat.PortMap{
 			"8200/tcp": []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: cfg.Port}},

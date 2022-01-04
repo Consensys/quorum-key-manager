@@ -1,126 +1,150 @@
 version: '3.7'
 
 x-container-common: &container-common
+  image: consensys/quorum-hashicorp-vault-plugin:v1.1.4
   restart: ${CONTAINER_RESTART-on-failure}
   networks:
     - hashicorp
-
+      
+x-default-variables: &default-variables
+  ROOT_TOKEN_PATH: /vault/token/.root
+  PLUGIN_MOUNT_PATH: quorum
+  KVV2_MOUNT_PATH: secret
+  VAULT_IS_READY: /vault/token/.ready
+  
+x-tls-variables: &tls-variables
+  VAULT_CACERT: ${VAULT_CACERT-/vault/tls/ca.crt}
+  VAULT_CLIENT_CERT: ${VAULT_CLIENT_CERT-/vault/tls/client.crt}
+  VAULT_CLIENT_KEY: ${VAULT_CLIENT_KEY-/vault/tls/client.key}
+  VAULT_SERVER_CERT: ${VAULT_SERVER_CERT-/vault/tls/tls.crt}
+  VAULT_SERVER_KEY: ${VAULT_SERVER_KEY-/vault/tls/tls.key}
+  
+x-agent-variables: &agent-variables
+  SECRET_FILE_PATH: /vault/token/secret
+  ROLE_FILE_PATH: /vault/token/role
+  CAPABILITIES: '[\"create\", \"read\", \"update\", \"delete\", \"list\"]'
+  APP_ROLE_ID: key-manager
+  APP_ROLE_POLICIES: '["allow_keys", "allow_secrets"]'
+  POLICY_ID: allow_keys
+  KVV2_POLICY_ID: allow_secrets
+ 
 services:
   hashicorp:
     <<: *container-common
-    image: library/vault:1.8.2
     tty: true
     cap_add:
       - IPC_LOCK
     volumes:
-      - hashicorp-plugin:/vault/plugins
+      - hashicorp-token:/vault/token
       - ./config/config.hcl:/vault/config.hcl:ro
-    entrypoint: vault server -config=/vault/config.hcl
     ports:
       - 8200:8200
+    environment:
+      <<: *default-variables
+      VAULT_ADDR: http://hashicorp:8200
+    entrypoint:
+      - sh
+      - -c
+      - |
+        ( sleep 2; vault-init.sh && cat > $${VAULT_IS_READY}) &
+        vault server -config=/vault/config.hcl
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "--proxy", "off", "http://localhost:8200/v1/sys/health?standbyok=true" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  hashicorp-agent:
+    <<: *container-common
+    environment:
+      <<: *default-variables
+      <<: *agent-variables
+      VAULT_ADDR: http://hashicorp:8200
+    tty: true
+    depends_on:
+      - hashicorp
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - hashicorp-token:/vault/token
+      - ./config/agent-config.hcl:/vault/config.hcl:ro
+    entrypoint:
+      - sh
+      - -c
+      - |
+
+        until [ -f $${VAULT_IS_READY} ]; do
+          echo "[AGENT] waiting for vault to be ready..."
+          sleep 1
+        done
+
+        vault-agent-init.sh
+        vault agent -config=/vault/config.hcl
 
   hashicorp-tls:
     <<: *container-common
-    image: library/vault:1.8.2
     container_name: hashicorp
     tty: true
     cap_add:
       - IPC_LOCK
     volumes:
-      - hashicorp-plugin:/vault/plugins
-      - ./tls:/vault/tls:ro
+      - hashicorp-token:/vault/token
       - ./config/config-tls.hcl:/vault/config.hcl:ro
-      - ./tls/ca.crt:/etc/ssl/certs/vault.crt
-    entrypoint: vault server -config=/vault/config.hcl
+      - ./tls:/vault/tls:ro
     ports:
       - 8200:8200
-
-  hashicorp-init-tls:
-    <<: *container-common
-    build: .
-    container_name: hashicorp-init
     environment:
-      VAULT_ADDR: ${VAULT_ADDR-https://hashicorp:8200}
-      VAULT_CACERT: ${VAULT_CACERT-/vault/tls/ca.crt}
-      VAULT_CLIENT_CERT: ${VAULT_CLIENT_CERT-/vault/tls/client.crt}
-      VAULT_CLIENT_KEY: ${VAULT_CLIENT_KEY-/vault/tls/client.key}
-      PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
-      TOKEN_PATH: ${TOKEN_PATH-/vault/token}
-      PLUGIN_VERSION: ${PLUGIN_VERSION-v1.0.0}
-    restart: "no"
-    depends_on:
-      - hashicorp-tls
-    volumes:
-      - hashicorp-token:/vault/token
-      - hashicorp-plugin:/vault/plugins
-      - ./scripts/init-tls.sh:/init.sh
-      - ./scripts/plugin.sh:/plugin.sh
-      - ./tls/ca.crt:/vault/tls/ca.crt:ro
-      - ./tls/client.crt:/vault/tls/client.crt:ro
-      - ./tls/client.key:/vault/tls/client.key:ro
-    command: >
-      sh -c "./plugin.sh && ./init.sh"
-
-  hashicorp-init:
-    <<: *container-common
-    build: .
-    environment:
-      VAULT_ADDR: ${VAULT_ADDR-http://hashicorp:8200}
-      PLUGIN_PATH: ${PLUGIN_PATH-/vault/plugins}
-      TOKEN_PATH: ${TOKEN_PATH-/vault/token}
-      PLUGIN_VERSION: ${PLUGIN_VERSION-v1.0.0}
-    restart: "no"
-    depends_on:
-      - hashicorp
-    volumes:
-      - hashicorp-token:/vault/token
-      - hashicorp-plugin:/vault/plugins
-      - ./scripts/init.sh:/init.sh
-      - ./scripts/plugin.sh:/plugin.sh
-    command: >
-      sh -c "./plugin.sh && ./init.sh"
+      <<: *default-variables
+      <<: *tls-variables
+      VAULT_ADDR: https://hashicorp:8200
+    entrypoint:
+      - sh
+      - -c
+      - |
+        ( sleep 2; vault-init.sh && cat > $${VAULT_IS_READY}) &
+        vault server -config=/vault/config.hcl
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "--proxy", "off", "https://localhost:8200/v1/sys/health?standbyok=true" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
   hashicorp-agent-tls:
     <<: *container-common
     container_name: hashicorp-agent
     environment:
-      VAULT_ADDR: ${VAULT_ADDR-https://hashicorp:8202}
-      VAULT_CACERT: ${VAULT_CACERT-/vault/tls/ca.crt}
-    image: library/vault:1.8.2
+      <<: *default-variables
+      <<: *agent-variables
+      <<: *tls-variables
+      VAULT_ADDR: https://hashicorp:8200
     tty: true
     depends_on:
       - hashicorp-tls
-      - hashicorp-init-tls
     cap_add:
       - IPC_LOCK
     volumes:
       - hashicorp-token:/vault/token
       - ./config/agent-config-tls.hcl:/vault/config.hcl:ro
       - ./tls:/vault/tls:ro
-    entrypoint: vault agent -config=/vault/config.hcl
+    entrypoint:
+      - sh
+      - -c
+      - |
 
-  hashicorp-agent:
-    <<: *container-common
-    environment:
-      VAULT_ADDR: ${VAULT_ADDR-http://hashicorp:8200}
-    image: library/vault:1.8.2
-    tty: true
-    depends_on:
-      - hashicorp
-      - hashicorp-init
-    cap_add:
-      - IPC_LOCK
-    volumes:
-      - hashicorp-token:/vault/token
-      - ./config/agent-config.hcl:/vault/config.hcl:ro
-    entrypoint: vault agent -config=/vault/config.hcl
+        until [ -f $${VAULT_IS_READY} ]; do
+          echo "[AGENT] waiting for vault to be ready..."
+          sleep 1
+        done
+
+        vault-agent-init.sh
+        vault agent -config=/vault/config.hcl
 
 volumes:
   hashicorp-token:
     driver: local
     name: hashicorp-token
-  hashicorp-plugin:
-    driver: local
 
 networks:
   hashicorp:
