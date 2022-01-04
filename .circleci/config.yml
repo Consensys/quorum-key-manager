@@ -19,10 +19,10 @@ commands:
       - run:
           name: Docker login
           command: |
-            echo "Login in $DOCKER_REGISTRY with user $DOCKER_USER"
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
-            echo "Login in $DOCKER_REGISTRY_2 with user $DOCKER_USER_RW"
-            echo $DOCKER_PASSWORD_RW | docker login -u $DOCKER_USER_RW --password-stdin $DOCKER_REGISTRY_2
+            echo "Login in cloudsmith"
+            echo $CLOUDSMITH_PASS_RW | docker login docker.consensys.net -u $CLOUDSMITH_USER_RW --password-stdin
+            echo "Login in docker.io"
+            echo $DOCKER_PASSWORD_RW | docker login docker.io -u $DOCKER_USER_RW --password-stdin
       - run:
           name: DCT signing setup
           command: |
@@ -142,7 +142,8 @@ jobs:
           name: Run unit tests
           command: make run-coverage-unit
       - codecov/upload:
-          file: ./build/coverage/unit.html
+          file: ./build/coverage/unit.out
+          flags: unittests
       - store_artifacts:
           path: ./build/coverage/unit.html
           destination: unit-coverage.html
@@ -161,7 +162,8 @@ jobs:
           name: Acceptance tests
           command: make run-coverage-acceptance
       - codecov/upload:
-          file: ./build/coverage/acceptance.html
+          file: ./build/coverage/acceptance.out
+          flags: acceptance
       - store_artifacts:
           path: ./build/coverage/acceptance.html
           destination: acceptance-coverage.html
@@ -275,7 +277,7 @@ jobs:
           name: Deploy QA environment
           command: >-
             QKM_TAG=${CIRCLE_SHA1:0:7}
-            QKM_REPOSITORY=${DOCKER_REGISTRY_DEV_REPO}/quorum-key-manager
+            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
             make deploy-remote-env
 
   deploy-staging:
@@ -288,7 +290,7 @@ jobs:
           name: Deploy staging environment
           command: >-
             QKM_TAG=${CIRCLE_TAG}
-            QKM_REPOSITORY=${DOCKER_REGISTRY_REPO}/quorum-key-manager
+            QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
 
 workflows:
@@ -337,9 +339,10 @@ workflows:
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
-          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
+          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
               only: main

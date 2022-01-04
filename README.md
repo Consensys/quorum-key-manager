@@ -2,7 +2,7 @@
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fconsensys.net%2Fquorum%2F)](https://consensys.net/quorum/)
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/ConsenSys/quorum-key-manager?token=7062612dcd5a98913aa1b330ae48b6a527be52eb)](https://circleci.com/gh/ConsenSys/quorum-key-manager)
-[![codecov](https://codecov.io/gh/ConsenSys/quorum-key-manager/branch/main/graph/badge.svg?token=XMRVPC5FLQ)](https://codecov.io/gh/ConsenSys/quorum-key-manager)
+[![codecov](https://codecov.io/gh/ConsenSys/quorum-key-manager/branch/main/graph/badge.svg)](https://codecov.io/gh/ConsenSys/quorum-key-manager)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ConsenSys/quorum-key-manager)](https://goreportcard.com/report/github.com/ConsenSys/quorum-key-manager)
 
 # Quorum Key Manager
