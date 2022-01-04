@@ -58,7 +58,14 @@ deps-tls: generate-pki networks hashicorp-tls postgres-tls
 down-deps: postgres-down hashicorp-down down-networks
 
 run-acceptance:
-	@go test -v -tags acceptance -count=1 ./tests/acceptance
+	@mkdir -p build/coverage
+	@go test -cover ./src/... -coverprofile build/coverage/acceptance.out -v -tags acceptance -count=1 ./tests/acceptance
+
+run-coverage-acceptance: run-acceptance
+	@sh scripts/coverage.sh build/coverage/acceptance.out build/coverage/acceptance.html
+
+coverage-acceptance: run-coverage-acceptance
+	@$(OPEN) build/coverage/acceptance.html 2>/dev/null
 
 run-e2e:
 	@go test -v -tags e2e -count=1 ./tests/e2e
@@ -69,11 +76,15 @@ gobuild:
 gobuild-dbg:
 	CGO_ENABLED=1 go build -gcflags=all="-N -l" -i -o ./build/bin/key-manager
 
-run-coverage:
-	@sh scripts/coverage.sh $(PACKAGES)
+run-unit:
+	@mkdir -p build/coverage
+	@go test -coverprofile build/coverage/unit.out $(PACKAGES)
 
-coverage: run-coverage
-	@$(OPEN) build/coverage/coverage.html 2>/dev/null
+run-coverage-unit: run-unit
+	@sh scripts/coverage.sh build/coverage/unit.out build/coverage/unit.html
+
+coverage-unit: run-coverage-unit
+	@$(OPEN) build/coverage/unit.html 2>/dev/null
 
 qkm: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
