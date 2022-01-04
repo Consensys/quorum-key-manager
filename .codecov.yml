@@ -1,0 +1,46 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80.00%
+    unittests:
+      target: 75%
+      flags:
+        - unittests
+    acceptance:
+      target: 90%
+      flags:
+        - acceptance
+
+flag_management:
+  default_rules: # the rules that will be followed for any flag added, generally
+    carryforward: true
+    statuses:
+      - name_prefix: project-
+        type: project
+        target: 80%
+        threshold: 1%
+      - name_prefix: patch-
+        type: patch
+        target: 90%
+  individual_flags: # exceptions to the default rules above, stated flag by flag
+    - name: pkg
+      paths:
+        - pkg/
+      carryforward: true
+      statuses:
+        - name_prefix: project-
+          type: project
+          target: 50.0%
+        - name_prefix: patch-
+          type: patch
+          target: 90%
+comment:                  # this is a top-level key
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: true  # if true: only post the comment if coverage changes
+  require_base: no        # [yes :: must have a base report to post]
+  require_head: no       # [yes :: must have a head report to post]
+  
+ignore:
+  - tests/*

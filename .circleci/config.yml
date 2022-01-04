@@ -144,7 +144,6 @@ jobs:
       - codecov/upload:
           file: ./build/coverage/unit.out
           flags: unittests
-          xtra_args: -v -Z
       - store_artifacts:
           path: ./build/coverage/unit.html
           destination: unit-coverage.html
@@ -165,7 +164,6 @@ jobs:
       - codecov/upload:
           file: ./build/coverage/acceptance.out
           flags: acceptance
-          xtra_args: -v -Z
       - store_artifacts:
           path: ./build/coverage/acceptance.html
           destination: acceptance-coverage.html
