@@ -64,12 +64,9 @@ func (a *Alias) String() (string, error) {
 	return value, nil
 }
 func (a *Alias) Test() error {
-	
-	for true {
+	for {
 		fmt.Println("testes....")
 	}
-	
-	return nil
 }
 
 func (a *Alias) Validate() error {
