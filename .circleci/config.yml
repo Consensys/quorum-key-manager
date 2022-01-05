@@ -222,7 +222,7 @@ jobs:
             export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"
             export DOCKER_IMAGE_REF="<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>"
       - run:
-          name: Set environment settings
+          name: Build, push and sign images
           no_output_timeout: 60m
           command: |
             for PLATFORM in $DOCKER_IMAGE_PLATFORMS; do
