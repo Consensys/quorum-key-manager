@@ -1,0 +1,39 @@
+codecov:
+  require_ci_to_pass: false
+  notify:
+    wait_for_ci: false
+  
+coverage:
+  range: 40..100
+  round: down
+  precision: 2
+  status:
+    project:
+      default:
+        target: 80%
+        # Allow decreasing 2% of total coverage to avoid noise.
+        threshold: 2%
+        if_ci_failed: error
+        branches:
+          - main
+    patch:
+      default:
+        target: 90%
+        only_pulls: true
+
+# https://docs.codecov.io/docs/codecovyml-reference#section-parsers
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+      
+comment:                  # this is a top-level key
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: true
+  
+ignore:
+  - tests/*
