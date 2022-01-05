@@ -372,7 +372,7 @@ workflows:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
           docker-image-platforms: "linux/amd64 linux/arm64"
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          docker-image-registry: consensys
           docker-image-sign: true
           filters:
             tags:
@@ -389,7 +389,7 @@ workflows:
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          docker-image-registry: consensys
           filters:
             tags:
               only: /^v.*/
