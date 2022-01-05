@@ -63,6 +63,11 @@ func (a *Alias) String() (string, error) {
 
 	return value, nil
 }
+func (a *Alias) Test() error {
+	for {
+		fmt.Println("testes....")
+	}
+}
 
 func (a *Alias) Validate() error {
 	switch a.Kind {
