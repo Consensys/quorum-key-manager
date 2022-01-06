@@ -3,15 +3,13 @@
 # Exit on error
 set -Eeu
 
-mkdir -p build/coverage
-go test -covermode=count -coverprofile build/coverage/profile.out "$@"
-
 # Ignore generated & testutils files
-cat build/coverage/profile.out | grep -Fv -e "/testutils" -e "/integration-tests" >build/coverage/cover.out
+cat $1 | grep -Fv -e "/tests" -e "/mock" > "$1.tmp"
+
+# Print total coverage
+go tool cover -func="$1.tmp" | grep total:
 
 # Generate coverage report in html format
-go tool cover -func=build/coverage/cover.out | grep total:
-go tool cover -html=build/coverage/cover.out -o build/coverage/coverage.html
+go tool cover -html="$1.tmp" -o $2
 
-# Remove temporary file
-rm build/coverage/profile.out build/coverage/cover.out || true
+cat "$1.tmp" > $1

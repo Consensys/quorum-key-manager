@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   go: circleci/go@1.5.0
+  codecov: codecov/codecov@3.2.2
 
 commands:
   prepare_golang:
@@ -13,10 +14,22 @@ commands:
     description: "Docker login"
     steps:
       - run:
+          name: Enable experimental Docker features
+          command: export DOCKER_CLI_EXPERIMENTAL=enabled
+      - run:
           name: Docker login
           command: |
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin $DOCKER_REGISTRY
-            echo $DOCKER_PASS_2 | docker login -u $DOCKER_USER_2 --password-stdin $DOCKER_REGISTRY_2
+            echo "Login in cloudsmith"
+            echo $CLOUDSMITH_PASS_RW | docker login docker.consensys.net -u $CLOUDSMITH_USER_RW --password-stdin
+            echo "Login in docker.io"
+            echo $DOCKER_PASSWORD_RW | docker login docker.io -u $DOCKER_USER_RW --password-stdin
+      - run:
+          name: DCT signing setup
+          command: |
+            mkdir -p $HOME/.docker/trust/private
+            echo $DCT_KEY | base64 --decode > $HOME/.docker/trust/private/$DCT_HASH.key
+            chmod 600 $HOME/.docker/trust/private/$DCT_HASH.key
+            docker trust key load $HOME/.docker/trust/private/$DCT_HASH.key --name opsquorum
   prepare_docker_buildx:
     description: "Docker buildx setup"
     parameters:
@@ -36,9 +49,6 @@ commands:
             wget "https://github.com/docker/buildx/releases/download/v<< parameters.version >>/buildx-v<< parameters.version >>.linux-amd64" -O ~/.docker/cli-plugins/docker-buildx
             chmod a+x ~/.docker/cli-plugins/docker-buildx
       - run:
-          name: Enable experimental Docker features
-          command: echo 'export DOCKER_CLI_EXPERIMENTAL=enabled' >> $BASH_ENV
-      - run:
           name: Start multiarch/qemu-user-static container
           command: |
             docker run --rm --privileged multiarch/qemu-user-static:<< parameters.qemu-user-static-version >> --reset -p yes
@@ -52,34 +62,6 @@ commands:
       - run:
           command: docker buildx install
           name: Initialize Docker buildx
-  docker_multiarch_build:
-    description: "Build multiarch Quorum Key Manager image"
-    steps:
-      - run:
-          name: Load environment
-          command: source $BASH_ENV
-      - run:
-          name: Build Quorum Key Manager
-          no_output_timeout: 60m
-          command: |
-            echo "Building and pushing image ${DOCKER_IMAGE_TAG} using platforms ${DOCKER_IMAGE_PLATFORMS}..."
-            DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
-              --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-              --label org.opencontainers.image.url="https://consensys.net" \
-              --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/" \
-              --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}" \
-              --label org.opencontainers.image.version="${CIRCLE_TAG-branch}" \
-              --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}" \
-              --label org.opencontainers.image.vendor="ConsenSys Software Inc." \
-              --label org.opencontainers.image.licenses="BUSL-1.1" \
-              --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}" \
-              --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications." \
-              --platform ${DOCKER_IMAGE_PLATFORMS} --push \
-              -t ${DOCKER_IMAGE_TAG} \
-              -q \
-              . 
-            
-
 
   # potential remote environment values
   # - qa
@@ -175,7 +157,13 @@ jobs:
       - prepare_golang
       - run:
           name: Run unit tests
-          command: make run-coverage
+          command: make run-coverage-unit
+      - codecov/upload:
+          file: ./build/coverage/unit.out
+          flags: unittests
+      - store_artifacts:
+          path: ./build/coverage/unit.html
+          destination: unit-coverage.html
 
   acceptance:
     machine:
@@ -189,7 +177,13 @@ jobs:
       - prepare_golang
       - run:
           name: Acceptance tests
-          command: make run-acceptance
+          command: make run-coverage-acceptance
+      - codecov/upload:
+          file: ./build/coverage/acceptance.out
+          flags: acceptance
+      - store_artifacts:
+          path: ./build/coverage/acceptance.html
+          destination: acceptance-coverage.html
           
   e2e:
     machine:
@@ -212,7 +206,7 @@ jobs:
             sleep 20
             make run-e2e
 
-  build-push-docker-image:
+  build-docker-image:
     docker:
       - image: cimg/base:2021.12
     resource_class: xlarge
@@ -227,6 +221,9 @@ jobs:
         type: string
       docker-image-tag:
         type: string
+      docker-image-sign:
+        type: boolean
+        default: false
     steps:
       - checkout
       - setup_remote_docker:
@@ -235,12 +232,61 @@ jobs:
       - prepare_docker
       - prepare_docker_buildx
       - run:
-          name: Set environment
+          name: Build, push and sign images
+          no_output_timeout: 60m
           command: |
-            echo 'export DOCKER_IMAGE_PLATFORMS="<< parameters.docker-image-platforms >>"' >> $BASH_ENV
-            echo 'export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"' >> $BASH_ENV
-            echo "export DOCKER_IMAGE_TAG=\"<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>\"" >> $BASH_ENV
-      - docker_multiarch_build
+            export DOCKER_IMAGE_SIGN="<< parameters.docker-image-sign >>"
+            export DOCKER_IMAGE_PLATFORMS="<< parameters.docker-image-platforms >>"
+            export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"
+            export DOCKER_IMAGE_REF="<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>"
+
+            for PLATFORM in $DOCKER_IMAGE_PLATFORMS; do
+              TARGETOS="$(echo "${PLATFORM}" | cut -d '/' -f 1)"
+              TARGETARCH="$(echo "${PLATFORM}" | cut -d '/' -f 2)"
+
+              if [ $TARGETOS != "linux" ]; then
+                echo "Targeted OS not supported $TARGETOS"
+                exit 1
+              fi
+
+              if [ $TARGETARCH == "amd64" ]; then
+                DOCKER_IMAGE_TAG="${DOCKER_IMAGE_REF}"
+              else
+                DOCKER_IMAGE_TAG="${DOCKER_IMAGE_REF}.${TARGETARCH}"
+              fi
+
+              echo "Building image ${DOCKER_IMAGE_TAG} for {os:${TARGETOS}, arch:$TARGETARCH}..."
+              DOCKER_BUILDKIT=1 docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
+                --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+                --label org.opencontainers.image.url="https://consensys.net" \
+                --label org.opencontainers.image.documentation="https://docs.quorum-key-manager.consensys.net/" \
+                --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}" \
+                --label org.opencontainers.image.version="${CIRCLE_TAG-branch}" \
+                --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}" \
+                --label org.opencontainers.image.vendor="ConsenSys Software Inc." \
+                --label org.opencontainers.image.licenses="BUSL-1.1" \
+                --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}" \
+                --label org.opencontainers.image.description="A universal Key & Account Management solution for blockchain applications." \
+                --platform ${PLATFORM} \
+                --push -t ${DOCKER_IMAGE_TAG} \
+                -q \
+                .
+
+                if [ $DOCKER_IMAGE_SIGN == "true" ]; then
+                  echo "Waiting for few seconds for image to become available..."
+                  sleep 10
+
+                  echo "Pulling docker image ${DOCKER_IMAGE_TAG}..."
+                  docker pull "${DOCKER_IMAGE_TAG}"
+
+                  echo "Signing docker image ${DOCKER_IMAGE_TAG}..."
+                  docker trust sign --local "${DOCKER_IMAGE_TAG}"
+
+                  echo "Pushing docker image ${DOCKER_IMAGE_TAG}..."
+                  docker push "${DOCKER_IMAGE_TAG}"
+                fi
+            done
+
 
   deploy-qa:
     docker:
@@ -252,7 +298,7 @@ jobs:
           name: Deploy QA environment
           command: >-
             QKM_TAG=${CIRCLE_SHA1:0:7}
-            QKM_REPOSITORY=${DOCKER_REGISTRY_REPO_2}/quorum-key-manager
+            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
             make deploy-remote-env
 
   deploy-staging:
@@ -306,14 +352,18 @@ workflows:
             - acceptance
             - test
             - gobuild
-      - build-push-docker-image: # Dev image
+      - build-docker-image: # Push Dev image
           name: push-dev-image
           matrix:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
-          docker-image-registry: ${DOCKER_REGISTRY_DEV_REPO}
+          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
               only: main
@@ -334,13 +384,17 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - build-push-docker-image: # Push prod image
+      - build-docker-image: # Push prod image
           name: release-tag
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
           matrix:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
-          docker-image-platforms: linux/amd64,linux/arm64
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          docker-image-platforms: "linux/amd64 linux/arm64"
+          docker-image-registry: consensys
+          docker-image-sign: true
           filters:
             tags:
               only: /^v.*/
@@ -348,12 +402,15 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
-      - build-push-docker-image: # Push prod image
-          name: release-tag-debug
+      - build-docker-image: # Push prod debug image
+          name: release-debug-tag
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
-          docker-image-registry: ${DOCKER_REGISTRY_REPO_2}
+          docker-image-registry: consensys
           filters:
             tags:
               only: /^v.*/
@@ -364,7 +421,7 @@ workflows:
 #      - deploy-staging:
 #          filters:
 #            tags:
-#              only: fix/deploy
+#              only: /^v.*/
 #            branches:
 #              ignore: /.*/
 #          requires:
