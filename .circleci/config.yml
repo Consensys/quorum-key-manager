@@ -298,7 +298,7 @@ jobs:
           name: Deploy QA environment
           command: >-
             QKM_TAG=develop
-            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
+            QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
 
   deploy-staging:
