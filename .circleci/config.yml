@@ -297,7 +297,7 @@ jobs:
       - run:
           name: Deploy QA environment
           command: >-
-            QKM_TAG=${CIRCLE_SHA1:0:7}
+            QKM_TAG=develop
             QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
             make deploy-remote-env
 
