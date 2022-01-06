@@ -310,7 +310,7 @@ jobs:
       - run:
           name: Deploy staging environment
           command: >-
-            QKM_TAG=${CIRCLE_TAG}
+            QKM_TAG=develop
             QKM_REPOSITORY=${DOCKER_REGISTRY_REPO}/quorum-key-manager
             make deploy-remote-env
 
