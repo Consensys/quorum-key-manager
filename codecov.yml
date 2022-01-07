@@ -12,12 +12,42 @@ coverage:
         # Allow decreasing 2% of total coverage to avoid noise.
         threshold: 2%
         if_ci_failed: error
+        informational: true
+        only_pulls: false
+        flags:
+          - "unittests"
+          - "acceptance"
         branches:
           - main
+          - codecov_round3
+        paths:
+          - "src"
+          - "pkg"
+          - "cmd"
+          - "!*/mock"
+          - "!*/testutils"
+          - "!*/testdata"
+          - "!tests/*"
     patch:
       default:
         target: 90%
-        only_pulls: true
+        threshold: 0%
+        base: auto
+        branches:
+          - main
+          - codecov_round3
+        only_pulls: false
+        flags:
+          - "unittests"
+          - "acceptance"
+        paths:
+          - "src"
+          - "pkg"
+          - "cmd"
+          - "!*/mock"
+          - "!*/testutils"
+          - "!*/testdata"
+          - "!tests/*"
 
 # https://docs.codecov.io/docs/codecovyml-reference#section-parsers
 parsers:
@@ -35,5 +65,7 @@ comment:                  # this is a top-level key
   
 ignore:
   - tests/*
-  - cmd/*
   - main.go
+  - "*/testutils"
+  - "*/testdata"
+  - "*/mock"
