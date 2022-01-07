@@ -13,7 +13,6 @@ coverage:
         threshold: 2%
         if_ci_failed: error
         informational: true
-        only_pulls: false
         flags:
           - "unittests"
           - "acceptance"
@@ -32,11 +31,10 @@ coverage:
       default:
         target: 90%
         threshold: 0%
-        base: auto
+        informational: true
         branches:
           - main
           - codecov_round3
-        only_pulls: false
         flags:
           - "unittests"
           - "acceptance"
