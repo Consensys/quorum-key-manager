@@ -353,7 +353,7 @@ workflows:
             - test
             - gobuild
       - build-docker-image: # Push Dev image
-          name: push-dev-image
+          name: push-qkm-dev-image
           matrix:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
@@ -374,7 +374,7 @@ workflows:
             branches:
               only: fix/deploy
           requires:
-            - push-dev-image
+            - push-qkm-dev-image
       - wait-for-approval:
           type: approval
           requires:
