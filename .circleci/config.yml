@@ -366,7 +366,7 @@ workflows:
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
-              only: main
+              only: fix/deploy
           requires:
             - e2e
       - deploy-qa:
@@ -385,7 +385,7 @@ workflows:
             branches:
               ignore: /.*/
       - build-docker-image: # Push prod image
-          name: release-tag
+          name: release-tag-<< matrix.docker-image-tag >>
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
@@ -418,11 +418,11 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
-#      - deploy-staging:
-#          filters:
-#            tags:
-#              only: /^v.*/
-#            branches:
-#              ignore: /.*/
-#          requires:
-#            - release-tag
+      - deploy-staging:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - release-tag-quorum-key-manager:latest
