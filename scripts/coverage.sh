@@ -4,7 +4,7 @@
 set -Eeu
 
 # Ignore generated & testutils files
-cat $1 | grep -Fv -e "/tests" -e "/mock" -e "/testutils"-e "/testdata" > "$1.tmp"
+cat $1 | grep -Fv -e "/tests" -e "/mock" -e "/testutils" -e "/testdata" > "$1.tmp"
 
 # Print total coverage
 go tool cover -func="$1.tmp" | grep total:
