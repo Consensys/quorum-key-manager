@@ -298,7 +298,7 @@ jobs:
           name: Deploy QA environment
           command: >-
             QKM_TAG=develop
-            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
+            QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
 
   deploy-staging:
@@ -310,8 +310,8 @@ jobs:
       - run:
           name: Deploy staging environment
           command: >-
-            QKM_TAG=develop
-            QKM_REPOSITORY=${DOCKER_REGISTRY_REPO}/quorum-key-manager
+            QKM_TAG=latest
+            QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
 
 workflows:
@@ -347,13 +347,13 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: main
+              only: fix/deploy
           requires:
             - acceptance
             - test
             - gobuild
-      - build-docker-dev-image: # Push Dev image
-          name: push-qkm-dev-image
+      - build-docker-image: # Push Dev image
+          name: push-qkm-dev-image-<< matrix.docker-image-tag >>
           matrix:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
@@ -374,7 +374,7 @@ workflows:
             branches:
               only: fix/deploy
           requires:
-            - push-qkm-dev-image
+            - push-qkm-dev-image-quorum-key-manager:develop
       - wait-for-approval:
           type: approval
           requires:
@@ -384,7 +384,7 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - build-docker-prod-image: # Push prod image
+      - build-docker-image: # Push prod image
           name: release-tag
           context:
             - dockerhub-quorumengineering-rw
@@ -402,7 +402,7 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
-      - build-docker-prod-debug-image: # Push prod debug image
+      - build-docker-image: # Push prod debug image
           name: release-debug-tag
           context:
             - dockerhub-quorumengineering-rw
