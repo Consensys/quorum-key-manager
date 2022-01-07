@@ -352,7 +352,7 @@ workflows:
             - acceptance
             - test
             - gobuild
-      - build-docker-image: # Push Dev image
+      - build-docker-dev-image: # Push Dev image
           name: push-qkm-dev-image
           matrix:
             parameters:
@@ -384,7 +384,7 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - build-docker-image: # Push prod image
+      - build-docker-prod-image: # Push prod image
           name: release-tag
           context:
             - dockerhub-quorumengineering-rw
@@ -402,7 +402,7 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
-      - build-docker-image: # Push prod debug image
+      - build-docker-prod-debug-image: # Push prod debug image
           name: release-debug-tag
           context:
             - dockerhub-quorumengineering-rw
