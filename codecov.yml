@@ -18,12 +18,12 @@ coverage:
           - "acceptance"
         branches:
           - main
-          - codecov_round3
         paths:
           - "src"
           - "pkg"
           - "cmd"
           - "!*/mock"
+          - "!*/mocks"
           - "!*/testutils"
           - "!*/testdata"
           - "!tests/*"
@@ -34,7 +34,6 @@ coverage:
         informational: true
         branches:
           - main
-          - codecov_round3
         flags:
           - "unittests"
           - "acceptance"
@@ -43,6 +42,7 @@ coverage:
           - "pkg"
           - "cmd"
           - "!*/mock"
+          - "!*/mocks"
           - "!*/testutils"
           - "!*/testdata"
           - "!tests/*"
@@ -67,3 +67,4 @@ ignore:
   - "*/testutils"
   - "*/testdata"
   - "*/mock"
+  - "*/mocks"

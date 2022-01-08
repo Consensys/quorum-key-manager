@@ -1,5 +1,3 @@
-// +build acceptance
-
 package acceptancetests
 
 import (
