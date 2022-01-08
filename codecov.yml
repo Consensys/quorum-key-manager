@@ -27,6 +27,7 @@ coverage:
           - "!*/testutils"
           - "!*/testdata"
           - "!tests/*"
+          - "!src/infra/*"
     patch:
       default:
         target: 90%
@@ -46,6 +47,7 @@ coverage:
           - "!*/testutils"
           - "!*/testdata"
           - "!tests/*"
+          - "!src/infra/*"
 
 # https://docs.codecov.io/docs/codecovyml-reference#section-parsers
 parsers:
@@ -64,6 +66,7 @@ comment:
 ignore:
   - tests/*
   - main.go
+  - src/infra/*
   - "*/testutils"
   - "*/testdata"
   - "*/mock"
