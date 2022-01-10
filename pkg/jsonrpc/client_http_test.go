@@ -89,7 +89,7 @@ func TestHTTPClient(t *testing.T) {
 			},
 		},
 		{
-			desc: "Invalid downstream HTTP status",
+			desc: "Invalid downstream HTTP status 404",
 			reqMsg: &RequestMsg{
 				Version: "2.0",
 				Method:  "testMethod",
@@ -100,7 +100,7 @@ func TestHTTPClient(t *testing.T) {
 			respStatus:      http.StatusNotFound,
 			expectedError: &ErrorMsg{
 				Code:    -32001,
-				Message: "Invalid downstream HTTP status",
+				Message: "Invalid downstream HTTP status 404",
 				Data: map[string]interface{}{
 					"status":  404,
 					"message": "Not Found",
