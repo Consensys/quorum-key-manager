@@ -6,12 +6,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/quorum-key-manager/src/entities"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/consensys/quorum-key-manager/src/entities"
 
 	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -74,7 +75,11 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		PrivateKey: privKey,
 	})
 	if err != nil {
+		s.acc, err = s.env.client.GetEthAccount(s.env.ctx, s.storeName, "0x7e654d251da770a068413677967f6d3ea2fea9e4")
+	}
+	if err != nil {
 		s.T().Error(err)
+		s.T().FailNow()
 	}
 	s.registryName = fmt.Sprintf("e2e-%s", common.RandString(5))
 	s.ownAlias = fmt.Sprintf("eth-from-e2e-%s", common.RandString(5))
@@ -146,7 +151,10 @@ func (s *jsonRPCTestSuite) TestCallForwarding() {
 	s.Run("should forward call eth_blockNumber and retrieve block number successfully", func() {
 		resp, err := s.env.client.Call(s.env.ctx, s.QuorumNodeID, "eth_blockNumber")
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -162,7 +170,10 @@ func (s *jsonRPCTestSuite) TestEthSign() {
 	s.Run("should call eth_sign and sign data successfully", func() {
 		resp, err := s.env.client.Call(s.env.ctx, s.QuorumNodeID, "eth_sign", s.acc.Address, dataToSign)
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -194,7 +205,10 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 			"gasPrice": "0x10000",
 		})
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 	})
 
 	s.Run("should call eth_signTransaction successfully; dynamic fee tx", func() {
@@ -208,7 +222,10 @@ func (s *jsonRPCTestSuite) TestEthSignTransaction() {
 			"maxPriorityFeePerGas": "0x1000",
 		})
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 	})
 
 	s.Run("should call eth_signTransaction and fail to sign with an invalid account", func() {
@@ -249,7 +266,10 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 		})
 
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -268,7 +288,10 @@ func (s *jsonRPCTestSuite) TestEthSendTransaction() {
 		})
 
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -314,7 +337,10 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"privateFor":  []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="},
 		})
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -334,7 +360,10 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"privateFor":  []string{fmt.Sprintf("{{%s:%s}}", s.registryName, s.alias)},
 		})
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -354,7 +383,10 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"privateFor":  []string{fmt.Sprintf("{{%s:%s}}", s.registryName, s.alias)},
 		})
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -374,7 +406,10 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 			"privacyGroupID": fmt.Sprintf("{{%s:%s}}", s.registryName, s.alias),
 		})
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -423,7 +458,10 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 		})
 
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -444,7 +482,10 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 		})
 
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -465,7 +506,10 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 		})
 
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
@@ -486,7 +530,10 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 		})
 
 		require.NoError(s.T(), err)
-		require.Nil(s.T(), resp.Error)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
 
 		var result string
 		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)

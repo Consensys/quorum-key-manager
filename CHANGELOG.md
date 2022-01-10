@@ -1,5 +1,9 @@
 # Quorum Key Manager Release Notes
 
+## v21.12.2 (Unreleased)
+### 🛠 Bug fixes
+* Invalid authentication forwarded to downstream proxy nodes if QKM authentication is enabled.
+
 ## v21.12.1 (2021-12-20)
 ### 🛠 Bug fixes
 * Fixes a bug in the `sync` command that prevent it from running.

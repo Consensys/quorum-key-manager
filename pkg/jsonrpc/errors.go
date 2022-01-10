@@ -105,7 +105,7 @@ func InvalidDownstreamHTTPStatusError(code int) *ErrorMsg {
 	text := http.StatusText(code)
 	return &ErrorMsg{
 		Code:    -32001,
-		Message: "Invalid downstream HTTP status",
+		Message: fmt.Sprintf("Invalid downstream HTTP status %d", code),
 		Data: map[string]interface{}{
 			"message": text,
 			"status":  code,
