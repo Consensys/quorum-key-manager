@@ -16,10 +16,11 @@ func BasicAuth(cfg *BasicAuthConfig) Preparer {
 	}
 
 	return PrepareFunc(func(req *http.Request) (*http.Request, error) {
-		if req.Header.Get("Authorization") != "" {
-			// If Authorization Header is already set then do not alter request
-			return req, nil
-		}
+		// @Important: Disabled Authorization forwarding because QKM credentials are forwarded leading to auth issues in the downstream node
+		// @TODO: Re-enable auth forward once we find out a strategy to spit QKM and Node credentials in the request
+		// if req.Header.Get("Authorization") != "" {
+		// 	return req, nil
+		// }
 
 		u := req.URL.User
 		if u == nil && cfg.Username != "" && cfg.Password != "" {
