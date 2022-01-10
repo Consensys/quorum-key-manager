@@ -29,7 +29,7 @@ func NewEnvironment() (*Environment, error) {
 	}
 
 	keyManagerClient := client.NewHTTPClient(
-		&http.Client{Transport: NewTestHttpTransport("", cfg.ApiKey, nil)},
+		&http.Client{},
 		&client.Config{URL: cfg.KeyManagerURL},
 	)
 
