@@ -126,8 +126,13 @@ commands:
                 name: Set B64 Manifests
                 command: echo 'export B64_MANIFESTS=$B64_MANIFESTS_DEFAULT' >> $BASH_ENV
 
-
+# --------------------------
+# Start of jobs definitions
+# Jobs are defined hereafter
+# Tasks executed within these jobs are for the most defined in the project MakeFile
 jobs:
+  # lint:
+  # defines the linting env and tasks
   lint:
     executor:
       name: go/default
@@ -140,6 +145,8 @@ jobs:
             make lint-tools
             make lint-ci
 
+  # gobuild:
+  # defines the building env
   gobuild:
     executor:
       name: go/default
@@ -149,7 +156,9 @@ jobs:
       - run:
           name: Build
           command: make gobuild
-
+  # test:
+  # defines units tests and code coverage environment
+  # Uses the codecov orb to handle code coverage
   test:
     docker:
       - image: cimg/go:1.16.8
@@ -164,7 +173,9 @@ jobs:
       - store_artifacts:
           path: ./build/coverage/unit.html
           destination: unit-coverage.html
-
+  # acceptance:
+  # defines acceptance tests and code coverage environment
+  # Uses the codecov orb to handle code coverage
   acceptance:
     machine:
       image: ubuntu-2004:202010-01
@@ -184,7 +195,9 @@ jobs:
       - store_artifacts:
           path: ./build/coverage/acceptance.html
           destination: acceptance-coverage.html
-          
+  # e2e:
+  # defines end 2 end tests environment
+  # Will spin up an appropriate environment and run the tests against it
   e2e:
     machine:
       image: ubuntu-2004:202010-01
@@ -206,11 +219,15 @@ jobs:
             sleep 20
             make run-e2e
 
+  # build-docker-image:
+  # defines the docker image management process
+  # Will iterate the targeted platforms then build, optionally sign and push images
   build-docker-image:
     docker:
       - image: cimg/base:2021.12
     resource_class: xlarge
-    parameters: # parameters are at the job level
+    # parameters are set on the job level, see below
+    parameters:
       docker-image-platforms:
         type: string
         default: linux/amd64
@@ -287,7 +304,12 @@ jobs:
                 fi
             done
 
-
+  # deploy-qa:
+  # defines the qa deployment
+  # Will fetch the `github/ConsenSys/quorum-key-manager-kubernetes` chart using
+  # QKM_TAG=develop
+  # QKM_REPOSITORY=consensys/quorum-key-manager
+  # see scripts/deploy-remote-env.sh for details
   deploy-qa:
     docker:
       - image: cimg/base:2021.12
@@ -300,7 +322,12 @@ jobs:
             QKM_TAG=develop
             QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
-
+  # deploy-staging:
+  # defines the staging deployment
+  # Will fetch the `github/ConsenSys/quorum-key-manager-kubernetes` chart using
+  # QKM_TAG=latest
+  # QKM_REPOSITORY=consensys/quorum-key-manager
+  # see scripts/deploy-remote-env.sh for details
   deploy-staging:
     docker:
       - image: cimg/base:2021.12
@@ -314,44 +341,67 @@ jobs:
             QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
 
+# --------------------------
+# End of jobs definitions
+# --------------------------
+
+# --------------------------
+# Start of workflows definitions
+# --------------------------
+
 workflows:
   version: 2
   default:
     jobs:
+      # lint
+      # Will run appropriate linting locally for each `/^v.*/` git tag and each commit
       - lint:
           filters:
             tags:
               only: /^v.*/
             branches:
               only: /.*/
+      # gobuild
+      # Will build locally for each `/^v.*/` git tag and each commit
       - gobuild:
           filters:
             tags:
               only: /^v.*/
             branches:
               only: /.*/
+      # test
+      # Will run the unit tests locally for each `/^v.*/` git tag and each commit
       - test:
           filters:
             tags:
               only: /^v.*/
             branches:
               only: /.*/
+      # acceptance
+      # Will run the acceptance tests locally for each `/^v.*/` git tag and each commit
       - acceptance:
           filters:
             tags:
               only: /^v.*/
             branches:
               only: /.*/
+      # e2e
+      # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
+      # requires successful Build, Unit and acceptance tests
       - e2e:
           filters:
             tags:
               only: /^v.*/
             branches:
-              only: fix/deploy
+              only: main
           requires:
             - acceptance
             - test
             - gobuild
+      # build-docker-image / push-qkm-dev-image-<< matrix.docker-image-tag >>
+      # Will build and push a dev image for each main commit
+      # Resulting image is tagged with both ${CIRCLE_SHA1:0:7} and develop
+      # Images are compliant with linux/amd64 architecture
       - build-docker-image: # Push Dev image
           name: push-qkm-dev-image-<< matrix.docker-image-tag >>
           matrix:
@@ -363,18 +413,23 @@ workflows:
             - cloudsmith-tanuki-rw
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
-          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
+          docker-image-registry: consensys
           filters:
             branches:
-              only: fix/deploy
+              only: main
           requires:
             - e2e
+      # deploy-qa
+      # triggers the qa env deployment when the main branch is hit
+      # requires that a develop image has been successfully pushed
       - deploy-qa:
           filters:
             branches:
-              only: fix/deploy
+              only: main
           requires:
             - push-qkm-dev-image-quorum-key-manager:develop
+      # wait-for-approval
+      # Is a pipeline blocker that requires a human decision and action
       - wait-for-approval:
           type: approval
           requires:
@@ -384,6 +439,11 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+      # build-docker-image / release-tag-<< matrix.docker-image-tag >>
+      # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
+      # Resulting image is tagged with both ${CIRCLE_TAG} and latest
+      # Images are compliant with both linux/amd64 and linux/arm64 architectures
+      # requires an approval
       - build-docker-image: # Push prod image
           name: release-tag-<< matrix.docker-image-tag >>
           context:
@@ -402,7 +462,10 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
-      - build-docker-image: # Push prod debug image
+      # build-docker-image / release-debug-tag
+      # Will build and push a prod-debug image for each `/^v.*/` git tag
+      # requires an approval
+      - build-docker-image:
           name: release-debug-tag
           context:
             - dockerhub-quorumengineering-rw
@@ -418,6 +481,9 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
+      # deploy-staging
+      # Will deploy the staging env
+      # requires a successful release image (latest tag) pushed
       - deploy-staging:
           filters:
             tags:
@@ -426,3 +492,7 @@ workflows:
               ignore: /.*/
           requires:
             - release-tag-quorum-key-manager:latest
+
+# --------------------------
+# End of workflows definition definitions
+# --------------------------
