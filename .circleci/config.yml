@@ -325,7 +325,7 @@ jobs:
   # deploy-staging:
   # defines the staging deployment
   # Will fetch the `github/ConsenSys/quorum-key-manager-kubernetes` chart using
-  # QKM_TAG=latest
+  # QKM_TAG=${CIRCLE_TAG}
   # QKM_REPOSITORY=consensys/quorum-key-manager
   # see scripts/deploy-remote-env.sh for details
   deploy-staging:
@@ -337,7 +337,7 @@ jobs:
       - run:
           name: Deploy staging environment
           command: >-
-            QKM_TAG=latest
+            QKM_TAG=${CIRCLE_TAG}
             QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
 
