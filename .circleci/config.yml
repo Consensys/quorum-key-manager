@@ -319,8 +319,8 @@ jobs:
       - run:
           name: Deploy QA environment
           command: >-
-            QKM_TAG=develop
-            QKM_REPOSITORY=consensys/quorum-key-manager
+            QKM_TAG=${CIRCLE_SHA1:0:7}
+            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
             make deploy-remote-env
   # deploy-staging:
   # defines the staging deployment
@@ -393,7 +393,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: main
+              only: fix/deploy
           requires:
             - acceptance
             - test
@@ -416,16 +416,18 @@ workflows:
           docker-image-registry: consensys
           filters:
             branches:
-              only: main
+              only: fix/deploy
           requires:
             - e2e
       # deploy-qa
       # triggers the qa env deployment when the main branch is hit
       # requires that a develop image has been successfully pushed
       - deploy-qa:
+          context:
+            - cloudsmith-tanuki-rw
           filters:
             branches:
-              only: main
+              only: fix/deploy
           requires:
             - push-qkm-dev-image-quorum-key-manager:develop
       # wait-for-approval
