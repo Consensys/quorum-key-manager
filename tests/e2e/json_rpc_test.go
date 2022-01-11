@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/consensys/quorum-key-manager/pkg/client"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/entities"
 
 	aliastypes "github.com/consensys/quorum-key-manager/src/aliases/api/types"
@@ -75,11 +77,12 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 		PrivateKey: privKey,
 	})
 	if err != nil {
-		s.acc, err = s.env.client.GetEthAccount(s.env.ctx, s.storeName, "0x7e654d251da770a068413677967f6d3ea2fea9e4")
+		if rerr, ok := err.(*client.ResponseError); ok && rerr.ErrorCode == errors.StatusConflict {
+			s.acc, err = s.env.client.GetEthAccount(s.env.ctx, s.storeName, "0x7e654d251da770a068413677967f6d3ea2fea9e4")
+		}
 	}
 	if err != nil {
 		s.T().Error(err)
-		s.T().FailNow()
 	}
 	s.registryName = fmt.Sprintf("e2e-%s", common.RandString(5))
 	s.ownAlias = fmt.Sprintf("eth-from-e2e-%s", common.RandString(5))
@@ -128,12 +131,12 @@ func (s *jsonRPCTestSuite) TearDownSuite() {
 	if s.err != nil {
 		s.T().Error(s.err)
 	}
-
+	
 	err := s.env.client.DeleteEthAccount(s.env.ctx, s.storeName, s.acc.Address.Hex())
 	if err != nil {
 		s.T().Error(err)
 	}
-
+	
 	err = retryOn(func() error {
 		return s.env.client.DestroyEthAccount(s.env.ctx, s.storeName, s.acc.Address.Hex())
 	}, s.T().Logf, fmt.Sprintf("failed to destroy ethAccount {Address: %s}", s.acc.Address.Hex()), http.StatusConflict, MaxRetries)
