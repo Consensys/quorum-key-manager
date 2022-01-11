@@ -307,8 +307,10 @@ jobs:
   # deploy-qa:
   # defines the qa deployment
   # Will fetch the `github/ConsenSys/quorum-key-manager-kubernetes` chart using
-  # QKM_TAG=develop
-  # QKM_REPOSITORY=consensys/quorum-key-manager
+  # QKM_TAG=${CIRCLE_SHA1:0:7}
+  # QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
+  # REGISTRY_USERNAME, docker registry user
+  # REGISTRY_PASSWORD, docker registry pw
   # see scripts/deploy-remote-env.sh for details
   deploy-qa:
     docker:
@@ -321,6 +323,8 @@ jobs:
           command: >-
             QKM_TAG=${CIRCLE_SHA1:0:7}
             QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
+            REGISTRY_USERNAME=${CLOUDSMITH_USER_RW}
+            REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
             make deploy-remote-env
   # deploy-staging:
   # defines the staging deployment
