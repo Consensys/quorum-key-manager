@@ -417,7 +417,7 @@ workflows:
             - cloudsmith-tanuki-rw
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
-          docker-image-registry: consensys
+          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
               only: fix/deploy
