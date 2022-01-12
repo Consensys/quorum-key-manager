@@ -397,7 +397,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: fix/deploy
+              only: main
           requires:
             - acceptance
             - test
@@ -420,7 +420,7 @@ workflows:
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
-              only: fix/deploy
+              only: main
           requires:
             - e2e
       # deploy-qa
@@ -431,7 +431,7 @@ workflows:
             - cloudsmith-tanuki-rw
           filters:
             branches:
-              only: fix/deploy
+              only: main
           requires:
             - push-qkm-dev-image-quorum-key-manager:develop
       # wait-for-approval
