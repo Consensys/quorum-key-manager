@@ -62,6 +62,7 @@ type Proxy struct {
 	stopOnce sync.Once
 	opsWg    sync.WaitGroup
 	ops      chan *operation
+	mux      sync.Mutex
 
 	stop chan struct{}
 	done chan struct{}
@@ -100,8 +101,10 @@ func (prx *Proxy) Done() <-chan struct{} {
 // Stop proxy
 func (prx *Proxy) Stop(ctx context.Context) error {
 	prx.stopOnce.Do(func() {
-		close(prx.ops)
+		prx.mux.Lock()
+		defer prx.mux.Unlock()
 		close(prx.stop)
+		close(prx.ops)
 	})
 
 	select {
@@ -131,7 +134,8 @@ func (prx *Proxy) processOps() {
 
 func (prx *Proxy) RegisterServerShutdown(srv *http.Server) {
 	srv.RegisterOnShutdown(func() {
-		_ = prx.Stop(context.Background())
+		ctx, _ := context.WithTimeout(context.Background(), prx.WriteControlMsgTimeout)
+		_ = prx.Stop(ctx)
 	})
 }
 
@@ -154,8 +158,10 @@ func (prx *Proxy) serveWS(rw http.ResponseWriter, req *http.Request) {
 		receivedServerClose: make(chan struct{}),
 	}
 
+	prx.mux.Lock()
 	// sed ops for processing
 	prx.ops <- op
+	prx.mux.Unlock()
 
 	// wait for operation to complete (it avoids request context to be canceled)
 	<-op.done

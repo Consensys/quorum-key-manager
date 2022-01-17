@@ -86,6 +86,9 @@ run-coverage-unit: run-unit
 coverage-unit: run-coverage-unit
 	@$(OPEN) build/coverage/unit.html 2>/dev/null
 
+run-race: ## Run data race detector
+	@go test -count=1 -race -short $(PACKAGES)
+
 qkm: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
 
