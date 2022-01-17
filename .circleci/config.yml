@@ -3,6 +3,8 @@ version: 2.1
 orbs:
   go: circleci/go@1.5.0
   codecov: codecov/codecov@3.2.2
+  aws-eks: circleci/aws-eks@2.0
+  kubernetes: circleci/kubernetes@1.0
 
 commands:
   prepare_golang:
@@ -222,6 +224,12 @@ jobs:
       test_data:
         type: string
         default: $TEST_DATA
+      cluster-name:
+        type: string
+        default: "orchestrate"
+      namespace:
+        type: string
+        default: "qa-qkm"
     steps:
       - run:
           name: Uninstall Go
@@ -231,6 +239,13 @@ jobs:
       - prepare_golang
       - prepare_test_data:
           test_data: << parameters.test_data >>
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      - run:
+          command: |
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081
       - run:
           name: e2e tests
           command: |
