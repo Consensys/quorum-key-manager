@@ -244,8 +244,10 @@ jobs:
           cluster-name: << parameters.cluster-name >>
       - run:
           command: |
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 &
+            PID_FORWARD_8080=$!
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081 &
+            PID_FORWARD_8181=$!
       - run:
           name: e2e tests
           command: |
@@ -255,6 +257,8 @@ jobs:
             echo "Wait 20 seconds for services to boot up correctly..."
             sleep 20
             make run-e2e
+            kill -9 $PID_FORWARD_8080
+            kill -9 $PID_FORWARD_8181
 
   # defines the docker image management process
   # Will iterate the targeted platforms then build, optionally sign and push images
