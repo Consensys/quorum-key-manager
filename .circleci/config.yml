@@ -10,6 +10,16 @@ commands:
     steps:
       - checkout
       - go/mod-download-cached
+  # Will prepare the TEST_DATA env var, takes it as a parameter
+  prepare_test_data:
+    parameters:
+      test_data:
+        type: string
+    description: "Export TEST_DATA for e2e testing"
+    steps:
+      - run:
+          name: Export qa e2e TEST_DATA
+          command: export TEST_DATA=<< parameters.test_data >>
   prepare_docker:
     description: "Docker login"
     steps:
@@ -208,6 +218,10 @@ jobs:
     machine:
       image: ubuntu-2004:202010-01
     resource_class: xlarge
+    parameters:
+      test_data:
+        type: string
+        default: $TEST_DATA
     steps:
       - run:
           name: Uninstall Go
@@ -215,6 +229,8 @@ jobs:
       - go/install:
           version: 1.16.8
       - prepare_golang
+      - prepare_test_data:
+          test_data: << parameters.test_data >>
       - run:
           name: e2e tests
           command: |
@@ -396,27 +412,56 @@ workflows:
               only: /^v.*/
             branches:
               only: /.*/
+
+      # Will build and push a dev image for each main commit
+      # Resulting image is tagged with ${CIRCLE_SHA1:0:7}
+      # Images are compliant with linux/amd64 architecture
+      - build-docker-image: # Push Dev image
+          name: push-qkm-dev-image-${CIRCLE_SHA1:0:7}
+          matrix:
+            parameters:
+              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}"]
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
+          filters:
+            branches:
+              only: fix/workflow
+          requires:
+            - acceptance
+      # triggers the qa env deployment when the main branch is hit
+      # requires that a develop image has been successfully pushed
+      - deploy-qa:
+          context:
+            - cloudsmith-tanuki-rw
+          filters:
+            branches:
+              only: fix/workflow
+          requires:
+            - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
       # requires successful Build, Unit and acceptance tests
       - e2e:
+          test_data: $QA_TEST_DATA
           filters:
             tags:
               only: /^v.*/
             branches:
-              only: main
+              only: fix/workflow
           requires:
-            - acceptance
-            - test
-            - race
-            - gobuild
-      # Will build and push a dev image for each main commit
-      # Resulting image is tagged with both ${CIRCLE_SHA1:0:7} and develop
-      # Images are compliant with linux/amd64 architecture
+            - deploy-qa
+            # Will build and push a dev image for each main commit
+            # Resulting image is tagged with develop
+            # Images are compliant with linux/amd64 architecture
       - build-docker-image: # Push Dev image
-          name: push-qkm-dev-image-<< matrix.docker-image-tag >>
+          name: push-qkm-dev-image-develop
           matrix:
             parameters:
-              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}", "quorum-key-manager:develop"]
+              docker-image-tag: [ "quorum-key-manager:develop" ]
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
@@ -429,16 +474,7 @@ workflows:
               only: main
           requires:
             - e2e
-      # triggers the qa env deployment when the main branch is hit
-      # requires that a develop image has been successfully pushed
-      - deploy-qa:
-          context:
-            - cloudsmith-tanuki-rw
-          filters:
-            branches:
-              only: main
-          requires:
-            - push-qkm-dev-image-quorum-key-manager:develop
+
       # Is a pipeline blocker that requires a human decision and action
       - wait-for-approval:
           type: approval
