@@ -170,6 +170,17 @@ jobs:
       - store_artifacts:
           path: ./build/coverage/unit.html
           destination: unit-coverage.html
+          
+  # defines units tests in race mode
+  race:
+    docker:
+      - image: cimg/go:1.16.8
+    steps:
+      - prepare_golang
+      - run:
+          name: Run unit tests in race mode
+          command: make run-race
+            
   # defines acceptance tests and code coverage environment
   # Uses the codecov orb to handle code coverage
   acceptance:
@@ -371,6 +382,13 @@ workflows:
               only: /^v.*/
             branches:
               only: /.*/
+      # Will run the unit tests in race mode locally for each `/^v.*/` git tag and each commit
+      - race:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
       # Will run the acceptance tests locally for each `/^v.*/` git tag and each commit
       - acceptance:
           filters:
@@ -389,6 +407,7 @@ workflows:
           requires:
             - acceptance
             - test
+            - race
             - gobuild
       # Will build and push a dev image for each main commit
       # Resulting image is tagged with both ${CIRCLE_SHA1:0:7} and develop
