@@ -134,7 +134,8 @@ func (prx *Proxy) processOps() {
 
 func (prx *Proxy) RegisterServerShutdown(srv *http.Server) {
 	srv.RegisterOnShutdown(func() {
-		ctx, _ := context.WithTimeout(context.Background(), prx.WriteControlMsgTimeout)
+		ctx, ctxCancel := context.WithTimeout(context.Background(), prx.WriteControlMsgTimeout)
+		defer ctxCancel()
 		_ = prx.Stop(ctx)
 	})
 }
