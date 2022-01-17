@@ -80,7 +80,12 @@ func newSyncCommand() *cobra.Command {
 		Use:   "secrets",
 		Short: "indexing secrets from remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return storesService.ImportSecrets(cmd.Context(), storeName, userInfo)
+			err := storesService.ImportSecrets(cmd.Context(), storeName, userInfo)
+			if err != nil {
+				cmd.SilenceUsage = true
+				return err
+			}
+			return nil
 		},
 	}
 	syncCmd.AddCommand(syncSecretsCmd)
@@ -89,7 +94,12 @@ func newSyncCommand() *cobra.Command {
 		Use:   "keys",
 		Short: "indexing keys from remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return storesService.ImportKeys(cmd.Context(), storeName, userInfo)
+			err := storesService.ImportKeys(cmd.Context(), storeName, userInfo)
+			if err != nil {
+				cmd.SilenceUsage = true
+				return err
+			}
+			return nil
 		},
 	}
 	syncCmd.AddCommand(syncKeysCmd)
@@ -98,7 +108,12 @@ func newSyncCommand() *cobra.Command {
 		Use:   "ethereum",
 		Short: "indexing ethereum accounts remote vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return storesService.ImportEthereum(cmd.Context(), storeName, userInfo)
+			err := storesService.ImportEthereum(cmd.Context(), storeName, userInfo)
+			if err != nil {
+				cmd.SilenceUsage = true
+				return err
+			}
+			return nil
 		},
 	}
 	syncCmd.AddCommand(syncEthereumCmd)
