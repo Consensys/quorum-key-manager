@@ -253,10 +253,13 @@ jobs:
           command: |
             set +e
             echo "$MANIFEST_B64" | base64 --decode > ./deps/config/manifests/manifest.yml
-            make up-tls
             echo "Wait 20 seconds for services to boot up correctly..."
             sleep 20
             make run-e2e
+
+      - run:
+          name: Kill bg processes
+          command: |
             kill -9 $PID_FORWARD_8080
             kill -9 $PID_FORWARD_8181
 
