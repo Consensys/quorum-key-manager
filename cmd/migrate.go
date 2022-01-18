@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"net/url"
-	"os"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 
@@ -23,10 +22,6 @@ func newMigrateCommand() *cobra.Command {
 		PreRun: func(cmd *cobra.Command, args []string) {
 			preRunBindFlags(viper.GetViper(), cmd.Flags(), "key-manager")
 		},
-		PostRun: func(cmd *cobra.Command, args []string) {
-			// TODO: Identify which error code to return
-			os.Exit(0)
-		},
 	}
 
 	// Register Up command
@@ -35,7 +30,11 @@ func newMigrateCommand() *cobra.Command {
 		Short: "Executes all migrations",
 		Long:  "Executes all available migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return migrateUp()
+			if err := migrateUp(); err != nil {
+				cmd.SilenceUsage = true
+				return err
+			}
+			return nil
 		},
 	}
 	migrateCmd.AddCommand(upCmd)
@@ -47,7 +46,11 @@ func newMigrateCommand() *cobra.Command {
 		Use:   "down",
 		Short: "Reverts last migration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return migrateDown()
+			if err := migrateDown(); err != nil {
+				cmd.SilenceUsage = true
+				return err
+			}
+			return nil
 		},
 	}
 	migrateCmd.AddCommand(downCmd)
@@ -59,7 +62,11 @@ func newMigrateCommand() *cobra.Command {
 		Use:   "reset",
 		Short: "Reverts all migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return migrateReset()
+			if err := migrateReset(); err != nil {
+				cmd.SilenceUsage = true
+				return err
+			}
+			return nil
 		},
 	}
 	migrateCmd.AddCommand(resetCmd)

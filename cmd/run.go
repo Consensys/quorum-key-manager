@@ -15,13 +15,15 @@ func newRunCommand() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run application",
-		RunE:  runCmd,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := runCmd(cmd, args)
+			if err != nil {
+				cmd.SilenceUsage = true
+			}
+			return err
+		},
 		PreRun: func(cmd *cobra.Command, args []string) {
 			preRunBindFlags(viper.GetViper(), cmd.Flags(), "key-manager")
-		},
-		PostRun: func(cmd *cobra.Command, args []string) {
-			// TODO: Identify which error code to return
-			os.Exit(0)
 		},
 	}
 
