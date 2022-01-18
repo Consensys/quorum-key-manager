@@ -69,7 +69,7 @@ Environment variable: %q`, dbUserEnv)
 const (
 	dbPasswordFlag     = "db-password"
 	DBPasswordViperKey = "db.password"
-	dbPasswordDefault  = "postgres"
+	dbPasswordDefault  = ""
 	dbPasswordEnv      = "DB_PASSWORD"
 )
 
