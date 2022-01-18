@@ -147,7 +147,14 @@ func migrateReset() error {
 
 func initMigrations(vipr *viper.Viper, logger log.Logger) (*migrate.Migrate, error) {
 	pgCfg := flags.NewPostgresConfig(vipr)
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?", pgCfg.User, pgCfg.Password, pgCfg.Host, pgCfg.Port, pgCfg.Database)
+	var userPass string
+	if pgCfg.Password != "" {
+		userPass = fmt.Sprintf("%s:%s", url.QueryEscape(pgCfg.User), url.QueryEscape(pgCfg.Password))
+	} else {
+		userPass = url.QueryEscape(pgCfg.User)
+	}
+
+	dbURL := fmt.Sprintf("postgres://%s@%s:%s/%s?", userPass, pgCfg.Host, pgCfg.Port, pgCfg.Database)
 	params := url.Values{}
 	params.Add("sslmode", pgCfg.SSLMode)
 	params.Add("sslcert", pgCfg.TLSCert)
