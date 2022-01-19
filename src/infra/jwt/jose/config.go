@@ -13,10 +13,13 @@ type Config struct {
 	RolesClaimPath      string
 }
 
-func NewConfig(issuerURL string, audience []string, cacheTTL time.Duration) *Config {
+func NewConfig(issuerURL string, audience []string, customClaimPath, permissionClaimPath, rolesClaimPath string, cacheTTL time.Duration) *Config {
 	return &Config{
-		IssuerURL: issuerURL,
-		CacheTTL:  cacheTTL,
-		Audience:  audience,
+		IssuerURL:           issuerURL,
+		CacheTTL:            cacheTTL,
+		Audience:            audience,
+		CustomClaimPath:     customClaimPath,
+		PermissionClaimPath: permissionClaimPath,
+		RolesClaimPath:      rolesClaimPath,
 	}
 }

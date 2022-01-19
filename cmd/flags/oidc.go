@@ -30,15 +30,29 @@ const (
 )
 
 const (
-	authOIDCQKMClaimsFlag     = "auth-oidc-qkm-claim"
+	authOIDCQKMClaimsFlag     = "auth-oidc-qkm-claims"
 	authOIDCQKMClaimsViperKey = "auth.oidc.qkm.claims"
 	authOIDCQKMClaimsEnv      = "AUTH_OIDC_QKM_CLAIMS"
+)
+
+const (
+	authOIDCPermissionsClaimsFlag     = "auth-oidc-permissions-claims"
+	authOIDCPermissionsClaimsViperKey = "auth.oidc.permissions.claims"
+	authOIDCPermissionsClaimsEnv      = "AUTH_OIDC_PERMISSIONS_CLAIMS"
+)
+
+const (
+	authOIDCRolesClaimsFlag     = "auth-oidc-roles-claim"
+	authOIDCRolesClaimsViperKey = "auth.oidc.roles.claims"
+	authOIDCRolesClaimsEnv      = "AUTH_OIDC_ROLES_CLAIMS"
 )
 
 func OIDCFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	authOIDCAudience(f)
 	authOIDCQKMClaimsPath(f)
+	authOIDCPermissionsClaimsPath(f)
+	authOIDCRolesClaimsPath(f)
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
@@ -62,6 +76,20 @@ Environment variable: %q`, authOIDCQKMClaimsEnv)
 	_ = viper.BindPFlag(authOIDCQKMClaimsViperKey, f.Lookup(authOIDCQKMClaimsFlag))
 }
 
+func authOIDCPermissionsClaimsPath(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Path to for permissions claims in the JWT (default 'scope').
+Environment variable: %q`, authOIDCPermissionsClaimsEnv)
+	f.String(authOIDCPermissionsClaimsFlag, "", desc)
+	_ = viper.BindPFlag(authOIDCPermissionsClaimsViperKey, f.Lookup(authOIDCPermissionsClaimsFlag))
+}
+
+func authOIDCRolesClaimsPath(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Path to for roles claims in the JWT.
+Environment variable: %q`, authOIDCRolesClaimsEnv)
+	f.String(authOIDCRolesClaimsFlag, "", desc)
+	_ = viper.BindPFlag(authOIDCRolesClaimsViperKey, f.Lookup(authOIDCRolesClaimsFlag))
+}
+
 func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 	issuerURL := vipr.GetString(authOIDCIssuerURLViperKey)
 
@@ -69,6 +97,9 @@ func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 		return jose.NewConfig(
 			issuerURL,
 			vipr.GetStringSlice(AuthOIDCAudienceViperKey),
+			vipr.GetString(authOIDCQKMClaimsViperKey),
+			vipr.GetString(authOIDCPermissionsClaimsViperKey),
+			vipr.GetString(authOIDCRolesClaimsViperKey),
 			5*time.Minute, // TODO: Make the cache ttl an ENV var if needed
 		)
 	}
