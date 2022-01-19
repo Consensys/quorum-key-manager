@@ -13,6 +13,7 @@ import (
 func init() {
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 	_ = viper.BindEnv(AuthOIDCAudienceViperKey, authOIDCAudienceEnv)
+	_ = viper.BindEnv(authOIDCQKMClaimsViperKey, authOIDCQKMClaimsEnv)
 }
 
 const (
@@ -28,9 +29,16 @@ const (
 	authOIDCAudienceEnv      = "AUTH_OIDC_AUDIENCE"
 )
 
+const (
+	authOIDCQKMClaimsFlag     = "auth-oidc-qkm-claim"
+	authOIDCQKMClaimsViperKey = "auth.oidc.qkm.claims"
+	authOIDCQKMClaimsEnv      = "AUTH_OIDC_QKM_CLAIMS"
+)
+
 func OIDCFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	authOIDCAudience(f)
+	authOIDCQKMClaimsPath(f)
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
@@ -45,6 +53,13 @@ func authOIDCAudience(f *pflag.FlagSet) {
 Environment variable: %q`, authOIDCAudienceEnv)
 	f.StringSlice(authOIDCAudienceFlag, []string{}, desc)
 	_ = viper.BindPFlag(AuthOIDCAudienceViperKey, f.Lookup(authOIDCAudienceFlag))
+}
+
+func authOIDCQKMClaimsPath(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Path to for Quorum Key Manager custom claims in the JWT.
+Environment variable: %q`, authOIDCQKMClaimsEnv)
+	f.String(authOIDCQKMClaimsFlag, "", desc)
+	_ = viper.BindPFlag(authOIDCQKMClaimsViperKey, f.Lookup(authOIDCQKMClaimsFlag))
 }
 
 func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
