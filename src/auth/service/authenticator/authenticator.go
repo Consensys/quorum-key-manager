@@ -112,9 +112,9 @@ func (authen Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.C
 	// first array element is the leaf
 	clientCert := connState.PeerCertificates[0]
 	claims := &entities.UserClaims{
-		Subject: clientCert.Subject.CommonName,
-		Scope:   strings.Join(clientCert.Subject.OrganizationalUnit, " "),
-		Roles:   strings.Join(clientCert.Subject.Organization, " "),
+		Tenant:      clientCert.Subject.CommonName,
+		Permissions: strings.Join(clientCert.Subject.OrganizationalUnit, " "),
+		Roles:       strings.Join(clientCert.Subject.Organization, " "),
 	}
 	return authen.userInfoFromClaims(TLSAuthMode, claims), nil
 }
@@ -123,13 +123,13 @@ func (authen *Authenticator) userInfoFromClaims(authMode string, claims *entitie
 	userInfo := &entities.UserInfo{AuthMode: authMode}
 
 	// If more than one element in subject, then the username has been specified
-	subject := strings.Split(claims.Subject, "|")
+	subject := strings.Split(claims.Tenant, "|")
 	if len(subject) > 1 {
 		userInfo.Username = subject[1]
 	}
 	userInfo.Tenant = subject[0]
 
-	for _, permission := range strings.Fields(claims.Scope) {
+	for _, permission := range strings.Fields(claims.Permissions) {
 		if !strings.Contains(permission, ":") {
 			// Ignore invalid permissions
 			continue

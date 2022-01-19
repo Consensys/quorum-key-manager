@@ -2,9 +2,9 @@ package entities
 
 // UserClaims represent raw claims extracted from an authentication method
 type UserClaims struct {
-	Subject string
-	Scope   string
-	Roles   string
+	Tenant      string
+	Permissions []string
+	Roles       []string
 }
 
 type UserInfo struct {
@@ -14,7 +14,7 @@ type UserInfo struct {
 	// Tenant belonged by the user
 	Tenant string
 
-	// Subject identifies the user
+	// Tenant identifies the user
 	Username string
 
 	// Roles indicates the user's membership

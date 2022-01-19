@@ -62,9 +62,9 @@ func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error
 		}
 
 		claims[cells[csvAPIKeyHash]] = &entities.UserClaims{
-			Subject: cells[csvUserOffset],
-			Scope:   cells[csvPermissionsOffset],
-			Roles:   cells[csvRolesOffset],
+			Tenant:      cells[csvUserOffset],
+			Permissions: cells[csvPermissionsOffset],
+			Roles:       cells[csvRolesOffset],
 		}
 	}
 

@@ -50,7 +50,7 @@ func (s *authenticatorTestSuite) SetupTest() {
 	// User claims
 	aliceClaims := testdata.FakeUserClaims()
 	bobClaims := testdata.FakeUserClaims()
-	bobClaims.Scope = "*:*"
+	bobClaims.Permissions = "*:*"
 
 	aliceSha256 := fmt.Sprintf("%x", sha256.Sum256([]byte(aliceAPIKey)))
 	bobSha256 := fmt.Sprintf("%x", sha256.Sum256([]byte(bobAPIKey)))
@@ -98,7 +98,7 @@ func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 
 	s.Run("should authenticate a jwt token successfully with wildcard permissions", func() {
 		userClaims := testdata.FakeUserClaims()
-		userClaims.Scope = "*:*"
+		userClaims.Permissions = "*:*"
 		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(userClaims, nil)
 
 		userInfo, err := s.auth.AuthenticateJWT(ctx, token)

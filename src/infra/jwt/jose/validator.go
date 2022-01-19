@@ -2,6 +2,7 @@ package jose
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
@@ -27,7 +28,9 @@ func New(cfg *Config) (*Validator, error) {
 		validator.RS256,
 		issuerURL.String(),
 		cfg.Audience,
-		validator.WithCustomClaims(&CustomClaims{}),
+		validator.WithCustomClaims(func() validator.CustomClaims {
+			return NewClaims(cfg.CustomClaimPath, cfg.PermissionClaimPath, cfg.RolesClaimPath)
+		}),
 	)
 	if err != nil {
 		return nil, err
@@ -44,9 +47,19 @@ func (v *Validator) ValidateToken(ctx context.Context, token string) (*entities.
 	}
 
 	claims := userCtx.(*validator.ValidatedClaims)
-	return &entities.UserClaims{
-		Subject: claims.RegisteredClaims.Subject,
-		Scope:   claims.CustomClaims.(*CustomClaims).Scope,
-		Roles:   claims.CustomClaims.(*CustomClaims).Roles,
-	}, nil
+	userClaims := &entities.UserClaims{
+		Tenant:      claims.RegisteredClaims.Subject,
+		Permissions: claims.CustomClaims.(*Claims).Permissions,
+		Roles:       claims.CustomClaims.(*Claims).Roles,
+	}
+
+	if claims.CustomClaims != nil {
+		if qkmUserClaims := claims.CustomClaims.(*Claims).CustomClaims; qkmUserClaims != nil {
+			userClaims.Tenant = qkmUserClaims.TenantID
+		} else {
+			return nil, fmt.Errorf("expected custom claims not found")
+		}
+	}
+
+	return userClaims, nil
 }

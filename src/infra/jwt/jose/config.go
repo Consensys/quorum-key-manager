@@ -5,9 +5,12 @@ import (
 )
 
 type Config struct {
-	IssuerURL string
-	CacheTTL  time.Duration
-	Audience  []string
+	IssuerURL           string
+	CacheTTL            time.Duration
+	Audience            []string
+	CustomClaimPath     string
+	PermissionClaimPath string
+	RolesClaimPath      string
 }
 
 func NewConfig(issuerURL string, audience []string, cacheTTL time.Duration) *Config {
