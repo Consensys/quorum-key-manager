@@ -29,6 +29,9 @@ func NewClaims(customClaimPath, permissionsPath, rolesPath string) *Claims {
 }
 
 func (c *Claims) UnmarshalJSON(data []byte) error {
+	// Reset previously allocated claims
+	c.Reset()
+	
 	var res map[string]interface{}
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
@@ -36,7 +39,6 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 
 	if c.customClaimPath != "" {
 		if _, ok := res[c.customClaimPath]; ok {
-			c.CustomClaims = &CustomClaims{}
 			bClaims, _ := json.Marshal(res[c.customClaimPath])
 			if err := json.Unmarshal(bClaims, &c.CustomClaims); err != nil {
 				return errors.New("invalid custom claims format")
@@ -59,7 +61,13 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (claims *Claims) Validate(_ context.Context) error {
+func (c *Claims) Validate(_ context.Context) error {
 	// TODO: Apply validation on custom claims if needed, currently no validation is needed
 	return nil
+}
+
+func (c *Claims) Reset() {
+	c.CustomClaims = &CustomClaims{}
+	c.Roles = []string{}
+	c.Roles = []string{}
 }

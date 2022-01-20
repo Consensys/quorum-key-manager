@@ -113,8 +113,8 @@ func (authen Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.C
 	clientCert := connState.PeerCertificates[0]
 	claims := &entities.UserClaims{
 		Tenant:      clientCert.Subject.CommonName,
-		Permissions: strings.Join(clientCert.Subject.OrganizationalUnit, " "),
-		Roles:       strings.Join(clientCert.Subject.Organization, " "),
+		Permissions: clientCert.Subject.OrganizationalUnit,
+		Roles:       clientCert.Subject.Organization,
 	}
 	return authen.userInfoFromClaims(TLSAuthMode, claims), nil
 }
@@ -129,7 +129,7 @@ func (authen *Authenticator) userInfoFromClaims(authMode string, claims *entitie
 	}
 	userInfo.Tenant = subject[0]
 
-	for _, permission := range strings.Fields(claims.Permissions) {
+	for _, permission := range claims.Permissions {
 		if !strings.Contains(permission, ":") {
 			// Ignore invalid permissions
 			continue
@@ -142,9 +142,7 @@ func (authen *Authenticator) userInfoFromClaims(authMode string, claims *entitie
 		}
 	}
 
-	if claims.Roles != "" {
-		userInfo.Roles = strings.Fields(claims.Roles)
-	}
+	userInfo.Roles = claims.Roles
 
 	authen.logger.Debug(
 		"user info extracted successfully",

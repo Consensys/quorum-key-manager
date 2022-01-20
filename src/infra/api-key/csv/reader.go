@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	apikey "github.com/consensys/quorum-key-manager/src/infra/api-key"
@@ -63,8 +64,8 @@ func (r *Reader) Load(_ context.Context) (map[string]*entities.UserClaims, error
 
 		claims[cells[csvAPIKeyHash]] = &entities.UserClaims{
 			Tenant:      cells[csvUserOffset],
-			Permissions: cells[csvPermissionsOffset],
-			Roles:       cells[csvRolesOffset],
+			Permissions: strings.Split(cells[csvPermissionsOffset], " "),
+			Roles:       strings.Split(cells[csvRolesOffset], " "),
 		}
 	}
 
