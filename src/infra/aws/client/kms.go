@@ -2,13 +2,17 @@ package client
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/cenkalti/backoff"
 )
 
-func (c *AWSClient) CreateKey(_ context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
+func (c *AWSClient) CreateKey(ctx context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
 	// Always create with same usage for key now (sign & verify)
 	keyUsage := kms.KeyUsageTypeSignVerify
 
@@ -18,13 +22,31 @@ func (c *AWSClient) CreateKey(_ context.Context, id, keyType string, tags []*kms
 		Tags:                  tags,
 	})
 	if err != nil {
-		return nil, err
+		return nil, parseKmsErrorResponse(err)
 	}
 
 	_, err = c.kmsClient.CreateAlias(&kms.CreateAliasInput{
 		AliasName:   &id,
 		TargetKeyId: out.KeyMetadata.KeyId,
 	})
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+
+	err = backoff.RetryNotify(func() error {
+		descData, err := c.DescribeKey(ctx, id)
+		if err != nil {
+			return err
+		}
+		if *descData.KeyMetadata.Enabled {
+			return nil
+		}
+		return errors.New(fmt.Sprintf("keyId %s is still not enabled"))
+	}, c.backOff,
+		func(err error, t time.Duration) {
+			c.logger.Debug(fmt.Sprintf("ERR: %s, retrying in %s", err.Error(), t.String()))
+		},
+	)
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
 	}
