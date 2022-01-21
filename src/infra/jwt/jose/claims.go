@@ -37,7 +37,7 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 		c.CustomClaims = &CustomClaims{}
 		if _, ok := res[c.customClaimPath]; ok {
 			bClaims, _ := json.Marshal(res[c.customClaimPath])
-			if err := json.Unmarshal(bClaims, &c.CustomClaims); err != nil {
+			if err := json.Unmarshal(bClaims, &c.CustomClaims); err != nil || c.CustomClaims.TenantID == "" {
 				return errors.New("invalid custom claims format")
 			}
 		} else {
@@ -49,7 +49,7 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 		if err := common.InterfaceToObject(res[c.permissionsPath], &c.Permissions); err != nil {
 			return errors.New("invalid permission data type")
 		}
-	} else {
+	} else if res["scope"] != nil {
 		c.Permissions = strings.Split(res["scope"].(string), " ")
 	}
 

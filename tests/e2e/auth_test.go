@@ -160,7 +160,7 @@ func (s *authTestSuite) TestAuth_JWT() {
 		})
 		httpError, ok := err.(*client.ResponseError)
 		require.True(s.T(), ok)
-		assert.Equal(s.T(), http.StatusForbidden, httpError.StatusCode, token)
+		assert.Equal(s.T(), http.StatusForbidden, httpError.StatusCode)
 	})
 
 	s.Run("should fail to sign with Status Unauthorized if token is invalid", func() {
