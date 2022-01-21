@@ -2,17 +2,25 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v4"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *AWSClient) CreateKey(ctx context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
+const (
+	KeyStateCreating        = "Creating"
+	KeyStateEnabled         = "Enabled"
+	KeyStatePendingDeletion = "PendingDeletion"
+	KeyStatePendingImport   = "PendingImport"
+	KeyStateUpdating        = "Updating"
+)
+
+func (c *AWSClient) CreateKey(ctx context.Context, keyID, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
 	// Always create with same usage for key now (sign & verify)
 	keyUsage := kms.KeyUsageTypeSignVerify
 
@@ -26,29 +34,16 @@ func (c *AWSClient) CreateKey(ctx context.Context, id, keyType string, tags []*k
 	}
 
 	_, err = c.kmsClient.CreateAlias(&kms.CreateAliasInput{
-		AliasName:   &id,
+		AliasName:   &keyID,
 		TargetKeyId: out.KeyMetadata.KeyId,
 	})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
 	}
 
-	err = backoff.RetryNotify(func() error {
-		descData, err := c.DescribeKey(ctx, id)
-		if err != nil {
-			return err
-		}
-		if *descData.KeyMetadata.Enabled {
-			return nil
-		}
-		return errors.New(fmt.Sprintf("keyId %s is still not enabled"))
-	}, c.backOff,
-		func(err error, t time.Duration) {
-			c.logger.Debug(fmt.Sprintf("ERR: %s, retrying in %s", err.Error(), t.String()))
-		},
-	)
+	err = c.waitDuringState(ctx, keyID, KeyStateCreating)
 	if err != nil {
-		return nil, parseKmsErrorResponse(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -65,8 +60,8 @@ func (c *AWSClient) GetPublicKey(_ context.Context, keyID string) (*kms.GetPubli
 	return out, nil
 }
 
-func (c *AWSClient) DescribeKey(_ context.Context, id string) (*kms.DescribeKeyOutput, error) {
-	out, err := c.kmsClient.DescribeKey(&kms.DescribeKeyInput{KeyId: &id})
+func (c *AWSClient) DescribeKey(_ context.Context, keyID string) (*kms.DescribeKeyOutput, error) {
+	out, err := c.kmsClient.DescribeKey(&kms.DescribeKeyInput{KeyId: &keyID})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
 	}
@@ -108,8 +103,8 @@ func (c *AWSClient) GetAlias(_ context.Context, keyID string) (string, error) {
 	return "", nil
 }
 
-func (c *AWSClient) ListTags(_ context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
-	input := &kms.ListResourceTagsInput{KeyId: &id}
+func (c *AWSClient) ListTags(_ context.Context, keyID, marker string) (*kms.ListResourceTagsOutput, error) {
+	input := &kms.ListResourceTagsInput{KeyId: &keyID}
 	if len(marker) > 0 {
 		input.Marker = &marker
 	}
@@ -138,12 +133,17 @@ func (c *AWSClient) Sign(_ context.Context, keyID string, msg []byte, signingAlg
 	return out, nil
 }
 
-func (c *AWSClient) DeleteKey(_ context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error) {
+func (c *AWSClient) DeleteKey(ctx context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error) {
 	out, err := c.kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
 		KeyId: &keyID,
 	})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
+	}
+
+	err = c.waitDuringState(ctx, keyID, KeyStatePendingDeletion)
+	if err != nil {
+		return nil, err
 	}
 
 	return out, nil
@@ -182,4 +182,23 @@ func (c *AWSClient) UntagResource(_ context.Context, keyID string, tagKeys []*st
 	}
 
 	return outUntagResource, nil
+}
+
+func (c *AWSClient) waitDuringState(ctx context.Context, keyID, state string) error {
+	return backoff.RetryNotify(func() error {
+		descData, err := c.DescribeKey(ctx, keyID)
+		if err != nil {
+			return err
+		}
+
+		// https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html
+		if *descData.KeyMetadata.KeyState == state {
+			return nil
+		}
+		return errors.StatusConflictError("key %s is still in state %s", keyID, state)
+	}, c.backOff,
+		func(err error, t time.Duration) {
+			c.logger.Debug(fmt.Sprintf("ERR: %s, retrying in %s", err.Error(), t.String()))
+		},
+	)
 }

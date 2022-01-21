@@ -186,7 +186,9 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	}
 
 	_, err = s.client.DeleteKey(ctx, keyID)
-	if err != nil {
+	if err != nil && errors.IsStatusConflictError(err){
+		logger.WithError(err).Warn("key is still in pending for deletion")
+	} else if err != nil {
 		errMessage := "failed to delete AWS key"
 		logger.WithError(err).Error(errMessage)
 		return errors.FromError(err).SetMessage(errMessage)

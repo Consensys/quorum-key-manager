@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v4"
 	awsinfra "github.com/consensys/quorum-key-manager/src/infra/aws"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 )
@@ -31,8 +31,8 @@ func New(cfg *Config, logger log.Logger) (*AWSClient, error) {
 		kmsClient:     kms.New(sess),
 		secretsClient: secretsmanager.New(sess),
 		// Max wait of 5 seconds to wait for KMS to transition the state of assets
-		backOff:       backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), 5),
-		cfg:           cfg,
-		logger:        logger,
+		backOff: backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), 5),
+		cfg:     cfg,
+		logger:  logger,
 	}, nil
 }
