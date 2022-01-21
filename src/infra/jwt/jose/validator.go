@@ -52,6 +52,8 @@ func (v *Validator) ValidateToken(ctx context.Context, token string) (*entities.
 		userClaims.Permissions = claims.CustomClaims.(*Claims).Permissions
 		if qkmUserClaims := claims.CustomClaims.(*Claims).CustomClaims; qkmUserClaims != nil {
 			userClaims.Tenant = qkmUserClaims.TenantID
+		} else {
+			userClaims.Tenant = claims.RegisteredClaims.Subject
 		}
 	} else {
 		userClaims.Tenant = claims.RegisteredClaims.Subject
