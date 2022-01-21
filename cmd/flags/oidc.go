@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/infra/jwt/jose"
@@ -59,7 +60,7 @@ Environment variable: %q`, authOIDCIssuerURLEnv)
 func authOIDCAudience(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Expected audience ("aud" field) of JWT tokens.
 Environment variable: %q`, authOIDCAudienceEnv)
-	f.StringSlice(authOIDCAudienceFlag, []string{}, desc)
+	f.String(authOIDCAudienceFlag, "", desc)
 	_ = viper.BindPFlag(AuthOIDCAudienceViperKey, f.Lookup(authOIDCAudienceFlag))
 }
 
@@ -83,7 +84,7 @@ func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 	if issuerURL != "" {
 		return jose.NewConfig(
 			issuerURL,
-			vipr.GetStringSlice(AuthOIDCAudienceViperKey),
+			strings.Split(vipr.GetString(AuthOIDCAudienceViperKey), ","),
 			vipr.GetString(authOIDCCustomClaimsViperKey),
 			vipr.GetString(authOIDCPermissionsClaimsViperKey),
 			5*time.Minute, // TODO: Make the cache ttl an ENV var if needed
