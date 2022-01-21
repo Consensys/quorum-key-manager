@@ -7,6 +7,7 @@
   
 ### 🛠 Bug fixes
 * Invalid authentication forwarded to downstream proxy nodes if QKM authentication is enabled.
+* Fixed AWS client issue preventing racing condition on key state transition changes. 
 
 ## v21.12.1 (2021-12-20)
 ### 🛠 Bug fixes
