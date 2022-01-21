@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   go: circleci/go@1.5.0
-  codecov: codecov/codecov@3.2.2
+  sonarcloud: sonarsource/sonarcloud@1.0.1
 
 commands:
   prepare_golang:
@@ -155,7 +155,6 @@ jobs:
           name: Build
           command: make gobuild
   # defines units tests and code coverage environment
-  # Uses the codecov orb to handle code coverage
   test:
     docker:
       - image: cimg/go:1.16.8
@@ -164,12 +163,15 @@ jobs:
       - run:
           name: Run unit tests
           command: make run-coverage-unit
-      - codecov/upload:
-          file: ./build/coverage/unit.out
-          flags: unittests
       - store_artifacts:
           path: ./build/coverage/unit.html
           destination: unit-coverage.html
+      - store_test_results:
+          path: ./build/coverage/unit.out
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./build/coverage
           
   # defines units tests in race mode
   race:
@@ -182,7 +184,6 @@ jobs:
           command: make run-race
             
   # defines acceptance tests and code coverage environment
-  # Uses the codecov orb to handle code coverage
   acceptance:
     machine:
       image: ubuntu-2004:202010-01
@@ -196,12 +197,28 @@ jobs:
       - run:
           name: Acceptance tests
           command: make run-coverage-acceptance
-      - codecov/upload:
-          file: ./build/coverage/acceptance.out
-          flags: acceptance
       - store_artifacts:
           path: ./build/coverage/acceptance.html
           destination: acceptance-coverage.html
+      - store_test_results:
+          path: ./build/coverage/acceptance.out
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./build/coverage
+
+  sonarscan:
+    docker:
+      - image: cimg/go:1.16.8
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: List coverage files
+          command: ls -la ./build/coverage
+      - sonarcloud/scan
+
   # defines end 2 end tests environment
   # Will spin up an appropriate environment and run the tests against it
   e2e:
@@ -396,6 +413,15 @@ workflows:
               only: /^v.*/
             branches:
               only: /.*/
+      - sonarscan:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
+          requires:
+            - test
+            - acceptance
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
       # requires successful Build, Unit and acceptance tests
       - e2e:
