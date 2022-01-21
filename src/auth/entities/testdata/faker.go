@@ -7,7 +7,7 @@ import (
 func FakeUserClaims() *entities.UserClaims {
 	return &entities.UserClaims{
 		Tenant:      "TenantOne|Alice",
-		Permissions: "read:key write:key",
-		Roles:       "guest admin",
+		Permissions: []string{"read:key", "write:key"},
+		Roles:       []string{"guest", "admin"},
 	}
 }

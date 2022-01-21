@@ -14,6 +14,7 @@ func init() {
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 	_ = viper.BindEnv(AuthOIDCAudienceViperKey, authOIDCAudienceEnv)
 	_ = viper.BindEnv(authOIDCCustomClaimsViperKey, authOIDCCustomClaimsEnv)
+	_ = viper.BindEnv(authOIDCPermissionsClaimsViperKey, authOIDCPermissionsClaimsEnv)
 }
 
 const (

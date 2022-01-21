@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+
+	"github.com/consensys/quorum-key-manager/pkg/common"
 )
 
 type Claims struct {
@@ -26,15 +28,13 @@ func NewClaims(customClaimPath, permissionsPath string) *Claims {
 }
 
 func (c *Claims) UnmarshalJSON(data []byte) error {
-	// Reset previously allocated claims
-	c.Reset()
-	
 	var res map[string]interface{}
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
 
 	if c.customClaimPath != "" {
+		c.CustomClaims = &CustomClaims{}
 		if _, ok := res[c.customClaimPath]; ok {
 			bClaims, _ := json.Marshal(res[c.customClaimPath])
 			if err := json.Unmarshal(bClaims, &c.CustomClaims); err != nil {
@@ -46,7 +46,9 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	}
 
 	if c.permissionsPath != "" {
-		c.Permissions = res[c.permissionsPath].([]string)
+		if err := common.InterfaceToObject(res[c.permissionsPath], &c.Permissions); err != nil {
+			return errors.New("invalid permission data type")
+		}
 	} else {
 		c.Permissions = strings.Split(res["scope"].(string), " ")
 	}
@@ -57,9 +59,4 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 func (c *Claims) Validate(_ context.Context) error {
 	// TODO: Apply validation on custom claims if needed, currently no validation is needed
 	return nil
-}
-
-func (c *Claims) Reset() {
-	c.CustomClaims = &CustomClaims{}
-	c.Permissions = []string{}
 }

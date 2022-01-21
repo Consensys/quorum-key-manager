@@ -144,13 +144,5 @@ func (authen *Authenticator) userInfoFromClaims(authMode string, claims *entitie
 
 	userInfo.Roles = claims.Roles
 
-	authen.logger.Debug(
-		"user info extracted successfully",
-		"username", userInfo.Username,
-		"tenant", userInfo.Tenant,
-		"permissions", userInfo.Permissions,
-		"roles", userInfo.Roles,
-	)
-
 	return userInfo
 }

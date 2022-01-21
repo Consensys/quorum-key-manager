@@ -19,6 +19,7 @@ x-default-variables: &default-variables
   DB_DATABASE: ${DB_DATABASE-}
   DB_POOLSIZE: ${DB_POOLSIZE-}
   DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT-}
+  
 
 x-container-common: &container-common
   image: golang:1.16-buster
@@ -45,6 +46,8 @@ services:
       <<: *default-variables
       AUTH_OIDC_AUDIENCE: ${AUTH_OIDC_AUDIENCE-}
       AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL-}
+      AUTH_OIDC_PERMISSIONS_CLAIMS: ${AUTH_OIDC_PERMISSIONS_CLAIMS-}
+      AUTH_OIDC_CUSTOM_CLAIMS: ${AUTH_OIDC_CUSTOM_CLAIMS-}
       HTTPS_ENABLED: ${HTTPS_ENABLED-}
       HTTPS_SERVER_KEY: ${HTTPS_SERVER_KEY-}
       HTTPS_SERVER_CERT: ${HTTPS_SERVER_CERT-}
@@ -54,7 +57,7 @@ services:
       - 8080:8080
       - 8081:8081
       - 8443:8443
-      - 2345:2345
+#      - 2345:2345
     depends_on:
       - migration
     networks:
@@ -62,7 +65,7 @@ services:
       - besu
       - hashicorp
       - qkm
-#    command: run
+    command: run
     restart: "on-failure"
     volumes:
       - ./build/bin/key-manager:/bin/main:ro
@@ -72,12 +75,12 @@ services:
       - ./deps/config/apikey:/apikey:ro
       - ./deps/config/oidc:/oidc:ro
       - hashicorp-token:/vault/token:ro
-      - /usr/local/bin/dlv:/usr/local/bin/dlv
-    entrypoint:
-      - sh
-      - -c
-      - |
-        dlv --listen=:2345 --headless=true --api-version=2 --accept-multiclient exec /bin/main run
+#      - /usr/local/bin/dlv:/usr/local/bin/dlv
+#    entrypoint:
+#      - sh
+#      - -c
+#      - |
+#        dlv --listen=:2345 --headless=true --api-version=2 --accept-multiclient exec /bin/main run
 
   sync:
     <<: *container-common
