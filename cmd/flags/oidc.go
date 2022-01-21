@@ -13,7 +13,7 @@ import (
 func init() {
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 	_ = viper.BindEnv(AuthOIDCAudienceViperKey, authOIDCAudienceEnv)
-	_ = viper.BindEnv(authOIDCQKMClaimsViperKey, authOIDCQKMClaimsEnv)
+	_ = viper.BindEnv(authOIDCCustomClaimsViperKey, authOIDCCustomClaimsEnv)
 }
 
 const (
@@ -30,9 +30,9 @@ const (
 )
 
 const (
-	authOIDCQKMClaimsFlag     = "auth-oidc-qkm-claims"
-	authOIDCQKMClaimsViperKey = "auth.oidc.qkm.claims"
-	authOIDCQKMClaimsEnv      = "AUTH_OIDC_QKM_CLAIMS"
+	authOIDCCustomClaimsFlag     = "auth-oidc-custom-claims"
+	authOIDCCustomClaimsViperKey = "auth.oidc.custom.claims"
+	authOIDCCustomClaimsEnv      = "AUTH_OIDC_CUSTOM_CLAIMS"
 )
 
 const (
@@ -41,18 +41,11 @@ const (
 	authOIDCPermissionsClaimsEnv      = "AUTH_OIDC_PERMISSIONS_CLAIMS"
 )
 
-const (
-	authOIDCRolesClaimsFlag     = "auth-oidc-roles-claim"
-	authOIDCRolesClaimsViperKey = "auth.oidc.roles.claims"
-	authOIDCRolesClaimsEnv      = "AUTH_OIDC_ROLES_CLAIMS"
-)
-
 func OIDCFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	authOIDCAudience(f)
-	authOIDCQKMClaimsPath(f)
+	authOIDCCustomClaimsPath(f)
 	authOIDCPermissionsClaimsPath(f)
-	authOIDCRolesClaimsPath(f)
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
@@ -69,11 +62,11 @@ Environment variable: %q`, authOIDCAudienceEnv)
 	_ = viper.BindPFlag(AuthOIDCAudienceViperKey, f.Lookup(authOIDCAudienceFlag))
 }
 
-func authOIDCQKMClaimsPath(f *pflag.FlagSet) {
+func authOIDCCustomClaimsPath(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Path to for Quorum Key Manager custom claims in the JWT.
-Environment variable: %q`, authOIDCQKMClaimsEnv)
-	f.String(authOIDCQKMClaimsFlag, "", desc)
-	_ = viper.BindPFlag(authOIDCQKMClaimsViperKey, f.Lookup(authOIDCQKMClaimsFlag))
+Environment variable: %q`, authOIDCCustomClaimsEnv)
+	f.String(authOIDCCustomClaimsFlag, "", desc)
+	_ = viper.BindPFlag(authOIDCCustomClaimsViperKey, f.Lookup(authOIDCCustomClaimsFlag))
 }
 
 func authOIDCPermissionsClaimsPath(f *pflag.FlagSet) {
@@ -83,13 +76,6 @@ Environment variable: %q`, authOIDCPermissionsClaimsEnv)
 	_ = viper.BindPFlag(authOIDCPermissionsClaimsViperKey, f.Lookup(authOIDCPermissionsClaimsFlag))
 }
 
-func authOIDCRolesClaimsPath(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Path to for roles claims in the JWT.
-Environment variable: %q`, authOIDCRolesClaimsEnv)
-	f.String(authOIDCRolesClaimsFlag, "", desc)
-	_ = viper.BindPFlag(authOIDCRolesClaimsViperKey, f.Lookup(authOIDCRolesClaimsFlag))
-}
-
 func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 	issuerURL := vipr.GetString(authOIDCIssuerURLViperKey)
 
@@ -97,9 +83,8 @@ func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 		return jose.NewConfig(
 			issuerURL,
 			vipr.GetStringSlice(AuthOIDCAudienceViperKey),
-			vipr.GetString(authOIDCQKMClaimsViperKey),
+			vipr.GetString(authOIDCCustomClaimsViperKey),
 			vipr.GetString(authOIDCPermissionsClaimsViperKey),
-			vipr.GetString(authOIDCRolesClaimsViperKey),
 			5*time.Minute, // TODO: Make the cache ttl an ENV var if needed
 		)
 	}

@@ -29,7 +29,7 @@ func New(cfg *Config) (*Validator, error) {
 		issuerURL.String(),
 		cfg.Audience,
 		validator.WithCustomClaims(func() validator.CustomClaims {
-			return NewClaims(cfg.CustomClaimPath, cfg.PermissionClaimPath, cfg.RolesClaimPath)
+			return NewClaims(cfg.CustomClaimPath, cfg.PermissionClaimPath)
 		}),
 	)
 	if err != nil {
@@ -50,7 +50,6 @@ func (v *Validator) ValidateToken(ctx context.Context, token string) (*entities.
 	userClaims := &entities.UserClaims{
 		Tenant:      claims.RegisteredClaims.Subject,
 		Permissions: claims.CustomClaims.(*Claims).Permissions,
-		Roles:       claims.CustomClaims.(*Claims).Roles,
 	}
 
 	if claims.CustomClaims != nil {

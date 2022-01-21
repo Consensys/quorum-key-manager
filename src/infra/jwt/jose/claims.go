@@ -8,23 +8,20 @@ import (
 )
 
 type Claims struct {
-	Roles           []string      `json:"roles"`
 	Permissions     []string      `json:"permissions"`
 	CustomClaims    *CustomClaims `json:"-"`
 	customClaimPath string
 	permissionsPath string
-	rolesPath       string
 }
 
 type CustomClaims struct {
 	TenantID string `json:"tenant_id"`
 }
 
-func NewClaims(customClaimPath, permissionsPath, rolesPath string) *Claims {
+func NewClaims(customClaimPath, permissionsPath string) *Claims {
 	return &Claims{
 		customClaimPath: customClaimPath,
 		permissionsPath: permissionsPath,
-		rolesPath:       rolesPath,
 	}
 }
 
@@ -51,11 +48,7 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	if c.permissionsPath != "" {
 		c.Permissions = res[c.permissionsPath].([]string)
 	} else {
-		c.Permissions = strings.Split(res["scope"].(string), "")
-	}
-
-	if c.rolesPath != "" {
-		c.Roles = res[c.rolesPath].([]string)
+		c.Permissions = strings.Split(res["scope"].(string), " ")
 	}
 
 	return nil
@@ -68,6 +61,5 @@ func (c *Claims) Validate(_ context.Context) error {
 
 func (c *Claims) Reset() {
 	c.CustomClaims = &CustomClaims{}
-	c.Roles = []string{}
-	c.Roles = []string{}
+	c.Permissions = []string{}
 }
