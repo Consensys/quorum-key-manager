@@ -13,7 +13,7 @@ func TestInterfaceToObject(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, res[0], "a")
 	})
-	
+
 	t.Run("fail to parse no corresponding interface types", func(t *testing.T) {
 		var res []int
 		err := InterfaceToObject([]interface{}{"a", "b", "c"}, &res)
