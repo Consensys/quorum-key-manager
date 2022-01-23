@@ -52,9 +52,16 @@ func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) 
 
 	authen.logger.Debug("extracting user info from jwt token")
 
-	claims, err := authen.jwtValidator.ValidateToken(ctx, token)
+	tokenClaims, err := authen.jwtValidator.ValidateToken(ctx, token)
 	if err != nil {
 		errMessage := "failed to validate jwt token"
+		authen.logger.WithError(err).Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
+	claims, err := authen.jwtValidator.ParseClaims(tokenClaims)
+	if err != nil {
+		errMessage := "failed to parse jwt token claims"
 		authen.logger.WithError(err).Error(errMessage)
 		return nil, errors.UnauthorizedError(errMessage)
 	}

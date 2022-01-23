@@ -82,9 +82,11 @@ func (s *authenticatorTestSuite) SetupTest() {
 func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 	ctx := context.Background()
 	token := "myToken"
+	tokenClaimObj := "tokenClaimsObj"
 
 	s.Run("should authenticate a jwt token successfully", func() {
-		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testdata.FakeUserClaims(), nil)
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(tokenClaimObj, nil)
+		s.mockJWTValidator.EXPECT().ParseClaims(tokenClaimObj).Return(testdata.FakeUserClaims(), nil)
 
 		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
 
@@ -99,7 +101,8 @@ func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 	s.Run("should authenticate a jwt token successfully with wildcard permissions", func() {
 		userClaims := testdata.FakeUserClaims()
 		userClaims.Permissions = []string{"*:*"}
-		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(userClaims, nil)
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(tokenClaimObj, nil)
+		s.mockJWTValidator.EXPECT().ParseClaims(tokenClaimObj).Return(userClaims, nil)
 
 		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
 
@@ -108,7 +111,17 @@ func (s *authenticatorTestSuite) TestAuthenticateJWT() {
 	})
 
 	s.Run("should return UnauthorizedError if the token fails validation", func() {
-		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(testdata.FakeUserClaims(), fmt.Errorf("error"))
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(nil, fmt.Errorf("error"))
+
+		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
+
+		require.Nil(s.T(), userInfo)
+		assert.True(s.T(), errors.IsUnauthorizedError(err))
+	})
+
+	s.Run("should return UnauthorizedError if the token fails parsing", func() {
+		s.mockJWTValidator.EXPECT().ValidateToken(ctx, token).Return(tokenClaimObj, nil)
+		s.mockJWTValidator.EXPECT().ParseClaims(tokenClaimObj).Return(nil, fmt.Errorf("error"))
 
 		userInfo, err := s.auth.AuthenticateJWT(ctx, token)
 
