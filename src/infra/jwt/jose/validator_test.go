@@ -2,10 +2,25 @@ package jose
 
 import (
 	"testing"
+	"time"
 
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestValidator_New(t *testing.T) {
+	t.Run("should instantiate validator successfully", func(t *testing.T) {
+		cfg := NewConfig("http://issuer.url", []string{}, "", "", time.Minute)
+		_, err := New(cfg)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should failt to instantiate validator with invalid URL", func(t *testing.T) {
+		cfg := NewConfig("~ASD!'`://issuer.url", []string{}, "", "", time.Minute)
+		_, err := New(cfg)
+		assert.Error(t, err)
+	})
+}
 
 func TestValidator_Parser(t *testing.T) {
 	v := Validator{}

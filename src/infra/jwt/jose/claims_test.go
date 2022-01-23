@@ -1,6 +1,7 @@
 package jose
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -29,6 +30,11 @@ func TestClaims_standard(t *testing.T) {
 		data, _ := json.Marshal(token)
 		err := c.UnmarshalJSON(data)
 		assert.NoError(t, err)
+	})
+
+	t.Run("should fail if invalid token data", func(t *testing.T) {
+		err := c.UnmarshalJSON([]byte("invalid data"))
+		assert.Error(t, err)
 	})
 }
 
@@ -68,6 +74,14 @@ func TestClaims_customClaims(t *testing.T) {
 		err := c.UnmarshalJSON(data)
 		assert.Error(t, err)
 	})
+
+	t.Run("should fail if missing custom claims", func(t *testing.T) {
+		token := map[string]interface{}{}
+
+		data, _ := json.Marshal(token)
+		err := c.UnmarshalJSON(data)
+		assert.Error(t, err)
+	})
 }
 
 func TestClaims_customPermissions(t *testing.T) {
@@ -96,4 +110,9 @@ func TestClaims_customPermissions(t *testing.T) {
 		err := c.UnmarshalJSON(data)
 		assert.Error(t, err)
 	})
+}
+
+func TestClaims_validate(t *testing.T) {
+	c := NewClaims("", "")
+	assert.Equal(t, nil, c.Validate(context.Background()))
 }
