@@ -242,7 +242,7 @@ jobs:
     parameters:
       test_data:
         type: string
-        default: $TEST_DATA
+        default: $QA_TEST_DATA
       cluster-name:
         type: string
         default: "orchestrate"
