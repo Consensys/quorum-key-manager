@@ -71,7 +71,7 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 	assert.NoError(s.T(), err)
 
 	s.acc, err = s.env.client.ImportEthAccount(s.env.ctx, s.storeName, &types.ImportEthAccountRequest{
-		KeyID:      fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
+		KeyID:      fmt.Sprintf("test-eth-sign-%s", common.RandString(10)),
 		PrivateKey: privKey,
 	})
 	if err != nil {

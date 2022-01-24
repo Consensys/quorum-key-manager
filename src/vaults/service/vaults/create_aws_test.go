@@ -22,12 +22,13 @@ func TestCreateAWS(t *testing.T) {
 
 	ctx := context.Background()
 	vaultName := "aws-vault"
+	allowedTenantID := "allowed_aws_tenant"
 	cfg := &entities.AWSConfig{}
-	allowedTenants := []string{"tenant_id_1"}
+	allowedTenants := []string{allowedTenantID}
 
 	t.Run("should create AWS vault client successfully", func(t *testing.T) {
 		userInfo := &entities2.UserInfo{
-			Tenant: "tenant_id_1",
+			Tenant: allowedTenantID,
 		}
 		err := vault.CreateAWS(ctx, vaultName, cfg, allowedTenants, userInfo)
 		assert.NoError(t, err)
