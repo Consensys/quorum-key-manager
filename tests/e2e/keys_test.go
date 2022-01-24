@@ -66,7 +66,7 @@ func (s *keysTestSuite) RunT(name string, subtest func()) bool {
 
 func (s *keysTestSuite) TestCreate() {
 	s.RunT("should create a new key successfully: Secp256k1/ECDSA", func() {
-		keyID := fmt.Sprintf("my-key-ecdsa-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-key-ecdsa-%s", common.RandString(10))
 		request := &types.CreateKeyRequest{
 			Curve:            "secp256k1",
 			SigningAlgorithm: "ecdsa",
@@ -91,7 +91,7 @@ func (s *keysTestSuite) TestCreate() {
 	})
 
 	s.RunT("should create a new key successfully: Babyjubjub/EDDSA", func() {
-		keyID := fmt.Sprintf("my-key-eddsa-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-key-eddsa-%s", common.RandString(10))
 		request := &types.CreateKeyRequest{
 			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
@@ -179,7 +179,7 @@ func (s *keysTestSuite) TestCreate() {
 
 func (s *keysTestSuite) TestImport() {
 	s.RunT("should create a new key successfully: Secp256k1/ECDSA", func() {
-		keyID := fmt.Sprintf("my-key-import-ecdsa-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-key-import-ecdsa-%s", common.RandString(10))
 		request := &types.ImportKeyRequest{
 			Curve:            "secp256k1",
 			PrivateKey:       ecdsaPrivKey,
@@ -212,7 +212,7 @@ func (s *keysTestSuite) TestImport() {
 	})
 
 	s.RunT("should create a new key successfully: Babyjubjub/EDDSA", func() {
-		keyID := fmt.Sprintf("my-key-eddsa-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-key-eddsa-%s", common.RandString(10))
 		request := &types.ImportKeyRequest{
 			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",
@@ -283,7 +283,7 @@ func (s *keysTestSuite) TestImport() {
 }
 
 func (s *keysTestSuite) TestGetKey() {
-	keyID := fmt.Sprintf("my-get-key-%d", common.RandInt(1000))
+	keyID := fmt.Sprintf("my-get-key-%s", common.RandString(10))
 	request := &types.ImportKeyRequest{
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -318,7 +318,7 @@ func (s *keysTestSuite) TestGetKey() {
 }
 
 func (s *keysTestSuite) TestDeleteKey() {
-	keyID := fmt.Sprintf("my-get-key-%d", common.RandInt(1000))
+	keyID := fmt.Sprintf("my-get-key-%s", common.RandString(10))
 	request := &types.CreateKeyRequest{
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -356,7 +356,7 @@ func (s *keysTestSuite) TestGetDeletedKey() {
 	}
 
 	s.RunT("should get deleted key successfully", func() {
-		keyID := fmt.Sprintf("my-get-key-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-get-key-%s", common.RandString(10))
 		key, err := s.env.client.CreateKey(s.env.ctx, s.storeName, keyID, request)
 		require.NoError(s.T(), err)
 
@@ -378,7 +378,7 @@ func (s *keysTestSuite) TestGetDeletedKey() {
 }
 
 func (s *keysTestSuite) TestRestoreKey() {
-	keyID := fmt.Sprintf("my-restore-key-%d", common.RandInt(1000))
+	keyID := fmt.Sprintf("my-restore-key-%s", common.RandString(10))
 	request := &types.CreateKeyRequest{
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -432,7 +432,7 @@ func (s *keysTestSuite) TestDestroyKey() {
 	}
 
 	s.RunT("should destroy deleted key successfully", func() {
-		keyID := fmt.Sprintf("my-restore-key-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-restore-key-%s", common.RandString(10))
 		key, err := s.env.client.CreateKey(s.env.ctx, s.storeName, keyID, request)
 		require.NoError(s.T(), err)
 
@@ -461,7 +461,7 @@ func (s *keysTestSuite) TestDestroyKey() {
 }
 
 func (s *keysTestSuite) TestListKeys() {
-	keyID := fmt.Sprintf("my-key-list-%d", common.RandInt(1000))
+	keyID := fmt.Sprintf("my-key-list-%s", common.RandString(10))
 	request := &types.ImportKeyRequest{
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -501,7 +501,7 @@ func (s *keysTestSuite) TestListKeys() {
 }
 
 func (s *keysTestSuite) TestListDeletedKeys() {
-	keyID := fmt.Sprintf("my-deleted-key-list-%d", common.RandInt(1000))
+	keyID := fmt.Sprintf("my-deleted-key-list-%s", common.RandString(10))
 	request := &types.ImportKeyRequest{
 		Curve:            "secp256k1",
 		SigningAlgorithm: "ecdsa",
@@ -548,7 +548,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	hashedPayload := crypto.Keccak256(data)
 
 	s.RunT("should sign a new payload successfully: Secp256k1/ECDSA", func() {
-		keyID := fmt.Sprintf("my-key-sign-ecdsa-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-key-sign-ecdsa-%s", common.RandString(10))
 		request := &types.CreateKeyRequest{
 			Curve:            "secp256k1",
 			SigningAlgorithm: "ecdsa",
@@ -587,7 +587,7 @@ func (s *keysTestSuite) TestSignVerify() {
 	})
 
 	s.RunT("should sign and verify a new payload successfully: Babyjubjub/EDDSA", func() {
-		keyID := fmt.Sprintf("my-key-sign-eddsa-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-key-sign-eddsa-%s", common.RandString(10))
 		request := &types.CreateKeyRequest{
 			Curve:            "babyjubjub",
 			SigningAlgorithm: "eddsa",

@@ -7,7 +7,7 @@ x-container-common: &container-common
 
 x-postgres-common: &postgres-common
   environment:
-    POSTGRES_PASSWORD: postgres
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-postgres}
 
 services:
   postgres-ssl-init:

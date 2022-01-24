@@ -49,7 +49,7 @@ func (s *authTestSuite) SetupSuite() {
 	}
 
 	s.acc, s.err = s.env.client.CreateEthAccount(s.env.ctx, s.storeName, &types.CreateEthAccountRequest{
-		KeyID: fmt.Sprintf("e2e-auth-test-%d", common.RandInt(1000)),
+		KeyID: fmt.Sprintf("e2e-auth-test-%s", common.RandString(10)),
 	})
 
 	if s.err != nil {

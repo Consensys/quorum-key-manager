@@ -52,9 +52,16 @@ func (authen *Authenticator) AuthenticateJWT(ctx context.Context, token string) 
 
 	authen.logger.Debug("extracting user info from jwt token")
 
-	claims, err := authen.jwtValidator.ValidateToken(ctx, token)
+	tokenClaims, err := authen.jwtValidator.ValidateToken(ctx, token)
 	if err != nil {
 		errMessage := "failed to validate jwt token"
+		authen.logger.WithError(err).Error(errMessage)
+		return nil, errors.UnauthorizedError(errMessage)
+	}
+
+	claims, err := authen.jwtValidator.ParseClaims(tokenClaims)
+	if err != nil {
+		errMessage := "failed to parse jwt token claims"
 		authen.logger.WithError(err).Error(errMessage)
 		return nil, errors.UnauthorizedError(errMessage)
 	}
@@ -112,9 +119,9 @@ func (authen Authenticator) AuthenticateTLS(_ context.Context, connState *tls2.C
 	// first array element is the leaf
 	clientCert := connState.PeerCertificates[0]
 	claims := &entities.UserClaims{
-		Subject: clientCert.Subject.CommonName,
-		Scope:   strings.Join(clientCert.Subject.OrganizationalUnit, " "),
-		Roles:   strings.Join(clientCert.Subject.Organization, " "),
+		Tenant:      clientCert.Subject.CommonName,
+		Permissions: clientCert.Subject.OrganizationalUnit,
+		Roles:       clientCert.Subject.Organization,
 	}
 	return authen.userInfoFromClaims(TLSAuthMode, claims), nil
 }
@@ -123,13 +130,13 @@ func (authen *Authenticator) userInfoFromClaims(authMode string, claims *entitie
 	userInfo := &entities.UserInfo{AuthMode: authMode}
 
 	// If more than one element in subject, then the username has been specified
-	subject := strings.Split(claims.Subject, "|")
+	subject := strings.Split(claims.Tenant, "|")
 	if len(subject) > 1 {
 		userInfo.Username = subject[1]
 	}
 	userInfo.Tenant = subject[0]
 
-	for _, permission := range strings.Fields(claims.Scope) {
+	for _, permission := range claims.Permissions {
 		if !strings.Contains(permission, ":") {
 			// Ignore invalid permissions
 			continue
@@ -142,17 +149,7 @@ func (authen *Authenticator) userInfoFromClaims(authMode string, claims *entitie
 		}
 	}
 
-	if claims.Roles != "" {
-		userInfo.Roles = strings.Fields(claims.Roles)
-	}
-
-	authen.logger.Debug(
-		"user info extracted successfully",
-		"username", userInfo.Username,
-		"tenant", userInfo.Tenant,
-		"permissions", userInfo.Permissions,
-		"roles", userInfo.Roles,
-	)
+	userInfo.Roles = claims.Roles
 
 	return userInfo
 }

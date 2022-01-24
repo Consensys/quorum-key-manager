@@ -1,12 +1,18 @@
 # Quorum Key Manager Release Notes
 
 ## v21.12.2 (Unreleased)
+### 🆕 Features
+* Support for OIDC token custom claims `AUTH_OIDC_CUSTOM_CLAIMS` 
+* Support for OIDC token custom permission path `AUTH_OIDC_PERMISSIONS_CLAIMS`.
+  
 ### 🛠 Bug fixes
 * Invalid authentication forwarded to downstream proxy nodes if QKM authentication is enabled.
+* Fixed AWS client issue preventing racing condition on key state transition changes. 
 
 ## v21.12.1 (2021-12-20)
 ### 🛠 Bug fixes
-* Fixes a bug in the `sync` command that prevent it from running.
+* Fixed a bug in the `sync` command that prevent it from running.
+* Fixed database connectivity when password contains non URL encoded characters. 
 
 ## v21.12.0 LTS (2021-12-14)
 ### 🆕 Features

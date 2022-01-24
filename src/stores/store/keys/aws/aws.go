@@ -207,10 +207,21 @@ func (s *Store) ListDeleted(_ context.Context, _, _ uint64) ([]string, error) {
 	return nil, err
 }
 
-func (s *Store) Restore(_ context.Context, _ string) error {
-	err := errors.NotSupportedError("restore key is not supported")
-	s.logger.Warn(err.Error())
-	return err
+func (s *Store) Restore(ctx context.Context, id string) error {
+	logger := s.logger.With("id", id)
+	keyID, err := s.getAWSKeyID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.client.RestoreKey(ctx, keyID)
+	if err != nil {
+		errMessage := "failed to restore AWS key"
+		logger.WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }
 
 // Destroy destroys an externally created key and stores it
