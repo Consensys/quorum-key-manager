@@ -2,13 +2,27 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/cenkalti/backoff/v4"
+	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *AWSClient) CreateKey(_ context.Context, id, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
+const (
+	KeyStateCreating        = "Creating"
+	KeyStateEnabled         = "Enabled"
+	KeyStatePendingDeletion = "PendingDeletion"
+	KeyStatePendingImport   = "PendingImport"
+	KeyStateUpdating        = "Updating"
+	KeyStateUnavailable     = "Unavailable"
+	KeyStateDisabled        = "Disabled"
+)
+
+func (c *AWSClient) CreateKey(ctx context.Context, keyID, keyType string, tags []*kms.Tag) (*kms.CreateKeyOutput, error) {
 	// Always create with same usage for key now (sign & verify)
 	keyUsage := kms.KeyUsageTypeSignVerify
 
@@ -18,15 +32,25 @@ func (c *AWSClient) CreateKey(_ context.Context, id, keyType string, tags []*kms
 		Tags:                  tags,
 	})
 	if err != nil {
-		return nil, err
+		return nil, parseKmsErrorResponse(err)
 	}
 
 	_, err = c.kmsClient.CreateAlias(&kms.CreateAliasInput{
-		AliasName:   &id,
+		AliasName:   &keyID,
 		TargetKeyId: out.KeyMetadata.KeyId,
 	})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
+	}
+
+	err = c.waitKeyState(ctx, keyID, func(metadata *kms.KeyMetadata) error {
+		if *metadata.Enabled {
+			return nil
+		}
+		return fmt.Errorf("key %s is still in not enabled", keyID)
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return out, nil
@@ -43,8 +67,8 @@ func (c *AWSClient) GetPublicKey(_ context.Context, keyID string) (*kms.GetPubli
 	return out, nil
 }
 
-func (c *AWSClient) DescribeKey(_ context.Context, id string) (*kms.DescribeKeyOutput, error) {
-	out, err := c.kmsClient.DescribeKey(&kms.DescribeKeyInput{KeyId: &id})
+func (c *AWSClient) DescribeKey(_ context.Context, keyID string) (*kms.DescribeKeyOutput, error) {
+	out, err := c.kmsClient.DescribeKey(&kms.DescribeKeyInput{KeyId: &keyID})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
 	}
@@ -86,8 +110,8 @@ func (c *AWSClient) GetAlias(_ context.Context, keyID string) (string, error) {
 	return "", nil
 }
 
-func (c *AWSClient) ListTags(_ context.Context, id, marker string) (*kms.ListResourceTagsOutput, error) {
-	input := &kms.ListResourceTagsInput{KeyId: &id}
+func (c *AWSClient) ListTags(_ context.Context, keyID, marker string) (*kms.ListResourceTagsOutput, error) {
+	input := &kms.ListResourceTagsInput{KeyId: &keyID}
 	if len(marker) > 0 {
 		input.Marker = &marker
 	}
@@ -116,7 +140,7 @@ func (c *AWSClient) Sign(_ context.Context, keyID string, msg []byte, signingAlg
 	return out, nil
 }
 
-func (c *AWSClient) DeleteKey(_ context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error) {
+func (c *AWSClient) DeleteKey(ctx context.Context, keyID string) (*kms.ScheduleKeyDeletionOutput, error) {
 	out, err := c.kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
 		KeyId: &keyID,
 	})
@@ -124,15 +148,53 @@ func (c *AWSClient) DeleteKey(_ context.Context, keyID string) (*kms.ScheduleKey
 		return nil, parseKmsErrorResponse(err)
 	}
 
+	err = c.waitKeyState(ctx, keyID, func(metadata *kms.KeyMetadata) error {
+		if !*metadata.Enabled && *metadata.KeyState == KeyStatePendingDeletion {
+			return nil
+		}
+
+		return fmt.Errorf("key %s was not scheduled for deletion yet", keyID)
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return out, nil
 }
 
-func (c *AWSClient) RestoreKey(_ context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error) {
+func (c *AWSClient) RestoreKey(ctx context.Context, keyID string) (*kms.CancelKeyDeletionOutput, error) {
 	out, err := c.kmsClient.CancelKeyDeletion(&kms.CancelKeyDeletionInput{
 		KeyId: &keyID,
 	})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)
+	}
+
+	err = c.waitKeyState(ctx, keyID, func(metadata *kms.KeyMetadata) error {
+		if *metadata.KeyState == KeyStatePendingDeletion {
+			return fmt.Errorf("key %s is still pending for deletion deletion", keyID)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = c.kmsClient.EnableKey(&kms.EnableKeyInput{
+		KeyId: &keyID,
+	})
+	if err != nil {
+		return nil, parseKmsErrorResponse(err)
+	}
+
+	err = c.waitKeyState(ctx, keyID, func(metadata *kms.KeyMetadata) error {
+		if *metadata.Enabled {
+			return nil
+		}
+		return fmt.Errorf("key %s is not enabled yet", keyID)
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return out, nil
@@ -160,4 +222,25 @@ func (c *AWSClient) UntagResource(_ context.Context, keyID string, tagKeys []*st
 	}
 
 	return outUntagResource, nil
+}
+
+func (c *AWSClient) waitKeyState(ctx context.Context, keyID string, stateCheck func(metadata *kms.KeyMetadata) error) error {
+	return backoff.RetryNotify(func() error {
+		descData, err := c.DescribeKey(ctx, keyID)
+		if err != nil {
+			return parseKmsErrorResponse(err)
+		}
+
+		c.logger.Debug(fmt.Sprintf("{id: %s, enabled: %v, status: %v", keyID, *descData.KeyMetadata.Enabled, *descData.KeyMetadata.KeyState))
+
+		err = stateCheck(descData.KeyMetadata)
+		if err != nil {
+			return errors.StatusConflictError(err.Error())
+		}
+		return nil
+	}, c.backOff,
+		func(err error, t time.Duration) {
+			c.logger.Debug(fmt.Sprintf("ERR: %s, retrying in %s", err.Error(), t.String()))
+		},
+	)
 }

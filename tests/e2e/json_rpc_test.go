@@ -68,12 +68,10 @@ func TestJSONRpcHTTP(t *testing.T) {
 
 func (s *jsonRPCTestSuite) SetupSuite() {
 	privKey, err := hexutil.Decode("0x56202652fdffd802b7252a456dbd8f3ecc0352bbde76c23b40afe8aebd714e2e")
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 
 	s.acc, err = s.env.client.ImportEthAccount(s.env.ctx, s.storeName, &types.ImportEthAccountRequest{
-		KeyID:      fmt.Sprintf("test-eth-sign-%d", common.RandInt(1000)),
+		KeyID:      fmt.Sprintf("test-eth-sign-%s", common.RandString(10)),
 		PrivateKey: privKey,
 	})
 	if err != nil {
@@ -81,50 +79,35 @@ func (s *jsonRPCTestSuite) SetupSuite() {
 			s.acc, err = s.env.client.GetEthAccount(s.env.ctx, s.storeName, "0x7e654d251da770a068413677967f6d3ea2fea9e4")
 		}
 	}
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
+	
 	s.registryName = fmt.Sprintf("e2e-%s", common.RandString(5))
 	s.ownAlias = fmt.Sprintf("eth-from-e2e-%s", common.RandString(5))
 	_, err = s.env.client.CreateRegistry(s.env.ctx, s.registryName, &aliastypes.CreateRegistryRequest{AllowedTenants: []string{"tenant1"}})
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 
 	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.ownAlias, &aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []string{"BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3By="}})
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 
 	s.eeaPrivateFromAliasKey = fmt.Sprintf("eea-from-e2e-%s", common.RandString(5))
 	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.eeaPrivateFromAliasKey, &aliastypes.AliasRequest{Kind: entities.AliasKindString, Value: "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="})
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 
 	s.eeaPrivateForAliasKey = fmt.Sprintf("eea-for-e2e-%s", common.RandString(5))
 	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.eeaPrivateForAliasKey, &aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []interface{}{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="}})
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 
 	s.eeaPrivacyGroupIDStringAliasKey = fmt.Sprintf("eea-groupIDString-e2e-%s", common.RandString(5))
 	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.eeaPrivacyGroupIDStringAliasKey, &aliastypes.AliasRequest{Kind: entities.AliasKindString, Value: "// TODO: CHANGE"})
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 
 	s.eeaPrivacyGroupIDArrayAliasKey = fmt.Sprintf("eea-groupIDArray-e2e-%s", common.RandString(5))
 	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.eeaPrivacyGroupIDArrayAliasKey, &aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []string{"// TODO: CHANGE"}})
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 
 	s.alias = fmt.Sprintf("Group-A-%s", common.RandString(5))
 	_, err = s.env.client.CreateAlias(s.env.ctx, s.registryName, s.alias, &aliastypes.AliasRequest{Kind: entities.AliasKindArray, Value: []string{"QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="}})
-	if err != nil {
-		s.T().Error(err)
-	}
+	assert.NoError(s.T(), err)
 }
 
 func (s *jsonRPCTestSuite) TearDownSuite() {

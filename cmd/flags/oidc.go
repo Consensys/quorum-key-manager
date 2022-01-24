@@ -81,10 +81,15 @@ Environment variable: %q`, authOIDCPermissionsClaimsEnv)
 func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 	issuerURL := vipr.GetString(authOIDCIssuerURLViperKey)
 
+	aud := []string{}
+	if vipr.GetString(AuthOIDCAudienceViperKey) != "" {
+		aud = strings.Split(vipr.GetString(AuthOIDCAudienceViperKey), ",")
+	}
+
 	if issuerURL != "" {
 		return jose.NewConfig(
 			issuerURL,
-			strings.Split(vipr.GetString(AuthOIDCAudienceViperKey), ","),
+			aud,
 			vipr.GetString(authOIDCCustomClaimsViperKey),
 			vipr.GetString(authOIDCPermissionsClaimsViperKey),
 			5*time.Minute, // TODO: Make the cache ttl an ENV var if needed

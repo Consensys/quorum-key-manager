@@ -49,7 +49,7 @@ func parseKmsErrorResponse(err error) error {
 		kms.ErrCodeInvalidArnException:
 		return errors.InvalidFormatError(aerr.Error())
 	case kms.ErrCodeInvalidStateException:
-		return errors.InvalidParameterError(aerr.Error())
+		return errors.StatusConflictError(aerr.Error())
 	default:
 		return errors.AWSError(aerr.Error())
 	}

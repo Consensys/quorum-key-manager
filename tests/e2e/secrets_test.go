@@ -71,7 +71,7 @@ func (s *secretsTestSuite) RunT(name string, subtest func()) bool {
 }
 
 func (s *secretsTestSuite) TestSet() {
-	secretID := fmt.Sprintf("my-secret-set-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-secret-set-%s", common.RandString(10))
 	s.RunT("should set a new secret successfully", func() {
 		request := &types.SetSecretRequest{
 			Value: "my-secret-value",
@@ -113,7 +113,7 @@ func (s *secretsTestSuite) TestSet() {
 }
 
 func (s *secretsTestSuite) TestGetSecret() {
-	secretID := fmt.Sprintf("my-secret-get-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-secret-get-%s", common.RandString(10))
 	request := &types.SetSecretRequest{
 		Value: "my-secret-value",
 	}
@@ -159,7 +159,7 @@ func (s *secretsTestSuite) TestGetSecret() {
 }
 
 func (s *secretsTestSuite) TestDeleteSecret() {
-	secretID := fmt.Sprintf("my-delete-secret-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-delete-secret-%s", common.RandString(10))
 	request := &types.SetSecretRequest{
 		Value: "my-secret-value",
 	}
@@ -183,7 +183,7 @@ func (s *secretsTestSuite) TestDeleteSecret() {
 }
 
 func (s *secretsTestSuite) TestGetDeletedSecret() {
-	secretID := fmt.Sprintf("my-deleted-secret-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-deleted-secret-%s", common.RandString(10))
 	request := &types.SetSecretRequest{
 		Value: "my-secret-value",
 	}
@@ -213,7 +213,7 @@ func (s *secretsTestSuite) TestGetDeletedSecret() {
 
 func (s *secretsTestSuite) TestRestoreDeleted() {
 	s.RunT("should restore deleted secret successfully", func() {
-		secretID := fmt.Sprintf("my-restore-secret-%d", common.RandInt(1000))
+		secretID := fmt.Sprintf("my-restore-secret-%s", common.RandString(10))
 		request := &types.SetSecretRequest{
 			Value: "my-secret-value",
 		}
@@ -250,7 +250,7 @@ func (s *secretsTestSuite) TestRestoreDeleted() {
 }
 
 func (s *secretsTestSuite) TestDestroyDeleted() {
-	secretID := fmt.Sprintf("my-destroy-secret-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-destroy-secret-%s", common.RandString(10))
 	request := &types.SetSecretRequest{
 		Value: "my-secret-value",
 	}
@@ -266,6 +266,12 @@ func (s *secretsTestSuite) TestDestroyDeleted() {
 		err := retryOn(func() error {
 			return s.env.client.DestroySecret(s.env.ctx, s.storeName, secret.ID)
 		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
+		if err != nil {
+			httpError, ok := err.(*client.ResponseError)
+			require.True(s.T(), ok)
+			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+			return
+		}
 		require.NoError(s.T(), err)
 
 		_, err = s.env.client.GetDeletedSecret(s.env.ctx, s.storeName, secret.ID)
@@ -283,7 +289,7 @@ func (s *secretsTestSuite) TestDestroyDeleted() {
 }
 
 func (s *secretsTestSuite) TestList() {
-	secretID := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
+	secretID := fmt.Sprintf("my-secret-list-%s", common.RandString(10))
 	request := &types.SetSecretRequest{
 		Value: "my-secret-value",
 	}
@@ -311,7 +317,7 @@ func (s *secretsTestSuite) TestList() {
 
 func (s *secretsTestSuite) TestListDeletedSecrets() {
 	s.RunT("should get all deleted secret ids successfully", func() {
-		secretID := fmt.Sprintf("my-secret-list-%d", common.RandInt(1000))
+		secretID := fmt.Sprintf("my-secret-list-%s", common.RandString(10))
 		request := &types.SetSecretRequest{
 			Value: "my-secret-value",
 		}

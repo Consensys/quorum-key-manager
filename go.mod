@@ -12,6 +12,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/auth0/go-jwt-middleware/v2 v2.0.0-beta.1
 	github.com/aws/aws-sdk-go v1.38.41
+	github.com/cenkalti/backoff/v4 v4.0.2
 	github.com/consensys/gnark-crypto v0.5.0
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/containerd/containerd v1.4.11 // indirect
