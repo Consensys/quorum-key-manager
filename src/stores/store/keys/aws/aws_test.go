@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"testing"
 	"time"
 
@@ -230,18 +231,70 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 		err := s.keyStore.Delete(ctx, keyID)
 		assert.NoError(s.T(), err)
 	})
+
+	s.Run("should fail to delete if describe fails", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(keyID)).Return(nil, expectedErr)
+
+		err := s.keyStore.Delete(ctx, keyID)
+		assert.Error(s.T(), err)
+	})
+
+	s.Run("should fail to delete if delete method fails", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(keyID)).Return(retDesc, nil)
+		s.mockKmsClient.EXPECT().DeleteKey(gomock.Any(), keyID).Return(nil, expectedErr)
+
+		err := s.keyStore.Delete(ctx, keyID)
+		assert.Error(s.T(), err)
+	})
 }
 
 func (s *awsKeyStoreTestSuite) TestRestore() {
 	ctx := context.Background()
 	retDesc := fakeDescribeKey(keyID)
 
-	s.Run("should return NotSupportedError", func() {
+	s.Run("should success to restore key", func() {
 		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(keyID)).Return(retDesc, nil)
 		s.mockKmsClient.EXPECT().RestoreKey(gomock.Any(), keyID).Return(nil, nil)
 
 		err := s.keyStore.Restore(ctx, keyID)
 		assert.NoError(s.T(), err)
+	})
+
+	s.Run("should fail to restore if describe fails", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(keyID)).Return(nil, expectedErr)
+
+		err := s.keyStore.Restore(ctx, keyID)
+		assert.Error(s.T(), err)
+	})
+
+	s.Run("should fail to restore if restore method fails", func() {
+		expectedErr := fmt.Errorf("error")
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(keyID)).Return(retDesc, nil)
+		s.mockKmsClient.EXPECT().RestoreKey(gomock.Any(), keyID).Return(nil, expectedErr)
+
+		err := s.keyStore.Restore(ctx, keyID)
+		assert.Error(s.T(), err)
+	})
+}
+
+func (s *awsKeyStoreTestSuite) TestGetDeleted() {
+	ctx := context.Background()
+
+	s.Run("should return NotSupportedError", func() {
+		_, err := s.keyStore.GetDeleted(ctx, "my-id")
+		assert.True(s.T(), errors.IsNotSupportedError(err))
+	})
+}
+
+func (s *awsKeyStoreTestSuite) TestListDeleted() {
+	ctx := context.Background()
+
+	s.Run("should return NotSupportedError", func() {
+		_, err := s.keyStore.ListDeleted(ctx, 0, 0)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 }
 
