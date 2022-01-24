@@ -234,10 +234,14 @@ func (s *awsKeyStoreTestSuite) TestDelete() {
 
 func (s *awsKeyStoreTestSuite) TestRestore() {
 	ctx := context.Background()
+	retDesc := fakeDescribeKey(keyID)
 
 	s.Run("should return NotSupportedError", func() {
-		err := s.keyStore.Restore(ctx, "my-id")
-		assert.True(s.T(), errors.IsNotSupportedError(err))
+		s.mockKmsClient.EXPECT().DescribeKey(ctx, alias(keyID)).Return(retDesc, nil)
+		s.mockKmsClient.EXPECT().RestoreKey(gomock.Any(), keyID).Return(nil, nil)
+
+		err := s.keyStore.Restore(ctx, keyID)
+		assert.NoError(s.T(), err)
 	})
 }
 

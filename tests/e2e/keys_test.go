@@ -66,7 +66,7 @@ func (s *keysTestSuite) RunT(name string, subtest func()) bool {
 
 func (s *keysTestSuite) TestCreate() {
 	s.RunT("should create a new key successfully: Secp256k1/ECDSA", func() {
-		keyID := fmt.Sprintf("my-key-ecdsa-%d", common.RandInt(1000))
+		keyID := fmt.Sprintf("my-key-ecdsa-%s", common.RandString(10))
 		request := &types.CreateKeyRequest{
 			Curve:            "secp256k1",
 			SigningAlgorithm: "ecdsa",

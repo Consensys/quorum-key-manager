@@ -266,6 +266,12 @@ func (s *secretsTestSuite) TestDestroyDeleted() {
 		err := retryOn(func() error {
 			return s.env.client.DestroySecret(s.env.ctx, s.storeName, secret.ID)
 		}, s.T().Logf, errMsg, http.StatusConflict, MaxRetries)
+		if err != nil {
+			httpError, ok := err.(*client.ResponseError)
+			require.True(s.T(), ok)
+			assert.Equal(s.T(), http.StatusNotImplemented, httpError.StatusCode)
+			return
+		}
 		require.NoError(s.T(), err)
 
 		_, err = s.env.client.GetDeletedSecret(s.env.ctx, s.storeName, secret.ID)
