@@ -67,6 +67,9 @@ redoc-static.html
 node_modules
 package-lock.json
 
+# CAAS is confidential
+deps/caas/caas.json
+
 tests/acceptance/plugins
 !/**/**/.gitkeep
 

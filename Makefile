@@ -92,8 +92,7 @@ run-race: ## Run data race detector
 qkm: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
 
-dev: deps gobuild qkm
-	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
+dev: deps qkm
 
 up: deps go-quorum besu geth gobuild qkm
 
@@ -181,8 +180,14 @@ deploy-remote-env:
 pgadmin:
 	@docker-compose -f deps/docker-compose-tools.yml up -d pgadmin
 
+caas:
+	@docker-compose -f deps/docker-compose-tools.yml up -d caas
+
 down-pgadmin:
 	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v pgadmin
+
+down-caas:
+	@docker-compose -f deps/docker-compose-tools.yml rm --force -s -v caas
 
 pki-deps:
 	@GO111MODULE=off go get github.com/cloudflare/cfssl/cmd/cfssl

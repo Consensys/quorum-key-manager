@@ -17,8 +17,21 @@ services:
     networks:
       - qkm
 
+  caas:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "80:8080"
+    networks:
+      - qkm
+    environment:
+      SWAGGER_JSON: ${SWAGGER_JSON-/data/caas.json}
+    volumes:
+      - ./caas/caas.json:/data/caas.json:ro
+
 volumes:
   pgadmin:
+    driver: local
+  swagger-ui:
     driver: local
 
 networks:
