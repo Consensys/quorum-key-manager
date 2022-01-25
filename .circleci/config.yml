@@ -274,9 +274,9 @@ jobs:
           name: e2e tests
           command: |
             set +e
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 &
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 &>/dev/null
             PID_FORWARD_8080=$!
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081 &
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081 &>/dev/null
             PID_FORWARD_8181=$!
             echo "Wait 20 seconds for services to boot up correctly..."
             sleep 20
