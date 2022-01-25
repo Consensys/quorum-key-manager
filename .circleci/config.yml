@@ -237,9 +237,12 @@ jobs:
           command: |
             set +e
             echo "$MANIFEST_B64" | base64 --decode > ./deps/config/manifests/manifest.yml
-            make up-tls
-            echo "Wait 20 seconds for services to boot up correctly..."
-            sleep 20
+            make deps-tls
+            echo "Wait 10 seconds for dependencies to boot up correctly..."
+            sleep 10
+            make qkm
+            echo "Wait 5 seconds for qkm to boot up correctly..."
+            sleep 5
             make run-e2e
 
   # defines the docker image management process
