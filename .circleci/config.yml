@@ -271,13 +271,16 @@ jobs:
             kubectl delete secret qkm-tls -n << parameters.namespace >>
             kubectl create secret generic qkm-tls --from-file=ca.crt=deps/config/ca/ca.crt --from-file=tls.crt=deps/config/certificates/https.crt --from-file=tls.key=deps/config/certificates/https.key -n << parameters.namespace >>
       - run:
+          name: Port forward
+          command: |
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 &
+            PID_FORWARD_8080=$!
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081 &
+            PID_FORWARD_8181=$!
+      - run:
           name: e2e tests
           command: |
             set +e
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 &>/dev/null
-            PID_FORWARD_8080=$!
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081 &>/dev/null
-            PID_FORWARD_8181=$!
             echo "Wait 20 seconds for services to boot up correctly..."
             sleep 20
             make run-e2e
