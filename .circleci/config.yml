@@ -377,7 +377,7 @@ jobs:
   # see scripts/deploy-remote-env.sh for details
   deploy-qa:
     docker:
-      - image: cimg/base:2021.12
+      - image: ubuntu-2004:202010-01
     parameters:
       cluster-name:
         type: string
@@ -386,10 +386,13 @@ jobs:
         type: string
         default: "qa-qkm"
     steps:
-      - checkout
-      - set_remote_environment_variables
+      - run:
+          name: Uninstall Go
+          command: sudo rm -rvf /usr/local/go/
       - go/install:
           version: 1.16.8
+      - checkout
+      - set_remote_environment_variables
       - prepare_golang
       - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
