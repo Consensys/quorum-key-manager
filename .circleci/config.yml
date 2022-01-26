@@ -413,7 +413,7 @@ jobs:
           root: ./tests/e2e
           paths:
             - ca/ca.crt
-            - certficates/*
+            - certificates/*
       - run:
           name: Deploy QA environment
           command: >-
