@@ -233,8 +233,9 @@ jobs:
 
   # defines end 2 end tests environment
   # Will spin up an appropriate environment and run the tests against it
-  # Uses kubectl secret to update QKM TLS certs and keys
-  # Uses kubectl port forward to open up the qkm remote
+  # Needs AWS authentication + kubectl tool
+  # Attaches persisted CA + certs + keys in the workspace for Auth tests
+  # Uses kubectl port forward to open up the remote qkm on the given k8s cluster + namespace
   e2e:
     machine:
       image: ubuntu-2004:202010-01
@@ -277,7 +278,6 @@ jobs:
             echo "Wait 20 seconds for services to boot up correctly..."
             sleep 20
             make run-e2e
-
       - run:
           name: Kill bg processes
           command: |
@@ -369,7 +369,10 @@ jobs:
             done
 
   # defines the qa deployment
-  # Will fetch the `github/ConsenSys/quorum-key-manager-kubernetes` chart using
+  # Will update the existing TLS secret of the QKM with fresh PKI data
+  # Needs AWS authentication + kubectl tool
+  # Persists CA + certs + keys in the workspace for e2e job tu use
+  # Will fetch the `github/ConsenSys/quorum-key-manager-kubernetes` chart using the following
   # QKM_TAG=${CIRCLE_SHA1:0:7}
   # QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
   # REGISTRY_USERNAME, docker registry user
@@ -378,7 +381,7 @@ jobs:
   deploy-qa:
     machine:
       image: ubuntu-2004:202010-01
-    resource_class: large
+    resource_class: medium
     parameters:
       cluster-name:
         type: string
