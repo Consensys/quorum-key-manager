@@ -397,6 +397,7 @@ jobs:
       - run:
           name: Renew Qkm TLS Secret
           command: |
+            GO111MODULE=off go get github.com/cloudflare/cfssl/cmd/cfssl && go get github.com/cloudflare/cfssl/cmd/cfssljson
             make generate-pki
             CA_DIR=tests/e2e/ca
             CERTS_DIR=tests/e2e/certificates
