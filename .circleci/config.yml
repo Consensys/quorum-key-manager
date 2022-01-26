@@ -376,8 +376,9 @@ jobs:
   # REGISTRY_PASSWORD, docker registry pw
   # see scripts/deploy-remote-env.sh for details
   deploy-qa:
-    docker:
-      - image: ubuntu-2004:202010-01
+    machine:
+      image: ubuntu-2004:202010-01
+    resource_class: large
     parameters:
       cluster-name:
         type: string
