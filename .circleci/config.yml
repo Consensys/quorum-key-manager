@@ -388,6 +388,9 @@ jobs:
     steps:
       - checkout
       - set_remote_environment_variables
+      - go/install:
+          version: 1.16.8
+      - prepare_golang
       - run:
           name: PKI generation
           command: |
