@@ -265,10 +265,7 @@ jobs:
       - run:
           name: Port forward
           command: |
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 &
-            PID_FORWARD_8080=$!
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8081:8081 &
-            PID_FORWARD_8181=$!
+            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 8081:8081&
       - attach_workspace:
           at: ./tests/e2e
       - run:
