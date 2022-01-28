@@ -251,7 +251,7 @@ jobs:
         type: string
         default: "qa-qkm"
       port-frowarding:
-        default: PORT_FORWARDING
+        default: $PORT_FORWARDING
         type: env_var_name
     steps:
       - run:
