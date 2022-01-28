@@ -250,6 +250,9 @@ jobs:
       namespace:
         type: string
         default: "qa-qkm"
+      port-frowarding:
+        default: PORT_FORWARDING
+        type: env_var_name
     steps:
       - run:
           name: Uninstall Go
@@ -262,10 +265,14 @@ jobs:
       - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
-      - run:
-          name: Port forward
-          command: |
-            kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 8081:8081&
+      - when:
+          condition:
+            equal: [ true, "${<< parameters.port-frowarding >>}" ]
+          steps:
+            - run:
+                name: Port forward
+                command: |
+                  kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 8081:8081&
       - attach_workspace:
           at: ./tests/e2e
       - run:
