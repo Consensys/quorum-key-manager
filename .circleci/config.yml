@@ -252,7 +252,7 @@ jobs:
         default: "qa-qkm"
       port-frowarding:
         default: $PORT_FORWARDING
-        type: env_var_name
+        type: string
     steps:
       - run:
           name: Uninstall Go
@@ -267,7 +267,7 @@ jobs:
           cluster-name: << parameters.cluster-name >>
       - when:
           condition:
-            equal: [ true, "${<< parameters.port-frowarding >>}" ]
+            equal: [ "true", "${<< parameters.port-frowarding >>}" ]
           steps:
             - run:
                 name: Port forward
