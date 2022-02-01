@@ -24,7 +24,7 @@ INTER_KEY=$GEN_DIR/intermediate_ca-key.pem
 # Gen leaves from intermediate
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=client $CONF_DIR/qkm-client-no-auth.json | cfssljson -bare $GEN_DIR/qkm-client-no-auth
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=client $CONF_DIR/qkm-client-auth.json | cfssljson -bare $GEN_DIR/qkm-client-auth
-cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=server $CONF_DIR/qkm-client-auth.json | cfssljson -bare $GEN_DIR/qkm-server
+cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=server $CONF_DIR/qkm.json | cfssljson -bare $GEN_DIR/qkm-server
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=server $CONF_DIR/vault.json | cfssljson -bare $GEN_DIR/vault-server
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=client $CONF_DIR/vault.json | cfssljson -bare $GEN_DIR/vault-client
 cfssl gencert -ca $INTER_CRT -ca-key $INTER_KEY -config $CONF_DIR/cfssl.json -profile=server $CONF_DIR/postgres.json | cfssljson -bare $GEN_DIR/postgres-server
