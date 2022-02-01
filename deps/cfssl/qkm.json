@@ -17,6 +17,7 @@
   "hosts": [
     "host1.example-company.com",
     "qa-qkm.ops.consensys.net",
+    "health-qa-qkm.ops.consensys.net",
     "localhost",
     "qkm",
     "quorum-key-manager"
