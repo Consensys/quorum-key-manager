@@ -298,7 +298,7 @@ jobs:
             set +e
             echo << parameters.client_key >> | base64 --decode > ./tests/e2e/certificates/client.key
             echo << parameters.client_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client.crt
-            echo << parameters.client_no_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client_no_auth.key
+            echo << parameters.client_no_auth_key >> | base64 --decode > ./tests/e2e/certificates/client_no_auth.key
             echo << parameters.client_no_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client_no_auth.crt
             make run-e2e
 
