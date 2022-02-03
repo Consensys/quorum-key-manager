@@ -5,6 +5,7 @@ orbs:
   sonarcloud: sonarsource/sonarcloud@1.0.1
   aws-eks: circleci/aws-eks@2.0
   kubernetes: circleci/kubernetes@1.3.0
+  wait-for: cobli/wait-for@1.0.0
 
 commands:
   prepare_golang:
@@ -271,16 +272,20 @@ jobs:
           steps:
             - run:
                 name: Port forward
+                background: true
                 command: |
                   kubectl port-forward -n << parameters.namespace >> service/quorum-key-manager-quorumkeymanager 8080:8080 8081:8081&
+      - wait-for/sh-command:
+          seconds-between-retries: 3
+          timeout: 30
+          description: "Wait for deployment readiness"
+          sh-command: nc -z health-qa-qkm.ops.consensys.net 443
       - attach_workspace:
           at: ./tests/e2e
       - run:
           name: e2e tests
           command: |
             set +e
-            echo "Wait 20 seconds for services to boot up correctly..."
-            sleep 20
             make run-e2e
 
   # defines the docker image management process
@@ -504,19 +509,17 @@ workflows:
       # Images are compliant with linux/amd64 architecture
       - build-docker-image: # Push Dev image
           name: push-qkm-dev-image-${CIRCLE_SHA1:0:7}
-          matrix:
-            parameters:
-              docker-image-tag: ["quorum-key-manager:${CIRCLE_SHA1:0:7}"]
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
             - cloudsmith-tanuki-rw
+          docker-image-tag: "quorum-key-manager:${CIRCLE_SHA1:0:7}"
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
-              only: main
+              only: fix/workflow
           requires:
             - acceptance
       # triggers the qa env deployment when the main branch is hit
@@ -526,7 +529,7 @@ workflows:
             - cloudsmith-tanuki-rw
           filters:
             branches:
-              only: main
+              only: fix/workflow
           requires:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
@@ -537,7 +540,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: main
+              only: fix/workflow
           requires:
             - deploy-qa
             # Will build and push a dev image for each main commit
@@ -545,13 +548,11 @@ workflows:
             # Images are compliant with linux/amd64 architecture
       - build-docker-image: # Push Dev image
           name: push-qkm-dev-image-develop
-          matrix:
-            parameters:
-              docker-image-tag: [ "quorum-key-manager:develop" ]
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
             - cloudsmith-tanuki-rw
+          docker-image-tag: "quorum-key-manager:develop"
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
