@@ -245,6 +245,18 @@ jobs:
       test_data:
         type: string
         default: $QA_TEST_DATA
+      client_key:
+        type: string
+        default: $QKM_CLIENT_KEY
+      client_auth_cert:
+        type: string
+        default: $QKM_CLIENT_AUTH_CERT
+      client_no_auth_key:
+        type: string
+        default: $QKM_CLIENT_NO_AUTH_KEY
+      client_no_auth_cert:
+        type: string
+        default: $QKM_CLIENT_NO_AUTH_CERT
       cluster-name:
         type: string
         default: "orchestrate"
@@ -280,12 +292,14 @@ jobs:
           timeout: 30
           description: "Wait for deployment readiness"
           sh-command: nc -z health-qa-qkm.ops.consensys.net 443
-      - attach_workspace:
-          at: ./tests/e2e
       - run:
           name: e2e tests
           command: |
             set +e
+            echo << parameters.client_key >> | base64 --decode > ./tests/e2e/certificates/client.key
+            echo << parameters.client_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client.crt
+            echo << parameters.client_no_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client_no_auth.key
+            echo << parameters.client_no_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client_no_auth.crt
             make run-e2e
 
   # defines the docker image management process
@@ -402,25 +416,6 @@ jobs:
       - checkout
       - set_remote_environment_variables
       - prepare_golang
-      - kubernetes/install
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-      - run:
-          name: Renew Qkm TLS Secret
-          command: |
-            GO111MODULE=off go get github.com/cloudflare/cfssl/cmd/cfssl && go get github.com/cloudflare/cfssl/cmd/cfssljson
-            make generate-pki
-            CA_DIR=tests/e2e/ca
-            CERTS_DIR=tests/e2e/certificates
-            ls -l ${CA_DIR}
-            ls -l ${CERTS_DIR}
-            kubectl delete secret qkm-tls -n << parameters.namespace >>
-            kubectl create secret generic qkm-tls --from-file=ca.crt=${CA_DIR}/ca.crt --from-file=tls.crt=${CERTS_DIR}/https.crt --from-file=tls.key=${CERTS_DIR}/https.key -n << parameters.namespace >>
-      - persist_to_workspace:
-          root: ./tests/e2e
-          paths:
-            - ca/ca.crt
-            - certificates/*
       - run:
           name: Deploy QA environment
           command: >-
@@ -536,6 +531,10 @@ workflows:
       # requires successful Build, Unit and acceptance tests
       - e2e:
           test_data: $QA_TEST_DATA
+          client_key: $QKM_CLIENT_KEY
+          client_auth_cert: $QKM_CLIENT_AUTH_CERT
+          client_no_auth_key: $QKM_CLIENT_NO_AUTH_KEY
+          client_no_auth_cert: $QKM_CLIENT_NO_AUTH_CERT
           filters:
             tags:
               only: /^v.*/
