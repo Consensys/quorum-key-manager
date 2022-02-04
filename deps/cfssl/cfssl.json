@@ -1,7 +1,7 @@
 {
   "signing": {
     "default": {
-      "expiry": "8760h"
+      "expiry": "43800h"
     },
     "profiles": {
       "intermediate_ca": {
@@ -14,7 +14,7 @@
             "server auth",
             "client auth"
         ],
-        "expiry": "8760h",
+        "expiry": "43800h",
         "ca_constraint": {
             "is_ca": true,
             "max_path_len": 0, 
@@ -29,7 +29,7 @@
             "client auth",
             "server auth"
         ],
-        "expiry": "8760h"
+        "expiry": "43800h"
       },
       "server": {
         "usages": [
@@ -38,7 +38,7 @@
           "key encipherment",
           "server auth"
         ],
-        "expiry": "8760h"
+        "expiry": "43800h"
       },
       "client": {
         "usages": [
@@ -48,7 +48,7 @@
           "client auth",
 	  "server auth"
         ],
-        "expiry": "8760h"
+        "expiry": "43800h"
       }
     }
   }

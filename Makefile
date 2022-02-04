@@ -43,10 +43,10 @@ down-networks:
 	@docker network rm hashicorp || true
 
 postgres:
-	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_POSTGRES)
+	@docker-compose -f deps/docker-compose.yml up -d $(DEPS_POSTGRES)
 
 postgres-tls:
-	@docker-compose -f deps/docker-compose.yml up --build -d $(DEPS_POSTGRES_TLS)
+	@docker-compose -f deps/docker-compose.yml up -d $(DEPS_POSTGRES_TLS)
 
 postgres-down:
 	@docker-compose -f deps/docker-compose.yml down --volumes --timeout 0

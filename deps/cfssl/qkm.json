@@ -8,14 +8,16 @@
     {
       "C": "FR",
       "L": "Paris",
-      "O": "Consensys",
-      "OU": "Vault Tanuki",
+      "O": "admin",
+      "OU": "*:*",
       "ST": "Paris"
     }
 
   ],
   "hosts": [
     "host1.example-company.com",
+    "qa-qkm.ops.consensys.net",
+    "health-qa-qkm.ops.consensys.net",
     "localhost",
     "qkm",
     "quorum-key-manager"
