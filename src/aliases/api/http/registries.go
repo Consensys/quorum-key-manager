@@ -42,7 +42,7 @@ func (h *RegistryHandler) create(rw http.ResponseWriter, r *http.Request) {
 
 	registryReq := &types.CreateRegistryRequest{}
 	err := jsonutils.UnmarshalBody(r.Body, registryReq)
-	if err != nil {
+	if err != nil && err.Error() != "EOF" {
 		infrahttp.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
 		return
 	}
