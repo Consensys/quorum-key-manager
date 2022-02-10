@@ -25,6 +25,9 @@ func NewClaims(customClaimPath string) *Claims {
 }
 
 func (c *Claims) UnmarshalJSON(data []byte) error {
+	c.Scope = nil
+	c.CustomClaims = nil
+
 	var res map[string]interface{}
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
@@ -46,7 +49,9 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	}
 
 	if res["scope"] != nil {
-		c.Scope = strings.Split(res["scope"].(string), " ")
+		if scopes, ok := res["scope"].(string); ok {
+			c.Scope = strings.Split(scopes, " ")
+		}
 	}
 
 	return nil
