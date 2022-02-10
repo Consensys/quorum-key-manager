@@ -26,9 +26,5 @@ func NewHealthz(cfg *Config) *http.Server {
 		ReadTimeout: cfg.Timeout,
 	}
 
-	if cfg.TLSConfig != nil {
-		server.TLSConfig = cfg.TLSConfig
-	}
-
 	return server
 }
