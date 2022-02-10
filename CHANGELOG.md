@@ -2,8 +2,7 @@
 
 ## v21.12.2 (Unreleased)
 ### 🆕 Features
-* Support for OIDC token custom claims `AUTH_OIDC_CUSTOM_CLAIMS` 
-* Support for OIDC token custom permission path `AUTH_OIDC_PERMISSIONS_CLAIMS`.
+* Support for OIDC token custom claims `AUTH_OIDC_CUSTOM_CLAIMS` for tenant_id and permissions.
   
 ### 🛠 Bug fixes
 * Invalid authentication forwarded to downstream proxy nodes if QKM authentication is enabled.

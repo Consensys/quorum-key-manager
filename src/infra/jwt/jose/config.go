@@ -5,19 +5,17 @@ import (
 )
 
 type Config struct {
-	IssuerURL           string
-	CacheTTL            time.Duration
-	Audience            []string
-	CustomClaimPath     string
-	PermissionClaimPath string
+	IssuerURL       string
+	CacheTTL        time.Duration
+	Audience        []string
+	CustomClaimPath string
 }
 
-func NewConfig(issuerURL string, audience []string, customClaimPath, permissionClaimPath string, cacheTTL time.Duration) *Config {
+func NewConfig(issuerURL string, audience []string, customClaimPath string, cacheTTL time.Duration) *Config {
 	return &Config{
-		IssuerURL:           issuerURL,
-		CacheTTL:            cacheTTL,
-		Audience:            audience,
-		CustomClaimPath:     customClaimPath,
-		PermissionClaimPath: permissionClaimPath,
+		IssuerURL:       issuerURL,
+		CacheTTL:        cacheTTL,
+		Audience:        audience,
+		CustomClaimPath: customClaimPath,
 	}
 }

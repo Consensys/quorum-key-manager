@@ -10,13 +10,13 @@ import (
 
 func TestValidator_New(t *testing.T) {
 	t.Run("should instantiate validator successfully", func(t *testing.T) {
-		cfg := NewConfig("http://issuer.url", []string{}, "", "", time.Minute)
+		cfg := NewConfig("http://issuer.url", []string{}, "", time.Minute)
 		_, err := New(cfg)
 		assert.NoError(t, err)
 	})
 
 	t.Run("should failt to instantiate validator with invalid URL", func(t *testing.T) {
-		cfg := NewConfig("~ASD!'`://issuer.url", []string{}, "", "", time.Minute)
+		cfg := NewConfig("~ASD!'`://issuer.url", []string{}, "", time.Minute)
 		_, err := New(cfg)
 		assert.Error(t, err)
 	})
@@ -40,7 +40,7 @@ func TestValidator_Parser(t *testing.T) {
 	t.Run("should parse token with permissions successfully", func(t *testing.T) {
 		tokenClaims := &validator.ValidatedClaims{
 			CustomClaims: &Claims{
-				Permissions: []string{"read:*", "*:keys"},
+				Scope: []string{"read:*", "*:keys"},
 			},
 			RegisteredClaims: validator.RegisteredClaims{
 				Subject: "tenant_id",
@@ -56,9 +56,9 @@ func TestValidator_Parser(t *testing.T) {
 		tokenClaims := &validator.ValidatedClaims{
 			CustomClaims: &Claims{
 				CustomClaims: &CustomClaims{
-					TenantID: "tenant_id_2",
+					TenantID:    "tenant_id_2",
+					Permissions: []string{"read:*", "*:keys"},
 				},
-				Permissions: []string{"read:*", "*:keys"},
 			},
 			RegisteredClaims: validator.RegisteredClaims{
 				Subject: "tenant_id",

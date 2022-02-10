@@ -10,7 +10,7 @@ import (
 )
 
 func TestClaims_standard(t *testing.T) {
-	c := NewClaims("", "")
+	c := NewClaims("")
 
 	t.Run("should parse token successfully", func(t *testing.T) {
 		token := map[string]interface{}{
@@ -20,7 +20,7 @@ func TestClaims_standard(t *testing.T) {
 		data, _ := json.Marshal(token)
 		err := c.UnmarshalJSON(data)
 		assert.NoError(t, err)
-		assert.Equal(t, c.Permissions, strings.Split(token["scope"].(string), " "))
+		assert.Equal(t, c.Scope, strings.Split(token["scope"].(string), " "))
 		assert.Nil(t, c.CustomClaims)
 	})
 
@@ -40,7 +40,7 @@ func TestClaims_standard(t *testing.T) {
 
 func TestClaims_customClaims(t *testing.T) {
 	customClaimPath := "my.custom.claim"
-	c := NewClaims(customClaimPath, "")
+	c := NewClaims(customClaimPath)
 
 	t.Run("should parse token with custom claims successfully", func(t *testing.T) {
 		token := map[string]interface{}{
@@ -51,7 +51,7 @@ func TestClaims_customClaims(t *testing.T) {
 		data, _ := json.Marshal(token)
 		err := c.UnmarshalJSON(data)
 		assert.NoError(t, err)
-		assert.Equal(t, c.Permissions, strings.Split(token["scope"].(string), " "))
+		assert.Equal(t, c.Scope, strings.Split(token["scope"].(string), " "))
 		assert.Equal(t, c.CustomClaims.TenantID, "tenantID")
 	})
 
@@ -84,35 +84,7 @@ func TestClaims_customClaims(t *testing.T) {
 	})
 }
 
-func TestClaims_customPermissions(t *testing.T) {
-	customPermissionPath := "permissions"
-
-	c := NewClaims("", customPermissionPath)
-
-	t.Run("should parse token with custom permissions successfully", func(t *testing.T) {
-		token := map[string]interface{}{
-			"scope":              "read:* write:ethereum",
-			customPermissionPath: []string{"read:*", "*:keys"},
-		}
-
-		data, _ := json.Marshal(token)
-		err := c.UnmarshalJSON(data)
-		assert.NoError(t, err)
-		assert.Equal(t, c.Permissions, token[customPermissionPath])
-	})
-
-	t.Run("should fail to parse token with invalid permission format", func(t *testing.T) {
-		token := map[string]interface{}{
-			customPermissionPath: "read:* *:keys",
-		}
-
-		data, _ := json.Marshal(token)
-		err := c.UnmarshalJSON(data)
-		assert.Error(t, err)
-	})
-}
-
 func TestClaims_validate(t *testing.T) {
-	c := NewClaims("", "")
+	c := NewClaims("")
 	assert.Equal(t, nil, c.Validate(context.Background()))
 }

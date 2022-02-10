@@ -15,7 +15,6 @@ func init() {
 	_ = viper.BindEnv(authOIDCIssuerURLViperKey, authOIDCIssuerURLEnv)
 	_ = viper.BindEnv(AuthOIDCAudienceViperKey, authOIDCAudienceEnv)
 	_ = viper.BindEnv(authOIDCCustomClaimsViperKey, authOIDCCustomClaimsEnv)
-	_ = viper.BindEnv(authOIDCPermissionsClaimsViperKey, authOIDCPermissionsClaimsEnv)
 }
 
 const (
@@ -37,17 +36,10 @@ const (
 	authOIDCCustomClaimsEnv      = "AUTH_OIDC_CUSTOM_CLAIMS"
 )
 
-const (
-	authOIDCPermissionsClaimsFlag     = "auth-oidc-permissions-claims"
-	authOIDCPermissionsClaimsViperKey = "auth.oidc.permissions.claims"
-	authOIDCPermissionsClaimsEnv      = "AUTH_OIDC_PERMISSIONS_CLAIMS"
-)
-
 func OIDCFlags(f *pflag.FlagSet) {
 	authOIDCIssuerServer(f)
 	authOIDCAudience(f)
 	authOIDCCustomClaimsPath(f)
-	authOIDCPermissionsClaimsPath(f)
 }
 
 func authOIDCIssuerServer(f *pflag.FlagSet) {
@@ -71,13 +63,6 @@ Environment variable: %q`, authOIDCCustomClaimsEnv)
 	_ = viper.BindPFlag(authOIDCCustomClaimsViperKey, f.Lookup(authOIDCCustomClaimsFlag))
 }
 
-func authOIDCPermissionsClaimsPath(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Path to for permissions claims in the JWT (default 'scope').
-Environment variable: %q`, authOIDCPermissionsClaimsEnv)
-	f.String(authOIDCPermissionsClaimsFlag, "", desc)
-	_ = viper.BindPFlag(authOIDCPermissionsClaimsViperKey, f.Lookup(authOIDCPermissionsClaimsFlag))
-}
-
 func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 	issuerURL := vipr.GetString(authOIDCIssuerURLViperKey)
 
@@ -91,7 +76,6 @@ func NewOIDCConfig(vipr *viper.Viper) *jose.Config {
 			issuerURL,
 			aud,
 			vipr.GetString(authOIDCCustomClaimsViperKey),
-			vipr.GetString(authOIDCPermissionsClaimsViperKey),
 			5*time.Minute, // TODO: Make the cache ttl an ENV var if needed
 		)
 	}
