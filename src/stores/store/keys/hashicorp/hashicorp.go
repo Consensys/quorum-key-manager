@@ -41,6 +41,12 @@ func New(client hashicorp.PluginClient, logger log.Logger) *Store {
 }
 
 func (s *Store) Create(_ context.Context, id string, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+	if !s.isSupportedAlgo(alg) {
+		errMessage := "invalid or not supported elliptic curve and signing algorithm for Hashicorp key creation"
+		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
+		return nil, errors.NotSupportedError(errMessage)
+	}
+
 	res, err := s.client.CreateKey(map[string]interface{}{
 		idLabel:        id,
 		curveLabel:     alg.EllipticCurve,
@@ -52,11 +58,16 @@ func (s *Store) Create(_ context.Context, id string, alg *entities2.Algorithm, a
 		s.logger.With("id", id).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
-
 	return parseAPISecretToKey(res)
 }
 
 func (s *Store) Import(_ context.Context, id string, privKey []byte, alg *entities2.Algorithm, attr *entities.Attributes) (*entities.Key, error) {
+	if !s.isSupportedAlgo(alg) {
+		errMessage := "invalid or not supported elliptic curve and signing algorithm for Hashicorp key import"
+		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
+		return nil, errors.NotSupportedError(errMessage)
+	}
+
 	res, err := s.client.ImportKey(map[string]interface{}{
 		idLabel:         id,
 		curveLabel:      alg.EllipticCurve,
@@ -165,7 +176,14 @@ func (s *Store) Destroy(_ context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) Sign(_ context.Context, id string, data []byte, _ *entities2.Algorithm) ([]byte, error) {
+func (s *Store) Sign(_ context.Context, id string, data []byte, alg *entities2.Algorithm) ([]byte, error) {
+	if !s.isSupportedAlgo(alg) {
+		errMessage := "invalid or not supported elliptic curve and signing algorithm for Hashicorp signing"
+		s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type).Error(errMessage)
+		return nil, errors.NotSupportedError(errMessage)
+	}
+
+
 	logger := s.logger.With("id", id)
 
 	res, err := s.client.Sign(id, data)
@@ -191,4 +209,16 @@ func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, er
 
 func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
+}
+
+func (s *Store) isSupportedAlgo(alg *entities2.Algorithm) bool {
+	if alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1 {
+		return true
+	}
+
+	if alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.Babyjubjub {
+		return true
+	}
+
+	return false
 }

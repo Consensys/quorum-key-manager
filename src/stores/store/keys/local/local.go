@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
-
 	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark-crypto/hash"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
@@ -106,6 +106,17 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 
 		privKey = crypto.FromECDSA(ecdsaKey)
 		pubKey = crypto.FromECDSAPub(&ecdsaKey.PublicKey)
+	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.X25519:
+		// https://pkg.go.dev/crypto/ed25519#section-documentation
+		ed25519PrivKey, err := eddsa25519(importedPrivKey)
+		if err != nil {
+			errMessage := "failed to generate EDDSA/Curve25519 key pair"
+			logger.With("error", err).Error(errMessage)
+			return nil, errors.InvalidParameterError(errMessage)
+		}
+
+		pubKey = ed25519PrivKey.Public().(ed25519.PublicKey)
+		privKey = ed25519PrivKey
 	default:
 		errMessage := "invalid signing algorithm/elliptic curve combination"
 		logger.Error(errMessage)
@@ -220,9 +231,11 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 
 	switch {
 	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.Babyjubjub:
-		return s.signEDDSA(privkey, data)
+		return s.signEDDSABabyjubjub(privkey, data)
 	case algo.Type == entities2.Ecdsa && algo.EllipticCurve == entities2.Secp256k1:
-		return s.signECDSA(privkey, data)
+		return s.signECDSA256k1(privkey, data)
+	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.X25519:
+		return s.signEDDSA25519(privkey, data)
 	default:
 		errMessage := "signing algorithm and curve combination not supported for signing"
 		logger.With("algorithm", algo.Type, "curve", algo.EllipticCurve).Error(errMessage)
@@ -242,7 +255,7 @@ func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, erro
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
+func (s *Store) signECDSA256k1(privKey, data []byte) ([]byte, error) {
 	if len(data) != crypto.DigestLength {
 		errMessage := fmt.Sprintf("data is required to be exactly %d bytes (%d)", crypto.DigestLength, len(data))
 		s.logger.With("data_length", len(data), "expected_data_length", crypto.DigestLength).Error(errMessage)
@@ -267,7 +280,7 @@ func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
 	return signature[:len(signature)-1], nil
 }
 
-func (s *Store) signEDDSA(privKeyB, data []byte) ([]byte, error) {
+func (s *Store) signEDDSABabyjubjub(privKeyB, data []byte) ([]byte, error) {
 	privKey := babyjubjub.PrivateKey{}
 	_, err := privKey.SetBytes(privKeyB)
 	if err != nil {
@@ -283,6 +296,15 @@ func (s *Store) signEDDSA(privKeyB, data []byte) ([]byte, error) {
 		return nil, errors.CryptoOperationError(errMessage)
 	}
 
+	return signature, nil
+}
+
+func (s *Store) signEDDSA25519(privKeyB, data []byte) ([]byte, error) {
+	if len(privKeyB) != ed25519.PrivateKeySize {
+		return nil, errors.InvalidParameterError("invalid ED25519 private key size")
+	}
+	privKey := ed25519.PrivateKey(privKeyB)
+	signature := ed25519.Sign(privKey, data)
 	return signature, nil
 }
 
@@ -307,6 +329,25 @@ func eddsaBabyjubjub(importedPrivKey []byte) (babyjubjub.PrivateKey, error) {
 	}
 
 	return key, nil
+}
+
+func eddsa25519(importedPrivKey []byte) (ed25519.PrivateKey, error) {
+	if importedPrivKey != nil {
+		if len(importedPrivKey) != ed25519.PrivateKeySize {
+			return nil, errors.InvalidParameterError("invalid private key value")
+		}
+		privKey := ed25519.PrivateKey(importedPrivKey)
+		return privKey, nil
+	}
+
+	seed := make([]byte, 32)
+	_, err := rand.Read(seed)
+	if err != nil {
+		return ed25519.PrivateKey{}, err
+	}
+
+	_, privKey, err := ed25519.GenerateKey(bytes.NewReader(seed))
+	return privKey, err
 }
 
 func ecdsaSecp256k1(importedPrivKey []byte) (*ecdsa.PrivateKey, error) {

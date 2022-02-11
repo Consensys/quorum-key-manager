@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/stretchr/testify/require"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -89,6 +90,18 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
 	})
 
+	s.Run("should fail with NotSupported error", func() {
+		s.mockVault.EXPECT().CreateKey(expectedData).Return(nil, expectedErr)
+
+		key, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		}, attributes)
+
+		assert.Nil(s.T(), key)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
+	})
+
 	s.Run("should fail with same error if CreateKey fails", func() {
 		s.mockVault.EXPECT().CreateKey(expectedData).Return(nil, expectedErr)
 
@@ -141,6 +154,18 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 		assert.Equal(s.T(), attributes.Tags, key.Tags)
 		assert.True(s.T(), key.Metadata.ExpireAt.IsZero())
 		assert.True(s.T(), key.Metadata.DeletedAt.IsZero())
+	})
+
+	s.Run("should fail with NotSupported error", func() {
+		s.mockVault.EXPECT().CreateKey(expectedData).Return(nil, expectedErr)
+
+		key, err := s.keyStore.Import(ctx, id, privKeyB, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		}, attributes)
+
+		assert.Nil(s.T(), key)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
 	})
 
 	s.Run("should fail with same error if ImportKey fails", func() {
@@ -248,6 +273,16 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 		assert.Equal(s.T(), expectedSignature, base64.URLEncoding.EncodeToString(signature))
 	})
 
+	s.Run("should fail with NotSupported error", func() {
+		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		})
+
+		assert.Nil(s.T(), signature)
+		assert.True(s.T(), errors.IsNotSupportedError(err))
+	})
+
 	s.Run("should fail with same error if Sign fails", func() {
 		s.mockVault.EXPECT().Sign(id, data).Return(nil, expectedErr)
 
@@ -257,6 +292,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 		})
 
 		assert.Empty(s.T(), signature)
+		require.NotNil(s.T(), err)
 		assert.True(s.T(), errors.IsHashicorpVaultError(err))
 	})
 }

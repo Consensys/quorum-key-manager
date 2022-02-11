@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/src/entities"
+	"github.com/stretchr/testify/require"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/stores"
@@ -24,11 +25,13 @@ import (
 )
 
 const (
-	id             = "my-key"
-	publicKeyECDSA = "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2"
-	publicKeyEDDSA = "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191"
-	privKeyECDSA   = "0xdb337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
-	privKeyEDDSA   = "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
+	id                       = "my-key"
+	publicKeyECDSA           = "0x04555214986a521f43409c1c6b236db1674332faaaf11fc42a7047ab07781ebe6f0974f2265a8a7d82208f88c21a2c55663b33e5af92d919252511638e82dff8b2"
+	publicKeyEDDSABabyJubJub = "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191"
+	publicKeyED25519         = "0xf60399370d166881e555b842ba28a2e5c6d01d2964629bdd5d726d500f0cad08"
+	privKeyECDSA             = "0xdb337ca3295e4050586793f252e641f3b3a83739018fa4cce01a81ca920e7e1c"
+	privKeyEDDSABabyJubJub   = "0x5fd633ff9f8ee36f9e3a874709406103854c0f6650cb908c010ea55eabc35191866e2a1e939a98bb32734cd6694c7ad58e3164ee215edc56307e9c59c8d3f1b4868507981bf553fd21c1d97b0c0d665cbcdb5adeed192607ca46763cb0ca03c7"
+	privKeyED25519           = "0x76d17877a7d4b7a538c149c849597c243772cb438c3a4f97645b1e6e0b12ed72f60399370d166881e555b842ba28a2e5c6d01d2964629bdd5d726d500f0cad08"
 )
 
 var expectedErr = errors.DependencyFailureError("error")
@@ -72,7 +75,7 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, attr)
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, key.ID)
 		assert.NotEmpty(s.T(), key.PublicKey)
@@ -93,13 +96,34 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Babyjubjub,
 		}, attr)
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, key.ID)
 		assert.NotEmpty(s.T(), key.PublicKey)
 		assert.Equal(s.T(), attr.Tags, key.Tags)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Babyjubjub, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
+	})
+
+	s.Run("should create an ED25519 key successfully", func() {
+		secret := testutils.FakeSecret()
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
+		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
+
+		key, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		}, attr)
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), id, key.ID)
+		assert.NotEmpty(s.T(), key.PublicKey)
+		assert.Equal(s.T(), attr.Tags, key.Tags)
+		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.X25519, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
@@ -143,7 +167,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		}, attr)
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, key.ID)
 		assert.Equal(s.T(), publicKeyECDSA, hexutil.Encode(key.PublicKey))
@@ -160,17 +184,38 @@ func (s *localKeyStoreTestSuite) TestImport() {
 		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
 		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
 
-		key, err := s.keyStore.Import(ctx, id, hexutil.MustDecode(privKeyEDDSA), &entities.Algorithm{
+		key, err := s.keyStore.Import(ctx, id, hexutil.MustDecode(privKeyEDDSABabyJubJub), &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Babyjubjub,
 		}, attr)
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), id, key.ID)
-		assert.Equal(s.T(), publicKeyEDDSA, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), publicKeyEDDSABabyJubJub, hexutil.Encode(key.PublicKey))
 		assert.Equal(s.T(), attr.Tags, key.Tags)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
 		assert.Equal(s.T(), entities.Babyjubjub, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
+		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
+	})
+
+	s.Run("should create an EDDSA/Babyjubjub key successfully", func() {
+		secret := testutils.FakeSecret()
+		s.mockSecretStore.EXPECT().Set(ctx, id, gomock.Any(), attr).Return(secret, nil)
+		s.mockSecretDB.EXPECT().Add(gomock.Any(), secret).Return(secret, nil)
+
+		key, err := s.keyStore.Import(ctx, id, hexutil.MustDecode(privKeyED25519), &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		}, attr)
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), publicKeyED25519, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), attr.Tags, key.Tags)
+		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.X25519, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
@@ -211,7 +256,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
 		})
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "xUBOm7wht727RjpUY+KqK/NpCIOkzxX9H+dSBIWOITccTl/i5DyFvrcO3EIZTLV1gLVfCL+AOkY2pGWnIxygtQ==", base64.StdEncoding.EncodeToString(signature))
 	})
@@ -219,7 +264,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 	s.Run("should create an EDDSA/Babyjubjub key successfully", func() {
 		payload := []byte("my data")
 		secret := testutils.FakeSecret()
-		secret.Value = base64.StdEncoding.EncodeToString(hexutil.MustDecode(privKeyEDDSA))
+		secret.Value = base64.StdEncoding.EncodeToString(hexutil.MustDecode(privKeyEDDSABabyJubJub))
 
 		s.mockSecretStore.EXPECT().Get(ctx, id, "").Return(secret, nil)
 
@@ -227,9 +272,25 @@ func (s *localKeyStoreTestSuite) TestSign() {
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Babyjubjub,
 		})
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), "YSmChRZfnuMYdhF8MJI46uy3W1aO6P2QV4Ed//kTCIQFJnSx7ga7cHvT8KnuKxwvkLhSS0JKicbtFBJnAhIiow==", base64.StdEncoding.EncodeToString(signature))
+	})
+
+	s.Run("should create an ED25519 key successfully", func() {
+		payload := []byte("my data")
+		secret := testutils.FakeSecret()
+		secret.Value = base64.StdEncoding.EncodeToString(hexutil.MustDecode(privKeyED25519))
+
+		s.mockSecretStore.EXPECT().Get(ctx, id, "").Return(secret, nil)
+
+		signature, err := s.keyStore.Sign(ctx, id, payload, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		})
+		require.NoError(s.T(), err)
+
+		assert.Equal(s.T(), "dDQeCkh1ao60pXAoAqiu93abipXrKoILKAi6bahMOJYGgfHdNyyCGBCxQ8gwusxkT0hutaWetgAOI5TUHYDYCw==", base64.StdEncoding.EncodeToString(signature))
 	})
 
 	s.Run("should fail with InvalidParameter if algo is undefined", func() {
@@ -276,7 +337,7 @@ func (s *localKeyStoreTestSuite) TestDelete() {
 		s.mockSecretDB.EXPECT().Delete(ctx, id).Return(nil)
 
 		err := s.keyStore.Delete(ctx, id)
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if Delete Secret fails", func() {
@@ -305,7 +366,7 @@ func (s *localKeyStoreTestSuite) TestRestore() {
 		s.mockSecretDB.EXPECT().Restore(ctx, id).Return(nil)
 
 		err := s.keyStore.Restore(ctx, id)
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if GetDeleted Secret fails", func() {
@@ -334,7 +395,7 @@ func (s *localKeyStoreTestSuite) TestDestroy() {
 		s.mockSecretDB.EXPECT().Purge(ctx, id).Return(nil)
 
 		err := s.keyStore.Destroy(ctx, id)
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 	})
 
 	s.Run("should fail with same error if GetDeleted Secret fails", func() {
