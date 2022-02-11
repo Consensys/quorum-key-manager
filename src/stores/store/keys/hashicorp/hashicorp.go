@@ -183,7 +183,6 @@ func (s *Store) Sign(_ context.Context, id string, data []byte, alg *entities2.A
 		return nil, errors.NotSupportedError(errMessage)
 	}
 
-
 	logger := s.logger.With("id", id)
 
 	res, err := s.client.Sign(id, data)
