@@ -20,6 +20,8 @@ func parseSecretsManagerErrorResponse(err error) error {
 		return errors.InvalidFormatError(aerr.Error())
 	case secretsmanager.ErrCodeResourceNotFoundException:
 		return errors.NotFoundError(aerr.Error())
+	case secretsmanager.ErrCodeLimitExceededException:
+		return errors.TooManyRequestError(aerr.Error())
 	case
 		secretsmanager.ErrCodeInvalidNextTokenException,
 		secretsmanager.ErrCodeMalformedPolicyDocumentException,

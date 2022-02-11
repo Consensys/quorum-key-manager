@@ -29,6 +29,8 @@ func parseErrorResponse(err error) error {
 		return errors.InvalidFormatError(aerr.Original.Error())
 	case http.StatusUnprocessableEntity:
 		return errors.InvalidParameterError(aerr.Original.Error())
+	case http.StatusTooManyRequests:
+		return errors.TooManyRequestError(aerr.Original.Error())
 	case http.StatusConflict:
 		if aerr.Method == PurgeDeletedKeyMethod {
 			return errors.StatusConflictError(aerr.Original.Error())

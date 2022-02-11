@@ -16,7 +16,16 @@ const (
 	InvalidFormat    = "IR400"
 	InvalidParameter = "IR500"
 	Forbidden        = "IR600"
+	TooManyRequest   = "IR700"
 )
+
+func TooManyRequestError(format string, a ...interface{}) *Error {
+	return Errorf(TooManyRequest, format, a...)
+}
+
+func IsTooManyRequestError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), TooManyRequest)
+}
 
 // HashicorpVaultError is raised when failing to perform on Hashicorp Vault
 func HashicorpVaultError(format string, a ...interface{}) *Error {

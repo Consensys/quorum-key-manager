@@ -7,6 +7,8 @@
 ### 🛠 Bug fixes
 * Invalid authentication forwarded to downstream proxy nodes if QKM authentication is enabled.
 * Fixed AWS client issue preventing racing condition on key state transition changes. 
+* Fixed invalid request error on create Registry with empty payload
+* Fixed forwarding of vault service 429 errors.
 
 ## v21.12.1 (2021-12-20)
 ### 🛠 Bug fixes

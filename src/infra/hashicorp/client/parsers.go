@@ -23,6 +23,8 @@ func parseErrorResponse(err error) error {
 		return errors.InvalidParameterError(httpError.Error())
 	case http.StatusConflict:
 		return errors.AlreadyExistsError(httpError.Error())
+	case http.StatusTooManyRequests:
+		return errors.TooManyRequestError(httpError.Error())
 	default:
 		return errors.HashicorpVaultError(httpError.Error())
 	}
