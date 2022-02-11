@@ -226,7 +226,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 		logger.With("algorithm", algo.Type, "curve", algo.EllipticCurve).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
-	
+
 	if err != nil {
 		s.logger.WithError(err).Error("failed to sign")
 	}
@@ -245,4 +245,3 @@ func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, erro
 func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
-

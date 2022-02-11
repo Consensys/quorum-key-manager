@@ -1,43 +1,31 @@
 package crypto
 
 import (
-	"bytes"
 	"crypto/ecdsa"
-	"crypto/rand"
 	"fmt"
 	"math/big"
 
-	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func EdDSABabyjubjub(importedPrivKey []byte) (privKey []byte, pubKey []byte, err error) {
-	babyJubJubPrivKey := babyjubjub.PrivateKey{}
+func ECDSASecp256k1(importedPrivKey []byte) (privKey, pubKey []byte, err error) {
+	var ecdsaKey *ecdsa.PrivateKey
 	if importedPrivKey != nil {
-		_, err = babyJubJubPrivKey.SetBytes(importedPrivKey)
+		ecdsaKey, err = crypto.ToECDSA(importedPrivKey)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		ecdsaKey, err = crypto.GenerateKey()
 		if err != nil {
 			return nil, nil, err
 		}
 	}
 
-	seed := make([]byte, 32)
-	_, err = rand.Read(seed)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Usually standards implementations of eddsa do not require the choice of a specific hash function (usually it's SHA256).
-	// Here we needed to allow the choice of the hash, so we can choose a hash function that is easily programmable in a snark circuit.
-	// Same hFunc should be used for sign and verify
-	babyJubJubPrivKey, err = babyjubjub.GenerateKey(bytes.NewReader(seed))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	privKey = babyJubJubPrivKey.Bytes()
-	pubKey = babyJubJubPrivKey.Public().Bytes()
-	return pubKey, privKey, nil
+	privKey = crypto.FromECDSA(ecdsaKey)
+	pubKey = crypto.FromECDSAPub(&ecdsaKey.PublicKey)
+	return privKey, pubKey, nil
 }
 
 func SignECDSA256k1(privKey, data []byte) ([]byte, error) {
