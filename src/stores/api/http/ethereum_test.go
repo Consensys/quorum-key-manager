@@ -154,6 +154,19 @@ func (s *ethHandlerTestSuite) TestCreate() {
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(s.T(), http.StatusFailedDependency, rw.Code)
 	})
+
+	s.Run("should fail with tooManyRequest error code if use case fails with 429 error code", func() {
+		createEthAccountRequest := testutils.FakeCreateEthAccountRequest()
+		requestBytes, _ := json.Marshal(createEthAccountRequest)
+
+		rw := httptest.NewRecorder()
+		httpRequest := httptest.NewRequest(http.MethodPost, "/stores/EthStores/ethereum", bytes.NewReader(requestBytes)).WithContext(s.ctx)
+
+		s.ethStore.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.TooManyRequestError("error"))
+
+		s.router.ServeHTTP(rw, httpRequest)
+		assert.Equal(s.T(), http.StatusTooManyRequests, rw.Code)
+	})
 }
 
 func (s *ethHandlerTestSuite) TestImport() {
