@@ -28,7 +28,7 @@ func New(cfg *Config) (*Validator, error) {
 		issuerURL.String(),
 		cfg.Audience,
 		validator.WithCustomClaims(func() validator.CustomClaims {
-			return NewClaims(cfg.CustomClaimPath, cfg.PermissionClaimPath)
+			return NewClaims(cfg.CustomClaimPath)
 		}),
 	)
 	if err != nil {
@@ -44,16 +44,39 @@ func (v *Validator) ParseClaims(tokenClaims interface{}) (*entities.UserClaims, 
 		return nil, errors.New("invalid token claims")
 	}
 	userClaims := &entities.UserClaims{}
-	if claims.CustomClaims != nil {
-		userClaims.Permissions = claims.CustomClaims.(*Claims).Permissions
-		if qkmUserClaims := claims.CustomClaims.(*Claims).CustomClaims; qkmUserClaims != nil {
-			userClaims.Tenant = qkmUserClaims.TenantID
-		} else {
-			userClaims.Tenant = claims.RegisteredClaims.Subject
-		}
+	if qkmUserClaims, ok := v.qkmCustomClaimsExist(claims); ok {
+		userClaims.Tenant = qkmUserClaims.TenantID
+		userClaims.Permissions = qkmUserClaims.Permissions
 	} else {
 		userClaims.Tenant = claims.RegisteredClaims.Subject
+		if scopeClaims, ok := v.scopeClaimsExist(claims); ok {
+			userClaims.Permissions = scopeClaims
+		}
 	}
 
 	return userClaims, nil
+}
+
+func (v *Validator) qkmCustomClaimsExist(claims *validator.ValidatedClaims) (*CustomClaims, bool) {
+	if claims.CustomClaims == nil {
+		return nil, false
+	}
+
+	if qkmUserClaims := claims.CustomClaims.(*Claims).CustomClaims; qkmUserClaims != nil {
+		return qkmUserClaims, true
+	}
+
+	return nil, false
+}
+
+func (v *Validator) scopeClaimsExist(claims *validator.ValidatedClaims) ([]string, bool) {
+	if claims.CustomClaims == nil {
+		return nil, false
+	}
+
+	if scopeUserClaims := claims.CustomClaims.(*Claims).Scope; scopeUserClaims != nil {
+		return scopeUserClaims, true
+	}
+
+	return nil, false
 }

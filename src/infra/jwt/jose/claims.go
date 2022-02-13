@@ -5,29 +5,29 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
-
-	"github.com/consensys/quorum-key-manager/pkg/common"
 )
 
 type Claims struct {
-	Permissions     []string      `json:"permissions"`
 	CustomClaims    *CustomClaims `json:"-"`
+	Scope           []string      `json:"scope"`
 	customClaimPath string
-	permissionsPath string
 }
 
 type CustomClaims struct {
-	TenantID string `json:"tenant_id"`
+	TenantID    string   `json:"tenant_id"`
+	Permissions []string `json:"permissions"`
 }
 
-func NewClaims(customClaimPath, permissionsPath string) *Claims {
+func NewClaims(customClaimPath string) *Claims {
 	return &Claims{
 		customClaimPath: customClaimPath,
-		permissionsPath: permissionsPath,
 	}
 }
 
 func (c *Claims) UnmarshalJSON(data []byte) error {
+	c.Scope = nil
+	c.CustomClaims = nil
+
 	var res map[string]interface{}
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
@@ -37,20 +37,21 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 		c.CustomClaims = &CustomClaims{}
 		if _, ok := res[c.customClaimPath]; ok {
 			bClaims, _ := json.Marshal(res[c.customClaimPath])
-			if err := json.Unmarshal(bClaims, &c.CustomClaims); err != nil || c.CustomClaims.TenantID == "" {
+			if err := json.Unmarshal(bClaims, &c.CustomClaims); err != nil {
 				return errors.New("invalid custom claims format")
+			}
+			if c.CustomClaims.TenantID == "" {
+				return errors.New("custom claims must include tenant_id")
 			}
 		} else {
 			return errors.New("missing custom claims data")
 		}
 	}
 
-	if c.permissionsPath != "" {
-		if err := common.InterfaceToObject(res[c.permissionsPath], &c.Permissions); err != nil {
-			return errors.New("invalid permission data type")
+	if res["scope"] != nil {
+		if scopes, ok := res["scope"].(string); ok {
+			c.Scope = strings.Split(scopes, " ")
 		}
-	} else if res["scope"] != nil {
-		c.Permissions = strings.Split(res["scope"].(string), " ")
 	}
 
 	return nil
