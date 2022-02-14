@@ -1,7 +1,8 @@
 package utils
 
 import (
-	"github.com/consensys/quorum-key-manager/pkg/crypto"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/ecdsa"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/eddsa"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/entities"
 )
@@ -13,11 +14,11 @@ func (u *Utilities) Verify(pubKey, data, sig []byte, algo *entities.Algorithm) e
 	var verified bool
 	switch {
 	case algo.EllipticCurve == entities.Secp256k1 && algo.Type == entities.Ecdsa:
-		verified, err = crypto.VerifyECDSASignature(pubKey, data, sig)
+		verified, err = ecdsa.VerifySecp256k1Signature(pubKey, data, sig)
 	case algo.EllipticCurve == entities.Babyjubjub && algo.Type == entities.Eddsa:
-		verified, err = crypto.VerifyEDDSABabyJubJubSignature(pubKey, data, sig)
+		verified, err = eddsa.VerifyBabyJubJubSignature(pubKey, data, sig)
 	case algo.EllipticCurve == entities.X25519 && algo.Type == entities.Eddsa:
-		verified, err = crypto.VerifyEDDSA25519Signature(pubKey, data, sig)
+		verified, err = eddsa.VerifyX25519Signature(pubKey, data, sig)
 	default:
 		errMessage := "unsupported signing algorithm and elliptic curve combination"
 		logger.Error(errMessage)

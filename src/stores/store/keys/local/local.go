@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 
-	pkgcrypto "github.com/consensys/quorum-key-manager/pkg/crypto"
+	ecdsa "github.com/consensys/quorum-key-manager/pkg/crypto/ecdsa"
+	eddsa "github.com/consensys/quorum-key-manager/pkg/crypto/eddsa"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
@@ -81,21 +82,21 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 	var err error
 	switch {
 	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.Babyjubjub:
-		privKey, pubKey, err = pkgcrypto.EdDSABabyjubjub(importedPrivKey)
+		privKey, pubKey, err = eddsa.CreateBabyjubjub(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate EDDSA/Babyjujub key pair"
 			logger.With("error", err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
-		privKey, pubKey, err = pkgcrypto.ECDSASecp256k1(importedPrivKey)
+		privKey, pubKey, err = ecdsa.CreateSecp256k1(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate Secp256k1/ECDSA key pair"
 			logger.With("error", err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.X25519:
-		privKey, pubKey, err = pkgcrypto.EdDSA25519(importedPrivKey)
+		privKey, pubKey, err = eddsa.CreateX25519(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate EDDSA/Curve25519 key pair"
 			logger.With("error", err).Error(errMessage)
@@ -216,11 +217,11 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	var signature []byte
 	switch {
 	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.Babyjubjub:
-		signature, err = pkgcrypto.SignEDDSABabyjubjub(privkey, data)
+		signature, err = eddsa.SignBabyjubjub(privkey, data)
 	case algo.Type == entities2.Ecdsa && algo.EllipticCurve == entities2.Secp256k1:
-		signature, err = pkgcrypto.SignECDSA256k1(privkey, data)
+		signature, err = ecdsa.SignSecp256k1(privkey, data)
 	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.X25519:
-		signature, err = pkgcrypto.SignEDDSA25519(privkey, data)
+		signature, err = eddsa.SignX25519(privkey, data)
 	default:
 		errMessage := "signing algorithm and curve combination not supported for signing"
 		logger.With("algorithm", algo.Type, "curve", algo.EllipticCurve).Error(errMessage)

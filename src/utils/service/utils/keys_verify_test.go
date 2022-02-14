@@ -3,7 +3,8 @@ package utils
 import (
 	"testing"
 
-	pkgcrypto "github.com/consensys/quorum-key-manager/pkg/crypto"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/ecdsa"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/eddsa"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	"github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
@@ -20,9 +21,9 @@ func TestKeysVerifyMessage_ecdsa256k1(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 
 	connector := New(logger)
-	privKey, pubKey, _ := pkgcrypto.ECDSASecp256k1(nil)
+	privKey, pubKey, _ := ecdsa.CreateSecp256k1(nil)
 	data := crypto.Keccak256([]byte("my data to sign"))
-	signature, err := pkgcrypto.SignECDSA256k1(privKey, data)
+	signature, err := ecdsa.SignSecp256k1(privKey, data)
 	require.NoError(t, err)
 
 	t.Run("should verify message successfully", func(t *testing.T) {
@@ -35,7 +36,7 @@ func TestKeysVerifyMessage_ecdsa256k1(t *testing.T) {
 	})
 
 	t.Run("should fail to verify no corresponding signature", func(t *testing.T) {
-		invalidSig, _ := pkgcrypto.SignECDSA256k1(privKey, crypto.Keccak256([]byte("invalid data")))
+		invalidSig, _ := ecdsa.SignSecp256k1(privKey, crypto.Keccak256([]byte("invalid data")))
 		err := connector.Verify(pubKey, data, invalidSig, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.Secp256k1,
@@ -63,9 +64,9 @@ func TestKeysVerifyMessage_eddsaBabyJubJub(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 
 	connector := New(logger)
-	privKey, pubKey, _ := pkgcrypto.EdDSABabyjubjub(nil)
+	privKey, pubKey, _ := eddsa.CreateBabyjubjub(nil)
 	data := crypto.Keccak256([]byte("my data to sign"))
-	signature, err := pkgcrypto.SignEDDSABabyjubjub(privKey, data)
+	signature, err := eddsa.SignBabyjubjub(privKey, data)
 	require.NoError(t, err)
 
 	t.Run("should verify message successfully", func(t *testing.T) {
@@ -78,7 +79,7 @@ func TestKeysVerifyMessage_eddsaBabyJubJub(t *testing.T) {
 	})
 
 	t.Run("should fail to verify no corresponding signature", func(t *testing.T) {
-		invalidSig, _ := pkgcrypto.SignEDDSABabyjubjub(privKey, crypto.Keccak256([]byte("invalid data")))
+		invalidSig, _ := eddsa.SignBabyjubjub(privKey, crypto.Keccak256([]byte("invalid data")))
 		err := connector.Verify(pubKey, data, invalidSig, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Babyjubjub,
@@ -106,9 +107,9 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 
 	connector := New(logger)
-	privKey, pubKey, _ := pkgcrypto.EdDSA25519(nil)
+	privKey, pubKey, _ := eddsa.CreateX25519(nil)
 	data := crypto.Keccak256([]byte("my data to sign"))
-	signature, err := pkgcrypto.SignEDDSA25519(privKey, data)
+	signature, err := eddsa.SignX25519(privKey, data)
 	require.NoError(t, err)
 
 	t.Run("should verify message successfully", func(t *testing.T) {
@@ -121,7 +122,7 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 	})
 
 	t.Run("should fail to verify no corresponding signature", func(t *testing.T) {
-		invalidSig, _ := pkgcrypto.SignEDDSA25519(privKey, crypto.Keccak256([]byte("invalid data")))
+		invalidSig, _ := eddsa.SignX25519(privKey, crypto.Keccak256([]byte("invalid data")))
 		err := connector.Verify(pubKey, data, invalidSig, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.X25519,

@@ -1,4 +1,4 @@
-package crypto
+package ecdsa
 
 import (
 	"crypto/ecdsa"
@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func ECDSASecp256k1(importedPrivKey []byte) (privKey, pubKey []byte, err error) {
+func CreateSecp256k1(importedPrivKey []byte) (privKey, pubKey []byte, err error) {
 	var ecdsaKey *ecdsa.PrivateKey
 	if importedPrivKey != nil {
 		ecdsaKey, err = crypto.ToECDSA(importedPrivKey)
@@ -28,7 +28,7 @@ func ECDSASecp256k1(importedPrivKey []byte) (privKey, pubKey []byte, err error) 
 	return privKey, pubKey, nil
 }
 
-func SignECDSA256k1(privKey, data []byte) ([]byte, error) {
+func SignSecp256k1(privKey, data []byte) ([]byte, error) {
 	if len(data) != crypto.DigestLength {
 		return nil, errors.InvalidParameterError(fmt.Sprintf("data is required to be exactly %d bytes (%d)", crypto.DigestLength, len(data)))
 	}
@@ -47,7 +47,7 @@ func SignECDSA256k1(privKey, data []byte) ([]byte, error) {
 	return signature[:len(signature)-1], nil
 }
 
-func VerifyECDSASignature(publicKey, message, signature []byte) (bool, error) {
+func VerifySecp256k1Signature(publicKey, message, signature []byte) (bool, error) {
 	pubKey, err := crypto.UnmarshalPubkey(publicKey)
 	if err != nil {
 		return false, err

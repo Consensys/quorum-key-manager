@@ -230,7 +230,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 		require.Error(s.T(), err)
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
-	
+
 	s.Run("should fail with InvalidParameter if import key is value is invalid", func() {
 		_, err := s.keyStore.Import(ctx, id, []byte("invalidValue"), &entities.Algorithm{
 			Type:          entities.Eddsa,
