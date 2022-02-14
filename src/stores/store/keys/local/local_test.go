@@ -239,6 +239,14 @@ func (s *localKeyStoreTestSuite) TestImport() {
 
 		require.Error(s.T(), err)
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
+		
+		_, err = s.keyStore.Import(ctx, id, []byte("invalidValue"), &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.Babyjubjub,
+		}, attr)
+
+		require.Error(s.T(), err)
+		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
 
 	s.Run("should fail with same error if Set fails", func() {

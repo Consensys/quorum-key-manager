@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 
-	ecdsa "github.com/consensys/quorum-key-manager/pkg/crypto/ecdsa"
-	eddsa "github.com/consensys/quorum-key-manager/pkg/crypto/eddsa"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/ecdsa"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/eddsa"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"

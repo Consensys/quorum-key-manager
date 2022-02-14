@@ -34,7 +34,7 @@ func CreateX25519(importedPrivKey []byte) (privKey, pubKey []byte, err error) {
 
 func SignX25519(privKeyB, data []byte) ([]byte, error) {
 	if len(privKeyB) != ed25519.PrivateKeySize {
-		return nil, errors.InvalidParameterError("invalid ED25519 private key size")
+		return nil, errors.InvalidParameterError("invalid ED25519 private key length")
 	}
 	privKey := ed25519.PrivateKey(privKeyB)
 	signature := ed25519.Sign(privKey, data)
@@ -43,7 +43,10 @@ func SignX25519(privKeyB, data []byte) ([]byte, error) {
 
 func VerifyX25519Signature(publicKey, message, signature []byte) (bool, error) {
 	if len(publicKey) != ed25519.PublicKeySize {
-		return false, errors.InvalidParameterError("invalid ED25519 public key size")
+		return false, errors.InvalidParameterError("invalid ED25519 public key length")
+	}
+	if len(signature) != ed25519.SignatureSize {
+		return false, errors.InvalidParameterError("invalid ED25519 signature length")
 	}
 	pubKey := ed25519.PublicKey(publicKey)
 	return ed25519.Verify(pubKey, message, signature), nil

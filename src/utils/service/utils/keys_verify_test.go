@@ -22,6 +22,7 @@ func TestKeysVerifyMessage_ecdsa256k1(t *testing.T) {
 
 	connector := New(logger)
 	privKey, pubKey, _ := ecdsa.CreateSecp256k1(nil)
+	_, pubKey2, _ := ecdsa.CreateSecp256k1(nil)
 	data := crypto.Keccak256([]byte("my data to sign"))
 	signature, err := ecdsa.SignSecp256k1(privKey, data)
 	require.NoError(t, err)
@@ -46,7 +47,17 @@ func TestKeysVerifyMessage_ecdsa256k1(t *testing.T) {
 		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 
-	t.Run("should fail to verify no corresponding signing algo", func(t *testing.T) {
+	t.Run("should fail to verify no corresponding public key", func(t *testing.T) {
+		err := connector.Verify(pubKey2, data, signature, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail to verify no corresponding key type", func(t *testing.T) {
 		err := connector.Verify(pubKey, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Babyjubjub,
@@ -65,6 +76,7 @@ func TestKeysVerifyMessage_eddsaBabyJubJub(t *testing.T) {
 
 	connector := New(logger)
 	privKey, pubKey, _ := eddsa.CreateBabyjubjub(nil)
+	_, pubKey2, _ := eddsa.CreateBabyjubjub(nil)
 	data := crypto.Keccak256([]byte("my data to sign"))
 	signature, err := eddsa.SignBabyjubjub(privKey, data)
 	require.NoError(t, err)
@@ -89,7 +101,17 @@ func TestKeysVerifyMessage_eddsaBabyJubJub(t *testing.T) {
 		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 
-	t.Run("should verify message successfully", func(t *testing.T) {
+	t.Run("should fail to verify no corresponding public key", func(t *testing.T) {
+		err := connector.Verify(pubKey2, data, signature, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.Babyjubjub,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail to verify no corresponding key type", func(t *testing.T) {
 		err := connector.Verify(pubKey, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.X25519,
@@ -108,6 +130,7 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 
 	connector := New(logger)
 	privKey, pubKey, _ := eddsa.CreateX25519(nil)
+	_, pubKey2, _ := eddsa.CreateX25519(nil)
 	data := crypto.Keccak256([]byte("my data to sign"))
 	signature, err := eddsa.SignX25519(privKey, data)
 	require.NoError(t, err)
@@ -132,7 +155,17 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 
-	t.Run("should verify message successfully", func(t *testing.T) {
+	t.Run("should fail to verify no corresponding public key", func(t *testing.T) {
+		err := connector.Verify(pubKey2, data, signature, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail to verify no corresponding key type", func(t *testing.T) {
 		err := connector.Verify(pubKey, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Babyjubjub,
@@ -143,14 +176,18 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 	})
 }
 
-func TestKeysVerifyMessage_notSupported(t *testing.T) {
+func TestKeysVerifyMessage_errors(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	logger := testutils.NewMockLogger(ctrl)
+	privKey, pubKey, _ := ecdsa.CreateSecp256k1(nil)
+	data := crypto.Keccak256([]byte("my data to sign"))
+	signature, err := ecdsa.SignSecp256k1(privKey, data)
+	require.NoError(t, err)
 
 	connector := New(logger)
-	t.Run("should verify message successfully", func(t *testing.T) {
+	t.Run("should fail to not support types", func(t *testing.T) {
 		err := connector.Verify(nil, nil, nil, &entities.Algorithm{
 			Type:          entities.Ecdsa,
 			EllipticCurve: entities.X25519,
@@ -158,5 +195,25 @@ func TestKeysVerifyMessage_notSupported(t *testing.T) {
 
 		require.Error(t, err)
 		assert.True(t, errors.IsNotSupportedError(err))
+	})
+
+	t.Run("should fail verify invalid public key size", func(t *testing.T) {
+		err := connector.Verify([]byte("invalid pub key"), data, signature, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail verify invalid signature format", func(t *testing.T) {
+		err := connector.Verify(pubKey, data, []byte("invalid signature"), &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 }

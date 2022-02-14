@@ -52,6 +52,9 @@ func VerifySecp256k1Signature(publicKey, message, signature []byte) (bool, error
 	if err != nil {
 		return false, err
 	}
+	if len(signature) != 64 {
+		return false, errors.InvalidParameterError("invalid secp256k1 signature length")
+	}
 
 	r := new(big.Int).SetBytes(signature[0:32])
 	s := new(big.Int).SetBytes(signature[32:64])
