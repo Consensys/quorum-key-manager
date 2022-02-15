@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
-
 	"github.com/consensys/quorum-key-manager/src/auth/entities"
 	mock3 "github.com/consensys/quorum-key-manager/src/auth/mock"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 
 	"github.com/consensys/quorum-key-manager/src/infra/log/testutils"
 	mock2 "github.com/consensys/quorum-key-manager/src/stores/database/mock"
@@ -24,6 +24,10 @@ func TestCreateKey(t *testing.T) {
 	defer ctrl.Finish()
 
 	key := testutils2.FakeKey()
+	key.Algo = &entities2.Algorithm{
+		Type:          entities2.Eddsa,
+		EllipticCurve: entities2.Curve25519,
+	}
 	expectedErr := fmt.Errorf("error")
 	attributes := testutils2.FakeAttributes()
 

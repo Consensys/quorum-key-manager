@@ -9,6 +9,7 @@ const (
 
 	Babyjubjub Curve = "babyjubjub"
 	Secp256k1  Curve = "secp256k1"
+	Curve25519 Curve = "curve25519"
 )
 
 type Algorithm struct {

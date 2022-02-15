@@ -1,23 +1,17 @@
 package local
 
 import (
-	"bytes"
 	"context"
-	"crypto/ecdsa"
-	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 
-	entities2 "github.com/consensys/quorum-key-manager/src/entities"
-
-	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
-	"github.com/consensys/gnark-crypto/hash"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/ecdsa"
+	"github.com/consensys/quorum-key-manager/pkg/crypto/eddsa"
 	"github.com/consensys/quorum-key-manager/pkg/errors"
+	entities2 "github.com/consensys/quorum-key-manager/src/entities"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores"
 	"github.com/consensys/quorum-key-manager/src/stores/database"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 type Store struct {
@@ -85,27 +79,29 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 
 	var privKey []byte
 	var pubKey []byte
+	var err error
 	switch {
 	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.Babyjubjub:
-		eddsaKey, err := eddsaBabyjubjub(importedPrivKey)
+		privKey, pubKey, err = eddsa.CreateBabyjubjub(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate EDDSA/Babyjujub key pair"
 			logger.With("error", err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
-
-		privKey = eddsaKey.Bytes()
-		pubKey = eddsaKey.Public().Bytes()
 	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
-		ecdsaKey, err := ecdsaSecp256k1(importedPrivKey)
+		privKey, pubKey, err = ecdsa.CreateSecp256k1(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate Secp256k1/ECDSA key pair"
 			logger.With("error", err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
-
-		privKey = crypto.FromECDSA(ecdsaKey)
-		pubKey = crypto.FromECDSAPub(&ecdsaKey.PublicKey)
+	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.Curve25519:
+		privKey, pubKey, err = eddsa.CreateED25519(importedPrivKey)
+		if err != nil {
+			errMessage := "failed to generate EDDSA/Curve25519 key pair"
+			logger.With("error", err).Error(errMessage)
+			return nil, errors.InvalidParameterError(errMessage)
+		}
 	default:
 		errMessage := "invalid signing algorithm/elliptic curve combination"
 		logger.Error(errMessage)
@@ -204,7 +200,7 @@ func (s *Store) Destroy(ctx context.Context, id string) error {
 }
 
 func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities2.Algorithm) ([]byte, error) {
-	logger := s.logger.With("id", id)
+	logger := s.logger.With("id", id).With("type", algo.Type).With("curve", algo.EllipticCurve)
 
 	secret, err := s.secretStore.Get(ctx, id, "")
 	if err != nil {
@@ -218,16 +214,27 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
+	var signature []byte
 	switch {
 	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.Babyjubjub:
-		return s.signEDDSA(privkey, data)
+		signature, err = eddsa.SignBabyjubjub(privkey, data)
 	case algo.Type == entities2.Ecdsa && algo.EllipticCurve == entities2.Secp256k1:
-		return s.signECDSA(privkey, data)
+		signature, err = ecdsa.SignSecp256k1(privkey, data)
+	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.Curve25519:
+		signature, err = eddsa.SignED25519(privkey, data)
 	default:
 		errMessage := "signing algorithm and curve combination not supported for signing"
 		logger.With("algorithm", algo.Type, "curve", algo.EllipticCurve).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
+
+	if err != nil {
+		errMsg := "failed to sign"
+		s.logger.WithError(err).Error(errMsg)
+		return nil, errors.InvalidParameterError(errMsg)
+	}
+
+	return signature, nil
 }
 
 func (s *Store) Verify(_ context.Context, pubKey, data, sig []byte, algo *entities2.Algorithm) error {
@@ -240,84 +247,4 @@ func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, erro
 
 func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
-}
-
-func (s *Store) signECDSA(privKey, data []byte) ([]byte, error) {
-	if len(data) != crypto.DigestLength {
-		errMessage := fmt.Sprintf("data is required to be exactly %d bytes (%d)", crypto.DigestLength, len(data))
-		s.logger.With("data_length", len(data), "expected_data_length", crypto.DigestLength).Error(errMessage)
-		return nil, errors.InvalidParameterError(errMessage)
-	}
-
-	ecdsaPrivKey, err := crypto.ToECDSA(privKey)
-	if err != nil {
-		errMessage := "failed to parse ECDSA private key"
-		s.logger.With("error", err).Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
-	}
-
-	signature, err := crypto.Sign(data, ecdsaPrivKey)
-	if err != nil {
-		errMessage := "failed to sign payload with ECDSA"
-		s.logger.With("error", err).Error(errMessage)
-		return nil, errors.CryptoOperationError(errMessage)
-	}
-
-	// We remove the recID from the signature (last byte).
-	return signature[:len(signature)-1], nil
-}
-
-func (s *Store) signEDDSA(privKeyB, data []byte) ([]byte, error) {
-	privKey := babyjubjub.PrivateKey{}
-	_, err := privKey.SetBytes(privKeyB)
-	if err != nil {
-		errMessage := "failed to parse EDDSA private key"
-		s.logger.With("error", err).Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
-	}
-
-	signature, err := privKey.Sign(data, hash.MIMC_BN254.New("seed"))
-	if err != nil {
-		errMessage := "failed to sign payload with EDDSA"
-		s.logger.With("error", err).Error(errMessage)
-		return nil, errors.CryptoOperationError(errMessage)
-	}
-
-	return signature, nil
-}
-
-func eddsaBabyjubjub(importedPrivKey []byte) (babyjubjub.PrivateKey, error) {
-	if importedPrivKey == nil {
-		seed := make([]byte, 32)
-		_, err := rand.Read(seed)
-		if err != nil {
-			return babyjubjub.PrivateKey{}, err
-		}
-
-		// Usually standards implementations of eddsa do not require the choice of a specific hash function (usually it's SHA256).
-		// Here we needed to allow the choice of the hash, so we can choose a hash function that is easily programmable in a snark circuit.
-		// Same hFunc should be used for sign and verify
-		return babyjubjub.GenerateKey(bytes.NewReader(seed))
-	}
-
-	key := babyjubjub.PrivateKey{}
-	_, err := key.SetBytes(importedPrivKey)
-	if err != nil {
-		return key, err
-	}
-
-	return key, nil
-}
-
-func ecdsaSecp256k1(importedPrivKey []byte) (*ecdsa.PrivateKey, error) {
-	if importedPrivKey == nil {
-		key, err := crypto.GenerateKey()
-		if err != nil {
-			return nil, err
-		}
-
-		return key, nil
-	}
-
-	return crypto.ToECDSA(importedPrivKey)
 }

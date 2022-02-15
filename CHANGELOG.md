@@ -3,10 +3,11 @@
 ## v21.12.2 (Unreleased)
 ### 🆕 Features
 * Support for OIDC token custom claims `AUTH_OIDC_CUSTOM_CLAIMS` for tenant_id and permissions.
-  
+* Support for ED25519 keys (EdDSA signature scheme using SHA-512 and Curve25519)
+
 ### 🛠 Bug fixes
 * Invalid authentication forwarded to downstream proxy nodes if QKM authentication is enabled.
-* Fixed AWS client issue preventing racing condition on key state transition changes. 
+* Fixed AWS client issue preventing racing condition on key state transition changes.
 * Fixed invalid request error on create Registry with empty payload
 * Fixed forwarding of vault service 429 errors.
 
