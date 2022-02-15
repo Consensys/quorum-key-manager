@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/Azure/azure-sdk-for-go v52.5.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.11.18
+	github.com/Azure/go-autorest/autorest v0.11.24
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.7
 	github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
@@ -19,7 +19,6 @@ require (
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/ethereum/go-ethereum v1.10.13
-	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-kit/kit v0.10.0
 	github.com/go-pg/pg/v10 v10.10.1
@@ -51,12 +50,11 @@ require (
 	go.uber.org/atomic v1.8.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	google.golang.org/genproto v0.0.0-20210510173355-fb37daa5cd7a // indirect
 	google.golang.org/grpc v1.37.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.0
 )
