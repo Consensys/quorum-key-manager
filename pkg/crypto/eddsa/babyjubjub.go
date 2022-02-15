@@ -7,7 +7,6 @@ import (
 
 	babyjubjub "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark-crypto/hash"
-	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
 func CreateBabyjubjub(importedPrivKey []byte) (privKey, pubKey []byte, err error) {
@@ -42,12 +41,12 @@ func SignBabyjubjub(privKeyB, data []byte) ([]byte, error) {
 	privKey := babyjubjub.PrivateKey{}
 	_, err := privKey.SetBytes(privKeyB)
 	if err != nil {
-		return nil, errors.InvalidParameterError(fmt.Sprintf("failed to parse private key. %s", err.Error()))
+		return nil, fmt.Errorf("failed to parse private key. %s", err.Error())
 	}
 
 	signature, err := privKey.Sign(data, hash.MIMC_BN254.New("seed"))
 	if err != nil {
-		return nil, errors.CryptoOperationError(fmt.Sprintf("failed to sign. %s", err.Error()))
+		return nil, fmt.Errorf("failed to sign. %s", err.Error())
 	}
 
 	return signature, nil

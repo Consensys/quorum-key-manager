@@ -26,7 +26,7 @@ func TestCreateKey(t *testing.T) {
 	key := testutils2.FakeKey()
 	key.Algo = &entities2.Algorithm{
 		Type:          entities2.Eddsa,
-		EllipticCurve: entities2.X25519,
+		EllipticCurve: entities2.Curve25519,
 	}
 	expectedErr := fmt.Errorf("error")
 	attributes := testutils2.FakeAttributes()

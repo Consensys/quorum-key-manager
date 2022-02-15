@@ -115,7 +115,7 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 
 		key, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		}, attr)
 		require.NoError(s.T(), err)
 
@@ -123,7 +123,7 @@ func (s *localKeyStoreTestSuite) TestCreate() {
 		assert.NotEmpty(s.T(), key.PublicKey)
 		assert.Equal(s.T(), attr.Tags, key.Tags)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
-		assert.Equal(s.T(), entities.X25519, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Curve25519, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
@@ -207,7 +207,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 
 		key, err := s.keyStore.Import(ctx, id, hexutil.MustDecode(privKeyED25519), &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		}, attr)
 		require.NoError(s.T(), err)
 
@@ -215,7 +215,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 		assert.Equal(s.T(), publicKeyED25519, hexutil.Encode(key.PublicKey))
 		assert.Equal(s.T(), attr.Tags, key.Tags)
 		assert.Equal(s.T(), entities.Eddsa, key.Algo.Type)
-		assert.Equal(s.T(), entities.X25519, key.Algo.EllipticCurve)
+		assert.Equal(s.T(), entities.Curve25519, key.Algo.EllipticCurve)
 		assert.False(s.T(), key.Metadata.Disabled)
 		assert.NotEmpty(s.T(), key.Metadata.CreatedAt)
 		assert.NotEmpty(s.T(), key.Metadata.UpdatedAt)
@@ -234,7 +234,7 @@ func (s *localKeyStoreTestSuite) TestImport() {
 	s.Run("should fail with InvalidParameter if import key is value is invalid", func() {
 		_, err := s.keyStore.Import(ctx, id, []byte("invalidValue"), &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		}, attr)
 
 		require.Error(s.T(), err)
@@ -305,7 +305,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 
 		signature, err := s.keyStore.Sign(ctx, id, payload, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 		require.NoError(s.T(), err)
 

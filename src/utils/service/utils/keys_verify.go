@@ -17,8 +17,8 @@ func (u *Utilities) Verify(pubKey, data, sig []byte, algo *entities.Algorithm) e
 		verified, err = ecdsa.VerifySecp256k1Signature(pubKey, data, sig)
 	case algo.EllipticCurve == entities.Babyjubjub && algo.Type == entities.Eddsa:
 		verified, err = eddsa.VerifyBabyJubJubSignature(pubKey, data, sig)
-	case algo.EllipticCurve == entities.X25519 && algo.Type == entities.Eddsa:
-		verified, err = eddsa.VerifyX25519Signature(pubKey, data, sig)
+	case algo.EllipticCurve == entities.Curve25519 && algo.Type == entities.Eddsa:
+		verified, err = eddsa.VerifyED25519Signature(pubKey, data, sig)
 	default:
 		errMessage := "unsupported signing algorithm and elliptic curve combination"
 		logger.Error(errMessage)

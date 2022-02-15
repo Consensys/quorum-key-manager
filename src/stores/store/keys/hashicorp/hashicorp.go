@@ -202,11 +202,11 @@ func (s *Store) Sign(_ context.Context, id string, data []byte, alg *entities2.A
 	return signature, nil
 }
 
-func (s *Store) Encrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Encrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 
-func (s *Store) Decrypt(ctx context.Context, id string, data []byte) ([]byte, error) {
+func (s *Store) Decrypt(_ context.Context, id string, data []byte) ([]byte, error) {
 	return nil, errors.ErrNotImplemented
 }
 

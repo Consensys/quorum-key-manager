@@ -95,8 +95,8 @@ func (s *Store) create(ctx context.Context, id string, importedPrivKey []byte, a
 			logger.With("error", err).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
-	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.X25519:
-		privKey, pubKey, err = eddsa.CreateX25519(importedPrivKey)
+	case alg.Type == entities2.Eddsa && alg.EllipticCurve == entities2.Curve25519:
+		privKey, pubKey, err = eddsa.CreateED25519(importedPrivKey)
 		if err != nil {
 			errMessage := "failed to generate EDDSA/Curve25519 key pair"
 			logger.With("error", err).Error(errMessage)
@@ -220,8 +220,8 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 		signature, err = eddsa.SignBabyjubjub(privkey, data)
 	case algo.Type == entities2.Ecdsa && algo.EllipticCurve == entities2.Secp256k1:
 		signature, err = ecdsa.SignSecp256k1(privkey, data)
-	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.X25519:
-		signature, err = eddsa.SignX25519(privkey, data)
+	case algo.Type == entities2.Eddsa && algo.EllipticCurve == entities2.Curve25519:
+		signature, err = eddsa.SignED25519(privkey, data)
 	default:
 		errMessage := "signing algorithm and curve combination not supported for signing"
 		logger.With("algorithm", algo.Type, "curve", algo.EllipticCurve).Error(errMessage)
@@ -229,8 +229,9 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 	}
 
 	if err != nil {
-		s.logger.WithError(err).Error("failed to sign")
-		return nil, err
+		errMsg := "failed to sign"
+		s.logger.WithError(err).Error(errMsg)
+		return nil, errors.InvalidParameterError(errMsg)
 	}
 
 	return signature, nil

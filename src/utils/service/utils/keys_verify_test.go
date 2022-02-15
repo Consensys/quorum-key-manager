@@ -139,7 +139,7 @@ func TestKeysVerifyMessage_eddsaBabyJubJub(t *testing.T) {
 	t.Run("should fail to verify no corresponding key type", func(t *testing.T) {
 		err := connector.Verify(pubKey, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		require.Error(t, err)
@@ -174,26 +174,26 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 	logger := testutils.NewMockLogger(ctrl)
 
 	connector := New(logger)
-	privKey, pubKey, _ := eddsa.CreateX25519(nil)
-	_, pubKey2, _ := eddsa.CreateX25519(nil)
+	privKey, pubKey, _ := eddsa.CreateED25519(nil)
+	_, pubKey2, _ := eddsa.CreateED25519(nil)
 	data := crypto.Keccak256([]byte("my data to sign"))
-	signature, err := eddsa.SignX25519(privKey, data)
+	signature, err := eddsa.SignED25519(privKey, data)
 	require.NoError(t, err)
 
 	t.Run("should verify message successfully", func(t *testing.T) {
 		err := connector.Verify(pubKey, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("should fail to verify no corresponding signature", func(t *testing.T) {
-		invalidSig, _ := eddsa.SignX25519(privKey, crypto.Keccak256([]byte("invalid data")))
+		invalidSig, _ := eddsa.SignED25519(privKey, crypto.Keccak256([]byte("invalid data")))
 		err := connector.Verify(pubKey, data, invalidSig, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		require.Error(t, err)
@@ -203,7 +203,7 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 	t.Run("should fail to verify no corresponding public key", func(t *testing.T) {
 		err := connector.Verify(pubKey2, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		require.Error(t, err)
@@ -223,7 +223,7 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 	t.Run("should fail to verify invalid signature size", func(t *testing.T) {
 		err := connector.Verify(pubKey, data, invalidSignature, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		require.Error(t, err)
@@ -233,7 +233,7 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 	t.Run("should fail to verify invalid public key size", func(t *testing.T) {
 		err := connector.Verify(invalidPublicKey, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		require.Error(t, err)
@@ -250,7 +250,7 @@ func TestKeysVerifyMessage_errors(t *testing.T) {
 	t.Run("should fail to not support types", func(t *testing.T) {
 		err := connector.Verify(nil, nil, nil, &entities.Algorithm{
 			Type:          entities.Ecdsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		require.Error(t, err)

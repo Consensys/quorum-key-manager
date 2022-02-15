@@ -95,7 +95,7 @@ func (s *hashicorpKeyStoreTestSuite) TestCreate() {
 
 		key, err := s.keyStore.Create(ctx, id, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		}, attributes)
 
 		assert.Nil(s.T(), key)
@@ -161,7 +161,7 @@ func (s *hashicorpKeyStoreTestSuite) TestImport() {
 
 		key, err := s.keyStore.Import(ctx, id, privKeyB, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		}, attributes)
 
 		assert.Nil(s.T(), key)
@@ -276,7 +276,7 @@ func (s *hashicorpKeyStoreTestSuite) TestSign() {
 	s.Run("should fail with NotSupported error", func() {
 		signature, err := s.keyStore.Sign(ctx, id, data, &entities.Algorithm{
 			Type:          entities.Eddsa,
-			EllipticCurve: entities.X25519,
+			EllipticCurve: entities.Curve25519,
 		})
 
 		assert.Nil(s.T(), signature)
