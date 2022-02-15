@@ -289,15 +289,11 @@ func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (i
 // More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/
 // More info about the fix: https://en.bitcoin.it/wiki/BIP_0062
 func malleabilityECDSASignature(signature []byte) []byte {
-	l := len(signature)
-	hl := l / 2
-
-	R := new(big.Int).SetBytes(signature[:hl])
-	S := new(big.Int).SetBytes(signature[hl:l])
+	S := new(big.Int).SetBytes(signature[32:])
 	if S.Cmp(secp256k1halfN) <= 0 {
 		return signature
 	}
 
 	S2 := new(big.Int).Sub(secp256k1N, S)
-	return append(R.Bytes(), S2.Bytes()...)
+	return append(signature[:32], common.LeftPadBytes(S2.Bytes(), 32)...)
 }
