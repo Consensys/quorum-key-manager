@@ -16,7 +16,7 @@ require (
 	github.com/consensys/gnark-crypto v0.5.0
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/containerd/containerd v1.4.11 // indirect
-	github.com/docker/docker v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
+	github.com/docker/docker v20.10.12+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
@@ -38,6 +38,7 @@ require (
 	github.com/lib/pq v1.10.1
 	github.com/magefile/mage v1.10.0 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
+	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
@@ -56,7 +57,7 @@ require (
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	google.golang.org/genproto v0.0.0-20210510173355-fb37daa5cd7a // indirect
 	google.golang.org/grpc v1.37.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+	gotest.tools/v3 v3.1.0 // indirect
 	k8s.io/apimachinery v0.21.0
 )
