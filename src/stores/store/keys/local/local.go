@@ -230,6 +230,7 @@ func (s *Store) Sign(ctx context.Context, id string, data []byte, algo *entities
 
 	if err != nil {
 		s.logger.WithError(err).Error("failed to sign")
+		return nil, err
 	}
 
 	return signature, nil

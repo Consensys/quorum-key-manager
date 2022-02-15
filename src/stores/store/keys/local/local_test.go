@@ -324,6 +324,7 @@ func (s *localKeyStoreTestSuite) TestSign() {
 			EllipticCurve: entities.Babyjubjub,
 		})
 
+		require.Error(s.T(), err)
 		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
 
@@ -336,6 +337,22 @@ func (s *localKeyStoreTestSuite) TestSign() {
 		})
 
 		assert.Equal(s.T(), expectedErr, err)
+	})
+
+	s.Run("should fail if private key is invalid", func() {
+		payload := []byte("my data")
+		secret := testutils.FakeSecret()
+		secret.Value = base64.StdEncoding.EncodeToString(hexutil.MustDecode("0xAB"))
+
+		s.mockSecretStore.EXPECT().Get(ctx, id, "").Return(secret, nil)
+
+		_, err := s.keyStore.Sign(ctx, id, payload, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.Babyjubjub,
+		})
+
+		require.Error(s.T(), err)
+		assert.True(s.T(), errors.IsInvalidParameterError(err))
 	})
 }
 

@@ -14,6 +14,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	invalidPublicKey = []byte("invalid pub key")
+	invalidSignature = []byte("invalid signature")
+)
+
 func TestKeysVerifyMessage_ecdsa256k1(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -61,6 +66,26 @@ func TestKeysVerifyMessage_ecdsa256k1(t *testing.T) {
 		err := connector.Verify(pubKey, data, signature, &entities.Algorithm{
 			Type:          entities.Eddsa,
 			EllipticCurve: entities.Babyjubjub,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail verify invalid public key size", func(t *testing.T) {
+		err := connector.Verify(invalidPublicKey, data, signature, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail verify invalid signature format", func(t *testing.T) {
+		err := connector.Verify(pubKey, data, invalidSignature, &entities.Algorithm{
+			Type:          entities.Ecdsa,
+			EllipticCurve: entities.Secp256k1,
 		})
 
 		require.Error(t, err)
@@ -120,6 +145,26 @@ func TestKeysVerifyMessage_eddsaBabyJubJub(t *testing.T) {
 		require.Error(t, err)
 		assert.True(t, errors.IsInvalidParameterError(err))
 	})
+
+	t.Run("should fail verify invalid public key size", func(t *testing.T) {
+		err := connector.Verify(invalidPublicKey, data, signature, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.Babyjubjub,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail verify invalid signature format", func(t *testing.T) {
+		err := connector.Verify(pubKey, data, invalidSignature, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.Babyjubjub,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
 }
 
 func TestKeysVerifyMessage_ed25519(t *testing.T) {
@@ -174,6 +219,26 @@ func TestKeysVerifyMessage_ed25519(t *testing.T) {
 		require.Error(t, err)
 		assert.True(t, errors.IsInvalidParameterError(err))
 	})
+
+	t.Run("should fail to verify invalid signature size", func(t *testing.T) {
+		err := connector.Verify(pubKey, data, invalidSignature, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	t.Run("should fail to verify invalid public key size", func(t *testing.T) {
+		err := connector.Verify(invalidPublicKey, data, signature, &entities.Algorithm{
+			Type:          entities.Eddsa,
+			EllipticCurve: entities.X25519,
+		})
+
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
 }
 
 func TestKeysVerifyMessage_errors(t *testing.T) {
@@ -181,11 +246,6 @@ func TestKeysVerifyMessage_errors(t *testing.T) {
 	defer ctrl.Finish()
 
 	logger := testutils.NewMockLogger(ctrl)
-	privKey, pubKey, _ := ecdsa.CreateSecp256k1(nil)
-	data := crypto.Keccak256([]byte("my data to sign"))
-	signature, err := ecdsa.SignSecp256k1(privKey, data)
-	require.NoError(t, err)
-
 	connector := New(logger)
 	t.Run("should fail to not support types", func(t *testing.T) {
 		err := connector.Verify(nil, nil, nil, &entities.Algorithm{
@@ -195,25 +255,5 @@ func TestKeysVerifyMessage_errors(t *testing.T) {
 
 		require.Error(t, err)
 		assert.True(t, errors.IsNotSupportedError(err))
-	})
-
-	t.Run("should fail verify invalid public key size", func(t *testing.T) {
-		err := connector.Verify([]byte("invalid pub key"), data, signature, &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
-		})
-
-		require.Error(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
-	})
-
-	t.Run("should fail verify invalid signature format", func(t *testing.T) {
-		err := connector.Verify(pubKey, data, []byte("invalid signature"), &entities.Algorithm{
-			Type:          entities.Ecdsa,
-			EllipticCurve: entities.Secp256k1,
-		})
-
-		require.Error(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 }
