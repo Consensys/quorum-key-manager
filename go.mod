@@ -9,24 +9,20 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
-	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/auth0/go-jwt-middleware/v2 v2.0.0-beta.1
 	github.com/aws/aws-sdk-go v1.38.41
 	github.com/cenkalti/backoff/v4 v4.0.2
 	github.com/consensys/gnark-crypto v0.5.0
 	github.com/consensys/quorum v2.7.0+incompatible
-	github.com/containerd/containerd v1.4.11 // indirect
-	github.com/docker/docker v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
+	github.com/docker/docker v20.10.9+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/ethereum/go-ethereum v1.10.13
-	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-kit/kit v0.10.0
 	github.com/go-pg/pg/v10 v10.10.1
 	github.com/go-playground/validator/v10 v10.5.0
-	github.com/golang-migrate/migrate/v4 v4.14.1
-	github.com/golang/mock v1.5.0
-	github.com/google/uuid v1.2.0 // indirect
+	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/golang/mock v1.6.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -54,9 +50,6 @@ require (
 	golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	google.golang.org/genproto v0.0.0-20210510173355-fb37daa5cd7a // indirect
-	google.golang.org/grpc v1.37.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.0
 )
