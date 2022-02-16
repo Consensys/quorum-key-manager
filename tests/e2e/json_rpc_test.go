@@ -46,6 +46,10 @@ type jsonRPCTestSuite struct {
 	eeaPrivacyGroupIDArrayAliasKey  string
 }
 
+const (
+	byteCodeContractDeploy = "0x608060405234801561001057600080fd5b5061023c806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80637cf5dab014610030575b600080fd5b61004a600480360381019061004591906100db565b61004c565b005b8060008082825461005d9190610137565b925050819055507f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542033826040516100959291906101dd565b60405180910390a150565b600080fd5b6000819050919050565b6100b8816100a5565b81146100c357600080fd5b50565b6000813590506100d5816100af565b92915050565b6000602082840312156100f1576100f06100a0565b5b60006100ff848285016100c6565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b6000610142826100a5565b915061014d836100a5565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0382111561018257610181610108565b5b828201905092915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006101b88261018d565b9050919050565b6101c8816101ad565b82525050565b6101d7816100a5565b82525050565b60006040820190506101f260008301856101bf565b6101ff60208301846101ce565b939250505056fea264697066735822122072834524b3ee30e2b953db63515fc66272b7245946cfc2523dcc3e81b659ac6464736f6c63430008090033"
+)
+
 func TestJSONRpcHTTP(t *testing.T) {
 	s := new(jsonRPCTestSuite)
 
@@ -434,11 +438,32 @@ func (s *jsonRPCTestSuite) TestSendPrivTransaction() {
 }
 
 func (s *jsonRPCTestSuite) TestSignEEATransaction() {
-	s.Run("should call eea_sendTransaction successfully", func() {
+	s.Run("should call eea_sendTransaction transfer successfully", func() {
 		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
-			"data":        "0xa2",
 			"from":        s.acc.Address,
 			"to":          "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+			"privateFrom": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
+			"privateFor":  []string{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="},
+		})
+
+		require.NoError(s.T(), err)
+		if resp.Error != nil {
+			errMsg, _ := resp.Error.MarshalJSON()
+			require.Nil(s.T(), resp.Error, string(errMsg))
+		}
+
+		var result string
+		err = json.Unmarshal(resp.Result.(json.RawMessage), &result)
+		assert.NoError(s.T(), err)
+		tx, err := s.retrieveTransaction(s.env.ctx, s.BesuNodeID, result)
+		require.NoError(s.T(), err)
+		// Sent to precompiled besu contract
+		assert.Equal(s.T(), strings.ToLower(tx.To().String()), "0x000000000000000000000000000000000000007e")
+	})
+	s.Run("should call eea_sendTransaction contract tx successfully", func() {
+		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
+			"data":        byteCodeContractDeploy,
+			"from":        s.acc.Address,
 			"privateFrom": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
 			"privateFor":  []string{"Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="},
 		})
@@ -460,7 +485,6 @@ func (s *jsonRPCTestSuite) TestSignEEATransaction() {
 
 	s.Run("should call eea_sendTransaction successfully, with alias privateFrom", func() {
 		resp, err := s.env.client.Call(s.env.ctx, s.BesuNodeID, "eea_sendTransaction", map[string]interface{}{
-			"data":        "0xa2",
 			"from":        s.acc.Address,
 			"to":          "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
 			"privateFrom": fmt.Sprintf("{{%s:%s}}", s.registryName, s.eeaPrivateFromAliasKey),

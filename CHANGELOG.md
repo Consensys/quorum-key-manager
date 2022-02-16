@@ -1,6 +1,6 @@
 # Quorum Key Manager Release Notes
 
-## v21.12.2 (Unreleased)
+## v21.12.2 (2022-2-16)
 ### 🆕 Features
 * Support for OIDC token custom claims `AUTH_OIDC_CUSTOM_CLAIMS` for tenant_id and permissions.
 * Support for ED25519 keys (EdDSA signature scheme using SHA-512 and Curve25519)
@@ -10,6 +10,8 @@
 * Fixed AWS client issue preventing racing condition on key state transition changes.
 * Fixed invalid request error on create Registry with empty payload
 * Fixed forwarding of vault service 429 errors.
+* Retry on AKV malleable ecdsa signatures.
+* Fixed failure on estimating gas sending deploy contract eea_transactions. 
 
 ## v21.12.1 (2021-12-20)
 ### 🛠 Bug fixes
