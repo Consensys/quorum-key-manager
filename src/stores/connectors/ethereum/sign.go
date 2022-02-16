@@ -5,8 +5,9 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 
@@ -212,7 +213,7 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 	}
 
 	var signature []byte
-	retry := maxRetries
+	var retry int
 	for retry = maxRetries; retry > 0; retry-- {
 		signature, err = c.store.Sign(ctx, acc.KeyID, data, ethAlgo)
 		if err != nil {
