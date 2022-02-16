@@ -182,6 +182,18 @@ func TestSignTransaction(t *testing.T) {
 		assert.Equal(t, "0xf85d80808094905b88eff8bda1543d4d6f4aa05afef143d27e18808025a0e276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deeea057a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4", hexutil.Encode(signedRaw))
 	})
 
+	t.Run("should fail with DependencyError if we obtain a malleable signature maxRetries times", func(t *testing.T) {
+		malleableSignature := hexutil.MustDecode("0x4eea3840a056c717a02f3b73229416d48696cbedd16627a47e9e4e7ba8063cc9ff4be64347b5fb58d355eb261fff1f1e284608a2d259ca7e6041c2b829bb4802")
+
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
+		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
+		store.EXPECT().Sign(ctx, acc.KeyID, types.NewEIP155Signer(chainID).Hash(tx).Bytes(), ethAlgo).Return(malleableSignature, nil).Times(maxRetries)
+
+		signedRaw, err := connector.SignTransaction(ctx, acc.Address, chainID, tx)
+		assert.Nil(t, signedRaw)
+		assert.True(t, errors.IsDependencyFailureError(err))
+	})
+
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(expectedErr)
 
