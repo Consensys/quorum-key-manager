@@ -7,6 +7,8 @@ import (
 	"encoding/base64"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -21,8 +23,8 @@ import (
 )
 
 var (
-	secp256k1N, _  = new(big.Int).SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
-	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
+	secp256k1halfN, _ = new(big.Int).SetString("7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0", 16)
+	maxRetries        = 3
 )
 
 func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
@@ -210,14 +212,29 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 		return nil, err
 	}
 
-	signature, err := c.store.Sign(ctx, acc.KeyID, data, ethAlgo)
-	if err != nil {
-		return nil, err
+	var signature []byte
+	retry := 0
+	for retry = maxRetries; retry > 0; retry-- {
+		signature, err = c.store.Sign(ctx, acc.KeyID, data, ethAlgo)
+		if err != nil {
+			return nil, err
+		}
+
+		// If we get a malleable signature, we retry
+		if !isMalleableECDSASignature(signature) {
+			break
+		}
+	}
+
+	if retry == 0 {
+		errMessage := "failed to generate a non malleable signature"
+		c.logger.WithError(err).Error(errMessage, "signature", hexutil.Encode(signature))
+		return nil, errors.DependencyFailureError(errMessage)
 	}
 
 	// Recover the recID, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
 	for _, recID := range []byte{0, 1} {
-		appendedSignature := append(malleabilityECDSASignature(signature), recID)
+		appendedSignature := append(signature, recID)
 		var recoveredPubKey *ecdsa.PublicKey
 		recoveredPubKey, err = crypto.SigToPub(data, appendedSignature)
 		if err != nil {
@@ -288,16 +305,6 @@ func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (i
 // https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
 // More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/
 // More info about the fix: https://en.bitcoin.it/wiki/BIP_0062
-func malleabilityECDSASignature(signature []byte) []byte {
-	l := len(signature)
-	hl := l / 2
-
-	R := new(big.Int).SetBytes(signature[:hl])
-	S := new(big.Int).SetBytes(signature[hl:l])
-	if S.Cmp(secp256k1halfN) <= 0 {
-		return signature
-	}
-
-	S2 := new(big.Int).Sub(secp256k1N, S)
-	return append(R.Bytes(), S2.Bytes()...)
+func isMalleableECDSASignature(signature []byte) bool {
+	return new(big.Int).SetBytes(signature[32:]).Cmp(secp256k1halfN) >= 0
 }
