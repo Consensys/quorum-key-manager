@@ -27,9 +27,9 @@ func (c *AWSClient) CreateKey(ctx context.Context, keyID, keyType string, tags [
 	keyUsage := kms.KeyUsageTypeSignVerify
 
 	out, err := c.kmsClient.CreateKey(&kms.CreateKeyInput{
-		CustomerMasterKeySpec: &keyType,
-		KeyUsage:              &keyUsage,
-		Tags:                  tags,
+		KeySpec:  &keyType,
+		KeyUsage: &keyUsage,
+		Tags:     tags,
 	})
 	if err != nil {
 		return nil, parseKmsErrorResponse(err)

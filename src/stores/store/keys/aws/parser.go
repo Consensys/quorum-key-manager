@@ -28,7 +28,7 @@ func parseKey(id string, kmsPubKey *kms.GetPublicKeyOutput, kmsDescribe *kms.Des
 	var pubKey []byte
 
 	switch {
-	case *kmsPubKey.KeyUsage == kms.KeyUsageTypeSignVerify && *kmsPubKey.CustomerMasterKeySpec == kms.CustomerMasterKeySpecEccSecgP256k1:
+	case *kmsPubKey.KeyUsage == kms.KeyUsageTypeSignVerify && *kmsPubKey.KeySpec == kms.CustomerMasterKeySpecEccSecgP256k1:
 		algo = &entities2.Algorithm{
 			Type:          entities2.Ecdsa,
 			EllipticCurve: entities2.Secp256k1,
