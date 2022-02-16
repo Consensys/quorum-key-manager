@@ -167,7 +167,7 @@ func TestSignTransaction(t *testing.T) {
 		assert.Equal(t, "0xf85d80808094905b88eff8bda1543d4d6f4aa05afef143d27e18808025a0e276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deeea057a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4", hexutil.Encode(signedRaw))
 	})
 
-	t.Run("should sign a payload successfully with padded signature", func(t *testing.T) {
+	t.Run("should sign a payload successfully if signature is malleable", func(t *testing.T) {
 		malleableSignature := hexutil.MustDecode("0x4eea3840a056c717a02f3b73229416d48696cbedd16627a47e9e4e7ba8063cc9ff4be64347b5fb58d355eb261fff1f1e284608a2d259ca7e6041c2b829bb4802")
 
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
