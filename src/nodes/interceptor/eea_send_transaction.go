@@ -124,13 +124,18 @@ func (i *Interceptor) eeaSendTransaction(ctx context.Context, msg *ethereum.Send
 	}
 
 	if msg.Gas == nil {
-		// We update the data to an arbitrary hash
-		// to avoid errors raised on eth_estimateGas on Besu 1.5.4 & 1.5.5
 		callMsg := &ethereum.CallMsg{
 			From:     &msg.From,
 			To:       msg.To,
 			GasPrice: msg.GasPrice,
-			Data:     common.ToPtr(hexutil.MustDecode("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")).(*[]byte),
+		}
+
+		if msg.To == nil {
+			callMsg.Data = msg.Data
+		} else {
+			// We update the data to an arbitrary hash
+			// to avoid errors raised on eth_estimateGas on Besu 1.5.4 & 1.5.5
+			callMsg.Data = common.ToPtr(hexutil.MustDecode("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")).(*[]byte)
 		}
 
 		gas, err2 := sess.EthCaller().Eth().EstimateGas(ctx, callMsg)
