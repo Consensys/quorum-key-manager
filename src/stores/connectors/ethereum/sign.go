@@ -7,8 +7,6 @@ import (
 	"encoding/base64"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -228,7 +226,7 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 
 	if retry == 0 {
 		errMessage := "failed to generate a non malleable signature"
-		c.logger.WithError(err).Error(errMessage, "signature", hexutil.Encode(signature))
+		c.logger.WithError(err).Error(errMessage)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
