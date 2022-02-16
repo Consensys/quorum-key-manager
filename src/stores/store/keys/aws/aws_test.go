@@ -373,9 +373,9 @@ func fakeGetPubKey(keyID string) *kms.GetPublicKeyOutput {
 	asn1pubKey, _ := base64.StdEncoding.DecodeString("MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE1+2SGHa+m/rlkGybiYYuHOvvpINsXmpLJx0OGT5MCrLECKFEKP9VvgWzz2QvoBUWPFhd+jeNb+XbZLxexJr7ZQ==")
 
 	return &kms.GetPublicKeyOutput{
-		KeyId:                 &keyID,
-		PublicKey:             asn1pubKey,
-		KeyUsage:              aws.String(kms.KeyUsageTypeSignVerify),
-		CustomerMasterKeySpec: aws.String(kms.CustomerMasterKeySpecEccSecgP256k1),
+		KeyId:     &keyID,
+		PublicKey: asn1pubKey,
+		KeyUsage:  aws.String(kms.KeyUsageTypeSignVerify),
+		KeySpec:   aws.String(kms.CustomerMasterKeySpecEccSecgP256k1),
 	}
 }

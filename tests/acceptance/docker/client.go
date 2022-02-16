@@ -74,7 +74,7 @@ func (c *Client) Up(ctx context.Context, name, networkName string) error {
 	}
 
 	// Create Docker container
-	containerBody, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, networkCfg, name)
+	containerBody, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, networkCfg, nil, name)
 	if err != nil {
 		return err
 	}
