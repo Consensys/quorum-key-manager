@@ -43,33 +43,34 @@ func TestSignMessage(t *testing.T) {
 
 	t.Run("should sign successfully", func(t *testing.T) {
 		acc := testutils2.FakeETHAccount()
-		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
 		acc.PublicKey = hexutil.MustDecode("0x04e2e7621c0c08e43905648be731a482e8eb3d3186023335812f52130e4a18dd729b22d88fbf0f22b8fa4390267ef0c54367dc638a25b38ea74290bdb9f79ff917")
+		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
+		expectedSignature := hexutil.Encode(ecdsaSignature) + "1b"
 
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
 		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignature, nil)
 
-		expectedSignature := hexutil.Encode(ecdsaSignature) + "1b"
 		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.NoError(t, err)
 		assert.Equal(t, hexutil.Encode(signature), expectedSignature)
 	})
 
-	t.Run("should sign and convert malleable signature successfully", func(t *testing.T) {
+	t.Run("should retry to sign if signature is malleable successfully", func(t *testing.T) {
 		acc := testutils2.FakeETHAccount()
-		R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
-		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
-		S2 := new(big.Int).Add(S, secp256k1N)
-		ecdsaSignatureMalleable := append(R.Bytes(), S2.Bytes()...)
-		acc.PublicKey = hexutil.MustDecode("0x048e12a3333368c1c4c7c8fe9d1fd172444f6de328cd1650b76836928be9e71e952f61d75d87133f881bf4d25e02c3147aebf69abf7587c39cb5d177693ce1ca8f")
+		malleableSignature := hexutil.MustDecode("0x4eea3840a056c717a02f3b73229416d48696cbedd16627a47e9e4e7ba8063cc9ff4be64347b5fb58d355eb261fff1f1e284608a2d259ca7e6041c2b829bb4802")
+		acc.PublicKey = hexutil.MustDecode("0x04e2e7621c0c08e43905648be731a482e8eb3d3186023335812f52130e4a18dd729b22d88fbf0f22b8fa4390267ef0c54367dc638a25b38ea74290bdb9f79ff917")
+		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
+		expectedSignature := hexutil.Encode(ecdsaSignature) + "1b"
 
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignatureMalleable, nil)
+		gomock.InOrder(
+			store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(malleableSignature, nil),
+			store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignature, nil),
+		)
 
-		expectedSignature := hexutil.Encode(append(R.Bytes(), S.Bytes()...)) + "1c"
 		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
 		require.NoError(t, err)
@@ -164,6 +165,33 @@ func TestSignTransaction(t *testing.T) {
 		signedRaw, err := connector.SignTransaction(ctx, acc.Address, chainID, tx)
 		assert.NoError(t, err)
 		assert.Equal(t, "0xf85d80808094905b88eff8bda1543d4d6f4aa05afef143d27e18808025a0e276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deeea057a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4", hexutil.Encode(signedRaw))
+	})
+
+	t.Run("should sign a payload successfully if signature is malleable", func(t *testing.T) {
+		malleableSignature := hexutil.MustDecode("0x4eea3840a056c717a02f3b73229416d48696cbedd16627a47e9e4e7ba8063cc9ff4be64347b5fb58d355eb261fff1f1e284608a2d259ca7e6041c2b829bb4802")
+
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
+		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
+		gomock.InOrder(
+			store.EXPECT().Sign(ctx, acc.KeyID, types.NewEIP155Signer(chainID).Hash(tx).Bytes(), ethAlgo).Return(malleableSignature, nil),
+			store.EXPECT().Sign(ctx, acc.KeyID, types.NewEIP155Signer(chainID).Hash(tx).Bytes(), ethAlgo).Return(ecdsaSignature, nil),
+		)
+
+		signedRaw, err := connector.SignTransaction(ctx, acc.Address, chainID, tx)
+		assert.NoError(t, err)
+		assert.Equal(t, "0xf85d80808094905b88eff8bda1543d4d6f4aa05afef143d27e18808025a0e276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deeea057a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4", hexutil.Encode(signedRaw))
+	})
+
+	t.Run("should fail with DependencyError if we obtain a malleable signature maxRetries times", func(t *testing.T) {
+		malleableSignature := hexutil.MustDecode("0x4eea3840a056c717a02f3b73229416d48696cbedd16627a47e9e4e7ba8063cc9ff4be64347b5fb58d355eb261fff1f1e284608a2d259ca7e6041c2b829bb4802")
+
+		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
+		db.EXPECT().Get(ctx, acc.Address.Hex()).Return(acc, nil)
+		store.EXPECT().Sign(ctx, acc.KeyID, types.NewEIP155Signer(chainID).Hash(tx).Bytes(), ethAlgo).Return(malleableSignature, nil).Times(maxRetries)
+
+		signedRaw, err := connector.SignTransaction(ctx, acc.Address, chainID, tx)
+		assert.Nil(t, signedRaw)
+		assert.True(t, errors.IsDependencyFailureError(err))
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
