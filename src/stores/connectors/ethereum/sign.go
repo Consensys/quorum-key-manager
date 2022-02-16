@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
 
 	authtypes "github.com/consensys/quorum-key-manager/src/auth/entities"
@@ -22,7 +23,7 @@ import (
 
 var (
 	secp256k1halfN, _ = new(big.Int).SetString("7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0", 16)
-	maxRetries        = 3
+	maxRetries        = 20
 )
 
 func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
@@ -211,7 +212,7 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 	}
 
 	var signature []byte
-	retry := 0
+	retry := maxRetries
 	for retry = maxRetries; retry > 0; retry-- {
 		signature, err = c.store.Sign(ctx, acc.KeyID, data, ethAlgo)
 		if err != nil {
@@ -222,11 +223,13 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 		if !isMalleableECDSASignature(signature) {
 			break
 		}
+
+		c.logger.Debug("malleable signature retrieved, retryng", "signature", hexutil.Encode(signature))
 	}
 
 	if retry == 0 {
 		errMessage := "failed to generate a non malleable signature"
-		c.logger.WithError(err).Error(errMessage)
+		c.logger.Error(errMessage)
 		return nil, errors.DependencyFailureError(errMessage)
 	}
 
