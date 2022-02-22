@@ -114,6 +114,9 @@ commands:
             - run:
                 name: Set Quorum Key Manager Namespace
                 command: echo 'export QKM_NAMESPACE=<<parameters.environment_values>>-qkm' >> $BASH_ENV
+            - run:
+                name: Set Quorum Key Manager Health Endpoint
+                command: echo 'export QKM_HEALTH_ENDPOINT='health-<<parameters.environment_values>>-qkm.ops.consensys.net' >> $BASH_ENV
 
       - unless:
           condition: <<parameters.qkm_namespace>>
@@ -266,6 +269,10 @@ jobs:
       port-frowarding:
         default: $PORT_FORWARDING
         type: string
+      health:
+        default: $QKM_HEALTH_ENDPOINT
+        type: string
+
     steps:
       - run:
           name: Uninstall Go
@@ -291,7 +298,7 @@ jobs:
           seconds-between-retries: 3
           timeout: 30
           description: "Wait for deployment readiness"
-          sh-command: nc -z health-qa-qkm.ops.consensys.net 443
+          sh-command: nc -z << parameters.health >> 443
       - run:
           name: e2e tests
           command: |
@@ -514,7 +521,7 @@ workflows:
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
-              only: main
+              only: fix/align_deployments
           requires:
             - acceptance
       # triggers the qa env deployment when the main branch is hit
@@ -524,7 +531,7 @@ workflows:
             - cloudsmith-tanuki-rw
           filters:
             branches:
-              only: main
+              only: fix/align_deployments
           requires:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
@@ -539,12 +546,10 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: main
-          requires:
-            - deploy-qa
-            # Will build and push a dev image for each main commit
-            # Resulting image is tagged with develop
-            # Images are compliant with linux/amd64 architecture
+              only: fix/align_deployments
+      # Will build and push a dev image for each main commit
+      # Resulting image is tagged with develop
+      # Images are compliant with linux/amd64 architecture
       - build-docker-image: # Push Dev image
           name: push-qkm-dev-image-develop
           context:
