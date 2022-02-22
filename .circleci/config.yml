@@ -116,7 +116,7 @@ commands:
                 command: echo 'export QKM_NAMESPACE=<<parameters.environment_values>>-qkm' >> $BASH_ENV
             - run:
                 name: Set Quorum Key Manager Health Endpoint
-                command: echo 'export QKM_HEALTH_ENDPOINT='health-<<parameters.environment_values>>-qkm.ops.consensys.net' >> $BASH_ENV
+                command: echo 'export QKM_HEALTH_ENDPOINT=health-<<parameters.environment_values>>-qkm.ops.consensys.net' >> $BASH_ENV
 
       - unless:
           condition: <<parameters.qkm_namespace>>
