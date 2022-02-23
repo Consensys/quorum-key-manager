@@ -270,7 +270,7 @@ jobs:
         default: $PORT_FORWARDING
         type: string
       health:
-        default: $QKM_HEALTH_ENDPOINT
+        default: "health-qa-qkm.ops.consensys.net"
         type: string
 
     steps:
