@@ -537,6 +537,7 @@ workflows:
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
       # requires successful Build, Unit and acceptance tests
       - e2e:
+          name: e2e-qa
           test_data: $QA_TEST_DATA
           client_key: $QKM_CLIENT_KEY
           client_auth_cert: $QKM_CLIENT_AUTH_CERT
@@ -547,6 +548,8 @@ workflows:
               only: /^v.*/
             branches:
               only: fix/align_deployments
+          requires:
+            - deploy-qa
       # Will build and push a dev image for each main commit
       # Resulting image is tagged with develop
       # Images are compliant with linux/amd64 architecture
@@ -564,13 +567,13 @@ workflows:
             branches:
               only: main
           requires:
-            - e2e
+            - e2e-qa
 
       # Is a pipeline blocker that requires a human decision and action
       - wait-for-approval:
           type: approval
           requires:
-            - e2e
+            - e2e-qa
           filters:
             tags:
               only: /^v.*/
@@ -626,6 +629,23 @@ workflows:
               ignore: /.*/
           requires:
             - release-tag-quorum-key-manager:latest
+
+      # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
+      # requires successful Build, Unit and acceptance tests
+      - e2e:
+          name: e2e-staging
+          test_data: $QA_TEST_DATA
+          client_key: $QKM_CLIENT_KEY
+          client_auth_cert: $QKM_CLIENT_AUTH_CERT
+          client_no_auth_key: $QKM_CLIENT_NO_AUTH_KEY
+          client_no_auth_cert: $QKM_CLIENT_NO_AUTH_CERT
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: fix/align_deployments
+          requires:
+            - deploy-staging
 
 # --------------------------
 # End of workflows definition definitions
