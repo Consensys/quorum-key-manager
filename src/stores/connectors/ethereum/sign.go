@@ -24,7 +24,7 @@ import (
 
 var (
 	secp256k1halfN, _ = new(big.Int).SetString("7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0", 16)
-	maxRetries        = 10
+	maxRetries        = 20
 )
 
 func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
