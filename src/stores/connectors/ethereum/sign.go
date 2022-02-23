@@ -3,7 +3,6 @@ package eth
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
 	"encoding/base64"
 	"math/big"
 
@@ -23,8 +22,9 @@ import (
 )
 
 var (
+	secp256k1N, _     = new(big.Int).SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
 	secp256k1halfN, _ = new(big.Int).SetString("7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0", 16)
-	maxRetries        = 20
+	maxRetries        = 3
 )
 
 func (c Connector) Sign(ctx context.Context, addr common.Address, data []byte) ([]byte, error) {
@@ -212,42 +212,32 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 		return nil, err
 	}
 
-	var signature []byte
-	var retry int
-	for retry = maxRetries; retry > 0; retry-- {
-		signature, err = c.store.Sign(ctx, acc.KeyID, data, ethAlgo)
+	for retry := maxRetries; retry > 0; retry-- {
+		signature, err := c.store.Sign(ctx, acc.KeyID, data, ethAlgo)
 		if err != nil {
 			return nil, err
 		}
 
-		// If we get a malleable signature, we retry
-		if !isMalleableECDSASignature(signature) {
-			break
+		signature = malleabilityECDSASignature(signature)
+
+		// Recover the recID, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
+		for _, recID := range []byte{0, 1} {
+			appendedSignature := append(signature, recID)
+			recoveredPubKey, err := crypto.SigToPub(data, appendedSignature)
+			if err != nil {
+				errMessage := "failed to recover public key candidate with appended recID"
+				c.logger.WithError(err).Debug(errMessage, "recID", recID)
+
+				// If we fail to recover the pubkey, we continue and get a new signature
+				break
+			}
+
+			if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), acc.PublicKey) {
+				return appendedSignature, nil
+			}
 		}
 
 		c.logger.Debug("malleable signature retrieved, retryng", "signature", hexutil.Encode(signature))
-	}
-
-	if retry == 0 {
-		errMessage := "failed to generate a non malleable signature"
-		c.logger.Error(errMessage)
-		return nil, errors.DependencyFailureError(errMessage)
-	}
-
-	// Recover the recID, please read: http://coders-errand.com/ecrecover-signature-verification-ethereum/
-	for _, recID := range []byte{0, 1} {
-		appendedSignature := append(signature, recID)
-		var recoveredPubKey *ecdsa.PublicKey
-		recoveredPubKey, err = crypto.SigToPub(data, appendedSignature)
-		if err != nil {
-			errMessage := "failed to recover public key candidate with appended recID"
-			c.logger.WithError(err).Error(errMessage, "recID", recID)
-			return nil, errors.CryptoOperationError(errMessage)
-		}
-
-		if bytes.Equal(crypto.FromECDSAPub(recoveredPubKey), acc.PublicKey) {
-			return appendedSignature, nil
-		}
 	}
 
 	errMessage := "failed to recover public key candidate"
@@ -307,6 +297,12 @@ func getEncodedPrivateRecipient(privacyGroupID *string, privateFor *[]string) (i
 // https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
 // More info about the issue: http://coders-errand.com/malleability-ecdsa-signatures/
 // More info about the fix: https://en.bitcoin.it/wiki/BIP_0062
-func isMalleableECDSASignature(signature []byte) bool {
-	return new(big.Int).SetBytes(signature[32:]).Cmp(secp256k1halfN) >= 0
+func malleabilityECDSASignature(signature []byte) []byte {
+	S := new(big.Int).SetBytes(signature[32:])
+	if S.Cmp(secp256k1halfN) <= 0 {
+		return signature
+	}
+
+	S2 := new(big.Int).Sub(secp256k1N, S)
+	return append(signature[:32], S2.Bytes()...)
 }
