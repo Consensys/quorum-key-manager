@@ -565,6 +565,8 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+          requires:
+            - e2e-staging
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
       # Resulting image is tagged with both ${CIRCLE_TAG} and latest
       # Images are compliant with both linux/amd64 and linux/arm64 architectures
