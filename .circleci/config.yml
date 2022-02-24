@@ -446,7 +446,7 @@ jobs:
       - run:
           name: Deploy staging environment
           command: >-
-            QKM_TAG=${CIRCLE_TAG}
+            QKM_TAG=${CIRCLE_SHA1:0:7}
             QKM_REPOSITORY=consensys/quorum-key-manager
             make deploy-remote-env
 
@@ -465,7 +465,7 @@ workflows:
       # Will run appropriate linting locally for each `/^v.*/` git tag and each commit
       - lint:
           filters:
-            tags:
+            branches:
               only: /.*/
       # Will build locally for each `/^v.*/` git tag and each commit
       - gobuild:
