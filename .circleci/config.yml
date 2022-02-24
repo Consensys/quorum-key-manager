@@ -620,7 +620,7 @@ workflows:
             branches:
               ignore: /.*/
           requires:
-            - release-tag-quorum-key-manager:latest
+            - release-tag-quorum-key-manager:${CIRCLE_TAG}
 
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
       # requires successful Build, Unit and acceptance tests
