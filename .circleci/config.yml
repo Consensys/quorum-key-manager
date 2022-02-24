@@ -586,6 +586,7 @@ workflows:
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
           matrix:
             parameters:
               docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
@@ -606,6 +607,7 @@ workflows:
           context:
             - dockerhub-quorumengineering-rw
             - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
