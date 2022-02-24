@@ -479,28 +479,20 @@ workflows:
       # Will run the unit tests locally for each `/^v.*/` git tag and each commit
       - test:
           filters:
-            tags:
-              only: /^v.*/
             branches:
               only: /.*/
       # Will run the unit tests in race mode locally for each `/^v.*/` git tag and each commit
       - race:
           filters:
-            tags:
-              only: /^v.*/
             branches:
               only: /.*/
       # Will run the acceptance tests locally for each `/^v.*/` git tag and each commit
       - acceptance:
           filters:
-            tags:
-              only: /^v.*/
             branches:
               only: /.*/
       - sonarscan:
           filters:
-            tags:
-              only: /^v.*/
             branches:
               only: /.*/
           requires:
