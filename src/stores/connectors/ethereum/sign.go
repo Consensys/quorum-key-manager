@@ -237,12 +237,12 @@ func (c Connector) sign(ctx context.Context, addr common.Address, data []byte) (
 			}
 		}
 
-		c.logger.Debug("malleable signature retrieved, retryng", "signature", hexutil.Encode(signature))
+		c.logger.Debug("malleable signature retrieved, retrying", "signature", hexutil.Encode(signature))
 	}
 
 	errMessage := "failed to recover public key candidate"
 	c.logger.Error(errMessage)
-	return nil, errors.CryptoOperationError(errMessage)
+	return nil, errors.DependencyFailureError(errMessage)
 }
 
 func eeaHash(object interface{}) (hash common.Hash, err error) {
