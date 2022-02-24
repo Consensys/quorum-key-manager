@@ -466,14 +466,10 @@ workflows:
       - lint:
           filters:
             tags:
-              only: /^v.*/
-            branches:
               only: /.*/
       # Will build locally for each `/^v.*/` git tag and each commit
       - gobuild:
           filters:
-            tags:
-              only: /^v.*/
             branches:
               only: /.*/
       # Will run the unit tests locally for each `/^v.*/` git tag and each commit
