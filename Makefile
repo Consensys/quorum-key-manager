@@ -92,8 +92,7 @@ run-race: ## Run data race detector
 qkm: gobuild
 	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
 
-dev: deps gobuild qkm
-	@docker-compose -f ./docker-compose.dev.yml up --force-recreate --build -d $(KEY_MANAGER_SERVICES)
+dev: deps qkm
 
 up: deps go-quorum besu geth gobuild qkm
 

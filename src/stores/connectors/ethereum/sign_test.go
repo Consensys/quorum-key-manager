@@ -80,18 +80,23 @@ func TestSignMessage(t *testing.T) {
 	t.Run("should fail to sign if address is not recoverable", func(t *testing.T) {
 		R, _ := new(big.Int).SetString("63341e2c837449de3735b6f4402b154aa0a118d02e45a2b311fba39c444025dd", 16)
 		S, _ := new(big.Int).SetString("39db7699cb3d8a5caf7728a87e778c2cdccc4085cf2a346e37c1823dec5ce2ed", 16)
-		ecdsaSignature := append(R.Bytes(), S.Bytes()...)
+		ecdsaSignatureNonRecoverable := append(R.Bytes(), S.Bytes()...)
 		acc := testutils2.FakeETHAccount()
-		acc.PublicKey = hexutil.MustDecode("0x148a6e95f1f0f5d1b0aa4cc16a4b9d8bcfc666a538eb49af436e92285673a56830a57bf228fa5e4fff9445ed51b7923153519b316c4d71bea83911cae1c5952a91")
+		acc.PublicKey = hexutil.MustDecode("0x04e2e7621c0c08e43905648be731a482e8eb3d3186023335812f52130e4a18dd729b22d88fbf0f22b8fa4390267ef0c54367dc638a25b38ea74290bdb9f79ff917")
+		ecdsaSignature := hexutil.MustDecode("0xe276fd7524ed7af67b7f914de5be16fad6b9038009d2d78f2315351fbd48deee57a897964e80e041c674942ef4dbd860cb79a6906fb965d5e4645f5c44f7eae4")
+		expectedSignature := hexutil.Encode(ecdsaSignature) + "1b"
 
 		auth.EXPECT().CheckPermission(&authtypes.Operation{Action: authtypes.ActionSign, Resource: authtypes.ResourceEthAccount}).Return(nil)
 		db.EXPECT().Get(gomock.Any(), acc.Address.Hex()).Return(acc, nil)
-		store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignature, nil)
+		gomock.InOrder(
+			store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignatureNonRecoverable, nil),
+			store.EXPECT().Sign(gomock.Any(), acc.KeyID, crypto.Keccak256([]byte(expectedData)), ethAlgo).Return(ecdsaSignature, nil),
+		)
 
-		_, err := connector.SignMessage(ctx, acc.Address, data)
+		signature, err := connector.SignMessage(ctx, acc.Address, data)
 
-		require.Error(t, err)
-		assert.True(t, errors.IsCryptoOperationError(err))
+		require.NoError(t, err)
+		assert.Equal(t, hexutil.Encode(signature), expectedSignature)
 	})
 
 	t.Run("should fail with same error if authorization fails", func(t *testing.T) {
