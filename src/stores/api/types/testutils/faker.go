@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"encoding/base64"
+	cmn "github.com/consensys/quorum-key-manager/pkg/common"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -45,8 +46,9 @@ func FakeSignBase64PayloadRequest() *types.SignBase64PayloadRequest {
 }
 
 func FakeCreateEthAccountRequest() *types.CreateEthAccountRequest {
+	randID := cmn.RandString(10)
 	return &types.CreateEthAccountRequest{
-		KeyID: "my-key-account",
+		KeyID: "my-key-account-" + randID,
 		Tags:  testutils.FakeTags(),
 	}
 }
