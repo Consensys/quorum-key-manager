@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"encoding/base64"
+
 	cmn "github.com/consensys/quorum-key-manager/pkg/common"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
