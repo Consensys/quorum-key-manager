@@ -614,6 +614,8 @@ workflows:
       # Will deploy the staging env
       # requires a successful release image (latest tag) pushed
       - deploy-staging:
+          context:
+            - cloudsmith-tanuki-rw
           filters:
             tags:
               only: /^v.*/
