@@ -447,7 +447,9 @@ jobs:
           name: Deploy staging environment
           command: >-
             QKM_TAG=${CIRCLE_SHA1:0:7}
-            QKM_REPOSITORY=consensys/quorum-key-manager
+            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
+            REGISTRY_USERNAME=${CLOUDSMITH_USER_RW}
+            REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
             make deploy-remote-env
 
 # --------------------------
