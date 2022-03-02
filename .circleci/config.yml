@@ -114,6 +114,9 @@ commands:
             - run:
                 name: Set Quorum Key Manager Namespace
                 command: echo 'export QKM_NAMESPACE=<<parameters.environment_values>>-qkm' >> $BASH_ENV
+            - run:
+                name: Set Quorum Key Manager Health Endpoint
+                command: echo 'export QKM_HEALTH_ENDPOINT=health-<<parameters.environment_values>>-qkm.ops.consensys.net' >> $BASH_ENV
 
       - unless:
           condition: <<parameters.qkm_namespace>>
@@ -266,6 +269,10 @@ jobs:
       port-frowarding:
         default: $PORT_FORWARDING
         type: string
+      health_url:
+        default: "health-qa-qkm.ops.consensys.net"
+        type: string
+
     steps:
       - run:
           name: Uninstall Go
@@ -291,7 +298,7 @@ jobs:
           seconds-between-retries: 3
           timeout: 30
           description: "Wait for deployment readiness"
-          sh-command: nc -z health-qa-qkm.ops.consensys.net 443
+          sh-command: nc -z << parameters.health_url >> 443
       - run:
           name: e2e tests
           command: |
@@ -439,8 +446,10 @@ jobs:
       - run:
           name: Deploy staging environment
           command: >-
-            QKM_TAG=${CIRCLE_TAG}
-            QKM_REPOSITORY=consensys/quorum-key-manager
+            QKM_TAG=${CIRCLE_SHA1:0:7}
+            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
+            REGISTRY_USERNAME=${CLOUDSMITH_USER_RW}
+            REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
             make deploy-remote-env
 
 # --------------------------
@@ -455,6 +464,101 @@ workflows:
   version: 2
   default:
     jobs:
+      # Will run appropriate linting locally for each `/^v.*/` git tag and each commit
+      - lint:
+          filters:
+            branches:
+              only: /.*/
+      # Will build locally for each `/^v.*/` git tag and each commit
+      - gobuild:
+          filters:
+            branches:
+              only: /.*/
+      # Will run the unit tests locally for each `/^v.*/` git tag and each commit
+      - test:
+          filters:
+            branches:
+              only: /.*/
+      # Will run the unit tests in race mode locally for each `/^v.*/` git tag and each commit
+      - race:
+          filters:
+            branches:
+              only: /.*/
+      # Will run the acceptance tests locally for each `/^v.*/` git tag and each commit
+      - acceptance:
+          filters:
+            branches:
+              only: /.*/
+      - sonarscan:
+          filters:
+            branches:
+              only: /.*/
+          requires:
+            - test
+            - acceptance
+      # Will build and push a dev image for each main commit
+      # Resulting image is tagged with ${CIRCLE_SHA1:0:7}
+      # Images are compliant with linux/amd64 architecture
+      - build-docker-image: # Push Dev image
+          name: push-qkm-dev-image-${CIRCLE_SHA1:0:7}
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
+          docker-image-tag: "quorum-key-manager:${CIRCLE_SHA1:0:7}"
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
+          filters:
+            branches:
+              only: main
+          requires:
+            - acceptance
+      # triggers the qa env deployment when the main branch is hit
+      # requires that a develop image has been successfully pushed
+      - deploy-qa:
+          context:
+            - cloudsmith-tanuki-rw
+          filters:
+            branches:
+              only: main
+          requires:
+            - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
+      # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
+      # requires successful Build, Unit and acceptance tests
+      - e2e:
+          name: e2e-qa
+          test_data: $QA_TEST_DATA
+          client_key: $QKM_CLIENT_KEY
+          client_auth_cert: $QKM_CLIENT_AUTH_CERT
+          client_no_auth_key: $QKM_CLIENT_NO_AUTH_KEY
+          client_no_auth_cert: $QKM_CLIENT_NO_AUTH_CERT
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: main
+          requires:
+            - deploy-qa
+      # Will build and push a dev image for each main commit
+      # Resulting image is tagged with develop
+      # Images are compliant with linux/amd64 architecture
+      - build-docker-image: # Push Dev image
+          name: push-qkm-dev-image-develop
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
+          docker-image-tag: "quorum-key-manager:develop"
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
+          filters:
+            branches:
+              only: main
+          requires:
+            - e2e-qa
+
       # Is a pipeline blocker that requires a human decision and action
       - wait-for-approval:
           type: approval
@@ -463,6 +567,8 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+          requires:
+            - e2e-staging
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
       # Resulting image is tagged with both ${CIRCLE_TAG} and latest
       # Images are compliant with both linux/amd64 and linux/arm64 architectures
@@ -486,6 +592,53 @@ workflows:
               ignore: /.*/
           requires:
             - wait-for-approval
+      # Will build and push a prod-debug image for each `/^v.*/` git tag
+      # requires an approval
+      - build-docker-image:
+          name: release-debug-tag
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
+          docker-image-platforms: linux/amd64
+          docker-distroless-version: debug-nonroot
+          docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
+          docker-image-registry: consensys
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - wait-for-approval
+      # Will deploy the staging env
+      # requires a successful release image (latest tag) pushed
+      - deploy-staging:
+          context:
+            - cloudsmith-tanuki-rw
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+
+      # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
+      # requires successful Build, Unit and acceptance tests
+      - e2e:
+          name: e2e-staging
+          test_data: $STAGING_TEST_DATA
+          client_key: $QKM_CLIENT_KEY
+          client_auth_cert: $QKM_CLIENT_AUTH_CERT
+          client_no_auth_key: $QKM_CLIENT_NO_AUTH_KEY
+          client_no_auth_cert: $QKM_CLIENT_NO_AUTH_CERT
+          health_url: "health-staging-qkm.ops.consensys.net"
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: main
+          requires:
+            - deploy-staging
 
 # --------------------------
 # End of workflows definition definitions
