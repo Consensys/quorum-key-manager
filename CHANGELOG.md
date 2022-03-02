@@ -1,5 +1,13 @@
 # Quorum Key Manager Release Notes
 
+## v21.12.4 (2022-3-02)
+### 🛠 Bug fixes
+* Fix padding issue with malleable ECDSA signatures
+
+## v21.12.3 (2022-2-24)
+### 🛠 Bug fixes
+* Mathematically transform malleable ECDSA signatures into non-malleable signatures.
+
 ## v21.12.2 (2022-2-16)
 ### 🆕 Features
 * Support for OIDC token custom claims `AUTH_OIDC_CUSTOM_CLAIMS` for tenant_id and permissions.
