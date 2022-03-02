@@ -511,7 +511,7 @@ workflows:
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
           filters:
             branches:
-              only: fix/align_deployments
+              only: main
           requires:
             - acceptance
       # triggers the qa env deployment when the main branch is hit
@@ -521,7 +521,7 @@ workflows:
             - cloudsmith-tanuki-rw
           filters:
             branches:
-              only: fix/align_deployments
+              only: main
           requires:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
@@ -537,7 +537,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: fix/align_deployments
+              only: main
           requires:
             - deploy-qa
       # Will build and push a dev image for each main commit
@@ -636,7 +636,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: fix/align_deployments
+              only: main
           requires:
             - deploy-staging
 
