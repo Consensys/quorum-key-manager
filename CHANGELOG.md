@@ -1,5 +1,9 @@
 # Quorum Key Manager Release Notes
 
+## v21.12.4 (2022-2-24)
+### 🛠 Bug fixes
+* Fix padding issue with ECDSA signatures. 
+
 ## v21.12.3 (2022-2-24)
 ### 🛠 Bug fixes
 * Mathematically transform malleable ECDSA signatures into non-malleable signatures.
