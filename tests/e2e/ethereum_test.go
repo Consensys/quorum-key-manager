@@ -281,16 +281,6 @@ func (s *ethTestSuite) TestSignTransaction() {
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
 	})
-
-	s.Run("should sign a big amount of transactions successfully", func() {
-		for i := 0; i < 500; i++ {
-			request := testutils.FakeSignETHTransactionRequest("")
-
-			signedTx, err := s.env.client.SignTransaction(s.env.ctx, s.storeName, s.signAccount.Address.Hex(), request)
-			require.NoError(s.T(), err)
-			assert.NotNil(s.T(), signedTx)
-		}
-	})
 }
 
 func (s *ethTestSuite) TestSignPrivateTransaction() {
