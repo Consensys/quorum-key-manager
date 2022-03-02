@@ -269,7 +269,7 @@ jobs:
       port-frowarding:
         default: $PORT_FORWARDING
         type: string
-      health:
+      health_url:
         default: "health-qa-qkm.ops.consensys.net"
         type: string
 
@@ -298,7 +298,7 @@ jobs:
           seconds-between-retries: 3
           timeout: 30
           description: "Wait for deployment readiness"
-          sh-command: nc -z << parameters.health >> 443
+          sh-command: nc -z << parameters.health_url >> 443
       - run:
           name: e2e tests
           command: |
@@ -631,7 +631,7 @@ workflows:
           client_auth_cert: $QKM_CLIENT_AUTH_CERT
           client_no_auth_key: $QKM_CLIENT_NO_AUTH_KEY
           client_no_auth_cert: $QKM_CLIENT_NO_AUTH_CERT
-          health: "health-staging-qkm.ops.consensys.net"
+          health_url: "health-staging-qkm.ops.consensys.net"
           filters:
             tags:
               only: /^v.*/
