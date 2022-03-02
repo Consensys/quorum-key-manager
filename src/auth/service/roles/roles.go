@@ -46,7 +46,5 @@ func (i *Roles) getRole(_ context.Context, name string) (*entities.Role, error) 
 		return role, nil
 	}
 
-	errMessage := "role was not found"
-	i.logger.Debug(errMessage, "name", name)
-	return nil, errors.NotFoundError(errMessage)
+	return nil, errors.NotFoundError("role was not found")
 }
