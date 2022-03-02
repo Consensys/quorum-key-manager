@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/consensys/quorum-key-manager/pkg/common"
@@ -45,8 +46,8 @@ func TestKeyManagerEth(t *testing.T) {
 	require.NoError(t, err)
 	s.env = env
 
-	if len(s.env.cfg.SecretStores) == 0 {
-		t.Error("list of secret stores cannot be empty")
+	if len(s.env.cfg.EthStores) == 0 {
+		t.Error("list of ethereum stores cannot be empty")
 		return
 	}
 
@@ -61,19 +62,18 @@ func TestKeyManagerEth(t *testing.T) {
 }
 
 func (s *ethTestSuite) SetupSuite() {
-	if s.err != nil {
-		s.T().Error(s.err)
-	}
-
 	var err error
 	s.signAccount, err = s.env.client.CreateEthAccount(s.env.ctx, s.storeName, testutils.FakeCreateEthAccountRequest())
 	require.NoError(s.T(), err)
 }
 
 func (s *ethTestSuite) TearDownSuite() {
-	if s.err != nil {
-		s.T().Error(s.err)
-	}
+	err := s.env.client.DeleteEthAccount(s.env.ctx, s.storeName, s.signAccount.Address.Hex())
+	require.NoError(s.T(), err)
+
+	time.Sleep(100 * time.Millisecond)
+
+	err = s.env.client.DestroyEthAccount(s.env.ctx, s.storeName, s.signAccount.Address.Hex())
 }
 
 func (s *ethTestSuite) TestCreate() {
@@ -83,6 +83,7 @@ func (s *ethTestSuite) TestCreate() {
 
 		acc, err := s.env.client.CreateEthAccount(s.env.ctx, s.storeName, request)
 		require.NoError(s.T(), err)
+		defer s.queueToDelete(acc)
 
 		assert.NotEmpty(s.T(), acc.Address)
 		assert.NotEmpty(s.T(), acc.PublicKey)
@@ -100,6 +101,7 @@ func (s *ethTestSuite) TestCreate() {
 
 		acc, err := s.env.client.CreateEthAccount(s.env.ctx, s.storeName, request)
 		require.NoError(s.T(), err)
+		defer s.queueToDelete(acc)
 
 		assert.NotEmpty(s.T(), acc.Address)
 		assert.NotEmpty(s.T(), acc.PublicKey)
@@ -152,6 +154,7 @@ func (s *ethTestSuite) TestImport() {
 
 		acc, err := s.env.client.ImportEthAccount(s.env.ctx, s.storeName, request)
 		require.NoError(s.T(), err)
+		defer s.queueToDelete(acc)
 
 		assert.NotEmpty(s.T(), acc.Address)
 		assert.NotEmpty(s.T(), acc.PublicKey)
@@ -277,6 +280,16 @@ func (s *ethTestSuite) TestSignTransaction() {
 
 		httpError := err.(*client.ResponseError)
 		assert.Equal(s.T(), 404, httpError.StatusCode)
+	})
+
+	s.Run("should sign a big amount of transactions successfully", func() {
+		for i := 0; i < 500; i++ {
+			request := testutils.FakeSignETHTransactionRequest("")
+
+			signedTx, err := s.env.client.SignTransaction(s.env.ctx, s.storeName, s.signAccount.Address.Hex(), request)
+			require.NoError(s.T(), err)
+			assert.NotNil(s.T(), signedTx)
+		}
 	})
 }
 
