@@ -73,7 +73,7 @@ func (s *ethTestSuite) TearDownSuite() {
 
 	time.Sleep(100 * time.Millisecond)
 
-	err = s.env.client.DestroyEthAccount(s.env.ctx, s.storeName, s.signAccount.Address.Hex())
+	_ = s.env.client.DestroyEthAccount(s.env.ctx, s.storeName, s.signAccount.Address.Hex())
 }
 
 func (s *ethTestSuite) TestCreate() {
