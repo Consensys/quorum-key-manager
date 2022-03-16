@@ -254,16 +254,8 @@ func (app *App) startServer() {
 			app.errors <- err
 		}
 
-		var healthErr error
-		if app.cfg.HTTP.TLSConfig != nil {
-			tlsListener := tls.NewListener(ln, app.cfg.HTTP.TLSConfig)
-			app.logger.Info("Health SSL server started ", "addr", app.healthz.Addr)
-			healthErr = app.healthz.Serve(tlsListener)
-		} else {
-			app.logger.Info("Health server started", "addr", app.healthz.Addr)
-			healthErr = app.healthz.Serve(ln)
-		}
-
+		app.logger.Info("Health server started", "addr", app.healthz.Addr)
+		healthErr := app.healthz.Serve(ln)
 		if healthErr != nil && healthErr != context.Canceled && healthErr != http.ErrServerClosed {
 			app.logger.Debug("Health server exited gracefully", "addr", app.server.Addr)
 		} else {
