@@ -87,21 +87,7 @@ func (l Logger) WithComponent(component string) log.Logger {
 }
 
 func (l *Logger) Write(p []byte) (n int, err error) {
-	switch l.cfg.Level {
-	case DebugLevel:
-		l.Debug(string(p))
-	case InfoLevel:
-		l.Info(string(p))
-	case WarnLevel:
-		l.Warn(string(p))
-	case ErrorLevel:
-		l.Error(string(p))
-	case PanicLevel:
-		l.Panic(string(p))
-	default:
-		l.Info(string(p))
-	}
-
+	l.Info(string(p)) // Only used for access logs so it's always INFO
 	return 0, nil
 }
 
