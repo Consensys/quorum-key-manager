@@ -4,7 +4,6 @@ orbs:
   go: circleci/go@1.5.0
   sonarcloud: sonarsource/sonarcloud@1.0.1
   aws-eks: circleci/aws-eks@2.0
-  kubernetes: circleci/kubernetes@1.3.0
   wait-for: cobli/wait-for@1.0.0
 
 commands:
@@ -25,24 +24,19 @@ commands:
           command: echo 'export TEST_DATA=<< parameters.test_data >>' >> $BASH_ENV
   prepare_docker:
     description: "Docker login"
+    parameters:
+      docker-image-registry:
+        type: string
+      docker-password:
+        type: string
+      docker-user:
+        type: string
     steps:
-      - run:
-          name: Enable experimental Docker features
-          command: export DOCKER_CLI_EXPERIMENTAL=enabled
       - run:
           name: Docker login
           command: |
-            echo "Login in cloudsmith"
-            echo $CLOUDSMITH_PASS_RW | docker login docker.consensys.net -u $CLOUDSMITH_USER_RW --password-stdin
-            echo "Login in docker.io"
-            echo $DOCKER_PASSWORD_RW | docker login docker.io -u $DOCKER_USER_RW --password-stdin
-      - run:
-          name: DCT signing setup
-          command: |
-            mkdir -p $HOME/.docker/trust/private
-            echo $DCT_KEY | base64 --decode > $HOME/.docker/trust/private/$DCT_HASH.key
-            chmod 600 $HOME/.docker/trust/private/$DCT_HASH.key
-            docker trust key load $HOME/.docker/trust/private/$DCT_HASH.key --name opsquorum
+            echo Login into << parameters.docker-image-registry >>
+            echo << parameters.docker-password >> | docker login << parameters.docker-image-registry >> -u << parameters.docker-user >> --password-stdin
   prepare_docker_buildx:
     description: "Docker buildx setup"
     parameters:
@@ -139,7 +133,7 @@ commands:
           condition: <<parameters.b64_manifests>>
           steps:
             - run:
-                name: Set B64 Manifests
+                name: Set B64 Manifests default value
                 command: echo 'export B64_MANIFESTS=$B64_MANIFESTS_DEFAULT' >> $BASH_ENV
 
 # --------------------------
@@ -188,7 +182,7 @@ jobs:
           root: .
           paths:
             - ./build/coverage
-          
+
   # defines units tests in race mode
   race:
     docker:
@@ -198,7 +192,7 @@ jobs:
       - run:
           name: Run unit tests in race mode
           command: make run-race
-            
+
   # defines acceptance tests and code coverage environment
   acceptance:
     machine:
@@ -282,7 +276,6 @@ jobs:
       - prepare_golang
       - prepare_test_data:
           test_data: << parameters.test_data >>
-      - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
       - when:
@@ -325,6 +318,10 @@ jobs:
         default: nonroot
       docker-image-registry:
         type: string
+      docker-password:
+        type: string
+      docker-user:
+        type: string
       docker-image-tag:
         type: string
       docker-image-sign:
@@ -335,7 +332,10 @@ jobs:
       - setup_remote_docker:
           version: 19.03.13
           docker_layer_caching: true
-      - prepare_docker
+      - prepare_docker:
+          docker-user: << parameters.docker-user >>
+          docker-password: << parameters.docker-password >>
+          docker-image-registry: << parameters.docker-image-registry >>
       - prepare_docker_buildx
       - run:
           name: Build, push and sign images
@@ -452,6 +452,101 @@ jobs:
             REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
             make deploy-remote-env
 
+  tag-docker-image:
+    docker:
+      - image: cimg/base:2022.04
+    resource_class: xlarge
+    parameters:
+      docker-image-platform:
+        type: string
+        default: linux/amd64
+      docker-distroless-version:
+        type: string
+        default: nonroot
+      docker-image-source-tag:
+        type: string
+      docker-image-destination-tag:
+        type: string
+      docker-image-source-registry:
+        type: string
+      docker-image-destination-registry:
+        type: string
+      docker-source-user:
+        type: string
+      docker-source-password:
+        type: string
+      docker-destination-user:
+        type: string
+      docker-destination-password:
+        type: string
+      docker-image-sign:
+        type: boolean
+        default: false
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: true
+      - prepare_docker:
+          docker-user: << parameters.docker-source-user >>
+          docker-password: << parameters.docker-source-password >>
+          docker-image-registry: << parameters.docker-image-source-registry >>
+      - prepare_docker:
+          docker-user: << parameters.docker-destination-user >>
+          docker-password: << parameters.docker-destination-password >>
+          docker-image-registry: << parameters.docker-image-destination-registry >>
+      - prepare_docker_buildx
+      - run:
+          name: Build, push and sign images
+          no_output_timeout: 90m
+          command: |
+            export DOCKER_IMAGE_SIGN="<< parameters.docker-image-sign >>"
+            export DOCKER_IMAGE_PLATFORM="<< parameters.docker-image-platform >>"
+            export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"
+            export DOCKER_IMAGE_SOURCE_REF="<< parameters.docker-image-source-registry >>/<< parameters.docker-image-source-tag >>"
+            export DOCKER_IMAGE_DESTINATION_REF="<< parameters.docker-image-destination-registry >>/<< parameters.docker-image-destination-tag >>"
+
+            TARGETOS="$(echo "${DOCKER_IMAGE_PLATFORM}" | cut -d '/' -f 1)"
+            TARGETARCH="$(echo "${DOCKER_IMAGE_PLATFORM}" | cut -d '/' -f 2)"
+
+            if [ $TARGETOS != "linux" ]; then
+              echo "Targeted OS not supported $TARGETOS"
+              exit 1
+            fi
+
+            DOCKER_IMAGE_SOURCE_TAG="${DOCKER_IMAGE_SOURCE_REF}"
+
+            if [ $TARGETARCH == "amd64" ]; then
+              DOCKER_IMAGE_DESTINATION_TAG="${DOCKER_IMAGE_DESTINATION_REF}"
+              DOCKER_IMAGE_SOURCE_TAG="${DOCKER_IMAGE_SOURCE_REF}"
+            else
+              DOCKER_IMAGE_DESTINATION_TAG="${DOCKER_IMAGE_SOURCE_REF}.${TARGETARCH}"
+              DOCKER_IMAGE_SOURCE_TAG="${DOCKER_IMAGE_SOURCE_REF}.${TARGETARCH}"
+            fi
+
+            echo "Releasing image ${DOCKER_IMAGE_DESTINATION_TAG} for {os:${TARGETOS}, arch:$TARGETARCH}..."
+            echo "Pulling docker image ${DOCKER_IMAGE_SOURCE_TAG}..."
+            docker pull "${DOCKER_IMAGE_SOURCE_TAG}"
+
+            if [ $DOCKER_IMAGE_SIGN == "true" ]; then
+                mkdir -p $HOME/.docker/trust/private
+                echo $DCT_KEY | base64 --decode > $HOME/.docker/trust/private/$DCT_HASH.key
+                chmod 600 $HOME/.docker/trust/private/$DCT_HASH.key
+                docker trust key load $HOME/.docker/trust/private/$DCT_HASH.key --name opsquorum
+
+                echo "Waiting for few seconds for image to become available..."
+                sleep 10
+
+                echo "Signing docker image ${DOCKER_IMAGE_SOURCE_TAG}..."
+                docker trust sign --local "${DOCKER_IMAGE_SOURCE_TAG}"
+            fi
+
+            echo "Tagging source image ${DOCKER_IMAGE_SOURCE_TAG} to destination registry ${DOCKER_IMAGE_DESTINATION_TAG}..."
+            docker tag "${DOCKER_IMAGE_SOURCE_TAG}" "${DOCKER_IMAGE_DESTINATION_TAG}"
+
+            echo "Pushing docker image ${DOCKER_IMAGE_DESTINATION_TAG}..."
+            docker push "${DOCKER_IMAGE_DESTINATION_TAG}"
+
 # --------------------------
 # End of jobs definitions
 # --------------------------
@@ -509,6 +604,8 @@ workflows:
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
+          docker-user: ${CLOUDSMITH_USER_RW}
+          docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             branches:
               only: main
@@ -553,45 +650,18 @@ workflows:
           docker-image-platforms: linux/amd64
           docker-distroless-version: debug-nonroot
           docker-image-registry: ${CLOUDSMITH_DEV_REPO}
+          docker-user: ${CLOUDSMITH_USER_RW}
+          docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             branches:
               only: main
           requires:
             - e2e-qa
-
-      # Is a pipeline blocker that requires a human decision and action
-      - wait-for-approval:
-          type: approval
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - e2e-staging
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
       # Resulting image is tagged with both ${CIRCLE_TAG} and latest
       # Images are compliant with both linux/amd64 and linux/arm64 architectures
       # requires an approval
-      - build-docker-image: # Push prod image
-          name: release-tag-<< matrix.docker-image-tag >>
-          context:
-            - dockerhub-quorumengineering-rw
-            - dockerhub-opsquorum-dct
-            - cloudsmith-tanuki-rw
-          matrix:
-            parameters:
-              docker-image-tag: ["quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest"]
-          docker-image-platforms: "linux/amd64 linux/arm64"
-          docker-image-registry: consensys
-          docker-image-sign: true
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - wait-for-approval
+
       # Will build and push a prod-debug image for each `/^v.*/` git tag
       # requires an approval
       - build-docker-image:
@@ -604,6 +674,8 @@ workflows:
           docker-distroless-version: debug-nonroot
           docker-image-tag: "quorum-key-manager:${CIRCLE_TAG}-debug"
           docker-image-registry: consensys
+          docker-user: ${CLOUDSMITH_USER_RW}
+          docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             tags:
               only: /^v.*/
@@ -639,7 +711,31 @@ workflows:
               only: main
           requires:
             - deploy-staging
-
+      # Is a pipeline blocker that requires a human decision and action
+      - wait-for-approval:
+          type: approval
+          requires:
+            - e2e-staging
+      # Tag prod image
+      - tag-docker-image:
+          name: release-<< matrix.docker-image-destination-tag >>-<< matrix.docker-image-platform >>
+          context:
+            - cloudsmith-tanuki-rw
+            - dockerhub-opsquorum-dct
+          matrix:
+            parameters:
+              docker-image-destination-tag: [ "orchestrate:${CIRCLE_TAG}", "orchestrate:latest" ]
+              docker-image-platform: [ "linux/amd64", "linux/arm64" ]
+          docker-image-source-tag: orchestrate:${CIRCLE_SHA1:0:7}
+          docker-image-source-registry: ${CLOUDSMITH_DEV_REPO}
+          docker-image-destination-registry: consensys
+          docker-source-user: ${CLOUDSMITH_USER_RW}
+          docker-source-password: ${CLOUDSMITH_PASS_RW}
+          docker-destination-user: ${DOCKER_USER_RW}
+          docker-destination-password: ${DOCKER_PASSWORD_RW}
+          docker-image-sign: true
+          requires:
+            - wait-for-approval
 # --------------------------
 # End of workflows definition definitions
 # --------------------------
