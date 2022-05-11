@@ -12,16 +12,6 @@ commands:
     steps:
       - checkout
       - go/mod-download-cached
-  # Will prepare the TEST_DATA env var, takes it as a parameter
-  prepare_test_data:
-    parameters:
-      test_data:
-        type: string
-    description: "Export TEST_DATA for e2e testing"
-    steps:
-      - run:
-          name: Export qa e2e TEST_DATA
-          command: echo 'export TEST_DATA=<< parameters.test_data >>' >> $BASH_ENV
   prepare_docker:
     description: "Docker login"
     parameters:
@@ -274,8 +264,6 @@ jobs:
       - go/install:
           version: 1.16.8
       - prepare_golang
-      - prepare_test_data:
-          test_data: << parameters.test_data >>
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
       - when:
@@ -300,6 +288,7 @@ jobs:
             echo << parameters.client_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client.crt
             echo << parameters.client_no_auth_key >> | base64 --decode > ./tests/e2e/certificates/client_no_auth.key
             echo << parameters.client_no_auth_cert >> | base64 --decode > ./tests/e2e/certificates/client_no_auth.crt
+            export TEST_DATA="<< parameters.test_data >>"
             make run-e2e
 
   # defines the docker image management process
