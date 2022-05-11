@@ -597,7 +597,7 @@ workflows:
           docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             branches:
-              only: main
+              only: update_ci
           requires:
             - acceptance
       # triggers the qa env deployment when the main branch is hit
@@ -607,7 +607,7 @@ workflows:
             - cloudsmith-tanuki-rw
           filters:
             branches:
-              only: main
+              only: update_ci
           requires:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
@@ -623,7 +623,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: main
+              only: update_ci
           requires:
             - deploy-qa
       # Will build and push a dev image for each main commit
@@ -643,7 +643,7 @@ workflows:
           docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             branches:
-              only: main
+              only: update_ci
           requires:
             - e2e-qa
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
@@ -697,7 +697,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: main
+              only: update_ci
           requires:
             - deploy-staging
       # Is a pipeline blocker that requires a human decision and action
