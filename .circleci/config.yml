@@ -703,6 +703,11 @@ workflows:
       # Is a pipeline blocker that requires a human decision and action
       - wait-for-approval:
           type: approval
+          filters:
+            tags:
+              only: /^t.*/
+            branches:
+              only: update_ci
           requires:
             - e2e-staging
       # Tag prod image
@@ -723,6 +728,11 @@ workflows:
           docker-destination-user: ${DOCKER_USER_RW}
           docker-destination-password: ${DOCKER_PASSWORD_RW}
           docker-image-sign: true
+          filters:
+            tags:
+              only: /^t.*/
+            branches:
+              only: update_ci
           requires:
             - wait-for-approval
 # --------------------------
