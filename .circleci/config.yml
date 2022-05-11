@@ -621,7 +621,7 @@ workflows:
           client_no_auth_cert: $QKM_CLIENT_NO_AUTH_CERT
           filters:
             tags:
-              only: /^v.*/
+              only: /^t.*/
             branches:
               only: update_ci
           requires:
@@ -667,7 +667,7 @@ workflows:
           docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             tags:
-              only: /^v.*/
+              only: /^t.*/
             branches:
               ignore: /.*/
           requires:
@@ -679,7 +679,7 @@ workflows:
             - cloudsmith-tanuki-rw
           filters:
             tags:
-              only: /^v.*/
+              only: /^t.*/
             branches:
               ignore: /.*/
 
@@ -695,7 +695,7 @@ workflows:
           health_url: "health-staging-qkm.ops.consensys.net"
           filters:
             tags:
-              only: /^v.*/
+              only: /^t.*/
             branches:
               only: update_ci
           requires:
