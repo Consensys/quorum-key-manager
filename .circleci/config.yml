@@ -472,7 +472,7 @@ jobs:
           command: >-
             QKM_TAG="<< parameters.docker-image-tag >>"
             QKM_NAMESPACE="<< parameters.qkm-namespace >>"
-            ENVIRONMENT_VALUES=<< parameters.environment-values >>"
+            ENVIRONMENT_VALUES="<< parameters.environment-values >>"
             QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
             REGISTRY_USERNAME=${CLOUDSMITH_USER_RW}
             REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
