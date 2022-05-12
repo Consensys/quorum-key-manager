@@ -382,7 +382,7 @@ jobs:
                 fi
             done
 
-  # defines the qa deployment
+  # defines the deployment procedure
   # Will update the existing TLS secret of the QKM with fresh PKI data
   # Needs AWS authentication + kubectl tool
   # Persists CA + certs + keys in the workspace for e2e job tu use
@@ -392,50 +392,26 @@ jobs:
   # REGISTRY_USERNAME, docker registry user
   # REGISTRY_PASSWORD, docker registry pw
   # see scripts/deploy-remote-env.sh for details
-  deploy-qa:
+  deploy:
     machine:
-      image: ubuntu-2004:202010-01
-    resource_class: medium
+      image: cimg/base:2022.04
     parameters:
       cluster-name:
         type: string
         default: "orchestrate"
-      namespace:
+      qkm-namespace:
         type: string
         default: "qa-qkm"
+      docker-image-tag:
+        type: string
     steps:
-      - run:
-          name: Uninstall Go
-          command: sudo rm -rvf /usr/local/go/
-      - go/install:
-          version: 1.16.8
       - checkout
       - set_remote_environment_variables
-      - prepare_golang
       - run:
           name: Deploy QA environment
           command: >-
-            QKM_TAG=${CIRCLE_SHA1:0:7}
-            QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
-            REGISTRY_USERNAME=${CLOUDSMITH_USER_RW}
-            REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
-            make deploy-remote-env
-  # deploy-staging:
-  # defines the staging deployment
-  # Will fetch the `github/ConsenSys/quorum-key-manager-kubernetes` chart using
-  # QKM_TAG=${CIRCLE_TAG}
-  # QKM_REPOSITORY=consensys/quorum-key-manager
-  # see scripts/deploy-remote-env.sh for details
-  deploy-staging:
-    docker:
-      - image: cimg/base:2021.12
-    steps:
-      - checkout
-      - set_remote_environment_variables
-      - run:
-          name: Deploy staging environment
-          command: >-
-            QKM_TAG=${CIRCLE_SHA1:0:7}
+            QKM_TAG="<< parameters.docker-image-tag >>"
+            QKM_NAMESPACE="<< parameters.qkm-namespace >>"
             QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
             REGISTRY_USERNAME=${CLOUDSMITH_USER_RW}
             REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
@@ -602,9 +578,12 @@ workflows:
             - acceptance
       # triggers the qa env deployment when the main branch is hit
       # requires that a develop image has been successfully pushed
-      - deploy-qa:
+      - deploy:
+          name: "deploy-qa"
           context:
             - cloudsmith-tanuki-rw
+          qkm-namespace: "qa"
+          docker-image-tag: ${CIRCLE_SHA1:0:7}
           filters:
             branches:
               only: update_ci
@@ -674,9 +653,12 @@ workflows:
             - wait-for-approval
       # Will deploy the staging env
       # requires a successful release image (latest tag) pushed
-      - deploy-staging:
+      - deploy:
+          name: "deploy-staging"
           context:
             - cloudsmith-tanuki-rw
+          qkm-namespace: "staging"
+          docker-image-tag: ${CIRCLE_SHA1:0:7}
           filters:
             tags:
               only: /^t.*/
