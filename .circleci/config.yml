@@ -657,7 +657,7 @@ workflows:
           name: "deploy-staging"
           context:
             - cloudsmith-tanuki-rw
-          qkm-namespace: "staging"
+          qkm-namespace: "staging-qkm"
           docker-image-tag: ${CIRCLE_SHA1:0:7}
           filters:
             tags:
