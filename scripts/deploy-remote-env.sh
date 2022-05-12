@@ -9,10 +9,6 @@ TOKEN_HEADER="Circle-Token: ${CIRCLECI_TOKEN}"
 PARAMETERS=""
 [ "$QKM_NAMESPACE" ] && export PARAMETERS=$PARAMETERS,\"qkm-namespace\":\"$QKM_NAMESPACE\"
 [ "$QKM_TAG" ] && export PARAMETERS=$PARAMETERS,\"qkm-tag\":\"$QKM_TAG\"
-[ "$QKM_REPOSITORY" ] && export PARAMETERS=$PARAMETERS,\"qkm-repository\":\"$QKM_REPOSITORY\"
-[ "$REGISTRY_USERNAME" ] && export PARAMETERS=$PARAMETERS,\"registry-username\":\"$REGISTRY_USERNAME\"
-[ "$REGISTRY_PASSWORD" ] && export PARAMETERS=$PARAMETERS,\"registry-password\":\"$REGISTRY_PASSWORD\"
-[ "$ENVIRONMENT_VALUES" ] && export PARAMETERS=$PARAMETERS,\"environment-values\":\"$ENVIRONMENT_VALUES\"
 [ "$B64_MANIFESTS" ] && export PARAMETERS=$PARAMETERS,\"b64-manifests\":\"$B64_MANIFESTS\"
 [ "$PARAMETERS" ] && PARAMETERS=${PARAMETERS:1}
 
