@@ -382,6 +382,63 @@ jobs:
                 fi
             done
 
+  build-docker-arm-image:
+    machine:
+      image: 'ubuntu-2004:202101-01'
+    resource_class: arm.large
+    parameters:
+      docker-image-platform:
+        type: string
+        default: linux/arm64
+      docker-distroless-version:
+        type: string
+        default: nonroot
+      docker-image-registry:
+        type: string
+      docker-password:
+        type: string
+      docker-user:
+        type: string
+      docker-image-tag:
+        type: string
+    steps:
+      - checkout
+      - prepare_docker:
+          docker-user: << parameters.docker-user >>
+          docker-password: << parameters.docker-password >>
+          docker-image-registry: << parameters.docker-image-registry >>
+      - run:
+          name: Build and push image
+          no_output_timeout: 90m
+          command: |
+            export DOCKER_IMAGE_PLATFORM="<< parameters.docker-image-platform >>"
+            export DOCKER_IMAGE_VERSION="<< parameters.docker-distroless-version >>"
+            export DOCKER_IMAGE_REF="<< parameters.docker-image-registry >>/<< parameters.docker-image-tag >>"
+
+            TARGETOS="$(echo "${DOCKER_IMAGE_PLATFORM}" | cut -d '/' -f 1)"
+            TARGETARCH="$(echo "${DOCKER_IMAGE_PLATFORM}" | cut -d '/' -f 2)"
+
+            DOCKER_IMAGE_TAG="${DOCKER_IMAGE_REF}.${TARGETARCH}"
+
+            echo "Building image ${DOCKER_IMAGE_TAG} for {os:${TARGETOS}, arch:$TARGETARCH}..."
+            docker build --build-arg VERSION=${DOCKER_IMAGE_VERSION} \
+             --label org.opencontainers.image.created=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+             --label org.opencontainers.image.url="https://consensys.net/codefi/orchestrate/" \
+             --label org.opencontainers.image.source="${CIRCLE_REPOSITORY_URL}" \
+             --label org.opencontainers.image.version="${CIRCLE-TAG-branch}" \
+             --label org.opencontainers.image.revision="${CIRCLE_SHA1:0:7}" \
+             --label org.opencontainers.image.vendor="ConsenSys Software Inc." \
+             --label org.opencontainers.image.title="${CIRCLE_PROJECT_REPONAME}" \
+             --label org.opencontainers.image.description="Orchestrate is a blockchain Transaction Orchestration system" \
+             --label org.opencontainers.image.documentation="https://docs.orchestrate.consensys.net/" \
+             --label org.opencontainers.image.licenses="BUSL-1.1" \
+             --platform ${DOCKER_IMAGE_PLATFORM} \
+             --tag ${DOCKER_IMAGE_TAG} \
+             .
+
+            echo "Pushing image ${DOCKER_IMAGE_TAG} for {os:${TARGETOS}, arch:$TARGETARCH}..."
+            docker push "${DOCKER_IMAGE_TAG}"
+
   # defines the deployment procedure
   # Will update the existing TLS secret of the QKM with fresh PKI data
   # Needs AWS authentication + kubectl tool
@@ -402,6 +459,9 @@ jobs:
       qkm-namespace:
         type: string
         default: "qa-qkm"
+      environment-values:
+        type: string
+        default: "qa"
       docker-image-tag:
         type: string
     steps:
@@ -412,6 +472,7 @@ jobs:
           command: >-
             QKM_TAG="<< parameters.docker-image-tag >>"
             QKM_NAMESPACE="<< parameters.qkm-namespace >>"
+            ENVIRONMENT_VALUES=<< parameters.environment-values >>"
             QKM_REPOSITORY=${CLOUDSMITH_DEV_REPO}/quorum-key-manager
             REGISTRY_USERNAME=${CLOUDSMITH_USER_RW}
             REGISTRY_PASSWORD=${CLOUDSMITH_PASS_RW}
@@ -576,13 +637,30 @@ workflows:
               only: update_ci
           requires:
             - acceptance
+      - build-docker-arm-image: # Push Dev arm image
+          name: push-qkm-dev-arm-image-${CIRCLE_SHA1:0:7}
+          context:
+            - dockerhub-quorumengineering-rw
+            - dockerhub-opsquorum-dct
+            - cloudsmith-tanuki-rw
+          docker-image-tag: "quorum-key-manager:${CIRCLE_SHA1:0:7}"
+          docker-distroless-version: debug-nonroot
+          docker-image-registry: ${CLOUDSMITH_DEV_REPO}
+          docker-user: ${CLOUDSMITH_USER_RW}
+          docker-password: ${CLOUDSMITH_PASS_RW}
+          filters:
+            branches:
+              only: update_ci
+          requires:
+            - acceptance
       # triggers the qa env deployment when the main branch is hit
       # requires that a develop image has been successfully pushed
       - deploy:
           name: "deploy-qa"
           context:
             - cloudsmith-tanuki-rw
-          qkm-namespace: "qa"
+          qkm-namespace: "qa-qkm"
+          environment-values: "qa"
           docker-image-tag: ${CIRCLE_SHA1:0:7}
           filters:
             branches:
@@ -658,6 +736,7 @@ workflows:
           context:
             - cloudsmith-tanuki-rw
           qkm-namespace: "staging-qkm"
+          environment-values: "staging"
           docker-image-tag: ${CIRCLE_SHA1:0:7}
           filters:
             tags:
