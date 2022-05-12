@@ -393,8 +393,8 @@ jobs:
   # REGISTRY_PASSWORD, docker registry pw
   # see scripts/deploy-remote-env.sh for details
   deploy:
-    machine:
-      image: cimg/base:2022.04
+    docker:
+      - image: cimg/base:2022.04
     parameters:
       cluster-name:
         type: string
@@ -408,7 +408,7 @@ jobs:
       - checkout
       - set_remote_environment_variables
       - run:
-          name: Deploy QA environment
+          name: Deploy << parameters.qkm-namespace >> environment
           command: >-
             QKM_TAG="<< parameters.docker-image-tag >>"
             QKM_NAMESPACE="<< parameters.qkm-namespace >>"
