@@ -16,7 +16,7 @@ require (
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/docker/go-connections v0.4.0
-	github.com/ethereum/go-ethereum v1.10.13
+	github.com/ethereum/go-ethereum v1.10.17
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-kit/kit v0.12.0
 	github.com/go-pg/pg/v10 v10.10.1
