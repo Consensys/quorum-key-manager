@@ -9,8 +9,6 @@ TOKEN_HEADER="Circle-Token: ${CIRCLECI_TOKEN}"
 PARAMETERS=""
 [ "$QKM_NAMESPACE" ] && export PARAMETERS=$PARAMETERS,\"qkm-namespace\":\"$QKM_NAMESPACE\"
 [ "$QKM_TAG" ] && export PARAMETERS=$PARAMETERS,\"qkm-tag\":\"$QKM_TAG\"
-[ "$ENVIRONMENT_VALUES" ] && export PARAMETERS=$PARAMETERS,\"environment-values\":\"$ENVIRONMENT_VALUES\"
-[ "$B64_MANIFESTS" ] && export PARAMETERS=$PARAMETERS,\"b64-manifests\":\"$B64_MANIFESTS\"
 [ "$PARAMETERS" ] && PARAMETERS=${PARAMETERS:1}
 
 echo "Pipeline parameters: $PARAMETERS"
