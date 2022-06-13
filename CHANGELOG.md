@@ -1,5 +1,9 @@
 # Quorum Key Manager Release Notes
 
+## v21.12.5 (2022-6-13)
+### 🛠 Bug fixes
+* Fix panic `d.nx != 0` caused by concurrency issue on hashing credentials.
+
 ## v21.12.4 (2022-3-02)
 ### 🛠 Bug fixes
 * Fix padding issue with malleable ECDSA signatures
