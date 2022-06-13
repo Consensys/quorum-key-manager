@@ -709,7 +709,7 @@ workflows:
           type: approval
           filters:
             tags:
-              only: /^v.*/
+              only: /^t.*/
             branches:
               ignore: /.*/
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
@@ -770,16 +770,7 @@ workflows:
               only: update_ci
           requires:
             - deploy-staging
-      # Is a pipeline blocker that requires a human decision and action
-      - wait-for-approval:
-          type: approval
-          filters:
-            tags:
-              only: /^t.*/
-            branches:
-              only: update_ci
-          requires:
-            - e2e-staging
+
       # Tag prod image
       - tag-docker-image:
           name: release-<< matrix.docker-image-destination-tag >>-<< matrix.docker-image-platform >>
