@@ -6,7 +6,6 @@ import (
 	tls2 "crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"hash"
 	"strings"
 
 	"github.com/consensys/quorum-key-manager/pkg/errors"
@@ -27,7 +26,6 @@ type Authenticator struct {
 	logger       log.Logger
 	jwtValidator jwt.Validator
 	apiKeyClaims map[string]*entities.UserClaims
-	hasher       hash.Hash
 	rootCAs      *x509.CertPool
 }
 
@@ -38,7 +36,6 @@ func New(jwtValidator jwt.Validator, apiKeyClaims map[string]*entities.UserClaim
 		jwtValidator: jwtValidator,
 		apiKeyClaims: apiKeyClaims,
 		rootCAs:      rootCAs,
-		hasher:       sha256.New(),
 		logger:       logger,
 	}
 }
@@ -78,13 +75,7 @@ func (authen *Authenticator) AuthenticateAPIKey(_ context.Context, apiKey []byte
 
 	authen.logger.Debug("extracting user info from api key")
 
-	authen.hasher.Reset()
-	_, err := authen.hasher.Write(apiKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to hash api key")
-	}
-
-	apiKeySha256 := fmt.Sprintf("%x", authen.hasher.Sum(nil))
+	apiKeySha256 := fmt.Sprintf("%x", sha256.Sum256(apiKey))
 	claims, ok := authen.apiKeyClaims[apiKeySha256]
 	if !ok {
 		errMessage := "invalid api key"

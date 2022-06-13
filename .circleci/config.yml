@@ -703,6 +703,15 @@ workflows:
               only: update_ci
           requires:
             - e2e-qa
+
+      # Is a pipeline blocker that requires a human decision and action
+      - wait-for-approval:
+          type: approval
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
       # Resulting image is tagged with both ${CIRCLE_TAG} and latest
       # Images are compliant with both linux/amd64 and linux/arm64 architectures
