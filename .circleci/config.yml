@@ -183,8 +183,8 @@ jobs:
           name: Run unit tests in race mode
           command: make run-race
 
-  # defines integration tests and code coverage environment
-  integration:
+  # defines acceptance tests and code coverage environment
+  acceptance:
     machine:
       image: ubuntu-2004:202010-01
     steps:
@@ -607,8 +607,8 @@ workflows:
           requires:
             - gobuild
             - lint
-      # Will run the integration tests locally for each `/^v.*/` git tag and each commit
-      - integration:
+      # Will run the acceptance tests locally for each `/^v.*/` git tag and each commit
+      - acceptance:
           requires:
             - gobuild
             - lint
@@ -618,7 +618,7 @@ workflows:
               only: /.*/
           requires:
             - test
-            - integration
+            - acceptance
       # Will build and push a dev image for each main commit
       # Resulting image is tagged with ${CIRCLE_SHA1:0:7}
       # Images are compliant with linux/amd64 architecture
@@ -670,7 +670,7 @@ workflows:
           requires:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
-      # requires successful Build, Unit and integration tests
+      # requires successful Build, Unit and acceptance tests
       - e2e:
           name: e2e-qa
           test_data: $QA_TEST_DATA
@@ -753,7 +753,7 @@ workflows:
               ignore: /.*/
 
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
-      # requires successful Build, Unit and integration tests
+      # requires successful deploy
       - e2e:
           name: e2e-staging
           test_data: $STAGING_TEST_DATA
