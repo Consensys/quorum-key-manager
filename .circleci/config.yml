@@ -760,6 +760,9 @@ workflows:
           client_no_auth_key: $QKM_CLIENT_NO_AUTH_KEY
           client_no_auth_cert: $QKM_CLIENT_NO_AUTH_CERT
           health_url: "health-staging-qkm.ops.consensys.net"
+          filters:
+            tags:
+              only: /^t.*/
           requires:
             - deploy-staging
 
