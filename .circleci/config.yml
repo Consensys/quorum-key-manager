@@ -636,9 +636,9 @@ workflows:
           docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             branches:
-              only: update_ci
+              only: main
             tags:
-              only: /^t.*/
+              only: /^v.*/
       - build-docker-arm-image: # Push Dev arm image
           name: push-qkm-dev-arm-image-${CIRCLE_SHA1:0:7}
           context:
@@ -652,9 +652,9 @@ workflows:
           docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             branches:
-              only: update_ci
+              only: main
             tags:
-              only: /^t.*/
+              only: /^v.*/
       # triggers the qa env deployment when the main branch is hit
       # requires that a develop image has been successfully pushed
       - deploy:
@@ -666,7 +666,7 @@ workflows:
           docker-image-tag: ${CIRCLE_SHA1:0:7}
           filters:
             branches:
-              only: update_ci
+              only: main
           requires:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
@@ -697,7 +697,7 @@ workflows:
           docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             branches:
-              only: update_ci
+              only: main
           requires:
             - e2e-qa
 
@@ -706,7 +706,7 @@ workflows:
           type: approval
           filters:
             tags:
-              only: /^t.*/
+              only: /^v.*/
             branches:
               ignore: /.*/
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
@@ -730,7 +730,7 @@ workflows:
           docker-password: ${CLOUDSMITH_PASS_RW}
           filters:
             tags:
-              only: /^t.*/
+              only: /^v.*/
             branches:
               ignore: /.*/
           requires:
@@ -748,7 +748,7 @@ workflows:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
           filters:
             tags:
-              only: /^t.*/
+              only: /^v.*/
             branches:
               ignore: /.*/
 
@@ -764,7 +764,7 @@ workflows:
           health_url: "health-staging-qkm.ops.consensys.net"
           filters:
             tags:
-              only: /^t.*/
+              only: /^v.*/
           requires:
             - deploy-staging
 
@@ -788,9 +788,9 @@ workflows:
           docker-image-sign: true
           filters:
             tags:
-              only: /^t.*/
+              only: /^v.*/
             branches:
-              only: update_ci
+              only: main
           requires:
             - wait-for-approval
 # --------------------------
