@@ -745,7 +745,7 @@ workflows:
           environment-values: "staging"
           docker-image-tag: ${CIRCLE_SHA1:0:7}
           requires:
-            - push-orchestrate-dev-image
+            - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
           filters:
             tags:
               only: /^t.*/
