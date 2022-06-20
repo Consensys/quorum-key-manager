@@ -183,8 +183,8 @@ jobs:
           name: Run unit tests in race mode
           command: make run-race
 
-  # defines acceptance tests and code coverage environment
-  acceptance:
+  # defines integration tests and code coverage environment
+  integration:
     machine:
       image: ubuntu-2004:202010-01
     steps:
@@ -597,26 +597,26 @@ workflows:
               only: /.*/
       # Will run the unit tests locally for each `/^v.*/` git tag and each commit
       - test:
-          filters:
-            branches:
-              only: /.*/
+          requires:
+            - gobuild
+            - lint
       # Will run the unit tests in race mode locally for each `/^v.*/` git tag and each commit
       - race:
-          filters:
-            branches:
-              only: /.*/
-      # Will run the acceptance tests locally for each `/^v.*/` git tag and each commit
-      - acceptance:
-          filters:
-            branches:
-              only: /.*/
+          requires:
+            - gobuild
+            - lint
+      # Will run the integration tests locally for each `/^v.*/` git tag and each commit
+      - integration:
+          requires:
+            - gobuild
+            - lint
       - sonarscan:
           filters:
             branches:
               only: /.*/
           requires:
             - test
-            - acceptance
+            - integration
       # Will build and push a dev image for each main commit
       # Resulting image is tagged with ${CIRCLE_SHA1:0:7}
       # Images are compliant with linux/amd64 architecture
@@ -636,7 +636,7 @@ workflows:
             branches:
               only: update_ci
           requires:
-            - acceptance
+            - integration
       - build-docker-arm-image: # Push Dev arm image
           name: push-qkm-dev-arm-image-${CIRCLE_SHA1:0:7}
           context:
@@ -652,7 +652,7 @@ workflows:
             branches:
               only: update_ci
           requires:
-            - acceptance
+            - integration
       # triggers the qa env deployment when the main branch is hit
       # requires that a develop image has been successfully pushed
       - deploy:
@@ -668,7 +668,7 @@ workflows:
           requires:
             - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
-      # requires successful Build, Unit and acceptance tests
+      # requires successful Build, Unit and integration tests
       - e2e:
           name: e2e-qa
           test_data: $QA_TEST_DATA
@@ -754,7 +754,7 @@ workflows:
               ignore: /.*/
 
       # Will run the end 2 end tests locally for each `/^v.*/` git tag and every main commit
-      # requires successful Build, Unit and acceptance tests
+      # requires successful Build, Unit and integration tests
       - e2e:
           name: e2e-staging
           test_data: $STAGING_TEST_DATA
@@ -779,9 +779,9 @@ workflows:
             - dockerhub-opsquorum-dct
           matrix:
             parameters:
-              docker-image-destination-tag: [ "orchestrate:${CIRCLE_TAG}", "orchestrate:latest" ]
+              docker-image-destination-tag: [ "quorum-key-manager:${CIRCLE_TAG}", "quorum-key-manager:latest" ]
               docker-image-platform: [ "linux/amd64", "linux/arm64" ]
-          docker-image-source-tag: orchestrate:${CIRCLE_SHA1:0:7}
+          docker-image-source-tag: quorum-key-manager:${CIRCLE_SHA1:0:7}
           docker-image-source-registry: ${CLOUDSMITH_DEV_REPO}
           docker-image-destination-registry: consensys
           docker-source-user: ${CLOUDSMITH_USER_RW}
