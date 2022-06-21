@@ -709,6 +709,8 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+          requires:
+            - push-qkm-dev-image-${CIRCLE_SHA1:0:7}
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
       # Resulting image is tagged with both ${CIRCLE_TAG} and latest
       # Images are compliant with both linux/amd64 and linux/arm64 architectures
