@@ -56,6 +56,6 @@ Binary will be located in `./build/bin/key-manager`
  
 ## License
 
-Orchestrate is licensed under the BSL 1.1. Please refer to the [LICENSE file](LICENSE) for a detailed description of the license.
+Orchestrate is licensed under Apache-2.0.
 
-Please contact [quorum-key-manager@consensys.net](mailto:quorum-key-manager@consensys.net) if you need to purchase a license for a production use-case.  
+Please refer to the [LICENSE file](LICENSE) for a detailed description of the license.
