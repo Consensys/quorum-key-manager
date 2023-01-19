@@ -3,7 +3,7 @@ module github.com/consensys/quorum-key-manager
 go 1.16
 
 require (
-	github.com/Azure/azure-sdk-for-go v52.5.0+incompatible
+	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.24
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.7
 	github.com/Azure/go-autorest/autorest/date v0.3.0
