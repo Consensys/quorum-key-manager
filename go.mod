@@ -16,7 +16,7 @@ require (
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/docker/go-connections v0.4.0
-	github.com/ethereum/go-ethereum v1.10.13
+	github.com/ethereum/go-ethereum v1.10.22
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-kit/kit v0.12.0
 	github.com/go-pg/pg/v10 v10.10.1
@@ -42,11 +42,11 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.2
 	go.elastic.co/ecszap v1.0.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
+	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.0
