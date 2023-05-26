@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/base64"
 	"net/http"
 	"strings"
 
@@ -51,19 +50,19 @@ func (m *Auth) Middleware(next http.Handler) http.Handler {
 				next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, userInfo)))
 				return
 			case BasicSchema:
-				apiKey, err := base64.StdEncoding.DecodeString(authValue)
-				if err != nil {
-					httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError(err.Error()))
+				_, apiKey, ok := r.BasicAuth()
+				if ok {
+					userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), []byte(apiKey))
+					if err != nil {
+						httpinfra.WriteHTTPErrorResponse(rw, err)
+						return
+					}
+
+					next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, userInfo)))
 					return
 				}
 
-				userInfo, err := m.authenticator.AuthenticateAPIKey(r.Context(), apiKey)
-				if err != nil {
-					httpinfra.WriteHTTPErrorResponse(rw, err)
-					return
-				}
-
-				next.ServeHTTP(rw, r.WithContext(WithUserInfo(ctx, userInfo)))
+				httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("error parsing basic auth"))
 				return
 			default:
 				httpinfra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("unsupported authorization schema %s", authSchema))
