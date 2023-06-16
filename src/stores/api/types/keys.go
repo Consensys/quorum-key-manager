@@ -10,6 +10,7 @@ type CreateKeyRequest struct {
 	Curve            string            `json:"curve" validate:"required,isCurve" example:"secp256k1" enums:"babyjubjub,secp256k1"`
 	SigningAlgorithm string            `json:"signingAlgorithm" validate:"required,isSigningAlgorithm" example:"ecdsa" enums:"ecdsa,eddsa"`
 	Tags             map[string]string `json:"tags,omitempty"`
+	Properties       map[string]string `json:"properties,omitempty" example:"EC-HSM"`
 }
 
 type ImportKeyRequest struct {

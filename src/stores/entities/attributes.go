@@ -29,6 +29,9 @@ type Attributes struct {
 
 	// Tags attached to a stored item
 	Tags map[string]string
+
+	// Properties for further configuration options
+	Properties map[string]string
 }
 
 type Recovery struct {

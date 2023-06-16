@@ -43,7 +43,7 @@ type akvKeyStoreTestSuite struct {
 	keyStore  stores.KeyStore
 }
 
-func TestHashicorpKeyStore(t *testing.T) {
+func TestAkvKeyStore(t *testing.T) {
 	s := new(akvKeyStoreTestSuite)
 	suite.Run(t, s)
 }
@@ -80,6 +80,47 @@ func (s *akvKeyStoreTestSuite) TestCreate() {
 
 	s.Run("should create a new key successfully", func() {
 		s.mockVault.EXPECT().CreateKey(gomock.Any(), id, akv.EC, akv.P256K, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(akvKey, nil)
+
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
+		fmt.Printf("\n\n%s\n\n", hexutil.Encode(key.PublicKey))
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
+	})
+}
+
+func (s *akvKeyStoreTestSuite) TestCreateHsm() {
+	ctx := context.Background()
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
+	attributes.Properties = map[string]string{
+		AZURE_KEY_VAULT_TYPE: "ec-hsm",
+	}
+	version := "1234"
+
+	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
+	akvKey := akv.KeyBundle{
+		Attributes: &akv.KeyAttributes{
+			Enabled: common.ToPtr(true).(*bool),
+			Created: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
+			Updated: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
+		},
+		Key: &akv.JSONWebKey{
+			Kid: &akvKeyID,
+			Crv: akv.P256K,
+			Kty: akv.ECHSM,
+			X:   &base64PubKeyX,
+			Y:   &base64PubKeyY,
+		},
+	}
+
+	s.Run("should create a new key successfully", func() {
+		s.mockVault.EXPECT().CreateKey(gomock.Any(), id, akv.ECHSM, akv.P256K, gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(akvKey, nil)
 
 		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)

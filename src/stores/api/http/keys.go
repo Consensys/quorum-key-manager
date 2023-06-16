@@ -81,7 +81,8 @@ func (h *KeysHandler) create(rw http.ResponseWriter, request *http.Request) {
 			EllipticCurve: entities2.Curve(createKeyRequest.Curve),
 		},
 		&entities.Attributes{
-			Tags: createKeyRequest.Tags,
+			Tags:       createKeyRequest.Tags,
+			Properties: createKeyRequest.Properties,
 		})
 	if err != nil {
 		infrahttp.WriteHTTPErrorResponse(rw, err)

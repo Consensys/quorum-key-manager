@@ -1,5 +1,9 @@
 # Quorum Key Manager Release Notes
 
+## v21.12.6 (2023-6-16)
+### 🆕 Features
+* Add AKV HSM support for Keys.
+
 ## v21.12.5 (2022-6-13)
 ### 🛠 Bug fixes
 * Fix panic `d.nx != 0` caused by concurrency issue on hashing credentials.
