@@ -3,6 +3,7 @@ package akv
 import (
 	"context"
 	"encoding/base64"
+	"strings"
 	"time"
 
 	entities2 "github.com/consensys/quorum-key-manager/src/entities"
@@ -16,6 +17,10 @@ import (
 	"github.com/consensys/quorum-key-manager/src/infra/akv"
 	"github.com/consensys/quorum-key-manager/src/infra/log"
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
+)
+
+const (
+	AZURE_KEY_VAULT_TYPE = "AZURE_KEY_VAULT_TYPE"
 )
 
 type Store struct {
@@ -45,6 +50,11 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities2.Algorithm,
 	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
 		kty = keyvault.EC
 		crv = keyvault.P256K
+		if keyVaultType, ok := attr.Properties[AZURE_KEY_VAULT_TYPE]; ok {
+			if string(keyvault.ECHSM) == strings.ToUpper(keyVaultType) {
+				kty = keyvault.ECHSM
+			}
+		}
 	default:
 		errMessage := "not supported elliptic curve and signing algorithm in AKV for creation"
 		logger.Error(errMessage)

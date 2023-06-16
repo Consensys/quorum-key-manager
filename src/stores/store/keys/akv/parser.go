@@ -42,7 +42,7 @@ func convertToAKVKeyAttr(attr *entities.Attributes) *keyvault.KeyAttributes {
 
 func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyCurveName) *entities2.Algorithm {
 	algo := &entities2.Algorithm{}
-	if kty == keyvault.EC {
+	if kty == keyvault.EC || kty == keyvault.ECHSM {
 		algo.Type = entities2.Ecdsa
 	}
 
@@ -55,7 +55,7 @@ func algoFromAKVKeyTypeCrv(kty keyvault.JSONWebKeyType, crv keyvault.JSONWebKeyC
 
 func pubKeyBytes(key *keyvault.JSONWebKey) []byte {
 	switch {
-	case key.Kty == keyvault.EC && key.Crv == keyvault.P256K:
+	case (key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM) && key.Crv == keyvault.P256K:
 		xBytes, _ := decodePubKeyBase64(*key.X)
 		yBytes, _ := decodePubKeyBase64(*key.Y)
 		pKey := ecdsa.PublicKey{X: new(big.Int).SetBytes(xBytes), Y: new(big.Int).SetBytes(yBytes)}
