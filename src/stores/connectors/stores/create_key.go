@@ -21,9 +21,9 @@ import (
 	"github.com/consensys/quorum-key-manager/pkg/errors"
 )
 
-func (c *Connector) CreateKey(ctx context.Context, name, vaultName, secretStore string, allowedTenants []string, userInfo *authtypes.UserInfo) error {
+func (c *Connector) CreateKey(ctx context.Context, name, vaultName, secretStore string, allowedTenants []string, userInfo *authtypes.UserInfo, properties map[string]interface{}) error {
 	logger := c.logger.With("name", name, "vault", vaultName, "secret_store", secretStore)
-	logger.Debug("creating key store")
+	logger.Debug("creating key store", "properties", properties)
 
 	if vaultName != "" && secretStore != "" {
 		errMessage := "cannot specify vault and secret store simultaneously. Please choose one option"
@@ -48,7 +48,7 @@ func (c *Connector) CreateKey(ctx context.Context, name, vaultName, secretStore 
 		case entities2.HashicorpVaultType:
 			store, err = hashicorp.New(vault.Client.(hashicorpinfra.PluginClient), logger), nil
 		case entities2.AzureVaultType:
-			store, err = akv.New(vault.Client.(akvinfra.KeysClient), logger), nil
+			store, err = akv.New(vault.Client.(akvinfra.KeysClient), logger, properties), nil
 		case entities2.AWSVaultType:
 			store, err = aws.New(vault.Client.(awsinfra.KmsClient), logger), nil
 		default:

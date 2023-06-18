@@ -14,7 +14,7 @@ type Stores interface {
 	CreateEthereum(_ context.Context, name, keyStore string, allowedTenants []string, userInfo *auth.UserInfo) error
 
 	// CreateKey creates a key store
-	CreateKey(_ context.Context, name, vault, secretStore string, allowedTenants []string, userInfo *auth.UserInfo) error
+	CreateKey(_ context.Context, name, vault, secretStore string, allowedTenants []string, userInfo *auth.UserInfo, properties map[string]interface{}) error
 
 	// CreateSecret creates a secret store
 	CreateSecret(_ context.Context, name, vault string, allowedTenants []string, userInfo *auth.UserInfo) error
