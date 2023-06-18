@@ -53,7 +53,7 @@ func (s *akvKeyStoreTestSuite) SetupTest() {
 	defer ctrl.Finish()
 
 	s.mockVault = mocks.NewMockKeysClient(ctrl)
-	s.keyStore = New(s.mockVault, testutils2.NewMockLogger(ctrl))
+	s.keyStore = New(s.mockVault, testutils2.NewMockLogger(ctrl), nil)
 }
 
 func (s *akvKeyStoreTestSuite) TestCreate() {
@@ -236,5 +236,64 @@ func (s *akvKeyStoreTestSuite) TestSign() {
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), hexutil.Encode(signature), expectedSignature)
+	})
+}
+
+type akvKeyStoreTestSuiteDefaultHsm struct {
+	suite.Suite
+	mockVault *mocks.MockKeysClient
+	keyStore  stores.KeyStore
+}
+
+func TestAzureKeyStoreDefaultHsm(t *testing.T) {
+	s := new(akvKeyStoreTestSuiteDefaultHsm)
+	suite.Run(t, s)
+}
+
+func (s *akvKeyStoreTestSuiteDefaultHsm) SetupTest() {
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+
+	s.mockVault = mocks.NewMockKeysClient(ctrl)
+	s.keyStore = New(s.mockVault, testutils2.NewMockLogger(ctrl), map[string]interface{}{
+		PREFER_HSM_BACKED_KEYS: true,
+	})
+}
+
+func (s *akvKeyStoreTestSuiteDefaultHsm) TestCreate() {
+	ctx := context.Background()
+	attributes := testutils.FakeAttributes()
+	algorithm := testutils.FakeAlgorithm()
+	version := "1234"
+
+	akvKeyID := fmt.Sprintf("keyvault.com/keys/%s/%s", id, version)
+	akvKey := akv.KeyBundle{
+		Attributes: &akv.KeyAttributes{
+			Enabled: common.ToPtr(true).(*bool),
+			Created: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
+			Updated: common.ToPtr(date.NewUnixTimeFromNanoseconds(time.Now().UnixNano())).(*date.UnixTime),
+		},
+		Key: &akv.JSONWebKey{
+			Kid: &akvKeyID,
+			Crv: akv.P256K,
+			Kty: akv.EC,
+			X:   &base64PubKeyX,
+			Y:   &base64PubKeyY,
+		},
+	}
+
+	s.Run("should create a new key successfully", func() {
+		s.mockVault.EXPECT().CreateKey(gomock.Any(), id, akv.ECHSM, akv.P256K, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(akvKey, nil)
+
+		key, err := s.keyStore.Create(ctx, id, algorithm, attributes)
+
+		assert.NoError(s.T(), err)
+		assert.Equal(s.T(), publicKey, hexutil.Encode(key.PublicKey))
+		assert.Equal(s.T(), id, key.ID)
+		assert.Equal(s.T(), entities.Ecdsa, key.Algo.Type)
+		assert.Equal(s.T(), entities.Secp256k1, key.Algo.EllipticCurve)
+		assert.False(s.T(), key.Metadata.Disabled)
+		assert.Equal(s.T(), version, key.Metadata.Version)
 	})
 }

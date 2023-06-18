@@ -68,7 +68,7 @@ func (h *StoresHandler) CreateKey(ctx context.Context, name string, allowedTenan
 		return errors.InvalidFormatError(err.Error())
 	}
 
-	err = h.stores.CreateKey(ctx, name, createReq.Vault, createReq.SecretStore, allowedTenants, h.userInfo)
+	err = h.stores.CreateKey(ctx, name, createReq.Vault, createReq.SecretStore, allowedTenants, h.userInfo, createReq.Properties)
 	if err != nil {
 		return err
 	}

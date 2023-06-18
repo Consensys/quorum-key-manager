@@ -18,17 +18,27 @@ import (
 	"github.com/consensys/quorum-key-manager/src/stores/entities"
 )
 
+const (
+	PREFER_HSM_BACKED_KEYS = "PREFER_HSM_BACKED_KEYS"
+)
+
 type Store struct {
-	client akv.KeysClient
-	logger log.Logger
+	client              akv.KeysClient
+	logger              log.Logger
+	preferHsmBackedKeys bool
 }
 
 var _ stores.KeyStore = &Store{}
 
-func New(client akv.KeysClient, logger log.Logger) *Store {
+func New(client akv.KeysClient, logger log.Logger, properties map[string]interface{}) *Store {
+	var preferHsmBackedKeys bool
+	if value, ok := properties[PREFER_HSM_BACKED_KEYS]; ok {
+		preferHsmBackedKeys = value.(bool)
+	}
 	return &Store{
-		client: client,
-		logger: logger,
+		client:              client,
+		logger:              logger,
+		preferHsmBackedKeys: preferHsmBackedKeys,
 	}
 }
 
@@ -40,10 +50,15 @@ func (s *Store) Create(ctx context.Context, id string, alg *entities2.Algorithm,
 	var kty keyvault.JSONWebKeyType
 	var crv keyvault.JSONWebKeyCurveName
 
+	keyVaultType := keyvault.EC
+	if s.preferHsmBackedKeys {
+		keyVaultType = keyvault.ECHSM
+	}
+
 	logger := s.logger.With("elliptic_curve", alg.EllipticCurve, "signing_algorithm", alg.Type)
 	switch {
 	case alg.Type == entities2.Ecdsa && alg.EllipticCurve == entities2.Secp256k1:
-		kty = keyvault.EC
+		kty = keyVaultType
 		crv = keyvault.P256K
 	default:
 		errMessage := "not supported elliptic curve and signing algorithm in AKV for creation"
