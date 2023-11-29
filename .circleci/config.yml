@@ -460,8 +460,6 @@ workflows:
           filters:
             branches:
               only: main
-          requires:
-            - e2e
       # triggers the qa env deployment when the main branch is hit
       # requires that a develop image has been successfully pushed
       - deploy-qa:
@@ -473,15 +471,6 @@ workflows:
           requires:
             - push-qkm-dev-image-quorum-key-manager:develop
       # Is a pipeline blocker that requires a human decision and action
-      - wait-for-approval:
-          type: approval
-          requires:
-            - e2e
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
       # Will build and push a prod (NON debug) image for each `/^v.*/` git tag
       # Resulting image is tagged with both ${CIRCLE_TAG} and latest
       # Images are compliant with both linux/amd64 and linux/arm64 architectures
@@ -499,11 +488,7 @@ workflows:
           docker-image-sign: true
           filters:
             tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - wait-for-approval
+              only: master
       # Will build and push a prod-debug image for each `/^v.*/` git tag
       # requires an approval
       - build-docker-image:
@@ -518,18 +503,12 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - wait-for-approval
       # Will deploy the staging env
       # requires a successful release image (latest tag) pushed
       - deploy-staging:
           filters:
             tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
+              only: master
           requires:
             - release-tag-quorum-key-manager:latest
 
